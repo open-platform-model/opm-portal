@@ -8,10 +8,10 @@
 
 ## 2. Local SelfSubjectAccessReview backend (internal/authz)
 
-- [ ] 2.1 Add `k8s.io/client-go` and `k8s.io/api` at v0.36.4; verify `go mod tidy` leaves `go.mod` unchanged afterwards
-- [ ] 2.2 Add `NewLocal` and the `selfReviewer` backend (exact attributes, one-identity binding, verdict mapping); verify with fake-clientset reactor tests for allowed, denied, no opinion, deny-over-allow, evaluation error with and without allow, API errors and timeouts
-- [ ] 2.3 Add the regression tests against the fake cluster: an empty identity and a foreign identity record zero API actions, and a denied caller gets the same denial for an existing and a missing Deployment with only review actions recorded; verify `go test ./internal/authz` passes
-- [ ] 2.4 `task check` green, then commit `chore(authz): add the local SelfSubjectAccessReview authorizer`
+- [x] 2.1 Add `k8s.io/client-go` and `k8s.io/api` at v0.36.4; verify `go mod tidy` leaves `go.mod` unchanged afterwards
+- [x] 2.2 Add `NewLocal` and the `selfReviewer` backend (exact attributes, one-identity binding, verdict mapping); verify with fake-clientset reactor tests for allowed, denied, no opinion, deny-over-allow, evaluation error with and without allow, API errors and timeouts
+- [x] 2.3 Add the regression tests against the fake cluster: an empty identity and a foreign identity record zero API actions, and a denied caller gets the same denial for an existing and a missing Deployment with only review actions recorded; verify `go test ./internal/authz` passes
+- [x] 2.4 `task check` green, then commit `chore(authz): add the local SelfSubjectAccessReview authorizer`
 
 ## 3. Decision cache (internal/authz)
 
