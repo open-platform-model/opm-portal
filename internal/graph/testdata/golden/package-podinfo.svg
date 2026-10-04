@@ -4,6 +4,6 @@
 <text x="16" y="28" fill="#667085" font-size="11" font-weight="bold">SOURCE</text>
 <text x="280" y="28" fill="#667085" font-size="11" font-weight="bold">PACKAGE</text>
 <path d="M280 66 C248 66 248 66 216 66" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)"><title>sourcedFrom: ModulePackage spec.sourceRef</title></path>
-<g transform="translate(16 44)"><title>src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release</title><rect width="200" height="44" rx="6" fill="#f8f9fb" stroke="#8a8fa0" stroke-width="1.5"/><rect width="5" height="44" rx="2" fill="#8a8fa0"/><text x="12" y="17" fill="#667085" font-size="10.5">source</text><text x="12" y="34" fill="#101828" font-weight="bold">OCIRepository podinfo-rel…</text></g>
+<g transform="translate(16 44)"><title>src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release</title><rect width="200" height="44" rx="6" fill="#f8f9fb" stroke="#8a8fa0" stroke-width="1.5"/><rect width="5" height="44" rx="2" fill="#8a8fa0"/><text x="12" y="17" fill="#667085" font-size="10.5">source</text><text x="12" y="34" fill="#101828" font-weight="bold">OCIReposi… podinfo-release</text></g>
 <g transform="translate(280 44)"><title>mp:pkg/podinfo</title><rect width="200" height="44" rx="6" fill="#f8f9fb" stroke="#8a8fa0" stroke-width="1.5"/><rect width="5" height="44" rx="2" fill="#8a8fa0"/><text x="12" y="17" fill="#667085" font-size="10.5">package · Failed · Unknown</text><text x="12" y="34" fill="#101828" font-weight="bold">pkg/podinfo</text></g>
 </svg>

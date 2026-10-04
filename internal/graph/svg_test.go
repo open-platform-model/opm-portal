@@ -70,8 +70,9 @@ func subtitle(n *Node) string {
 	}
 	if r := n.Registration; r != nil {
 		// A registration's verdict, not its applied state, says how it
-		// stands: a blocked removal reads Stalled like a refusal.
-		parts = append(parts, string(r.Verdict), "accepted "+yesNo(r.Accepted), "active "+yesNo(r.Active))
+		// stands: a blocked removal reads Stalled like a refusal. The
+		// column names the kind, so the two pills fit in full.
+		parts = []string{string(r.Verdict), "acc " + yesNo(r.Accepted) + " act " + yesNo(r.Active)}
 	} else if n.Applied != nil {
 		parts = append(parts, string(n.Applied.State))
 	}
@@ -113,18 +114,21 @@ func stateColor(n *Node) string {
 
 func yesNo(b bool) string {
 	if b {
-		return "yes"
+		return "✓"
 	}
-	return "no"
+	return "✗"
 }
 
-// truncate shortens s to n runes, never splitting one.
+// truncate shortens s to n runes, never splitting one. It cuts from the
+// middle and keeps the longer part at the end, where names differ: a
+// catalog's path and major, a Pod's hash suffix.
 func truncate(s string, n int) string {
 	r := []rune(s)
 	if len(r) <= n {
 		return s
 	}
-	return string(r[:n-1]) + "…"
+	tail := (n - 1) * 2 / 3
+	return string(r[:n-1-tail]) + "…" + string(r[len(r)-tail:])
 }
 
 func esc(s string) string { return html.EscapeString(s) }
