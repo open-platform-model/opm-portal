@@ -64,19 +64,31 @@ Source: 0030:D5:R5.
 ### Requirement: A browser is admitted only through a one-time launch token
 
 At startup the portal SHALL print one launch URL on standard output carrying a random token, and
-SHALL write the token nowhere else. A `GET /launch` carrying that token SHALL spend it, set a
-session cookie and redirect to the landing page; a missing, wrong or already-spent token SHALL be
-refused with `403` and the same body for each. A request that does not carry a live session
-SHALL be refused before any authorization review or read: the read API answers it `401` with code
-`unauthenticated`. `--open` SHALL open the launch URL in the default browser without putting the
-token on any process's command line. Source: 0030:D5:R3.
+SHALL write the token nowhere else except the private launch page `--open` writes (mode `0600`
+in a directory only the user may enter), which shutdown removes. A `GET /launch` carrying that
+token SHALL spend it, set a session cookie and answer `200` with a page, naming no token, that
+moves the browser on to the landing page through a meta refresh and a link. It SHALL NOT
+redirect: a browser treats a redirect as part of the navigation that reached `/launch`, and when
+that navigation started from the `--open` page (a `file://` document) it withholds the new
+`SameSite=Strict` cookie from the landing request. A missing, wrong or already-spent token SHALL
+be refused with `403` and the same body for each. A request that does not carry a live session
+SHALL be refused before any authorization review or read: the read API answers it `401` with
+code `unauthenticated`. `--open` SHALL open the launch URL in the default browser without putting
+the token on any process's command line. Source: 0030:D5:R3.
 
 #### Scenario: Launch and read
 
 - **WHEN** a browser opens the printed launch URL and then requests
   `/api/v1alpha1/clusters/default/instances`
-- **THEN** the launch answers `303` with a session cookie
+- **THEN** the launch answers `200` with a session cookie and a page that refreshes to the
+  landing page
 - **AND** the instance list is served with that cookie
+
+#### Scenario: Launch from the --open page
+
+- **WHEN** Chromium, Firefox or WebKit opens the `file://` page `--open` writes
+- **THEN** the browser ends on the landing page with the session
+- **AND** a reload of that page still carries the session
 
 #### Scenario: A request without the session
 
@@ -107,8 +119,8 @@ appear in a log line, an error or an API response.
 ### Requirement: Requests for another host are refused
 
 The portal SHALL refuse with `403`, before any other step, every request whose `Host` header is
-not exactly `127.0.0.1:<port>`, `localhost:<port>` or `[::1]:<port>` for the port it listens on.
-Source: 0030:D5:R4.
+not exactly `127.0.0.1:<port>`, `localhost:<port>`, `[::1]:<port>` or `<ip>:<port>` for the
+loopback IP `<ip>` and the port it listens on. Source: 0030:D5:R4.
 
 #### Scenario: DNS rebinding
 
@@ -120,6 +132,13 @@ Source: 0030:D5:R4.
 
 - **WHEN** requests arrive with `Host` `127.0.0.1:8123`, `localhost:8123` and `[::1]:8123`
 - **THEN** each passes the host check
+
+#### Scenario: The loopback IP --addr names
+
+- **WHEN** the portal listens on `127.0.0.2:8123` and a request arrives with `Host`
+  `127.0.0.2:8123`
+- **THEN** it passes the host check
+- **AND** a request with `Host` `127.0.0.3:8123` is refused with `403`
 
 ### Requirement: Cross-origin writes are refused
 

@@ -117,16 +117,33 @@ func launchPathOf(t *testing.T, l *Local) string {
 	return u.RequestURI()
 }
 
+// checkHandOff checks that res is the page that moves a launched browser
+// on to the landing page, and that it carries no token.
+func checkHandOff(t *testing.T, res result) {
+	t.Helper()
+	if res.status != http.StatusOK {
+		t.Fatalf("launch status = %d; want 200", res.status)
+	}
+	if ct := res.header.Get("Content-Type"); ct != "text/html; charset=utf-8" {
+		t.Fatalf("launch Content-Type = %q", ct)
+	}
+	if res.header.Get("Location") != "" || res.header.Get("Cache-Control") != "no-store" {
+		t.Fatalf("launch headers = %v; want no Location and Cache-Control no-store", res.header)
+	}
+	const to = "/api/v1alpha1/clusters/default/instances"
+	if !strings.Contains(res.body, `<meta http-equiv="refresh" content="0;url=`+to+`">`) || !strings.Contains(res.body, `<a href="`+to+`">`) {
+		t.Fatalf("launch page = %s; want a refresh and a link to the landing page", res.body)
+	}
+	if strings.Contains(res.body, "token") {
+		t.Fatalf("launch page names the token: %s", res.body)
+	}
+}
+
 // launch exchanges the token and returns the session cookie.
 func (f *fixture) launch(t *testing.T) *http.Cookie {
 	t.Helper()
 	res := f.do(t, request{target: f.launchPath(t)})
-	if res.status != http.StatusSeeOther {
-		t.Fatalf("launch status = %d; want 303", res.status)
-	}
-	if loc := res.header.Get("Location"); loc != "/api/v1alpha1/clusters/default/instances" {
-		t.Fatalf("launch Location = %q", loc)
-	}
+	checkHandOff(t, res)
 	for _, c := range res.cookies {
 		if c.Name == f.l.CookieName() {
 			return c
@@ -175,8 +192,9 @@ func TestLaunchExchangesTheTokenOnce(t *testing.T) {
 
 	// The browser that holds the session is sent on, whatever the token.
 	res = f.do(t, request{target: path, cookie: cookie})
-	if res.status != http.StatusSeeOther || len(res.cookies) != 0 {
-		t.Fatalf("relaunch with the session = %d; want 303 and no new cookie", res.status)
+	checkHandOff(t, res)
+	if len(res.cookies) != 0 {
+		t.Fatalf("relaunch with the session set %d cookies; want none", len(res.cookies))
 	}
 }
 
@@ -270,6 +288,29 @@ func TestHostAllowlist(t *testing.T) {
 	}
 	if f.reached != reached {
 		t.Fatalf("refused hosts reached the next handler %d times", f.reached-reached)
+	}
+}
+
+// A portal bound to another loopback IP also answers that IP, and no other.
+func TestHostAllowlistAddsTheBoundIP(t *testing.T) {
+	l, err := NewLocal(LocalConfig{Identity: me, Host: "127.0.0.2", Port: port})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := l.Handler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) }))
+	for host, want := range map[string]int{
+		"127.0.0.2:8123": http.StatusOK,
+		"127.0.0.1:8123": http.StatusOK,
+		"127.0.0.3:8123": http.StatusForbidden,
+		"127.0.0.2:9999": http.StatusForbidden,
+	} {
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/x", http.NoBody)
+		req.Host = host
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		if rec.Code != want {
+			t.Errorf("Host %q = %d; want %d", host, rec.Code, want)
+		}
 	}
 }
 

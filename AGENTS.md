@@ -221,13 +221,19 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task e2e:local`: build the binary and run `TestLocalMode` (build tag `e2e`) against the
   fixture cluster: launch, reads with and without the session, a foreign `Host`, a cross-site
   `POST`, a pod log on the stream, and a clean `SIGINT`.
+- `task test:browser`: launch a local session in Chromium, Firefox and WebKit from the
+  `--open` page (file://) and from the printed link, through `TestBrowserLaunch` (build tag
+  `browser`) and the Playwright image (podman by default, `OPM_PORTAL_CONTAINER_ENGINE=docker`
+  otherwise; pulls the image and installs the pinned Playwright package, so it needs the
+  network). A Go client ignores SameSite, so only this test catches a launch whose cookie a
+  browser withholds. Run it after any change to `internal/auth` or `openLaunch`.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,
   `managedFields`, the last-applied annotation or `spec.values`, or that does not parse. Moving
   a pin in `test/e2e/versions.env` means recapturing.
 - Single test: `go test ./cmd/opm-portal -run TestRun`.
-- Lint the e2e-tagged test too: `golangci-lint run --build-tags e2e ./cmd/...`.
+- Lint the tagged tests too: `golangci-lint run --build-tags e2e,browser ./cmd/...`.
 
 ## Working Style for Agents
 

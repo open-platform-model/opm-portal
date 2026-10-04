@@ -128,7 +128,7 @@ type LocalConfig struct {
     Identity   authz.Identity // the SelfSubjectReview identity; required, Authenticated
     Host       string         // the bound loopback IP, for the launch URL; default 127.0.0.1
     Port       int            // the bound port; the Host allowlist and the cookie name use it
-    Landing    string         // where a successful launch redirects; default "/"
+    Landing    string         // where a successful launch's page moves on to; default "/"
     SessionTTL time.Duration  // default 12h
     Now        func() time.Time
     Logger     *slog.Logger
@@ -145,7 +145,7 @@ func (l *Local) Handler(next http.Handler) http.Handler
    `Content-Security-Policy: default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
    `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`,
    `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Resource-Policy: same-origin`. The
-   portal serves no HTML yet, so nothing is allowed; the UI change widens the policy to `'self'`
+   only HTML is the launch's hand-off page (step 4), which loads nothing, so nothing is allowed; the UI change widens the policy to `'self'`
    for its own scripts and styles and nothing more.
 2. **Host allowlist**: `r.Host`, lowercased, MUST be exactly `127.0.0.1:<port>`,
    `localhost:<port>`, `[::1]:<port>` or the bound address (another `127.0.0.0/8` IP when
@@ -156,11 +156,17 @@ func (l *Local) Handler(next http.Handler) http.Handler
    non-safe method whose `Sec-Fetch-Site` or `Origin` says it came from another origin. The read
    API is GET only and answers any other method `405`; this keeps a later form or `POST` safe by
    default.
-4. **Launch**: `GET /launch?token=T`. When the request already carries a valid session it is
-   redirected to `Landing` whatever the token. Otherwise the token is compared in constant time
+4. **Launch**: `GET /launch?token=T`. When the request already carries a valid session it gets
+   the hand-off page whatever the token. Otherwise the token is compared in constant time
    with the one-time launch token; on a match the token is spent, a session is created, the
-   cookie is set and the response is `303` to `Landing` with `Cache-Control: no-store`. A wrong,
-   missing or spent token is `403` with the same body for each.
+   cookie is set and the response is `200` with `Cache-Control: no-store` and a hand-off page
+   that moves on to `Landing` through a meta refresh and a link. Not a `303`: found in review,
+   a browser treats a redirect as part of the navigation that reached `/launch`, and when the
+   `--open` page (`file://`) started it, Chromium, Firefox and WebKit all withhold the new
+   `SameSite=Strict` cookie from the landing request. The refresh starts from the portal's own
+   origin, so the landing request is same-site. `TestBrowserLaunch` (`task test:browser`)
+   drives both launches in the three browsers. A wrong, missing or spent token is `403` with
+   the same body for each.
 5. `next`.
 
 `Authenticate` returns the identity and a session key for a request carrying a live session

@@ -51,13 +51,14 @@ What it does with your access:
   A value that became part of another object, such as a ConfigMap entry or a container's
   environment, shows to anyone who may read that object, as it does in `kubectl`.
 - **Listens on loopback only** and answers only requests addressed to `127.0.0.1:<port>`,
-  `localhost:<port>` or `[::1]:<port>`, so a web page that rebinds its own name to 127.0.0.1
-  gets nothing.
+  `localhost:<port>`, `[::1]:<port>` or the loopback IP `--addr` names, so a web page that
+  rebinds its own name to 127.0.0.1 gets nothing.
 - **Admits one browser.** Requests without the session cookie get `401`. Cross-site writes are
   refused, and every response carries a Content-Security-Policy that allows nothing to load.
 - **Logs** go to standard error and never hold the link's token, the cookie or kubeconfig
   content. The link is printed to standard output only. `--open` hands it to the browser through
-  a private file, not a command line other local users could read.
+  a private file, not a command line other local users could read, and removes that file when
+  the portal stops.
 
 The session cookie is `opm-portal-<port>` with `HttpOnly`, `SameSite=Strict`, `Path=/`, no
 `Domain` and a 12-hour `Max-Age`. The portal serves plain HTTP on loopback, so the cookie has no

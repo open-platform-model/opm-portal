@@ -1,13 +1,15 @@
 package auth
 
 import (
+	"html"
 	"io"
 	"net/http"
 	"strings"
 )
 
-// securityHeaders are set on every response, refusals included. The
-// portal serves no HTML yet, so the policy allows nothing at all.
+// securityHeaders are set on every response, refusals included. The only
+// HTML the portal serves is the launch's hand-off page, which needs no
+// script, style or subresource, so the policy allows nothing at all.
 var securityHeaders = [][2]string{
 	{"Content-Security-Policy", "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"},
 	{"X-Content-Type-Options", "nosniff"},
@@ -64,7 +66,7 @@ func (l *Local) serveLaunch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, ok := l.sessionOf(r); ok {
-		http.Redirect(w, r, l.landing, http.StatusSeeOther)
+		l.handOff(w)
 		return
 	}
 	cookie, ok := l.launch(r.URL.Query().Get("token"))
@@ -75,7 +77,27 @@ func (l *Local) serveLaunch(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 	l.log.Info("browser session started")
-	http.Redirect(w, r, l.landing, http.StatusSeeOther)
+	l.handOff(w)
+}
+
+// handOff answers a launch with a page that moves on to the landing page,
+// not with a redirect. serve --open starts the launch from a file:// page,
+// and a browser treats a redirect as part of that cross-site navigation,
+// withholding the new SameSite=Strict cookie from the landing request.
+// The refresh below starts from this page, on the portal's own origin, so
+// the landing request is same-site and carries the session. The page names
+// no token; Referrer-Policy keeps the launch URL out of the next request.
+func (l *Local) handOff(w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "text/html; charset=utf-8")
+	h.Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusOK)
+	to := html.EscapeString(l.landing)
+	page := `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=` + to + `">` +
+		`<title>opm-portal</title><p><a href="` + to + `">Continue to opm-portal</a></p>` + "\n"
+	if _, err := io.WriteString(w, page); err != nil {
+		l.log.Debug("writing the launch hand-off page", "error", err)
+	}
 }
 
 func (l *Local) refuse(w http.ResponseWriter, status int, body string) {
