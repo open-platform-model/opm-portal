@@ -7,9 +7,9 @@
 
 ## 2. Wire types and the OpenAPI contract (api/v1alpha1, openapi)
 
-- [ ] 2.1 Add `api/v1alpha1`: documents, list items, components, inventory objects, children, conditions, history, platform, catalogs, registrations, events, graph, `Removed`, `Problem`, and the problem codes; no functions
-- [ ] 2.2 Write `openapi/v1alpha1.yaml` (OpenAPI 3.1, open enums as `x-extensible-enum`, the verbatim-messages caveat in plain words); verify `oasdiff breaking` parses it against itself
-- [ ] 2.3 `task check` green, then commit `feat(api): add the v1alpha1 wire types and OpenAPI document`
+- [x] 2.1 Add `api/v1alpha1`: documents, list items, components, inventory objects, children, conditions, history, platform, catalogs, registrations, events, graph, `Removed`, `Problem`, and the problem codes; no functions
+- [x] 2.2 Write `openapi/v1alpha1.yaml` (OpenAPI 3.1, open enums as `x-extensible-enum`, the verbatim-messages caveat in plain words); verify `oasdiff breaking` parses it against itself
+- [x] 2.3 `task check` green, then commit `feat(api): add the v1alpha1 wire types and OpenAPI document`
 
 ## 3. Handlers (internal/api)
 
