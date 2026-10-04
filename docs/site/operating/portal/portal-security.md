@@ -9,24 +9,21 @@ The portal reads a cluster as you and shows you only what you could read yoursel
 
 This page assumes you know Kubernetes RBAC. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
-> [!IMPORTANT]
-> **Not in a release yet**
->
-> No `opm-portal` release has local mode yet. This page describes local mode as the portal's design fixes it and as the command that serves it is being built. The rules about what the portal reads and never shows hold in the read API already.
-
 ## How it works
 
 ### Only your machine can reach it
 
-Local mode listens on the loopback address only and refuses to start on any other address. A port on loopback is still open to every process and every user on the same machine, so loopback alone is not enough. The portal prints an address that carries a one-time launch token. The first request with the token receives a session cookie, and every later request must carry that cookie. A request without it is refused with `unauthenticated` before anything is read. Another user on a shared machine, or a process that finds the port, has neither the token nor the cookie.
+Local mode listens on a loopback address only and refuses to start on any other address. A port on loopback is still open to every process and every user on the same machine, so loopback alone is not enough. The portal prints a link that carries a one-time launch token. The first request with the token receives a session cookie, and every later request must carry that cookie. The session lasts at most 12 hours. A request without it is refused with `unauthenticated` before anything is read. Another user on a shared machine, or a process that finds the port, has neither the token nor the cookie.
 
 ### Other web pages cannot use it
 
-A web page you visit in the same browser can send requests to a loopback address. Two defences stop it from reading the cluster through the portal. The portal refuses every request whose `Host` header names anything other than its own loopback address and port, which defeats DNS rebinding, where an attacker's domain is made to resolve to `127.0.0.1`. And the portal answers only `GET`, never sets a permissive cross-origin header, and serves its pages under a strict Content-Security-Policy with no inline script, so another site's page can neither read its responses nor run script in its pages.
+A web page you visit in the same browser can send requests to a loopback address. Two defences stop it from reading the cluster through the portal. The portal refuses every request whose `Host` header names anything other than its own loopback address and port, which defeats DNS rebinding, where an attacker's domain is made to resolve to `127.0.0.1`. And the portal answers only `GET`, refuses any other method from another origin, never sets a permissive cross-origin header, and sends every response with a Content-Security-Policy that allows no script, so another site's page can neither read its responses nor run script in them.
 
 ### Every read is checked before it is made
 
 The portal learns who your kubeconfig authenticates as with a SelfSubjectReview when it starts. Before each read, it asks the API server whether that identity may make it, with a SelfSubjectAccessReview for the exact verb, resource, namespace and name. The API server answers both reviews in its response and stores nothing. Only on an allow does the portal read. A resource you may not read is shown as locked, without being read. A review that fails or times out counts as a denial, and an empty or anonymous identity is refused before any request is sent.
+
+Each answer is cached for up to 30 seconds, for that identity and that exact request. A permission granted or revoked in the cluster therefore takes effect in the portal within 30 seconds, also for a change stream or log stream already open.
 
 The check runs on the request's attributes before anything is looked up. When you may not read a kind in a namespace, the portal gives the same `forbidden` answer whether the object exists or not, and a list you may not read is empty, with no count of what it hides. Inside a page you may read, an object you may not read is marked forbidden instead of failing the page.
 
@@ -50,11 +47,7 @@ Condition messages, status history and event notes are shown exactly as the oper
 
 ### Why check first instead of reading and handling the refusal
 
-The portal could send every read and turn the API server's refusal into a locked node. Checking first lets a page show what is locked before anything is read. It also keeps one place where access is decided, so the in-cluster mode the design plans can swap the self review for a review of the signed-in user without changing any read path.
-
-### Why the self reviews are local only
-
-A SelfSubjectAccessReview answers for whoever sends it. On your machine that is you. Inside a cluster it would be the portal's own ServiceAccount, and a check that answers for the portal would let anyone read what the portal may read. The in-cluster design therefore allows only a SubjectAccessReview that names the signed-in user.
+The portal could send every read and turn the API server's refusal into a locked node. Checking first lets a page show what is locked before anything is read. It also keeps one place where access is decided, apart from the reads.
 
 ### Why a launch token on loopback
 
@@ -76,7 +69,7 @@ The portal reads as you. If `kubectl auth can-i` says no, the portal shows the r
 
 ## What enforces this
 
-- The portal refuses to listen on any address other than loopback, refuses a request without the session cookie, and refuses a request whose `Host` is not its own address and port.
+- The portal refuses to listen on any address other than loopback, refuses a request without the session cookie or after the session ends, and refuses a request whose `Host` is not its own address and port.
 - The portal refuses any verb other than `get`, `list` and `watch`, any read of `secrets`, and any `exec`, `attach`, `portforward` or `proxy` subresource, before a request is sent.
 - The API server decides every SelfSubjectAccessReview, from your RBAC.
 - The portal's read model drops `spec.values` and the last-applied annotation before it stores an object, so no response can carry them.
@@ -85,4 +78,4 @@ The portal reads as you. If `kubectl auth can-i` says no, the portal shows the r
 > [!NOTE]
 > **Direction**
 >
-> An in-cluster mode, with OIDC sign-in and a SubjectAccessReview for the signed-in user before every read, is designed in [enhancement 0030](/enhancements/0030/), a draft, and is not built. Whether the operator removes secret values from condition and event messages is an open question there, to be answered before that mode is released.
+> An in-cluster mode, with OIDC sign-in and a SubjectAccessReview for the signed-in user before every read, is designed in [enhancement 0030](/enhancements/0030/), a draft, and is not built. It would swap the self review for a review of the signed-in user in the one place access is decided, without changing a read path. It would send no self review: inside a cluster, a SelfSubjectAccessReview answers for the portal's own ServiceAccount, and a check that answers for the portal would let anyone read what the portal may read. Whether the operator removes secret values from condition and event messages is an open question there, to be answered before that mode is released.

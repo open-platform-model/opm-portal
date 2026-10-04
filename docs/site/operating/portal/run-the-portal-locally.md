@@ -8,9 +8,9 @@ weight: 20
 Run the portal locally to see what a cluster runs under OPM with your own access, without installing anything in the cluster. The portal reads as the identity your kubeconfig authenticates as, so it shows what your RBAC lets you read and nothing more.
 
 > [!IMPORTANT]
-> **Not in a release yet**
+> **No web UI yet**
 >
-> No `opm-portal` release has the `serve` command this page uses, and the web UI is not built. Until a release has them, build the portal from source on `main` (step 1), and expect the browser to show the read API's JSON. The flags below are the ones `serve` is being built with; this page changes with the release that ships them.
+> The portal's web UI is not built. The browser shows the read API's JSON.
 
 ## Before you begin
 
@@ -36,18 +36,26 @@ Run the portal locally to see what a cluster runs under OPM with your own access
    opm-portal serve --kubeconfig ~/.kube/config --context my-cluster --open
    ```
 
-   The portal listens on the loopback address only and prints the address to open, which carries a one-time launch token. `--open` opens that address in your default browser. Without `--open`, copy the printed address into a browser on the same machine.
+   Without `--kubeconfig`, the portal reads `$KUBECONFIG`, then `~/.kube/config`. Without `--context`, it uses the kubeconfig's current context. To read ModuleInstances and ModulePackages in some namespaces only, add `--namespaces team-a,team-b`.
 
-   The browser trades the launch token for a session cookie on its first request, and the token works only once. To open the portal in another browser, stop the portal and start it again.
+   The portal listens on `127.0.0.1` on a free port and prints a link to open once:
 
-1. Leave the command running while you use the portal. Press Ctrl-C to stop it; the session ends with it.
+   ```text
+   Open this link once to sign in: http://127.0.0.1:<port>/launch?token=<token>
+   ```
+
+   `--open` opens that link in your default browser. Without `--open`, copy the link into a browser on the same machine.
+
+   The browser trades the launch token for a session cookie, and the token works only once. To open the portal in another browser, stop the portal and start it again.
+
+1. Leave the command running while you use the portal. Press Ctrl-C to stop it; the session ends with it. A session also ends 12 hours after the launch. To get a new link, restart the portal.
 
 ## Check that it worked
 
-In the browser the portal opened, go to the instance list of the read API, at the address the portal printed followed by this path:
+After the launch, the browser lands on the instance list of the read API:
 
 ```text
-/api/v1alpha1/clusters/default/instances
+http://127.0.0.1:<port>/api/v1alpha1/clusters/default/instances
 ```
 
 The response is a JSON `InstanceList`. Its `access` field is `ok` when your identity may list ModuleInstances, and each item shows an instance's applied state and health. An `access` of `forbidden` with no items means your identity may not list ModuleInstances in that scope: check your access with:
@@ -56,7 +64,7 @@ The response is a JSON `InstanceList`. Its `access` field is `ok` when your iden
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-namespaces
 ```
 
-A request from a browser that never opened the launch address is refused with the problem code `unauthenticated`.
+A request from a browser that never opened the launch link is refused with the problem code `unauthenticated`.
 
 ## Related
 

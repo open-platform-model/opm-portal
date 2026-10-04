@@ -7,9 +7,9 @@ weight: 60
 The OPM portal shows what a cluster runs under OPM in one place: the Platform, its catalogs and registrations, every ModuleInstance and ModulePackage, the objects each one applied, and the Pods below them, with events and logs beside them. It reads; it never changes anything in the cluster.
 
 > [!IMPORTANT]
-> **No release yet**
+> **No web UI yet**
 >
-> `opm-portal` has no release. Its read API is built, but no released binary serves it yet, and the web UI is not built. Each page in this section says which part it describes is not in a release.
+> The portal's web UI is not built. `opm-portal serve` runs the read API on your machine, and a browser shows its JSON.
 
 ## How-to guides
 

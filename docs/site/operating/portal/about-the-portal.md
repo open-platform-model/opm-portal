@@ -12,9 +12,9 @@ Where `kubectl get` shows one kind at a time, the portal joins the kinds OPM spr
 This page assumes you know what a ModuleInstance is and that you run the operator or the `opm` CLI. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
 > [!IMPORTANT]
-> **Not in a release yet**
+> **No web UI yet**
 >
-> `opm-portal` has no release, and the web UI this page mentions is not built. The read API is built and carries every value this page describes, apart from Pod logs, which reach it with the command that serves it.
+> The web UI this page mentions is not built. The read API carries every value this page describes.
 
 ## How it works
 
@@ -74,7 +74,7 @@ An object no OPM inventory reaches, such as a Deployment you applied with `kubec
 
 - The portal refuses every Kubernetes verb other than `get`, `list` and `watch` before it sends a request. Its only creates are access reviews the API server answers and does not store.
 - The portal refuses a request for an object no inventory reaches, with the same answer a missing permission gets.
-- The API server enforces your access: every read is checked for your identity before it is made.
+- The API server enforces your access: every read is checked for your identity before it is made, against an answer at most 30 seconds old.
 - The read API changes only by addition within `v1alpha1`: the portal's CI refuses a change to its OpenAPI document that removes or renames something, unless the change is marked breaking.
 
 > [!NOTE]

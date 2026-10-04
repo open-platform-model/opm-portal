@@ -7,15 +7,10 @@ weight: 10
 
 This page lists every resource of the OPM portal's read API, version `v1alpha1`, the topics of its change stream and the problem codes it answers with. The full contract, with every document's fields, is the OpenAPI document [`openapi/v1alpha1.yaml`](https://github.com/open-platform-model/opm-portal/blob/main/openapi/v1alpha1.yaml) in the portal's repository.
 
-> [!IMPORTANT]
-> **Not in a release yet**
->
-> No `opm-portal` release serves this API yet. The resources below are built and tested on `main`.
-
 ## Rules for every resource
 
 - Every resource lives below `/api/v1alpha1`, and every method is `GET`. Any other method is refused with `method_not_allowed`.
-- Every path names the cluster. The portal serves one cluster, `default`; any other is refused.
+- Every path names the cluster. The portal serves one cluster, `default`; any other is answered with `not_found`.
 - Every document carries `apiVersion: portal.opmodel.dev/v1alpha1` and a `kind`.
 - Every request is authorized for the caller before anything is looked up. A caller who may not make a read receives the same `forbidden` problem whether or not the object exists. A list the caller may not read is empty, its `access` field is `forbidden`, and it carries no count.
 - An item the caller may not read inside a readable document is marked by its `access` field: `forbidden` (the caller may not read it), `notReadable` (the portal may not read it) or `withheld` (a Secret, never read).
@@ -57,20 +52,32 @@ Paths are below `/api/v1alpha1`.
 | `events:instance:<namespace>/<name>` | `EventList` of an instance |
 | `events:package:<namespace>/<name>` | `EventList` of a package |
 | `events:registration:<name>` | `EventList` of a registration |
+| `log:<namespace>/<pod>/<container>` | The log of one container of a Pod an OPM inventory reaches |
+| `log:<namespace>/<pod>/<container>/previous` | The log of that container's previous, terminated instance |
 
 A `snapshot` event carries `{topic, items: [document]}`; `upsert`, `delete` and `k8sevent` events carry `{topic, item: document}`. A `delete`, and a snapshot of an object that does not exist, carry a `Removed` document. A topic the caller may not follow is closed with a `closed` event naming a problem code. To resume after a disconnect, reconnect with the `Last-Event-ID` header.
 
+A log topic is served where the serving mode routes it; local mode does. Its snapshot carries the recent messages, and `log` and `logend` events carry `{topic, item: message}`. A message has a `seq`, a `type` (`line`, `marker` or `end`), its `container`, and, as its type needs, `time`, `text`, `marker` (`truncated`, `rate-limited` or `skipped`), `cut`, `dropped` or `reason`. These enumerations are open. Log text is untrusted. A session follows at most four log topics at once.
+
 ## Problem codes
 
-Errors are RFC 9457 problem documents, media type `application/problem+json`, with a `code`. The set of codes may grow.
+Every error the read API answers is an RFC 9457 problem document, media type `application/problem+json`, with a `code`. The set of codes may grow.
 
 | Status | `code` | Meaning |
 | --- | --- | --- |
-| 400 | `bad_request` | A path or query value is malformed. |
+| 400 | `bad_request` | A path or query value is malformed, or a topic is malformed, not served or beyond the stream's limit. |
 | 401 | `unauthenticated` | The request names no authenticated user. |
 | 403 | `forbidden` | The caller may not make this read, or the portal does not serve the object. The same for an object that does not exist. |
-| 404 | `not_found` | The object does not exist, and the caller may read its kind there. |
+| 404 | `not_found` | The object does not exist, and the caller may read its kind there, or the cluster is not `default`. |
 | 405 | `method_not_allowed` | The method is not `GET`. |
-| 429 | `too_many_streams` | The session holds as many streams as it may. |
+| 429 | `too_many_streams` | The session, or the portal, holds as many streams as it may. |
 | 503 | `not_readable_by_portal` | The portal's reading identity may not list and watch the kind, or its cache has not synced yet. |
 | 503 | `upstream_unavailable` | An access review or the Kubernetes API failed. Try again. |
+
+## Refusals before the read API
+
+In local mode, the portal's front door answers some requests before the read API sees them. These refusals are `403` with a plain-text body, not problem documents:
+
+- A request whose `Host` header is not `127.0.0.1`, `localhost` or `[::1]` with the portal's port.
+- A `GET /launch` whose token is missing, wrong or already used.
+- A request with a method other than `GET`, `HEAD` or `OPTIONS` that comes from another origin.
