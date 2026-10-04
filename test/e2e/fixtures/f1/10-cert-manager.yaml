@@ -1,0 +1,47 @@
+# cert-manager renders CRDs, webhooks and cluster-scoped RBAC. The operator's own
+# ServiceAccount cannot patch CRDs, so the instance names an applier bound to cluster-admin.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager-applier
+  namespace: cert-manager
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-applier-cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: cert-manager-applier
+    namespace: cert-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+---
+apiVersion: opmodel.dev/v1alpha1
+kind: ModuleInstance
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  module:
+    path: opmodel.dev/modules/cert_manager@v2
+    version: v2.0.5
+  serviceAccountName: cert-manager-applier
+  prune: true
+  values:
+    image:
+      repository: quay.io/jetstack
+      tag: v1.21.0
+      digest: ""
+      pullPolicy: IfNotPresent
+    controller: {logLevel: 2, replicas: 1, resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {cpu: 100m, memory: 128Mi}}}
+    webhook: {logLevel: 2, replicas: 1, securePort: 10250, resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {cpu: 100m, memory: 128Mi}}}
+    cainjector: {logLevel: 2, replicas: 1, resources: {requests: {cpu: 10m, memory: 32Mi}, limits: {cpu: 100m, memory: 128Mi}}}
+    leaderElection: {namespace: cert-manager}

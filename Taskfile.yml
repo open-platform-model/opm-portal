@@ -80,6 +80,23 @@ tasks:
       - go tool cover -html=coverage.out -o coverage.html
 
   #########################
+  ## e2e fixture cluster (test/e2e)
+  #########################
+  e2e:up:
+    desc: 'Create the throwaway kind cluster opm-portal-e2e with the released operator and fixture set F1 (E2E_PROVIDER=podman|docker)'
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER | default "podman"}}'
+    cmds:
+      - test/e2e/up.sh
+
+  e2e:down:
+    desc: Delete the kind cluster opm-portal-e2e
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER | default "podman"}}'
+    cmds:
+      - test/e2e/down.sh
+
+  #########################
   ## OpenSpec tasks
   #########################
   openspec:install:
