@@ -3,11 +3,11 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: Platform
     metadata:
-      creationTimestamp: "2026-10-04T16:30:18Z"
+      creationTimestamp: "2026-10-04T16:52:04Z"
       generation: 1
       name: cluster
-      resourceVersion: "582"
-      uid: 07e2d747-3316-4a76-985d-4711ba10d06b
+      resourceVersion: "920"
+      uid: 5829dda9-e8e7-471d-b9ad-18c924d86052
     spec:
       registry:
         opmodel.dev/catalogs/opm@v4:
@@ -16,27 +16,30 @@ items:
       type: kubernetes
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:30:21Z"
+        - lastTransitionTime: "2026-10-04T16:52:07Z"
           message: Platform module generated and built for generation 1
           observedGeneration: 1
           reason: Generated
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:30:21Z"
+        - lastTransitionTime: "2026-10-04T16:52:40Z"
           message: |-
-            2 provider-fulfilled contracts are defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
+            1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
               opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)
-              opmodel.dev/catalogs/opm/traits/backup@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)
           observedGeneration: 1
           reason: UnfulfilledContracts
           status: "False"
           type: ContractsFulfilled
       observedGeneration: 1
-      operatorVersion: v1.0.0-beta.5
-      packageIdentity: gen-1
+      operatorVersion: v1.0.0-beta.6
+      packageIdentity: gen-1-e1f6ae3f2c30aa1a
       registry:
         - catalog: opmodel.dev/catalogs/opm@v4
           enabled: true
           source: Subscription
           version: 4.6.0
+        - catalog: testing.opmodel.dev/catalogs/operator/backup@v0
+          enabled: true
+          source: Registration
+          version: 0.1.0
 kind: List

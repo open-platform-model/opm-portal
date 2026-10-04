@@ -3,14 +3,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModulePackage
     metadata:
-      creationTimestamp: "2026-10-04T16:30:21Z"
+      creationTimestamp: "2026-10-04T16:52:07Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: podinfo
       namespace: pkg
-      resourceVersion: "977"
-      uid: e24dc447-564d-42fc-acfc-be267fc5a538
+      resourceVersion: "924"
+      uid: 103ac884-e23a-491d-9571-7adbe401b3bc
     spec:
       interval: 1m
       path: .
@@ -21,13 +21,13 @@ items:
         name: podinfo-release
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:30:22Z"
+        - lastTransitionTime: "2026-10-04T16:52:08Z"
           message: Reconciliation in progress
           observedGeneration: 1
           reason: Progressing
           status: "True"
           type: Reconciling
-        - lastTransitionTime: "2026-10-04T16:30:22Z"
+        - lastTransitionTime: "2026-10-04T16:52:08Z"
           message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
           observedGeneration: 1
           reason: SourceNotReady
@@ -37,18 +37,18 @@ items:
         reconcile: 2
       history:
         - action: reconcile
-          finishedAt: "2026-10-04T16:31:22Z"
+          finishedAt: "2026-10-04T16:52:40Z"
           message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
           sequence: 2
-          startedAt: "2026-10-04T16:31:22Z"
+          startedAt: "2026-10-04T16:52:40Z"
         - action: reconcile
-          finishedAt: "2026-10-04T16:30:22Z"
+          finishedAt: "2026-10-04T16:52:08Z"
           message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
           sequence: 1
-          startedAt: "2026-10-04T16:30:22Z"
+          startedAt: "2026-10-04T16:52:08Z"
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T16:31:22Z"
-      lastAttemptedDuration: 1.671903ms
-      nextRetryAt: "2026-10-04T16:32:22Z"
+      lastAttemptedAt: "2026-10-04T16:52:40Z"
+      lastAttemptedDuration: 953.744µs
+      nextRetryAt: "2026-10-04T16:53:40Z"
       observedGeneration: 1
 kind: List

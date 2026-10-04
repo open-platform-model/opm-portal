@@ -3,7 +3,9 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: TransformerRegistration
     metadata:
-      creationTimestamp: "2026-10-04T16:30:47Z"
+      creationTimestamp: "2026-10-04T16:52:38Z"
+      finalizers:
+        - opmodel.dev/dependents
       generation: 1
       labels:
         app.kubernetes.io/instance: registration
@@ -16,8 +18,8 @@ items:
         module.opmodel.dev/uuid: 9ede50a5-502d-5749-ab7a-07923793c01e
         module.opmodel.dev/version: 0.1.0
       name: default.backup-provider
-      resourceVersion: "856"
-      uid: 0680479c-a72e-4e21-87dc-08bdb4aa5fb6
+      resourceVersion: "911"
+      uid: 3b90f97a-4a14-4d0e-b151-15634be080af
     spec:
       catalog: testing.opmodel.dev/catalogs/operator/backup@v0
       providerRef:
@@ -27,18 +29,20 @@ items:
         - opmodel.dev/catalogs/opm/traits/backup@v1alpha1
       version: 0.1.0
     status:
+      accepted: true
+      active: true
       conditions:
-        - lastTransitionTime: "2026-10-04T16:30:47Z"
-          message: 'Claimed catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0 could not be resolved: parsing artifact version testing.opmodel.dev/catalogs/operator/backup@v0@0.1.0: version "0.1.0" (of module "testing.opmodel.dev/catalogs/operator/backup@v0") is not well formed'
+        - lastTransitionTime: "2026-10-04T16:52:39Z"
+          message: Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0
           observedGeneration: 1
-          reason: CatalogUnresolved
+          reason: Accepted
           status: "True"
-          type: Stalled
-        - lastTransitionTime: "2026-10-04T16:30:47Z"
-          message: 'Claimed catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0 could not be resolved: parsing artifact version testing.opmodel.dev/catalogs/operator/backup@v0@0.1.0: version "0.1.0" (of module "testing.opmodel.dev/catalogs/operator/backup@v0") is not well formed'
-          observedGeneration: 1
-          reason: CatalogUnresolved
-          status: "False"
           type: Ready
+        - lastTransitionTime: "2026-10-04T16:52:39Z"
+          message: Provider ModuleInstance default/backup-provider is Ready
+          observedGeneration: 1
+          reason: ProviderReady
+          status: "True"
+          type: Active
       observedGeneration: 1
 kind: List

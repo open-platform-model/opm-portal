@@ -1,4 +1,4 @@
-capturedAt: "2026-10-04T16:31:58Z"
+capturedAt: "2026-10-04T16:53:00Z"
 cluster:
   name: opm-portal-e2e
   provider: podman
@@ -7,12 +7,15 @@ cluster:
   kubernetes: v1.36.1
 opmCLI: v1.0.0-beta.7
 operator:
-  image: ghcr.io/open-platform-model/opm-operator:v1.0.0-beta.5@sha256:cd48321b1ffb17481fc6818c0afa324ce0312bea4af11f36d44f8b91e63b34b1
-  version: v1.0.0-beta.5
+  image: ghcr.io/open-platform-model/opm-operator:v1.0.0-beta.6@sha256:7871a5dd6c2251196b4ac7ce50136a9491f4004e33036c64fa63a20ffaa9825e
+  version: v1.0.0-beta.6
 catalogs:
   - catalog: opmodel.dev/catalogs/opm@v4
     version: 4.6.0
     source: Subscription
+  - catalog: testing.opmodel.dev/catalogs/operator/backup@v0
+    version: 0.1.0
+    source: Registration
 instances:
   - namespace: cert-manager
     name: cert-manager
@@ -22,8 +25,8 @@ instances:
   - namespace: default
     name: backup-consumer
     owner: operator
-    ready: "False"
-    reason: ResolutionFailed
+    ready: "True"
+    reason: ReconciliationSucceeded
   - namespace: default
     name: backup-provider
     owner: operator
@@ -46,12 +49,11 @@ packages:
     reason: SourceNotReady
 registrations:
   - name: default.backup-provider
-    ready: "False"
-    reason: CatalogUnresolved
-    accepted: false
-    active: false
-    note: not accepted and active on this operator; the claim is accepted only by an operator built on library v1.0.0-beta.2 or later
+    ready: "True"
+    reason: Accepted
+    accepted: true
+    active: true
 inventory:
-  objects: 58
+  objects: 59
   secretsSkipped: 0
   missing: []
