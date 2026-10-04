@@ -88,6 +88,17 @@ direction notes. Wording the alert about the web UI keeps it true in any release
 the change that builds the UI removes it (spec: "Behavior that is not built is marked as not
 built").
 
+### Installing from a release
+
+**Context**: a release's docs bundle never changes. A how-to that installs with
+`go install ...@main` would, read in an older release's bundle, install code newer than its pages.
+**Decision**: the how-to downloads the archive for the reader's system from the releases page
+through `releases/latest/download/`, checks it against `checksums.txt` (the assets
+`.goreleaser.yml` builds) and names no version. A source build is a one-line note pinned to
+`latest`.
+**Rationale**: the commands stay true at every release, and the reader gets a binary the release
+workflow built and checksummed.
+
 ### Pins and workflow
 
 `.opm-docs-version` is `v0.7.0`, the newest docs-kit release and the operator's pin.

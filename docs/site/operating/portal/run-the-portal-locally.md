@@ -16,19 +16,23 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 - A kubeconfig for a cluster that runs OPM: the operator, or instances applied with the `opm` CLI.
 - Read access, as that kubeconfig's identity, to the OPM resources you want to see: `get`, `list` and `watch` on `moduleinstances`, `modulepackages`, `platforms` and `transformerregistrations` in the group `opmodel.dev`, and on the objects their inventories name. The portal shows a resource you may not read as locked.
-- To build from source: Go, at the version in the portal's `go.mod`.
+- Linux or macOS, on `amd64` or `arm64`.
 
 ## Steps
 
-1. Install `opm-portal`.
-
-   Build it from source on `main`:
+1. Install `opm-portal` from the [portal's releases page](https://github.com/open-platform-model/opm-portal/releases). Each release has one archive per system, named `opm-portal-<os>-<arch>.tar.gz`, and a `checksums.txt`. For Linux on `amd64`:
 
    ```sh
-   go install github.com/open-platform-model/opm-portal/cmd/opm-portal@main
+   curl -fsSLO https://github.com/open-platform-model/opm-portal/releases/latest/download/opm-portal-linux-amd64.tar.gz
+   curl -fsSLO https://github.com/open-platform-model/opm-portal/releases/latest/download/checksums.txt
+   grep ' opm-portal-linux-amd64.tar.gz$' checksums.txt | sha256sum --check
+   tar -xzf opm-portal-linux-amd64.tar.gz opm-portal
+   sudo install opm-portal /usr/local/bin/
    ```
 
-   Go writes the binary to `$(go env GOPATH)/bin`. Make sure that directory is on your `PATH`.
+   On macOS, use `darwin` for the system and `shasum -a 256 --check` in place of `sha256sum --check`. Use `arm64` for the architecture on an ARM machine.
+
+   To build from source instead, with Go at the version in the portal's `go.mod`, run `go install github.com/open-platform-model/opm-portal/cmd/opm-portal@latest`. Go writes the binary to `$(go env GOPATH)/bin`.
 
 1. Start the portal with your kubeconfig and the context to read:
 
@@ -36,7 +40,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
    opm-portal serve --kubeconfig ~/.kube/config --context my-cluster --open
    ```
 
-   Without `--kubeconfig`, the portal reads `$KUBECONFIG`, then `~/.kube/config`. Without `--context`, it uses the kubeconfig's current context. To read ModuleInstances and ModulePackages in some namespaces only, add `--namespaces team-a,team-b`.
+   Without `--kubeconfig`, the portal reads `$KUBECONFIG`, then `~/.kube/config`. Without `--context`, it uses the kubeconfig's current context.
 
    The portal listens on `127.0.0.1` on a free port and prints a link to open once:
 
@@ -44,9 +48,23 @@ Run the portal locally to see what a cluster runs under OPM with your own access
    Open this link once to sign in: http://127.0.0.1:<port>/launch?token=<token>
    ```
 
-   `--open` opens that link in your default browser. Without `--open`, copy the link into a browser on the same machine.
+   `--open` opens that link in your default browser. Without `--open`, copy the link into a browser on the same machine. To pick the port or another loopback address, pass `--addr`, such as `--addr 127.0.0.1:8080`. The portal refuses to start on an address that is not loopback.
 
-   The browser trades the launch token for a session cookie, and the token works only once. To open the portal in another browser, stop the portal and start it again.
+   The link answers with a short page that gives the browser a session cookie and moves it on to the read API. The token works only once: the browser that opened it may open it again while its session lasts, and any other browser is refused. To open the portal in another browser, stop the portal and start it again.
+
+1. If the portal warns at startup that your kubeconfig's user may not list and watch a kind cluster-wide, your access is limited to some namespaces. The warning reads:
+
+   ```text
+   the kubeconfig's user may not list and watch this kind cluster-wide, so it reads as forbidden; pass --namespaces with the namespaces you may read
+   ```
+
+   Stop the portal and start it again with the namespaces you may read:
+
+   ```sh
+   opm-portal serve --context my-cluster --namespaces team-a,team-b --open
+   ```
+
+   `--namespaces` limits the ModuleInstances and ModulePackages the portal reads to those namespaces. A warning about a kind in a namespace you named means your user may not read that kind there either.
 
 1. Leave the command running while you use the portal. Press Ctrl-C to stop it; the session ends with it. A session also ends 12 hours after the launch. To get a new link, restart the portal.
 

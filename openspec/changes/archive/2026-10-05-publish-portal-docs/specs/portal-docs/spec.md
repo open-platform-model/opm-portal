@@ -124,3 +124,17 @@ after the next release.
   `opm-portal serve` and no web UI
 - **THEN** the page opens with an alert saying the web UI is not built and the browser shows the
   read API's JSON, and it says nothing about releases
+
+### Requirement: The local-mode how-to installs from a release
+
+The how-to for running the portal locally SHALL install `opm-portal` from the portal's GitHub
+releases page: the archive for the reader's system and its entry in `checksums.txt`, checked
+before the binary is used. Its commands SHALL name no version, so the page stays true in the
+bundle of every release. A note on building from source SHALL use `go install` with `latest`,
+never a branch, because a release's bundle would otherwise install code newer than the pages.
+
+#### Scenario: A reader follows the how-to in an older release's bundle
+
+- **WHEN** a reader follows the install step of the how-to in the bundle of any release
+- **THEN** the step downloads a released archive and checks it against `checksums.txt`, and no
+  command installs from `main`
