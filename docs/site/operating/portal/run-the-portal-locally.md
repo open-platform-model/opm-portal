@@ -52,7 +52,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
    The link answers with a short page that gives the browser a session cookie and moves it on to the read API. The token works only once: the browser that opened it may open it again while its session lasts, and any other browser is refused. To open the portal in another browser, stop the portal and start it again.
 
-1. If the portal warns at startup that your kubeconfig's user may not list and watch a kind cluster-wide, your access is limited to some namespaces. The warning reads:
+1. If the portal warns at startup that your kubeconfig's user may not list and watch a kind cluster-wide, your access is limited to some namespaces. The warning's message reads:
 
    ```text
    the kubeconfig's user may not list and watch this kind cluster-wide, so it reads as forbidden; pass --namespaces with the namespaces you may read
@@ -64,7 +64,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
    opm-portal serve --context my-cluster --namespaces team-a,team-b --open
    ```
 
-   `--namespaces` limits the ModuleInstances and ModulePackages the portal reads to those namespaces. A warning about a kind in a namespace you named means your user may not read that kind there either.
+   `--namespaces` limits the ModuleInstances and ModulePackages the portal reads to those namespaces. A warning about a kind in a namespace you named means your user may not read that kind there either. A warning about a cluster-scoped kind, such as Platform or TransformerRegistration, stays after the restart, and that kind reads as forbidden unless your user may list it cluster-wide.
 
 1. Leave the command running while you use the portal. Press Ctrl-C to stop it; the session ends with it. A session also ends 12 hours after the launch. To get a new link, restart the portal.
 
@@ -80,6 +80,18 @@ The response is a JSON `InstanceList`. Its `access` field is `ok` when your iden
 
 ```sh
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-namespaces
+```
+
+If you started the portal with `--namespaces`, the cluster-wide list stays `forbidden` even when the portal works. Open the list for one of your namespaces instead:
+
+```text
+http://127.0.0.1:<port>/api/v1alpha1/clusters/default/instances?namespace=team-a
+```
+
+Check your access in that namespace with:
+
+```sh
+kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev -n team-a
 ```
 
 A request from a browser that never opened the launch link is refused with the problem code `unauthenticated`.
