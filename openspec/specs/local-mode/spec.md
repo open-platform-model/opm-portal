@@ -75,22 +75,23 @@ read cluster-wide SHALL name `--namespaces`. Source: 0030:D5:R5.
 At startup the portal SHALL print one launch URL on standard output carrying a random token, and
 SHALL write the token nowhere else except the private launch page `--open` writes (mode `0600`
 in a directory only the user may enter), which shutdown removes. A `GET /launch` carrying that
-token SHALL spend it, set a session cookie and answer `200` with a page, naming no token, that
-moves the browser on to the landing page through a meta refresh and a link. It SHALL NOT
-redirect: a browser treats a redirect as part of the navigation that reached `/launch`, and when
-that navigation started from the `--open` page (a `file://` document) it withholds the new
-`SameSite=Strict` cookie from the landing request. A missing, wrong or already-spent token SHALL
-be refused with `403` and the same body for each. A request that does not carry a live session
-SHALL be refused before any authorization review or read: the read API answers it `401` with
-code `unauthenticated`. `--open` SHALL open the launch URL in the default browser without putting
-the token on any process's command line. Source: 0030:D5:R3.
+token SHALL spend it, set a session cookie and answer with the UI's landing page itself, rendered
+under the new session, whose script then moves once, from the portal's own origin, to the landing
+page's address, so a reload carries the session and the spent token leaves the history.
+A `GET /launch` from a browser that already holds the live session SHALL answer the same way,
+whatever its token. It SHALL NOT redirect: a browser treats a redirect as part of the navigation
+that reached `/launch`, and when that navigation started from the `--open` page (a `file://`
+document) it withholds the new `SameSite=Strict` cookie from the landing request. A missing,
+wrong or already-spent token SHALL be refused with `403` and the same body for each. A request
+that does not carry a live session SHALL be refused before any authorization review or read: the
+read API answers it `401` with code `unauthenticated`. `--open` SHALL open the launch URL in the
+default browser without putting the token on any process's command line. Source: 0030:D5:R3.
 
 #### Scenario: Launch and read
 
 - **WHEN** a browser opens the printed launch URL and then requests
   `/api/v1alpha1/clusters/default/instances`
-- **THEN** the launch answers `200` with a session cookie and a page that refreshes to the
-  landing page
+- **THEN** the launch answers `200` with a session cookie and the landing page
 - **AND** the instance list is served with that cookie
 
 #### Scenario: Launch from the --open page
@@ -170,12 +171,19 @@ the read API.
 Every response, refusals included, SHALL carry
 `Content-Security-Policy: default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
 `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`,
-`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Resource-Policy: same-origin`.
+`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Resource-Policy: same-origin`. A UI
+page SHALL replace only the Content-Security-Policy, with the page policy the `web-ui`
+capability states, which allows nothing beyond `'self'`.
 
 #### Scenario: A refused host
 
 - **WHEN** a request is refused for its `Host`
 - **THEN** the refusal carries every security header
+
+#### Scenario: A page
+
+- **WHEN** the landing page is served
+- **THEN** it carries the page policy and every other security header unchanged
 
 ### Requirement: Local mode stops cleanly on a signal
 
