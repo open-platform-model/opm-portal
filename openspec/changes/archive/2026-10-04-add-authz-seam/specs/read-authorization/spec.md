@@ -12,7 +12,8 @@ The portal SHALL decide every Kubernetes read on the caller's identity and the r
 read path SHALL NOT be able to read without the proof of an allow for that read. The decision
 SHALL be made without reading the object, so a caller without access receives the same refusal
 for an object that exists and for one that does not, and the refusal SHALL NOT name the object
-or the caller. Source: 0030:D7:R1.
+or the caller. The proof SHALL cover only the identity it was issued to and only its own read, and
+SHALL stop covering any read when the decision it was issued from expires. Source: 0030:D7:R1.
 
 #### Scenario: Existing and missing objects are refused alike
 
@@ -33,6 +34,13 @@ or the caller. Source: 0030:D7:R1.
 - **WHEN** a read path holds the proof of an allow for getting Pod `p` in namespace `a`
 - **THEN** the proof covers that read
 - **AND** it does not cover Pod `p`'s log, another Pod, another namespace, or another verb
+- **AND** it does not cover the same read for another identity
+
+#### Scenario: A held proof expires with its decision
+
+- **WHEN** a read path holds the proof of an allow and the decision it was issued from expires
+- **THEN** the proof no longer covers the read
+- **AND** the read path has to ask again before reading
 
 ### Requirement: An empty identity is refused before any cluster call
 

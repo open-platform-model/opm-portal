@@ -41,38 +41,57 @@ func cacheKey(who Identity, req Attributes) string {
 	return who.key() + "|" + req.key()
 }
 
-func (c *decisionCache) get(key string) (allowed, ok bool) {
+// clock returns the cache's time source. A nil cache uses the wall clock.
+func (c *decisionCache) clock() func() time.Time {
+	if c == nil {
+		return time.Now
+	}
+	return c.now
+}
+
+// get returns the live decision for key. A nil cache holds nothing.
+func (c *decisionCache) get(key string) (cachedDecision, bool) {
+	if c == nil {
+		return cachedDecision{}, false
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	d, ok := c.entries[key]
 	if !ok {
-		return false, false
+		return cachedDecision{}, false
 	}
 	if !c.now().Before(d.expires) {
 		delete(c.entries, key)
-		return false, false
+		return cachedDecision{}, false
 	}
-	return d.allowed, true
+	return d, true
 }
 
-// put stores a decision. When the cache is full it first drops expired
+// put stores a decision and returns it with its expiry, which holds whether
+// or not it was stored. When the cache is full it first drops expired
 // entries; if it is still full the decision is not stored, which costs a
-// review later and never changes an answer.
-func (c *decisionCache) put(key string, allowed bool) {
+// review later and never changes an answer. A nil cache stores nothing and
+// gives the decision the default TTL.
+func (c *decisionCache) put(key string, allowed bool) cachedDecision {
+	if c == nil {
+		return cachedDecision{allowed: allowed, expires: time.Now().Add(defaultTTL)}
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	now := c.now()
+	d := cachedDecision{allowed: allowed, expires: now.Add(c.ttl)}
 	if _, exists := c.entries[key]; !exists && len(c.entries) >= c.max {
-		for k, d := range c.entries {
-			if !now.Before(d.expires) {
+		for k, e := range c.entries {
+			if !now.Before(e.expires) {
 				delete(c.entries, k)
 			}
 		}
 		if len(c.entries) >= c.max {
-			return
+			return d
 		}
 	}
-	c.entries[key] = cachedDecision{allowed: allowed, expires: now.Add(c.ttl)}
+	c.entries[key] = d
+	return d
 }
 
 func (c *decisionCache) len() int {

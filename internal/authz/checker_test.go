@@ -216,14 +216,14 @@ func TestZeroGrant(t *testing.T) {
 	if g.Valid() {
 		t.Fatal("zero Grant is valid")
 	}
-	if err := g.Covers(getDeployment("a", "web")); !errors.Is(err, ErrNoGrant) {
+	if err := g.Covers(alice, getDeployment("a", "web")); !errors.Is(err, ErrNoGrant) {
 		t.Fatalf("zero Grant Covers = %v, want ErrNoGrant", err)
 	}
-	if err := (Grant{}).Covers(Attributes{}); !errors.Is(err, ErrNoGrant) {
+	if err := (Grant{}).Covers(Identity{}, Attributes{}); !errors.Is(err, ErrNoGrant) {
 		t.Fatalf("zero Grant covers zero attributes: %v", err)
 	}
-	if g.Identity().Authenticated() || g.Attributes() != (Attributes{}) {
-		t.Fatal("zero Grant reports an identity or attributes")
+	if g.Identity().Authenticated() || g.Attributes() != (Attributes{}) || !g.Expires().IsZero() {
+		t.Fatal("zero Grant reports an identity, attributes or an expiry")
 	}
 }
 
@@ -252,7 +252,7 @@ func TestGrantCovers(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = g.Covers(tc.req)
+			err = g.Covers(alice, tc.req)
 			if tc.covers && err != nil {
 				t.Fatalf("Covers = %v, want nil", err)
 			}
@@ -260,6 +260,89 @@ func TestGrantCovers(t *testing.T) {
 				t.Fatalf("Covers = %v, want ErrNoGrant", err)
 			}
 		})
+	}
+}
+
+// TestGrantIsBoundToItsIdentity: a grant kept in shared state must not
+// cover the same read for another caller (0030:D7).
+func TestGrantIsBoundToItsIdentity(t *testing.T) {
+	req := getDeployment("team-a", "web")
+	g, err := newChecker(&fakeDecider{allowed: true}, Options{}).Check(t.Context(), alice, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reordered := Identity{Username: "alice", Groups: []string{"system:authenticated", "dev"}}
+	if err := g.Covers(reordered, req); err != nil {
+		t.Fatalf("grant does not cover its own identity with its groups reordered: %v", err)
+	}
+	others := map[string]Identity{
+		"another user":       {Username: "bob", Groups: alice.Groups},
+		"same name, a group": {Username: "alice", Groups: []string{"dev"}},
+		"same name, a uid":   {Username: "alice", UID: "1", Groups: alice.Groups},
+		"empty":              {},
+	}
+	for name, who := range others {
+		t.Run(name, func(t *testing.T) {
+			err := g.Covers(who, req)
+			if !errors.Is(err, ErrNoGrant) {
+				t.Fatalf("Covers = %v, want ErrNoGrant", err)
+			}
+			if strings.Contains(err.Error(), "alice") || strings.Contains(err.Error(), "web") {
+				t.Errorf("error %q names the identity or the object", err)
+			}
+		})
+	}
+}
+
+// TestGrantExpiresWithItsDecision: a held grant (a stream, a long request)
+// stops covering reads when the decision behind it expires, so a revocation
+// reaches it within one TTL.
+func TestGrantExpiresWithItsDecision(t *testing.T) {
+	c, clk := checkerWithClock(&fakeDecider{allowed: true}, Options{TTL: 10 * time.Second})
+	req := getDeployment("team-a", "web")
+	g, err := c.Check(t.Context(), alice, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	clk.advance(9 * time.Second)
+	if err := g.Covers(alice, req); err != nil {
+		t.Fatalf("grant expired early: %v", err)
+	}
+	// A grant issued from the cached decision expires with that decision,
+	// not one TTL after its own issue.
+	cachedGrant, err := c.Check(t.Context(), alice, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cachedGrant.Expires().Equal(g.Expires()) {
+		t.Fatalf("grant from the cache expires at %v, want the decision's %v", cachedGrant.Expires(), g.Expires())
+	}
+	clk.advance(time.Second)
+	for name, held := range map[string]Grant{"fresh": g, "from cache": cachedGrant} {
+		if err := held.Covers(alice, req); !errors.Is(err, ErrNoGrant) {
+			t.Errorf("%s grant Covers after its TTL = %v, want ErrNoGrant", name, err)
+		}
+	}
+}
+
+// TestUncachedGrantStillExpires: a decision the full cache could not store
+// still gives its grant one TTL.
+func TestUncachedGrantStillExpires(t *testing.T) {
+	c, clk := checkerWithClock(&fakeDecider{allowed: true}, Options{MaxEntries: 1})
+	if _, err := c.Check(t.Context(), alice, getDeployment("a", "one")); err != nil {
+		t.Fatal(err)
+	}
+	req := getDeployment("a", "two")
+	g, err := c.Check(t.Context(), alice, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := c.cache.len(); n != 1 {
+		t.Fatalf("cache holds %d entries, want 1 (the second decision not stored)", n)
+	}
+	clk.advance(defaultTTL)
+	if err := g.Covers(alice, req); !errors.Is(err, ErrNoGrant) {
+		t.Fatalf("uncached grant Covers after the TTL = %v, want ErrNoGrant", err)
 	}
 }
 

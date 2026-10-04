@@ -3,14 +3,17 @@
 Every later read path (read model, API, streams, logs) must take its authorization decision
 before it looks anything up, and a shared cache serving many users is exactly where a
 cross-tenant leak happens (0030:D7). If the seam arrives after the first read path, each handler
-has to be audited for it; if it arrives first and is enforced by the type system, a read path
-that skips it does not compile. This change lands the seam before any code reads the cluster.
+has to be audited for it; if it arrives first, every read path takes a `Grant` and calls
+`Covers` with the caller and the read before reading, and a grant covers only the caller it was
+issued to, only its own read, and only while its decision lasts. This change lands the seam before
+any code reads the cluster.
 
 ## What Changes
 
 - New package `internal/authz`: an `Identity`, the read `Attributes` (verb, group, version,
-  resource, subresource, namespace, name), a `Grant` that only `Checker.Check` can construct, a
-  typed `*DenialError` with a closed set of codes, and the `Authorizer` interface.
+  resource, subresource, namespace, name), a `Grant` that only `Checker.Check` can construct and
+  that covers only its own identity and read until its decision expires, a typed `*DenialError`
+  with a closed set of codes, and the `Authorizer` interface.
 - Fail-closed guards that run before any backend call: an empty, blank or anonymous identity is
   refused with no Kubernetes call (the 0030:D6:R2 rule, applied in both milestones), any verb other
   than `get`, `list` or `watch` is refused, core `secrets` are refused whatever the caller's RBAC

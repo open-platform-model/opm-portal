@@ -11,8 +11,10 @@ deny-on-error rules of 0030:D6, and the kubeconfig boundary of 0030:D5.
 
 **Goals:**
 
-- A read path cannot read without a proof of an allow, and the type system, not review, enforces
-  it.
+- A read path cannot read without a proof of an allow for that caller and that read: read paths
+  take a `Grant` and `Covers` refuses anything it was not issued for. `Covers` is the enforcement;
+  the parameter type makes skipping it hard to do by accident, and the read path's tests and
+  review check that it is called.
 - Every refusal the portal can decide alone (empty identity, write verb, Secret, malformed
   request) happens before a cluster call, in one place that every backend shares.
 - One backend (local SSAR) with the cache and deny-on-error behaviour M2 will reuse.
@@ -53,9 +55,10 @@ type Authorizer interface {
 
 type Grant struct{ sealed *grantData }      // unexported field; zero value is invalid
 func (Grant) Valid() bool
-func (Grant) Covers(req Attributes) error   // wraps ErrNoGrant when it does not
+func (Grant) Covers(who Identity, req Attributes) error // wraps ErrNoGrant when it does not
 func (Grant) Identity() Identity            // deep copy
 func (Grant) Attributes() Attributes
+func (Grant) Expires() time.Time
 
 type Code string // unauthenticated | forbidden | invalid | unavailable
 type DenialError struct { Code Code; Attributes Attributes; cause error }
@@ -92,8 +95,9 @@ builds `testdata/forge` and requires the compiler to refuse both forgeries; an A
 whole module refuses any `authz.Grant` literal, `new(authz.Grant)` or type declared from it outside
 the package, and inside it refuses a filled-in literal outside `issue` and a call to `issue`
 outside `(*Checker).Check`. The scanner has its own test that it flags each pattern.
-**Rationale**: the compiler is the proof; the scan keeps the package itself honest, where the
-compiler cannot help.
+**Rationale**: the compiler is the proof that no other package fills one in; the scan keeps the
+package itself honest, where the compiler cannot help. Neither proves that a read path calls
+`Covers`; that is the read path's own test and review.
 
 #### Where the empty-identity guard sits
 
@@ -150,9 +154,22 @@ no principal or credential appears in an error.
 
 #### Covers semantics
 
-**Decision**: verb, group/version/resource and subresource must match exactly; a grant with an
-empty namespace covers any namespace and one with an empty name covers any name, matching how RBAC
-answers a review with those fields empty. Anything else wraps `ErrNoGrant`.
+**Decision**: `Covers(who, req)` first compares `who`'s canonical key with the key of the identity
+the grant was issued to, so a grant kept in shared state (the read model under 0030:D6 reads as
+the portal's ServiceAccount) cannot lend one caller's access to another. It then refuses an expired
+grant. Verb, group/version/resource and subresource must match exactly; a grant with an empty
+namespace covers any namespace and one with an empty name covers any name, matching how RBAC
+answers a review with those fields empty. Anything else wraps `ErrNoGrant`, whose message never
+names the identity or the object.
+
+#### Grant lifetime
+
+**Context**: a grant with no lifetime would let a long-lived holder (the change stream of
+0030:D2:R5, a log stream) keep reading after a revocation that new checks see within one TTL.
+**Decision**: a grant expires when the decision it was issued from expires: a fresh decision's
+expiry is issue time plus the TTL, a cached decision's is the cached entry's expiry, and a decision
+the full cache could not store still gets one TTL. The grant keeps the cache's clock, so tests
+drive expiry. A holder that gets `ErrNoGrant` from `Covers` calls `Check` again.
 
 #### Decision cache
 

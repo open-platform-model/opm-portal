@@ -66,25 +66,21 @@ func (c *Checker) Check(ctx context.Context, who Identity, req Attributes) (Gran
 	}
 
 	key := cacheKey(who, req)
-	allowed, cached := false, false
-	if c.cache != nil {
-		allowed, cached = c.cache.get(key)
-	}
+	d, cached := c.cache.get(key)
 	if !cached {
-		var err error
-		allowed, err = c.decide(ctx, who, req)
+		allowed, err := c.decide(ctx, who, req)
 		if err != nil {
 			// A failure is never cached: the next check asks again (0030:D6:R4).
 			return Grant{}, err
 		}
-		if c.cache != nil {
-			c.cache.put(key, allowed)
-		}
+		d = c.cache.put(key, allowed)
 	}
-	if !allowed {
+	if !d.allowed {
 		return Grant{}, &DenialError{Code: CodeForbidden, Attributes: req}
 	}
-	return issue(who, req), nil
+	// The grant lasts as long as the decision behind it, so a held grant
+	// sees a revocation within one TTL, like a new Check does.
+	return issue(who, req, d.expires, c.cache.clock()), nil
 }
 
 // decide asks the backend under the review timeout and turns any failure

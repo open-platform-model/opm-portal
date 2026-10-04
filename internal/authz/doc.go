@@ -7,9 +7,13 @@
 // the Attributes of the read (verb, group/version/resource, subresource,
 // namespace, name) to Authorizer.Check. Check answers with either a Grant or
 // a *DenialError; there is no third outcome, and every error is a denial.
-// Read paths take a Grant as a parameter and call Grant.Covers before
-// reading, so a read that skipped Check does not compile against them, and a
-// forged zero Grant covers nothing.
+// Read paths take a Grant as a parameter and, before every read, call
+// Grant.Covers with the caller's identity and the read they are about to
+// make. Covers, called by the read path, is the enforcement: it refuses the
+// zero Grant, a grant issued to another identity, an expired grant, and any
+// read the grant was not issued for. The Grant parameter makes a read path
+// that never asked hard to write by accident; it does not prove that the
+// path calls Covers, which review and the read path's tests must check.
 //
 // Only Checker.Check constructs a non-zero Grant. Grant has only unexported
 // fields, so no other package can fill one in; the package's tests prove it
@@ -50,6 +54,9 @@
 //
 // Allow and deny decisions are cached for a short time (30 seconds by
 // default), keyed by the full identity and the full attributes. Group and
-// extra-value order does not change the key. A newly granted or revoked
-// permission is therefore seen within one TTL.
+// extra-value order does not change the key. A Grant expires with the
+// decision it was issued from, so a newly granted or revoked permission is
+// seen within one TTL by new checks and by grants already held. A read path
+// that holds a grant across many reads (a change stream, a log stream) gets
+// ErrNoGrant from Covers once it expires and must call Check again.
 package authz
