@@ -5,8 +5,12 @@
 # contacts a cluster.
 #
 # Checks every file under dir (default testdata/clusters), recursively and whatever its
-# extension, except Markdown. Every document in a file is checked: a List by its items, any
-# other object as itself. A file that does not parse as YAML (JSON included) fails the check.
+# extension, except Markdown. Every document in a file is walked to any depth, so an object is
+# found wherever it sits: a bare object, a List's items, a List inside a List, a top-level
+# sequence, or a map that also carries an items key. An object is any map with both kind and
+# metadata, which leaves out Event.regarding, ownerReferences and inventory entries; a map of
+# kind Secret that carries data or stringData counts as a Secret even without metadata. A file
+# that does not parse as YAML (JSON included) fails the check.
 set -euo pipefail
 
 DIR=${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/testdata/clusters}
@@ -26,9 +30,9 @@ failed=0
 for f in "${files[@]}"; do
   rel=${f#"$DIR"/}
   if ! hits=$(yq -p yaml -o yaml '
-    select(tag == "!!map")
-    | (.items // [.])[]
+    ..
     | select(tag == "!!map")
+    | select((has("kind") and has("metadata")) or (.kind == "Secret" and (has("data") or has("stringData"))))
     | select(
         .kind == "Secret"
         or .metadata.managedFields != null
