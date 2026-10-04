@@ -20,6 +20,20 @@ type Attributes struct {
 	Name        string
 }
 
+// Covers reports whether a, the read a decision was made for, covers req
+// by scope alone, apart from identity and expiry. Verb, resource and
+// subresource must match exactly. An empty namespace covers every namespace,
+// and an empty name covers every object, as RBAC answers an access review
+// with those fields empty. Grant.Covers applies this test, and so does any
+// caller deciding whether a read falls within one already granted.
+func (a Attributes) Covers(req Attributes) bool {
+	return a.Verb == req.Verb &&
+		a.Resource == req.Resource &&
+		a.Subresource == req.Subresource &&
+		(a.Namespace == "" || a.Namespace == req.Namespace) &&
+		(a.Name == "" || a.Name == req.Name)
+}
+
 // readVerbs are the only verbs the portal ever asks for.
 var readVerbs = map[string]bool{"get": true, "list": true, "watch": true}
 
