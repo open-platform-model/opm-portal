@@ -147,12 +147,19 @@ events` in `apps`) and for each item's `Attrs`.
 - **All grants a message used are re-validated in one place before the write.** Every message (a
   snapshot or an item) carries the set of grants it was built under: the topic's grants and the
   grant of every item reviewed on its own. One function, `send`, is the only writer of topic data;
-  right before the event id and the write it checks that whole set with `Grant.Covers` and
-  re-`Check`s any grant that expired during a slow snapshot or render. A per-item `forbidden`
-  drops that item from the message (a snapshot is rebuilt without it, an item event is not
-  written), without a trace; a denial of the topic's grants, or any other code, closes the topic.
-  Nothing is therefore written under a decision that has expired, and a guard test enumerates
-  every write call in the package so a new path cannot bypass `send`.
+  right before the event id and the write it runs a fixpoint: re-`Check` every grant of that set
+  that has expired (the topic's first), then run `Grant.Covers` over the whole set in memory, with
+  no review call, and repeat until such a pass succeeds. A single pass is not enough: a slow
+  re-`Check` of one part (up to the 5 s review timeout) can outlast a grant that covered when it
+  was looked at. A message that does not settle within three rounds of reviews closes its topic
+  with `upstream_unavailable`. A per-item `forbidden` drops that item from the message (a snapshot
+  is rebuilt without it, an item event is not written), without a trace; a denial of the topic's
+  grants, or any other code, closes the topic. The guarantee: every message is written right
+  after an in-memory pass confirms that every decision it used is unexpired; decisions are cached
+  for at most 30 s, so revocation reaches the stream within that TTL. The moment between that
+  pass and the write, with no I/O in between, is inherent to check-then-write and accepted. A
+  guard test enumerates every write call and every use of the response writer in the package, so
+  a new path cannot bypass `send`.
 - **Per item**: inclusion is decided by scope. An item whose `Item.Attrs` falls within one of the
   topic's reads (by `authz.Attributes.Covers`, the scope rule `Grant.Covers` applies: same verb,
   resource and subresource; the read's namespace and name empty or equal) is delivered under the

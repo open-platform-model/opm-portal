@@ -59,12 +59,17 @@
 //     on its own. A forbidden item is left out without a trace.
 //   - All grants a message used are re-validated in one place before the
 //     write: every snapshot and item carries the topic's grants and each
-//     item's own, and the single writer of topic data checks them all with
-//     Grant.Covers right before the event id and the write, asking again for
-//     any that expired during a slow snapshot or render. An item that is now
-//     forbidden is left out (a snapshot is written without it, an item event
-//     not at all); a topic denial or any other error closes the topic, so a
-//     snapshot never arrives cut short by the topic's own grants.
+//     item's own, and the single writer of topic data asks again for any
+//     that expired during a slow snapshot, render or review, then checks
+//     them all with Grant.Covers in memory, repeating until a pass needs no
+//     review (at most three rounds of reviews, or the topic closes with
+//     upstream_unavailable). Every message is written right after an
+//     in-memory pass confirms that every decision it used is unexpired;
+//     decisions are cached for at most 30 s, so revocation reaches the
+//     stream within that TTL. An item that is now forbidden is left out (a
+//     snapshot is written without it, an item event not at all); a topic
+//     denial or any other error closes the topic, so a snapshot never
+//     arrives cut short by the topic's own grants.
 //   - An authorization error is never a delivery: it closes the topic with
 //     the code upstream_unavailable.
 //

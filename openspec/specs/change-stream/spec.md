@@ -81,7 +81,9 @@ detaching such a topic SHALL drop its unsent closed message.
 
 The portal SHALL authorize a topic for the stream's identity, on the reads the topic stands for,
 before attaching it, and SHALL re-check that authorization before delivering each message once
-the decision behind it has expired. The list topics `instances` and `instances:<namespace>`
+the decision behind it has expired. Every message SHALL be written right after an in-memory check
+confirms that every decision it used is unexpired; decisions are cached for at most 30 s, so
+revocation reaches the stream within that TTL. The list topics `instances` and `instances:<namespace>`
 SHALL follow the read model's list rule, as a `GET` list does: `instances` SHALL require a
 cluster-wide `list` grant on instances and `instances:<namespace>` a `list` grant on that
 namespace, a reader without it SHALL be refused the topic with the same denial the `GET` list
@@ -121,6 +123,17 @@ one. Source: 0030:D7:R2, 0030:D5:R5, 0030:D6:R4.
 - **THEN** the snapshot is written without that item and with no trace of it
 - **AND** had the item's review failed with an error instead, the topic would be closed with code
   `upstream_unavailable` and no snapshot written
+
+#### Scenario: A message is written only right after every decision it used is confirmed
+
+- **WHEN** a message's grants are asked again before the write and one review is slow enough that
+  another grant the message used, which still covered moments before, expires meanwhile
+- **THEN** that grant is asked again too, and the message is written only right after a check,
+  with no review in between, confirms that every decision it used is unexpired
+- **AND** a topic revoked meanwhile is closed with code `forbidden` and the message is not written
+- **AND** an item revoked meanwhile is left out without a trace
+- **AND** a message whose decisions keep expiring this way closes its topic with code
+  `upstream_unavailable` after a bounded number of rounds
 
 #### Scenario: A reader allowed single names is refused the list topic
 
