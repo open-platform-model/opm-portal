@@ -22,8 +22,7 @@
 // byte limit, which would end a followed stream outright: an oversize line
 // is cut and marked, lines over the rate are dropped and counted, and an
 // oversize initial tail keeps its newest lines after a marker counting the
-// older ones. A container that stops
-// ends its topic with a logend message.
+// older ones. A container that stops ends its topic with a logend message.
 //
 // Log lines are untrusted text. They travel only as JSON strings in stream
 // items and never appear in the portal's own logs or errors.
