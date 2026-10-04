@@ -1,0 +1,13 @@
+{{define "list-filter"}}
+<form class="filter" method="get" action="/{{.Kind.Path}}" role="search">
+  <label for="namespace">Namespace</label>
+  <input id="namespace" name="namespace" value="{{.Namespace}}" list="namespaces" placeholder="all namespaces" autocomplete="off" spellcheck="false">
+  <datalist id="namespaces">{{range .Namespaces}}<option value="{{.}}">{{end}}</datalist>
+  <button type="submit">Filter</button>
+  {{if .Namespace}}<a class="clear" href="/{{.Kind.Path}}">Show all</a>{{end}}
+</form>
+{{end}}
+
+{{define "list-locked"}}
+<div class="locked-panel">{{template "lock"}}<p>Locked: you may not list {{.Kind.Plural | lower}}{{if .Namespace}} in namespace <span class="mono">{{.Namespace}}</span>{{else}} in every namespace{{end}}. {{if not .Namespace}}Filter by a namespace you may read.{{end}}</p></div>
+{{end}}

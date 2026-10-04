@@ -1,0 +1,10 @@
+{{define "content"}}{{with .Main}}
+<div class="fragment">
+{{if .Problem}}<h2 class="frag-h">Object</h2>{{template "problem-region" .Problem}}
+{{else}}
+<h2 class="frag-h">YAML <span class="mono h-note">{{.Text}}</span></h2>
+<p class="note">As the cluster serves it, without managed fields, the last-applied annotation or an instance's values. A value rendered into this object shows here as it does in kubectl.</p>
+<pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>
+{{end}}
+</div>
+{{end}}{{end}}

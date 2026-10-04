@@ -1,0 +1,179 @@
+<main id="main" tabindex="-1" data-topics="platform events:platform" data-canonical="/">
+<header class="page-head reveal" id="platform-head" data-follow="platform" hx-get="/" hx-trigger="portal:changed delay:400ms" hx-select="#platform-head" hx-target="this" hx-swap="outerHTML">
+  <p class="kicker">Platform · kubernetes · operator v1.0.0-beta.6</p>
+  <h1>cluster</h1>
+  <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></div>
+  <p class="lede">Platform module generated and built for generation 1</p>
+  <aside class="info" aria-label="Contracts">
+    <p class="info-head"><span class="label">Contracts</span> Some provider-fulfilled contracts have no provider yet. This is information, not a failure: a module that demands one waits until a provider registers.</p>
+    <pre class="info-body">1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
+  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)</pre>
+  </aside>
+</header>
+<div class="stats reveal" aria-label="Summary">
+  <div class="stat"><span class="stat-n">1</span><span class="stat-l">subscriptions</span></div>
+  <div class="stat"><span class="stat-n">2</span><span class="stat-l">catalogs resolved</span></div>
+  <div class="stat"><span class="stat-n">1</span><span class="stat-l">claims accepted</span></div>
+  <div class="stat stat-alert"><span class="stat-n">1</span><span class="stat-l">claims refused</span></div>
+</div>
+<section class="panel reveal" id="catalogs" aria-labelledby="catalogs-h" data-follow="platform" hx-get="/" hx-trigger="portal:changed delay:400ms" hx-select="#catalogs" hx-target="this" hx-swap="outerHTML">
+  <h2 id="catalogs-h">Catalogs</h2>
+  <h3 class="sub-h">Subscriptions</h3>
+  <ul class="subs">
+    <li class="sub"><span class="mono">opmodel.dev/catalogs/opm@v4</span><span class="ver">4.6.0</span></li>
+  </ul>
+  <h3 class="sub-h">Resolved registry</h3>
+  <ul class="registry">
+    <li class="entry">
+      <p class="entry-name"><span class="mono">opmodel.dev/catalogs/opm@v4</span> <span class="ver">4.6.0</span></p>
+      <dl class="facts">
+        <dt>Source</dt><dd>Subscription</dd>
+        <dt>Claimed by</dt><dd><span class="muted">no registration</span></dd>
+      </dl>
+    </li>
+    <li class="entry">
+      <p class="entry-name"><span class="mono">testing.opmodel.dev/catalogs/operator/backup@v0</span> <span class="ver">0.1.0</span></p>
+      <dl class="facts">
+        <dt>Source</dt><dd>Registration, contributed by <span class="mono">default.backup-provider</span></dd>
+        <dt>Claimed by</dt><dd><span class="mono chip">default.backup-provider</span> </dd>
+      </dl>
+    </li>
+  </ul>
+</section>
+<section class="panel reveal" id="registrations" aria-labelledby="registrations-h" data-follow="platform" hx-get="/" hx-trigger="portal:changed delay:400ms" hx-select="#registrations" hx-target="this" hx-swap="outerHTML">
+  <h2 id="registrations-h">Registrations <span class="h-note">transformer claims on catalogs</span></h2>
+  
+  <ul class="cards">
+    <li class="card reg reg-Accepted">
+      <div class="card-head">
+        <h3 class="card-title mono">default.backup-provider</h3>
+        <span class="verdict verdict-accepted">Accepted</span>
+      </div>
+      <p class="pills">
+        <span class="pill pill-yes">accepted</span>
+        <span class="pill pill-yes">active</span>
+      </p>
+      <dl class="facts">
+        <dt>Catalog</dt><dd class="mono">testing.opmodel.dev/catalogs/operator/backup@v0 <span class="ver">0.1.0</span></dd>
+        <dt>Provides</dt><dd><span class="mono chip">opmodel.dev/catalogs/opm/traits/backup@v1alpha1</span> </dd>
+        <dt>Provider</dt><dd><a class="mono" href="/instances/default/backup-provider">default/backup-provider</a></dd>
+      </dl>
+      <p class="verdict-why"><span class="label">Verdict</span> <span class="mono">Accepted</span><span class="msg">Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</span></p>
+      <p class="verdict-why"><span class="label">Activation</span> <span class="mono">ProviderReady</span><span class="msg">Provider ModuleInstance default/backup-provider is Ready</span></p>
+      <p class="card-foot"><a href="/platform/registrations/default.backup-provider/events" hx-get="/platform/registrations/default.backup-provider/events" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Recent events</a></p>
+    </li>
+    <li class="card reg reg-Refused">
+      <div class="card-head">
+        <h3 class="card-title mono">default.refused-claim-fixture</h3>
+        <span class="verdict verdict-refused">Refused</span>
+      </div>
+      <p class="pills">
+        <span class="pill pill-no">not accepted</span>
+        <span class="pill pill-no">inactive</span>
+      </p>
+      <dl class="facts">
+        <dt>Catalog</dt><dd class="mono">testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 <span class="ver">0.1.0</span></dd>
+        <dt>Provider</dt><dd><a class="mono" href="/instances/default/refused-claim-fixture">default/refused-claim-fixture</a></dd>
+      </dl>
+      <p class="verdict-why"><span class="label">Refused</span> <span class="mono">CatalogUnresolved</span><span class="msg">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</span></p>
+      <p class="card-foot"><a href="/platform/registrations/default.refused-claim-fixture/events" hx-get="/platform/registrations/default.refused-claim-fixture/events" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Recent events</a></p>
+    </li>
+  </ul>
+</section>
+<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="platform" hx-get="/" hx-trigger="portal:changed delay:400ms" hx-select="#graph" hx-target="this" hx-swap="outerHTML">
+  <h2 id="graph-h">Platform graph <span class="h-note">select a node for details</span></h2>
+<div class="graph" data-graph="platform-graph">
+  <div class="graph-tools" role="group" aria-label="Graph zoom">
+    <span class="hint">drag to pan · ctrl + wheel to zoom</span>
+    <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+    <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
+    <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
+    <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+  </div>
+  <div class="graph-frame">
+  <svg viewBox="0 0 1024 160" width="1024" height="160" role="group" aria-label="Relationship graph">
+    <defs>
+      <marker id="platform-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
+      <pattern id="platform-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+    </defs>
+    <g class="viewport">
+      <text class="col-title" x="16" y="20">Platform</text><text class="col-title" x="280" y="20">Catalogs</text><text class="col-title" x="544" y="20">Registrations</text><text class="col-title" x="808" y="20">Providers</text>
+      <path class="edge edge-contributes" d="M544 66 C512 66, 512 122, 480 122" marker-end="url(#platform-graph-arrow)"><title>contributes, from Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration</title></path><path class="edge edge-providedBy" d="M744 66 C776 66, 776 66, 808 66" marker-end="url(#platform-graph-arrow)"><title>providedBy, from TransformerRegistration spec.providerRef, checked against the provider&#39;s status.inventory</title></path><path class="edge edge-providedBy unverified" d="M744 122 C776 122, 776 122, 808 122" marker-end="url(#platform-graph-arrow)"><title>providedBy, from TransformerRegistration spec.providerRef, checked against the provider&#39;s status.inventory; not confirmed: ProviderNotFound</title></path><path class="edge edge-resolves" d="M216 94 C248 94, 248 66, 280 66" marker-end="url(#platform-graph-arrow)"><title>resolves, from Platform status.registry</title></path><path class="edge edge-resolves" d="M216 94 C248 94, 248 122, 280 122" marker-end="url(#platform-graph-arrow)"><title>resolves, from Platform status.registry</title></path>
+      <a class="node kind-platform applied-applied" href="/?node=plat%3Acluster" data-panel="/platform/node?id=plat%3Acluster" tabindex="0" aria-label="Platform, cluster, Applied">
+        <rect class="node-box" x="16" y="72" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="16" y="72" width="5" height="44" rx="2"/>
+        <text class="node-label" x="28" y="91">cluster</text>
+        <text class="node-sub" x="28" y="106">Platform</text>
+      </a>
+      <a class="node kind-catalog" href="/?node=cat%3Aopmodel.dev%252Fcatalogs%252Fopm%2540v4" data-panel="/platform/node?id=cat%3Aopmodel.dev%252Fcatalogs%252Fopm%2540v4" tabindex="0" aria-label="Catalog, opmodel.dev/catalogs/opm@v4">
+        <rect class="node-box" x="280" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="280" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="292" y="63">opmodel.dev/catalogs/opm@…</text>
+        <text class="node-sub" x="292" y="78">Catalog</text>
+      </a>
+      <a class="node kind-catalog" href="/?node=cat%3Atesting.opmodel.dev%252Fcatalogs%252Foperator%252Fbackup%2540v0" data-panel="/platform/node?id=cat%3Atesting.opmodel.dev%252Fcatalogs%252Foperator%252Fbackup%2540v0" tabindex="0" aria-label="Catalog, testing.opmodel.dev/catalogs/operator/backup@v0">
+        <rect class="node-box" x="280" y="100" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="280" y="100" width="5" height="44" rx="2"/>
+        <text class="node-label" x="292" y="119">testing.opmodel.dev/catal…</text>
+        <text class="node-sub" x="292" y="134">Catalog</text>
+      </a>
+      <a class="node kind-registration applied-applied" href="/?node=treg%3Adefault.backup-provider" data-panel="/platform/node?id=treg%3Adefault.backup-provider" tabindex="0" aria-label="Registration, default.backup-provider, Applied">
+        <rect class="node-box" x="544" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="544" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="556" y="63">default.backup-provider</text>
+        <text class="node-sub" x="556" y="78">TransformerRegistration</text>
+      </a>
+      <a class="node kind-registration applied-stalled" href="/?node=treg%3Adefault.refused-claim-fixture" data-panel="/platform/node?id=treg%3Adefault.refused-claim-fixture" tabindex="0" aria-label="Registration, default.refused-claim-fixture, Stalled">
+        <rect class="node-box" x="544" y="100" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="544" y="100" width="5" height="44" rx="2"/>
+        <text class="node-label" x="556" y="119">default.refused-claim-fix…</text>
+        <text class="node-sub" x="556" y="134">TransformerRegistration</text>
+      </a>
+      <a class="node kind-instance health-healthy applied-applied" href="/?node=mi%3Adefault%2Fbackup-provider" data-panel="/platform/node?id=mi%3Adefault%2Fbackup-provider" tabindex="0" aria-label="Instance, default/backup-provider, health Healthy, Applied">
+        <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="808" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="820" y="63">default/backup-provider</text>
+        <text class="node-sub" x="820" y="78">Instance</text>
+      </a>
+      <a class="node kind-instance health-missing" href="/?node=mi%3Adefault%2Frefused-claim-fixture" data-panel="/platform/node?id=mi%3Adefault%2Frefused-claim-fixture" tabindex="0" aria-label="Instance, default/refused-claim-fixture, missing">
+        <rect class="node-box" x="808" y="100" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="808" y="100" width="5" height="44" rx="2"/>
+        <text class="node-label" x="820" y="119">default/refused-claim-fix…</text>
+        <text class="node-sub" x="820" y="134">Instance</text>
+      </a>
+    </g>
+  </svg>
+  </div>
+</div>
+</section>
+<section class="panel panel-7 reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform" hx-get="/" hx-trigger="portal:changed delay:400ms" hx-select="#conditions" hx-target="this" hx-swap="outerHTML">
+  <h2 id="conditions-h">Conditions</h2>
+<ol class="conditions">
+  <li class="condition cond-true">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">Generated</span><span class="cond-time"><time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC">6m ago</time></span></div>
+    <p class="cond-message">Platform module generated and built for generation 1</p>
+    <p class="cond-meaning">The platform module was generated and built.</p>
+  </li>
+  <li class="condition cond-false">
+    <div class="cond-head"><span class="cond-type">ContractsFulfilled</span><span class="cond-status">False</span><span class="cond-reason">UnfulfilledContracts</span><span class="cond-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <p class="cond-message">1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
+  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)</p>
+    <p class="cond-meaning">Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers.</p>
+  </li>
+</ol>
+</section>
+<aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  <p class="muted">Select a graph node or a registration's events to see them here.</p>
+</aside>
+<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:platform" hx-get="/" hx-trigger="portal:changed delay:400ms" hx-select="#events" hx-target="this" hx-swap="outerHTML">
+  <h2 id="events-h">Recent events</h2>
+  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
+<ol class="events">
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Generated</span><span class="ev-count" title="Repeats folded into one line">×2</span><span class="ev-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <p class="ev-note">Platform module generated and built for generation 1</p>
+    <p class="ev-meta mono">Platform.opmodel.dev cluster · opm-controller</p>
+  </li>
+</ol>
+</section>
+</main>

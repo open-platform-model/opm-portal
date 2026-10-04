@@ -1,0 +1,105 @@
+{{define "content"}}{{$p := .}}{{with .Main}}
+{{if .Problem}}
+<header class="page-head">
+  <p class="kicker">Platform</p>
+  <h1>The platform</h1>
+</header>
+<section class="panel" aria-labelledby="platform-unreadable">
+  <h2 id="platform-unreadable">Platform</h2>
+  {{template "problem-region" .Problem}}
+</section>
+{{else}}{{with .Platform}}
+<header class="page-head reveal" id="platform-head" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#platform-head" hx-target="this" hx-swap="outerHTML">
+  <p class="kicker">Platform · {{.Type}}{{with .OperatorVersion}} · operator {{.}}{{end}}</p>
+  <h1>{{.Name}}</h1>
+  <div class="axes">{{template "applied" .Reconcile}}</div>
+  {{with .Reconcile.Message}}<p class="lede">{{.}}</p>{{end}}
+  {{range .Reconcile.Notes}}{{if eq .Type "ContractsFulfilled"}}
+  <aside class="info" aria-label="Contracts">
+    <p class="info-head"><span class="label">Contracts</span> {{if eq .Status "True"}}Every provider-fulfilled contract has a provider.{{else}}Some provider-fulfilled contracts have no provider yet. This is information, not a failure: a module that demands one waits until a provider registers.{{end}}</p>
+    {{with .Message}}<pre class="info-body">{{.}}</pre>{{end}}
+  </aside>
+  {{end}}{{end}}
+</header>
+{{end}}
+
+<div class="stats reveal" aria-label="Summary">
+  <div class="stat"><span class="stat-n">{{len .Platform.Subscriptions}}</span><span class="stat-l">subscriptions</span></div>
+  <div class="stat"><span class="stat-n">{{len .Platform.Catalogs}}</span><span class="stat-l">catalogs resolved</span></div>
+  <div class="stat"><span class="stat-n">{{.Accepted}}</span><span class="stat-l">claims accepted</span></div>
+  <div class="stat{{if .Refused}} stat-alert{{end}}"><span class="stat-n">{{.Refused}}</span><span class="stat-l">claims refused</span></div>
+</div>
+
+<section class="panel reveal" id="catalogs" aria-labelledby="catalogs-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#catalogs" hx-target="this" hx-swap="outerHTML">
+  <h2 id="catalogs-h">Catalogs</h2>
+  <h3 class="sub-h">Subscriptions</h3>
+  {{if .Platform.Subscriptions}}
+  <ul class="subs">
+    {{range .Platform.Subscriptions}}<li class="sub"><span class="mono">{{.Catalog}}</span>{{with .Version}}<span class="ver">{{.}}</span>{{end}}{{with .Enable}}{{if not .}}<span class="pill pill-off">disabled</span>{{end}}{{end}}</li>{{end}}
+  </ul>
+  {{else}}<p class="muted">The Platform subscribes to no catalog.</p>{{end}}
+  <h3 class="sub-h">Resolved registry</h3>
+  <ul class="registry">
+  {{range .Platform.Catalogs}}
+    <li class="entry">
+      <p class="entry-name"><span class="mono">{{.Catalog}}</span> {{with .Version}}<span class="ver">{{.}}</span>{{end}}{{if not .Enabled}} <span class="pill pill-off">disabled</span>{{end}}</p>
+      <dl class="facts">
+        <dt>Source</dt><dd>{{.Source}}{{with .ContributedBy}}, contributed by <span class="mono">{{.}}</span>{{end}}</dd>
+        <dt>Claimed by</dt><dd>{{if .Claimants}}{{range .Claimants}}<span class="mono chip">{{.}}</span> {{end}}{{else}}<span class="muted">no registration</span>{{end}}</dd>
+      </dl>
+    </li>
+  {{end}}
+  </ul>
+</section>
+
+<section class="panel reveal" id="registrations" aria-labelledby="registrations-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#registrations" hx-target="this" hx-swap="outerHTML">
+  <h2 id="registrations-h">Registrations <span class="h-note">transformer claims on catalogs</span></h2>
+  {{if ne .Platform.RegistrationsAccess "ok"}}{{template "locked" .Platform.RegistrationsAccess}}<p class="muted">Only the registrations you may read are listed below.</p>{{end}}
+  {{if .Platform.Registrations}}
+  <ul class="cards">
+  {{range .Platform.Registrations}}
+    <li class="card reg reg-{{.Verdict}}">
+      <div class="card-head">
+        <h3 class="card-title mono">{{.Name}}</h3>
+        {{with verdictBadge .Verdict}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}>{{.Text}}</span>{{end}}
+      </div>
+      <p class="pills">
+        <span class="pill {{if .Accepted}}pill-yes{{else}}pill-no{{end}}">{{if .Accepted}}accepted{{else}}not accepted{{end}}</span>
+        <span class="pill {{if .Active}}pill-yes{{else}}pill-no{{end}}">{{if .Active}}active{{else}}inactive{{end}}</span>
+      </p>
+      <dl class="facts">
+        <dt>Catalog</dt><dd class="mono">{{.Catalog}}{{with .Version}} <span class="ver">{{.}}</span>{{end}}</dd>
+        {{with .Provides}}<dt>Provides</dt><dd>{{range .}}<span class="mono chip">{{.}}</span> {{end}}</dd>{{end}}
+        {{with .Provider}}<dt>Provider</dt><dd><a class="mono" href="/instances/{{.Namespace}}/{{.Name}}">{{.Namespace}}/{{.Name}}</a></dd>{{end}}
+      </dl>
+      {{if or .Reason .Message}}<p class="verdict-why"><span class="label">{{if eq .Verdict "Refused"}}Refused{{else if eq .Verdict "RemovalBlocked"}}Removal blocked{{else}}Verdict{{end}}</span> {{with .Reason}}<span class="mono">{{.}}</span>{{end}}{{with .Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}
+      {{if or .ActiveReason .ActiveMessage}}<p class="verdict-why"><span class="label">Activation</span> {{with .ActiveReason}}<span class="mono">{{.}}</span>{{end}}{{with .ActiveMessage}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}
+      <p class="card-foot"><a href="/platform/registrations/{{.Name}}/events" hx-get="/platform/registrations/{{.Name}}/events" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Recent events</a></p>
+    </li>
+  {{end}}
+  </ul>
+  {{else if eq .Platform.RegistrationsAccess "ok"}}<p class="muted">No TransformerRegistration claims a catalog.</p>{{end}}
+</section>
+
+<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#graph" hx-target="this" hx-swap="outerHTML">
+  <h2 id="graph-h">Platform graph <span class="h-note">select a node for details</span></h2>
+  {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
+</section>
+
+
+<section class="panel panel-7 reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#conditions" hx-target="this" hx-swap="outerHTML">
+  <h2 id="conditions-h">Conditions</h2>
+  {{template "conditions" .Platform.Conditions}}
+</section>
+
+<aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node or a registration's events to see them here.</p>{{end}}
+</aside>
+
+<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#events" hx-target="this" hx-swap="outerHTML">
+  <h2 id="events-h">Recent events</h2>
+  {{template "events-note"}}
+  {{template "events-list" .Events}}
+</section>
+{{end}}
+{{end}}{{end}}

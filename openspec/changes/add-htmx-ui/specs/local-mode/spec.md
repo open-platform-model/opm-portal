@@ -6,7 +6,8 @@ At startup the portal SHALL print one launch URL on standard output carrying a r
 SHALL write the token nowhere else except the private launch page `--open` writes (mode `0600`
 in a directory only the user may enter), which shutdown removes. A `GET /launch` carrying that
 token SHALL spend it, set a session cookie and answer with the UI's landing page itself, rendered
-under the new session, whose script replaces the token-bearing address with the landing page's.
+under the new session, whose script then moves once, from the portal's own origin, to the landing
+page's address, so a reload carries the session and the spent token leaves the history.
 A `GET /launch` from a browser that already holds the live session SHALL answer the same way,
 whatever its token. It SHALL NOT redirect: a browser treats a redirect as part of the navigation
 that reached `/launch`, and when that navigation started from the `--open` page (a `file://`

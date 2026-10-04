@@ -1,0 +1,115 @@
+{{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
+<header class="page-head reveal" id="owner-head" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#owner-head" hx-target="this" hx-swap="outerHTML">
+  <p class="kicker"><a href="/{{.Kind.Path}}">{{.Kind.Plural}}</a> · {{.Namespace}}</p>
+  <h1>{{.Name}}</h1>
+  {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
+  <div class="axes">{{template "applied" .Reconcile}}{{template "health" .Health}}</div>
+  {{with .Reconcile.Message}}<p class="lede">{{.}}</p>{{end}}
+  {{with .Instance}}
+  <dl class="facts facts-row">
+    <dt>Module</dt><dd class="mono">{{.Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
+    <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the operator{{end}}{{with .ServiceAccountName}}, as ServiceAccount <span class="mono">{{.}}</span>{{end}}</dd>
+    <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
+    <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
+  </dl>
+  {{end}}
+  {{with .Package}}
+  <dl class="facts facts-row">
+    <dt>Source</dt><dd class="mono">{{.Source.Kind}} {{with .Source.Namespace}}{{.}}/{{end}}{{.Source.Name}}</dd>
+    {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
+    <dt>Depends on</dt><dd>{{if .DependsOn}}{{range .DependsOn}}<a class="mono chip" href="/packages/{{if .Namespace}}{{.Namespace}}{{else}}{{$v.Namespace}}{{end}}/{{.Name}}">{{.Name}}</a> {{end}}{{else}}<span class="muted">nothing</span>{{end}}</dd>
+    <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
+    <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
+  </dl>
+  {{end}}
+  {{end}}
+</header>
+
+{{if not .Problem}}
+<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#graph" hx-target="this" hx-swap="outerHTML">
+  <h2 id="graph-h">Graph <span class="h-note">select a node for details</span></h2>
+  {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
+</section>
+
+
+<section class="panel panel-7 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#components" hx-target="this" hx-swap="outerHTML">
+  <h2 id="components-h">Components</h2>
+  {{if .Components}}
+  <ol class="components">
+  {{range .Components}}
+    <li class="component">
+      <div class="component-head"><h3 class="component-name">{{.Name}}</h3>{{template "health" .Health}}</div>
+      <ul class="objects">
+      {{range .Objects}}
+        {{if locked .Access}}
+        <li class="object locked"><div class="object-row">{{template "lock"}}<span class="mono">{{.Text}}</span></div><p class="object-why">{{accessText .Access}}</p></li>
+        {{else}}
+        <li class="object">
+          <div class="object-row">
+            {{with .Health}}{{template "state" .State}}{{end}}
+            <span class="mono object-ref">{{.Text}}</span>
+            {{if not .Live}}<span class="pill pill-off" title="Polled, not watched">not live</span>{{end}}
+            <span class="object-actions">{{if isSecret .Ref}}<span class="muted">Secret data is never read</span>{{else}}{{with .YAML}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a>{{end}}{{with .EventsURL}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a>{{end}}{{end}}</span>
+          </div>
+          {{with .Health}}{{with .Message}}<p class="object-why">{{.}}</p>{{end}}{{end}}
+          {{if .ChildrenUnread}}<p class="object-why muted">Its Pods could not be read, so its health is its own status alone.</p>{{end}}
+          {{with .Children}}
+          <ul class="children">
+          {{range .}}
+            <li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{.Text}}</span>{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions"><a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
+          {{end}}
+          </ul>
+          {{end}}
+        </li>
+        {{end}}
+      {{end}}
+      </ul>
+    </li>
+  {{end}}
+  </ol>
+  {{else}}<p class="muted">The inventory names no objects yet.</p>{{end}}
+</section>
+
+<aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>{{end}}
+</aside>
+
+<section class="panel reveal" id="conditions" aria-labelledby="conditions-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#conditions" hx-target="this" hx-swap="outerHTML">
+  <h2 id="conditions-h">Conditions</h2>
+  {{template "conditions" .Conditions}}
+  {{with .Instance}}
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  {{if .RenderContracts}}<ul class="contracts">{{range .RenderContracts}}<li class="mono">{{.}}</li>{{end}}</ul>{{else}}<p class="muted">None recorded.</p>{{end}}
+  {{end}}
+</section>
+
+<section class="panel reveal" id="history" aria-labelledby="history-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#history" hx-target="this" hx-swap="outerHTML">
+  <h2 id="history-h">History <span class="h-note">the operator's record, newest first</span></h2>
+  {{template "history" .History}}
+</section>
+
+<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#events" hx-target="this" hx-swap="outerHTML">
+  <h2 id="events-h">Recent events</h2>
+  {{template "events-note"}}
+  <p class="note">Render warnings are recorded only as events, so a warning older than about an hour is gone.</p>
+  {{template "events-list" .Events}}
+</section>
+
+<section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h">
+  <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
+  {{if .Logs}}
+  <div class="logs">
+  {{range .Logs}}
+    <details class="log" data-log-topic="{{.Topic}}">
+      <summary><span class="mono">{{.Pod}}</span> <span class="log-container">{{.Container}}</span></summary>
+      <div class="log-tools"><label><input type="checkbox" data-log-previous="{{.Previous}}"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
+      <pre class="log-pane" tabindex="0" aria-label="Log of {{.Container}} in {{.Pod}}"></pre>
+    </details>
+  {{end}}
+  </div>
+  <p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
+  {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}
+</section>
+{{end}}
+{{end}}{{end}}

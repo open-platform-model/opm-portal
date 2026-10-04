@@ -1,0 +1,115 @@
+{{define "applied" -}}
+{{with appliedBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Applied axis</span>{{.Text}}</span>{{end}}
+{{- end}}
+
+{{define "health" -}}
+{{with healthBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
+{{- end}}
+
+{{define "state" -}}
+{{with stateBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="dot" aria-hidden="true"></span>{{.Text}}</span>{{end}}
+{{- end}}
+
+{{define "time" -}}
+{{with stamp .}}<time datetime="{{.ISO}}" title="{{.Absolute}}">{{.Relative}}</time>{{else}}<span class="muted">never</span>{{end}}
+{{- end}}
+
+{{define "lock" -}}
+<svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+{{- end}}
+
+{{define "locked" -}}
+<div class="locked-panel">{{template "lock"}}<p>{{accessText .}}</p></div>
+{{- end}}
+
+{{/* problem renders a problem document as a region: forbidden as locked,
+     anything else as degraded with its code. */}}
+{{define "problem-region" -}}
+{{if eq .Code "forbidden"}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not read this, or the portal does not serve it.</p></div>
+{{else if eq .Code "not_found"}}<div class="degraded-panel"><p><strong>Not found.</strong> The object does not exist.</p><p class="code">{{.Code}}</p></div>
+{{else}}<div class="degraded-panel"><p><strong>Unavailable.</strong> {{if eq .Code "not_readable_by_portal"}}The portal holds no readable copy of this right now: its reading identity may not watch it, or its cache has not synced.{{else}}A review or the Kubernetes API failed; this updates when it recovers.{{end}}</p><p class="code">{{.Code}}</p></div>
+{{end}}
+{{- end}}
+
+{{define "conditions" -}}
+{{if .}}
+<ol class="conditions">
+{{range .}}
+  <li class="condition cond-{{if eq .Status "True"}}true{{else if eq .Status "False"}}false{{else}}unknown{{end}}">
+    <div class="cond-head"><span class="cond-type">{{.Type}}</span><span class="cond-status">{{.Status}}</span>{{with .Reason}}<span class="cond-reason">{{.}}</span>{{end}}<span class="cond-time">{{template "time" .LastTransitionTime}}</span></div>
+    {{with .Message}}<p class="cond-message">{{.}}</p>{{end}}
+    {{with explain .Reason}}<p class="cond-meaning">{{.Meaning}}</p>{{with .NextStep}}<p class="cond-next"><span class="label">Next step</span> {{.}}</p>{{end}}{{end}}
+  </li>
+{{end}}
+</ol>
+{{else}}<p class="muted">No conditions reported.</p>{{end}}
+{{- end}}
+
+{{define "history" -}}
+{{if .}}
+<ol class="timeline">
+{{range .}}
+  <li class="tl-item"{{with .Phase}} data-phase="{{.}}"{{end}}>
+    <div class="tl-head"><span class="tl-seq">#{{.Sequence}}</span><span class="tl-action">{{.Action}}</span>{{with .Phase}}<span class="tl-phase">{{.}}</span>{{end}}<span class="tl-time">{{template "time" .FinishedAt}}</span></div>
+    {{with .Message}}<p class="tl-message">{{.}}</p>{{end}}
+    <p class="tl-meta mono">{{.InventoryCount}} objects{{with .Digests.Render}} · render <span title="{{.}}">{{short .}}</span>{{end}}{{with .Digests.Source}} · source <span title="{{.}}">{{short .}}</span>{{end}}</p>
+  </li>
+{{end}}
+</ol>
+{{else}}<p class="muted">No history recorded yet.</p>{{end}}
+{{- end}}
+
+{{define "events-list" -}}
+{{if .Problem}}{{template "problem-region" .Problem}}
+{{else if .Items}}
+<ol class="events">
+{{range .Items}}
+  <li class="event ev-{{if eq .Type "Warning"}}warning{{else}}normal{{end}}">
+    <div class="ev-head"><span class="ev-type">{{.Type}}</span><span class="ev-reason">{{.Reason}}</span>{{if gt .Count 1}}<span class="ev-count" title="Repeats folded into one line">×{{.Count}}</span>{{end}}<span class="ev-time">{{template "time" .LastSeen}}</span></div>
+    {{with .Note}}<p class="ev-note">{{.}}</p>{{end}}
+    <p class="ev-meta mono">{{refText .Regarding}}{{with .ReportingController}} · {{.}}{{end}}</p>
+  </li>
+{{end}}
+</ol>
+{{else}}<p class="muted">No events in the last hour or so.</p>{{end}}
+{{- end}}
+
+{{define "events-note" -}}
+<p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
+{{- end}}
+
+{{define "graph" -}}
+{{if .Empty}}<p class="muted">Nothing to draw.</p>{{else}}
+<div class="graph" data-graph="{{.ID}}">
+  <div class="graph-tools" role="group" aria-label="Graph zoom">
+    <span class="hint">drag to pan · ctrl + wheel to zoom</span>
+    <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
+    <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
+    <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
+    <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+  </div>
+  <div class="graph-frame">
+  <svg viewBox="0 0 {{.Width}} {{.Height}}" width="{{.Width}}" height="{{.Height}}" role="group" aria-label="Relationship graph">
+    <defs>
+      <marker id="{{.ID}}-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
+      <pattern id="{{.ID}}-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+    </defs>
+    <g class="viewport">
+      {{range .Columns}}<text class="col-title" x="{{.X}}" y="20">{{.Title}}</text>{{end}}
+      {{$id := .ID}}
+      {{range .Edges}}<path class="{{.Class}}" d="{{.D}}" marker-end="url(#{{$id}}-arrow)"><title>{{.Title}}</title></path>{{end}}
+      {{range .Nodes}}
+      <a class="{{.Class}}" href="{{.Href}}" data-panel="{{.Panel}}" tabindex="0" aria-label="{{.Aria}}">
+        <rect class="node-box" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6"/>
+        {{if .Locked}}<rect class="node-hatch" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6" fill="url(#{{$id}}-hatch)"/>{{end}}
+        <rect class="node-rail" x="{{.X}}" y="{{.Y}}" width="5" height="{{.H}}" rx="2"/>
+        <text class="node-label" x="{{.TextX}}" y="{{.TextY}}">{{.Label}}</text>
+        <text class="node-sub" x="{{.TextX}}" y="{{.SubY}}">{{.Sub}}</text>
+      </a>
+      {{end}}
+    </g>
+  </svg>
+  </div>
+</div>
+{{end}}
+{{- end}}

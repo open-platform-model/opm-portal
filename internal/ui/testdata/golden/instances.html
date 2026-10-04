@@ -1,0 +1,62 @@
+<main id="main" tabindex="-1" data-topics="instances" data-canonical="/instances">
+<header class="page-head reveal">
+  <p class="kicker">ModuleInstances</p>
+  <h1>Instances</h1>
+  <p class="lede">Each instance shows two separate values: <strong>Applied</strong>, what the operator applied, and <strong>Health</strong>, what the portal sees running. One never stands for the other.</p>
+</header>
+<form class="filter" method="get" action="/instances" role="search">
+  <label for="namespace">Namespace</label>
+  <input id="namespace" name="namespace" value="" list="namespaces" placeholder="all namespaces" autocomplete="off" spellcheck="false">
+  <datalist id="namespaces"><option value="cert-manager"><option value="default"><option value="web"></datalist>
+  <button type="submit">Filter</button>
+</form>
+<section class="panel panel-wide reveal" id="list" aria-label="Instances" data-follow="instances" hx-get="/instances" hx-trigger="portal:changed delay:400ms" hx-select="#list" hx-target="this" hx-swap="outerHTML">
+<div class="table-wrap">
+<table class="table rows">
+  <thead><tr><th scope="col">Instance</th><th scope="col">Applied</th><th scope="col">Health</th><th scope="col">Module</th><th scope="col">Objects</th><th scope="col">Last applied</th></tr></thead>
+  <tbody>
+  <tr>
+    <th scope="row" data-label="Instance"><a href="/instances/cert-manager/cert-manager"><span class="ns">cert-manager/</span>cert-manager</a></th>
+    <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+    <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+    <td data-label="Module"><span class="mono">opmodel.dev/modules/cert_manager@v2</span> <span class="ver">v2.0.5</span></td>
+    <td data-label="Objects" class="num">42</td>
+    <td data-label="Last applied"><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></td>
+  </tr>
+  <tr>
+    <th scope="row" data-label="Instance"><a href="/instances/default/backup-consumer"><span class="ns">default/</span>backup-consumer</a></th>
+    <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+    <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+    <td data-label="Module"><span class="mono">testing.opmodel.dev/modules/operator/backup_consumer@v0</span> <span class="ver">v0.1.0</span></td>
+    <td data-label="Objects" class="num">1</td>
+    <td data-label="Last applied"><time datetime="2026-10-04T18:04:24Z" title="2026-10-04 18:04:24 UTC">5m ago</time></td>
+  </tr>
+  <tr>
+    <th scope="row" data-label="Instance"><a href="/instances/default/backup-provider"><span class="ns">default/</span>backup-provider</a></th>
+    <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+    <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+    <td data-label="Module"><span class="mono">testing.opmodel.dev/modules/operator/backup_provider@v0</span> <span class="ver">v0.1.0</span></td>
+    <td data-label="Objects" class="num">1</td>
+    <td data-label="Last applied"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></td>
+  </tr>
+  <tr>
+    <th scope="row" data-label="Instance"><a href="/instances/default/podinfo"><span class="ns">default/</span>podinfo</a></th>
+    <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+    <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+    <td data-label="Module"><span class="mono">testing.opmodel.dev/modules/operator/podinfo@v0</span> <span class="ver">v0.1.11</span></td>
+    <td data-label="Objects" class="num">2</td>
+    <td data-label="Last applied"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
+  </tr>
+  <tr>
+    <th scope="row" data-label="Instance"><a href="/instances/web/web"><span class="ns">web/</span>web</a></th>
+    <td data-label="Applied"><span class="applied applied-managedexternally"><span class="axis">Applied axis</span>Managed externally</span></td>
+    <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+    <td data-label="Module"><span class="mono">opmodel.dev/modules/web_app@v1</span> <span class="ver">v1.0.5</span></td>
+    <td data-label="Objects" class="num">2</td>
+    <td data-label="Last applied"><time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC">5m ago</time></td>
+  </tr>
+  </tbody>
+</table>
+</div>
+</section>
+</main>

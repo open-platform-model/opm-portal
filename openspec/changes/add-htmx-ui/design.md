@@ -115,9 +115,11 @@ with a `<rect>` and its label, classes `node kind-<kind> health-<state> access-<
 `aria-label` naming kind, label and state. Nodes are focusable SVG links whose `href` is the page
 with `?node=<id>` (the panel renders server-side without script); `portal.js` intercepts
 activation and loads the node panel into `#node-panel` with `htmx.ajax`. Group nodes link to the
-page with `expand=<id>` added. Pan and zoom: `portal.js` sets a `transform` attribute on the
-graph's viewport group on wheel, drag and the zoom buttons (no style attribute, so no CSP
-exception).
+page with `expand=<id>` added. The graph is drawn at its natural size (every label readable) inside a scrolling frame. Zoom
+(buttons, ctrl and wheel) sets the SVG's `width` and `height` attributes, and dragging the
+background scrolls the frame; neither writes a style attribute, so the policy needs no exception.
+A first try that scaled the SVG to the panel width made a six-column instance graph unreadable at
+desktop width, so the graph panel spans the full page width.
 
 ### Live updates: one EventSource per tab
 
@@ -188,17 +190,23 @@ module dependency).
 omitempty), the names of a Pod's `spec.initContainers` then `spec.containers`, read from the held
 Pod. The logs panel offers one pane per container, following `log:<ns>/<pod>/<container>`.
 
-### Launch: the landing page in place
+### Launch: the landing page in place, then one same-origin move
 
 On a valid token the front door sets the cookie and serves the landing request itself: it clones
 the request with path `Landing`, no query, and the new session's cookie in place of any other,
-and passes it to the next handler. The page carries `<link rel="canonical" href="/">`, and
-`portal.js` replaces the address (`history.replaceState`) so the token-bearing URL leaves the
-history. A spent token on a request that carries the live session serves the landing the same
-way. A 303 is still not used: a navigation started from the `--open` `file://` page is
-cross-site, and a redirect stays part of it, so the browser withholds the new `SameSite=Strict`
-cookie (the reason for the earlier hand-off page). `TestBrowserLaunch` keeps proving the launch
-and the reload in Chromium, Firefox and WebKit.
+and passes it to the next handler. A request to `/launch` that already carries the live session
+is served the landing page the same way. The page therefore reads without script.
+
+A 303 is still not used: a navigation started from the `--open` `file://` page is cross-site,
+and a redirect stays part of it, so the browser withholds the new `SameSite=Strict` cookie.
+`history.replaceState` was tried first and is not enough: `TestBrowserLaunch` showed Firefox and
+WebKit treat a reload of that history entry as part of the cross-site launch and withhold the
+cookie (Chromium does not). So `portal.js`, on a page whose address is `/launch`, calls
+`location.replace(<canonical>)`: one navigation started from the portal's own origin, which also
+drops the spent token from the history. Without script the user stays on the rendered landing
+page at `/launch`, and every link from it is a same-origin navigation. Measured: the launch and a
+reload carry the session in Chromium, Firefox and WebKit, from the `--open` page and from the
+printed link.
 
 ### Content-Security-Policy for pages
 
