@@ -21,3 +21,8 @@
 - [x] 3.3 Add `TestMeasureCertManager`: build time and node and edge counts for cert-manager collapsed and expanded; record them in design.md, Measurements on F1
 - [x] 3.4 Add the package documentation (`doc.go`); verify `go doc ./internal/graph` prints it
 - [x] 3.5 `task check` green, then commit `chore(graph): lay out graphs deterministically and add F1 goldens`
+
+## 4. Verify fixes (internal/graph)
+
+- [x] 4.1 Never drop the root under the node cap; assert cert-manager's edge kinds; test the removal-blocked claim from experiment 01 keeps `RemovalBlocked`, accepted and active; align design.md's cap wording; verify `go test ./internal/graph`
+- [x] 4.2 `task check` green, then commit `chore(graph): keep the root under the node cap and cover a blocked removal`

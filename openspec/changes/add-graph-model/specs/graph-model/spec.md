@@ -129,8 +129,8 @@ expand it.
 ### Requirement: A node cap replaces what it drops with a summary
 
 When a graph would hold more nodes than its cap, nodes SHALL be dropped from the last column
-backwards until one fewer than the cap remain, and one summary node SHALL count the dropped nodes
-by kind. No edge SHALL point at a dropped node.
+backwards, never the graph's root, until one fewer than the cap remain, and one summary node
+SHALL count the dropped nodes by kind. No edge SHALL point at a dropped node.
 
 #### Scenario: Small cap
 

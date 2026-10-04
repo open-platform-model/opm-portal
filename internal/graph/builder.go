@@ -81,8 +81,12 @@ func (b *builder) capNodes() {
 	for i := range order {
 		order[i] = i
 	}
+	// The root is never dropped: it sorts after everything else.
 	sort.Slice(order, func(i, j int) bool {
 		x, y := &b.nodes[order[i]], &b.nodes[order[j]]
+		if (x.ID == b.root) != (y.ID == b.root) {
+			return y.ID == b.root
+		}
 		if x.Column != y.Column {
 			return x.Column > y.Column
 		}

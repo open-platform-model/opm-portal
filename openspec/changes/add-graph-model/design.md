@@ -130,8 +130,8 @@ Each edge carries its source string, so the API can show where an edge came from
 3. More than five Pods under one parent are one Pod group with counts by health state.
    `Options.Expand` holding the group's id shows them.
 4. With more than `NodeCap` nodes after rules 1 to 3, nodes are dropped from the last column
-   back, within a column from the end of the id order, until `NodeCap - 1` remain; one summary
-   node in the last kept column counts them by kind. Edges to dropped nodes are dropped.
+   back, within a column from the end of the id order, never the root, until `NodeCap - 1`
+   remain; one summary node, in the column of the last node dropped, counts them by kind. Edges to dropped nodes are dropped.
 
 ### Layout
 

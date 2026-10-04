@@ -117,6 +117,12 @@ func TestEdgesNameTheirSource(t *testing.T) {
 			}
 		}
 	}
+	instanceKinds := []EdgeKind{EdgeInstantiates, EdgeHasComponent, EdgeOwns, EdgeControls}
+	for _, e := range graphs[0].Edges {
+		if !slices.Contains(instanceKinds, e.Kind) {
+			t.Errorf("cert-manager edge %s has kind %s", e.ID, e.Kind)
+		}
+	}
 	cm := nodeByID(t, graphs[0], "mi:cert-manager/cert-manager")
 	if len(cm.RenderContracts) != 15 {
 		t.Errorf("cert-manager render contracts = %d, want 15", len(cm.RenderContracts))
@@ -291,6 +297,9 @@ func TestNodeCap(t *testing.T) {
 	if !hasNode(g, "mi:cert-manager/cert-manager") {
 		t.Error("the cap dropped the root")
 	}
+	if tiny := Instance(d, Options{NodeCap: 2}); len(tiny.Nodes) != 2 || !hasNode(tiny, "mi:cert-manager/cert-manager") {
+		t.Errorf("cap 2 kept %d nodes, root kept %v; want the root and the summary", len(tiny.Nodes), hasNode(tiny, "mi:cert-manager/cert-manager"))
+	}
 }
 
 func TestPackageGraph(t *testing.T) {
@@ -361,6 +370,24 @@ func TestRegistrationStanding(t *testing.T) {
 	if r.Accepted || r.Active || r.Verdict != health.VerdictRefused || r.Reason != "CatalogUnresolved" || r.Message == "" ||
 		r.Catalog != "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0" {
 		t.Errorf("refused claim = %+v", r)
+	}
+}
+
+// TestRemovalBlockedIsNotRefused: experiment 01's accepted, active claim
+// whose deletion is blocked by dependents keeps showing as accepted and
+// active, with verdict RemovalBlocked (0030:D4:R7).
+func TestRemovalBlockedIsNotRefused(t *testing.T) {
+	blocked := readmodeltest.LoadList(t, "../health/testdata/treg-removal-blocked.yaml")
+	var objs []*unstructured.Unstructured
+	for _, o := range f1(t) {
+		if o.GetKind() != "TransformerRegistration" || o.GetName() != "default.backup-provider" {
+			objs = append(objs, o)
+		}
+	}
+	g := Platform(newCluster(t, append(objs, blocked...), readmodeltest.AllowAll).platform(t), Options{})
+	r := nodeByID(t, g, "treg:default.backup-provider").Registration
+	if !r.Accepted || !r.Active || r.Verdict != health.VerdictRemovalBlocked || r.Reason != "DependentsRemain" {
+		t.Errorf("blocked claim = %+v, want accepted, active, RemovalBlocked", r)
 	}
 }
 
