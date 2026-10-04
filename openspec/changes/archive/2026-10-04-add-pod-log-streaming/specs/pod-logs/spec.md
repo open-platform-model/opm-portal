@@ -67,8 +67,10 @@ NOT use the API server's byte limit. A line longer than the line cap SHALL be cu
 be dropped, and a `rate-limited` marker carrying how many lines were dropped SHALL precede the next
 delivered line, or SHALL be sent within a short delay when no line follows. The initial tail SHALL
 be at most the requested tail lines, ending at the first line stamped after the stream opened. An
-initial tail larger than the tail byte cap SHALL skip ahead to live output, announced the same way
-by a `skipped` marker carrying how many lines were skipped. A stream SHALL never end because of a
+initial tail larger than the tail byte cap SHALL keep its newest lines within the cap and skip the
+older ones, announced by a `skipped` marker carrying how many lines were skipped, delivered before
+the kept lines. The initial tail SHALL be delivered once it ends, and no later than the marker
+delay after its latest line when the container is quiet. A stream SHALL never end because of a
 byte limit. The stamps are the node's clock and the stream's opening is the portal's, so clock skew
 can count a tail line as live or an early live line as tail; either way the line SHALL stay bounded
 and, when dropped, counted. Log lines SHALL NOT appear in the portal's own logs. Source:
@@ -94,8 +96,13 @@ and, when dropped, counted. Log lines SHALL NOT appear in the portal's own logs.
 #### Scenario: A large initial tail
 
 - **WHEN** the initial tail holds more bytes than the tail cap
-- **THEN** the tail lines past the cap are skipped and a `skipped` marker with their count
-  precedes the first live line
+- **THEN** a `skipped` marker with the count of the oldest tail lines that do not fit is delivered
+- **AND** the newest tail lines within the cap follow it, oldest first, before the first live line
+
+#### Scenario: A quiet container's tail
+
+- **WHEN** a followed container's initial tail has been read and the container writes nothing
+- **THEN** the tail is delivered within the marker delay
 
 ### Requirement: Containers are chosen explicitly and a stopped container ends its stream
 
@@ -134,9 +141,11 @@ closed when the topic's last subscriber leaves, whether by detaching the topic, 
 stream ending. A subscriber that joins a topic already streaming SHALL receive the recent lines in
 its snapshot, bounded by count and by bytes; each log message SHALL carry a sequence number,
 increasing along the topic, so a client can discard a line it received both in a snapshot and as a
-later message. A subscriber that attaches to a topic whose read has ended, while others still hold
-it, SHALL start a new read with a fresh tail, which every subscriber of the topic receives after
-the earlier `logend`.
+later message. A new subscription to a topic whose read has ended, while others still hold it,
+SHALL start a new read with a fresh tail, which every subscriber of the topic receives after the
+earlier `logend`. A reconnect that resumes a stream SHALL NOT start a new read: for a resumed
+subscription the `logend` stays the end, and only unsubscribing and subscribing again follows the
+container afresh.
 
 #### Scenario: Two tabs, one upstream
 
@@ -153,3 +162,9 @@ the earlier `logend`.
 - **WHEN** two sessions follow a log topic, its read ends with a `logend`, and one of them detaches
   and follows the topic again
 - **THEN** a new upstream log stream opens and both sessions receive its lines
+
+#### Scenario: A reconnect after the end
+
+- **WHEN** the only subscriber of a log topic receives its `logend`, loses its connection and
+  reconnects with its `Last-Event-ID`
+- **THEN** no new upstream log stream opens and no line is delivered on the resumed topic

@@ -21,3 +21,13 @@
 - [x] 3.4 Unit tests: truncation, rate-limited marker with count, tail skip marker, end reasons, container selection, previous options, no `LimitBytes`, release closes the upstream, no line text in portal logs, `ClientSource` against a fake clientset
 - [x] 3.5 Broker integration tests with the real broker, a fake clientset authorizer and a fake source: denied `pods/log` opens no upstream; unreachable Pod gets the same `forbidden` closing; lines arrive through the send funnel; revocation closes the topic and stops lines; two sessions share one upstream; last unsubscribe closes it
 - [x] 3.6 `task check` green, then commit `chore(logs): stream pod logs`
+
+## 4. Review fixes
+
+- [x] 4.1 `internal/stream`: `Follower`, called after a new subscription to an active topic attaches on Open or Subscribe, never on reconnect; `Mux` delegates it; tests for open, reconnect, re-follow and a cap re-check refusal
+- [x] 4.2 `internal/stream`: `LogRingBytes` bounds log topics' resume rings only; a test that an object topic replays while a log topic snapshots
+- [x] 4.3 `internal/logs`: restart an ended read in `Follow`, not `Admit`; tests that Admit and a plain reconnect start no read and a re-follow does
+- [x] 4.4 `internal/logs`: a closed activation leaves the producer before its reader is waited for and has an empty snapshot; test
+- [x] 4.5 `internal/logs`: an oversize initial tail keeps its newest lines after the `skipped` marker; a quiet tail is sent after `MarkerDelay`; tests for live, quiet and previous tails
+- [x] 4.6 `internal/readmodel`: an owner check the authorizer cannot decide makes `ReachPod` `ErrUnavailable`; test
+- [x] 4.7 Specs and design updated; `task check` green

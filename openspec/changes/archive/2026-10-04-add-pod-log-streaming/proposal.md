@@ -19,8 +19,9 @@ a followed stream outright. The stream broker (`add-stream-broker`) reserved the
   - Follow mode through client-go `GetLogs` with `timestamps` and a capped `tailLines`; never
     `limitBytes` (0030:D10). Bounds enforced in the portal: an oversize line is cut and marked
     `truncated` with the bytes cut, lines over the per-topic line and byte rate are dropped and
-    reported by a `rate-limited` marker with a count, and an oversize initial tail skips ahead to
-    live output with a `skipped` marker and a count (0030:D10:R3).
+    reported by a `rate-limited` marker with a count, and an oversize initial tail skips ahead past
+    its older lines, announced by a `skipped` marker with a count, keeping its newest lines
+    within the cap (0030:D10:R3).
   - Container selection against the Pod's containers, init containers and ephemeral containers,
     and the previous container's logs for a crash loop (`log:<ns>/<pod>/<container>/previous`).
   - A container that stops ends its topic with an explicit `logend` message (0030:D10:R4).

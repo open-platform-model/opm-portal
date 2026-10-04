@@ -9,8 +9,9 @@ count only owners the caller may get, inventory objects the caller may read and 
 the caller may list; an owner SHALL be authorized before its inventory is read. The
 caller's grant SHALL cover `get` on the Pod's `log` subresource before anything is looked up. A
 Pod that does not exist, that no inventory reaches, or that is reached only through objects the
-caller may not read SHALL get one and the same refusal; a read the reading identity cannot make
-SHALL be reported as unavailable. Source: 0030:D10:R1, 0030:D7:R1.
+caller may not read SHALL get one and the same refusal; a read the reading identity cannot make,
+and a caller check the authorizer cannot decide, the owner's included, SHALL be reported as
+unavailable rather than refused. Source: 0030:D10:R1, 0030:D7:R1.
 
 #### Scenario: A Pod below an inventory Deployment
 
@@ -34,6 +35,12 @@ SHALL be reported as unavailable. Source: 0030:D10:R1, 0030:D7:R1.
   about one of the Deployment's Pods
 - **THEN** the read model refuses with the not-reachable refusal, as it does for a Pod no
   inventory reaches
+
+#### Scenario: The owner check cannot be decided
+
+- **WHEN** the authorizer cannot decide whether the caller may get the `podinfo` ModuleInstance
+  and no other owner reaches the Pod
+- **THEN** the read model reports the answer as unavailable, not as the not-reachable refusal
 
 #### Scenario: A grant that does not cover the Pod's log
 
