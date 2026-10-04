@@ -96,8 +96,8 @@ can reword them.
 - V1 is read-only: status as the operator reports it, events, pod logs and a relationship graph,
   from the Platform down to Pods. Milestone 1 runs locally with the user's kubeconfig;
   milestone 2 runs in-cluster with OIDC and SubjectAccessReview-as-user.
-- Design: enhancement 0030 in the sibling `enhancements/` repo. Today the binary only prints its
-  version.
+- Design: enhancement 0030 in the sibling `enhancements/` repo. `internal/api` serves the read
+  API as an `http.Handler`; no mode wires it into the binary yet, which only prints its version.
 
 ## Entrypoint
 
@@ -113,8 +113,10 @@ Read these first, in order:
 ```
 .
 ├── cmd/opm-portal/   # main: today it prints the version; later flag parsing, mode select, wiring
-├── internal/version/ # version identity (release-please rewrites the constant)
-├── hack/             # helper scripts (release-pin gate)
+├── api/v1alpha1/     # wire types of the read API (no logic)
+├── internal/         # authz, readmodel, health, graph, stream, api (the /api/v1alpha1 handlers), version
+├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
+├── hack/             # helper scripts (release-pin gate, API breaking-change gate)
 ├── test/e2e/         # throwaway kind fixture cluster: pins, scripts, fixture set F1
 ├── testdata/         # committed cluster captures for golden suites (generated, never hand-edited)
 ├── openspec/         # OpenSpec config, main specs, changes
@@ -202,6 +204,11 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task openspec:check`: `openspec validate --all --strict` (install with
   `task openspec:install`).
 - `task deps:release-check`: the G1 release-pin gate.
+- `task api:breaking` (`BASE=<ref>`, default `origin/main`; `PR_TITLE` optional): fail on a
+  breaking change to `openapi/v1alpha1.yaml` unless the title carries `!`. The `Lint` job runs
+  it on every pull request. Install the pinned `oasdiff` with `task api:install-oasdiff`.
+- Read API goldens: `go test ./internal/api -run TestGolden -update` rewrites
+  `internal/api/testdata/golden/`; check the diff before committing.
 - `task check`: fmt, vet, lint, openspec, test, capture check.
 - `task e2e:up` / `task e2e:down`: create or delete the throwaway kind cluster `opm-portal-e2e`
   with the released operator and fixture set F1 (podman by default, `E2E_PROVIDER=docker`

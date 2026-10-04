@@ -28,6 +28,6 @@
 
 ## 5. The breaking-change gate (hack, .github)
 
-- [ ] 5.1 Add `hack/api-breaking.sh` (base copy via `git show`, no base copy passes, `!` in `PR_TITLE` lets a breaking diff pass) and a `task api:breaking`; verify locally that removing a response property fails without `!` and passes with it
-- [ ] 5.2 Add the step to the `Lint` job on pull requests (oasdiff pinned, title through `env`); `actionlint` clean; update `AGENTS.md` (layout, commands)
-- [ ] 5.3 `task check` green, then commit `ci(api): fail a breaking OpenAPI change without a breaking title`
+- [x] 5.1 Add `hack/api-breaking.sh` (base copy via `git show`, no base copy passes, `!` in `PR_TITLE` lets a breaking diff pass) and a `task api:breaking`; verify locally that removing a response property fails without `!` and passes with it
+- [x] 5.2 Add the step to the `Lint` job on pull requests (oasdiff pinned, title through `env`); `actionlint` clean; update `AGENTS.md` (layout, commands)
+- [x] 5.3 `task check` green, then commit `ci(api): fail a breaking OpenAPI change without a breaking title`
