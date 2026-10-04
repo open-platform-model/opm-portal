@@ -140,7 +140,10 @@ hold in every change; a change that bends one needs an enhancement decision firs
   and the `kubectl.kubernetes.io/last-applied-configuration` annotation is stripped from every
   object the portal serves, because a client-side apply copies the full values into it. Secret
   markers live in the module's schema, not in the stored values, so there is nothing to mask
-  on (0030:D8).
+  on (0030:D8). Hiding `spec.values` does not hide what they became: a value rendered into a
+  non-Secret object, such as a ConfigMap entry or a container's environment, shows to anyone
+  who may read that object, as it does in `kubectl`, and the portal's documentation says so
+  (0030:D8:R4).
 - **Act as the user.** Milestone 1 uses the user's kubeconfig, so the user's RBAC is the
   boundary. Milestone 2 authorizes every read through a SubjectAccessReview for the signed-in
   user before the lookup, and returns the same denial for a missing object as for a forbidden
