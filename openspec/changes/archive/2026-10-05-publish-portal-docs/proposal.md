@@ -20,7 +20,7 @@ posture of local mode (0030:D5) is written down only in the enhancement and the 
   ("Site Pages") and the voice of `VOICE.md`:
   - `operating/portal/` (a section the bundle owns): what the portal is (explanation), run the
     portal locally (how-to, written against `opm-portal serve --kubeconfig --context --open`,
-    which the parallel `add-local-mode` change adds, and marked as not yet released), and the
+    which the parallel `add-local-mode` change adds; this change merges after it), and the
     portal's security model (explanation: loopback only, launch token, `Host` check,
     SelfSubjectAccessReview per read, no Secret data, values hidden, messages shown verbatim).
   - `reference/portal/read-api.md`: the read API's resources and problem codes, linking

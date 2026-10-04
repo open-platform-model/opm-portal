@@ -67,7 +67,9 @@ without installing anything.
 
 The read API reference page SHALL list every path of `openapi/v1alpha1.yaml`, and no other, and
 SHALL link that document as the full contract. A test SHALL fail when a path is in one and not
-the other.
+the other. The page's problem code table SHALL name exactly the `Code` constants of
+`api/v1alpha1`, and its topic table SHALL hold a row, in a form the stream parses, for every topic
+kind the stream serves; a test SHALL fail on either drift.
 
 #### Scenario: A route added without its reference entry
 
@@ -78,6 +80,18 @@ the other.
 
 - **WHEN** the reference page lists a path the OpenAPI document does not have
 - **THEN** `task test` fails and names the extra path
+
+#### Scenario: A problem code without its reference entry
+
+- **WHEN** a `Code` constant is added to `api/v1alpha1` and not to the reference page's problem
+  code table, or the table names a code no constant has
+- **THEN** `task test` fails and names the code
+
+#### Scenario: A stream topic the reference page cannot have
+
+- **WHEN** the reference page's topic table names a topic `stream.ParseTopic` refuses, or a topic
+  kind the read API serves on its stream has no row
+- **THEN** `task test` fails and names the topic or the kind
 
 ### Requirement: The security page states what the portal reads and shows
 
@@ -97,13 +111,17 @@ operator and the API server wrote them.
   module rendered into a ConfigMap or a container's environment is readable to anyone who may
   read that object
 
-### Requirement: Unreleased behavior is marked as unreleased
+### Requirement: Behavior that is not built is marked as not built
 
-A page that describes behavior no released `opm-portal` has SHALL say so in an alert near its
-top, naming what is missing, and SHALL be updated in the change that releases it.
+A page that mentions behavior `main` does not have SHALL say so in an alert near its top, naming
+what is missing, and SHALL drop the alert in the change that builds it. A page SHALL NOT describe
+a command or a mode that `main` does not have outside a direction note, and SHALL NOT word an
+alert about releases, because a release's docs bundle is built from its tag and keeps the alert
+after the next release.
 
-#### Scenario: The local-mode how-to before the first release with `serve`
+#### Scenario: The local-mode how-to while the web UI is not built
 
-- **WHEN** the how-to for running the portal locally is published while no release has the
-  `serve` command
-- **THEN** the page opens with an alert saying the command is not in a release yet
+- **WHEN** the how-to for running the portal locally is published while `main` has
+  `opm-portal serve` and no web UI
+- **THEN** the page opens with an alert saying the web UI is not built and the browser shows the
+  read API's JSON, and it says nothing about releases

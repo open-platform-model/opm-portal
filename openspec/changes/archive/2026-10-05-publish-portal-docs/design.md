@@ -74,16 +74,19 @@ and the document's `paths` keys, and reports both differences.
 func TestReadAPIReferenceListsEveryPath(t *testing.T)
 ```
 
-### Writing against a command that is not released
+### Writing against a command `main` does not have yet
 
 **Context**: the how-to must use `opm-portal serve --kubeconfig <file> --context <name> --open`,
-which `add-local-mode` adds; no release carries it.
-**Decision**: the how-to opens with an `IMPORTANT` alert saying no release has `serve` yet and
-that the steps build from source until one does. The explanation pages describe the posture as
-the code and 0030:D5 define it, and keep the web UI and in-cluster mode in `Direction` notes.
-**Rationale**: `STYLE.md` lets pages state only what is true today; the alert is that statement.
-A follow-up change that releases `serve` removes the alert (spec: "Unreleased behavior is marked
-as unreleased").
+which `add-local-mode` adds. A release's docs bundle is built from its tag and never changes, so
+an alert about releases would stay in the bundle of the release that makes it false.
+**Decision**: this change merges after `add-local-mode`, so every page describes what `main`
+has. The pages are written against that change's `serve.go` and `internal/auth`, and the read
+API reference lists its `log:` topics and front-door refusals. The only alert names what is not
+built: the web UI. In-cluster mode, and why it sends no self review, stay in `Direction` notes.
+**Rationale**: `STYLE.md` lets pages state only what is true today and keeps future work in
+direction notes. Wording the alert about the web UI keeps it true in any release's bundle until
+the change that builds the UI removes it (spec: "Behavior that is not built is marked as not
+built").
 
 ### Pins and workflow
 
@@ -99,8 +102,10 @@ Authorization: none. The change reads no Kubernetes resource.
 
 ## Risks / Trade-offs
 
-- [The `serve` flags change before release] -> the how-to is wrong until fixed; the alert says it
-  describes unreleased behavior, and `add-local-mode`'s reviewer is told to check the page.
+- [This change merges before `add-local-mode`] -> the how-to and the security page describe a
+  command `main` lacks, and the next `edge` push publishes them; the PR says to merge it after.
+- [The `serve` flags change after merge] -> the how-to is wrong until fixed; the change that
+  moves a flag updates the page.
 - [The GHCR package starts private] -> the site cannot pull it; making it public is an owner step
   named in the PR.
 - [Edge publishes on every push to `main`] -> each push writes one bundle; docs-kit's `edge` tag
