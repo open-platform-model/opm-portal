@@ -159,7 +159,9 @@ An events resource SHALL serve the folded recent-activity feed about its owner (
 the package, the Platform, or one TransformerRegistration) or, for an instance or package, about
 one object named by the `group`, `kind`, `namespace` and `name` query parameters. It SHALL
 authorize get on the owner, get on the named object, and list of events in the namespace the
-events live in, before any lookup. An object that is neither the owner, nor in its inventory,
+events live in, before any lookup; the named object's kind SHALL be resolved only after get on
+the owner is allowed, from the discovery the portal already holds, and a request SHALL never
+refresh that discovery. An object that is neither the owner, nor in its inventory,
 nor a runtime child below an inventory object SHALL be refused with the same `403` document as a
 forbidden read. Lines SHALL carry type, reason, note, reporting controller, the object regarded,
 a count and the latest occurrence time. Source: 0030:D7:R4, 0030:D9:R3/R4.
@@ -174,6 +176,12 @@ a count and the latest occurrence time. Source: 0030:D7:R4, 0030:D9:R3/R4.
 - **WHEN** a caller with every permission reads `instances/cert-manager/cert-manager/events` for
   Lease `cert-manager/cert-manager-controller`
 - **THEN** the response is the same `403` document a forbidden read gets
+
+#### Scenario: A kind the cluster does not serve
+
+- **WHEN** any caller names an object of a kind discovery does not know
+- **THEN** the response is the same `403` document a forbidden read gets, and no discovery
+  request is sent
 
 #### Scenario: A registration's events
 
@@ -232,7 +240,13 @@ and code `too_many_streams`. Source: 0030:D2:R5.
 #### Scenario: A deleted instance
 
 - **WHEN** a client follows `instance:default/podinfo` and the instance is deleted
-- **THEN** the stream delivers a delete carrying a `Removed` document naming it
+- **THEN** the stream delivers a delete carrying a `Removed` document naming it, on the
+  instance topic and on its events topic, once: later refreshes do not repeat it
+
+#### Scenario: Deleted and recreated before the next publish
+
+- **WHEN** a followed instance is deleted and created again within one coalescing window
+- **THEN** the stream delivers the instance as it now is, not a `Removed` document
 
 ### Requirement: The OpenAPI document is the contract
 
@@ -240,12 +254,21 @@ The repository SHALL hold an OpenAPI 3.1 document of the read API. Every served 
 appear in it with the document its success response returns, and every wire type SHALL match its
 schema by field names and types; a test SHALL fail otherwise. A pull request that changes the
 document in a way `oasdiff breaking` reports as an error SHALL fail the required `Lint` check
-unless its title marks a breaking change with `!`. Source: 0030:D2:R2.
+unless its title marks a breaking change with `!`. Because `oasdiff` ignores
+`x-extensible-enum`, the same check SHALL fail when a value the base document lists for an
+enumerated field is missing from the head, and a test SHALL fail when an enumerated field's
+values differ from the Go constants the server writes. Source: 0030:D2:R2.
 
 #### Scenario: A field renamed without a breaking title
 
 - **WHEN** a pull request titled `feat(api): rename a field` removes a response property
 - **THEN** the `Lint` check fails and names the breaking change
+
+#### Scenario: An enumerated value removed
+
+- **WHEN** a pull request titled `feat(api): x` removes `ManagedExternally` from
+  `Reconcile.state`
+- **THEN** the `Lint` check fails and names the removed value
 
 #### Scenario: A field added
 
