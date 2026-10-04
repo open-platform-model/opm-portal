@@ -31,6 +31,11 @@ task check              # fmt, vet, lint, openspec, test
 
 `task openspec:check` needs the `openspec` CLI (`task openspec:install`, needs npm).
 
+`task e2e:up` builds a throwaway kind cluster with the released opm-operator and a set of test
+modules, `task e2e:capture` snapshots it into `testdata/clusters/f1/`, and `task e2e:down`
+deletes it. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
+jq, and never touch a cluster other than `opm-portal-e2e`.
+
 ## Contributing
 
 Read [`AGENTS.md`](AGENTS.md) and [`CONSTITUTION.md`](CONSTITUTION.md) first. Changes are planned

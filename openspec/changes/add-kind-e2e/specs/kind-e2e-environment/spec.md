@@ -86,7 +86,8 @@ captured object SHALL lack `metadata.managedFields` and the
 `kubectl.kubernetes.io/last-applied-configuration` annotation, and every ModuleInstance and
 ModulePackage SHALL lack `spec.values`. CustomResourceDefinitions SHALL be captured without
 `spec.versions[].schema`. A capture that breaks any of these rules SHALL fail
-`task e2e:capture:check`, which the capture runs last. Source: 0030:D8.
+`task e2e:capture:check`, which the capture runs last and the `Test` check runs on every pull
+request. Source: 0030:D8.
 
 #### Scenario: Clean capture
 
@@ -97,6 +98,11 @@ ModulePackage SHALL lack `spec.values`. CustomResourceDefinitions SHALL be captu
 
 - **WHEN** a capture file holds a ModuleInstance with `spec.values`
 - **THEN** `task e2e:capture:check` exits non-zero and names the file and the object
+
+#### Scenario: Hand-edited capture in a pull request
+
+- **WHEN** a pull request adds `spec.values` to an instance in `testdata/clusters/f1/`
+- **THEN** the `Test` check fails
 
 #### Scenario: Secret in a capture
 

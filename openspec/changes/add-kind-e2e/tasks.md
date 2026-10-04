@@ -17,6 +17,6 @@
 
 ## 3. Scheduled CI run
 
-- [ ] 3.1 Add `.github/workflows/e2e.yml` (job `E2E`; `workflow_dispatch` and a nightly `schedule` only; pinned actions; kind from the `KIND_VERSION` pin; `task e2e:up E2E_PROVIDER=docker`, `task e2e:capture`, artifact upload, `task e2e:down` under `if: always()`)
-- [ ] 3.2 Update `AGENTS.md` (layout, commands) and `README.md` where they list tasks
-- [ ] 3.3 `actionlint` and `task check` green, then commit `ci(e2e): run the kind environment and capture nightly and on demand`
+- [x] 3.1 Add `.github/workflows/e2e.yml` (job `E2E`; `workflow_dispatch` and a nightly `schedule` only; pinned actions; kind from the `KIND_VERSION` pin; `task e2e:up E2E_PROVIDER=docker`, `task e2e:capture`, artifact upload, `task e2e:down` under `if: always()`); add a `task e2e:capture:check` step to the `Test` job
+- [x] 3.2 Update `AGENTS.md` (layout, commands) and `README.md` where they list tasks
+- [x] 3.3 `actionlint` and `task check` green, then commit `ci(e2e): run the kind environment and capture nightly and on demand`
