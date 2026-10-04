@@ -3,11 +3,11 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: Platform
     metadata:
-      creationTimestamp: "2026-10-04T16:52:04Z"
+      creationTimestamp: "2026-10-04T18:03:47Z"
       generation: 1
       name: cluster
-      resourceVersion: "920"
-      uid: 5829dda9-e8e7-471d-b9ad-18c924d86052
+      resourceVersion: "927"
+      uid: e99bd454-ca6f-4bf1-9213-2d59665c673d
     spec:
       registry:
         opmodel.dev/catalogs/opm@v4:
@@ -16,13 +16,13 @@ items:
       type: kubernetes
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:07Z"
+        - lastTransitionTime: "2026-10-04T18:03:50Z"
           message: Platform module generated and built for generation 1
           observedGeneration: 1
           reason: Generated
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:52:40Z"
+        - lastTransitionTime: "2026-10-04T18:04:23Z"
           message: |-
             1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
               opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)

@@ -3,7 +3,7 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: TransformerRegistration
     metadata:
-      creationTimestamp: "2026-10-04T16:52:38Z"
+      creationTimestamp: "2026-10-04T18:04:21Z"
       finalizers:
         - opmodel.dev/dependents
       generation: 1
@@ -18,8 +18,8 @@ items:
         module.opmodel.dev/uuid: 9ede50a5-502d-5749-ab7a-07923793c01e
         module.opmodel.dev/version: 0.1.0
       name: default.backup-provider
-      resourceVersion: "911"
-      uid: 3b90f97a-4a14-4d0e-b151-15634be080af
+      resourceVersion: "917"
+      uid: 4722ee5d-bb19-4a17-b48a-8e605e4d622d
     spec:
       catalog: testing.opmodel.dev/catalogs/operator/backup@v0
       providerRef:
@@ -32,17 +32,49 @@ items:
       accepted: true
       active: true
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:39Z"
+        - lastTransitionTime: "2026-10-04T18:04:22Z"
           message: Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0
           observedGeneration: 1
           reason: Accepted
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:52:39Z"
+        - lastTransitionTime: "2026-10-04T18:04:22Z"
           message: Provider ModuleInstance default/backup-provider is Ready
           observedGeneration: 1
           reason: ProviderReady
           status: "True"
           type: Active
+      observedGeneration: 1
+  - apiVersion: opmodel.dev/v1alpha1
+    kind: TransformerRegistration
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:26Z"
+      generation: 1
+      labels:
+        e2e.opmodel.dev/fixture: deliberate-refusal
+      name: default.refused-claim-fixture
+      resourceVersion: "945"
+      uid: ee2ea355-194a-45c2-b598-bf4ac43c855f
+    spec:
+      catalog: testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0
+      providerRef:
+        name: refused-claim-fixture
+        namespace: default
+      provides: []
+      version: 0.1.0
+    status:
+      conditions:
+        - lastTransitionTime: "2026-10-04T18:04:26Z"
+          message: 'Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found'
+          observedGeneration: 1
+          reason: CatalogUnresolved
+          status: "True"
+          type: Stalled
+        - lastTransitionTime: "2026-10-04T18:04:26Z"
+          message: 'Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found'
+          observedGeneration: 1
+          reason: CatalogUnresolved
+          status: "False"
+          type: Ready
       observedGeneration: 1
 kind: List

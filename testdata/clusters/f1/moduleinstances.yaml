@@ -3,14 +3,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T16:52:07Z"
+      creationTimestamp: "2026-10-04T18:03:53Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: cert-manager
       namespace: cert-manager
-      resourceVersion: "985"
-      uid: fbd582dd-c127-4a01-a27f-028f7c25846c
+      resourceVersion: "983"
+      uid: 5744c33f-e06a-4f6b-b78d-652ec49c10d6
     spec:
       module:
         path: opmodel.dev/modules/cert_manager@v2
@@ -19,13 +19,13 @@ items:
       serviceAccountName: cert-manager-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:20Z"
+        - lastTransitionTime: "2026-10-04T18:04:05Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:52:17Z"
+        - lastTransitionTime: "2026-10-04T18:04:03Z"
           message: 'module resolved: opmodel.dev/modules/cert_manager@v2@v2.0.5'
           observedGeneration: 1
           reason: ModuleResolved
@@ -36,14 +36,14 @@ items:
       history:
         - action: reconcile
           configDigest: sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4
-          finishedAt: "2026-10-04T16:52:20Z"
+          finishedAt: "2026-10-04T18:04:05Z"
           inventoryCount: 42
           inventoryDigest: sha256:92152ea359e8efddb5951d60176267ffb914a5796c50b2eca3115b87e8344b1e
           phase: complete
           renderDigest: sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c
           sequence: 1
           sourceDigest: sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7
-          startedAt: "2026-10-04T16:52:20Z"
+          startedAt: "2026-10-04T18:04:05Z"
       instanceUUID: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
       inventory:
         count: 42
@@ -268,14 +268,14 @@ items:
             namespace: cert-manager
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T16:52:20Z"
+      lastAppliedAt: "2026-10-04T18:04:05Z"
       lastAppliedConfigDigest: sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4
       lastAppliedRenderDigest: sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c
       lastAppliedSourceDigest: sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T16:52:20Z"
+      lastAttemptedAt: "2026-10-04T18:04:05Z"
       lastAttemptedConfigDigest: sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4
-      lastAttemptedDuration: 11.795453497s
+      lastAttemptedDuration: 11.020604165s
       lastAttemptedRenderDigest: sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c
       lastAttemptedSourceDigest: sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7
       observedGeneration: 1
@@ -298,14 +298,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T16:52:39Z"
+      creationTimestamp: "2026-10-04T18:04:23Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: backup-consumer
       namespace: default
-      resourceVersion: "929"
-      uid: e20b1b64-b828-4569-8ead-3efc0c8982cc
+      resourceVersion: "937"
+      uid: 261e62d9-0c74-42f9-8c09-38ecd70e4725
     spec:
       module:
         path: testing.opmodel.dev/modules/operator/backup_consumer@v0
@@ -314,13 +314,13 @@ items:
       serviceAccountName: backup-consumer-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:40Z"
+        - lastTransitionTime: "2026-10-04T18:04:24Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:52:40Z"
+        - lastTransitionTime: "2026-10-04T18:04:24Z"
           message: 'module resolved: testing.opmodel.dev/modules/operator/backup_consumer@v0@v0.1.0'
           observedGeneration: 1
           reason: ModuleResolved
@@ -331,14 +331,14 @@ items:
       history:
         - action: reconcile
           configDigest: sha256:1a2c2e1b0ecea528adb32ad2054f889886a627b9cf7103126c5e889bc2f15128
-          finishedAt: "2026-10-04T16:52:40Z"
+          finishedAt: "2026-10-04T18:04:24Z"
           inventoryCount: 1
           inventoryDigest: sha256:4e3eccdeabc28703b428a55cec8c681d87be33dc443817ca2ab9ed92b1193152
           phase: complete
           renderDigest: sha256:26a8983814d92a2740f97e96e1f11ecd9363d2287dbbe969a5782368533748b6
           sequence: 1
           sourceDigest: sha256:2ab70218026ba1f91ca2218610228d235bf3afac049b7a2c6bf097e565217bad
-          startedAt: "2026-10-04T16:52:40Z"
+          startedAt: "2026-10-04T18:04:24Z"
       instanceUUID: 79dabad0-a426-521b-883a-e9576e47a0f0
       inventory:
         count: 1
@@ -350,14 +350,14 @@ items:
             namespace: default
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T16:52:40Z"
+      lastAppliedAt: "2026-10-04T18:04:24Z"
       lastAppliedConfigDigest: sha256:1a2c2e1b0ecea528adb32ad2054f889886a627b9cf7103126c5e889bc2f15128
       lastAppliedRenderDigest: sha256:26a8983814d92a2740f97e96e1f11ecd9363d2287dbbe969a5782368533748b6
       lastAppliedSourceDigest: sha256:2ab70218026ba1f91ca2218610228d235bf3afac049b7a2c6bf097e565217bad
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T16:52:40Z"
+      lastAttemptedAt: "2026-10-04T18:04:24Z"
       lastAttemptedConfigDigest: sha256:1a2c2e1b0ecea528adb32ad2054f889886a627b9cf7103126c5e889bc2f15128
-      lastAttemptedDuration: 813.94811ms
+      lastAttemptedDuration: 787.252653ms
       lastAttemptedRenderDigest: sha256:26a8983814d92a2740f97e96e1f11ecd9363d2287dbbe969a5782368533748b6
       lastAttemptedSourceDigest: sha256:2ab70218026ba1f91ca2218610228d235bf3afac049b7a2c6bf097e565217bad
       observedGeneration: 1
@@ -367,14 +367,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T16:52:36Z"
+      creationTimestamp: "2026-10-04T18:04:19Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: backup-provider
       namespace: default
-      resourceVersion: "990"
-      uid: 848c1103-25b3-4b96-8331-28d576713d75
+      resourceVersion: "987"
+      uid: 92a79284-19de-43ac-9629-3b75e8a0aa51
     spec:
       module:
         path: testing.opmodel.dev/modules/operator/backup_provider@v0
@@ -383,13 +383,13 @@ items:
       serviceAccountName: backup-provider-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:38Z"
+        - lastTransitionTime: "2026-10-04T18:04:21Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:52:38Z"
+        - lastTransitionTime: "2026-10-04T18:04:21Z"
           message: 'module resolved: testing.opmodel.dev/modules/operator/backup_provider@v0@v0.1.0'
           observedGeneration: 1
           reason: ModuleResolved
@@ -399,14 +399,14 @@ items:
       history:
         - action: reconcile
           configDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-          finishedAt: "2026-10-04T16:52:38Z"
+          finishedAt: "2026-10-04T18:04:21Z"
           inventoryCount: 1
           inventoryDigest: sha256:84e2a1d301d1c82d1e7948f7a78bb57902cadef80350e90591308c52b3d77e00
           phase: complete
           renderDigest: sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b
           sequence: 1
           sourceDigest: sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1
-          startedAt: "2026-10-04T16:52:38Z"
+          startedAt: "2026-10-04T18:04:21Z"
       instanceUUID: ad4c18d3-442d-5255-a0e1-ae43ea2a6030
       inventory:
         count: 1
@@ -418,14 +418,14 @@ items:
             name: default.backup-provider
             v: v1alpha1
         revision: 1
-      lastAppliedAt: "2026-10-04T16:52:38Z"
+      lastAppliedAt: "2026-10-04T18:04:21Z"
       lastAppliedConfigDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
       lastAppliedRenderDigest: sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b
       lastAppliedSourceDigest: sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T16:52:38Z"
+      lastAttemptedAt: "2026-10-04T18:04:21Z"
       lastAttemptedConfigDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-      lastAttemptedDuration: 773.281359ms
+      lastAttemptedDuration: 812.762309ms
       lastAttemptedRenderDigest: sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b
       lastAttemptedSourceDigest: sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1
       observedGeneration: 1
@@ -434,14 +434,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T16:52:07Z"
+      creationTimestamp: "2026-10-04T18:03:53Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: podinfo
       namespace: default
-      resourceVersion: "987"
-      uid: c9406762-f168-440f-916b-fa3b2ce8d403
+      resourceVersion: "985"
+      uid: c6f5d8d6-af26-447e-8ac0-96b5cc25c40f
     spec:
       module:
         path: testing.opmodel.dev/modules/operator/podinfo@v0
@@ -450,13 +450,13 @@ items:
       serviceAccountName: podinfo-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:21Z"
+        - lastTransitionTime: "2026-10-04T18:04:06Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T16:52:21Z"
+        - lastTransitionTime: "2026-10-04T18:04:06Z"
           message: 'module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11'
           observedGeneration: 1
           reason: ModuleResolved
@@ -467,14 +467,14 @@ items:
       history:
         - action: reconcile
           configDigest: sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44
-          finishedAt: "2026-10-04T16:52:21Z"
+          finishedAt: "2026-10-04T18:04:06Z"
           inventoryCount: 2
           inventoryDigest: sha256:eb44516d458a23e3a71316e94e842a07cbd8f0ee7de5985c98c86c128853fced
           phase: complete
           renderDigest: sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e
           sequence: 1
           sourceDigest: sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969
-          startedAt: "2026-10-04T16:52:21Z"
+          startedAt: "2026-10-04T18:04:06Z"
       instanceUUID: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
       inventory:
         count: 2
@@ -492,14 +492,14 @@ items:
             namespace: default
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T16:52:21Z"
+      lastAppliedAt: "2026-10-04T18:04:06Z"
       lastAppliedConfigDigest: sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44
       lastAppliedRenderDigest: sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e
       lastAppliedSourceDigest: sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T16:52:21Z"
+      lastAttemptedAt: "2026-10-04T18:04:06Z"
       lastAttemptedConfigDigest: sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44
-      lastAttemptedDuration: 989.812017ms
+      lastAttemptedDuration: 919.642194ms
       lastAttemptedRenderDigest: sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e
       lastAttemptedSourceDigest: sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969
       observedGeneration: 1
@@ -514,7 +514,7 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T16:52:45Z"
+      creationTimestamp: "2026-10-04T18:04:30Z"
       generation: 1
       labels:
         app.kubernetes.io/managed-by: opm-cli
@@ -522,8 +522,8 @@ items:
         module-instance.opmodel.dev/namespace: web
       name: web
       namespace: web
-      resourceVersion: "992"
-      uid: ddfd1217-f82f-45af-b9bf-6ebfec379df2
+      resourceVersion: "989"
+      uid: 1aa1e148-0f18-444d-aa45-b3bd17c7a61a
     spec:
       module:
         path: opmodel.dev/modules/web_app@v1
@@ -531,7 +531,7 @@ items:
       owner: cli
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T16:52:51Z"
+        - lastTransitionTime: "2026-10-04T18:04:31Z"
           message: ModuleInstance is managed externally by the CLI
           observedGeneration: 1
           reason: ManagedExternally
@@ -554,7 +554,7 @@ items:
             namespace: web
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T16:52:45Z"
+      lastAppliedAt: "2026-10-04T18:04:30Z"
       lastAppliedConfigDigest: sha256:301645fcda027e2b01d0504e7cdfe049b86bc27922b72974145eac9f24d020e4
       lastAppliedRenderDigest: sha256:e39ebdab50eecc8751f3b87d9f2a53b5aa5701d3b4413d094c1350e5105a17a3
       lastAppliedSourceDigest: sha256:34cb9c71ca077a29625f5dacd40215087293f796d8be706167c7f18ac563fc87

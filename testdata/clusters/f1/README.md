@@ -19,8 +19,8 @@ every file under `testdata/clusters/`.
 
 ## This capture
 
-Taken 2026-10-04 on podman kind (Kubernetes v1.36.1) with opm CLI v1.0.0-beta.7 and opm-operator
-v1.0.0-beta.6 (`OPM_OPERATOR_VERSION`). The Platform is applied by `up.sh`, pinned to
+Taken 2026-10-04 on podman kind (Kubernetes v1.36.1, cluster `opm-portal-e2e-fix` through
+`E2E_CLUSTER`) with opm CLI v1.0.0-beta.8 and opm-operator v1.0.0-beta.6 (`OPM_OPERATOR_VERSION`). The Platform is applied by `up.sh`, pinned to
 `opmodel.dev/catalogs/opm@v4` 4.6.0 (`OPM_CATALOG_VERSION`); the accepted claim adds
 `testing.opmodel.dev/catalogs/operator/backup@v0` 0.1.0 to its registry.
 
@@ -33,11 +33,14 @@ v1.0.0-beta.6 (`OPM_OPERATOR_VERSION`). The Platform is applied by `up.sh`, pinn
 | `default.backup-provider` (claim) | `Ready=True/Accepted`, accepted and active |
 | `default/backup-consumer` | `Ready=True`: the claim's catalog implements the backup trait |
 | `web/web` | CLI-owned, `Ready=Unknown/ManagedExternally`, two inventory objects |
+| `default.refused-claim-fixture` (claim) | **Deliberate refusal fixture**, applied by hand: `Stalled=True` plus `Ready=False/CatalogUnresolved` (its catalog is published nowhere), no `accepted` or `active`; `meta.yaml` marks it `deliberateRefusal: true` |
 
 Images: nginx in `web/web` is pinned by digest. cert-manager's three images (`v1.21.0`) and the
 podinfo test module's image are pinned by tag only, since their modules set them; each Pod's
 `status.containerStatuses[].imageID` records the digest that ran.
 
 An operator built on a library older than v1.0.0-beta.2 (operator v1.0.0-beta.5 and earlier,
-the one CLI v1.0.0-beta.7 embeds) refuses the claim `Ready=False/CatalogUnresolved`, and the
-consumer then stays `Ready=False/ResolutionFailed`; this capture does not hold that state.
+the one CLI v1.0.0-beta.8 embeds) refuses the backup claim `Ready=False/CatalogUnresolved`, and
+the consumer then stays `Ready=False/ResolutionFailed`; this capture does not hold the consumer's
+`ResolutionFailed` state. The refused-registration state is held by the deliberate refusal
+fixture above.
