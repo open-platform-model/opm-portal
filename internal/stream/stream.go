@@ -237,9 +237,10 @@ func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
 // send writes a snapshot or an item event. It is the only path by which
 // either reaches the client (TestOnlySendWritesTopicData holds it to that).
 // Right before the event id and the write it re-validates, in this one
-// place, every grant the message was built under (revalidate), so nothing is
-// written under a decision that expired while the message was built: a
-// slow Snapshot or render cannot outlive a grant unnoticed.
+// place, every grant the message was built under (revalidate), so a message
+// is written right after an in-memory pass confirms that every decision it
+// used is unexpired: a slow Snapshot, render or review cannot outlive a
+// grant unnoticed.
 func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 	if code := s.revalidate(ctx, m); code != "" {
 		return s.closeTopic(ctx, wr, m.sub, code)
@@ -277,17 +278,72 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 	return wr.event("", id, m.event, body)
 }
 
-// revalidate makes sure every grant m was built under still covers its read
-// now, asking again for any that does not (an expired one). The topic's
-// grants come first: any denial or error there returns its closing code. A
-// part reviewed on its own that is now forbidden is dropped from m, so a
-// snapshot is written without it and an item event not at all, without a
-// trace (0030:D7:R2); any other code for it closes the topic. It returns a
-// closing code, or "".
+// revalidateRounds caps the rounds of reviews revalidate sends for one
+// message. A message whose grants keep expiring while others are asked
+// again does not settle, and its topic is closed instead of written.
+const revalidateRounds = 3
+
+// revalidate makes sure every grant m was built under covers its read, and
+// returns "" only right after a pass that confirms it in memory: the pass
+// (covered) makes no review call, and send does no I/O between it and the
+// write. Any other pass asks again for every grant that has expired, the
+// topic's first (gateTopic), then each part's own, and loops, since a slow
+// review can outlast a grant that covered when it was looked at. After
+// revalidateRounds rounds of reviews without a clean pass the topic is
+// closed with upstream_unavailable.
+//
+// The guarantee is: every message is written right after an in-memory pass
+// confirms that every decision it used is unexpired; decisions are cached
+// for at most 30 s, so revocation reaches the stream within that TTL. The
+// moment between that pass and the write is inherent to check-then-write.
+//
+// A topic denial or error returns its closing code. A part reviewed on its
+// own that is now forbidden is dropped from m, so a snapshot is written
+// without it and an item event not at all, without a trace (0030:D7:R2); any
+// other code for it closes the topic. It returns a closing code, or "".
 func (s *Stream) revalidate(ctx context.Context, m *message) string {
-	if code := s.gateTopic(ctx, m.sub); code != "" {
-		return code
+	for range revalidateRounds {
+		if s.covered(m) {
+			return ""
+		}
+		if code := s.gateTopic(ctx, m.sub); code != "" {
+			return code
+		}
+		if code := s.recheckParts(ctx, m); code != "" {
+			return code
+		}
 	}
+	if s.covered(m) {
+		return ""
+	}
+	s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
+	return CodeUpstreamUnavailable
+}
+
+// covered reports whether every topic grant of m's subscription and every
+// own grant of its parts covers its read now. It makes no review call.
+func (s *Stream) covered(m *message) bool {
+	b, who, sub := s.b, s.st.who, m.sub
+	b.mu.Lock()
+	for i, req := range sub.attrs {
+		if sub.grants[i].Covers(who, req) != nil {
+			b.mu.Unlock()
+			return false
+		}
+	}
+	b.mu.Unlock()
+	for i := range m.parts {
+		if p := &m.parts[i]; p.own && p.grant.Covers(who, p.attrs) != nil {
+			return false
+		}
+	}
+	return true
+}
+
+// recheckParts asks again for every own grant of m's parts that has
+// expired. A part now forbidden is dropped from m; any other code is
+// returned as the topic's closing code.
+func (s *Stream) recheckParts(ctx context.Context, m *message) string {
 	b, who := s.b, s.st.who
 	kept := m.parts[:0]
 	for i := range m.parts {

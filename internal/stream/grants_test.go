@@ -10,6 +10,7 @@ import (
 	"maps"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"testing/synctest"
@@ -138,6 +139,144 @@ func TestALiveItemsOwnDecisionIsAskedAgainBeforeTheWrite(t *testing.T) {
 			})
 		})
 	}
+}
+
+// slowPackages returns a rule that allows team-a, refuses the packages in
+// revoked, and answers every other package review after delay, inside the
+// 5 s review timeout.
+func slowPackages(delay time.Duration, revoked ...string) rule {
+	return func(a authorizationv1.ResourceAttributes) (bool, error) {
+		if a.Resource != "modulepackages" {
+			return a.Namespace == "team-a", nil
+		}
+		if slices.Contains(revoked, a.Name) {
+			return false, nil
+		}
+		time.Sleep(delay)
+		return a.Namespace == "team-a", nil
+	}
+}
+
+// pkgNamed is a static item on instance topic team-a/blog revealing package
+// team-a/name, so it is reviewed on its own.
+func pkgNamed(name string) Item {
+	return Item{
+		Event: EventUpsert,
+		Attrs: authz.Attributes{Verb: "get", Resource: packagesGVR, Namespace: "team-a", Name: name},
+		Data:  json.RawMessage(`{"name":"` + name + `"}`),
+	}
+}
+
+// A topic grant that covered when revalidate looked at it, and expired
+// during a slow review of an item, is asked again before the write: the
+// topic was revoked meanwhile, so it closes and no snapshot is written.
+func TestATopicGrantThatExpiresDuringRevalidateIsAskedAgain(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+		e.policy.set("alice", allowNamespaces("team-a"))
+		// t=0: another stream caches alice's pkg decision until t=30.
+		e.open(Session{Key: "session-other", Identity: user("alice")}, "package:team-a/pkg")
+		time.Sleep(5 * time.Second)
+		blog := mustTopic(t, "instance:team-a/blog")
+		e.prod.seed(blog, "a", pkgItem(nil))
+		e.prod.seed(blog, "b", Item{
+			Event: EventUpsert,
+			Attrs: authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: "team-a", Name: "blog"},
+			Render: func(context.Context, authz.Identity) (json.RawMessage, error) {
+				// Instances are revoked; packages stay allowed but take
+				// 4.5 s to review. The render ends at t=31.
+				e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
+					if a.Resource == "modulepackages" {
+						time.Sleep(4500 * time.Millisecond)
+						return true, nil
+					}
+					return false, nil
+				})
+				time.Sleep(26 * time.Second)
+				return json.RawMessage(`{"name":"blog","secret":"instance-data"}`), nil
+			},
+		})
+		// t=5: the topic's grant lasts until t=35. At t=31 pkg is asked
+		// again until t=35.5, past the topic's grant.
+		sv := e.open(session("alice"), "instance:team-a/blog")
+		time.Sleep(time.Minute)
+		synctest.Wait()
+
+		if got, want := nonHeartbeats(sv.rec.take()), []string{"open()", "closed(instance:team-a/blog)forbidden"}; !slices.Equal(got, want) {
+			t.Errorf("events = %v, want %v", got, want)
+		}
+	})
+}
+
+// An item grant that covered when revalidate looked at it, and expired
+// during a slow review of another item, is asked again before the write:
+// the item was revoked meanwhile, so the snapshot is written without it.
+func TestAnItemGrantThatExpiresDuringRevalidateIsAskedAgain(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+		e.policy.set("alice", allowNamespaces("team-a"))
+		// t=0: another stream caches alice's pkg2 decision until t=30.
+		e.open(Session{Key: "session-other", Identity: user("alice")}, "package:team-a/pkg2")
+		time.Sleep(5 * time.Second)
+		blog := mustTopic(t, "instance:team-a/blog")
+		e.prod.seed(blog, "a", pkgNamed("pkg1"))
+		e.prod.seed(blog, "b", pkgNamed("pkg2"))
+		e.prod.seed(blog, "c", Item{
+			Event: EventUpsert,
+			Attrs: authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: "team-a", Name: "blog"},
+			Render: func(context.Context, authz.Identity) (json.RawMessage, error) {
+				// pkg1 is revoked, pkg2 takes 4.5 s to review. The render
+				// ends at t=31.
+				e.policy.set("alice", slowPackages(4500*time.Millisecond, "pkg1"))
+				time.Sleep(26 * time.Second)
+				return json.RawMessage(`{"name":"blog"}`), nil
+			},
+		})
+		// t=5: the topic's and pkg1's grants last until t=35, the cached
+		// pkg2 decision until t=30. At t=31 pkg2 is asked again until
+		// t=35.5, past pkg1's grant.
+		sv := e.open(session("alice"), "instance:team-a/blog")
+		time.Sleep(time.Minute)
+		synctest.Wait()
+
+		evs := sv.rec.take()
+		want := `{"topic":"instance:team-a/blog","items":[{"name":"pkg2"},{"name":"blog"}]}`
+		if got := nonHeartbeats(evs); !slices.Equal(got, []string{"open()", "snapshot(instance:team-a/blog)"}) || evs[1].Data != want {
+			t.Errorf("events = %v, snapshot = %s; want %s", got, evs[1].Data, want)
+		}
+	})
+}
+
+// A message whose grants keep expiring while the others are asked again
+// does not settle: after revalidateRounds rounds of reviews its topic is
+// closed with upstream_unavailable and nothing is written.
+func TestAMessageWhoseGrantsNeverSettleClosesTheTopic(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+		e.policy.set("alice", allowNamespaces("team-a"))
+		blog := mustTopic(t, "instance:team-a/blog")
+		// Eight package reviews of 4.5 s take 36 s, longer than a
+		// decision lasts, so each round leaves the earliest expired.
+		for i := range 8 {
+			e.prod.seed(blog, "a"+strconv.Itoa(i), pkgNamed("pkg"+strconv.Itoa(i)))
+		}
+		e.prod.seed(blog, "b", Item{
+			Event: EventUpsert,
+			Attrs: authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: "team-a", Name: "blog"},
+			Render: func(context.Context, authz.Identity) (json.RawMessage, error) {
+				e.policy.set("alice", slowPackages(4500*time.Millisecond))
+				time.Sleep(31 * time.Second)
+				return json.RawMessage(`{"name":"blog"}`), nil
+			},
+		})
+		sv := e.open(session("alice"), "instance:team-a/blog")
+		time.Sleep(5 * time.Minute)
+		synctest.Wait()
+
+		if got, want := nonHeartbeats(sv.rec.take()), []string{"open()", "closed(instance:team-a/blog)upstream_unavailable"}; !slices.Equal(got, want) {
+			t.Errorf("events = %v, want %v", got, want)
+		}
+	})
 }
 
 // Every write path is enumerated here, so no future path can write topic
