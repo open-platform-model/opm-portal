@@ -76,10 +76,8 @@ func (g Grant) Expires() time.Time {
 // Covers returns nil when g permits who to make the read req now. who must
 // be the identity the grant was issued to (compared on its canonical key, so
 // group and extra-value order does not matter), and the grant must not have
-// expired. Verb, resource and subresource must match exactly. A grant with
-// an empty namespace covers every namespace, and one with an empty name
-// covers every object, as RBAC answers an access review with those fields
-// empty. Anything else, and the zero Grant, returns an error wrapping
+// expired. The grant's read must cover req by scope, as Attributes.Covers
+// judges it. Anything else, and the zero Grant, returns an error wrapping
 // ErrNoGrant. The error never names the identity or the object.
 func (g Grant) Covers(who Identity, req Attributes) error {
 	if g.sealed == nil {
@@ -93,13 +91,7 @@ func (g Grant) Covers(who Identity, req Attributes) error {
 	if !g.sealed.now().Before(g.sealed.expires) {
 		return fmt.Errorf("grant has expired: %w", ErrNoGrant)
 	}
-	have := g.sealed.attrs
-	switch {
-	case have.Verb != req.Verb,
-		have.Resource != req.Resource,
-		have.Subresource != req.Subresource,
-		have.Namespace != "" && have.Namespace != req.Namespace,
-		have.Name != "" && have.Name != req.Name:
+	if have := g.sealed.attrs; !have.Covers(req) {
 		return fmt.Errorf("grant for %s does not cover %s: %w", have, req, ErrNoGrant)
 	}
 	return nil

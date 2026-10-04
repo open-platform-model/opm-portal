@@ -252,26 +252,39 @@ func TestZeroGrant(t *testing.T) {
 	}
 }
 
-func TestGrantCovers(t *testing.T) {
-	cases := []struct {
-		name    string
-		granted Attributes
-		req     Attributes
-		covers  bool
-	}{
-		{"exact", getDeployment("a", "web"), getDeployment("a", "web"), true},
-		{"other name", getDeployment("a", "web"), getDeployment("a", "db"), false},
-		{"other namespace", getDeployment("a", "web"), getDeployment("b", "web"), false},
-		{"any name covers one", getDeployment("a", ""), getDeployment("a", "web"), true},
-		{"any namespace covers one", getDeployment("", ""), getDeployment("b", "web"), true},
-		{"one name does not cover all", getDeployment("a", "web"), getDeployment("a", ""), false},
-		{"one namespace does not cover all", getDeployment("a", ""), getDeployment("", ""), false},
-		{"other verb", Attributes{Verb: "list", Resource: deployments, Namespace: "a"}, Attributes{Verb: "watch", Resource: deployments, Namespace: "a"}, false},
-		{"other version", getDeployment("a", "web"), Attributes{Verb: "get", Resource: schema.GroupVersionResource{Group: "apps", Version: "v1beta1", Resource: "deployments"}, Namespace: "a", Name: "web"}, false},
-		{"pod does not cover its log", Attributes{Verb: "get", Resource: pods, Namespace: "a", Name: "p"}, Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"}, false},
-		{"log covers log", Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"}, Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"}, true},
+// scopeCases are the scope rules both Attributes.Covers and Grant.Covers
+// apply.
+var scopeCases = []struct {
+	name    string
+	granted Attributes
+	req     Attributes
+	covers  bool
+}{
+	{"exact", getDeployment("a", "web"), getDeployment("a", "web"), true},
+	{"other name", getDeployment("a", "web"), getDeployment("a", "db"), false},
+	{"other namespace", getDeployment("a", "web"), getDeployment("b", "web"), false},
+	{"any name covers one", getDeployment("a", ""), getDeployment("a", "web"), true},
+	{"any namespace covers one", getDeployment("", ""), getDeployment("b", "web"), true},
+	{"one name does not cover all", getDeployment("a", "web"), getDeployment("a", ""), false},
+	{"one namespace does not cover all", getDeployment("a", ""), getDeployment("", ""), false},
+	{"other verb", Attributes{Verb: "list", Resource: deployments, Namespace: "a"}, Attributes{Verb: "watch", Resource: deployments, Namespace: "a"}, false},
+	{"other version", getDeployment("a", "web"), Attributes{Verb: "get", Resource: schema.GroupVersionResource{Group: "apps", Version: "v1beta1", Resource: "deployments"}, Namespace: "a", Name: "web"}, false},
+	{"pod does not cover its log", Attributes{Verb: "get", Resource: pods, Namespace: "a", Name: "p"}, Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"}, false},
+	{"log covers log", Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"}, Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"}, true},
+}
+
+func TestAttributesCovers(t *testing.T) {
+	for _, tc := range scopeCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := tc.granted.Covers(tc.req); got != tc.covers {
+				t.Fatalf("Covers = %v, want %v", got, tc.covers)
+			}
+		})
 	}
-	for _, tc := range cases {
+}
+
+func TestGrantCovers(t *testing.T) {
+	for _, tc := range scopeCases {
 		t.Run(tc.name, func(t *testing.T) {
 			g, err := newChecker(&fakeDecider{allowed: true}, Options{}).Check(t.Context(), alice, tc.granted)
 			if err != nil {

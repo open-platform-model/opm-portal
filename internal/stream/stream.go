@@ -314,20 +314,9 @@ func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data
 }
 
 // withinTopic reports whether one of the topic's reads covers req by scope
-// alone, as Grant.Covers judges it apart from identity and expiry: the same
-// verb, resource and subresource, and a namespace and name that are empty
-// (every one) or equal.
+// alone, by the rule Grant.Covers applies (authz.Attributes.Covers).
 func withinTopic(reads []authz.Attributes, req authz.Attributes) bool {
-	for _, have := range reads {
-		if have.Verb == req.Verb &&
-			have.Resource == req.Resource &&
-			have.Subresource == req.Subresource &&
-			(have.Namespace == "" || have.Namespace == req.Namespace) &&
-			(have.Name == "" || have.Name == req.Name) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(reads, func(have authz.Attributes) bool { return have.Covers(req) })
 }
 
 // closeTopic drops sub from the stream and tells the client, keeping the
