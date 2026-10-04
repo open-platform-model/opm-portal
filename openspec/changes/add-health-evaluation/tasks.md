@@ -1,9 +1,9 @@
 ## 1. Object health
 
-- [ ] 1.1 Copy the captured objects into `internal/health/testdata/` (podinfo phases 3, 4 and 5; cert-manager phase 3; the CLI-owned web instance; the experiment 01 operator samples; the cert-manager ModuleInstance and the Flux-less ModulePackage), with `managedFields`, annotations, `spec.values` and CRD schemas removed; verify `grep` finds no `kind: Secret`, no `caBundle`, no `values:` and no `last-applied` in the directory
-- [ ] 1.2 Add `github.com/fluxcd/cli-utils` at the version opm-operator's `go.mod` pins (v1.2.2) and `k8s.io/apimachinery`; verify `go mod tidy` is stable
-- [ ] 1.3 Add `internal/health` with `State`, `ObjectHealth` and `Object(u)`: kstatus mapping, a kstatus error as Unknown, and the Pod rule for the five waiting reasons over containers and init containers; verify with table tests over every captured object (healthy phase 3 and cert-manager objects Healthy, phase 4 Deployment Progressing, phase 4 broken Pod Degraded with `ImagePullBackOff`, phase 5 Deployment Degraded) and synthetic Pods for each reason
-- [ ] 1.4 `task check` green, then commit `chore(health): evaluate object health with kstatus and the pod rule`
+- [x] 1.1 Copy the captured objects into `internal/health/testdata/` (podinfo phases 3, 4 and 5; cert-manager phase 3; the CLI-owned web instance; the experiment 01 operator samples; the cert-manager ModuleInstance and the Flux-less ModulePackage), with `managedFields`, annotations, `spec.values` and CRD schemas removed; verify `grep` finds no `kind: Secret`, no `caBundle`, no `values:` and no `last-applied` in the directory
+- [x] 1.2 Add `github.com/fluxcd/cli-utils` at the version opm-operator's `go.mod` pins (v1.2.2) and `k8s.io/apimachinery`; verify `go mod tidy` is stable
+- [x] 1.3 Add `internal/health` with `State`, `ObjectHealth` and `Object(u)`: kstatus mapping, a kstatus error as Unknown, and the Pod rule for the five waiting reasons over containers and init containers; verify with table tests over every captured object (healthy phase 3 and cert-manager objects Healthy, phase 4 Deployment Progressing, phase 4 broken Pod Degraded with `ImagePullBackOff`, phase 5 Deployment Degraded) and synthetic Pods for each reason
+- [x] 1.4 `task check` green, then commit `chore(health): evaluate object health with kstatus and the pod rule`
 
 ## 2. Roll-up
 
