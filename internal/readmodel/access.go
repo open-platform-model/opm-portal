@@ -67,5 +67,21 @@ func (m *Model) readerMay(ctx context.Context, verb string, resource schema.Grou
 // readerMayWatch reports whether the reader may run an informer on resource
 // in namespace: list and watch both.
 func (m *Model) readerMayWatch(ctx context.Context, resource schema.GroupVersionResource, namespace string) bool {
-	return m.readerMay(ctx, "list", resource, namespace, "") && m.readerMay(ctx, "watch", resource, namespace, "")
+	return m.readerWatchAccess(ctx, resource, namespace) == health.AccessOK
+}
+
+// readerWatchAccess is readerMayWatch with the reason: forbidden when the
+// reader was denied, not readable when a review could not be made, which a
+// caller may ask about again later.
+func (m *Model) readerWatchAccess(ctx context.Context, resource schema.GroupVersionResource, namespace string) health.Access {
+	if isSecret(resource) {
+		return health.AccessForbidden
+	}
+	for _, verb := range []string{"list", "watch"} {
+		read := authz.Attributes{Verb: verb, Resource: resource, Namespace: namespace}
+		if access := m.decide(ctx, m.cfg.Reader, read, read); access != health.AccessOK {
+			return access
+		}
+	}
+	return health.AccessOK
 }

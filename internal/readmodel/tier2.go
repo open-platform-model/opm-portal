@@ -20,7 +20,7 @@ type inventoryKind struct {
 
 	mu       sync.Mutex
 	lastUsed time.Time
-	decided  bool              // whether the cluster-wide grant was asked
+	decided  bool              // whether the reader was allowed or denied cluster-wide
 	cluster  *watch            // the cluster-wide informer, when allowed
 	perNS    map[string]*watch // per-namespace informers; nil when not allowed there
 	poller   *poller           // objects the reader may get but not watch
@@ -56,10 +56,16 @@ func (m *Model) acquire(ctx context.Context, kind resolvedKind, namespaces []str
 	k.lastUsed = m.cfg.Now()
 	var fresh []*watch
 	if !k.decided {
-		k.decided = true
-		if m.readerMayWatch(ctx, k.resource, "") {
+		// A review that could not be made decides nothing: the next view
+		// asks again instead of settling for a narrower scope.
+		switch m.readerWatchAccess(ctx, k.resource, "") {
+		case health.AccessOK:
+			k.decided = true
 			k.cluster = m.startWatch(k.resource, "", instanceUUIDLabel)
 			fresh = append(fresh, k.cluster)
+		case health.AccessForbidden, health.AccessWithheld:
+			k.decided = true
+		case health.AccessNotReadable:
 		}
 	}
 	if k.cluster == nil && k.namespaced {
@@ -67,12 +73,15 @@ func (m *Model) acquire(ctx context.Context, kind resolvedKind, namespaces []str
 			if _, asked := k.perNS[ns]; asked {
 				continue
 			}
-			var w *watch
-			if m.readerMayWatch(ctx, k.resource, ns) {
-				w = m.startWatch(k.resource, ns, instanceUUIDLabel)
+			switch m.readerWatchAccess(ctx, k.resource, ns) {
+			case health.AccessOK:
+				w := m.startWatch(k.resource, ns, instanceUUIDLabel)
 				fresh = append(fresh, w)
+				k.perNS[ns] = w
+			case health.AccessForbidden, health.AccessWithheld:
+				k.perNS[ns] = nil
+			case health.AccessNotReadable:
 			}
-			k.perNS[ns] = w
 		}
 	}
 	k.mu.Unlock()
@@ -133,8 +142,9 @@ func (k *inventoryKind) idleSince(cutoff time.Time) bool {
 	return k.lastUsed.Before(cutoff)
 }
 
-// sweep stops every inventory kind no view has used for IdleTimeout. The
-// next view that needs one starts it again.
+// sweep stops every inventory kind no view has used for IdleTimeout, and
+// drops expired on-demand lists of runtime children. The next view that
+// needs one starts or lists it again.
 func (m *Model) sweep() {
 	cutoff := m.cfg.Now().Add(-m.cfg.IdleTimeout)
 	m.mu.Lock()
@@ -143,6 +153,12 @@ func (m *Model) sweep() {
 		if k.idleSince(cutoff) {
 			idle = append(idle, k)
 			delete(m.inventory, gvr)
+		}
+	}
+	now := m.cfg.Now()
+	for ns, listing := range m.childList {
+		if !now.Before(listing.at.Add(m.cfg.ChildrenTTL)) {
+			delete(m.childList, ns)
 		}
 	}
 	m.mu.Unlock()

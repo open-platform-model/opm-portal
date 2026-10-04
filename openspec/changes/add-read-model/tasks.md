@@ -31,3 +31,9 @@
 - [x] 5.2 Add `TestMeasureF1`: cold and warm latency of `Instance` for cert-manager and of `ListInstances`, the cluster requests each makes, and the heap held by a warm model over F1; record the numbers in design.md, Measurements on F1
 - [x] 5.3 Add the package documentation (`doc.go`); verify `go doc ./internal/readmodel` prints it
 - [x] 5.4 `task check` green, then commit `chore(readmodel): measure the read model on F1 and document it`
+
+## 6. Verify fixes (internal/readmodel)
+
+- [x] 6.1 Record a tier-2 scope decision only when the reader's review allowed or denied it, so a review that could not be made is asked again; verify with a reader whose reviews fail, then recover, and that the kind is then watched
+- [x] 6.2 Drop expired on-demand lists of runtime children in the idle sweep; verify `task test`
+- [x] 6.3 `task check` green, then commit `chore(readmodel): ask a failed reader review again and drop expired child lists`

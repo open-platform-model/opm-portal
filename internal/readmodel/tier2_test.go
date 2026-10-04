@@ -444,3 +444,20 @@ func countReads(e *env, line string) int {
 	}
 	return n
 }
+
+// TestFailedReaderReviewDecidesNothing: a reader review that could not be
+// made leaves the entries not readable, and the next read, once reviews
+// work, watches the kind cluster-wide instead of settling for polling.
+func TestFailedReaderReviewDecidesNothing(t *testing.T) {
+	e := newEnv(t, loadF1(t), allowAll, allowAll)
+	e.readerR.setFail(true)
+	d := e.instance(t, "default", "podinfo")
+	if o := objectNamed(t, &d, "Deployment", "podinfo-podinfo"); o.Access != health.AccessNotReadable {
+		t.Fatalf("Deployment while reviews fail = %+v, want not readable", o)
+	}
+	e.readerR.setFail(false)
+	d = e.instance(t, "default", "podinfo")
+	if o := objectNamed(t, &d, "Deployment", "podinfo-podinfo"); o.Access != health.AccessOK || !o.Live {
+		t.Fatalf("Deployment after reviews recover = %+v, want live and readable", o)
+	}
+}

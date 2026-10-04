@@ -307,7 +307,10 @@ What the numbers say:
   two objects included (checked in section 3's tests).
 - [Fake clients ignore field selectors and watch label filtering] -> the read model filters
   events client-side as well, and T2 tests add objects before the informer starts.
-- [Memory] -> the numbers below are for F1 only; a budget at scale is later work.
+- [An events list error carries the API server's text] -> it is returned only after the caller's
+  grant was checked and holds no credential; the read API logs it and sends the client a
+  problem document without it, as it does with `DenialError`'s cause.
+- [Memory] -> the numbers in Measurements on F1 are for F1 only; a budget at scale is later work.
 
 ## Open Questions
 

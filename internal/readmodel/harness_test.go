@@ -2,6 +2,7 @@ package readmodel
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -179,7 +180,14 @@ func allowAll(string, authorizationv1.ResourceAttributes) bool { return true }
 type reviews struct {
 	mu    sync.Mutex
 	rule  rule
+	fail  bool // every review fails, as an unreachable API server would
 	asked []authorizationv1.ResourceAttributes
+}
+
+func (r *reviews) setFail(fail bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.fail = fail
 }
 
 // newChecker returns a local Checker for self whose reviews follow fn.
@@ -192,8 +200,11 @@ func newChecker(t testing.TB, self authz.Identity, fn rule, opts authz.Options) 
 		ra := *review.Spec.ResourceAttributes
 		r.mu.Lock()
 		r.asked = append(r.asked, ra)
-		allowed := r.rule(self.Username, ra)
+		allowed, fail := r.rule(self.Username, ra), r.fail
 		r.mu.Unlock()
+		if fail {
+			return true, nil, errors.New("connection refused")
+		}
 		out := review.DeepCopy()
 		out.Status.Allowed = allowed
 		out.Status.Denied = !allowed
