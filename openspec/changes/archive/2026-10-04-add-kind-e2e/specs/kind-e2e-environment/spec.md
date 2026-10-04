@@ -9,11 +9,17 @@ and may not contain.
 ### Requirement: The fixture cluster is created from pinned released artifacts
 
 `task e2e:up` SHALL create a kind cluster named `opm-portal-e2e` from the node image pinned in
-`test/e2e/versions.env`, with podman as the default provider and docker when `E2E_PROVIDER=docker`.
-It SHALL download the `opm` CLI release pinned in `versions.env`, SHALL compare the archive's
-sha256 with the pinned value for the host's platform before extracting it, and SHALL stop with a
-non-zero exit on a mismatch. It SHALL install the opm-operator with that CLI, the CLI's embedded
-operator version unless `OPM_OPERATOR_VERSION` names another release.
+`test/e2e/versions.env`, with podman as the default provider and docker when `E2E_PROVIDER=docker`,
+and SHALL record the provider so `task e2e:capture` and `task e2e:down` use it when
+`E2E_PROVIDER` is unset. It SHALL refuse to run when the `kind` on `PATH` is not the pinned
+release. It SHALL download the `opm` CLI release pinned in `versions.env`, SHALL compare the
+archive's sha256 with the pinned value for the host's platform before every extraction, including
+from a cached archive, and SHALL stop with a non-zero exit on a mismatch. It SHALL install the
+opm-operator release `OPM_OPERATOR_VERSION` names (the CLI's embedded version when it is empty)
+without the CLI's Platform, and SHALL apply a cluster Platform subscribed to the catalog version
+`versions.env` pins. Container images a fixture module chooses itself (cert-manager's three
+images share one digest field, podinfo's is set by its test module) are pinned by tag only; the
+CLI-owned instance's image is pinned by digest.
 
 #### Scenario: Fresh environment
 
@@ -25,6 +31,16 @@ operator version unless `OPM_OPERATOR_VERSION` names another release.
 
 - **WHEN** the downloaded CLI archive's sha256 differs from the pinned value
 - **THEN** `task e2e:up` exits non-zero naming the mismatch, before any cluster object is applied
+
+#### Scenario: Catalog pin
+
+- **WHEN** a newer release of the pinned catalog is published
+- **THEN** the cluster Platform still subscribes to the version `versions.env` pins
+
+#### Scenario: kind differs from the pin
+
+- **WHEN** the `kind` on `PATH` reports a version other than `KIND_VERSION`
+- **THEN** `task e2e:up` exits non-zero, naming both versions, before creating a cluster
 
 #### Scenario: Cluster already exists
 
@@ -80,14 +96,16 @@ without failing, the state of the ModulePackage, the backup claim and the backup
 
 `task e2e:capture` SHALL write the four OPM kinds, the objects their inventories name, the
 ReplicaSets and Pods labelled with an instance name, the events of the fixture namespaces and a
-`meta.yaml` into `testdata/clusters/f1/`, each as a list sorted by kind, namespace and name. It
-SHALL NOT get, list or watch Secrets, and SHALL skip any inventory entry of kind `Secret`. Every
+`meta.yaml` into `testdata/clusters/f1/`, each as a list sorted by kind, namespace and name,
+leaving out events about Nodes. It SHALL NOT get, list or watch Secrets, and SHALL skip any inventory entry of kind `Secret`. Every
 captured object SHALL lack `metadata.managedFields` and the
 `kubectl.kubernetes.io/last-applied-configuration` annotation, and every ModuleInstance and
 ModulePackage SHALL lack `spec.values`. CustomResourceDefinitions SHALL be captured without
-`spec.versions[].schema`. A capture that breaks any of these rules SHALL fail
-`task e2e:capture:check`, which the capture runs last and the `Test` check runs on every pull
-request. Source: 0030:D8.
+`spec.versions[].schema`. `task e2e:capture:check` SHALL check every file under
+`testdata/clusters/`, recursively and whatever its extension (Markdown excepted), and every
+document in it, a List by its items and any other object as itself. A file that breaks any of
+these rules, or does not parse, SHALL fail it. The capture runs it last, and `task check` and
+the `Test` check run it on every pull request. Source: 0030:D8.
 
 #### Scenario: Clean capture
 
@@ -106,21 +124,34 @@ request. Source: 0030:D8.
 
 #### Scenario: Secret in a capture
 
-- **WHEN** a capture file holds an object of kind `Secret`
+- **WHEN** any file under `testdata/clusters/` holds an object of kind `Secret`, whether in a
+  List, as a bare object, as one document of several, or in a `.yml` or `.json` file
 - **THEN** `task e2e:capture:check` exits non-zero
+
+#### Scenario: Unparseable capture file
+
+- **WHEN** a file under `testdata/clusters/` does not parse as YAML
+- **THEN** `task e2e:capture:check` exits non-zero and names the file
 
 ### Requirement: The environment runs on a schedule, never on pull requests
 
 The repository SHALL run `task e2e:up` and `task e2e:capture` on docker kind in a workflow
 triggered by manual dispatch and a nightly schedule only, SHALL upload the capture as a workflow
-artifact, and SHALL delete the cluster whether or not the earlier steps succeeded. No pull
-request check SHALL depend on this workflow.
+artifact, and SHALL delete the cluster whether or not the earlier steps succeeded. It SHALL fail
+when the capture's `meta.yaml`, apart from the capture time and the provider, differs from the
+committed one. No pull request check SHALL depend on this workflow.
 
 #### Scenario: Nightly run
 
 - **WHEN** the nightly schedule fires
 - **THEN** the workflow creates the cluster, captures it, uploads the capture and deletes the
   cluster
+
+#### Scenario: Verdict drift
+
+- **WHEN** a nightly capture records a different `Ready` reason, claim verdict, operator or
+  catalog version than the committed `meta.yaml`
+- **THEN** the workflow run fails and its summary shows the difference
 
 #### Scenario: Pull request
 

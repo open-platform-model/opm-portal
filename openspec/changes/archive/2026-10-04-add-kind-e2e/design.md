@@ -69,8 +69,18 @@ archives, copied from the release's `checksums.txt`. `up.sh` downloads
 `opm-<os>-<arch>.tar.gz` from the cli GitHub release into `.e2e/bin/`, compares its sha256 with
 the pinned value and stops on a mismatch, before extracting. Pinning the digest, rather than
 trusting the `checksums.txt` downloaded beside the archive, means a replaced release asset is
-caught. The operator is the CLI's embedded pin unless `OPM_OPERATOR_VERSION` is set, which
-passes `--version` to `opm operator install`. `OPM_REGISTRY` is set to the GHCR mapping and
+caught. The archive is kept in `.e2e/bin/` and re-hashed before every extraction, so a binary
+swapped after the first run is never trusted. The operator is `OPM_OPERATOR_VERSION`
+(v1.0.0-beta.6), passed as `--version` to `opm operator install`; empty falls back to the CLI's
+embedded pin.
+
+`opm operator install` alone creates a Platform subscribed to the newest published catalog
+release, which has no version flag (experiment 01 got 4.5.2, the first run of this change 4.6.0,
+with no pin change). `up.sh` therefore passes `--skip-platform` and applies the singleton
+Platform `cluster` itself, with `spec.registry` naming `OPM_CATALOG` at `OPM_CATALOG_VERSION`
+(4.6.0). The CLI-owned instance pins nginx by digest. cert-manager's three images share one
+`digest` value in its module, so they stay pinned by tag (`v1.21.0`), as does the image the
+podinfo test module chooses; `meta.yaml` and the Pods' `imageID` show what ran. `OPM_REGISTRY` is set to the GHCR mapping and
 `CUE_CACHE_DIR` to `.e2e/cue-cache`, so a developer's registry mapping and CUE module cache
 take no part. The CLI still writes the platform module it generates under `~/.opm/cache`; it
 has no setting to move that.
@@ -82,7 +92,10 @@ has no setting to move that.
 rootless podman needs for cgroup delegation and the one experiment 01 used.
 `E2E_PROVIDER=docker` runs plain `kind create cluster`. Both pass the pinned
 `kindest/node:v1.36.1@sha256:...` image (kind v0.32.0's default), so the two providers run the
-same Kubernetes.
+same Kubernetes. `up.sh` writes the provider to `.e2e/provider`; `capture.sh` and `down.sh` read
+it when `E2E_PROVIDER` is unset, so a docker cluster is never orphaned by a bare `task e2e:down`.
+`up.sh` refuses a `kind` whose version is not `KIND_VERSION`, so `meta.yaml`'s kind field is
+what ran.
 
 ### Settle rules
 
@@ -112,7 +125,9 @@ Each file is a `kind: List` sorted by kind, namespace and name:
 - `objects.yaml`: every object an instance's `status.inventory.entries` names, fetched by
   `kind.version.group` (plain kind for the core group), skipping `Secret`; then the ReplicaSets
   and Pods labelled `module-instance.opmodel.dev/name`, which carry no uuid label (observation 8).
-- `events.yaml`: `events.k8s.io/v1` events in `default`, `cert-manager`, `pkg` and `web`.
+- `events.yaml`: `events.k8s.io/v1` events in `default`, `cert-manager`, `pkg` and `web`,
+  without events about Nodes (kubelet and host noise, such as cgroup and swap warnings, that
+  differs between podman and docker and says nothing about OPM state).
 - `meta.yaml`: capture time, kind and node image, CLI version, operator image, Platform catalog
   version, and per instance and registration the `Ready` status and reason, `accepted`,
   `active`.
@@ -121,8 +136,11 @@ Every item loses `metadata.managedFields` and the
 `kubectl.kubernetes.io/last-applied-configuration` annotation; ModuleInstances and
 ModulePackages lose `spec.values`. CustomResourceDefinitions lose `spec.versions[].schema`:
 cert-manager's six CRD schemas were 472 KB of a 1.17 MB `objects.yaml` in the first run, and the
-portal reads a CRD's metadata and conditions, never its schema. `check-capture.sh` fails on any `Secret`, any remaining
-`managedFields`, last-applied annotation or MI/MP `spec.values`, and `capture.sh` runs it last.
+portal reads a CRD's metadata and conditions, never its schema. `check-capture.sh` walks every
+file under `testdata/clusters/` (recursively, any extension, Markdown excepted), reads every
+document in it as a List's items or as one object, and fails on any `Secret`, any remaining
+`managedFields`, last-applied annotation or MI/MP `spec.values`, and on a file that does not
+parse. `capture.sh` runs it last, and `task check` runs it too.
 
 ### Authorization
 
@@ -137,7 +155,11 @@ The scripts read, as kind's cluster-admin kubeconfig, on the throwaway cluster: 
 `.github/workflows/e2e.yml`, job `E2E` (never `Lint`), on `workflow_dispatch` and a nightly
 `schedule`, never on `pull_request`. It installs kind from the `KIND_VERSION` pin with
 `go install`, runs `task e2e:up E2E_PROVIDER=docker` and `task e2e:capture`, uploads
-`testdata/clusters/f1/` as an artifact, and runs `task e2e:down` under `if: always()`.
+`testdata/clusters/f1/` as an artifact, and runs `task e2e:down` under `if: always()`. A
+recapture always differs from the committed one in timestamps, uids and pod names, so the
+`git diff --stat` in the summary is for reading; the job fails when `meta.yaml`, minus
+`capturedAt` and the provider, differs (an instance's `Ready` reason, a claim's verdict, the
+operator or catalog version), and a failed scheduled run notifies the workflow's owner.
 `permissions: contents: read`; GHCR pulls are anonymous. The `Test` job runs
 `task e2e:capture:check` on every pull request, so a hand edit to a committed capture cannot
 bring back values or a Secret.
@@ -183,6 +205,8 @@ v1.0.0-beta.2 or later; the released beta.5 operator refuses it `CatalogUnresolv
 **Rationale**: the refused state is itself a state the portal must render, and rerunning after
 operator release 1.0.0-beta.6 (or a CLI that embeds it) captures the accepted state with no
 script change.
+**Outcome**: beta.6 shipped on 2026-10-04 while the pull request was open; `versions.env` pins it
+and the committed capture records the accepted claim. The refused state is no longer in F1.
 
 ## Risks / Trade-offs
 
@@ -190,5 +214,7 @@ script change.
   job reports it, no pull request is blocked.
 - [A later operator changes status shapes] → the capture is a snapshot of named versions
   (`meta.yaml`); a pin move is a reviewed recapture.
+- [A tag-pinned fixture image is re-pushed] → cert-manager's and podinfo's images are pinned by
+  tag only; the Pods' `imageID` in the capture shows the digest that ran.
 - [Rendered values reach non-Secret objects, such as a ConfigMap or a container env] → the same
   holds in `kubectl` and for the portal (0030:D8:R4); the fixtures carry no secret material.

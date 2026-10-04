@@ -12,9 +12,10 @@ cluster to run against.
 
 - A scripted, throwaway kind environment for the portal: `task e2e:up` creates the cluster
   `opm-portal-e2e` (podman locally, as the owner chose; docker in CI) with its kubeconfig in the
-  gitignored `.e2e/` directory, installs the released opm-operator through the released `opm`
-  CLI (version and per-platform sha256 pinned in `test/e2e/versions.env`, download verified
-  before use), applies the fixture set F1 and waits for it to settle. `task e2e:down` deletes
+  gitignored `.e2e/` directory, installs the pinned opm-operator release through the released
+  `opm` CLI (version and per-platform sha256 pinned in `test/e2e/versions.env`, download verified
+  before every use), applies a cluster Platform pinned to a catalog version from the same file,
+  applies the fixture set F1 and waits for it to settle. `task e2e:down` deletes
   the cluster. Every `kubectl` and `opm` call names the kubeconfig and context explicitly, and
   the scripts refuse any other context.
 - Fixture set F1 under `test/e2e/fixtures/f1/`: cert-manager
@@ -26,18 +27,20 @@ cluster to run against.
 - `task e2e:capture`: snapshots the four OPM kinds, the non-Secret objects their inventories
   name, the ReplicaSets and Pods below them, and the events in the fixture namespaces into
   `testdata/clusters/f1/`, with `managedFields`, the last-applied annotation and every instance's
-  and package's `spec.values` removed, and never a Secret. A check script refuses a capture that
-  breaks any of those rules. `meta.yaml` records the versions and the verdict each registration
+  and package's `spec.values` removed, and never a Secret. A check script refuses any file under
+  `testdata/clusters/` that breaks those rules or does not parse. `meta.yaml` records the versions and the verdict each registration
   got.
 - One committed capture from a run on a new throwaway podman cluster, deleted afterwards.
 - A CI workflow `E2E` (manual dispatch and a nightly schedule, not on pull requests, because it
   pulls from GHCR) that runs `e2e:up` and `e2e:capture` on docker kind and uploads the capture as
-  an artifact. The `Test` check gains a `task e2e:capture:check` step for the committed capture.
+  an artifact, and fails when the captured verdicts or versions differ from the committed ones.
+  The `Test` check and `task check` gain a `task e2e:capture:check` step.
 
 The backup claim is accepted and active only on an operator built on library v1.0.0-beta.2 or
-later, and no released operator is (opm-operator release PR 208 is open). The environment does
-not fail on that: it records the verdict the released operator gives, and `meta.yaml` marks a
-refused claim as such.
+later. opm-operator v1.0.0-beta.6 (2026-10-04) is the first such release, ahead of the operator
+CLI v1.0.0-beta.7 embeds (beta.5), so `versions.env` pins it through `OPM_OPERATOR_VERSION`. The
+environment does not fail on a refused claim: it records the verdict the installed operator
+gives, and `meta.yaml` marks a refused claim as such.
 
 ## Capabilities
 

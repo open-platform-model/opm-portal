@@ -20,3 +20,11 @@
 - [x] 3.1 Add `.github/workflows/e2e.yml` (job `E2E`; `workflow_dispatch` and a nightly `schedule` only; pinned actions; kind from the `KIND_VERSION` pin; `task e2e:up E2E_PROVIDER=docker`, `task e2e:capture`, artifact upload, `task e2e:down` under `if: always()`); add a `task e2e:capture:check` step to the `Test` job
 - [x] 3.2 Update `AGENTS.md` (layout, commands) and `README.md` where they list tasks
 - [x] 3.3 `actionlint` and `task check` green, then commit `ci(e2e): run the kind environment and capture nightly and on demand`
+
+## 4. Review fixes
+
+- [x] 4.1 `check-capture.sh`: walk `testdata/clusters/` recursively (any extension, Markdown excepted), check every document as a List's items or a single object, fail on unparseable files; verify against a bare Secret, a `.yml` List, a nested `.json`, a multi-document file and an unparseable file
+- [x] 4.2 Pin the catalog (`--skip-platform` plus a Platform at `OPM_CATALOG_VERSION`), the operator (`OPM_OPERATOR_VERSION=v1.0.0-beta.6`) and the web instance's nginx digest
+- [x] 4.3 Record the provider in `.e2e/provider`, refuse a `kind` other than the pin, re-hash the kept CLI archive on every run, clean the download dir on any exit, drop Node events; add `e2e:capture:check` to `task check` and the gate lists
+- [x] 4.4 Fail the nightly run on a `meta.yaml` verdict or version change
+- [x] 4.5 Recapture on a new throwaway podman cluster, update `testdata/clusters/f1/README.md`, delete the cluster; `task check` green, then commit `test(e2e): recapture F1 on operator v1.0.0-beta.6 and catalog 4.6.0`
