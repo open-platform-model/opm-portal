@@ -1,0 +1,17 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# - 0030:D10 (pod logs): R1 to R4 landed behind the broker in
+#   add-pod-log-streaming, which deferred the claim to the change that serves
+#   log topics to a client. This change routes them onto the read API's
+#   stream.
+# - 0030:D5 (local mode) is not claimed: R1 to R6 land here, but R7 (an
+#   object the identity may not read is shown as locked) needs the UI. The
+#   read API reports such items as forbidden per item; add-htmx-ui claims D5
+#   once it renders them. A delivery log entry claims whole decisions only.
+#
+# Before logging, diff this list against proposal.md's Impact section.
+implements:
+  - enhancement: "0030"
+    decisions: [D10]
+    resolves: []

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -373,5 +374,32 @@ func TestRegistration(t *testing.T) {
 	}
 	if _, err := e.m.Registration(t.Context(), alice, e.grant(t, "get", registrations, "", name), "other"); !errors.Is(err, ErrNotCovered) {
 		t.Errorf("uncovered registration: %v, want ErrNotCovered", err)
+	}
+}
+
+func TestDeniedNamesTheScopesTheReaderMayNotWatch(t *testing.T) {
+	// Cluster-wide: the reader may not list ModuleInstances anywhere nor
+	// TransformerRegistrations.
+	e := newEnv(t, loadF1(t), allowAll, denyResources("moduleinstances", "transformerregistrations"))
+	want := []DeniedScope{
+		{Resource: "moduleinstances", Namespaced: true},
+		{Resource: "transformerregistrations"},
+	}
+	if got := e.m.Denied(); !slices.Equal(got, want) {
+		t.Fatalf("Denied = %+v, want %+v", got, want)
+	}
+
+	// Per namespace: only the namespaces the reader may not list.
+	inTeamA := func(_ string, ra authorizationv1.ResourceAttributes) bool {
+		return ra.Resource != "modulepackages" || ra.Namespace == "team-a"
+	}
+	e = newEnv(t, loadF1(t), allowAll, inTeamA, func(c *Config) { c.Namespaces = []string{"team-a", "team-b"} })
+	want = []DeniedScope{{Resource: "modulepackages", Namespaced: true, Namespace: "team-b"}}
+	if got := e.m.Denied(); !slices.Equal(got, want) {
+		t.Fatalf("Denied with namespaces = %+v, want %+v", got, want)
+	}
+
+	if got := newEnv(t, loadF1(t), allowAll, allowAll).m.Denied(); got != nil {
+		t.Fatalf("Denied with every grant = %+v, want none", got)
 	}
 }

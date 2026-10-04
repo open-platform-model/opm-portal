@@ -84,6 +84,39 @@ func (m *Model) Start(ctx context.Context) error {
 	return nil
 }
 
+// DeniedScope is a scope of an OPM kind that Start found the reader may
+// not list and watch, so the kind's reads there answer forbidden.
+type DeniedScope struct {
+	// Resource is the kind's resource name, such as "moduleinstances".
+	Resource string
+	// Namespaced reports whether the kind is namespaced, so --namespaces
+	// could narrow it to namespaces the reader may list.
+	Namespaced bool
+	// Namespace is the scope's namespace, "" for cluster-wide.
+	Namespace string
+}
+
+// Denied returns the scopes Start found denied to the reader, in the order
+// of the OPM kinds and their namespaces. A scope whose review could not be
+// made is not denied: a later read reviews it again.
+func (m *Model) Denied() []DeniedScope {
+	var denied []DeniedScope
+	for _, k := range opmKinds {
+		kind := m.opmKind(k.resource)
+		if kind == nil {
+			continue
+		}
+		kind.mu.Lock()
+		for _, s := range kind.scopes {
+			if s.decided && s.watch == nil {
+				denied = append(denied, DeniedScope{Resource: k.resource.Resource, Namespaced: k.namespaced, Namespace: s.namespace})
+			}
+		}
+		kind.mu.Unlock()
+	}
+	return denied
+}
+
 // Stop stops every informer and poller. The Model serves nothing afterwards.
 func (m *Model) Stop() {
 	m.mu.Lock()
