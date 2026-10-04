@@ -59,9 +59,11 @@ type Config struct {
 // Server serves the read API. It is an http.Handler; Close stops its
 // change stream.
 type Server struct {
-	cfg Config
-	log *slog.Logger
-	mux *http.ServeMux
+	cfg      Config
+	log      *slog.Logger
+	mux      *http.ServeMux
+	producer *producer
+	broker   *stream.Broker
 }
 
 // route is one resource: its pattern below Prefix, the wire type its 200
@@ -86,7 +88,10 @@ var routes = []route{
 	{"/clusters/{cluster}/platform/graph", v1.Graph{}, (*Server).platformGraph},
 	{"/clusters/{cluster}/platform/events", v1.EventList{}, (*Server).platformEvents},
 	{"/clusters/{cluster}/platform/registrations/{name}/events", v1.EventList{}, (*Server).registrationEvents},
+	{streamPattern, nil, nil},
 }
+
+const streamPattern = "/clusters/{cluster}/stream"
 
 // New returns a Server over cfg. Model, Authorizer and Authenticate are
 // required.
@@ -112,7 +117,24 @@ func New(cfg Config) (*Server, error) {
 		cfg.Stream.Logger = cfg.Logger
 	}
 	s := &Server{cfg: cfg, log: cfg.Logger, mux: http.NewServeMux()}
+	s.producer = newProducer(s)
+	s.broker = stream.New(s.producer, cfg.Authorizer, cfg.Stream)
+	s.producer.start(s.broker)
+	streamHandler := stream.NewHandler(s.broker, func(r *http.Request) (stream.Session, error) {
+		p, ok := principalFrom(r.Context())
+		if !ok {
+			return stream.Session{}, stream.ErrUnauthenticated
+		}
+		return stream.Session{Key: p.Session, Identity: p.Identity}, nil
+	}, stream.HandlerOptions{Error: func(w http.ResponseWriter, r *http.Request, _ int, err error) {
+		writeProblem(w, r, s.log, err)
+	}})
+
 	for _, rt := range routes {
+		if rt.pattern == streamPattern {
+			s.mux.HandleFunc(Prefix+rt.pattern, s.guard(streamHandler.ServeHTTP))
+			continue
+		}
 		s.mux.HandleFunc(Prefix+rt.pattern, s.guard(s.document(rt.serve)))
 	}
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -121,8 +143,11 @@ func New(cfg Config) (*Server, error) {
 	return s, nil
 }
 
-// Close releases what the server holds.
-func (s *Server) Close() {}
+// Close stops the change stream: every stream ends and the producer stops.
+func (s *Server) Close() {
+	s.broker.Close()
+	s.producer.stop()
+}
 
 type principalKey struct{}
 

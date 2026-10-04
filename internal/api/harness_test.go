@@ -94,7 +94,7 @@ type env struct {
 
 // newEnv serves objs. alice's reviews follow callerRule; the reader may
 // read everything.
-func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule readmodeltest.Rule) *env {
+func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule readmodeltest.Rule, opts ...func(*Config)) *env {
 	t.Helper()
 	caller, _ := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readmodeltest.AllowAll, authz.Options{})
@@ -126,6 +126,9 @@ func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule readmode
 			}
 			return e.principal, nil
 		},
+	}
+	for _, o := range opts {
+		o(&cfg)
 	}
 	srv, err := New(cfg)
 	if err != nil {

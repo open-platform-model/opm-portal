@@ -21,10 +21,10 @@
 
 ## 4. The change stream (internal/api)
 
-- [ ] 4.1 Add the producer: topics' attributes as the GETs authorize them, one rendered document per topic, `Removed` for a missing object, active topics, coalesced publishing from `OnChange`, deletes, the periodic refresh, and children holds for instance and package topics
-- [ ] 4.2 Mount `stream` with problem documents for the broker's refusals; close the producer and broker with the server
-- [ ] 4.3 Test through `httptest`: a snapshot equals the GET body, a Pod moved to `ErrImagePull` in the fake cluster delivers a `Degraded` upsert, a deleted instance delivers `Removed`, a forbidden topic closes, too many streams is 429
-- [ ] 4.4 `task check` green, then commit `feat(api): serve the change stream over the read model`
+- [x] 4.1 Add the producer: topics' attributes as the GETs authorize them, one rendered document per topic, `Removed` for a missing object, active topics, coalesced publishing from `OnChange`, deletes, the periodic refresh, and children holds for instance and package topics
+- [x] 4.2 Mount `stream` with problem documents for the broker's refusals; close the producer and broker with the server
+- [x] 4.3 Test through `httptest`: a snapshot equals the GET body, a Pod moved to `ErrImagePull` in the fake cluster delivers a `Degraded` upsert, a deleted instance delivers `Removed`, a forbidden topic closes, too many streams is 429
+- [x] 4.4 `task check` green, then commit `feat(api): serve the change stream over the read model`
 
 ## 5. The breaking-change gate (hack, .github)
 
