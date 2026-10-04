@@ -140,44 +140,52 @@ func problemCodeConstants(t *testing.T) []string {
 		t.Fatal(err)
 	}
 	var codes []string
-	fset := token.NewFileSet()
 	for _, e := range entries {
 		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
 			continue
 		}
-		f, err := parser.ParseFile(fset, filepath.Join(dir, e.Name()), nil, 0)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, decl := range f.Decls {
-			gd, ok := decl.(*ast.GenDecl)
-			if !ok || gd.Tok != token.CONST {
-				continue
-			}
-			for _, spec := range gd.Specs {
-				vs := spec.(*ast.ValueSpec)
-				for i, name := range vs.Names {
-					if !strings.HasPrefix(name.Name, "Code") {
-						continue
-					}
-					if i >= len(vs.Values) {
-						t.Fatalf("the constant %s in %s has no value of its own", name.Name, e.Name())
-					}
-					lit, ok := vs.Values[i].(*ast.BasicLit)
-					if !ok || lit.Kind != token.STRING {
-						t.Fatalf("the constant %s in %s is not a string literal", name.Name, e.Name())
-					}
-					s, err := strconv.Unquote(lit.Value)
-					if err != nil {
-						t.Fatal(err)
-					}
-					codes = append(codes, s)
-				}
-			}
-		}
+		codes = append(codes, codeConstantsIn(t, filepath.Join(dir, e.Name()))...)
 	}
 	if len(codes) == 0 {
 		t.Fatalf("%s declares no Code constants", dir)
+	}
+	return codes
+}
+
+// codeConstantsIn returns the values of the constants named Code* in one
+// Go source file. Each must have its own string literal value.
+func codeConstantsIn(t *testing.T, path string) []string {
+	t.Helper()
+	f, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var codes []string
+	for _, decl := range f.Decls {
+		gd, ok := decl.(*ast.GenDecl)
+		if !ok || gd.Tok != token.CONST {
+			continue
+		}
+		for _, spec := range gd.Specs {
+			vs := spec.(*ast.ValueSpec)
+			for i, name := range vs.Names {
+				if !strings.HasPrefix(name.Name, "Code") {
+					continue
+				}
+				var lit *ast.BasicLit
+				if i < len(vs.Values) {
+					lit, _ = vs.Values[i].(*ast.BasicLit)
+				}
+				if lit == nil || lit.Kind != token.STRING {
+					t.Fatalf("the constant %s in %s has no string literal value", name.Name, path)
+				}
+				c, err := strconv.Unquote(lit.Value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				codes = append(codes, c)
+			}
+		}
 	}
 	return codes
 }
