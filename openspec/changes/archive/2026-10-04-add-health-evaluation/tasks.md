@@ -24,12 +24,19 @@
 - [x] 4.2 Add the copied operator reason list with a comment pointing at opm-operator `internal/status/conditions.go`, and a test that fails on a reason without a row or a row without a reason; add a test, skipped unless `OPM_OPERATOR_SRC` names an operator checkout, that parses the `*Reason` constants from that file and compares them with the copy; verify both pass, the second with `OPM_OPERATOR_SRC` pointing at the local opm-operator checkout
 - [x] 4.3 `task check` green, then commit `chore(health): explain every operator condition reason`
 
-## 5. Review fixes
+## 5. Review fix: unread children and the owner walk
 
 - [x] 5.1 Add `Input.ChildrenAccess`: when the children could not be read, skip the Pod rule, mark readable workloads that can own Pods `ChildrenUnread`, and make their component and the instance partial; verify with the phase 4 capture and the children forbidden, not readable and unset
 - [x] 5.2 Follow only owner references marked controller; verify a Pod with a plain owner reference to the inventory Deployment changes nothing
 - [x] 5.3 `task check` green, then commit `chore(health): mark health partial when children are unread`
-- [x] 5.4 Read a `Ready=True` whose `observedGeneration` is older than the object's generation as Reconciling; verify with the podinfo capture one generation ahead and a condition without `observedGeneration`
-- [x] 5.5 Pin the applied state of the refused and removal-blocked registrations (both Stalled) and state that the verdict decides how a registration is shown; verify with both captures
-- [x] 5.6 `task check` green, then commit `chore(health): read a stale ready as reconciling`
-- [x] 5.7 Name the test-only `sigs.k8s.io/yaml` dependency in the proposal, then commit `docs(openspec): justify the yaml test dependency`
+
+## 6. Review fix: stale ready and registration styling
+
+- [x] 6.1 Read a `Ready=True` whose `observedGeneration` is older than the object's generation as Reconciling; verify with the podinfo capture one generation ahead and a condition without `observedGeneration`
+- [x] 6.2 Pin the applied state of the refused and removal-blocked registrations (both Stalled) and state that the verdict decides how a registration is shown; verify with both captures
+- [x] 6.3 `task check` green, then commit `chore(health): read a stale ready as reconciling`
+
+## 7. Review fix: dependency justification
+
+- [x] 7.1 Name the test-only `sigs.k8s.io/yaml` dependency in the proposal
+- [x] 7.2 Commit `docs(openspec): justify the yaml test dependency`
