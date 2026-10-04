@@ -15,5 +15,5 @@
 
 ## 3. Decision cache (internal/authz)
 
-- [ ] 3.1 Add the decision cache (TTL default 30 s, `MaxEntries` default 4096, injectable clock) and wire it into `Checker.Check` between the guards and the backend; verify with tests that allow and deny are reused within the TTL and re-asked after it, that unavailable outcomes are never stored, that identity, namespace, name and subresource separate entries while group order does not, that a full cache drops expired entries and otherwise stops storing, and that concurrent checks pass under `go test -race`
-- [ ] 3.2 `task check` green, then commit `chore(authz): cache authorization decisions per identity and request`
+- [x] 3.1 Add the decision cache (TTL default 30 s, `MaxEntries` default 4096, injectable clock) and wire it into `Checker.Check` between the guards and the backend; verify with tests that allow and deny are reused within the TTL and re-asked after it, that unavailable outcomes are never stored, that identity, namespace, name and subresource separate entries while group order does not, that a full cache drops expired entries and otherwise stops storing, and that concurrent checks pass under `go test -race`
+- [x] 3.2 `task check` green, then commit `chore(authz): cache authorization decisions per identity and request`

@@ -2,6 +2,7 @@ package authz
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -50,6 +51,16 @@ func containsWildcard(fields ...string) bool {
 		}
 	}
 	return false
+}
+
+// key returns a canonical, unambiguous encoding of a.
+func (a Attributes) key() string {
+	parts := []string{a.Verb, a.Resource.Group, a.Resource.Version, a.Resource.Resource,
+		a.Subresource, a.Namespace, a.Name}
+	for i, p := range parts {
+		parts[i] = strconv.Quote(p)
+	}
+	return strings.Join(parts, "/")
 }
 
 // String renders the request without its object name, so a message built
