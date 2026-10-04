@@ -41,6 +41,12 @@ jobs:
         if: startsWith(github.head_ref || github.ref_name, 'release-please--')
         run: task deps:release-check
 
+      # .opm-docs-version and every docs-kit publish.yml ref under
+      # .github/workflows/ name one docs-kit release (docs-kit C5, C12).
+      # Offline: no opm-docs install.
+      - name: docs-kit pins agree
+        run: task docs:pins:check
+
       # Main specs and active changes validate under --strict from day one.
       # The version moves with OPENSPEC_VERSION in Taskfile.yml.
       - name: Setup Node

@@ -7,7 +7,10 @@ server-sent-events read API (`/api/v1alpha1`) with an HTMX UI as its first consu
 
 Milestone 1 runs: `opm-portal serve` serves the read API on your machine, reading the cluster as
 your kubeconfig's user. There are no HTML pages yet; the browser shows the API's JSON documents.
-There is no release.
+To install a release, download it from the
+[GitHub releases page](https://github.com/open-platform-model/opm-portal/releases) as
+[the how-to for running the portal locally](docs/site/operating/portal/run-the-portal-locally.md)
+describes.
 
 The design is enhancement
 [0030](https://github.com/open-platform-model/enhancements/tree/main/0030) in the OPM
@@ -85,6 +88,11 @@ modules, `task e2e:capture` snapshots it into `testdata/clusters/f1/`, `task e2e
 built binary in local mode against it, and `task e2e:down` deletes it. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
 jq, and never touch a cluster other than `opm-portal-e2e` (or the `opm-portal-e2e-<suffix>`
 cluster `E2E_CLUSTER` names).
+
+## Documentation
+
+The user documentation lives in [`docs/site/`](docs/site/) and is published to opmodel.dev as a
+docs-kit bundle by the `Docs` workflow. `task docs:bundle:check` builds and lints it locally.
 
 ## Contributing
 

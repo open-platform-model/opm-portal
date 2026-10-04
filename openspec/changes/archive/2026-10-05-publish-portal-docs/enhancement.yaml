@@ -1,0 +1,16 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
+#
+# - 0030:D8: R4 (the documentation states that values rendered into
+#   non-Secret objects stay readable) lands with the security page. R2's
+#   YAML views and pages come with the UI change.
+# - 0030:D5: documented here, delivered by add-local-mode.
+#
+# Before logging, diff this list against proposal.md's Impact section.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []
