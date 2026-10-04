@@ -134,10 +134,11 @@ func inventoryObject(o *readmodel.InventoryObject) v1.InventoryObject {
 	for i := range o.Children {
 		c := &o.Children[i]
 		out.Children = append(out.Children, v1.RuntimeChild{
-			Ref:      objectRef(c.Ref),
-			Owner:    objectRef(c.Owner),
-			Health:   objectHealth(c.Health),
-			Replicas: c.Replicas,
+			Ref:        objectRef(c.Ref),
+			Owner:      objectRef(c.Owner),
+			Health:     objectHealth(c.Health),
+			Replicas:   c.Replicas,
+			Containers: c.Containers,
 		})
 	}
 	return out

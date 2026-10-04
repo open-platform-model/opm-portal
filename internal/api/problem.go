@@ -23,7 +23,8 @@ const (
 	detailUnauthenticated = "The request names no authenticated user."
 	detailNotReadable     = "The portal holds no readable copy of this kind: its reading identity may not list and watch it, or its cache has not synced yet."
 	detailUnavailable     = "An authorization review or the Kubernetes API failed. Try again."
-	detailMethod          = "The read API serves GET only."
+	detailMethod          = "The resource does not take this method: the read API serves GET, and a stream's topics take POST."
+	detailNoStream        = "This session has no open stream of that id."
 	detailTooManyStreams  = "This session holds as many streams as it may. Close one first."
 )
 
@@ -34,6 +35,8 @@ type apiError struct {
 	code   string
 	detail string
 	cause  error
+	// allow is the method a 405 names; GET when empty.
+	allow string
 }
 
 func (e *apiError) Error() string {
@@ -74,7 +77,7 @@ func classify(err error) *apiError {
 		return &apiError{status: http.StatusServiceUnavailable, code: v1.CodeUpstreamUnavailable, detail: detailUnavailable, cause: err}
 	}
 	switch {
-	case errors.Is(err, readmodel.ErrNotCovered):
+	case errors.Is(err, readmodel.ErrNotCovered), errors.Is(err, readmodel.ErrWithheld):
 		return forbidden()
 	case errors.Is(err, readmodel.ErrNotFound):
 		return notFound(detailNotFound)
@@ -86,6 +89,8 @@ func classify(err error) *apiError {
 		return &apiError{status: http.StatusTooManyRequests, code: v1.CodeTooManyStreams, detail: detailTooManyStreams}
 	case errors.Is(err, stream.ErrTooManyTopics), errors.Is(err, stream.ErrTopicNotServed):
 		return badRequest(err.Error())
+	case errors.Is(err, stream.ErrNoStream):
+		return notFound(detailNoStream)
 	}
 	if t, ok := errors.AsType[*stream.TopicError](err); ok {
 		return badRequest(t.Error())
@@ -121,7 +126,11 @@ func writeProblem(w http.ResponseWriter, r *http.Request, log *slog.Logger, err 
 	h.Set("Cache-Control", "no-store")
 	h.Set("X-Content-Type-Options", "nosniff")
 	if e.status == http.StatusMethodNotAllowed {
-		h.Set("Allow", http.MethodGet)
+		allow := e.allow
+		if allow == "" {
+			allow = http.MethodGet
+		}
+		h.Set("Allow", allow)
 	}
 	w.WriteHeader(e.status)
 	if _, err := w.Write(body); err != nil {

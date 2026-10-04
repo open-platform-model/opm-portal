@@ -142,7 +142,10 @@
                 "state": "Degraded",
                 "reason": "ImagePullBackOff",
                 "message": "Pod podinfo-podinfo-794bd8c7fb-cc5ql container podinfo is waiting: ImagePullBackOff: Back-off pulling image \"ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0\": ErrImagePull: rpc error: code = NotFound desc = failed to pull and unpack image \"ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0\": failed to resolve reference \"ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0\": ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0: not found"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {
@@ -162,7 +165,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {
@@ -182,7 +188,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {

@@ -142,7 +142,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {
@@ -162,7 +165,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {

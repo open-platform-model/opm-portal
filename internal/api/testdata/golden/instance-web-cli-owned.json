@@ -110,7 +110,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "web"
+              ]
             },
             {
               "ref": {

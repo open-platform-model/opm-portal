@@ -86,25 +86,19 @@ func TestEveryRouteIsInTheOpenAPIDocument(t *testing.T) {
 	}
 	for pattern, rt := range served {
 		item := doc.Paths[pattern]
-		if ops := slices.Sorted(maps.Keys(item)); !slices.Equal(ops, []string{"get"}) {
-			t.Errorf("%s: operations %v, want get only", pattern, ops)
+		method := "get"
+		if pattern == topicsPattern {
+			method = "post"
+		}
+		if ops := slices.Sorted(maps.Keys(item)); !slices.Equal(ops, []string{method}) {
+			t.Errorf("%s: operations %v, want %s only", pattern, ops, method)
 			continue
 		}
-		op := item["get"]
-		var declared []string
-		params, _ := lookup(op, "parameters").([]any)
-		for _, p := range params {
-			ref, _ := lookup(p, "$ref").(string)
-			if pd, ok := doc.Components.Parameters[strings.TrimPrefix(ref, "#/components/parameters/")]; ok && pd.In == "path" {
-				declared = append(declared, pd.Name)
-			}
-		}
-		var want []string
-		for _, m := range pathParam.FindAllStringSubmatch(pattern, -1) {
-			want = append(want, m[1])
-		}
-		if !slices.Equal(declared, want) {
-			t.Errorf("%s: path parameters %v, want %v", pattern, declared, want)
+		op := item[method]
+		checkPathParams(t, doc, pattern, op)
+		if pattern == topicsPattern {
+			checkTopicChange(t, op)
+			continue
 		}
 		if rt.doc == nil {
 			if lookup(op, "responses", "200", "content", "text/event-stream") == nil {
@@ -122,6 +116,42 @@ func TestEveryRouteIsInTheOpenAPIDocument(t *testing.T) {
 	}
 }
 
+// checkPathParams: an operation declares every path parameter of its
+// pattern, in order.
+func checkPathParams(t *testing.T, doc openAPI, pattern string, op any) {
+	t.Helper()
+	var declared []string
+	params, _ := lookup(op, "parameters").([]any)
+	for _, p := range params {
+		ref, _ := lookup(p, "$ref").(string)
+		if pd, ok := doc.Components.Parameters[strings.TrimPrefix(ref, "#/components/parameters/")]; ok && pd.In == "path" {
+			declared = append(declared, pd.Name)
+		}
+	}
+	matches := pathParam.FindAllStringSubmatch(pattern, -1)
+	want := make([]string, 0, len(matches))
+	for _, m := range matches {
+		want = append(want, m[1])
+	}
+	if !slices.Equal(declared, want) {
+		t.Errorf("%s: path parameters %v, want %v", pattern, declared, want)
+	}
+}
+
+// checkTopicChange: the topic change takes a TopicChange and answers 204.
+func checkTopicChange(t *testing.T, op any) {
+	t.Helper()
+	if ref, _ := lookup(op, "requestBody", "content", "application/json", "schema", "$ref").(string); ref != schemaRef+"TopicChange" {
+		t.Errorf("%s: request body %q, want TopicChange", topicsPattern, ref)
+	}
+	if lookup(op, "responses", "204") == nil {
+		t.Errorf("%s: no 204 response", topicsPattern)
+	}
+	if lookup(op, "responses", "default", "$ref") != "#/components/responses/Problem" {
+		t.Errorf("%s: errors are not the Problem response", topicsPattern)
+	}
+}
+
 // TestEveryWireTypeMatchesItsSchema: every type reachable from a served
 // document, Removed and Problem has a schema of its own name whose
 // properties are its JSON fields with matching types, and whose required
@@ -134,6 +164,7 @@ func TestEveryWireTypeMatchesItsSchema(t *testing.T) {
 		}
 	}
 	c.check(reflect.TypeFor[v1.Removed]())
+	c.check(reflect.TypeFor[v1.TopicChange]())
 	c.check(reflect.TypeFor[v1.Problem]())
 	for name := range c.schemas {
 		if !c.seen[name] {
@@ -248,6 +279,10 @@ func matchType(typ reflect.Type, s schemaDoc) string {
 	case typ == timeType:
 		if s.Type != "string" || s.Format != "date-time" {
 			return "want a date-time string"
+		}
+	case typ.Kind() == reflect.Map:
+		if s.Type != "object" {
+			return "want an object"
 		}
 	case typ.Kind() == reflect.Slice:
 		if s.Type != "array" || s.Items == nil {

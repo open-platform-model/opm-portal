@@ -1,11 +1,11 @@
 ## 1. Read API additions (internal/readmodel, internal/api, api/v1alpha1, openapi)
 
-- [ ] 1.1 `internal/readmodel`: `Model.Object` (caller grant covers `get`, Secret refused first, reader `get` review, on-demand get, strip without the memory drops); Pod `Containers` on `RuntimeChild`
-- [ ] 1.2 `api/v1alpha1`: `Object` document and `KindObject`; `RuntimeChild.Containers`
-- [ ] 1.3 `internal/api`: `…/object` for instances and packages (owner get, Secret refusal, kind resolution, object get, inventory reach); `POST stream/{stream}/topics` (JSON only, `Subscribe` then `Unsubscribe`, problems); route table and method handling
-- [ ] 1.4 `openapi/v1alpha1.yaml`: the two resources, `Object`, `containers` (additive); `internal/api/apitest` helper serving a capture for other packages' tests
-- [ ] 1.5 Tests: object goldens and refusals (not reached, Secret without review, unknown kind, forbidden), topic change (add/remove, other session, form body, method), containers in goldens, contract test covers the new routes
-- [ ] 1.6 `task check` green, then commit `feat(api): serve one inventory object and change a stream's topics`
+- [x] 1.1 `internal/readmodel`: `Model.Object` (caller grant covers `get`, Secret refused first, reader `get` review, on-demand get, strip without the memory drops); Pod `Containers` on `RuntimeChild`
+- [x] 1.2 `api/v1alpha1`: `Object` document and `KindObject`; `RuntimeChild.Containers`
+- [x] 1.3 `internal/api`: `…/object` for instances and packages (owner get, Secret refusal, kind resolution, object get, inventory reach); `POST stream/{stream}/topics` (JSON only, `Subscribe` then `Unsubscribe`, problems); route table and method handling
+- [x] 1.4 `openapi/v1alpha1.yaml`: the two resources, `Object`, `containers` (additive); `internal/api/apitest` helper serving a capture for other packages' tests
+- [x] 1.5 Tests: object goldens and refusals (not reached, Secret without review, unknown kind, forbidden), topic change (add/remove, other session, form body, method), containers in goldens, contract test covers the new routes
+- [x] 1.6 `task check` green, then commit `feat(api): serve one inventory object and change a stream's topics`
 
 ## 2. UI foundation and the Platform page (internal/ui, internal/auth, cmd/opm-portal)
 

@@ -1,0 +1,137 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Object",
+  "ref": {
+    "group": "apiextensions.k8s.io",
+    "version": "v1",
+    "kind": "CustomResourceDefinition",
+    "name": "certificates.cert-manager.io"
+  },
+  "object": {
+    "apiVersion": "apiextensions.k8s.io/v1",
+    "kind": "CustomResourceDefinition",
+    "metadata": {
+      "creationTimestamp": "2026-10-04T18:04:03Z",
+      "generation": 1,
+      "labels": {
+        "app.kubernetes.io/instance": "crds",
+        "app.kubernetes.io/managed-by": "opm-controller",
+        "app.kubernetes.io/name": "crds",
+        "component.opmodel.dev/name": "crds",
+        "module-instance.opmodel.dev/name": "cert-manager",
+        "module-instance.opmodel.dev/uuid": "3930452c-b1e3-5a01-8f21-4ebcd8d14ce7",
+        "module.opmodel.dev/name": "cert_manager",
+        "module.opmodel.dev/uuid": "522b3d3b-3e39-53d1-9637-78f44713b074",
+        "module.opmodel.dev/version": "2.0.5"
+      },
+      "name": "certificates.cert-manager.io",
+      "resourceVersion": "681",
+      "uid": "d07ca0a4-cb82-40db-b24c-977d179a2eff"
+    },
+    "spec": {
+      "conversion": {
+        "strategy": "None"
+      },
+      "group": "cert-manager.io",
+      "names": {
+        "categories": [
+          "cert-manager"
+        ],
+        "kind": "Certificate",
+        "listKind": "CertificateList",
+        "plural": "certificates",
+        "shortNames": [
+          "cert",
+          "certs"
+        ],
+        "singular": "certificate"
+      },
+      "scope": "Namespaced",
+      "versions": [
+        {
+          "additionalPrinterColumns": [
+            {
+              "jsonPath": ".status.conditions[?(@.type == \"Ready\")].status",
+              "name": "Ready",
+              "type": "string"
+            },
+            {
+              "jsonPath": ".spec.secretName",
+              "name": "Secret",
+              "type": "string"
+            },
+            {
+              "jsonPath": ".spec.issuerRef.name",
+              "name": "Issuer",
+              "priority": 1,
+              "type": "string"
+            },
+            {
+              "jsonPath": ".status.conditions[?(@.type == \"Ready\")].message",
+              "name": "Status",
+              "priority": 1,
+              "type": "string"
+            },
+            {
+              "description": "CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.",
+              "jsonPath": ".metadata.creationTimestamp",
+              "name": "Age",
+              "type": "date"
+            }
+          ],
+          "name": "v1",
+          "selectableFields": [
+            {
+              "jsonPath": ".spec.issuerRef.group"
+            },
+            {
+              "jsonPath": ".spec.issuerRef.kind"
+            },
+            {
+              "jsonPath": ".spec.issuerRef.name"
+            }
+          ],
+          "served": true,
+          "storage": true,
+          "subresources": {
+            "status": {}
+          }
+        }
+      ]
+    },
+    "status": {
+      "acceptedNames": {
+        "categories": [
+          "cert-manager"
+        ],
+        "kind": "Certificate",
+        "listKind": "CertificateList",
+        "plural": "certificates",
+        "shortNames": [
+          "cert",
+          "certs"
+        ],
+        "singular": "certificate"
+      },
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-04T18:04:03Z",
+          "message": "no conflicts found",
+          "reason": "NoConflicts",
+          "status": "True",
+          "type": "NamesAccepted"
+        },
+        {
+          "lastTransitionTime": "2026-10-04T18:04:03Z",
+          "message": "the initial names have been accepted",
+          "reason": "InitialNamesAccepted",
+          "status": "True",
+          "type": "Established"
+        }
+      ],
+      "storedVersions": [
+        "v1"
+      ]
+    }
+  }
+}

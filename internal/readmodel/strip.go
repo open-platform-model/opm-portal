@@ -46,6 +46,21 @@ func stripTransform(obj any) (any, error) {
 // droppedFields. Objects reach it freshly decoded, so nothing else shares
 // them.
 func strip(u *unstructured.Unstructured) {
+	stripWithheld(u)
+	gk := u.GroupVersionKind().GroupKind()
+	for _, path := range droppedFields[gk] {
+		unstructured.RemoveNestedField(u.Object, path...)
+	}
+	if gk == crdKind {
+		dropCRDSchemas(u)
+	}
+}
+
+// stripWithheld removes, in place, what the portal never serves: managed
+// fields and the last-applied annotation from every object, and spec.values
+// from ModuleInstances and ModulePackages. It keeps everything else, so an
+// object read for a YAML view shows what kubectl shows.
+func stripWithheld(u *unstructured.Unstructured) {
 	unstructured.RemoveNestedField(u.Object, "metadata", "managedFields")
 	if ann := u.GetAnnotations(); ann != nil {
 		if _, ok := ann[lastAppliedAnnotation]; ok {
@@ -53,15 +68,8 @@ func strip(u *unstructured.Unstructured) {
 			u.SetAnnotations(ann)
 		}
 	}
-	gk := u.GroupVersionKind().GroupKind()
-	if valuesKinds[gk] {
+	if valuesKinds[u.GroupVersionKind().GroupKind()] {
 		unstructured.RemoveNestedField(u.Object, "spec", "values")
-	}
-	for _, path := range droppedFields[gk] {
-		unstructured.RemoveNestedField(u.Object, path...)
-	}
-	if gk == crdKind {
-		dropCRDSchemas(u)
 	}
 }
 

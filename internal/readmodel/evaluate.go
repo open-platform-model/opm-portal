@@ -112,10 +112,11 @@ func runtimeChildren(entries []health.Entry, children []*unstructured.Unstructur
 		}
 		gvk := schema.FromAPIVersionAndKind(owner.APIVersion, owner.Kind)
 		out[i] = append(out[i], RuntimeChild{
-			Ref:      refOf(c),
-			Owner:    ObjectRef{Group: gvk.Group, Version: gvk.Version, Kind: gvk.Kind, Namespace: c.GetNamespace(), Name: owner.Name},
-			Health:   health.Object(c),
-			Replicas: replicasOf(c),
+			Ref:        refOf(c),
+			Owner:      ObjectRef{Group: gvk.Group, Version: gvk.Version, Kind: gvk.Kind, Namespace: c.GetNamespace(), Name: owner.Name},
+			Health:     health.Object(c),
+			Replicas:   replicasOf(c),
+			Containers: containersOf(c),
 		})
 	}
 	for i := range out {
@@ -128,6 +129,23 @@ func runtimeChildren(entries []health.Entry, children []*unstructured.Unstructur
 		})
 	}
 	return out
+}
+
+// containersOf returns a Pod's init container names, then its container
+// names, in spec order, and nil for any other kind.
+func containersOf(u *unstructured.Unstructured) []string {
+	if u.GetAPIVersion() != "v1" || u.GetKind() != kindPod {
+		return nil
+	}
+	var names []string
+	for _, field := range []string{"initContainers", "containers"} {
+		for _, c := range maps(u.Object, "spec", field) {
+			if n := str(c, "name"); n != "" {
+				names = append(names, n)
+			}
+		}
+	}
+	return names
 }
 
 // reachInventory follows controllers from owner until it reaches an
