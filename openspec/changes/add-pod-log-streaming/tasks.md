@@ -15,9 +15,9 @@
 
 ## 3. Logs: bounded reader and producer
 
-- [ ] 3.1 `internal/logs/source.go`: `Source`, `ClientSource` over a typed clientset (Get pod, `GetLogs(...).Stream`, never `LimitBytes`)
-- [ ] 3.2 `internal/logs/reader.go`: bounded line reader (line cap with chunked discard, timestamp split, tail skip), token buckets with an injectable clock, message shapes
-- [ ] 3.3 `internal/logs/producer.go`: `Producer` (Attributes, Admit through a `Reacher`, Snapshot from the buffer, Activate with one upstream per topic and a release that closes it), container selection, previous logs, end reasons, reader-identity checks, `SetPublisher`
-- [ ] 3.4 Unit tests: truncation, rate-limited marker with count, tail skip marker, end reasons, container selection, previous options, no `LimitBytes`, release closes the upstream, no line text in portal logs, `ClientSource` against a fake clientset
-- [ ] 3.5 Broker integration tests with the real broker, a fake clientset authorizer and a fake source: denied `pods/log` opens no upstream; unreachable Pod gets the same `forbidden` closing; lines arrive through the send funnel; revocation closes the topic and stops lines; two sessions share one upstream; last unsubscribe closes it
-- [ ] 3.6 `task check` green, then commit `chore(logs): stream pod logs`
+- [x] 3.1 `internal/logs/source.go`: `Source`, `ClientSource` over a typed clientset (Get pod, `GetLogs(...).Stream`, never `LimitBytes`)
+- [x] 3.2 `internal/logs/reader.go`: bounded line reader (line cap with chunked discard, timestamp split, tail skip), token buckets with an injectable clock, message shapes
+- [x] 3.3 `internal/logs/producer.go`: `Producer` (Attributes, Admit through a `Reacher`, Snapshot from the buffer, Activate with one upstream per topic and a release that closes it), container selection, previous logs, end reasons, reader-identity checks, `SetPublisher`
+- [x] 3.4 Unit tests: truncation, rate-limited marker with count, tail skip marker, end reasons, container selection, previous options, no `LimitBytes`, release closes the upstream, no line text in portal logs, `ClientSource` against a fake clientset
+- [x] 3.5 Broker integration tests with the real broker, a fake clientset authorizer and a fake source: denied `pods/log` opens no upstream; unreachable Pod gets the same `forbidden` closing; lines arrive through the send funnel; revocation closes the topic and stops lines; two sessions share one upstream; last unsubscribe closes it
+- [x] 3.6 `task check` green, then commit `chore(logs): stream pod logs`
