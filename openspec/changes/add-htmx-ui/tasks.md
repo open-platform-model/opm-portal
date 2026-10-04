@@ -27,6 +27,7 @@
 
 ## 4. End to end, screenshots and docs (test, README, AGENTS.md)
 
-- [ ] 4.1 Throwaway cluster `opm-portal-e2e-ui`: `task e2e:local`, serve, screenshot every page light, dark and at phone width with the Playwright image, run the scripted image break and record when the UI shows Degraded, delete the cluster
-- [ ] 4.2 README (pages, what the YAML view shows per 0030:D8:R4) and `AGENTS.md` (layout, `internal/ui`, UI goldens, the dev server)
-- [ ] 4.3 `task check` green, then commit `docs(ui): document the portal pages`
+- [x] 4.1 Throwaway cluster `opm-portal-e2e-ui`: `task e2e:local`, serve, screenshot every page light, dark and at phone width with the Playwright image, run the scripted image break and record when the UI shows Degraded, delete the cluster
+- [x] 4.2 README (pages, what the YAML view shows per 0030:D8:R4) and `AGENTS.md` (layout, `internal/ui`, UI goldens, the dev server)
+- [x] 4.3 Fix from the e2e run: a namespace-scoped user's launch landed on a 403 (the Platform is forbidden to them); a forbidden page now renders its locked region with 200, and htmx swaps 4xx and 5xx fragments so their regions show; commit `fix(ui): serve a locked page as 200 and show error fragments`
+- [x] 4.4 `task check` green, then commit `docs(ui): document the portal pages`

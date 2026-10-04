@@ -84,7 +84,9 @@ A page fetched with `HX-Request` and a target returns the same HTML; htmx select
 swaps (`hx-select`), so every region has one renderer. Graph `expand` parameters pass through to
 the API's `expand`.
 
-A problem document becomes a region, never a failed page: `forbidden` renders the locked panel,
+A problem document becomes a region, never a failed page: `forbidden` renders the locked panel
+with status `200` (the page was served as asked, as the API answers a list the caller may not
+read; a namespace-scoped user's launch lands on a locked Platform this way),
 `not_readable_by_portal` and `upstream_unavailable` render a degraded panel naming the code,
 `not_found` a not-found page with `404`, `unauthenticated` a sign-in page with `401` telling the
 user to open a new launch link.
@@ -233,6 +235,16 @@ No `hx-on`, no trigger filters (both need `eval`).
 The npm tarballs' `sha512` integrity was checked against the registry before extraction. A test
 recomputes each file's SHA-256 against `CHECKSUMS`. Upgrading means replacing the file and its
 line in one diff.
+
+## Evidence: the scripted image break on the live UI
+
+On the throwaway cluster `opm-portal-e2e-ui` (operator v1.0.0-beta.6, F1), with
+`/instances/default/podinfo` open in Chromium and following its stream, podinfo's
+`spec.values.image.tag` was patched to a tag that does not exist (2026-10-05). The new Pod
+reported `ErrImagePull` 2.08 s after the patch (kubectl polled every 0.25 s); the open page, with
+no reload, showed **Degraded** 0.92 s after that, while its Applied badge still read **Applied**
+and the instance stayed `Ready=True`. The 0.92 s holds the producer's 250 ms coalescing and the
+page's 400 ms region debounce (0030:D3:R3). Screenshot: `instance-podinfo-image-break-light.png`.
 
 ## Risks / Trade-offs
 
