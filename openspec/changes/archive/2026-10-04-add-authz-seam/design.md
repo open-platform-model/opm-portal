@@ -4,8 +4,9 @@ The repo holds only the version binary (see proposal.md, Why). The portal's desi
 authorization package between identity and every read: `auth -> authz -> readmodel -> ...`
 (Principle II). Milestone 1 authorizes with SelfSubjectAccessReviews under the user's kubeconfig;
 milestone 2 (change `add-sar-authorizer`) will plug a SubjectAccessReview backend into the same
-seam. The decisions it implements are 0030:D7 (authorize before lookup), the empty-identity and
-deny-on-error rules of 0030:D6, and the kubeconfig boundary of 0030:D5.
+seam. It lands the seam for 0030:D7 (authorize before lookup) and the milestone 1 guards of
+0030:D6 (empty identity, deny on error) and 0030:D5 (the kubeconfig boundary); it claims none of
+them (`enhancement.yaml`).
 
 ## Goals / Non-Goals
 
@@ -189,7 +190,8 @@ which the architecture's per-node locked state cannot afford).
 ### Authorization
 
 The change reads no object. Its only cluster call is `create` on `authorization.k8s.io/v1`
-`selfsubjectaccessreviews`, made with the user's own kubeconfig and never stored.
+`selfsubjectaccessreviews`, made with the user's own kubeconfig and never stored. Principle V
+allows it once this PR amends the constitution (see Open Questions).
 
 ## Risks / Trade-offs
 
@@ -202,14 +204,14 @@ The change reads no object. Its only cluster call is `create` on `authorization.
 
 ## Open Questions
 
-- Whether `create` on `selfsubjectaccessreviews`, which this change's local backend makes in
-  milestone 1, falls inside Principle V's write exception. CONSTITUTION.md, AGENTS.md and
-  `openspec/config.yaml` name only `create` on `subjectaccessreviews` ("which milestone 2 needs"),
-  and 0030 does not mention SSAR. Bending a principle needs an enhancement decision first, so this
-  is the owner's call: amend Principle V and 0030 to name `selfsubjectaccessreviews` (and
-  `selfsubjectreviews`, below), or take SSAR out of milestone 1. Nothing is amended here.
-- How `add-local-mode` obtains the kubeconfig identity it passes to `NewLocal`. The natural
-  source is a `SelfSubjectReview` (`authentication.k8s.io/v1`), another create-only review that is
-  never stored; whether it falls inside Principle V's review exception, which today names
-  SubjectAccessReviews only, is for that change (and the owner) to settle. It changes nothing
-  here: `NewLocal` takes the identity either way.
+- Resolved (owner, 2026-10-04): does `create` on `selfsubjectaccessreviews`, which this change's
+  local backend makes in milestone 1, fall inside Principle V's write exception? The owner chose
+  to keep the seam: milestone 1 shows locked nodes up front, and milestone 2 swaps the backend
+  with no seam rewrite. This PR amends Principle V in `CONSTITUTION.md`, the Security Rules in
+  `AGENTS.md` and `openspec/config.yaml` so the only allowed writes are `create` on three review
+  APIs that store nothing: `authorization.k8s.io` `subjectaccessreviews` and
+  `selfsubjectaccessreviews`, and `authentication.k8s.io` `selfsubjectreviews`. The matching
+  amendment to 0030 goes to the enhancements repo separately.
+- Resolved by the same answer: `add-local-mode` may learn the kubeconfig's identity with a
+  `SelfSubjectReview` (`authentication.k8s.io/v1`), now named in Principle V. It changes nothing
+  here: `NewLocal` takes the identity from its caller either way.

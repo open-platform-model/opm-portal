@@ -48,11 +48,14 @@ None.
 - Principle V: the change adds the only cluster call the portal makes so far, `create` on
   `authorization.k8s.io` `selfsubjectaccessreviews`, with the user's own kubeconfig. A review is
   answered in the response and never stored. It reads no object, no Secret, and refuses an empty
-  identity before any call.
+  identity before any call. By the owner's decision of 2026-10-04 this PR amends Principle V to
+  name the three non-persisted review APIs the portal may create (see design.md, Open
+  Questions).
 - Principle VII: client-go is the dependency the constitution names for cluster reads; it earns
   its place here with the typed review client and the fake clientset the tests need.
-- SemVer: MINOR after 1.0 (new internal capability, nothing removed). Every commit is `chore` or
-  `docs` because nothing user-visible changes, so the 0.x line cuts no release for it.
+- SemVer: MINOR after 1.0 (new internal capability, nothing removed). Nothing user-visible
+  changes, so the PR title, which the squash commit carries, is `chore(authz)`, and the 0.x
+  line cuts no release for it. Branch commits typed `fix` or `test` do not reach `main`.
 - Enhancement link: lands the seam for 0030:D7 (the R1 refusal at Check); the M1 halves of
   0030:D5 and 0030:D6 are guards and backends only. No decision is claimed (`enhancement.yaml`):
   the change that completes 0030:D7 with a read path claims it.

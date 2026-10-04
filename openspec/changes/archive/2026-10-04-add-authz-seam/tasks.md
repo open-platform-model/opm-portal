@@ -27,3 +27,10 @@
 - [x] 4.5 Flag `sealed` assignments, `grantData` literals outside `issue` and any reference to `issue` outside `Check` in the seal scan; verify a forgery case for each
 - [x] 4.6 Run `task test` under `-race`; verify `task check` is green
 - [x] 4.7 `task check` green, then commit `docs(openspec): record the review fixes and the SSAR principle question`
+
+## 5. Principle V amendment and re-check nits (PR 8)
+
+- [x] 5.1 Flag any write through an issued grant's sealed data (`g.sealed.expires`, an index into it, an increment) and any copy of the sealed pointer in the seal scan; update the forge testdata to call `issue` with its four-argument signature; verify a forgery case for each pattern and that testdata/forge still fails to compile
+- [x] 5.2 Amend Principle V (`CONSTITUTION.md`, `AGENTS.md` Security Rules, `openspec/config.yaml`) so the only allowed writes are `create` on `subjectaccessreviews`, `selfsubjectaccessreviews` and `selfsubjectreviews`, per the owner's decision; record it as resolved in design.md's Open Questions
+- [x] 5.3 Align design.md's decision sentence with the no-claim `enhancement.yaml` and the proposal's commit-type sentence with the squash title
+- [x] 5.4 `task check` green, then commit `docs(openspec): amend Principle V for the review APIs and close the re-check nits`
