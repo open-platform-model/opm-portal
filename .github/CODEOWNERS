@@ -1,5 +1,11 @@
-# Changes here need a code owner's review (main ruleset).
+# Release-critical paths: what runs, or decides what ships, in a job that
+# holds a write token or signs. GitHub requests these owners' review on a PR
+# that touches them; the review is required only where the main ruleset
+# turns on code-owner review.
 /.github/                       @emil-jacero @orvis98
 /Taskfile*.yml                  @emil-jacero @orvis98
 /release-please-config.json     @emil-jacero @orvis98
 /.release-please-manifest.json  @emil-jacero @orvis98
+/.goreleaser.yml                @emil-jacero @orvis98
+/Dockerfile                     @emil-jacero @orvis98
+/.dockerignore                  @emil-jacero @orvis98
