@@ -14,10 +14,10 @@
 
 ## 3. The serve command (cmd/opm-portal)
 
-- [ ] 3.1 `cmd/opm-portal/main.go`: `run(ctx, ...)` with the `serve` subcommand and its flags; loopback address check before the kubeconfig is read; usage line
-- [ ] 3.2 `cmd/opm-portal/serve.go`: kubeconfig loading, `TuneConfig` on the one REST config every client is built from, `selfIdentity` through a SelfSubjectReview failing closed, the wiring of authz, read model, logs producer, read API and the gate, listen and re-check, the launch URL on stdout, `--open` through a private redirect file, graceful shutdown
-- [ ] 3.3 Tests: flag errors and the non-loopback refusal exit 2 without reading the kubeconfig; `selfIdentity` refuses an empty and an anonymous user and a failed review, and maps user info; the bound-address re-check; the `--open` file is private and holds the URL; updated `TestRun`
-- [ ] 3.4 `task check` green, then commit `feat(local): serve the read API locally against a kubeconfig`
+- [x] 3.1 `cmd/opm-portal/main.go`: `run(ctx, ...)` with the `serve` subcommand and its flags; loopback address check before the kubeconfig is read; usage line
+- [x] 3.2 `cmd/opm-portal/serve.go`: kubeconfig loading, `TuneConfig` on the one REST config every client is built from, `selfIdentity` through a SelfSubjectReview failing closed, the wiring of authz, read model, logs producer, read API and the gate, listen and re-check, the launch URL on stdout, `--open` through a private redirect file, graceful shutdown
+- [x] 3.3 Tests: flag errors and the non-loopback refusal exit 2 without reading the kubeconfig; `selfIdentity` refuses an empty and an anonymous user and a failed review, and maps user info; the bound-address re-check; the `--open` file is private and holds the URL; updated `TestRun`
+- [x] 3.4 `task check` green, then commit `feat(local): serve the read API locally against a kubeconfig`
 
 ## 4. End to end and docs (cmd/opm-portal, Taskfile, README, AGENTS.md)
 

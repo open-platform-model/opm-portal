@@ -6,9 +6,11 @@ import (
 	"crypto/subtle"
 	"errors"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -29,6 +31,9 @@ type LocalConfig struct {
 	// Identity is who every admitted request reads as: the kubeconfig's
 	// user as its SelfSubjectReview reported it. It must name a principal.
 	Identity authz.Identity
+	// Host is the loopback IP the portal listens on, for the launch URL.
+	// Default 127.0.0.1.
+	Host string
 	// Port is the port the portal listens on. The Host allowlist, the
 	// launch URL and the cookie name use it.
 	Port int
@@ -78,6 +83,9 @@ func NewLocal(cfg LocalConfig) (*Local, error) {
 	case cfg.Port <= 0 || cfg.Port > 65535:
 		return nil, errors.New("local auth: no listening port")
 	}
+	if cfg.Host == "" {
+		cfg.Host = "127.0.0.1"
+	}
 	if cfg.Landing == "" {
 		cfg.Landing = "/"
 	}
@@ -100,6 +108,7 @@ func NewLocal(cfg LocalConfig) (*Local, error) {
 			"127.0.0.1:" + port: true,
 			"localhost:" + port: true,
 			"[::1]:" + port:     true,
+			strings.ToLower(net.JoinHostPort(cfg.Host, port)): true,
 		},
 		cookie:      "opm-portal-" + port,
 		landing:     cfg.Landing,
@@ -113,7 +122,7 @@ func NewLocal(cfg LocalConfig) (*Local, error) {
 func (l *Local) LaunchURL() string {
 	u := url.URL{
 		Scheme:   "http",
-		Host:     "127.0.0.1:" + strconv.Itoa(l.cfg.Port),
+		Host:     net.JoinHostPort(l.cfg.Host, strconv.Itoa(l.cfg.Port)),
 		Path:     LaunchPath,
 		RawQuery: url.Values{"token": {l.launchToken}}.Encode(),
 	}
