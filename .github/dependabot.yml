@@ -10,6 +10,10 @@ updates:
       # No docs-kit workflow yet; the publish-portal-docs change adds publish.yml.
       # It moves only with .opm-docs-version, after the site bumps (docs-kit C5, C12).
       - dependency-name: "open-platform-model/docs-kit*"
+      # Nothing here references the org .github repository yet. When something
+      # does, it moves by the .github pin procedure only (.github README
+      # "Pinning and bumps"); a Dependabot bump would move one reference alone.
+      - dependency-name: "open-platform-model/.github*"
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
