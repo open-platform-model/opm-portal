@@ -1,0 +1,247 @@
+schema: spec-driven
+
+context: |
+  # OPM Portal Development Constitution
+
+  The opm-portal is a Go web portal over an OPM cluster: a versioned JSON/SSE read API
+  (`/api/v1alpha1`) with an HTMX UI as its first consumer. V1 is read-only: it shows what a
+  cluster runs under OPM, from the Platform down to Pods, and creates, edits and deletes nothing.
+  Milestone 1 runs on the user's machine with their kubeconfig; milestone 2 runs in-cluster with
+  OIDC and SubjectAccessReview-as-user. The design record is enhancement 0030 in the sibling
+  `enhancements/` repo.
+
+  ## Core Principles (Web Portal)
+
+  ### I. Read Through the Published Surfaces
+  The portal MUST read OPM state only through the Kubernetes API (the operator's CRs, events,
+  pod logs, and the objects an instance's inventory names) and through published OPM Go modules.
+  It MUST NOT re-implement operator or kernel semantics: what the operator writes to `status` is
+  what the portal shows.
+
+  ### II. Separation of Concerns
+  The portal MUST keep these package boundaries:
+  - `cmd/opm-portal/`: flag and environment parsing, mode selection, wiring.
+  - `api/v1alpha1/`: the public wire types of the read API (no logic).
+  - `internal/authz/`: the authorization decision; every read takes the grant it returns.
+  - `internal/readmodel/`: cache, watches, on-demand reads and joins.
+  - `internal/graph/`, `internal/health/`: derived views, pure functions of read-model data.
+  - `internal/stream/`, `internal/logs/`: server-sent event topics and bounded log readers.
+  - `internal/api/`: `/api/v1alpha1` HTTP handlers.
+  - `internal/ui/`: HTMX pages rendered from the same DTOs the API serves.
+  - `internal/auth/`: identity (local launch token in M1, OIDC in M2).
+  - `internal/version/`: the build's version identity.
+  A package is created when the first change needs it, never ahead of it.
+
+  ### III. The Read API Is the Contract
+  `/api/v1alpha1` is the durable interface; the HTMX UI and any later adapter consume it.
+  - Within a version, the API changes only additively: new fields, new resources.
+  - Removing or renaming a field, or changing its meaning, needs a new API version.
+  - The UI never reads anything the API does not expose.
+
+  ### IV. Status Is Read, Never Inferred
+  The portal reports what the cluster says, with its source.
+  - `Ready` on a ModuleInstance means applied, not healthy; the portal shows the two apart.
+  - An unknown condition, kind or API version renders as unknown, never as a guess.
+  - A degraded read (missing permission, unreachable API) is shown as such, never as empty.
+
+  ### V. Read-Only and Least Privilege
+  - V1 MUST NOT create, update, patch or delete any Kubernetes object. The one exception is
+    `create` on `authorization.k8s.io` `subjectaccessreviews` (M2 access checks; a review is
+    never stored), per 0030:D11.
+  - The portal MUST NOT read Secret data. In V1 it MUST NOT serve any instance's or package's
+    `spec.values`, and MUST strip the `kubectl.kubernetes.io/last-applied-configuration`
+    annotation from every object it serves (0030:D8).
+  - The portal acts as the user: in M1 with the user's kubeconfig, in M2 through
+    SubjectAccessReview for the authenticated user. An empty or unmapped identity MUST fail
+    closed (deny), never fall through to the portal's own ServiceAccount.
+  - Tokens, kubeconfig content and `Authorization` headers MUST NOT appear in logs or errors.
+
+  ### VI. Semantic Versioning & Commits
+  Releases MUST follow SemVer 2.0.0.
+  All commits MUST follow Conventional Commits v1: type(scope): description
+  - Types: feat, fix, perf, revert, deps, refactor, docs, test, ci, build, chore
+  - Scope: api, ui, authz, auth, readmodel, graph, health, stream, logs, version, release, etc.
+  - 0.x line: the portal releases on `0.x` (first release `0.1.0`) until its read API declares
+    stability. A breaking change is a `!` in the PR title (`feat!:`), the only text the squash
+    commit carries (`squash_merge_commit_message: BLANK`); on the 0.x line it bumps the minor
+    version, never the major (release-please `bump-minor-pre-major`). The migration note goes in
+    the PR body, which the CHANGELOG entry links. `feat`, `fix`, `perf`, `revert`, `deps` and
+    `refactor` release; `docs`, `test`, `ci`, `build` and `chore` do not.
+
+  ### VII. Simplicity & YAGNI
+  Start simple. Complexity MUST be justified.
+  - Standard library first (`net/http`, `html/template`); a dependency earns its place.
+  - No JavaScript build step and no client-side component state in V1.
+
+  ### VIII. Mergeable Sections (Iterative & Incremental Delivery)
+  A change is delivered as the sections of its `tasks.md` (`## N. Title` headings with `N.M`
+  checkboxes). Two invariants hold at every section boundary; they replace any size limit on
+  the change itself.
+  - **Every merge leaves `main` releasable.** A section MUST end green under the validation
+    gates and MUST close with a commit task naming the Conventional Commit it lands as
+    (Principle VI). Nothing that would break `main` is carried across a section boundary.
+  - **Work survives a session boundary.** The commit task is the pause point: a session that
+    stops there leaves checked boxes and a clean tree, and the next session resumes by running
+    apply again.
+  - One PR per change, one commit per section, is the default. Section 1 is a spike whenever
+    design.md carries an unverified assumption.
+  - **WARNING & BLOCK**: when a request cannot be cut into sections that each satisfy both
+    invariants, or needs more than about five, the Agent MUST warn, block, and propose a split
+    into sequential changes (Execution Gate).
+
+  ## Execution Gate (Agent Directive)
+  Before beginning ANY implementation, the Agent MUST evaluate the request against the
+  "Mergeable Sections" principle. Block only when the request cannot be cut into sections that
+  each end green and leave `main` releasable, or when it needs more than about five such
+  sections. In that case the Agent MUST reply with:
+  "🛑 **Scope Warning**: This request does not cut into a handful of mergeable sections. I
+  suggest we split it into the following changes: [list 2-3 changes, each a few sections that
+  leave main releasable]. Should we start with the first?"
+
+  ## Technology Standards
+
+  See [AGENTS.md](../AGENTS.md) for full details.
+  - Go (the version in `go.mod`), standard library HTTP server and `html/template`.
+  - client-go for cluster reads; the operator's API types for OPM kinds.
+  - htmx and its SSE extension, vendored and embedded; hand-written CSS, no build step.
+
+  ## Code Style
+
+  ### Go Patterns
+  - Accept interfaces, return structs.
+  - Context propagation for all request-scoped and async operations.
+  - Wrap errors with context: `fmt.Errorf("listing module instances: %w", err)`.
+  - Prefer concrete types over `map[string]any`.
+  - Table-driven tests.
+
+  ### Logging
+  - Structured logging with `log/slog`, balanced key/value pairs.
+  - Never log a token, a cookie, a kubeconfig or an `Authorization` header.
+
+  ### Import Order
+  1. Standard library
+  2. External packages
+  3. Internal packages
+
+  ### Comments
+  - Default to no enhancement reference: say what the code does and why, in the comment's own words.
+  - When the rationale genuinely lives in an enhancement, cite it once at the symbol as `0030:D9` — enhancement id, colon, decision id, no space. One enhancement, several decisions: `0030:D16/D18/D21`. Across enhancements: `0030:D9, 0013:D28`. One requirement of a decision: `0030:D9:R2`; several: `0030:D9:R1/R2`. A bare `D9` names nothing, because decision numbers restart per enhancement.
+  - Never cite a section, slice, phase, task or design-doc-local id (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers; a requirement number (`R2`) is.
+  - Never put a reference in a scaffold template, a generated file, a fixture a user copies, or a user-facing string (a page, an API error, a log line). Those reach people with no access to the enhancements repo.
+  - No `Was:` rename history in comments; `git log` owns it.
+
+  ## Validation Gates (before merge)
+  1. `task fmt` — all Go files formatted.
+  2. `task vet` — `go vet` passes.
+  3. `task lint` — golangci-lint passes.
+  4. `task test` — all tests pass.
+  5. `task openspec:check` — main specs and active changes validate under `--strict`.
+  `task check` runs all five.
+
+rules:
+  proposal:
+    - "Focus: WHY we're doing this, WHAT's in/out of scope"
+    - "Updates when: Scope changes, intent clarifies, approach fundamentally shifts"
+    - Identify affected packages, API resources and UI pages.
+    - State whether this is MAJOR/MINOR/PATCH per SemVer as it would be after 1.0, and note how
+      the 0.x line ships it (a breaking change bumps the minor version, everything else per
+      Principle VI).
+    - Complexity additions MUST include justification (Principle VII).
+    - Any change that reads a new kind of object, or reads as a different identity, MUST state
+      its effect on Principle V (read-only, no Secret data, fail closed).
+    - Scope MUST cut into at most about five tasks.md sections, each ending green and leaving
+      `main` releasable on its own (Principle VIII).
+    - "Delivery mode: one PR per change is the default and needs no statement. When a downstream
+      consumer must pick up a published pin mid-change, add exactly one line to the proposal,
+      `Delivery: one PR per section (<consumer> needs <pin> after section <N>)`, and the change
+      ships section by section. In that mode the change stays active on main between PRs, and
+      spec sync and enhancement delivery logging wait for archive after the last PR."
+    - "If this change implements decisions from an enhancement in the sibling enhancements/ repo, create enhancement.yaml in this change directory declaring it (implements: [{enhancement: \"NNNN\", decisions: [D1, ...], resolves: []}]). Write it at creation time, while the enhancement is in context; it is what makes archive-time delivery logging mechanical."
+
+  design:
+    - "Focus: HOW we'll implement it technically"
+    - "Updates when: Implementation reveals better approach, constraints change"
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
+    - MUST include "Research & Decisions" section when exploration was done.
+    - |
+      Format:
+      ## Research & Decisions
+
+      ### [Topic]
+      **Context**: [Why this decision was needed]
+      **Explored**: [What was investigated - link to exploration notes]
+      **Options considered**:
+      1. [Option A] - [pros/cons]
+      2. [Option B] - [pros/cons]
+      **Decision**: [Chosen option]
+      **Rationale**: [Why this option was selected]
+    - Include Go pseudo-code, function signatures, or JSON shapes of API responses.
+    - "API changes: show the request, the response DTO and the problem+json error cases."
+    - "Authorization: name the Kubernetes verbs and resources the change reads, and the grant
+      each read requires."
+    - "Claims about operator output MUST name their evidence: a live cluster capture, or the
+      operator source file and line."
+
+  specs:
+    - "Focus: WHAT behavior is changing (not HOW it's implemented)"
+    - "Updates when: New or changed requirements emerge"
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
+    - When a requirement implements an enhancement requirement, cite `NNNN:DN:Rn` in its body
+      (first sentence or a trailing `Source:` line), never inside the `### Requirement:` header,
+      which tools read as the requirement's name.
+    - Describe observable behavior (API responses, rendered pages, stream events, exit codes).
+    - Use ADDED/MODIFIED/REMOVED sections to show deltas.
+    - Include scenarios, including the denied and degraded cases (no permission, unknown kind).
+
+  tasks:
+    - "Focus: STEPS to take for implementation"
+    - "Updates when: Tasks complete, new tasks discovered, blockers identified"
+    - "CRITICAL: Every `## N.` section MUST end green under the validation gates and MUST close
+      with a commit task: an ordinary `- [ ] N.M` checkbox whose text names the Conventional
+      Commit to make, e.g. `- [ ] 1.4 task check green, then commit feat(api): add the instance list resource`
+      (types and scopes per Principle VI). The commit task is the pause point; nothing uncommitted is carried across
+      a section boundary."
+    - "CRITICAL: Cut the change into at most about seven sections, each a coherent unit that
+      leaves main releasable by itself. If it needs more, or a section cannot end green on its
+      own, split into a new OpenSpec change. Section 1 is a spike whenever design.md carries an
+      unverified assumption; its commit task lands what the spike produced (a test, a fixture,
+      or the finding written into design.md)."
+    - Group tasks by package.
+    - Include the validation gates (`task check`) in every section's commit task, not as a
+      trailing section; cross-cutting checks (e2e runs, live captures) go into the last real
+      section before its commit.
+    - "The section-closing commit is the ONLY delivery operation allowed in tasks.md: no pushing,
+      branching, opening or merging PRs, tagging, cutting releases, and no commit-message or
+      PR-body hygiene checks. Everything past the commit happens under the repo's normal git
+      workflow (one PR per change by default; one PR per section only when the proposal says
+      so). Sole exception: a change whose stated deliverable is itself a release or publishing
+      operation; there those steps ARE the implementation."
+
+# Operation hooks: served to the agent by `openspec instructions apply|archive --change <name>
+# --json` as operationGuidance.
+operations:
+  apply:
+    guidance:
+      - "Work section by section: every `## N.` block of tasks.md ends with a commit task. Before
+        checking that box, run the section's gates (`task check`) on the whole tree and make
+        exactly the named Conventional Commit (types and scopes per Principle VI; optional plain Co-Authored-By: Claude
+        <noreply@anthropic.com> trailer only, never a session link, never a bare @name, and
+        no body line starting with word( because release-please drops a commit with such a body line, footer included, whenever the body reaches `main` (any merge not made under the `BLANK` squash message)). Do not start the next section with uncommitted work in the tree."
+      - "The commit task is the only delivery operation apply performs: no push, no PR, no tag,
+        no release. Commit on the working branch the run started on. If the run started on
+        main, create the working branch before the first commit task; never commit to main."
+      - "Pausing: when the user asks to pause, or a blocker appears, finish the current section's
+        commit task first if its gates are green; otherwise report exactly which boxes are
+        checked and what is uncommitted in the tree. A new session resumes by running apply
+        again: the checked boxes plus a clean tree are the resume state."
+      - "Delivery mode: unless proposal.md carries `Delivery: one PR per section`, all section
+        commits ship in one PR after the last section and the PR title carries the change's
+        release class: the highest class among its section commits (`!` over `feat` over a
+        releasing patch type (`fix`, `deps`, `perf`, `refactor`, `revert`) over a hidden type),
+        because under the `BLANK` squash message only the title reaches `main`. In per-section
+        mode each section commit is the PR title and therefore a release trigger; the change
+        stays active on main between PRs, and spec sync and enhancement delivery logging wait
+        for archive after the last PR."
+  archive:
+    guidance:
+      - "If this change directory contains enhancement.yaml, finish the archive by logging the landing: from the workspace root run `task enhancements:delivery:log FROM=<archived-change-path> SUMMARY=\"<one line: what landed>\"`. It appends a CUE-validated entry to each declared enhancement's delivery.yaml; confirm it printed 'logged' for every declared enhancement."

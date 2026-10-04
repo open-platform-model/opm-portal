@@ -1,0 +1,36 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Code coverage profiles and other test artifacts
+*.out
+coverage.*
+*.coverprofile
+profile.cov
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Build output (task build) and goreleaser output
+/bin/
+/dist/
+
+# Pinned tool binaries
+/.bin/
+
+# env file
+.env
+
+# Agent git worktrees are local checkouts, never content.
+.claude/worktrees/
+.claude/settings.local.json
+
+# go-task checksum state
+.task/

@@ -1,0 +1,14 @@
+# Ignore everything by default and re-include only what the build reads:
+# the Go module files and the source trees. Whole directories are
+# re-included, so files a package embeds (go:embed) come along.
+**
+
+!go.mod
+!go.sum
+!cmd/
+!internal/
+!api/
+
+# Tests are not built into the image.
+**/*_test.go
+**/testdata/
