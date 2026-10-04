@@ -7,10 +7,10 @@
 
 ## 2. Local front door (internal/auth)
 
-- [ ] 2.1 `internal/auth/local.go`: `LocalConfig`, `NewLocal` (identity must be authenticated, port required), the one-time launch token and the session (digests only, `crypto/rand.Text`), `LaunchURL`, `Authenticate`
-- [ ] 2.2 `internal/auth/handler.go`: `Handler` with security headers, the Host allowlist, `http.CrossOriginProtection`, `GET /launch`, then the next handler
-- [ ] 2.3 Unit tests: token exchange (success, wrong, missing, spent, method), a live session redirects whatever the token, cookie flags and name, session expiry, Host allowlist (three loopback forms pass, others and wrong port refused), cross-origin POST refused and same-origin passed, headers on every response including refusals, no token or cookie in log output
-- [ ] 2.4 `task check` green, then commit `feat(auth): admit a local browser through a one-time launch token`
+- [x] 2.1 `internal/auth/local.go`: `LocalConfig`, `NewLocal` (identity must be authenticated, port required), the one-time launch token and the session (digests only, `crypto/rand.Text`), `LaunchURL`, `Authenticate`
+- [x] 2.2 `internal/auth/handler.go`: `Handler` with security headers, the Host allowlist, `http.CrossOriginProtection`, `GET /launch`, then the next handler
+- [x] 2.3 Unit tests: token exchange (success, wrong, missing, spent, method), a live session redirects whatever the token, cookie flags and name, session expiry, Host allowlist (three loopback forms pass, others and wrong port refused), cross-origin POST refused and same-origin passed, headers on every response including refusals, no token or cookie in log output
+- [x] 2.4 `task check` green, then commit `feat(auth): admit a local browser through a one-time launch token`
 
 ## 3. The serve command (cmd/opm-portal)
 
