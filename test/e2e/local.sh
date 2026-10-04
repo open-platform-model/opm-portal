@@ -10,4 +10,4 @@ require_fixture_cluster
 cd "$REPO_ROOT" || die "cannot enter $REPO_ROOT"
 log "running the local-mode test against $CLUSTER"
 OPM_PORTAL_E2E_KUBECONFIG=$KC OPM_PORTAL_E2E_CONTEXT=$CTX \
-  go test -tags e2e -count=1 -run '^TestLocalMode$' -v ./cmd/opm-portal
+  go test -tags e2e -count=1 -run '^TestLocalMode' -v ./cmd/opm-portal

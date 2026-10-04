@@ -19,9 +19,13 @@ import (
 	"testing"
 	"time"
 
+	authenticationv1 "k8s.io/api/authentication/v1"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
 // TestLocalMode runs the built binary against the kind fixture cluster
@@ -58,9 +62,15 @@ func TestLocalMode(t *testing.T) {
 	// A podinfo container's log streams on the read API's stream.
 	followLog(ctx, t, browser, base, logTopic(ctx, t, kubeconfig, kubeContext))
 
-	// Interrupt: the process stops cleanly, and its output never held the
-	// token or the cookie.
+	// Interrupt with a stream open: the stream ends, the process stops
+	// cleanly, and its output never held the token or the cookie.
+	ended := holdStream(ctx, t, browser, base, "platform")
 	p.stop(t)
+	select {
+	case <-ended:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the open stream did not end at shutdown")
+	}
 	stderr := p.stderr.String()
 	if strings.Contains(stderr, p.launch.Query().Get("token")) || strings.Contains(stderr, cookie) {
 		t.Fatalf("stderr carries the token or the cookie:\n%s", stderr)
@@ -68,6 +78,125 @@ func TestLocalMode(t *testing.T) {
 	if !strings.Contains(stderr, "reading as the kubeconfig's user") {
 		t.Fatalf("stderr does not log the identity:\n%s", stderr)
 	}
+}
+
+// TestLocalModeNamespaces runs the binary as a ServiceAccount that may read
+// the OPM kinds only in default, with --namespaces default: the namespace
+// is served and the cluster-wide list is forbidden, not failed.
+func TestLocalModeNamespaces(t *testing.T) {
+	kubeconfig, kubeContext := os.Getenv("OPM_PORTAL_E2E_KUBECONFIG"), os.Getenv("OPM_PORTAL_E2E_CONTEXT")
+	if kubeconfig == "" || kubeContext == "" {
+		t.Skip("OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT are not set: run task e2e:local")
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
+	defer cancel()
+	bin := filepath.Join(t.TempDir(), "opm-portal")
+	if out, err := exec.CommandContext(ctx, "go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+		t.Fatalf("go build: %v\n%s", err, out)
+	}
+	scoped := namespaceReader(ctx, t, kubeconfig, kubeContext)
+	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped, "--namespaces", "default")
+	instances := p.launch.Scheme + "://" + p.launch.Host + "/api/v1alpha1/clusters/default/instances"
+	browser, _ := launch(ctx, t, p.launch)
+	res := get(ctx, t, browser, instances+"?namespace=default", nil)
+	if res.status != http.StatusOK || !strings.Contains(res.body, `"access":"ok"`) || !strings.Contains(res.body, `"name":"podinfo"`) {
+		t.Fatalf("namespace list: %d %.300s; want 200, access ok, podinfo", res.status, res.body)
+	}
+	res = get(ctx, t, browser, instances, nil)
+	if res.status != http.StatusOK || !strings.Contains(res.body, `"access":"forbidden"`) {
+		t.Fatalf("cluster-wide list: %d %.300s; want 200 with access forbidden", res.status, res.body)
+	}
+	p.stop(t)
+	if !strings.Contains(p.stderr.String(), "user=system:serviceaccount:default:"+scopedReader) {
+		t.Fatalf("stderr does not name the ServiceAccount:\n%s", p.stderr.String())
+	}
+}
+
+const scopedReader = "opm-portal-e2e-reader"
+
+// namespaceReader creates a ServiceAccount allowed to get, list and watch
+// ModuleInstances and ModulePackages in default only, and returns a
+// kubeconfig holding a short-lived token for it. Everything it creates is
+// deleted when the test ends.
+func namespaceReader(ctx context.Context, t *testing.T, kubeconfig, kubeContext string) string {
+	t.Helper()
+	loader := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{CurrentContext: kubeContext})
+	cfg, err := loader.ClientConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const ns = "default"
+	meta := metav1.ObjectMeta{Name: scopedReader, Namespace: ns}
+	sa, err := cs.CoreV1().ServiceAccounts(ns).Create(ctx, &corev1.ServiceAccount{ObjectMeta: meta}, metav1.CreateOptions{})
+	if err != nil {
+		t.Fatalf("creating the ServiceAccount: %v", err)
+	}
+	t.Cleanup(func() {
+		bg := context.WithoutCancel(ctx)
+		_ = cs.RbacV1().RoleBindings(ns).Delete(bg, scopedReader, metav1.DeleteOptions{})
+		_ = cs.RbacV1().Roles(ns).Delete(bg, scopedReader, metav1.DeleteOptions{})
+		_ = cs.CoreV1().ServiceAccounts(ns).Delete(bg, scopedReader, metav1.DeleteOptions{})
+	})
+	if _, err := cs.RbacV1().Roles(ns).Create(ctx, &rbacv1.Role{ObjectMeta: meta, Rules: []rbacv1.PolicyRule{{
+		APIGroups: []string{"opmodel.dev"}, Resources: []string{"moduleinstances", "modulepackages"}, Verbs: []string{"get", "list", "watch"},
+	}}}, metav1.CreateOptions{}); err != nil {
+		t.Fatalf("creating the Role: %v", err)
+	}
+	if _, err := cs.RbacV1().RoleBindings(ns).Create(ctx, &rbacv1.RoleBinding{
+		ObjectMeta: meta,
+		RoleRef:    rbacv1.RoleRef{APIGroup: "rbac.authorization.k8s.io", Kind: "Role", Name: scopedReader},
+		Subjects:   []rbacv1.Subject{{Kind: "ServiceAccount", Name: sa.Name, Namespace: ns}},
+	}, metav1.CreateOptions{}); err != nil {
+		t.Fatalf("creating the RoleBinding: %v", err)
+	}
+	expiry := int64(3600)
+	tok, err := cs.CoreV1().ServiceAccounts(ns).CreateToken(ctx, sa.Name, &authenticationv1.TokenRequest{
+		Spec: authenticationv1.TokenRequestSpec{ExpirationSeconds: &expiry},
+	}, metav1.CreateOptions{})
+	if err != nil {
+		t.Fatalf("requesting a token: %v", err)
+	}
+	out := clientcmdapi.NewConfig()
+	out.Clusters["fixture"] = &clientcmdapi.Cluster{Server: cfg.Host, CertificateAuthorityData: cfg.CAData}
+	out.AuthInfos[scopedReader] = &clientcmdapi.AuthInfo{Token: tok.Status.Token}
+	out.Contexts["scoped"] = &clientcmdapi.Context{Cluster: "fixture", AuthInfo: scopedReader, Namespace: ns}
+	out.CurrentContext = "scoped"
+	path := filepath.Join(t.TempDir(), "kubeconfig")
+	if err := clientcmd.WriteToFile(*out, path); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// holdStream opens a stream on topic and returns a channel closed when the
+// stream ends.
+func holdStream(ctx context.Context, t *testing.T, browser *http.Client, base, topic string) <-chan struct{} {
+	t.Helper()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, base+"/api/v1alpha1/clusters/default/stream?topics="+topic, http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := (&http.Client{Jar: browser.Jar}).Do(req) //nolint:bodyclose // the reader goroutine closes it
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != http.StatusOK {
+		_ = res.Body.Close()
+		t.Fatalf("stream %s: %d", topic, res.StatusCode)
+	}
+	ended := make(chan struct{})
+	go func() {
+		defer close(ended)
+		defer func() { _ = res.Body.Close() }()
+		_, _ = io.Copy(io.Discard, res.Body)
+	}()
+	return ended
 }
 
 // launch opens the launch link like a browser and returns a client holding

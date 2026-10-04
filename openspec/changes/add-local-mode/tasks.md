@@ -25,3 +25,9 @@
 - [x] 4.2 Run it against a throwaway podman cluster `opm-portal-e2e-local` (`E2E_CLUSTER=opm-portal-e2e-local task e2e:up`), then delete the cluster
 - [x] 4.3 README: how to run local mode, what it reads and creates, the cookie flags on plain HTTP and the residual cross-port risk; `AGENTS.md`: layout, commands, the binary's modes; `Taskfile.yml` `run` description
 - [x] 4.4 `task check` green, then commit `test(e2e): run the local-mode binary against the fixture cluster`
+
+## 5. Verify fixes (cmd/opm-portal, design.md)
+
+- [x] 5.1 e2e: `TestLocalModeNamespaces` runs the binary as a ServiceAccount that may read the OPM kinds only in `default`, with `--namespaces default` (namespace list served, cluster-wide list forbidden); `TestLocalMode` interrupts with a stream open and checks that it ends
+- [x] 5.2 design.md: `LocalConfig.Host`, the bound address in the Host allowlist, the `connect`/`build`/`wire` split
+- [x] 5.3 `task check` green, then commit `test(e2e): cover namespace-scoped users and shutdown with an open stream`

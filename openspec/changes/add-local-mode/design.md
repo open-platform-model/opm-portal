@@ -98,6 +98,10 @@ logsP.SetPublisher(srv.Broker())
 http.Server{Handler: gate.Handler(srv), ReadHeaderTimeout: 10 * time.Second, IdleTimeout: 2 * time.Minute}
 ```
 
+`cmd/opm-portal/serve.go` splits this into `connect` (kubeconfig, clients, identity, authorizer),
+listening, `build` (start the read model, then `wire` the rest) and serving, so the read model is
+stopped on every later startup failure.
+
 The reader and the caller are the same identity in local mode, so the read model reads with the
 user's RBAC and a caller can never see more than the reader does.
 
@@ -122,6 +126,7 @@ logs producer's `SetPublisher`) can be given the broker. The API's own kinds are
 ```go
 type LocalConfig struct {
     Identity   authz.Identity // the SelfSubjectReview identity; required, Authenticated
+    Host       string         // the bound loopback IP, for the launch URL; default 127.0.0.1
     Port       int            // the bound port; the Host allowlist and the cookie name use it
     Landing    string         // where a successful launch redirects; default "/"
     SessionTTL time.Duration  // default 12h
@@ -129,7 +134,7 @@ type LocalConfig struct {
     Logger     *slog.Logger
 }
 func NewLocal(cfg LocalConfig) (*Local, error)
-func (l *Local) LaunchURL() string                                    // http://127.0.0.1:<port>/launch?token=...
+func (l *Local) LaunchURL() string                                    // http://<host>:<port>/launch?token=...
 func (l *Local) Authenticate(r *http.Request) (authz.Identity, string, error) // identity, session key
 func (l *Local) Handler(next http.Handler) http.Handler
 ```
@@ -143,7 +148,8 @@ func (l *Local) Handler(next http.Handler) http.Handler
    portal serves no HTML yet, so nothing is allowed; the UI change widens the policy to `'self'`
    for its own scripts and styles and nothing more.
 2. **Host allowlist**: `r.Host`, lowercased, MUST be exactly `127.0.0.1:<port>`,
-   `localhost:<port>` or `[::1]:<port>`; anything else is `403` before any other step
+   `localhost:<port>`, `[::1]:<port>` or the bound address (another `127.0.0.0/8` IP when
+   `--addr` names one); anything else is `403` before any other step
    (0030:D5:R4). A DNS-rebinding page's requests carry the attacker's host name, so they stop
    here.
 3. **Cross-origin protection**: `http.NewCrossOriginProtection().Handler`, which refuses a
