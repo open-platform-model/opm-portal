@@ -200,7 +200,7 @@ func TestUnreadableChildrenMarkWorkloads(t *testing.T) {
 func TestUnresolvableKindIsNotReadable(t *testing.T) {
 	var known []testKind
 	for _, k := range clusterKinds {
-		if k.gvk.Kind != "MutatingWebhookConfiguration" {
+		if k.GVK.Kind != "MutatingWebhookConfiguration" {
 			known = append(known, k)
 		}
 	}
@@ -220,12 +220,12 @@ func TestSecondReadMakesNoClusterRequest(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	e.instance(t, "cert-manager", "cert-manager")
 	before := clusterReads(e.client)
-	reviews := e.reviews.count() + e.readerR.count()
+	reviews := e.reviews.Count() + e.readerR.Count()
 	e.instance(t, "cert-manager", "cert-manager")
 	if after := clusterReads(e.client); len(after) != len(before) {
 		t.Fatalf("second read made cluster requests: %v", after[len(before):])
 	}
-	if n := e.reviews.count() + e.readerR.count(); n != reviews {
+	if n := e.reviews.Count() + e.readerR.Count(); n != reviews {
 		t.Errorf("second read sent %d access reviews; decisions should be cached", n-reviews)
 	}
 }
@@ -260,9 +260,7 @@ func TestSecretsAreWithheldAndNeverRead(t *testing.T) {
 			t.Errorf("read Secrets: %s", r)
 		}
 	}
-	e.reviews.mu.Lock()
-	defer e.reviews.mu.Unlock()
-	for _, ra := range e.reviews.asked {
+	for _, ra := range e.reviews.Asked() {
 		if ra.Resource == "secrets" {
 			t.Errorf("asked to read Secrets: %+v", ra)
 		}
@@ -277,7 +275,7 @@ func TestInventoryKindsIdleOutAndRestart(t *testing.T) {
 	})
 	e.instance(t, "default", "podinfo")
 	e.m.mu.Lock()
-	dep := e.m.inventory[clusterKinds[6].gvr()]
+	dep := e.m.inventory[clusterKinds[6].GVR()]
 	e.m.mu.Unlock()
 	if dep == nil || dep.cluster == nil || !dep.cluster.synced() {
 		t.Fatalf("no running Deployment watch after the first read")
@@ -286,7 +284,7 @@ func TestInventoryKindsIdleOutAndRestart(t *testing.T) {
 	clock.advance(59 * time.Second)
 	e.m.sweep()
 	e.m.mu.Lock()
-	kept := e.m.inventory[clusterKinds[6].gvr()] == dep
+	kept := e.m.inventory[clusterKinds[6].GVR()] == dep
 	e.m.mu.Unlock()
 	if !kept {
 		t.Fatal("Deployment watch stopped before the idle timeout")
@@ -450,12 +448,12 @@ func countReads(e *env, line string) int {
 // work, watches the kind cluster-wide instead of settling for polling.
 func TestFailedReaderReviewDecidesNothing(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
-	e.readerR.setFail(true)
+	e.readerR.SetFail(true)
 	d := e.instance(t, "default", "podinfo")
 	if o := objectNamed(t, &d, "Deployment", "podinfo-podinfo"); o.Access != health.AccessNotReadable {
 		t.Fatalf("Deployment while reviews fail = %+v, want not readable", o)
 	}
-	e.readerR.setFail(false)
+	e.readerR.SetFail(false)
 	d = e.instance(t, "default", "podinfo")
 	if o := objectNamed(t, &d, "Deployment", "podinfo-podinfo"); o.Access != health.AccessOK || !o.Live {
 		t.Fatalf("Deployment after reviews recover = %+v, want live and readable", o)
@@ -530,7 +528,7 @@ func TestKindSweptDuringItsReviewStartsNothing(t *testing.T) {
 	}()
 	<-g.waiting
 	e.m.mu.Lock()
-	dep := e.m.inventory[clusterKinds[6].gvr()]
+	dep := e.m.inventory[clusterKinds[6].GVR()]
 	e.m.mu.Unlock()
 	clock.advance(2 * time.Minute)
 	e.m.sweep()
@@ -558,7 +556,7 @@ func TestPolledObjectsNoViewReadsAreDropped(t *testing.T) {
 	})
 	e.instance(t, "default", "podinfo")
 	e.m.mu.Lock()
-	svc := e.m.inventory[clusterKinds[2].gvr()]
+	svc := e.m.inventory[clusterKinds[2].GVR()]
 	e.m.mu.Unlock()
 	p := svc.poller
 	size := func() int {

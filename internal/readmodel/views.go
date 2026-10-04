@@ -107,6 +107,22 @@ type InventoryObject struct {
 	// is polled rather than watched (0030:D3:R5).
 	EvaluatedAt time.Time
 	Live        bool
+	// Children are the ReplicaSets, Pods and Jobs whose chain of controller
+	// owner references reaches this object, sorted by kind and name. Empty
+	// when the children could not be read (see ChildrenUnread).
+	Children []RuntimeChild
+}
+
+// RuntimeChild is a ReplicaSet, Pod or Job below an inventory object.
+type RuntimeChild struct {
+	Ref ObjectRef
+	// Owner is the child's controller: the inventory object or another
+	// child.
+	Owner  ObjectRef
+	Health health.ObjectHealth
+	// Replicas is a ReplicaSet's spec.replicas; nil for other kinds or when
+	// unset.
+	Replicas *int64
 }
 
 // SourceRef is the Flux source a ModulePackage reads.
@@ -119,9 +135,12 @@ type SourceRef struct {
 
 // PackageItem is one ModulePackage in a list.
 type PackageItem struct {
-	Ref            ObjectRef
-	UID            string
-	Source         SourceRef
+	Ref    ObjectRef
+	UID    string
+	Source SourceRef
+	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
+	// empty namespace means the package's own.
+	DependsOn      []ObjectRef
 	Path           string
 	Applied        health.Applied
 	Health         health.Summary

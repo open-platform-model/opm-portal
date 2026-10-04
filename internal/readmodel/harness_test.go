@@ -1,28 +1,17 @@
 package readmodel
 
 import (
-	"context"
-	"errors"
-	"os"
-	"path/filepath"
-	"slices"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
-	authorizationv1 "k8s.io/api/authorization/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	fakediscovery "k8s.io/client-go/discovery/fake"
 	dynfake "k8s.io/client-go/dynamic/fake"
-	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
-	"sigs.k8s.io/yaml"
 
 	"github.com/open-platform-model/opm-portal/internal/authz"
+	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
 )
 
 // f1Dir is the committed capture of the e2e fixture cluster.
@@ -37,184 +26,30 @@ const applyFailedSample = "../health/testdata/mi-apply-failed.yaml"
 // a test says otherwise, the caller.
 var alice = authz.Identity{Username: "alice", Groups: []string{"dev", "system:authenticated"}}
 
-// testKind describes one kind the fake cluster serves.
-type testKind struct {
-	gvk        schema.GroupVersionKind
-	resource   string
-	namespaced bool
-}
+// The cluster-side harness lives in readmodeltest; these names keep the
+// tests short.
+type (
+	testKind = readmodeltest.Kind
+	rule     = readmodeltest.Rule
+	reviews  = readmodeltest.Reviews
+)
 
-func (k testKind) gvr() schema.GroupVersionResource {
-	return k.gvk.GroupVersion().WithResource(k.resource)
-}
+var (
+	clusterKinds  = readmodeltest.Kinds
+	allowAll      = readmodeltest.AllowAll
+	denyResources = readmodeltest.DenyResources
+	newDynamic    = readmodeltest.Dynamic
+	newDiscovery  = readmodeltest.Discovery
+	setDiscovery  = readmodeltest.SetDiscovery
+	newChecker    = readmodeltest.NewChecker
+	loadList      = readmodeltest.LoadList
+	find          = readmodeltest.Find
+)
 
-// clusterKinds are the kinds of the F1 capture plus the ones tests add.
-var clusterKinds = []testKind{
-	{schema.GroupVersionKind{Version: "v1", Kind: "Namespace"}, "namespaces", false},
-	{schema.GroupVersionKind{Version: "v1", Kind: "ServiceAccount"}, "serviceaccounts", true},
-	{schema.GroupVersionKind{Version: "v1", Kind: "Service"}, "services", true},
-	{schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}, "configmaps", true},
-	{schema.GroupVersionKind{Version: "v1", Kind: "Secret"}, "secrets", true},
-	{schema.GroupVersionKind{Version: "v1", Kind: "Pod"}, "pods", true},
-	{schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"}, "deployments", true},
-	{schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "ReplicaSet"}, "replicasets", true},
-	{schema.GroupVersionKind{Group: "batch", Version: "v1", Kind: "Job"}, "jobs", true},
-	{schema.GroupVersionKind{Group: "apiextensions.k8s.io", Version: "v1", Kind: "CustomResourceDefinition"}, "customresourcedefinitions", false},
-	{schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "ValidatingWebhookConfiguration"}, "validatingwebhookconfigurations", false},
-	{schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "MutatingWebhookConfiguration"}, "mutatingwebhookconfigurations", false},
-	{schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"}, "clusterroles", false},
-	{schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRoleBinding"}, "clusterrolebindings", false},
-	{schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "Role"}, "roles", true},
-	{schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "RoleBinding"}, "rolebindings", true},
-	{schema.GroupVersionKind{Group: "events.k8s.io", Version: "v1", Kind: "Event"}, "events", true},
-	{schema.GroupVersionKind{Group: opmGroup, Version: "v1alpha1", Kind: "ModuleInstance"}, "moduleinstances", true},
-	{schema.GroupVersionKind{Group: opmGroup, Version: "v1alpha1", Kind: "ModulePackage"}, "modulepackages", true},
-	{schema.GroupVersionKind{Group: opmGroup, Version: "v1alpha1", Kind: "Platform"}, "platforms", false},
-	{schema.GroupVersionKind{Group: opmGroup, Version: "v1alpha1", Kind: "TransformerRegistration"}, "transformerregistrations", false},
-}
-
-// loadList decodes a List file the way client-go decodes objects (integers
-// as int64), which kstatus requires.
-func loadList(t testing.TB, path string) []*unstructured.Unstructured {
-	t.Helper()
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("reading %s: %v", path, err)
-	}
-	js, err := yaml.YAMLToJSON(raw)
-	if err != nil {
-		t.Fatalf("converting %s to JSON: %v", path, err)
-	}
-	var list unstructured.UnstructuredList
-	if err := list.UnmarshalJSON(js); err != nil {
-		t.Fatalf("decoding %s: %v", path, err)
-	}
-	out := make([]*unstructured.Unstructured, 0, len(list.Items))
-	for i := range list.Items {
-		out = append(out, &list.Items[i])
-	}
-	return out
-}
-
-// loadF1 returns every object of the F1 capture: the four OPM kinds, the
-// inventory objects with their ReplicaSets and Pods, and the events. The
-// TransformerRegistration the backup provider renders appears in both
-// transformerregistrations.yaml and objects.yaml, and is returned once.
+// loadF1 returns every object of the F1 capture.
 func loadF1(t testing.TB) []*unstructured.Unstructured {
 	t.Helper()
-	var out []*unstructured.Unstructured
-	seen := map[string]bool{}
-	for _, f := range []string{"platforms.yaml", "moduleinstances.yaml", "modulepackages.yaml",
-		"transformerregistrations.yaml", "objects.yaml", "events.yaml"} {
-		for _, o := range loadList(t, filepath.Join(f1Dir, f)) {
-			key := o.GroupVersionKind().String() + "|" + o.GetNamespace() + "/" + o.GetName()
-			if seen[key] {
-				continue
-			}
-			seen[key] = true
-			out = append(out, o)
-		}
-	}
-	return out
-}
-
-// find returns the object with the given kind and name.
-func find(t testing.TB, objs []*unstructured.Unstructured, kind, name string) *unstructured.Unstructured {
-	t.Helper()
-	for _, o := range objs {
-		if o.GetKind() == kind && o.GetName() == name {
-			return o
-		}
-	}
-	t.Fatalf("no %s %s", kind, name)
-	return nil
-}
-
-// newDynamic returns a fake dynamic client serving objs.
-func newDynamic(objs ...*unstructured.Unstructured) *dynfake.FakeDynamicClient {
-	listKinds := map[schema.GroupVersionResource]string{}
-	for _, k := range clusterKinds {
-		listKinds[k.gvr()] = k.gvk.Kind + "List"
-	}
-	runtimeObjs := make([]runtime.Object, 0, len(objs))
-	for _, o := range objs {
-		runtimeObjs = append(runtimeObjs, o.DeepCopy())
-	}
-	return dynfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), listKinds, runtimeObjs...)
-}
-
-// newDiscovery returns a fake discovery client that knows kinds.
-func newDiscovery(kinds ...testKind) *fakediscovery.FakeDiscovery {
-	d := &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}}
-	setDiscovery(d, kinds...)
-	return d
-}
-
-func setDiscovery(d *fakediscovery.FakeDiscovery, kinds ...testKind) {
-	byGV := map[string]*metav1.APIResourceList{}
-	var order []string
-	for _, k := range kinds {
-		gv := k.gvk.GroupVersion().String()
-		if byGV[gv] == nil {
-			byGV[gv] = &metav1.APIResourceList{GroupVersion: gv}
-			order = append(order, gv)
-		}
-		byGV[gv].APIResources = append(byGV[gv].APIResources, metav1.APIResource{
-			Name: k.resource, Kind: k.gvk.Kind, Namespaced: k.namespaced,
-			Verbs: metav1.Verbs{"get", "list", "watch"},
-		})
-	}
-	d.Resources = nil
-	for _, gv := range order {
-		d.Resources = append(d.Resources, byGV[gv])
-	}
-}
-
-// rule answers one access review: true allows it.
-type rule func(who string, ra authorizationv1.ResourceAttributes) bool
-
-func allowAll(string, authorizationv1.ResourceAttributes) bool { return true }
-
-// reviews is a fake cluster answering SelfSubjectAccessReviews by a rule,
-// counting what it is asked.
-type reviews struct {
-	mu    sync.Mutex
-	rule  rule
-	fail  bool // every review fails, as an unreachable API server would
-	asked []authorizationv1.ResourceAttributes
-}
-
-func (r *reviews) setFail(fail bool) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	r.fail = fail
-}
-
-// newChecker returns a local Checker for self whose reviews follow fn.
-func newChecker(t testing.TB, self authz.Identity, fn rule, opts authz.Options) (*authz.Checker, *reviews) {
-	t.Helper()
-	r := &reviews{rule: fn}
-	cs := fake.NewClientset()
-	cs.PrependReactor("create", "selfsubjectaccessreviews", func(action k8stesting.Action) (bool, runtime.Object, error) {
-		review := action.(k8stesting.CreateAction).GetObject().(*authorizationv1.SelfSubjectAccessReview)
-		ra := *review.Spec.ResourceAttributes
-		r.mu.Lock()
-		r.asked = append(r.asked, ra)
-		allowed, fail := r.rule(self.Username, ra), r.fail
-		r.mu.Unlock()
-		if fail {
-			return true, nil, errors.New("connection refused")
-		}
-		out := review.DeepCopy()
-		out.Status.Allowed = allowed
-		out.Status.Denied = !allowed
-		return true, out, nil
-	})
-	c, err := authz.NewLocal(cs.AuthorizationV1().SelfSubjectAccessReviews(), self, opts)
-	if err != nil {
-		t.Fatalf("NewLocal: %v", err)
-	}
-	return c, r
+	return readmodeltest.LoadCapture(t, f1Dir)
 }
 
 // reader is the identity the fake cluster's informers read as. Tests keep
@@ -222,18 +57,8 @@ func newChecker(t testing.TB, self authz.Identity, fn rule, opts authz.Options) 
 // mode both are the kubeconfig's identity.
 var reader = authz.Identity{Username: "portal-reader", Groups: []string{"system:authenticated"}}
 
-// byIdentity routes each check to the local Checker serving that identity,
-// so every grant a test uses is issued by a real Checker.
-type byIdentity map[string]*authz.Checker
-
-func (b byIdentity) Check(ctx context.Context, who authz.Identity, req authz.Attributes) (authz.Grant, error) {
-	c, ok := b[who.Username]
-	if !ok {
-		var none authz.Grant
-		return none, &authz.DenialError{Code: authz.CodeUnauthenticated, Attributes: req}
-	}
-	return c.Check(ctx, who, req)
-}
+// byIdentity routes each check to the local Checker serving that identity.
+type byIdentity = readmodeltest.ByIdentity
 
 // env is a Model over a fake cluster, with the checkers behind it.
 type env struct {
@@ -290,14 +115,6 @@ func (e *env) grant(t testing.TB, verb string, resource schema.GroupVersionResou
 	return g
 }
 
-// denyResources returns a rule that denies every read of the named
-// resources and allows the rest.
-func denyResources(resources ...string) rule {
-	return func(_ string, ra authorizationv1.ResourceAttributes) bool {
-		return !slices.Contains(resources, ra.Resource)
-	}
-}
-
 // clusterReads returns the dynamic client's get, list and watch actions, as
 // "verb resource namespace/name" lines.
 func clusterReads(c *dynfake.FakeDynamicClient) []string {
@@ -316,11 +133,4 @@ func clusterReads(c *dynfake.FakeDynamicClient) []string {
 		out = append(out, strings.Join([]string{a.GetVerb(), a.GetResource().Resource, a.GetNamespace() + "/" + name}, " "))
 	}
 	return out
-}
-
-// count returns how many reviews were asked.
-func (r *reviews) count() int {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return len(r.asked)
 }

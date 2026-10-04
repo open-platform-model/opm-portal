@@ -1,0 +1,94 @@
+{
+  "scope": "package",
+  "root": "mp:pkg/podinfo",
+  "layout": {
+    "width": 496,
+    "height": 104,
+    "nodeWidth": 200,
+    "nodeHeight": 44,
+    "columns": [
+      {
+        "title": "Source",
+        "x": 16
+      },
+      {
+        "title": "Package",
+        "x": 280
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release",
+      "kind": "source",
+      "label": "OCIRepository podinfo-release",
+      "ref": {
+        "group": "source.toolkit.fluxcd.io",
+        "version": "v1",
+        "kind": "OCIRepository",
+        "namespace": "pkg",
+        "name": "podinfo-release"
+      },
+      "column": 0,
+      "row": 0,
+      "x": 16,
+      "y": 44
+    },
+    {
+      "id": "mp:pkg/podinfo",
+      "kind": "package",
+      "label": "pkg/podinfo",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModulePackage",
+        "namespace": "pkg",
+        "name": "podinfo"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Unknown",
+        "notLive": true,
+        "counts": {}
+      },
+      "applied": {
+        "state": "Failed",
+        "reason": "SourceNotReady",
+        "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
+        "retrying": true
+      },
+      "path": ".",
+      "column": 1,
+      "row": 0,
+      "x": 280,
+      "y": 44
+    }
+  ],
+  "edges": [
+    {
+      "id": "sourcedFrom|mp:pkg/podinfo|src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release",
+      "kind": "sourcedFrom",
+      "from": "mp:pkg/podinfo",
+      "to": "src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release",
+      "source": "ModulePackage spec.sourceRef",
+      "route": [
+        {
+          "x": 280,
+          "y": 66
+        },
+        {
+          "x": 248,
+          "y": 66
+        },
+        {
+          "x": 248,
+          "y": 66
+        },
+        {
+          "x": 216,
+          "y": 66
+        }
+      ]
+    }
+  ]
+}

@@ -47,6 +47,15 @@ func (s State) worse(other State) bool {
 	return s.rank() > other.rank()
 }
 
+// Worst returns the worse of two states in the roll-up order, so callers
+// grouping summaries roll them up the same way.
+func Worst(a, b State) State {
+	if b.worse(a) {
+		return b
+	}
+	return a
+}
+
 // ObjectHealth is one object's health and what decided it.
 type ObjectHealth struct {
 	State State
