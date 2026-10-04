@@ -1,0 +1,16 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole and observably, and none is here:
+#
+# - 0030:D10 (logs only for Pods an inventory reaches, bounded by the
+#   portal): this change lands R1 to R4 behind the stream broker. No client
+#   can follow a log topic until the read API mounts the stream; that change
+#   claims D10.
+#
+# Before logging, diff this list against proposal.md's Impact section.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []
