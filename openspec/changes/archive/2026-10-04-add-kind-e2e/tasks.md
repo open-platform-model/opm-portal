@@ -28,3 +28,11 @@
 - [x] 4.3 Record the provider in `.e2e/provider`, refuse a `kind` other than the pin, re-hash the kept CLI archive on every run, clean the download dir on any exit, drop Node events; add `e2e:capture:check` to `task check` and the gate lists
 - [x] 4.4 Fail the nightly run on a `meta.yaml` verdict or version change
 - [x] 4.5 Recapture on a new throwaway podman cluster, update `testdata/clusters/f1/README.md`, delete the cluster; `task check` green, then commit `test(e2e): recapture F1 on operator v1.0.0-beta.6 and catalog 4.6.0`
+
+## 5. Second review fixes
+
+- [x] 5.1 `check-capture.sh`: walk every document to any depth (top-level sequence, nested List, Secret with an `items` key); add `check-capture_test.sh` with scratch cases for every rule and run it from `task e2e:capture:check`; commit `test(e2e): find a Secret at any depth of a capture file`
+- [x] 5.2 `E2E_CLUSTER` for a second cluster in the `opm-portal-e2e` family with its own state directory; leave the cluster name out of the nightly verdict compare
+- [x] 5.3 Add the deliberate refusal fixture `60-refused-claim.yaml`; `up.sh` fails if it is accepted; `meta.yaml` marks it `deliberateRefusal: true`
+- [x] 5.4 Move the CLI pin to v1.0.0-beta.8 (sha256 from its `checksums.txt`, linux-amd64 archive re-hashed); `OPM_OPERATOR_VERSION` stays v1.0.0-beta.6 because beta.8 embeds beta.5
+- [x] 5.5 Recapture on a new throwaway podman cluster `opm-portal-e2e-fix`, update `testdata/clusters/f1/README.md`, delete the cluster; `task check` green

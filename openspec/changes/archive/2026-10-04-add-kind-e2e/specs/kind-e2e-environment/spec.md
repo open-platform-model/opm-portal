@@ -8,7 +8,8 @@ and may not contain.
 
 ### Requirement: The fixture cluster is created from pinned released artifacts
 
-`task e2e:up` SHALL create a kind cluster named `opm-portal-e2e` from the node image pinned in
+`task e2e:up` SHALL create a kind cluster named `opm-portal-e2e`, or the name `E2E_CLUSTER` gives,
+which SHALL be `opm-portal-e2e` or start with `opm-portal-e2e-`, from the node image pinned in
 `test/e2e/versions.env`, with podman as the default provider and docker when `E2E_PROVIDER=docker`,
 and SHALL record the provider so `task e2e:capture` and `task e2e:down` use it when
 `E2E_PROVIDER` is unset. It SHALL refuse to run when the `kind` on `PATH` is not the pinned
@@ -42,6 +43,17 @@ CLI-owned instance's image is pinned by digest.
 - **WHEN** the `kind` on `PATH` reports a version other than `KIND_VERSION`
 - **THEN** `task e2e:up` exits non-zero, naming both versions, before creating a cluster
 
+#### Scenario: Second cluster beside the default
+
+- **WHEN** a developer runs `task e2e:up` with `E2E_CLUSTER=opm-portal-e2e-fix`
+- **THEN** the cluster `opm-portal-e2e-fix` is created with its kubeconfig and provider under
+  `.e2e/clusters/opm-portal-e2e-fix/`, and `.e2e/kubeconfig` is not touched
+
+#### Scenario: Cluster name outside the family
+
+- **WHEN** `E2E_CLUSTER` names a cluster that does not start with `opm-portal-e2e`
+- **THEN** every e2e script exits non-zero before calling kind or kubectl
+
 #### Scenario: Cluster already exists
 
 - **WHEN** a cluster named `opm-portal-e2e` already exists
@@ -49,11 +61,12 @@ CLI-owned instance's image is pinned by digest.
 
 ### Requirement: The scripts touch only the fixture cluster
 
-Every `kubectl` and `opm` call the e2e scripts make SHALL pass the kubeconfig `.e2e/kubeconfig`
-and the context `kind-opm-portal-e2e` explicitly, and the scripts SHALL ignore the `KUBECONFIG`
-environment variable. Before applying or reading anything, a script SHALL check that the
-context's API server is on a loopback address and SHALL exit non-zero otherwise. `task e2e:down`
-SHALL delete only the cluster named `opm-portal-e2e`.
+Every `kubectl` and `opm` call the e2e scripts make SHALL pass the fixture cluster's kubeconfig
+(`.e2e/kubeconfig` for `opm-portal-e2e`, `.e2e/clusters/<name>/kubeconfig` for any other) and the
+context `kind-<name>` explicitly, and the scripts SHALL ignore the `KUBECONFIG` environment
+variable. Before applying or reading anything, a script SHALL check that the context's API server
+is on a loopback address and SHALL exit non-zero otherwise. `task e2e:down` SHALL delete only the
+fixture cluster it names.
 
 #### Scenario: Developer's own context is untouched
 
@@ -71,8 +84,12 @@ SHALL delete only the cluster named `opm-portal-e2e`.
 (`opmodel.dev/modules/cert_manager@v2`) under an applier ServiceAccount allowed to write
 cluster-scoped kinds, the operator's podinfo test module, a ModulePackage on a cluster without
 Flux, the backup provider and backup consumer test modules (`testing.opmodel.dev/...`), and a
-CLI-owned `web_app` instance applied with `opm instance apply`. It SHALL fail when cert-manager,
-podinfo, backup-provider or the CLI-owned instance does not become ready, and SHALL record,
+CLI-owned `web_app` instance applied with `opm instance apply`, and a deliberate refusal
+fixture: a TransformerRegistration applied by hand, labelled
+`e2e.opmodel.dev/fixture: deliberate-refusal`, naming a catalog published nowhere and providing
+no contract, so golden suites keep a refused registration whichever operator is installed. It
+SHALL fail when cert-manager, podinfo, backup-provider or the CLI-owned instance does not become
+ready, or when the deliberate refusal fixture gets no verdict or is accepted, and SHALL record,
 without failing, the state of the ModulePackage, the backup claim and the backup consumer.
 
 #### Scenario: Released operator refuses the backup claim
@@ -86,6 +103,18 @@ without failing, the state of the ModulePackage, the backup claim and the backup
 - **WHEN** the installed operator accepts the claim
 - **THEN** the capture's `meta.yaml` records `accepted: true` and `active: true` for it with no
   note
+
+#### Scenario: Deliberate refusal fixture
+
+- **WHEN** `task e2e:up` applies the claim `default.refused-claim-fixture`
+- **THEN** the operator refuses it (`Ready=False`, no `status.accepted` or `status.active`), and
+  the capture's `meta.yaml` records it with `deliberateRefusal: true` and a note saying it is
+  refused on purpose
+
+#### Scenario: Deliberate refusal fixture accepted
+
+- **WHEN** the installed operator accepts `default.refused-claim-fixture`
+- **THEN** `task e2e:up` exits non-zero and prints the claim's conditions
 
 #### Scenario: A required fixture never becomes ready
 
@@ -103,8 +132,11 @@ captured object SHALL lack `metadata.managedFields` and the
 ModulePackage SHALL lack `spec.values`. CustomResourceDefinitions SHALL be captured without
 `spec.versions[].schema`. `task e2e:capture:check` SHALL check every file under
 `testdata/clusters/`, recursively and whatever its extension (Markdown excepted), and every
-document in it, a List by its items and any other object as itself. A file that breaks any of
-these rules, or does not parse, SHALL fail it. The capture runs it last, and `task check` and
+document in it to any depth, treating every map with both `kind` and `metadata` as an object,
+and any map of kind `Secret` carrying `data` or `stringData` as a Secret. A file that breaks any
+of these rules, or does not parse, SHALL fail it. `test/e2e/check-capture_test.sh` SHALL run the
+check against scratch cases for each rule before `task e2e:capture:check` checks the committed
+captures. The capture runs it last, and `task check` and
 the `Test` check run it on every pull request. Source: 0030:D8.
 
 #### Scenario: Clean capture
@@ -125,7 +157,9 @@ the `Test` check run it on every pull request. Source: 0030:D8.
 #### Scenario: Secret in a capture
 
 - **WHEN** any file under `testdata/clusters/` holds an object of kind `Secret`, whether in a
-  List, as a bare object, as one document of several, or in a `.yml` or `.json` file
+  List, as a bare object, as one document of several, in a top-level YAML sequence or JSON
+  array, in a List nested inside a List, alongside an `items` key, or in a `.yml` or `.json`
+  file
 - **THEN** `task e2e:capture:check` exits non-zero
 
 #### Scenario: Unparseable capture file
@@ -138,8 +172,8 @@ the `Test` check run it on every pull request. Source: 0030:D8.
 The repository SHALL run `task e2e:up` and `task e2e:capture` on docker kind in a workflow
 triggered by manual dispatch and a nightly schedule only, SHALL upload the capture as a workflow
 artifact, and SHALL delete the cluster whether or not the earlier steps succeeded. It SHALL fail
-when the capture's `meta.yaml`, apart from the capture time and the provider, differs from the
-committed one. No pull request check SHALL depend on this workflow.
+when the capture's `meta.yaml`, apart from the capture time, the provider and the cluster name,
+differs from the committed one. No pull request check SHALL depend on this workflow.
 
 #### Scenario: Nightly run
 

@@ -22,8 +22,10 @@ cluster to run against.
   (`opmodel.dev/modules/cert_manager@v2`, with an applier ServiceAccount bound to cluster-admin,
   because the operator's own ServiceAccount cannot patch CRDs), the operator's podinfo test
   module, a ModulePackage on a cluster without Flux (the `SourceNotReady` state), the backup
-  provider and consumer test modules from opm-operator (`testing.opmodel.dev/...`), and a
-  CLI-owned `web_app` instance applied with `opm instance apply`.
+  provider and consumer test modules from opm-operator (`testing.opmodel.dev/...`), a
+  CLI-owned `web_app` instance applied with `opm instance apply`, and a deliberate refusal
+  fixture: a hand-applied claim naming a catalog published nowhere, so the refused-registration
+  state stays in F1 now that the operator accepts the backup claim.
 - `task e2e:capture`: snapshots the four OPM kinds, the non-Secret objects their inventories
   name, the ReplicaSets and Pods below them, and the events in the fixture namespaces into
   `testdata/clusters/f1/`, with `managedFields`, the last-applied annotation and every instance's
@@ -38,7 +40,8 @@ cluster to run against.
 
 The backup claim is accepted and active only on an operator built on library v1.0.0-beta.2 or
 later. opm-operator v1.0.0-beta.6 (2026-10-04) is the first such release, ahead of the operator
-CLI v1.0.0-beta.7 embeds (beta.5), so `versions.env` pins it through `OPM_OPERATOR_VERSION`. The
+CLI v1.0.0-beta.8 (the newest CLI release) embeds (beta.5), so `versions.env` pins it through
+`OPM_OPERATOR_VERSION`. The
 environment does not fail on a refused claim: it records the verdict the installed operator
 gives, and `meta.yaml` marks a refused claim as such.
 

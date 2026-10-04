@@ -33,8 +33,9 @@ Observations from that capture that shape this change (experiment 01 `README.md`
 
 - e2e assertions through the portal's API (the milestone 1 part of this change line, after the
   read API and UI exist).
-- Flux and a reconciling ModulePackage, the hand-applied refusal claims of experiment 01, and the
-  scripted image break; each can join F1 in a later change.
+- Flux and a reconciling ModulePackage, experiment 01's other hand-applied refusal verdicts
+  (`ProvidesMismatch`, `ProviderMismatch`), and the scripted image break; each can join F1 in a
+  later change. F1 carries one hand-applied refusal (see "Verdict of the backup claim").
 - Pulling from a local registry: everything resolves from GHCR.
 
 ## Decisions
@@ -55,8 +56,11 @@ testdata/clusters/f1/              committed capture + README.md
 
 ### Guards
 
-`lib.sh` fixes the cluster name `opm-portal-e2e`, the context `kind-opm-portal-e2e` and the
-kubeconfig `.e2e/kubeconfig`. `k()` and `opm_k()` pass `--kubeconfig` and `--context` on every
+`lib.sh` names the cluster `opm-portal-e2e`, the context `kind-opm-portal-e2e` and the
+kubeconfig `.e2e/kubeconfig`. `E2E_CLUSTER` may name a second cluster beside it, but only
+`opm-portal-e2e-<suffix>` in `[a-z0-9-]`; that cluster's kubeconfig and provider live in
+`.e2e/clusters/<name>/`, so `e2e:down` on one never removes the other's kubeconfig. The review
+recapture ran on `opm-portal-e2e-fix` this way. `k()` and `opm_k()` pass `--kubeconfig` and `--context` on every
 call and the scripts unset `KUBECONFIG`, so a developer's current context is never read or
 written. Before any write, `up.sh` checks that the kubeconfig's current context is the expected
 one and that its server is a loopback address; `capture.sh` checks the same before reading.
@@ -137,10 +141,13 @@ Every item loses `metadata.managedFields` and the
 ModulePackages lose `spec.values`. CustomResourceDefinitions lose `spec.versions[].schema`:
 cert-manager's six CRD schemas were 472 KB of a 1.17 MB `objects.yaml` in the first run, and the
 portal reads a CRD's metadata and conditions, never its schema. `check-capture.sh` walks every
-file under `testdata/clusters/` (recursively, any extension, Markdown excepted), reads every
-document in it as a List's items or as one object, and fails on any `Secret`, any remaining
+file under `testdata/clusters/` (recursively, any extension, Markdown excepted), walks every
+document in it to any depth (so a top-level sequence, a List inside a List and a Secret with an
+`items` key are all reached), treats every map with `kind` and `metadata` as an object, and any
+`kind: Secret` map with `data` or `stringData` as a Secret, and fails on any `Secret`, any remaining
 `managedFields`, last-applied annotation or MI/MP `spec.values`, and on a file that does not
-parse. `capture.sh` runs it last, and `task check` runs it too.
+parse. `capture.sh` runs it last, and `task check` runs it too, after
+`check-capture_test.sh` has run it against scratch cases for every rule.
 
 ### Authorization
 
@@ -158,7 +165,7 @@ The scripts read, as kind's cluster-admin kubeconfig, on the throwaway cluster: 
 `testdata/clusters/f1/` as an artifact, and runs `task e2e:down` under `if: always()`. A
 recapture always differs from the committed one in timestamps, uids and pod names, so the
 `git diff --stat` in the summary is for reading; the job fails when `meta.yaml`, minus
-`capturedAt` and the provider, differs (an instance's `Ready` reason, a claim's verdict, the
+`capturedAt`, the provider and the cluster name, differs (an instance's `Ready` reason, a claim's verdict, the
 operator or catalog version), and a failed scheduled run notifies the workflow's owner.
 `permissions: contents: read`; GHCR pulls are anonymous. The `Test` job runs
 `task e2e:capture:check` on every pull request, so a hand edit to a committed capture cannot
@@ -206,7 +213,13 @@ v1.0.0-beta.2 or later; the released beta.5 operator refuses it `CatalogUnresolv
 operator release 1.0.0-beta.6 (or a CLI that embeds it) captures the accepted state with no
 script change.
 **Outcome**: beta.6 shipped on 2026-10-04 while the pull request was open; `versions.env` pins it
-and the committed capture records the accepted claim. The refused state is no longer in F1.
+and the committed capture records the accepted claim. To keep a refused registration for golden
+suites, F1 also carries `60-refused-claim.yaml`, a deliberate refusal fixture applied by hand
+as experiment 01 applied its `tregs.yaml`: it names a catalog published nowhere and provides no
+contract, so it is refused on any operator and no instance depends on it. It is labelled
+`e2e.opmodel.dev/fixture: deliberate-refusal`, `meta.yaml` marks it `deliberateRefusal: true`,
+and `up.sh` fails if it is ever accepted. The alternative, a second capture pinned to operator
+beta.5, was not taken: it would pin a superseded release and double the capture.
 
 ## Risks / Trade-offs
 
