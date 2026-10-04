@@ -119,7 +119,7 @@ expand it.
 
 - **WHEN** the instance graph of podinfo is built from the experiment 01 image-break samples
 - **THEN** the Deployment controls two ReplicaSets, the new one controls one Pod Degraded with
-  `ErrImagePull`, and the Deployment and instance are Degraded while the instance is Applied
+  `ImagePullBackOff`, and the Deployment and instance are Degraded while the instance is Applied
 
 #### Scenario: ReplicaSet scaled to zero
 

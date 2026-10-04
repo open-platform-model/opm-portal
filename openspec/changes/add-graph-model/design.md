@@ -65,9 +65,8 @@ type PlatformInput struct {
 
 type ProviderLookup struct {
 	Ref      readmodel.ObjectRef
-	Found    bool                      // read and present
-	Access   health.Access             // how the read went; ok with !Found is not found
-	Instance *readmodel.InstanceDetail // set when read
+	Access   health.Access             // how the read went
+	Instance *readmodel.InstanceDetail // nil with AccessOK: read and not found
 }
 
 type Options struct {
@@ -82,7 +81,8 @@ cluster state: every value comes from the views, which were authorized for the c
 
 ### Ids
 
-`<prefix>:<part>[/<part>...]`, each part escaped with `url.PathEscape` plus `/`, `:` and `@`, so
+`<prefix>:<part>[/<part>...]`, each part escaped with `url.PathEscape` (which escapes `/`) plus `:`
+and `@`, so
 a part holding a catalog path stays one part. An empty part (core group, cluster scope, empty
 component) is `_`, and a literal `_` is written `%5F`. No id holds a UID or a version that
 changes on upgrade.
@@ -98,9 +98,9 @@ changes on upgrade.
 | source | `src:<group>/<kind>/<ns>/<name>` |
 | component | `comp:<mi or mp>/<ns>/<name>/<component>` |
 | object, runtime child | `obj:<group>/<kind>/<ns>/<name>` |
-| configuration group | `grp:config/<mi or mp>/<ns>/<name>` |
-| Pod group | `grp:pods/<parent object parts>` |
-| over-cap summary | `grp:more/<root id parts>` |
+| configuration group | `grp:configuration/<mi or mp>/<ns>/<name>` |
+| Pod group | `grp:pods/obj/<parent object parts>` |
+| over-cap summary | `grp:more/<root prefix>/<root parts>` |
 
 ### Edge kinds and their single source
 
