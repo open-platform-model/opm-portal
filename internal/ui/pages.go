@@ -45,9 +45,12 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 	}})
 }
 
-// problemStatus is the page status a main document's problem gives.
+// problemStatus is the page status a main document's problem gives. A
+// forbidden document renders as a locked region of a page that was served
+// as asked, so it is 200, as the read API answers a list the caller may
+// not read; the others keep the API's status.
 func problemStatus(p *v1.Problem) int {
-	if p == nil {
+	if p == nil || p.Code == v1.CodeForbidden {
 		return http.StatusOK
 	}
 	if p.Status >= 400 && p.Status <= 599 {

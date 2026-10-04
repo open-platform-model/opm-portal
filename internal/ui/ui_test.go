@@ -449,7 +449,7 @@ func TestProblemsRenderAsRegions(t *testing.T) {
 		t.Errorf("missing instance = %d", res.status)
 	}
 	res := s.get(t, "/instances/default/podinfo/object?kind=Secret&namespace=default&name=podinfo", htmxRequest)
-	if res.status != http.StatusForbidden || !strings.Contains(res.body, "locked-panel") {
+	if res.status != http.StatusOK || !strings.Contains(res.body, "locked-panel") {
 		t.Errorf("Secret object = %d\n%s", res.status, res.body)
 	}
 	if res := s.get(t, "/nope"); res.status != http.StatusNotFound {
