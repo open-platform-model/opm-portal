@@ -13,6 +13,11 @@ import (
 // they start and stop the reader's own informers.
 var lifecycleMethods = []string{"Start", "Stop"}
 
+// nonReads are the exported methods of Model that hand out no object
+// content: OnChange reports only which OPM object's view to render again,
+// and ResolveKind answers from discovery, which names kinds, never objects.
+var nonReads = []string{"OnChange", "ResolveKind"}
+
 // ungrantedReads returns the exported methods of typ, other than exempt,
 // that do not take both an authz.Identity and an authz.Grant.
 func ungrantedReads(typ reflect.Type, exempt []string) []string {
@@ -39,7 +44,7 @@ func ungrantedReads(typ reflect.Type, exempt []string) []string {
 // without the caller's identity and a grant (0030:D7). Each read's own tests
 // cover that it refuses a grant that does not cover it.
 func TestEveryReadTakesAGrant(t *testing.T) {
-	if bad := ungrantedReads(reflect.TypeFor[*Model](), lifecycleMethods); len(bad) > 0 {
+	if bad := ungrantedReads(reflect.TypeFor[*Model](), slices.Concat(lifecycleMethods, nonReads)); len(bad) > 0 {
 		t.Fatalf("exported Model methods without an authz.Identity and an authz.Grant: %v", bad)
 	}
 }

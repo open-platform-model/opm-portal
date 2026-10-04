@@ -1,9 +1,9 @@
 ## 1. Read-model and graph inputs the API needs (internal/readmodel, internal/graph)
 
-- [ ] 1.1 Add `Change` and `Model.OnChange`: an event handler on every informer `startWatch` builds maps OPM kinds to themselves (deletions marked), runtime children to held owners by name label, other objects to the held owner whose UID is their uuid label, and registrations also to the Platform; verify with F1 that updating `default/podinfo-podinfo` reports `ModuleInstance default/podinfo` and deleting the instance reports a deletion
-- [ ] 1.2 Add `Model.ResolveKind(group, kind)`; verify `apps/Deployment` resolves namespaced and an unknown kind errors
-- [ ] 1.3 Add `graph.Contributor` and use it in the platform builder; verify the platform goldens are unchanged and F1's backup catalog names `default.backup-provider`
-- [ ] 1.4 `task check` green, then commit `feat(readmodel): report changed OPM objects and resolve kinds`
+- [x] 1.1 Add `Change` and `Model.OnChange`: an event handler on every informer `startWatch` builds maps OPM kinds to themselves (deletions marked), runtime children to held owners by name label, inventory objects to every held owner whose inventory names them, and registrations also to the Platform; verify with F1 that updating `default/podinfo-podinfo` reports `ModuleInstance default/podinfo` and deleting the instance reports a deletion
+- [x] 1.2 Add `Model.ResolveKind(group, kind)`; verify `apps/Deployment` resolves namespaced and an unknown kind errors
+- [x] 1.3 Add `graph.Contributor` and use it in the platform builder; verify the platform goldens are unchanged and F1's backup catalog names `default.backup-provider`
+- [x] 1.4 `task check` green, then commit `feat(readmodel): report changed OPM objects and resolve kinds`
 
 ## 2. Wire types and the OpenAPI contract (api/v1alpha1, openapi)
 

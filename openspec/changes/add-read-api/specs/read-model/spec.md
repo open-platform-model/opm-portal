@@ -11,7 +11,7 @@ object itself SHALL be reported as a deletion.
 
 #### Scenario: An inventory object changes
 
-- **WHEN** Deployment `default/podinfo-podinfo`, labelled with instance `default/podinfo`'s uuid,
+- **WHEN** Deployment `default/podinfo-podinfo`, which instance `default/podinfo`'s inventory names,
   is updated in a held informer
 - **THEN** the listener is told that ModuleInstance `default/podinfo` changed
 

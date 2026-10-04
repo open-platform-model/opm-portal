@@ -72,3 +72,21 @@ func (k *kindResolver) resolve(gvk schema.GroupVersionKind) (resolvedKind, error
 	}
 	return resolvedKind{Resource: m.Resource, Namespaced: m.Scope.Name() == meta.RESTScopeNameNamespace}, nil
 }
+
+// ResolvedKind is a kind as the cluster serves it.
+type ResolvedKind struct {
+	Resource   schema.GroupVersionResource
+	Namespaced bool
+}
+
+// ResolveKind resolves group and kind to the resource they are served as,
+// at the preferred version, through the Model's cached discovery, so a
+// caller can authorize a read of the kind before looking anything up. A
+// kind discovery does not know is an error, never a guess.
+func (m *Model) ResolveKind(group, kind string) (ResolvedKind, error) {
+	k, err := m.kinds.resolve(schema.GroupVersionKind{Group: group, Kind: kind})
+	if err != nil {
+		return ResolvedKind{}, err
+	}
+	return ResolvedKind(k), nil
+}

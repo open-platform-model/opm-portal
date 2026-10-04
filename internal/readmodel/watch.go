@@ -33,6 +33,10 @@ func (m *Model) startWatch(resource schema.GroupVersionResource, namespace, sele
 	if err := informer.SetTransform(stripTransform); err != nil {
 		panic("readmodel: transform on a new informer: " + err.Error())
 	}
+	// AddEventHandler fails only on a stopped informer; this one has not run.
+	if _, err := informer.AddEventHandler(m.changeHandler()); err != nil {
+		panic("readmodel: event handler on a new informer: " + err.Error())
+	}
 	w := &watch{informer: informer, stop: make(chan struct{})}
 	go informer.Run(w.stop)
 	return w

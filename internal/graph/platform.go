@@ -62,9 +62,6 @@ func Platform(in PlatformInput, opts Options) Graph {
 	b.root = plat.ID
 	b.add(plat, colPlatform)
 
-	// contributed maps each catalog the registry says a registration
-	// contributed to the version it resolved.
-	contributed := map[string]string{}
 	for _, c := range p.Catalogs {
 		n := Node{
 			ID:      catalogID(c.Catalog),
@@ -74,8 +71,8 @@ func Platform(in PlatformInput, opts Options) Graph {
 		}
 		b.add(n, colCatalog)
 		b.edge(EdgeResolves, plat.ID, n.ID)
-		if c.Source == sourceRegistry {
-			contributed[c.Catalog] = c.Version
+		if reg := Contributor(c, p.Registrations); reg != "" {
+			b.edge(EdgeContributes, registrationID(reg), n.ID)
 		}
 	}
 
@@ -107,9 +104,6 @@ func Platform(in PlatformInput, opts Options) Graph {
 			},
 		}
 		b.add(n, colRegistration)
-		if contributes(r, contributed) {
-			b.edge(EdgeContributes, n.ID, catalogID(r.Catalog))
-		}
 		if r.Provider.Name != "" {
 			b.provider(n.ID, r, lookups[instanceID(r.Provider.Namespace, r.Provider.Name)])
 		}
@@ -117,18 +111,29 @@ func Platform(in PlatformInput, opts Options) Graph {
 	return b.finish()
 }
 
-// contributes reports whether the registry records r's catalog as
-// contributed by r. The registry entry does not name its registration, so
-// the claim must also be one the operator folds into the registry: accepted
-// and active (opm-operator platform_controller.go:335), at the version the
-// entry resolved. A refused, duplicate or pending claim on a contributed
-// catalog gets no edge (0030:D4).
-func contributes(r *readmodel.RegistrationView, contributed map[string]string) bool {
-	version, ok := contributed[r.Catalog]
-	if !ok || !r.Standing.Accepted || !r.Standing.Active {
-		return false
+// Contributor returns the name of the registration the Platform's registry
+// records as contributing c, or "" when none does. The registry entry does
+// not name its registration, so the claim must be one the operator folds
+// into the registry: accepted and active (opm-operator
+// platform_controller.go:335), on c's catalog, at the version the entry
+// resolved, and c's source must be Registration. A refused, duplicate or
+// pending claim contributed nothing (0030:D4). The platform graph's
+// contributes edge and the read API's catalogs both use it, so they cannot
+// disagree.
+func Contributor(c readmodel.Catalog, regs []readmodel.RegistrationView) string {
+	if c.Source != sourceRegistry {
+		return ""
 	}
-	return version == "" || r.Version == "" || version == r.Version
+	for i := range regs {
+		r := &regs[i]
+		if r.Catalog != c.Catalog || !r.Standing.Accepted || !r.Standing.Active {
+			continue
+		}
+		if c.Version == "" || r.Version == "" || c.Version == r.Version {
+			return r.Name
+		}
+	}
+	return ""
 }
 
 // provider adds the instance a registration names and the edge to it,

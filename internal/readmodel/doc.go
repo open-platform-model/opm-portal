@@ -18,8 +18,15 @@
 //   - Tier 4: events about one object, listed when asked, folded so a repeat
 //     shows once with a count.
 //
-// Kinds are resolved through discovery, cached for the process. TuneConfig
-// raises the reading client's request rate.
+// Kinds are resolved through discovery, cached for the process; ResolveKind
+// exposes the resolver. TuneConfig raises the reading client's request rate.
+//
+// # Changes
+//
+// OnChange tells a listener which OPM object's view may have changed: the
+// object itself, the owners whose inventory names a changed object, and the
+// owners a changed runtime child names. A Change carries no content; the
+// listener renders the view again through a grant like any other read.
 //
 // # Authorization
 //

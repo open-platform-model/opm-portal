@@ -177,8 +177,10 @@ registers an event handler that maps the object to the OPM objects whose views i
 - a runtime child (ReplicaSet, Pod, Job): every held ModuleInstance or ModulePackage named by its
   `module-instance.opmodel.dev/name` label (children carry no uuid or namespace label: capture,
   observation 8), in any namespace; an extra notification costs one re-render;
-- any other (tier 2, selected by the uuid label): the held ModuleInstance or ModulePackage whose
-  UID equals `module-instance.opmodel.dev/uuid`;
+- any other (tier 2, selected by the uuid label): every held ModuleInstance or ModulePackage
+  whose `status.inventory` names it. The label's value is not the instance's UID and is recorded
+  in status only for the CLI-owned instance (F1: `web/web` `status.instanceUUID`), so the
+  inventory is the join;
 - a TransformerRegistration also reports the Platform, whose view lists registrations.
 
 A `Change` carries kind, namespace, name and `Deleted`: no object content, so the feed reveals
