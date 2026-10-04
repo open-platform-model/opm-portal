@@ -13,7 +13,7 @@ This page lists every resource of the OPM portal's read API, version `v1alpha1`,
 - Every path names the cluster. The portal serves one cluster, `default`; any other is answered with `not_found`.
 - Every document carries `apiVersion: portal.opmodel.dev/v1alpha1` and a `kind`.
 - Every request is authorized for the caller before anything is looked up. A caller who may not make a read receives the same `forbidden` problem whether or not the object exists. A list the caller may not read is empty, its `access` field is `forbidden`, and it carries no count.
-- An item the caller may not read inside a readable document is marked by its `access` field: `forbidden` (the caller may not read it), `notReadable` (the portal may not read it) or `withheld` (a Secret, never read).
+- An item the caller may not read inside a readable document is marked by its `access` field: `forbidden` (the caller may not read it), `notReadable` (the portal could not read it: the access review or the read failed, or the kind is not served) or `withheld` (a Secret, never read).
 - Within `v1alpha1` fields and enumerated values are only added. Clients ignore fields they do not know and treat every enumerated string as open, showing an unknown value as unknown.
 - No document carries an instance's or package's `spec.values`, Secret data or the `kubectl.kubernetes.io/last-applied-configuration` annotation. Condition and history messages and event notes are served exactly as the operator and the API server wrote them.
 
@@ -68,16 +68,21 @@ Every error the read API answers is an RFC 9457 problem document, media type `ap
 | 400 | `bad_request` | A path or query value is malformed, or a topic is malformed, not served or beyond the stream's limit. |
 | 401 | `unauthenticated` | The request names no authenticated user. |
 | 403 | `forbidden` | The caller may not make this read, or the portal does not serve the object. The same for an object that does not exist. |
-| 404 | `not_found` | The object does not exist, and the caller may read its kind there, or the cluster is not `default`. |
+| 404 | `not_found` | The object does not exist, and the caller may read its kind there; or the cluster is not `default`; or the path is not a read API resource. |
 | 405 | `method_not_allowed` | The method is not `GET`. |
 | 429 | `too_many_streams` | The session, or the portal, holds as many streams as it may. |
 | 503 | `not_readable_by_portal` | The portal's reading identity may not list and watch the kind, or its cache has not synced yet. |
-| 503 | `upstream_unavailable` | An access review or the Kubernetes API failed. Try again. |
+| 503 | `upstream_unavailable` | An access review or the Kubernetes API failed, or the portal is shutting down. Try again. |
 
 ## Refusals before the read API
 
-In local mode, the portal's front door answers some requests before the read API sees them. These refusals are `403` with a plain-text body, not problem documents:
+In local mode, the portal's front door answers some requests before the read API sees them. These answers have a plain-text body, not a problem document:
 
-- A request whose `Host` header is not `127.0.0.1`, `localhost` or `[::1]` with the portal's port.
-- A `GET /launch` whose token is missing, wrong or already used.
-- A request with a method other than `GET`, `HEAD` or `OPTIONS` that comes from another origin.
+| Status | Request |
+| --- | --- |
+| 403 | Any request whose `Host` header is not `127.0.0.1`, `localhost`, `[::1]` or the address the portal listens on, with the portal's port. |
+| 403 | A request with a method other than `GET`, `HEAD` or `OPTIONS` that comes from another origin. |
+| 403 | A `GET /launch` whose token is missing, wrong or already used, from a browser without the session. A browser with the session is sent on whatever the token. |
+| 405 | A `/launch` request with a method other than `GET`. |
+
+A `GET /launch` that is not refused answers `200` with a page that moves the browser on to `/api/v1alpha1/clusters/default/instances`. A request without the session cookie reaches the read API and is answered with `unauthenticated`.
