@@ -204,6 +204,7 @@ func TestStatusOf(t *testing.T) {
 		ErrTooManyStreams:           http.StatusTooManyRequests,
 		ErrTooManyTopics:            http.StatusBadRequest,
 		ErrTopicNotServed:           http.StatusBadRequest,
+		ErrNoStream:                 http.StatusNotFound,
 		ErrClosed:                   http.StatusServiceUnavailable,
 		errors.New("something new"): http.StatusInternalServerError,
 	} {

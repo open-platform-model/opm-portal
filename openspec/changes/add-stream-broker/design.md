@@ -111,7 +111,7 @@ event: upsert                     (or delete, k8sevent)
 data: {"topic":"instance:apps/blog","item":{...}}
 
 event: closed
-data: {"topic":"instance:apps/blog","code":"forbidden"}   (or upstream_unavailable)
+data: {"topic":"instance:apps/blog","code":"forbidden"}   (or unauthenticated, upstream_unavailable)
 
 event: heartbeat
 data: {}
@@ -216,6 +216,10 @@ production code, deterministic under `-race`.
   30 s; items covered by a topic grant skip the call.
 - [Takeover by id within a session] → bounded to the same session key and identity; another
   session's id opens a fresh stream.
+- [A topic denied by `Subscribe` while its stream is detached is closed without a message, since
+  the closing has no sequence number to replay] → the topic is simply absent after the reconnect;
+  the read API's topic-change request returns before the stream reconnects, so a client that
+  needs certainty re-subscribes.
 - [Per-reader `Render` runs in the writer] → it runs outside the broker lock, so a slow render
   delays only that stream; its error closes the topic.
 

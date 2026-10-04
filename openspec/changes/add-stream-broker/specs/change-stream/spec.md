@@ -63,8 +63,9 @@ before attaching it, and SHALL re-check that authorization before delivering eac
 the decision behind it has expired. Each change SHALL be delivered only to subscribers allowed to
 read the object it reveals; items a subscriber may not read SHALL be left out without a trace,
 and a snapshot SHALL contain only items the subscriber may read. A denied topic SHALL be closed on
-the stream with a `forbidden` code and SHALL deliver nothing; an authorization error SHALL close
-the topic with an `upstream_unavailable` code and SHALL deliver nothing. A stream SHALL NOT open
+the stream with a `forbidden` code (or `unauthenticated` when the authorizer does not serve the
+stream's identity) and SHALL deliver nothing; an authorization error SHALL close the topic with an
+`upstream_unavailable` code and SHALL deliver nothing. A stream SHALL NOT open
 for an unauthenticated identity, and no authorization review SHALL be sent for one. Source:
 0030:D7:R2, 0030:D6:R4.
 

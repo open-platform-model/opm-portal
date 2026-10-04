@@ -77,6 +77,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// statusOf maps the broker's errors to HTTP statuses. ErrNoStream comes
+// only from Subscribe and Unsubscribe, which the read API's topic-change
+// request calls.
 func statusOf(err error) int {
 	switch {
 	case errors.Is(err, ErrUnauthenticated):
@@ -85,6 +88,8 @@ func statusOf(err error) int {
 		return http.StatusTooManyRequests
 	case errors.Is(err, ErrTooManyTopics), errors.Is(err, ErrTopicNotServed):
 		return http.StatusBadRequest
+	case errors.Is(err, ErrNoStream):
+		return http.StatusNotFound
 	case errors.Is(err, ErrClosed):
 		return http.StatusServiceUnavailable
 	}
