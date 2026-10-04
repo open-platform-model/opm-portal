@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
+	"github.com/open-platform-model/opm-portal/internal/readmodel"
 	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
 	"github.com/open-platform-model/opm-portal/internal/stream"
 )
@@ -299,4 +300,107 @@ func newHTTPServer(t *testing.T, e *env) *httptest.Server {
 	ts := httptest.NewServer(e.srv)
 	t.Cleanup(ts.Close)
 	return ts
+}
+
+func mustTopic(t *testing.T, name string) stream.Topic {
+	t.Helper()
+	tp, err := stream.ParseTopic(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tp
+}
+
+// TestRecreatedWithinAWindowIsPublished: a deletion followed by a recreate
+// before the next flush leaves the topics dirty, not deleted, so the
+// subscriber sees the object as it now is; a deletion after a change wins.
+func TestRecreatedWithinAWindowIsPublished(t *testing.T) {
+	p := newProducer(&Server{})
+	own := mustTopic(t, "instance:default/podinfo")
+	events := mustTopic(t, "events:instance:default/podinfo")
+	list := mustTopic(t, "instances:default")
+	for _, tp := range []stream.Topic{own, events, list} {
+		p.active[tp] = 1
+	}
+	p.removed[own] = true
+	gone := readmodel.Change{Kind: readmodel.ChangeInstance, Namespace: "default", Name: "podinfo", Deleted: true}
+	back := gone
+	back.Deleted = false
+
+	p.changed(gone)
+	if _, ok := p.deleted[own]; !ok {
+		t.Fatal("a deletion did not mark the instance topic deleted")
+	}
+	if _, ok := p.deleted[events]; !ok {
+		t.Error("a deletion did not mark the instance's events topic deleted")
+	}
+	if !p.dirty[list] {
+		t.Error("a deletion did not mark the list dirty")
+	}
+	p.changed(back)
+	for _, tp := range []stream.Topic{own, events} {
+		if _, ok := p.deleted[tp]; ok || !p.dirty[tp] {
+			t.Errorf("%s after a recreate: deleted %v, dirty %v; want dirty only", tp, ok, p.dirty[tp])
+		}
+	}
+	if p.removed[own] {
+		t.Error("a recreate left the topic marked removed, so a refresh would skip it")
+	}
+	p.changed(gone)
+	if _, ok := p.deleted[own]; !ok || p.dirty[own] {
+		t.Error("a deletion after a change did not win")
+	}
+}
+
+// TestPlatformDeletionIsADelete: deleting the Platform or a registration is
+// published as a delete, like any other followed object.
+func TestPlatformDeletionIsADelete(t *testing.T) {
+	p := newProducer(&Server{})
+	platform := mustTopic(t, "platform")
+	regEvents := mustTopic(t, "events:registration:r")
+	p.active[platform], p.active[regEvents] = 1, 1
+	p.changed(readmodel.Change{Kind: readmodel.ChangePlatform, Name: "default", Deleted: true})
+	p.changed(readmodel.Change{Kind: readmodel.ChangeRegistration, Name: "r", Deleted: true})
+	if ref, ok := p.deleted[platform]; !ok || ref.Kind != kindPlatform {
+		t.Errorf("platform deleted = %+v, %v", ref, ok)
+	}
+	if ref, ok := p.deleted[regEvents]; !ok || ref.Kind != kindRegistration || ref.Name != "r" {
+		t.Errorf("registration events deleted = %+v, %v", ref, ok)
+	}
+}
+
+// TestRemovedTopicIsAnnouncedOnce: a followed instance that is deleted is
+// published once as a delete, and later refreshes do not send it again.
+func TestRemovedTopicIsAnnouncedOnce(t *testing.T) {
+	e := newEnv(t, loadF1(t), readmodeltest.AllowAll, fastStream, func(cfg *Config) { cfg.Refresh = 50 * time.Millisecond })
+	ts := newHTTPServer(t, e)
+	c, res := openStream(t, ts, "instance:default/podinfo,events:instance:default/podinfo")
+	if c == nil {
+		t.Fatalf("stream refused: %d %s", res.status, res.body)
+	}
+	for range 2 {
+		c.next(t, func(ev sse, _ message) bool { return ev.event == stream.EventSnapshot })
+	}
+	if err := e.client.Resource(instancesGVR).Namespace("default").Delete(t.Context(), "podinfo", metav1.DeleteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	deletes := map[string]bool{}
+	for len(deletes) < 2 {
+		m := c.next(t, func(ev sse, _ message) bool { return ev.event == stream.EventDelete })
+		deletes[m.Topic] = true
+	}
+	quiet := time.After(400 * time.Millisecond)
+	for {
+		select {
+		case ev, ok := <-c.events:
+			if !ok {
+				t.Fatal("the stream ended")
+			}
+			if ev.event != stream.EventHeartbeat {
+				t.Errorf("after the delete: %s %s", ev.event, ev.data)
+			}
+		case <-quiet:
+			return
+		}
+	}
 }

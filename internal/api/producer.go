@@ -31,6 +31,10 @@ type producer struct {
 	active  map[stream.Topic]int
 	dirty   map[stream.Topic]bool
 	deleted map[stream.Topic]readmodel.ObjectRef
+	// removed holds the topics whose last published item was a delete. A
+	// refresh skips them until a change that is not a delete arrives, so a
+	// followed object that is gone is announced once, not every Refresh.
+	removed map[stream.Topic]bool
 
 	stopFeed func()
 	stopCh   chan struct{}
@@ -46,6 +50,7 @@ func newProducer(s *Server) *producer {
 		active:  map[stream.Topic]int{},
 		dirty:   map[stream.Topic]bool{},
 		deleted: map[stream.Topic]readmodel.ObjectRef{},
+		removed: map[stream.Topic]bool{},
 		stopCh:  make(chan struct{}),
 		done:    make(chan struct{}),
 	}
@@ -235,6 +240,7 @@ func (p *producer) Activate(t stream.Topic) func() {
 				delete(p.active, t)
 				delete(p.dirty, t)
 				delete(p.deleted, t)
+				delete(p.removed, t)
 			}
 			p.mu.Unlock()
 			h.release()
@@ -285,48 +291,60 @@ func (h *hold) release() {
 }
 
 // changed marks the followed topics a change affects. It runs on an
-// informer's goroutine and only records.
+// informer's goroutine and only records. A deletion marks the object's own
+// topic and its events topic deleted; any other change marks them dirty and
+// cancels a deletion still waiting in this window, so an object deleted and
+// recreated within one Coalesce is published as it now is.
 func (p *producer) changed(c readmodel.Change) {
-	var names []string
-	var gone *readmodel.ObjectRef
+	var own, lists []string
+	var ref readmodel.ObjectRef
 	switch c.Kind {
 	case readmodel.ChangeInstance:
-		names = []string{
-			"instance:" + c.Namespace + "/" + c.Name,
-			"events:instance:" + c.Namespace + "/" + c.Name,
-			"instances",
-			"instances:" + c.Namespace,
-		}
-		if c.Deleted {
-			ref := instanceOwner(c.Namespace, c.Name).ref()
-			gone = &ref
-		}
+		own = []string{"instance:" + c.Namespace + "/" + c.Name, "events:instance:" + c.Namespace + "/" + c.Name}
+		lists = []string{"instances", "instances:" + c.Namespace}
+		ref = instanceOwner(c.Namespace, c.Name).ref()
 	case readmodel.ChangePackage:
-		names = []string{"package:" + c.Namespace + "/" + c.Name, "events:package:" + c.Namespace + "/" + c.Name}
-		if c.Deleted {
-			ref := packageOwner(c.Namespace, c.Name).ref()
-			gone = &ref
-		}
+		own = []string{"package:" + c.Namespace + "/" + c.Name, "events:package:" + c.Namespace + "/" + c.Name}
+		ref = packageOwner(c.Namespace, c.Name).ref()
 	case readmodel.ChangePlatform:
-		names = []string{"platform", "events:platform"}
+		own = []string{"platform", "events:platform"}
+		ref = target{kind: stream.KindPlatform}.ref()
 	case readmodel.ChangeRegistration:
-		names = []string{"events:registration:" + c.Name}
+		own = []string{"events:registration:" + c.Name}
+		ref = target{kind: stream.KindRegistration, name: c.Name}.ref()
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	for i, name := range names {
-		// Names come from objects the cluster accepted; one that does not
-		// parse follows no topic.
-		t, err := stream.ParseTopic(name)
-		if err != nil || p.active[t] == 0 {
+	for _, name := range own {
+		t, ok := p.followed(name)
+		if !ok {
 			continue
 		}
-		if i == 0 && gone != nil {
-			p.deleted[t] = *gone
+		if c.Deleted {
+			p.deleted[t] = ref
+			delete(p.dirty, t)
 			continue
 		}
+		delete(p.deleted, t)
+		delete(p.removed, t)
 		p.dirty[t] = true
 	}
+	for _, name := range lists {
+		if t, ok := p.followed(name); ok {
+			p.dirty[t] = true
+		}
+	}
+}
+
+// followed parses name and reports whether its topic is followed. Names
+// come from objects the cluster accepted; one that does not parse follows
+// no topic. p.mu is held.
+func (p *producer) followed(name string) (stream.Topic, bool) {
+	t, err := stream.ParseTopic(name)
+	if err != nil || p.active[t] == 0 {
+		return stream.Topic{}, false
+	}
+	return t, true
 }
 
 // run publishes what changed every Coalesce, and everything followed every
@@ -344,7 +362,9 @@ func (p *producer) run() {
 		case <-refresh.C:
 			p.mu.Lock()
 			for t := range p.active {
-				p.dirty[t] = true
+				if !p.removed[t] {
+					p.dirty[t] = true
+				}
 			}
 			p.mu.Unlock()
 		case <-flush.C:
@@ -366,6 +386,12 @@ func (p *producer) flush() {
 		attrs, _ := p.Attributes(t)
 		p.publish(t, stream.Item{Event: stream.EventDelete, Attrs: attrs[0], Data: data})
 		delete(dirty, t)
+		// A change that arrived since this flush began cancels the mark.
+		p.mu.Lock()
+		if _, ok := p.active[t]; ok && !p.dirty[t] {
+			p.removed[t] = true
+		}
+		p.mu.Unlock()
 	}
 	for t := range dirty {
 		if it, ok := p.item(t); ok {
