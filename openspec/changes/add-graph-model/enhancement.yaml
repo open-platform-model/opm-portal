@@ -1,0 +1,18 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
+#
+# - 0030:D4: R1 (every node and edge traceable), R2 (a provider disagreement
+#   shown), R5 (configuration components grouped) and R6 (stable ids) land at
+#   the graph layer. R3 (contracts as labelled text), R4 and R7 (acceptance,
+#   activation and a blocked removal shown apart) need the pages that show the
+#   fields the graph carries: add-htmx-ui.
+#
+# Before logging, diff this list against proposal.md's "Not in this change"
+# paragraph.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []
