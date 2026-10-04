@@ -35,7 +35,7 @@ func TestRing(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			r := newRing(tc.size, tc.floor)
+			r := newRing(tc.size, 1<<20, tc.floor)
 			for _, s := range tc.add {
 				r.add(ringEntry{seq: s})
 			}
@@ -50,11 +50,28 @@ func TestRing(t *testing.T) {
 }
 
 func TestRingReturnsTheItems(t *testing.T) {
-	r := newRing(2, 0)
+	r := newRing(2, 1<<20, 0)
 	r.add(ringEntry{seq: 1, item: Item{Event: EventUpsert}})
 	r.add(ringEntry{seq: 2, item: Item{Event: EventDelete}})
 	got := r.since(0)
 	if len(got) != 2 || got[0].item.Event != EventUpsert || got[1].item.Event != EventDelete {
 		t.Errorf("since(0) = %+v", got)
+	}
+}
+
+func TestRingIsBoundedByBytes(t *testing.T) {
+	r := newRing(10, 10, 0)
+	for seq := uint64(1); seq <= 4; seq++ {
+		r.add(ringEntry{seq: seq, item: Item{Data: []byte("1234")}})
+	}
+	if got := seqs(r.since(0)); !slices.Equal(got, []uint64{3, 4}) {
+		t.Errorf("since(0) = %v, want the newest entries within 10 bytes", got)
+	}
+	if r.covers(1) || !r.covers(2) {
+		t.Errorf("floor = %d, want 2 after evicting 1 and 2", r.floor)
+	}
+	r.add(ringEntry{seq: 5, item: Item{Data: []byte("an entry larger than the bound")}})
+	if got := seqs(r.since(0)); !slices.Equal(got, []uint64{5}) {
+		t.Errorf("since(0) = %v, want only the oversize newest entry", got)
 	}
 }

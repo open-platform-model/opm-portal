@@ -3,8 +3,8 @@
 // # Topics and streams
 //
 // A topic names what a client follows: the Platform, the instance list, one
-// instance, package or registration, or the events about one of them
-// (ParseTopic documents the grammar). A browser tab holds one stream and
+// instance, package or registration, the events about one of them, or one
+// container's log (ParseTopic documents the grammar). A browser tab holds one stream and
 // attaches every topic its page needs to it, adding and removing topics while
 // the stream stays open. In local mode the browser speaks HTTP/1.1 to
 // loopback and has six connections per host for every tab and request, so
@@ -12,13 +12,14 @@
 //
 // Each topic starts with a snapshot of its current items and continues with
 // upsert, delete and k8sevent messages carrying the same documents the read
-// API serves. Every snapshot and change carries an event id, and ids strictly
+// API serves, or, on a log topic, log and logend messages. Every snapshot and change carries an event id, and ids strictly
 // increase along a stream. Ids count the stream's own events, so a gap never
 // reveals an item left out for the reader or anything published elsewhere.
 //
 // # The producer contract
 //
-// The read model implements Producer and calls Broker.Publish. It says what
+// The read model and the log reader implement Producer, joined by a Mux, and
+// call Broker.Publish. It says what
 // following a topic takes (Producer.Attributes), returns a topic's current
 // items (Producer.Snapshot), and starts and stops watching a topic when the
 // broker activates and releases it. A producer MUST update the state Snapshot
@@ -42,6 +43,16 @@
 //     namespace for "instances:<ns>", and is refused with the same denial
 //     (0030:D7:R2). A producer that names any other read for a list topic
 //     does not serve it.
+//   - A producer that is an Admitter decides, after every read of a topic
+//     is allowed, whether the identity may follow it (a Pod log needs an
+//     OPM inventory the reader may read to reach the Pod). A refusal closes
+//     the topic with the code a denial gives; it runs again on reconnect.
+//   - A producer that is a Follower is told when a stream newly subscribes
+//     to a topic already active, on Open or Subscribe, after every check;
+//     never on a reconnect, which resumes what the stream already holds.
+//   - A session follows at most MaxLogTopicsPerSession log topics, and the
+//     process serves at most MaxLogTopics distinct ones; both are checked
+//     before any review.
 //   - A closed message stays pending until a connection writes it, so one
 //     queued on a connection that ends is the next connection's first
 //     message.
@@ -75,7 +86,9 @@
 //
 // # Resume and bounds
 //
-// Each topic keeps its recent changes in a ring buffer. A stream that loses
+// Each topic keeps its recent changes in a ring buffer of RingSize entries;
+// a log topic's ring also keeps at most LogRingBytes of item data. A stream
+// that loses
 // its connection stays registered for a resume window; a client that
 // reconnects with the Last-Event-ID of that stream, in the same session, gets
 // its topics back, re-authorized, with every change after that id the ring

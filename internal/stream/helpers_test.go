@@ -181,7 +181,7 @@ func (p *fakeProducer) reads(t Topic) ([]authz.Attributes, bool) {
 		attrs, _ := p.reads(ref)
 		return append(attrs, authz.Attributes{Verb: "list", Resource: eventsGVR, Namespace: ref.Namespace()}), true
 	case KindLog:
-		// Logs are not served.
+		// Logs are served only by a producer that admits them (admit_test.go).
 	}
 	return nil, false
 }

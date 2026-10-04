@@ -214,16 +214,12 @@ func (e *evaluator) childrenOf(ctx context.Context, instance string, entries []h
 		}
 		ns := obj.GetNamespace()
 		seen[ns] = true
-		res, ok := e.children[ns]
-		if !ok {
-			res.objects, res.access = e.m.childrenIn(ctx, e.who, ns)
-			e.children[ns] = res
-		}
-		if res.access != health.AccessOK {
-			access = res.access
+		objects, nsAccess := e.childrenIn(ctx, ns)
+		if nsAccess != health.AccessOK {
+			access = nsAccess
 			continue
 		}
-		for _, c := range res.objects {
+		for _, c := range objects {
 			if c.GetLabels()[instanceNameLabel] == instance {
 				out = append(out, c)
 			}

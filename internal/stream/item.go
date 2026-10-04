@@ -16,6 +16,8 @@ const (
 	EventUpsert    = "upsert"
 	EventDelete    = "delete"
 	EventK8sEvent  = "k8sevent"
+	EventLog       = "log"
+	EventLogEnd    = "logend"
 	EventClosed    = "closed"
 	EventHeartbeat = "heartbeat"
 )
@@ -39,9 +41,9 @@ type Item struct {
 
 func (it Item) validate() error {
 	switch it.Event {
-	case EventUpsert, EventDelete, EventK8sEvent:
+	case EventUpsert, EventDelete, EventK8sEvent, EventLog, EventLogEnd:
 	default:
-		return fmt.Errorf("item event %q is not upsert, delete or k8sevent", it.Event)
+		return fmt.Errorf("item event %q is not upsert, delete, k8sevent, log or logend", it.Event)
 	}
 	if it.Attrs.Verb == "" || it.Attrs.Resource.Resource == "" {
 		// An item without the read it reveals could not be authorized.

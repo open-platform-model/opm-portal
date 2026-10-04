@@ -1,0 +1,228 @@
+## Context
+
+`main` has the stream broker (`internal/stream`): one `Producer` per broker, topics authorized on
+the reads `Producer.Attributes` names, every snapshot and item written through one send funnel
+that re-validates every grant it used. The broker parses `log:<ns>/<pod>/<container>` and refuses
+it. The read model (`internal/readmodel`) computes runtime children (ReplicaSets, Pods, Jobs whose
+controller chain reaches an inventory object) inside its instance and package views, for the
+caller. The read API and its object-topic producer are built in parallel (P7) and are not
+imported here: this change integrates only through `stream.Producer`.
+
+Sources: 0030:D10 (contract), the V1 architecture's logs section (defaults: tail 200 lines, max
+2000; 16 KiB line cap; 256 KiB/s per topic; 1 MiB initial-tail cap; 4 log topics per session, 50
+per process). Where they disagree, 0030 wins.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- A log line reaches a subscriber only through the broker's send funnel, so topic gating,
+  revalidation, resume and eviction apply to logs exactly as to every other topic.
+- Reachability and `pods/log` access both checked before any upstream byte is read.
+- Bounded memory and bandwidth per topic, independent of what a container writes.
+- Deterministic tests with a fake clientset, a fake log source and the real broker.
+
+**Non-Goals:**
+
+- The `/api/v1alpha1` routes (log topic endpoints, a Pod's container list as a document), the UI
+  log panel, ANSI stripping (the UI's rendering concern).
+- Multi-Pod merge, search, persistence.
+
+## Decisions
+
+### Reachability is a per-identity admission step in the broker
+
+**Context**: The topic's read (`get pods/log`) is identity-free and static, but reachability
+depends on the caller ("an inventory object the caller may read") and needs a lookup. 0030:D7
+says authorize before lookup and give one denial for missing and forbidden.
+
+**Options considered**:
+
+1. Look reachability up inside `Producer.Attributes`. Runs before the caller is authorized
+   (lookup before authorize) and `ok=false` surfaces as `ErrTopicNotServed`, a bad request that
+   differs from `forbidden`: it would tell a caller without access which Pods exist.
+2. Carry the inventory object's `get` as each log item's `Attrs`. A caller who may not read it
+   gets an attached topic that silently never delivers: a degraded read shown as empty
+   (Principle IV), and an unreachable Pod still opens an upstream stream.
+3. An optional `stream.Admitter` interface the broker calls after a topic's reads are allowed
+   and before it attaches, in the same `authorize` step Open, Subscribe and reattach share.
+
+**Decision**: Option 3.
+
+```go
+// Admitter is an optional Producer extension.
+type Admitter interface {
+    // Admit decides whether who may follow t once t's reads are allowed; grants are those
+    // reads' grants, in Attributes order. ErrNotAdmitted closes t with "forbidden", the code a
+    // denial gives; a *authz.DenialError maps as a denial does; any other error closes t with
+    // "upstream_unavailable".
+    Admit(ctx context.Context, who authz.Identity, t Topic, grants []authz.Grant) error
+}
+var ErrNotAdmitted = errors.New("stream: topic not admitted")
+```
+
+**Rationale**: It keeps authorize-before-lookup (Admit runs only after the caller's `pods/log`
+grant), one denial for every refusal, and reconnects re-run it (0030:D10:R2) because `reattach`
+goes through `authorize` too. Delivery-time gating needs nothing new: log items carry the
+topic's own read, so they ride the topic's grants through `send`.
+
+Because Admit also runs on a reconnect, it starts nothing. A second optional extension tells the
+producer about a genuinely new subscription:
+
+```go
+// Follower is an optional Producer extension. Follow runs after a stream newly subscribes to an
+// already active topic on Open or Subscribe, after the caps are re-checked and the subscription
+// attached; never for the activating subscription, never on a reconnect.
+type Follower interface {
+    Follow(t Topic)
+}
+```
+
+The log producer restarts an ended read in `Follow` only (supervisor ruling, 2026-10-04): a plain
+reconnect or resume never reopens an ended read, a `logend` stays the end for a resumed
+subscription, and a restart needs an explicit unsubscribe and subscribe. Calling it after the
+attach also means a subscription the cap re-check refuses never restarts a read for the others.
+
+### The read model answers reachability
+
+```go
+// ErrNotReachable: no inventory object the caller may read reaches the Pod, or the Pod does not
+// exist. One refusal for both.
+var ErrNotReachable = errors.New("pod not reachable from an inventory")
+
+type PodReach struct {
+    Owner ObjectRef // the ModuleInstance or ModulePackage
+    Via   ObjectRef // the inventory object the Pod is a runtime child of
+}
+
+// g must cover get pods/log namespace/pod.
+func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant, namespace, pod string) (PodReach, error)
+```
+
+The Pod is found among the namespace's runtime children as the caller may list them; its
+`module-instance.opmodel.dev/name` label names candidate instances and packages (any namespace,
+from held state, since the label carries no namespace, 0030:OQ12); each candidate's inventory is
+evaluated for the caller and the Pod must appear among an entry's runtime children. Not reached
+and some kind unavailable, or an owner check the authorizer could not decide, is `ErrUnavailable`,
+not `ErrNotReachable` (Principle IV); a forbidden owner is skipped. Reach requires the caller to
+read the owning ModuleInstance or ModulePackage as well as `pods/log`: 0030:D10:R1 narrowed as the
+spec says (supervisor ruling). Evidence: the
+F1 capture's podinfo Deployment, ReplicaSet and Pods (`testdata/clusters/f1`).
+
+### One producer per broker: a `Mux`
+
+`stream.New` takes one `Producer`. `stream.Mux` maps `Kind` to `Producer` and delegates
+`Attributes`, `Snapshot`, `Activate`, `Admit` and `Follow` (an unrouted kind is not served). The cmd wiring
+passes `Mux{KindLog: logs, …object kinds: readmodel producer}`. **Alternative**: let `logs` wrap
+the other producer; that couples `logs` to P7's code, which the task forbids.
+
+### Topic grammar keeps `log:`, adds `/previous`
+
+The broker, the main spec and the architecture all use `log:<ns>/<pod>/<container>`. The
+supervisor's task text says `logs:`; renaming would change a published spec for no gain, so the
+existing name stays. Previous-container logs are `log:<ns>/<pod>/<container>/previous`: a
+separate topic, because its output is finite and differs from the live one.
+
+### Upstream read, bounds and markers
+
+```go
+type Source interface {
+    Pod(ctx context.Context, namespace, name string) (*corev1.Pod, error)
+    Logs(ctx context.Context, namespace, pod string, opts *corev1.PodLogOptions) (io.ReadCloser, error)
+}
+func ClientSource(c kubernetes.Interface) Source // CoreV1().Pods(ns).Get / GetLogs(...).Stream
+```
+
+`PodLogOptions{Container, Follow: !previous, Previous: previous, Timestamps: true, TailLines:
+cap}`. **`LimitBytes` is never set** (0030:D10: it ends a followed stream outright). The task text
+asked for `limitBytes`; 0030:D10 is the contract and wins. Bounds in the reader instead:
+
+| Bound | Default | Effect |
+| --- | --- | --- |
+| `TailLines` | 200, capped at 2000 | initial tail requested |
+| `MaxLineBytes` | 16 KiB | longer line cut, `marker: "truncated"`, `cut: <bytes>` |
+| `MaxTailBytes` | 1 MiB | the tail (at most `TailLines` lines stamped before the stream opened, ending at the first line that is not) is held until it ends; its newest lines within the cap are sent after a `skipped` marker counting the older ones (supervisor ruling) |
+| `LinesPerSecond` / `LineBurst` | 200 / 500 | token bucket; dropped lines counted |
+| `BytesPerSecond` / `ByteBurst` | 256 KiB / 1 MiB | token bucket; dropped lines counted |
+| `Buffer` / `BufferBytes` | 500 messages / 1 MiB | recent messages a late subscriber's snapshot carries |
+| `MarkerDelay` | 250 ms | longest a pending marker waits when no line follows; a followed tail quiet this long has ended |
+
+A line longer than the cap is read in bounded chunks and the rest discarded, so a newline-free
+writer cannot grow memory. The `rate-limited` and `skipped` markers are emitted before the next
+admitted line, at the end of the stream, or after `MarkerDelay` when no line follows, so a burst
+followed by silence is still marked. The initial tail ends at a live line, at `TailLines` lines,
+at the end of the stream, or, on a followed stream, after `MarkerDelay` without a line; a line
+stamped before the stream opened that arrives later is live. A log topic's resume ring is bounded
+by `LogRingBytes` (2 MiB) as well as `RingSize`, so it cannot hold 1000 lines of 16 KiB; object
+and list topics keep their `RingSize`-only ring.
+
+`MarkerDelay` (250 ms), `BufferBytes` (1 MiB) and `LogRingBytes` (2 MiB) are not in 0030:D10 or
+the V1 architecture; they were accepted by supervisor ruling on 2026-10-04. The portal enforces
+D10's bounds itself and never sets `limitBytes` (same ruling).
+
+Wire shape (the payload of `log` and `logend` items; the read API's types will mirror it):
+
+```jsonc
+{"seq": 41, "type": "line", "time": "2026-10-04T10:00:00.123Z", "text": "GET /healthz 200"}
+{"seq": 42, "type": "line", "time": "…", "text": "<16 KiB>", "marker": "truncated", "cut": 20480}
+{"seq": 43, "type": "marker", "marker": "rate-limited", "dropped": 120}
+{"seq": 44, "type": "marker", "marker": "skipped", "dropped": 900}
+{"seq": 45, "type": "end", "reason": "container_stopped"}
+```
+
+End reasons: `container_stopped`, `completed` (previous output read), `upstream_closed` (EOF
+while the container still runs), `container_waiting` (the container has not started),
+`container_not_found`, `pod_not_found`, `unavailable` (the reader may not read, or the upstream
+failed). `seq` increases along the producer, across reads and activations; a snapshot and a later
+message may repeat a line, and clients drop a `seq` they have. A `logend` ends one read: a new
+subscription to an ended topic (`Follow`) starts a new read, whose messages every subscriber
+receives; a reconnect does not.
+
+### Authorization: verbs and grants
+
+| Read | Who | When |
+| --- | --- | --- |
+| `get pods/log` ns/pod | caller | topic attach, every delivery after expiry, reconnect (broker) |
+| `get pods/log` ns/pod (grant) | caller | `ReachPod` covers it before any lookup |
+| `get` the candidate ModuleInstance or ModulePackage | caller | inside `ReachPod`, before its inventory is read; undecidable is `ErrUnavailable` |
+| `get` inventory objects, `list` pods, replicasets, jobs in ns | caller | inside `ReachPod` (view rules) |
+| `get pods/log`, `get pods` ns/pod | reader | before the upstream `Pod` and `Logs` calls |
+
+### Activation and close
+
+`Activate` starts one read goroutine per topic with the activation's context; the release cancels
+it, which closes the upstream body, and waits for the reads to finish. A new activation of the
+same topic supersedes one whose release has not run yet, so the old one publishes nothing more.
+A release closes its activation and removes it from the producer before waiting for its reader,
+and a closed activation's snapshot is empty, so a subscriber that re-creates the topic never gets
+the old activation's lines or `logend`. The goroutine updates its buffer
+before `Publish` (producer contract). It publishes through a `Publisher` interface set after the
+broker exists (`SetPublisher`), so tests can also capture items. Portal logs carry the topic and
+an error class, never line text.
+
+### Log topic caps in the broker
+
+`Options.MaxLogTopicsPerSession` (4) counts log subscriptions across a session's streams and
+`Options.MaxLogTopics` (50) counts distinct active log topics; both are checked with the existing
+topic cap, before any review, and refused with `ErrTooManyTopics`.
+
+## Risks / Trade-offs
+
+- [Reachability is checked at attach and reconnect, not on every delivery] → the `pods/log`
+  grant, the actual RBAC boundary, is re-checked on every delivery; a Pod that leaves its
+  inventory is replaced or deleted, which ends the upstream stream.
+- [`ReachPod` evaluates every candidate inventory] → one evaluation per attach, from held state;
+  label candidates are usually one.
+- [Tail/live split uses timestamps] → a node clock skewed ahead classifies tail lines as live
+  (rate-bounded, marked `rate-limited`); one behind classifies early live lines as tail, at most
+  `TailLines` of them (tail-bounded, marked `skipped`). Every line stays bounded and counted.
+- [Mux, Admitter and Follower touch `internal/stream`, which P7 also consumes] → all additive; a
+  producer that implements none behaves as before. `LogRingBytes` bounds log rings only.
+- [The initial tail is held until it ends] → a quiet container's tail arrives up to `MarkerDelay`
+  late; the held tail never exceeds `MaxTailBytes` plus one line.
+- [cmd wiring] → wiring the producers through `stream.Mux` in `cmd` lands in add-local-mode
+  (supervisor ruling).
+
+## Migration Plan
+
+None: nothing mounts the stream yet.

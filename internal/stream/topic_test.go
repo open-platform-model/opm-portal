@@ -23,6 +23,7 @@ func TestParseTopicAccepts(t *testing.T) {
 		{"events:instance:apps/blog", KindEvents, "", ""},
 		{"events:platform", KindEvents, "", ""},
 		{"log:apps/blog-0/server", KindLog, "apps", "blog-0"},
+		{"log:apps/blog-0/server/previous", KindLog, "apps", "blog-0"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.in, func(t *testing.T) {
@@ -62,6 +63,9 @@ func TestParseTopicRefuses(t *testing.T) {
 		"events:log:apps/p/c",
 		"log:apps/p",
 		"log:apps/p/c/d",
+		"log:apps/p/c/current",
+		"log:apps/p/c/previous/x",
+		"log:apps/p/Server",
 		"Platform",
 		" platform",
 		"instance:" + strings.Repeat("a", 64) + "/blog",
@@ -96,8 +100,12 @@ func TestTopicRef(t *testing.T) {
 		t.Error("an instance topic has a ref")
 	}
 	logTopic, _ := ParseTopic("log:apps/blog-0/server")
-	if logTopic.Container() != "server" {
-		t.Errorf("Container() = %q", logTopic.Container())
+	if logTopic.Container() != "server" || logTopic.Previous() {
+		t.Errorf("Container() = %q, Previous() = %v", logTopic.Container(), logTopic.Previous())
+	}
+	prev, _ := ParseTopic("log:apps/blog-0/server/previous")
+	if prev.Container() != "server" || !prev.Previous() || prev == logTopic {
+		t.Errorf("previous topic = %+v, want container server, previous, distinct from the live topic", prev)
 	}
 }
 

@@ -27,9 +27,10 @@ const (
 	// KindEvents follows the Kubernetes events about an object topic:
 	// "events:<object topic>".
 	KindEvents Kind = "events"
-	// KindLog is reserved for pod log topics,
-	// "log:<namespace>/<pod>/<container>". It parses, and the broker refuses
-	// it until log topics are served.
+	// KindLog follows one container's log:
+	// "log:<namespace>/<pod>/<container>", or
+	// "log:<namespace>/<pod>/<container>/previous" for the output of the
+	// container's previous, terminated instance.
 	KindLog Kind = "log"
 )
 
@@ -52,8 +53,12 @@ type Topic struct {
 	namespace string
 	name      string
 	container string
+	previous  bool   // a log topic of the previous container instance
 	ref       string // the object topic an events topic follows
 }
+
+// previousSegment is the trailing segment of a previous-container log topic.
+const previousSegment = "previous"
 
 // TopicError reports a topic name that does not parse. Its message quotes
 // the name the client sent.
@@ -132,8 +137,9 @@ func parseEvents(rest string) (t Topic, reason string) {
 
 func parseLog(rest string) (t Topic, reason string) {
 	parts := strings.Split(rest, "/")
-	if len(parts) != 3 {
-		return Topic{}, "want log:<namespace>/<pod>/<container>"
+	previous := len(parts) == 4 && parts[3] == previousSegment
+	if len(parts) != 3 && !previous {
+		return Topic{}, "want log:<namespace>/<pod>/<container>[/previous]"
 	}
 	if r := checkLabel("namespace", parts[0]); r != "" {
 		return Topic{}, r
@@ -144,7 +150,7 @@ func parseLog(rest string) (t Topic, reason string) {
 	if r := checkLabel("container", parts[2]); r != "" {
 		return Topic{}, r
 	}
-	return Topic{kind: KindLog, namespace: parts[0], name: parts[1], container: parts[2]}, ""
+	return Topic{kind: KindLog, namespace: parts[0], name: parts[1], container: parts[2], previous: previous}, ""
 }
 
 func namespaced(rest string) (ns, name, reason string) {
@@ -197,6 +203,10 @@ func (t Topic) Name() string { return t.name }
 // Container returns a log topic's container, or "".
 func (t Topic) Container() string { return t.container }
 
+// Previous reports whether a log topic follows the container's previous,
+// terminated instance.
+func (t Topic) Previous() bool { return t.previous }
+
 // Ref returns the object topic an events topic follows.
 func (t Topic) Ref() (Topic, bool) {
 	if t.kind != KindEvents {
@@ -223,7 +233,11 @@ func (t Topic) String() string {
 	case KindEvents:
 		return string(KindEvents) + ":" + t.ref
 	case KindLog:
-		return string(KindLog) + ":" + t.namespace + "/" + t.name + "/" + t.container
+		s := string(KindLog) + ":" + t.namespace + "/" + t.name + "/" + t.container
+		if t.previous {
+			s += "/" + previousSegment
+		}
+		return s
 	}
 	return ""
 }

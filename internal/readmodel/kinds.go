@@ -35,6 +35,8 @@ const (
 	// kindReplicaSet is the apps ReplicaSet kind, read for its replicas and
 	// stripped of its template.
 	kindReplicaSet = "ReplicaSet"
+	// kindPod is the core Pod kind, whose logs a stream reads.
+	kindPod = "Pod"
 )
 
 // isSecret reports whether resource is core Secrets, which the read model

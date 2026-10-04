@@ -21,6 +21,8 @@ func TestItemValidate(t *testing.T) {
 		{"upsert with data", Item{Event: EventUpsert, Attrs: read, Data: json.RawMessage(`{}`)}, true},
 		{"delete with render", Item{Event: EventDelete, Attrs: read, Render: render}, true},
 		{"k8sevent", Item{Event: EventK8sEvent, Attrs: read, Data: json.RawMessage(`{}`)}, true},
+		{"log", Item{Event: EventLog, Attrs: read, Data: json.RawMessage(`{}`)}, true},
+		{"logend", Item{Event: EventLogEnd, Attrs: read, Data: json.RawMessage(`{}`)}, true},
 		{"snapshot is not an item event", Item{Event: EventSnapshot, Attrs: read, Data: json.RawMessage(`{}`)}, false},
 		{"no event", Item{Attrs: read, Data: json.RawMessage(`{}`)}, false},
 		{"no read", Item{Event: EventUpsert, Data: json.RawMessage(`{}`)}, false},

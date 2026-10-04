@@ -151,7 +151,7 @@ func TestHandlerRefusals(t *testing.T) {
 	}{
 		{"no session", "", "instance:apps/blog", http.StatusUnauthorized, "unauthenticated"},
 		{"bad topic", "alice", "instance:apps", http.StatusBadRequest, "invalid topic"},
-		{"reserved log topic", "alice", "log:apps/blog-0/server", http.StatusBadRequest, "not served"},
+		{"unserved log topic", "alice", "log:apps/blog-0/server", http.StatusBadRequest, "not served"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
