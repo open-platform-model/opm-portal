@@ -1,6 +1,7 @@
 package readmodel
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -107,5 +108,27 @@ func TestReachPodSaysWhenItCannotRead(t *testing.T) {
 	e.reviews.SetFail(true)
 	if _, err := e.m.ReachPod(t.Context(), alice, g, "default", f1Pod); !errors.Is(err, ErrUnavailable) {
 		t.Fatalf("ReachPod with failing reviews = %v, want ErrUnavailable", err)
+	}
+}
+
+// ownerCheckOutage fails alice's checks of ModuleInstances and
+// ModulePackages as an unreachable authorizer would, and passes every other
+// check to next.
+type ownerCheckOutage struct{ next authz.Authorizer }
+
+func (o ownerCheckOutage) Check(ctx context.Context, who authz.Identity, req authz.Attributes) (authz.Grant, error) {
+	if who.Username == alice.Username && (req.Resource == moduleInstances || req.Resource == modulePackages) {
+		return authz.Grant{}, &authz.DenialError{Code: authz.CodeUnavailable, Attributes: req}
+	}
+	return o.next.Check(ctx, who, req)
+}
+
+func TestAnOwnerCheckOutageIsUnavailableNotForbidden(t *testing.T) {
+	e := newEnv(t, loadF1(t), allowAll, allowAll, func(c *Config) {
+		c.Authorizer = ownerCheckOutage{next: c.Authorizer}
+	})
+	_, err := e.m.ReachPod(t.Context(), alice, e.logGrant(t, f1Pod), "default", f1Pod)
+	if !errors.Is(err, ErrUnavailable) {
+		t.Fatalf("ReachPod with the owner check unavailable = %v, want ErrUnavailable", err)
 	}
 }
