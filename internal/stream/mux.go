@@ -11,12 +11,13 @@ import (
 // kind, so the read model's object topics and the log reader's topics share
 // one broker. A kind with no producer is not served. Admit is delegated to a
 // routed producer that is an Admitter; one that is not admits every topic
-// whose reads are allowed.
+// whose reads are allowed. Follow is delegated likewise.
 type Mux map[Kind]Producer
 
 var (
 	_ Producer = Mux(nil)
 	_ Admitter = Mux(nil)
+	_ Follower = Mux(nil)
 )
 
 // errNotRouted is returned for a topic whose kind has no producer. The
@@ -57,4 +58,11 @@ func (m Mux) Admit(ctx context.Context, who authz.Identity, t Topic, grants []au
 		return nil
 	}
 	return ad.Admit(ctx, who, t, grants)
+}
+
+// Follow implements Follower.
+func (m Mux) Follow(t Topic) {
+	if f, ok := m[t.Kind()].(Follower); ok {
+		f.Follow(t)
+	}
 }

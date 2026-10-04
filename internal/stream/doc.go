@@ -47,6 +47,9 @@
 //     is allowed, whether the identity may follow it (a Pod log needs an
 //     OPM inventory the reader may read to reach the Pod). A refusal closes
 //     the topic with the code a denial gives; it runs again on reconnect.
+//   - A producer that is a Follower is told when a stream newly subscribes
+//     to a topic already active, on Open or Subscribe, after every check;
+//     never on a reconnect, which resumes what the stream already holds.
 //   - A session follows at most MaxLogTopicsPerSession log topics, and the
 //     process serves at most MaxLogTopics distinct ones; both are checked
 //     before any review.
@@ -83,7 +86,9 @@
 //
 // # Resume and bounds
 //
-// Each topic keeps its recent changes in a ring buffer. A stream that loses
+// Each topic keeps its recent changes in a ring buffer of RingSize entries;
+// a log topic's ring also keeps at most LogRingBytes of item data. A stream
+// that loses
 // its connection stays registered for a resume window; a client that
 // reconnects with the Last-Event-ID of that stream, in the same session, gets
 // its topics back, re-authorized, with every change after that id the ring

@@ -7,7 +7,8 @@ type ringEntry struct {
 }
 
 // ring keeps a topic's most recent items for resume, at most len(buf) of
-// them and, past the newest one, at most maxBytes of item data. floor is the
+// them and, when maxBytes is positive, past the newest one at most maxBytes
+// of item data. floor is the
 // highest sequence number the ring cannot replay: the broker's sequence when
 // the topic was created, raised each time an entry is evicted. A resume from
 // sequence after is complete only when after >= floor.
@@ -34,7 +35,7 @@ func (r *ring) add(e ringEntry) {
 	r.buf[(r.start+r.n)%len(r.buf)] = e
 	r.n++
 	r.bytes += len(e.item.Data)
-	for r.n > 1 && r.bytes > r.maxBytes {
+	for r.maxBytes > 0 && r.n > 1 && r.bytes > r.maxBytes {
 		r.evict()
 	}
 }

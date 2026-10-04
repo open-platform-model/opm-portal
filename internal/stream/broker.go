@@ -87,6 +87,17 @@ type Admitter interface {
 	Admit(ctx context.Context, who authz.Identity, t Topic, grants []authz.Grant) error
 }
 
+// Follower is an optional extension of Producer. The broker calls Follow
+// after a stream newly subscribes to t, on Open or Subscribe, when t was
+// already active: after the subscription attached, past every cap and
+// admission check. It is never called for the subscription that activates
+// t, whose Activate stands for it, nor on a reconnect, which resumes the
+// subscriptions a stream already holds. A log producer uses it to start a
+// new read on a topic whose read ended, so only an explicit re-follow does.
+type Follower interface {
+	Follow(t Topic)
+}
+
 // Session is who opens a stream: the session it belongs to and the identity
 // every read on it is authorized for. Key identifies the session for caps and
 // stream ownership; the broker never logs it.
@@ -113,10 +124,10 @@ type Options struct {
 	// RingSize is how many recent changes each topic keeps for resume.
 	// Default 1000.
 	RingSize int
-	// RingBytes caps the item data each topic's resume ring keeps, so a
-	// topic of large items, such as log lines, cannot hold RingSize of
-	// them. Default 2 MiB.
-	RingBytes int
+	// LogRingBytes caps the item data a log topic's resume ring keeps, so
+	// a topic of log lines cannot hold RingSize of them. Default 2 MiB.
+	// Object and list topics' rings are bounded by RingSize alone.
+	LogRingBytes int
 	// QueueSize bounds a stream's undelivered messages; a full queue
 	// evicts the stream's connection. Default 256.
 	QueueSize int
@@ -151,7 +162,7 @@ func (o Options) withDefaults() Options {
 	setInt(&o.MaxLogTopicsPerSession, 4)
 	setInt(&o.MaxLogTopics, 50)
 	setInt(&o.RingSize, 1000)
-	setInt(&o.RingBytes, 2<<20)
+	setInt(&o.LogRingBytes, 2<<20)
 	setInt(&o.QueueSize, 256)
 	setDur(&o.HeartbeatInterval, 15*time.Second)
 	setDur(&o.IdleTimeout, 30*time.Minute)
@@ -488,11 +499,12 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 	b.streams[st.id] = st
 	c := b.newConn()
 	st.conn = c
-	activate := b.attachLocked(st, decisions, func(e entry) { c.backlog = append(c.backlog, e) })
+	activate, follow := b.attachLocked(st, decisions, func(e entry) { c.backlog = append(c.backlog, e) })
 	b.mu.Unlock()
 
 	runAll(release)
 	b.activate(activate)
+	b.follow(follow)
 	return &Stream{b: b, st: st, conn: c}, nil
 }
 
@@ -690,9 +702,9 @@ func (b *Broker) newConn() *conn {
 
 // attachLocked registers the allowed topics on st, hands put a snapshot
 // marker for each and a closed entry for each denied one, which is also kept
-// pending until written, and returns the topics that need activating.
-func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(entry)) []Topic {
-	var activate []Topic
+// pending until written, and returns the topics that need activating and
+// the already active ones st newly follows.
+func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(entry)) (activate, follow []Topic) {
 	for i := range decisions {
 		d := &decisions[i]
 		if d.code != "" {
@@ -704,10 +716,19 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 		}
 		unpendLocked(st, d.topic)
 		tp := b.topics[d.topic]
-		if tp == nil {
-			tp = &topicState{ring: newRing(b.opts.RingSize, b.opts.RingBytes, b.seq), subs: map[*streamState]*subscription{}}
+		switch {
+		case tp == nil:
+			ringBytes := 0
+			if d.topic.Kind() == KindLog {
+				ringBytes = b.opts.LogRingBytes
+			}
+			tp = &topicState{ring: newRing(b.opts.RingSize, ringBytes, b.seq), subs: map[*streamState]*subscription{}}
 			b.topics[d.topic] = tp
 			activate = append(activate, d.topic)
+		case tp.release != nil:
+			// While t's activation is still pending it stands for this
+			// subscription too, so only an active topic is followed.
+			follow = append(follow, d.topic)
 		}
 		b.seq++
 		sub := &subscription{topic: d.topic, attrs: d.attrs, grants: d.grants, snapshotSeq: b.seq}
@@ -720,7 +741,7 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 	} else if st.emptySince.IsZero() {
 		st.emptySince = time.Now()
 	}
-	return activate
+	return activate, follow
 }
 
 // logCapLocked refuses adding the log topics among fresh to session when
@@ -810,6 +831,18 @@ func (b *Broker) activate(topics []Topic) {
 	}
 }
 
+// follow tells the producer, when it is a Follower, that each topic gained
+// a subscriber.
+func (b *Broker) follow(topics []Topic) {
+	f, ok := b.producer.(Follower)
+	if !ok {
+		return
+	}
+	for _, t := range topics {
+		f.Follow(t)
+	}
+}
+
 // lookupLocked finds the stream id belonging to s: the same session and the
 // same identity, as for a resume.
 func (b *Broker) lookupLocked(s Session, id string) (*streamState, error) {
@@ -866,7 +899,7 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 		return ErrTooManyTopics
 	}
 	var release []func()
-	activate := b.attachLocked(st, decisions, func(e entry) {
+	activate, follow := b.attachLocked(st, decisions, func(e entry) {
 		// While detached nothing is queued: a closing is pending already,
 		// and reattach snapshots a topic whose marker the client missed.
 		// An eviction here loses neither, for the same reasons.
@@ -877,6 +910,7 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 	b.mu.Unlock()
 	runAll(release)
 	b.activate(activate)
+	b.follow(follow)
 	return nil
 }
 

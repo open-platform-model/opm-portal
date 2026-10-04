@@ -20,6 +20,19 @@ type admitting struct {
 	mu       sync.Mutex
 	decision func(t Topic) error
 	asked    []string
+	followed []string
+}
+
+func (a *admitting) Follow(t Topic) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.followed = append(a.followed, t.String())
+}
+
+func (a *admitting) follows() []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return slices.Clone(a.followed)
 }
 
 func (a *admitting) Attributes(t Topic) ([]authz.Attributes, bool) {
@@ -244,4 +257,104 @@ func TestMuxRoutesByKind(t *testing.T) {
 	if err := m.Admit(context.Background(), user("alice"), logTopic, nil); err == nil {
 		t.Error("the log producer's Admit was not asked")
 	}
+	m.Follow(blog)
+	m.Follow(mustTopic(t, "platform"))
+	m.Follow(logTopic)
+	if got := ad.follows(); !slices.Equal(got, []string{logTopic.String()}) {
+		t.Errorf("Follow reached the log producer with %v", got)
+	}
+}
+
+func TestOnlyANewSubscriptionToAnActiveTopicFollowsIt(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e, ad := newAdmitEnv(t, Options{}, "alice", "bob")
+		e.policy.set("alice", allowNamespaces("apps"))
+		e.policy.set("bob", allowNamespaces("apps"))
+		web := mustTopic(t, "log:apps/web-0/c")
+		e.open(session("alice"), web.String())
+		synctest.Wait()
+		if got := ad.follows(); len(got) != 0 {
+			t.Fatalf("the activating subscription followed: %v", got)
+		}
+
+		bob := e.open(session("bob"), web.String())
+		synctest.Wait()
+		if got := ad.follows(); !slices.Equal(got, []string{web.String()}) {
+			t.Fatalf("follows after bob opened = %v", got)
+		}
+
+		// A reconnect resumes bob's subscription: it is no new follow.
+		last := bob.rec.lastID()
+		_ = bob.disconnect()
+		bob = e.resume(session("bob"), last)
+		synctest.Wait()
+		if got := ad.follows(); len(got) != 1 {
+			t.Fatalf("follows after a reconnect = %v, want none added", got)
+		}
+
+		// Unsubscribing and subscribing again is.
+		if err := e.b.Unsubscribe(session("bob"), bob.ID(), web); err != nil {
+			t.Fatal(err)
+		}
+		if err := e.b.Subscribe(context.Background(), session("bob"), bob.ID(), web); err != nil {
+			t.Fatal(err)
+		}
+		if got := ad.follows(); len(got) != 2 {
+			t.Errorf("follows after a re-follow = %v, want 2", got)
+		}
+	})
+}
+
+func TestARefusedAttachDoesNotFollow(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e, ad := newAdmitEnv(t, Options{MaxLogTopicsPerSession: 1}, "alice", "bob")
+		e.policy.set("alice", allowNamespaces("apps"))
+		e.policy.set("bob", allowNamespaces("apps"))
+		web := mustTopic(t, "log:apps/web-0/c")
+		e.open(session("alice"), web.String())
+		bob := e.open(session("bob"), "instance:apps/blog")
+		other := e.open(session("bob"), "instance:apps/blog")
+
+		// While bob's subscription to web is being admitted, his other
+		// stream takes the session's one log topic, so the cap re-checked
+		// after admission refuses web.
+		var once sync.Once
+		ad.set(func(t Topic) error {
+			if t == web {
+				once.Do(func() {
+					_ = e.b.Subscribe(context.Background(), session("bob"), other.ID(), mustTopic(e.t, "log:apps/db-0/c"))
+				})
+			}
+			return nil
+		})
+		if err := e.b.Subscribe(context.Background(), session("bob"), bob.ID(), web); !errors.Is(err, ErrTooManyTopics) {
+			t.Fatalf("Subscribe = %v, want ErrTooManyTopics from the re-check", err)
+		}
+		if got := ad.follows(); slices.Contains(got, web.String()) {
+			t.Errorf("a refused attach followed: %v", got)
+		}
+	})
+}
+
+func TestOnlyLogTopicRingsAreBoundedByBytes(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e, _ := newAdmitEnv(t, Options{LogRingBytes: 10}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		web := mustTopic(t, "log:apps/web-0/c")
+		sv := e.open(session("alice"), blog.String(), web.String())
+		synctest.Wait()
+		last := sv.rec.lastID()
+		_ = sv.disconnect()
+		logAttrs := authz.Attributes{Verb: "get", Resource: podsGVR, Subresource: "log", Namespace: "apps", Name: "web-0"}
+		for v := 1; v <= 3; v++ {
+			e.prod.upsert(t, blog, instItem("apps", "blog", v))
+			e.prod.upsert(t, web, Item{Event: EventLog, Attrs: logAttrs, Data: json.RawMessage(`{"seq":` + strings.Repeat("1", 20) + `}`)})
+		}
+		got := eventNames(e.resume(session("alice"), last).rec.take())
+		want := []string{"open()", "upsert(instance:apps/blog)", "upsert(instance:apps/blog)", "upsert(instance:apps/blog)", "snapshot(log:apps/web-0/c)"}
+		if !slices.Equal(got, want) {
+			t.Errorf("events = %v, want the object topic replayed and the log topic snapshotted", got)
+		}
+	})
 }
