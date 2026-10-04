@@ -13,9 +13,9 @@
 
 ## 3. Resume, keepalive and bounds (internal/stream)
 
-- [ ] 3.1 Add detached streams, the resume window, `Last-Event-ID` parsing and reattach (same session only, takeover of a still-attached stream, re-authorization, ring replay or fresh snapshot); verify with `synctest` tests for resume within the buffer, past the buffer, before the snapshot was delivered, from another session, from another epoch and after the window
-- [ ] 3.2 Add heartbeats, the idle timeout, queue-full eviction, write deadlines, and the session, process and topic caps with discard of the oldest detached stream; verify with `synctest` tests that a quiet stream gets one heartbeat per interval, a stalled reader is evicted without delaying another subscriber and can resume, a third stream in a session is refused while a reloaded tab is not, and the process cap holds
-- [ ] 3.3 `task check` green, then commit `chore(stream): resume streams and bound slow consumers`
+- [x] 3.1 Add detached streams, the resume window, `Last-Event-ID` parsing and reattach (same session only, takeover of a still-attached stream, re-authorization, ring replay or fresh snapshot); verify with `synctest` tests for resume within the buffer, past the buffer, before the snapshot was delivered, from another session, from another epoch and after the window
+- [x] 3.2 Add heartbeats, the idle timeout, queue-full eviction, write deadlines, and the session, process and topic caps with discard of the oldest detached stream; verify with `synctest` tests that a quiet stream gets one heartbeat per interval, a stalled reader is evicted without delaying another subscriber and can resume, a third stream in a session is refused while a reloaded tab is not, and the process cap holds
+- [x] 3.3 `task check` green, then commit `chore(stream): resume streams and bound slow consumers`
 
 ## 4. Internal HTTP handler (internal/stream)
 

@@ -388,6 +388,33 @@ func (r *recorder) take() []sse {
 	return out
 }
 
+func (r *recorder) block() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.gate = make(chan struct{})
+}
+
+func (r *recorder) unblock() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.gate != nil {
+		close(r.gate)
+		r.gate = nil
+	}
+}
+
+// lastID returns the id of the last flushed event that carried one.
+func (r *recorder) lastID() string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for i := len(r.events) - 1; i >= 0; i-- {
+		if r.events[i].ID != "" {
+			return r.events[i].ID
+		}
+	}
+	return ""
+}
+
 // env is a broker over a fake producer and fake RBAC, inside a synctest
 // bubble.
 type env struct {
@@ -413,27 +440,51 @@ func newEnv(t *testing.T, opts Options, usernames ...string) *env {
 // served is a stream being served into a recorder.
 type served struct {
 	*Stream
-	rec  *recorder
-	done chan error
+	rec    *recorder
+	done   chan error
+	cancel context.CancelFunc
 }
 
 // serve starts serving s and waits until the bubble is quiet.
 func (e *env) serve(s *Stream) *served {
 	rec := newRecorder()
-	sv := &served{Stream: s, rec: rec, done: make(chan error, 1)}
-	go func() { sv.done <- s.Serve(context.Background(), rec) }()
+	ctx, cancel := context.WithCancel(context.Background())
+	sv := &served{Stream: s, rec: rec, done: make(chan error, 1), cancel: cancel}
+	go func() { sv.done <- s.Serve(ctx, rec) }()
 	synctest.Wait()
 	return sv
+}
+
+// disconnect drops the client's connection and waits for Serve to return.
+func (sv *served) disconnect() error {
+	sv.cancel()
+	return <-sv.done
+}
+
+// ended reports how the stream's Serve returned, or nil while it runs.
+func (sv *served) ended() error {
+	select {
+	case err := <-sv.done:
+		return err
+	default:
+		return nil
+	}
 }
 
 // open opens and serves a stream for sess on topics.
 func (e *env) open(sess Session, topics ...string) *served {
 	e.t.Helper()
+	return e.resume(sess, "", topics...)
+}
+
+// resume opens and serves a stream for sess with a Last-Event-ID.
+func (e *env) resume(sess Session, lastEventID string, topics ...string) *served {
+	e.t.Helper()
 	ts := make([]Topic, 0, len(topics))
 	for _, s := range topics {
 		ts = append(ts, mustTopic(e.t, s))
 	}
-	s, err := e.b.Open(context.Background(), sess, ts, "")
+	s, err := e.b.Open(context.Background(), sess, ts, lastEventID)
 	if err != nil {
 		e.t.Fatalf("Open(%v): %v", topics, err)
 	}

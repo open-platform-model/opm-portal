@@ -1,11 +1,16 @@
 package stream
 
 import (
+	"cmp"
 	"context"
 	"crypto/rand"
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
+	"slices"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -165,7 +170,6 @@ type streamState struct {
 	who        authz.Identity
 	subs       map[Topic]*subscription
 	conn       *conn
-	opened     time.Time
 	detachedAt time.Time
 	emptySince time.Time
 	expiry     *time.Timer
@@ -329,30 +333,53 @@ func closeCode(err error) string {
 
 // Open opens a stream for s carrying topics. Each topic is authorized for
 // s.Identity before it attaches; a denied topic is not attached and the
-// stream's first messages close it. lastEventID is the client's
-// Last-Event-ID header, or "".
+// stream's first messages close it.
+//
+// lastEventID is the client's Last-Event-ID header, or "". When it names a
+// stream of the same session and identity, from this broker, that is still
+// within its resume window, Open reattaches that stream instead: its own
+// topics (not the ones given) are authorized again, and each gets the
+// changes after lastEventID its ring still holds, or a fresh snapshot. A
+// stream still attached elsewhere is taken over. Anything else opens a new
+// stream.
 func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventID string) (*Stream, error) {
 	if s.Key == "" || !s.Identity.Authenticated() {
 		return nil, ErrUnauthenticated
 	}
-	_ = lastEventID
 	topics, attrs, err := b.checkTopics(topics)
 	if err != nil {
+		return nil, err
+	}
+	if st, after, ok := b.resumable(s, lastEventID); ok {
+		stream, err := b.reattach(ctx, st, after)
+		if !errors.Is(err, ErrNoStream) {
+			return stream, err
+		}
+		// The stream expired while it was being authorized: open afresh.
+	}
+
+	b.mu.Lock()
+	release, err := b.makeRoomLocked(s.Key)
+	b.mu.Unlock()
+	runAll(release)
+	if err != nil {
+		// Refused before any review is sent.
 		return nil, err
 	}
 	decisions := b.authorize(ctx, s.Identity, topics, attrs)
 
 	b.mu.Lock()
-	if b.closed {
+	release, err = b.makeRoomLocked(s.Key)
+	if err != nil {
 		b.mu.Unlock()
-		return nil, ErrClosed
+		runAll(release)
+		return nil, err
 	}
 	st := &streamState{
 		id:      rand.Text(),
 		session: s.Key,
 		who:     s.Identity,
 		subs:    map[Topic]*subscription{},
-		opened:  time.Now(),
 	}
 	b.streams[st.id] = st
 	c := b.newConn()
@@ -360,7 +387,180 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 	activate := b.attachLocked(st, decisions, func(e entry) { c.backlog = append(c.backlog, e) })
 	b.mu.Unlock()
 
+	runAll(release)
 	b.activate(activate)
+	return &Stream{b: b, st: st, conn: c}, nil
+}
+
+// makeRoomLocked makes room for one more stream of session, discarding the
+// oldest detached stream of the session, then of the process, when a cap is
+// reached. It fails with ErrTooManyStreams when there is nothing to discard.
+func (b *Broker) makeRoomLocked(session string) ([]func(), error) {
+	if b.closed {
+		return nil, ErrClosed
+	}
+	var release []func()
+	inSession := func(st *streamState) bool { return st.session == session }
+	if b.countLocked(inSession) >= b.opts.MaxStreamsPerSession {
+		old := b.oldestDetachedLocked(inSession)
+		if old == nil {
+			return nil, ErrTooManyStreams
+		}
+		release = append(release, b.deleteLocked(old)...)
+	}
+	if len(b.streams) >= b.opts.MaxStreams {
+		old := b.oldestDetachedLocked(func(*streamState) bool { return true })
+		if old == nil {
+			return release, ErrTooManyStreams
+		}
+		release = append(release, b.deleteLocked(old)...)
+	}
+	return release, nil
+}
+
+func (b *Broker) countLocked(match func(*streamState) bool) int {
+	n := 0
+	for _, st := range b.streams {
+		if match(st) {
+			n++
+		}
+	}
+	return n
+}
+
+func (b *Broker) oldestDetachedLocked(match func(*streamState) bool) *streamState {
+	var oldest *streamState
+	for _, st := range b.streams {
+		if st.conn != nil || !match(st) {
+			continue
+		}
+		if oldest == nil || st.detachedAt.Before(oldest.detachedAt) {
+			oldest = st
+		}
+	}
+	return oldest
+}
+
+// resumable finds the stream lastEventID names, if s may resume it, and the
+// sequence the client last received.
+func (b *Broker) resumable(s Session, lastEventID string) (st *streamState, after uint64, ok bool) {
+	epoch, id, after, ok := parseEventID(lastEventID)
+	if !ok || epoch != b.epoch {
+		return nil, 0, false
+	}
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	st = b.streams[id]
+	if st == nil || st.session != s.Key || !sameIdentity(st.who, s.Identity) {
+		return nil, 0, false
+	}
+	return st, after, true
+}
+
+// parseEventID splits an id written by Stream.eventID.
+func parseEventID(id string) (epoch, stream string, seq uint64, ok bool) {
+	parts := strings.Split(id, ".")
+	if len(parts) != 3 || parts[0] == "" || parts[1] == "" {
+		return "", "", 0, false
+	}
+	seq, err := strconv.ParseUint(parts[2], 10, 64)
+	if err != nil {
+		return "", "", 0, false
+	}
+	return parts[0], parts[1], seq, true
+}
+
+// sameIdentity compares two identities with group and extra-value order
+// ignored, as authz does.
+func sameIdentity(a, b authz.Identity) bool {
+	sorted := func(v []string) []string { return slices.Sorted(slices.Values(v)) }
+	return a.Username == b.Username && a.UID == b.UID &&
+		slices.Equal(sorted(a.Groups), sorted(b.Groups)) &&
+		maps.EqualFunc(a.Extra, b.Extra, func(x, y []string) bool { return slices.Equal(sorted(x), sorted(y)) })
+}
+
+// resumeTopicLocked returns what sub's client missed after sequence after:
+// the ring's changes, or a fresh snapshot when the client never had the
+// topic's snapshot or the ring lost part of the gap.
+func (b *Broker) resumeTopicLocked(sub *subscription, after uint64) (replay []entry, snapshot *entry) {
+	tp := b.topics[sub.topic]
+	if after < sub.snapshotSeq || after > b.seq || !tp.ring.covers(after) {
+		b.seq++
+		sub.snapshotSeq = b.seq
+		return nil, &entry{kind: entSnapshot, seq: b.seq, topic: sub.topic, sub: sub}
+	}
+	held := tp.ring.since(after)
+	replay = make([]entry, 0, len(held))
+	for i := range held {
+		replay = append(replay, entry{kind: entItem, seq: held[i].seq, topic: sub.topic, sub: sub, item: held[i].item})
+	}
+	return replay, nil
+}
+
+// reattach gives st a new connection that continues after sequence after.
+// It returns ErrNoStream when st is gone by the time its topics are
+// authorized again.
+func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*Stream, error) {
+	b.mu.Lock()
+	topics := make([]Topic, 0, len(st.subs))
+	attrs := make(map[Topic][]authz.Attributes, len(st.subs))
+	for t, sub := range st.subs {
+		topics = append(topics, t)
+		attrs[t] = sub.attrs
+	}
+	who := st.who
+	b.mu.Unlock()
+	decisions := b.authorize(ctx, who, topics, attrs)
+
+	b.mu.Lock()
+	if b.closed {
+		b.mu.Unlock()
+		return nil, ErrClosed
+	}
+	if b.streams[st.id] != st {
+		b.mu.Unlock()
+		return nil, ErrNoStream
+	}
+	if old := st.conn; old != nil {
+		old.reason = ErrReplaced
+		close(old.done)
+	}
+	if st.expiry != nil {
+		st.expiry.Stop()
+		st.expiry = nil
+	}
+	c := b.newConn()
+	st.conn = c
+
+	var closed, replay, snapshots []entry
+	var release []func()
+	decided := make(map[Topic]*authorized, len(decisions))
+	for i := range decisions {
+		decided[decisions[i].topic] = &decisions[i]
+	}
+	for _, t := range slices.SortedFunc(maps.Keys(st.subs), func(x, y Topic) int { return strings.Compare(x.String(), y.String()) }) {
+		sub := st.subs[t]
+		if d := decided[t]; d != nil {
+			if d.code != "" {
+				release = append(release, b.dropSubLocked(st, sub)...)
+				closed = append(closed, entry{kind: entClosed, topic: t, code: d.code})
+				continue
+			}
+			sub.grants = d.grants
+		}
+		items, snapshot := b.resumeTopicLocked(sub, after)
+		replay = append(replay, items...)
+		if snapshot != nil {
+			snapshots = append(snapshots, *snapshot)
+		}
+	}
+	slices.SortFunc(replay, func(x, y entry) int { return cmp.Compare(x.seq, y.seq) })
+	c.backlog = slices.Concat(closed, replay, snapshots)
+	if len(st.subs) == 0 && st.emptySince.IsZero() {
+		st.emptySince = time.Now()
+	}
+	b.mu.Unlock()
+	runAll(release)
 	return &Stream{b: b, st: st, conn: c}, nil
 }
 
