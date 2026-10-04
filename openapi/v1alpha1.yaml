@@ -253,6 +253,13 @@ paths:
         carry {topic, item: document}. A delete, and a snapshot of an object that does not
         exist, carry a Removed document. A topic the caller may not follow is closed with a
         closed event naming a problem code. Reconnect with Last-Event-ID to resume.
+
+        Where the serving mode routes them (local mode does), log:<namespace>/<pod>/<container>
+        and log:<namespace>/<pod>/<container>/previous follow one container's log, for a Pod an
+        OPM inventory the caller may read reaches. A snapshot carries the recent messages; log
+        and logend events carry {topic, item: message}, where a message has seq, type (line,
+        marker, end; open), container, and as its type needs time, text, marker (truncated,
+        rate-limited, skipped; open), cut, dropped or reason (open). Log text is untrusted.
       parameters:
         - $ref: '#/components/parameters/cluster'
         - name: topics

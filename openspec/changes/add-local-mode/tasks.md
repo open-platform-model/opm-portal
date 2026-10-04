@@ -1,9 +1,9 @@
 ## 1. Read API: route other producers through the stream Mux (internal/api, openapi)
 
-- [ ] 1.1 `internal/api/server.go`: `Config.Producers stream.Mux`; `New` routes the API's own kinds (`platform`, `instances`, `instance`, `package`, `registration`, `events`) to its producer and refuses a `Producers` entry for one of them; `Server.Broker()`
-- [ ] 1.2 `openapi/v1alpha1.yaml`: name the `log:` topics and their `log` and `logend` events in the stream description (additive)
-- [ ] 1.3 Tests: a fake `log:` producer routed through `Producers` delivers its snapshot on the API stream; without it a log topic is `400 bad_request`; a `Producers` entry for `instance` makes `New` fail
-- [ ] 1.4 `task check` green, then commit `feat(api): route log topics to a mode's producer`
+- [x] 1.1 `internal/api/server.go`: `Config.Producers stream.Mux`; `New` routes the API's own kinds (`platform`, `instances`, `instance`, `package`, `registration`, `events`) to its producer and refuses a `Producers` entry for one of them; `Server.Broker()`
+- [x] 1.2 `openapi/v1alpha1.yaml`: name the `log:` topics and their `log` and `logend` events in the stream description (additive)
+- [x] 1.3 Tests: a fake `log:` producer routed through `Producers` delivers its snapshot on the API stream; without it a log topic is `400 bad_request`; a `Producers` entry for `instance` makes `New` fail
+- [x] 1.4 `task check` green, then commit `feat(api): route log topics to a mode's producer`
 
 ## 2. Local front door (internal/auth)
 

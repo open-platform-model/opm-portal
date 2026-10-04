@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -44,6 +45,11 @@ type Config struct {
 	// Reader is the identity the read model reads as. The stream producer
 	// holds runtime-children watches as it while a topic is followed.
 	Reader authz.Identity
+	// Producers serves topic kinds the read API does not produce itself,
+	// such as stream.KindLog, on the same stream. A producer that publishes
+	// is given Server.Broker. An entry for one of the API's own kinds is
+	// refused.
+	Producers stream.Mux
 	// Stream tunes the change stream's broker.
 	Stream stream.Options
 	// Coalesce is how long the producer gathers changes before it publishes
@@ -118,7 +124,19 @@ func New(cfg Config) (*Server, error) {
 	}
 	s := &Server{cfg: cfg, log: cfg.Logger, mux: http.NewServeMux()}
 	s.producer = newProducer(s)
-	s.broker = stream.New(s.producer, cfg.Authorizer, cfg.Stream)
+	routed := make(stream.Mux, len(ownKinds)+len(cfg.Producers))
+	for _, k := range ownKinds {
+		routed[k] = s.producer
+	}
+	for k, p := range cfg.Producers {
+		if _, own := routed[k]; own {
+			return nil, fmt.Errorf("read api: the read api produces %q topics itself", k)
+		}
+		if p != nil {
+			routed[k] = p
+		}
+	}
+	s.broker = stream.New(routed, cfg.Authorizer, cfg.Stream)
 	s.producer.start(s.broker)
 	streamHandler := stream.NewHandler(s.broker, func(r *http.Request) (stream.Session, error) {
 		p, ok := principalFrom(r.Context())
@@ -142,6 +160,16 @@ func New(cfg Config) (*Server, error) {
 	})
 	return s, nil
 }
+
+// ownKinds are the topic kinds the read API's own producer serves.
+var ownKinds = []stream.Kind{
+	stream.KindPlatform, stream.KindInstances, stream.KindInstance,
+	stream.KindPackage, stream.KindRegistration, stream.KindEvents,
+}
+
+// Broker returns the change stream's broker, for a producer in
+// Config.Producers that publishes to it.
+func (s *Server) Broker() *stream.Broker { return s.broker }
 
 // Close stops the change stream: every stream ends and the producer stops.
 func (s *Server) Close() {
