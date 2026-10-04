@@ -49,8 +49,9 @@ None.
   its place here with the typed review client and the fake clientset the tests need.
 - SemVer: MINOR after 1.0 (new internal capability, nothing removed). Every commit is `chore` or
   `docs` because nothing user-visible changes, so the 0.x line cuts no release for it.
-- Enhancement link: implements the authorization half of 0030:D7 (R1 at the seam); the M1 halves
-  of 0030:D5 and 0030:D6 are guards and backends only and are not claimed (`enhancement.yaml`).
+- Enhancement link: lands the seam for 0030:D7 (the R1 refusal at Check); the M1 halves of
+  0030:D5 and 0030:D6 are guards and backends only. No decision is claimed (`enhancement.yaml`):
+  the change that completes 0030:D7 with a read path claims it.
 
 Not in this change: the in-cluster SubjectAccessReview backend and identity mapping (changes
 `add-sar-authorizer`, `add-oidc-sessions`), resolving the kubeconfig's identity at startup and

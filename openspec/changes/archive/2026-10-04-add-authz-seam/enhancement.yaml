@@ -1,17 +1,20 @@
 # Declares which enhancement decisions this change implements. Consumed by
 # `task enhancements:delivery:log` at archive time.
 #
-# D7: authorize before lookup, enforced by type. This change is the seam
-# every read path must pass through (R1: the same refusal for an existing and
-# a missing object, because Check never looks anything up). R2-R4 (list
-# filtering, per-item access states, the not-in-inventory refusal) land with
-# the read model and the read API, which complete the decision.
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
 #
-# D5 and D6 are NOT claimed: this change adds only guards and the local
-# review backend they rely on. D5 completes with add-local-mode, D6 with
-# add-oidc-sessions and add-sar-authorizer. Before logging, diff this list
-# against proposal.md's "Not in this change" paragraph.
+# - 0030:D7 (authorize before lookup): this change lands the seam (Check, the
+#   Grant, Covers). R1 has no read path yet, and R2-R4 (list filtering,
+#   per-item access states, the not-in-inventory refusal) land with the read
+#   model and the read API. The change that completes D7 claims it.
+# - 0030:D5 and 0030:D6: only guards and the local review backend they rely
+#   on. D5 completes with add-local-mode, D6 with add-oidc-sessions and
+#   add-sar-authorizer.
+#
+# Before logging, diff this list against proposal.md's "Not in this change"
+# paragraph.
 implements:
   - enhancement: "0030"
-    decisions: [D7]
+    decisions: []
     resolves: []
