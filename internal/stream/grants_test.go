@@ -281,12 +281,12 @@ func TestAMessageWhoseGrantsNeverSettleClosesTheTopic(t *testing.T) {
 
 // Every write path is enumerated here, so no future path can write topic
 // data without the re-validation in send. Only send asks for an event id,
-// and the other writes carry only the stream's own control events.
+// the other writes carry only the stream's own control events, and only
+// event touches the response writer.
 func TestOnlySendWritesTopicData(t *testing.T) {
 	allowed := map[string][]string{
 		"eventID": {"send"},
 		"event":   {"run", "heartbeat", "closed", "send"},
-		"Write":   {"event"},
 		// send re-validates, and only send.
 		"revalidate": {"send"},
 	}
@@ -297,11 +297,6 @@ func TestOnlySendWritesTopicData(t *testing.T) {
 	var inSend []string
 	for _, c := range packageCalls(t) {
 		if _, watched := allowed[c.name]; !watched {
-			continue
-		}
-		// bytes.Buffer.Write builds the event; only the ResponseWriter's
-		// Write sends it.
-		if c.name == "Write" && !strings.HasSuffix(exprString(c.sel.X), ".w") {
 			continue
 		}
 		found[c.name] = append(found[c.name], c.fn)
@@ -322,26 +317,137 @@ func TestOnlySendWritesTopicData(t *testing.T) {
 			t.Errorf("%s is called from %v, want only %v: a new write path must go through send", name, got, want)
 		}
 	}
+
+	// Every use of an http.ResponseWriter, whether the writer's field w or
+	// a parameter, is listed here: a Write, an fmt.Fprint or an
+	// io.WriteString on it anywhere else is a write path that bypasses send.
+	wantUses := []string{
+		"NewHandler: argument of http.Error",
+		"Serve: argument of http.NewResponseController",
+		"Serve: value of field w",
+		"ServeHTTP: argument of h.fail",
+		"ServeHTTP: argument of h.fail",
+		"ServeHTTP: argument of h.fail",
+		"ServeHTTP: argument of h.fail",
+		"ServeHTTP: argument of st.Serve",
+		"ServeHTTP: w.Header",
+		"ServeHTTP: w.Header",
+		"ServeHTTP: w.WriteHeader",
+		"event: wr.w.Write",
+	}
+	if got := responseWriterUses(t); !slices.Equal(got, wantUses) {
+		t.Errorf("the response writer is used as\n%s\nwant\n%s\nonly event writes to it: a new write path must go through send",
+			strings.Join(got, "\n"), strings.Join(wantUses, "\n"))
+	}
+}
+
+// responseWriterUses lists, sorted, every use in the package's non-test
+// files of the writer's field w and of every parameter typed
+// http.ResponseWriter, as "function: how it is used".
+func responseWriterUses(t *testing.T) []string {
+	t.Helper()
+	var out []string
+	for _, fn := range packageFuncs(t) {
+		// The names of fn's parameters typed http.ResponseWriter,
+		// including those of the function literals inside it.
+		params := map[string]bool{}
+		ast.Inspect(fn, func(n ast.Node) bool {
+			if ft, ok := n.(*ast.FuncType); ok && ft.Params != nil {
+				for _, f := range ft.Params.List {
+					if exprString(f.Type) == "http.ResponseWriter" {
+						for _, name := range f.Names {
+							params[name.Name] = true
+						}
+					}
+				}
+			}
+			return true
+		})
+		var stack []ast.Node
+		ast.Inspect(fn.Body, func(n ast.Node) bool {
+			if n == nil {
+				stack = stack[:len(stack)-1]
+				return true
+			}
+			var parent ast.Node
+			if len(stack) > 0 {
+				parent = stack[len(stack)-1]
+			}
+			stack = append(stack, n)
+			var use ast.Expr
+			switch x := n.(type) {
+			case *ast.SelectorExpr:
+				if x.Sel.Name == "w" {
+					use = x
+				}
+			case *ast.Ident:
+				if !params[x.Name] {
+					break
+				}
+				if sel, ok := parent.(*ast.SelectorExpr); ok && sel.Sel == x {
+					break // a field or method named like the parameter
+				}
+				if kv, ok := parent.(*ast.KeyValueExpr); ok && kv.Key == x {
+					break // a composite literal's key
+				}
+				if _, ok := parent.(*ast.Field); ok {
+					break // a function literal's parameter
+				}
+				use = x
+			}
+			if use != nil {
+				out = append(out, fn.Name.Name+": "+describeUse(use, parent, stack))
+			}
+			return true
+		})
+	}
+	slices.Sort(out)
+	return out
+}
+
+// describeUse says how the expression use, whose parent node is parent, is
+// used. stack ends with use itself.
+func describeUse(use ast.Expr, parent ast.Node, stack []ast.Node) string {
+	switch p := parent.(type) {
+	case *ast.CallExpr:
+		if slices.Contains(p.Args, use) {
+			return "argument of " + exprString(p.Fun)
+		}
+	case *ast.SelectorExpr:
+		if p.X == use {
+			name := exprString(p)
+			if len(stack) >= 3 {
+				if call, ok := stack[len(stack)-3].(*ast.CallExpr); ok && call.Fun == p {
+					return name
+				}
+			}
+			return name + " (not called)"
+		}
+	case *ast.KeyValueExpr:
+		if p.Value == use {
+			return "value of field " + exprString(p.Key)
+		}
+	}
+	return "other use of " + exprString(use)
 }
 
 // methodCall is a call of a method or package function, x.name(...), made
 // in function fn.
 type methodCall struct {
 	fn, name string
-	sel      *ast.SelectorExpr
 	call     *ast.CallExpr
 }
 
-// packageCalls lists every x.name(...) call in the package's non-test
-// files, in source order.
-func packageCalls(t *testing.T) []methodCall {
+// packageFuncs parses the package's non-test files and returns every
+// function declaration with a body, in source order.
+func packageFuncs(t *testing.T) []*ast.FuncDecl {
 	t.Helper()
 	files, err := filepath.Glob("*.go")
 	if err != nil {
 		t.Fatal(err)
 	}
 	fset := token.NewFileSet()
-	var out []methodCall
+	var out []*ast.FuncDecl
 	for _, f := range files {
 		if strings.HasSuffix(f, "_test.go") {
 			continue
@@ -351,19 +457,28 @@ func packageCalls(t *testing.T) []methodCall {
 			t.Fatal(err)
 		}
 		for _, decl := range file.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Body == nil {
-				continue
+			if fn, ok := decl.(*ast.FuncDecl); ok && fn.Body != nil {
+				out = append(out, fn)
 			}
-			ast.Inspect(fn.Body, func(n ast.Node) bool {
-				if call, ok := n.(*ast.CallExpr); ok {
-					if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
-						out = append(out, methodCall{fn: fn.Name.Name, name: sel.Sel.Name, sel: sel, call: call})
-					}
-				}
-				return true
-			})
 		}
+	}
+	return out
+}
+
+// packageCalls lists every x.name(...) call in the package's non-test
+// files, in source order.
+func packageCalls(t *testing.T) []methodCall {
+	t.Helper()
+	var out []methodCall
+	for _, fn := range packageFuncs(t) {
+		ast.Inspect(fn.Body, func(n ast.Node) bool {
+			if call, ok := n.(*ast.CallExpr); ok {
+				if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+					out = append(out, methodCall{fn: fn.Name.Name, name: sel.Sel.Name, call: call})
+				}
+			}
+			return true
+		})
 	}
 	return out
 }
