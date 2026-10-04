@@ -133,14 +133,14 @@ A portal renders cluster data to people and, from milestone 2, authenticates the
 hold in every change; a change that bends one needs an enhancement decision first.
 
 - **Read-only in V1.** No create, update, patch or delete on any Kubernetes object, and no
-  ClusterRole or Role that grants a write verb. The only exceptions are `create` on three
-  review APIs, which answer in the response and store nothing: `authorization.k8s.io`
-  `subjectaccessreviews` (milestone 2 checks access as the user, 0030:D11),
-  `authorization.k8s.io` `selfsubjectaccessreviews` (milestone 1 checks a read with the user's
-  kubeconfig) and `authentication.k8s.io` `selfsubjectreviews` (milestone 1 learns the
-  kubeconfig's identity). No other create, not even of another non-persisted kind (such as
-  `tokenreviews` or `localsubjectaccessreviews`), without an enhancement decision. Writes start
-  in V2, through the 0027 kinds.
+  ClusterRole or Role that grants a write verb. The only exceptions are `create` on review APIs
+  that answer in the response and store nothing, per mode. Local mode (milestone 1) creates
+  only `authorization.k8s.io` `selfsubjectaccessreviews` (a read check with the user's
+  kubeconfig) and `authentication.k8s.io` `selfsubjectreviews` (the kubeconfig's identity),
+  per 0030:D5:R6. In-cluster mode (milestone 2) creates only `authorization.k8s.io`
+  `subjectaccessreviews` (access checked as the signed-in user), per 0030:D6:R9; a self review
+  there would check the portal's own ServiceAccount, so it is forbidden. Writes start in V2,
+  through the 0027 kinds.
 - **Never read Secret data, and show no values in V1.** No `get`, `list` or `watch` on
   `secrets`. No API document, YAML view or page shows an instance's or package's `spec.values`,
   and the `kubectl.kubernetes.io/last-applied-configuration` annotation is stripped from every
@@ -276,5 +276,6 @@ Default is none: a comment says what the code does and why, in its own words.
 - `task check` after Go changes.
 - `actionlint` after workflow changes.
 - `openspec validate --all --strict` green before committing an OpenSpec artifact.
-- No Secret reads, no `spec.values` served, no write verb beyond `create` on the three review
-  APIs, no credential in a log (Security Rules).
+- No Secret reads, no `spec.values` served, no write verb beyond `create` on the review APIs
+  allowed for the mode (self reviews locally, `subjectaccessreviews` in-cluster), no credential
+  in a log (Security Rules).

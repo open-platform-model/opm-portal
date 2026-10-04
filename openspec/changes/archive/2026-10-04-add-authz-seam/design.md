@@ -191,7 +191,8 @@ which the architecture's per-node locked state cannot afford).
 
 The change reads no object. Its only cluster call is `create` on `authorization.k8s.io/v1`
 `selfsubjectaccessreviews`, made with the user's own kubeconfig and never stored. Principle V
-allows it once this PR amends the constitution (see Open Questions).
+allows it in local mode only (0030:D5:R6) once this PR amends the constitution (see Open
+Questions); in-cluster, the backend creates `subjectaccessreviews` only (0030:D6:R9).
 
 ## Risks / Trade-offs
 
@@ -199,6 +200,11 @@ allows it once this PR amends the constitution (see Open Questions).
   UI will say "as of" where it matters.
 - [The module scan is a textual check and can be fooled by reflection or `unsafe`] -> the
   compiler test is the proof for ordinary code; `unsafe` is visible in review and lint.
+- [The seal scan trusts the six functions it allowlists to name `sealed` (issue, Valid,
+  Identity, Attributes, Expires, Covers)] -> inside them it still refuses writes through
+  `sealed` and copies of the pointer, but an escape written there another way (a closure, an
+  address taken and returned) is caught by review, not the scan; anywhere else every `sealed`
+  selector and every method on `grantData` is refused.
 - [The forge test shells out to `go build`] -> it skips with `-short` or without a `go` binary;
   CI runs it.
 
@@ -208,10 +214,12 @@ allows it once this PR amends the constitution (see Open Questions).
   local backend makes in milestone 1, fall inside Principle V's write exception? The owner chose
   to keep the seam: milestone 1 shows locked nodes up front, and milestone 2 swaps the backend
   with no seam rewrite. This PR amends Principle V in `CONSTITUTION.md`, the Security Rules in
-  `AGENTS.md` and `openspec/config.yaml` so the only allowed writes are `create` on three review
-  APIs that store nothing: `authorization.k8s.io` `subjectaccessreviews` and
-  `selfsubjectaccessreviews`, and `authentication.k8s.io` `selfsubjectreviews`. The matching
-  amendment to 0030 goes to the enhancements repo separately.
+  `AGENTS.md` and `openspec/config.yaml` so the only allowed writes are `create` on review APIs
+  that store nothing, per mode: local mode creates only `authorization.k8s.io`
+  `selfsubjectaccessreviews` and `authentication.k8s.io` `selfsubjectreviews` (0030:D5:R6), and
+  in-cluster mode creates only `authorization.k8s.io` `subjectaccessreviews` (0030:D6:R9). A
+  self review in-cluster would check the portal's own ServiceAccount, not the user, so it is
+  forbidden there. The 0030 amendment is enhancements PR 98, which merges before this PR.
 - Resolved by the same answer: `add-local-mode` may learn the kubeconfig's identity with a
   `SelfSubjectReview` (`authentication.k8s.io/v1`), now named in Principle V. It changes nothing
   here: `NewLocal` takes the identity from its caller either way.
