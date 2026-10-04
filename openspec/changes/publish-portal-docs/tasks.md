@@ -10,8 +10,8 @@
 
 ## 2. Hold the reference to the OpenAPI document
 
-- [ ] 2.1 `internal/api`: `TestReadAPIReferenceListsEveryPath` compares the reference page's resource table with the OpenAPI paths, both ways
-- [ ] 2.2 `task check` green, then commit `test(api): hold the read API reference to the OpenAPI paths`
+- [x] 2.1 `internal/api`: `TestReadAPIReferenceListsEveryPath` compares the reference page's resource table with the OpenAPI paths, both ways
+- [x] 2.2 `task check` green, then commit `test(api): hold the read API reference to the OpenAPI paths`
 
 ## 3. Repository guides
 
