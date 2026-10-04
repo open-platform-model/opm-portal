@@ -131,8 +131,11 @@ jq -n \
     }],
     registrations: [$registrations[0].items[] | {
       name: .metadata.name, ready: (ready.status // "absent"), reason: (ready.reason // null),
-      accepted: (.status.accepted // false), active: (.status.active // false)
-    } | if (.accepted and .active) then . else . + {
+      accepted: (.status.accepted // false), active: (.status.active // false),
+      deliberateRefusal: ((.metadata.labels // {})["e2e.opmodel.dev/fixture"] == "deliberate-refusal")
+    } | if .deliberateRefusal then . + {
+      note: "deliberate refusal fixture (test/e2e/fixtures/f1/60-refused-claim.yaml): refused on purpose"
+    } elif (.accepted and .active) then del(.deliberateRefusal) else del(.deliberateRefusal) + {
       note: "not accepted and active on this operator; the claim is accepted only by an operator built on library v1.0.0-beta.2 or later"
     } end],
     inventory: {objects: $objects, secretsSkipped: $secretsSkipped, missing: $missing}
