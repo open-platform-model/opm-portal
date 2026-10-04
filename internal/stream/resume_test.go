@@ -346,3 +346,103 @@ func TestClosedBroker(t *testing.T) {
 		}
 	})
 }
+
+func TestATopicDeniedWhileDetachedIsClosedOnReconnect(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		sv, _ := openBlog(t, e)
+		last := sv.rec.lastID()
+		_ = sv.disconnect()
+		secret := mustTopic(t, "instance:secret/db")
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), secret, secret); err != nil {
+			t.Fatal(err)
+		}
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), secret); err != nil {
+			t.Fatal(err)
+		}
+		evs := e.resume(session("alice"), last, "instance:apps/blog").rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "closed(instance:secret/db)"}) || evs[1].code() != CodeForbidden {
+			t.Fatalf("events = %v", got)
+		}
+	})
+}
+
+func TestAnOldEventIDResumesWithSnapshots(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{QueueSize: 2}, "alice")
+		sv, blog := openBlog(t, e)
+		first := sv.rec.lastID()
+		for v := 2; v <= 4; v++ {
+			e.prod.upsert(t, blog, instItem("apps", "blog", v))
+			synctest.Wait()
+		}
+		_ = sv.disconnect()
+		// The stream no longer remembers where id 1 stood in the ring.
+		evs := e.resume(session("alice"), first, "instance:apps/blog").rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "snapshot(instance:apps/blog)"}) {
+			t.Fatalf("events = %v", got)
+		}
+		if got := seqOf(t, evs[1].ID); got != 5 {
+			t.Errorf("event id after resume = %d, want 5 (ids continue along the stream)", got)
+		}
+	})
+}
+
+func TestAResumeIgnoresTheURLTopics(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{MaxTopicsPerStream: 1}, "alice")
+		sv, _ := openBlog(t, e)
+		last := sv.rec.lastID()
+		_ = sv.disconnect()
+		ts := []Topic{mustTopic(t, "log:apps/blog-0/server"), mustTopic(t, "instance:apps/a")}
+		again, err := e.b.Open(context.Background(), session("alice"), ts, last)
+		if err != nil || again.ID() != sv.ID() {
+			t.Fatalf("resume = %v, %v", again, err)
+		}
+	})
+}
+
+func TestEndingAConnectionCancelsItsWork(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		e.prod.snapshotWait = func(ctx context.Context) { <-ctx.Done() }
+		sv := e.open(session("alice"), "instance:apps/blog")
+		e.b.Close()
+		synctest.Wait()
+		if err := sv.ended(); !errors.Is(err, ErrClosed) {
+			t.Fatalf("Serve after Close = %v, want ErrClosed", err)
+		}
+	})
+}
+
+// A client that goes away during a snapshot keeps its topic for the resume.
+func TestADisconnectDuringASnapshotKeepsTheTopic(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		e.prod.upsert(t, blog, instItem("apps", "blog", 1))
+		e.prod.snapshotWait = func(ctx context.Context) { <-ctx.Done() }
+		s, err := e.b.Open(context.Background(), session("alice"), []Topic{blog}, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		sv := e.serve(s)
+		if err := sv.disconnect(); !errors.Is(err, context.Canceled) {
+			t.Fatalf("Serve after disconnect = %v", err)
+		}
+		e.prod.mu.Lock()
+		e.prod.snapshotWait = nil
+		e.prod.mu.Unlock()
+		// The client got no event id, so it names the stream with one the
+		// stream never issued, which resumes it with fresh snapshots.
+		again := e.resume(session("alice"), e.b.epoch+"."+sv.ID()+".0", "instance:apps/blog")
+		if got := eventNames(again.rec.take()); !slices.Equal(got, []string{"open()", "snapshot(instance:apps/blog)"}) {
+			t.Fatalf("events = %v", got)
+		}
+		if _, rel := e.prod.counts(blog); rel != 0 {
+			t.Errorf("topic released %d times", rel)
+		}
+	})
+}

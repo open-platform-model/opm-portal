@@ -13,7 +13,8 @@
 // Each topic starts with a snapshot of its current items and continues with
 // upsert, delete and k8sevent messages carrying the same documents the read
 // API serves. Every snapshot and change carries an event id, and ids strictly
-// increase along a stream.
+// increase along a stream. Ids count the stream's own events, so a gap never
+// reveals an item left out for the reader or anything published elsewhere.
 //
 // # The producer contract
 //
@@ -36,7 +37,10 @@
 //     is sent for one.
 //   - A topic attaches only after every read the producer names for it is
 //     allowed. A denied topic is not registered, so it starts no watch, and
-//     the stream gets a closed message for it.
+//     the stream gets a closed message for it, on its next connection when
+//     it is detached.
+//   - Only the session and identity that opened a stream can change its
+//     topics or resume it.
 //   - Before each delivery, and on each heartbeat, the topic's grants are
 //     checked with Grant.Covers; an expired grant is checked again.
 //   - Each item is delivered only when the subscriber may read Item.Attrs,

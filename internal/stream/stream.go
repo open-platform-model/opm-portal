@@ -43,6 +43,17 @@ func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
 	c.served = true
 	b.mu.Unlock()
 
+	// Ending the connection (eviction, takeover, Close) also cancels the
+	// work done for it: snapshots, reviews and renders.
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	go func() {
+		select {
+		case <-c.done:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
 	wr := &writer{w: w, rc: http.NewResponseController(w), timeout: b.opts.WriteTimeout}
 	reason := s.run(ctx, wr)
 	b.disconnect(s.st, c, reason)
@@ -73,7 +84,7 @@ func (s *Stream) run(ctx context.Context, wr *writer) error {
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return s.ended(ctx)
 		case <-c.done:
 			return c.reason
 		case e := <-c.queue:
@@ -109,12 +120,23 @@ func (s *Stream) heartbeat(ctx context.Context, wr *writer) error {
 	}
 	for _, sub := range subs {
 		if code := s.gateTopic(ctx, sub); code != "" {
-			if err := s.closeTopic(wr, sub, code); err != nil {
+			if err := s.closeTopic(ctx, wr, sub, code); err != nil {
 				return err
 			}
 		}
 	}
 	return wr.event("", "", EventHeartbeat, []byte("{}"))
+}
+
+// ended returns why the connection ended: the broker's reason when it ended
+// the connection, or the context's error.
+func (s *Stream) ended(ctx context.Context) error {
+	select {
+	case <-s.conn.done:
+		return s.conn.reason
+	default:
+		return ctx.Err()
+	}
 }
 
 // current reports whether this connection still serves the stream and sub
@@ -144,12 +166,15 @@ func (s *Stream) deliverSnapshot(ctx context.Context, wr *writer, e *entry) erro
 		return nil
 	}
 	if code := s.gateTopic(ctx, e.sub); code != "" {
-		return s.closeTopic(wr, e.sub, code)
+		return s.closeTopic(ctx, wr, e.sub, code)
 	}
 	items, err := s.b.producer.Snapshot(ctx, e.topic)
 	if err != nil {
+		if ctx.Err() != nil {
+			return s.ended(ctx)
+		}
 		s.b.log.Warn("snapshot failed", "topic", e.topic.String(), "error", err)
-		return s.closeTopic(wr, e.sub, CodeUpstreamUnavailable)
+		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
 	}
 	payloads := make([]json.RawMessage, 0, len(items))
 	for i := range items {
@@ -160,7 +185,7 @@ func (s *Stream) deliverSnapshot(ctx context.Context, wr *writer, e *entry) erro
 		}
 		data, code := s.payload(ctx, e.sub, it)
 		if code != "" {
-			return s.closeTopic(wr, e.sub, code)
+			return s.closeTopic(ctx, wr, e.sub, code)
 		}
 		if data != nil {
 			payloads = append(payloads, data)
@@ -172,9 +197,13 @@ func (s *Stream) deliverSnapshot(ctx context.Context, wr *writer, e *entry) erro
 	}{e.topic.String(), payloads})
 	if err != nil {
 		s.b.log.Warn("snapshot payload is not JSON", "topic", e.topic.String(), "error", err)
-		return s.closeTopic(wr, e.sub, CodeUpstreamUnavailable)
+		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
 	}
-	return wr.event("", s.eventID(e.seq), EventSnapshot, body)
+	id, ok := s.eventID(e.sub, e.seq)
+	if !ok {
+		return nil
+	}
+	return wr.event("", id, EventSnapshot, body)
 }
 
 func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
@@ -182,11 +211,11 @@ func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
 		return nil
 	}
 	if code := s.gateTopic(ctx, e.sub); code != "" {
-		return s.closeTopic(wr, e.sub, code)
+		return s.closeTopic(ctx, wr, e.sub, code)
 	}
 	data, code := s.payload(ctx, e.sub, &e.item)
 	if code != "" {
-		return s.closeTopic(wr, e.sub, code)
+		return s.closeTopic(ctx, wr, e.sub, code)
 	}
 	if data == nil {
 		return nil
@@ -197,9 +226,13 @@ func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
 	}{e.topic.String(), data})
 	if err != nil {
 		s.b.log.Warn("item payload is not JSON", "topic", e.topic.String(), "error", err)
-		return s.closeTopic(wr, e.sub, CodeUpstreamUnavailable)
+		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
 	}
-	return wr.event("", s.eventID(e.seq), e.item.Event, body)
+	id, ok := s.eventID(e.sub, e.seq)
+	if !ok {
+		return nil
+	}
+	return wr.event("", id, e.item.Event, body)
 }
 
 // gateTopic makes sure every grant of sub still covers its read, asking
@@ -261,10 +294,17 @@ func (s *Stream) coveredByTopic(sub *subscription, req authz.Attributes) bool {
 	return false
 }
 
-// closeTopic drops sub from the stream and tells the client.
-func (s *Stream) closeTopic(wr *writer, sub *subscription, code string) error {
+// closeTopic drops sub from the stream and tells the client. It does
+// neither when the connection ended, since a failed review or snapshot is
+// then the connection's end and not the topic's, or when sub is no longer
+// the stream's subscription to its topic: the client is not told a topic it
+// holds again has closed.
+func (s *Stream) closeTopic(ctx context.Context, wr *writer, sub *subscription, code string) error {
+	if ctx.Err() != nil {
+		return s.ended(ctx)
+	}
 	s.b.mu.Lock()
-	if s.st.conn != s.conn {
+	if s.st.conn != s.conn || s.st.subs[sub.topic] != sub {
 		s.b.mu.Unlock()
 		return nil
 	}
@@ -274,10 +314,20 @@ func (s *Stream) closeTopic(wr *writer, sub *subscription, code string) error {
 	return wr.closed(sub.topic, code)
 }
 
-// eventID encodes the broker epoch, the stream and the sequence, so a
-// reconnect finds the stream and where it stopped.
-func (s *Stream) eventID(seq uint64) string {
-	return s.b.epoch + "." + s.st.id + "." + strconv.FormatUint(seq, 10)
+// eventID hands out the stream's next event id for an event of sub carrying
+// broker sequence seq. It encodes the broker epoch, the stream and a count of
+// the stream's own events, so a reconnect finds the stream and where it
+// stopped without the id revealing anything published elsewhere. ok is false
+// when this connection no longer serves the stream or sub was replaced: the
+// event is then not written.
+func (s *Stream) eventID(sub *subscription, seq uint64) (id string, ok bool) {
+	b := s.b
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if s.st.conn != s.conn || s.st.subs[sub.topic] != sub {
+		return "", false
+	}
+	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(b.nextIDLocked(s.st, seq), 10), true
 }
 
 // writer writes server-sent events and flushes each one.

@@ -133,6 +133,11 @@ type fakeProducer struct {
 	snapshotErr error
 	// duringSnapshot runs inside Snapshot after the state was read.
 	duringSnapshot func()
+	// snapshotWait runs inside Snapshot with its context, before the state
+	// is read.
+	snapshotWait func(ctx context.Context)
+	// attributeCalls counts Attributes calls.
+	attributeCalls int
 }
 
 func newFakeProducer() *fakeProducer {
@@ -144,6 +149,13 @@ func newFakeProducer() *fakeProducer {
 }
 
 func (p *fakeProducer) Attributes(t Topic) ([]authz.Attributes, bool) {
+	p.mu.Lock()
+	p.attributeCalls++
+	p.mu.Unlock()
+	return p.attributes(t)
+}
+
+func (p *fakeProducer) attributes(t Topic) ([]authz.Attributes, bool) {
 	switch t.Kind() {
 	case KindPlatform:
 		return []authz.Attributes{{Verb: "get", Resource: platformsGVR, Name: "cluster"}}, true
@@ -157,7 +169,7 @@ func (p *fakeProducer) Attributes(t Topic) ([]authz.Attributes, bool) {
 		return []authz.Attributes{{Verb: "get", Resource: regsGVR, Name: t.Name()}}, true
 	case KindEvents:
 		ref, _ := t.Ref()
-		attrs, _ := p.Attributes(ref)
+		attrs, _ := p.attributes(ref)
 		return append(attrs, authz.Attributes{Verb: "list", Resource: eventsGVR, Namespace: ref.Namespace()}), true
 	case KindLog:
 		return nil, false
@@ -165,7 +177,13 @@ func (p *fakeProducer) Attributes(t Topic) ([]authz.Attributes, bool) {
 	return nil, false
 }
 
-func (p *fakeProducer) Snapshot(_ context.Context, t Topic) ([]Item, error) {
+func (p *fakeProducer) Snapshot(ctx context.Context, t Topic) ([]Item, error) {
+	p.mu.Lock()
+	wait := p.snapshotWait
+	p.mu.Unlock()
+	if wait != nil {
+		wait(ctx)
+	}
 	p.mu.Lock()
 	if p.snapshotErr != nil {
 		p.mu.Unlock()

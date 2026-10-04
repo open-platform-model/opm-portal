@@ -173,6 +173,21 @@ type streamState struct {
 	detachedAt time.Time
 	emptySince time.Time
 	expiry     *time.Timer
+	// lastID is the last event id the stream handed out. Ids count this
+	// stream's own events, so their gaps reveal nothing about other topics,
+	// other streams or the items left out of this one (0030:D7:R2).
+	lastID uint64
+	// marks maps the stream's most recent event ids to the broker sequence
+	// each one delivered, oldest first, so a resume finds where it stopped.
+	marks []idMark
+	// pending holds the closed messages for topics denied while the stream
+	// was detached; the next connection sends them first.
+	pending []entry
+}
+
+// idMark ties one event id of a stream to the broker sequence it carried.
+type idMark struct {
+	id, seq uint64
 }
 
 // conn is one attachment of a stream to a client connection.
@@ -259,14 +274,20 @@ func (b *Broker) enqueueLocked(st *streamState, e entry) []func() {
 }
 
 // checkTopics refuses what can never attach and returns each topic's
-// attributes, deduplicated in request order.
+// attributes, deduplicated in request order. The cap is checked before the
+// producer is asked about any topic.
 func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attributes, error) {
 	out := make([]Topic, 0, len(topics))
-	attrs := make(map[Topic][]authz.Attributes, len(topics))
 	for _, t := range topics {
-		if _, dup := attrs[t]; dup {
-			continue
+		if !slices.Contains(out, t) {
+			out = append(out, t)
 		}
+	}
+	if len(out) > b.opts.MaxTopicsPerStream {
+		return nil, nil, ErrTooManyTopics
+	}
+	attrs := make(map[Topic][]authz.Attributes, len(out))
+	for _, t := range out {
 		if t.Kind() == "" {
 			return nil, nil, fmt.Errorf("%w: the zero topic", ErrTopicNotServed)
 		}
@@ -278,10 +299,6 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 			return nil, nil, fmt.Errorf("%w: %s", ErrTopicNotServed, t)
 		}
 		attrs[t] = a
-		out = append(out, t)
-	}
-	if len(out) > b.opts.MaxTopicsPerStream {
-		return nil, nil, ErrTooManyTopics
 	}
 	return out, attrs, nil
 }
@@ -341,14 +358,10 @@ func closeCode(err error) string {
 // topics (not the ones given) are authorized again, and each gets the
 // changes after lastEventID its ring still holds, or a fresh snapshot. A
 // stream still attached elsewhere is taken over. Anything else opens a new
-// stream.
+// stream. The given topics are checked only when a new stream opens.
 func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventID string) (*Stream, error) {
 	if s.Key == "" || !s.Identity.Authenticated() {
 		return nil, ErrUnauthenticated
-	}
-	topics, attrs, err := b.checkTopics(topics)
-	if err != nil {
-		return nil, err
 	}
 	if st, after, ok := b.resumable(s, lastEventID); ok {
 		stream, err := b.reattach(ctx, st, after)
@@ -356,6 +369,10 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 			return stream, err
 		}
 		// The stream expired while it was being authorized: open afresh.
+	}
+	topics, attrs, err := b.checkTopics(topics)
+	if err != nil {
+		return nil, err
 	}
 
 	b.mu.Lock()
@@ -442,9 +459,10 @@ func (b *Broker) oldestDetachedLocked(match func(*streamState) bool) *streamStat
 }
 
 // resumable finds the stream lastEventID names, if s may resume it, and the
-// sequence the client last received.
+// broker sequence the client last received. An event id the stream no longer
+// remembers resumes at sequence 0, so every topic gets a fresh snapshot.
 func (b *Broker) resumable(s Session, lastEventID string) (st *streamState, after uint64, ok bool) {
-	epoch, id, after, ok := parseEventID(lastEventID)
+	epoch, id, local, ok := parseEventID(lastEventID)
 	if !ok || epoch != b.epoch {
 		return nil, 0, false
 	}
@@ -454,7 +472,21 @@ func (b *Broker) resumable(s Session, lastEventID string) (st *streamState, afte
 	if st == nil || st.session != s.Key || !sameIdentity(st.who, s.Identity) {
 		return nil, 0, false
 	}
-	return st, after, true
+	if i, found := slices.BinarySearchFunc(st.marks, local, func(m idMark, id uint64) int { return cmp.Compare(m.id, id) }); found {
+		return st, st.marks[i].seq, true
+	}
+	return st, 0, true
+}
+
+// nextIDLocked hands out st's next event id for an event carrying broker
+// sequence seq, remembering the pair for a resume.
+func (b *Broker) nextIDLocked(st *streamState, seq uint64) uint64 {
+	st.lastID++
+	if len(st.marks) >= b.opts.QueueSize {
+		st.marks = slices.Delete(st.marks, 0, len(st.marks)-b.opts.QueueSize+1)
+	}
+	st.marks = append(st.marks, idMark{id: st.lastID, seq: seq})
+	return st.lastID
 }
 
 // parseEventID splits an id written by Stream.eventID.
@@ -555,7 +587,8 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*
 		}
 	}
 	slices.SortFunc(replay, func(x, y entry) int { return cmp.Compare(x.seq, y.seq) })
-	c.backlog = slices.Concat(closed, replay, snapshots)
+	c.backlog = slices.Concat(st.pending, closed, replay, snapshots)
+	st.pending = nil
 	if len(st.subs) == 0 && st.emptySince.IsZero() {
 		st.emptySince = time.Now()
 	}
@@ -582,6 +615,7 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 		if _, held := st.subs[d.topic]; held {
 			continue
 		}
+		st.pending = slices.DeleteFunc(st.pending, func(e entry) bool { return e.topic == d.topic })
 		tp := b.topics[d.topic]
 		if tp == nil {
 			tp = &topicState{ring: newRing(b.opts.RingSize, b.seq), subs: map[*streamState]*subscription{}}
@@ -620,28 +654,32 @@ func (b *Broker) activate(topics []Topic) {
 	}
 }
 
-// lookupLocked finds the stream id belonging to session.
-func (b *Broker) lookupLocked(session, id string) (*streamState, error) {
+// lookupLocked finds the stream id belonging to s: the same session and the
+// same identity, as for a resume.
+func (b *Broker) lookupLocked(s Session, id string) (*streamState, error) {
 	if b.closed {
 		return nil, ErrClosed
 	}
 	st := b.streams[id]
-	if st == nil || st.session != session {
+	if st == nil || st.session != s.Key || !sameIdentity(st.who, s.Identity) {
 		return nil, ErrNoStream
 	}
 	return st, nil
 }
 
 // Subscribe attaches topics to an open stream of s. Topics are authorized for
-// the identity the stream was opened with; a denied topic is closed on the
-// stream. Topics the stream already carries are left as they are.
+// the identity the stream was opened with, which s must match; a denied topic
+// is closed on the stream, at once or, while the stream is detached, first
+// thing on its next connection. Topics the stream already carries are left
+// as they are. Topics denied while detached count towards the cap until they
+// are sent.
 func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topics ...Topic) error {
 	topics, attrs, err := b.checkTopics(topics)
 	if err != nil {
 		return err
 	}
 	b.mu.Lock()
-	st, err := b.lookupLocked(s.Key, streamID)
+	st, err := b.lookupLocked(s, streamID)
 	if err != nil {
 		b.mu.Unlock()
 		return err
@@ -653,7 +691,7 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 			fresh = append(fresh, t)
 		}
 	}
-	held := len(st.subs)
+	held := len(st.subs) + len(st.pending)
 	b.mu.Unlock()
 	if held+len(fresh) > b.opts.MaxTopicsPerStream {
 		// Refused before any review is sent.
@@ -662,18 +700,23 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 	decisions := b.authorize(ctx, who, fresh, attrs)
 
 	b.mu.Lock()
-	if cur, lerr := b.lookupLocked(s.Key, streamID); lerr != nil || cur != st {
+	if cur, lerr := b.lookupLocked(s, streamID); lerr != nil || cur != st {
 		b.mu.Unlock()
 		return ErrNoStream
 	}
-	if len(st.subs)+len(fresh) > b.opts.MaxTopicsPerStream {
+	if len(st.subs)+len(st.pending)+len(fresh) > b.opts.MaxTopicsPerStream {
 		b.mu.Unlock()
 		return ErrTooManyTopics
 	}
 	var release []func()
 	activate := b.attachLocked(st, decisions, func(e entry) {
-		if st.conn != nil {
+		switch {
+		case st.conn != nil:
 			release = append(release, b.enqueueLocked(st, e)...)
+		case e.kind == entClosed:
+			// The next connection sends it; a snapshot needs no keeping,
+			// as reattach snapshots a topic whose marker the client missed.
+			st.pending = append(slices.DeleteFunc(st.pending, func(p entry) bool { return p.topic == e.topic }), e)
 		}
 	})
 	b.mu.Unlock()
@@ -686,7 +729,7 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 // carry is ignored.
 func (b *Broker) Unsubscribe(s Session, streamID string, topics ...Topic) error {
 	b.mu.Lock()
-	st, err := b.lookupLocked(s.Key, streamID)
+	st, err := b.lookupLocked(s, streamID)
 	if err != nil {
 		b.mu.Unlock()
 		return err

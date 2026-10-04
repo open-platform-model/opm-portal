@@ -409,3 +409,73 @@ func TestTopicsThatCannotAttach(t *testing.T) {
 		}
 	})
 }
+
+// Event ids count the stream's own events only: items left out for the
+// reader, other topics and other streams leave no gap (0030:D7:R2).
+func TestEventIDsRevealNothingPublishedElsewhere(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice", "bob")
+		e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
+			return a.Verb == "list" || a.Namespace == "team-a", nil
+		})
+		e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
+		all := mustTopic(t, "instances")
+		other := mustTopic(t, "instance:team-b/two")
+		e.prod.upsert(t, all, instItem("team-b", "two", 1))
+
+		a := e.open(session("alice"), "instances")
+		e.open(session("bob"), "instances", "instance:team-b/two")
+		e.open(session("bob"), "platform")
+		e.prod.upsert(t, all, instItem("team-b", "two", 2))
+		e.prod.upsert(t, other, instItem("team-b", "two", 2))
+		e.prod.upsert(t, all, instItem("team-a", "one", 1))
+		e.prod.upsert(t, all, instItem("team-b", "two", 3))
+		e.prod.upsert(t, all, instItem("team-a", "one", 2))
+		synctest.Wait()
+
+		var ids []uint64
+		for _, ev := range a.rec.take() {
+			if ev.ID != "" {
+				ids = append(ids, seqOf(t, ev.ID))
+			}
+		}
+		if want := []uint64{1, 2, 3}; !slices.Equal(ids, want) {
+			t.Errorf("alice's event ids = %v, want %v", ids, want)
+		}
+	})
+}
+
+func TestStreamsChangeOnlyForTheIdentityThatOpenedThem(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice", "mallory")
+		e.policy.set("alice", allowNamespaces("apps"))
+		e.policy.set("mallory", allowNamespaces("apps"))
+		sv := e.open(session("alice"), "instance:apps/blog")
+		web := mustTopic(t, "instance:apps/web")
+		// The same session key now names another principal.
+		relogin := Session{Key: session("alice").Key, Identity: user("mallory")}
+		if err := e.b.Subscribe(context.Background(), relogin, sv.ID(), web); !errors.Is(err, ErrNoStream) {
+			t.Errorf("Subscribe under another identity = %v", err)
+		}
+		if err := e.b.Unsubscribe(relogin, sv.ID(), mustTopic(t, "instance:apps/blog")); !errors.Is(err, ErrNoStream) {
+			t.Errorf("Unsubscribe under another identity = %v", err)
+		}
+		if n := e.policy.count(); n != 1 {
+			t.Errorf("%d reviews sent, want 1 (alice's own topic)", n)
+		}
+	})
+}
+
+func TestTheCapIsCheckedBeforeTheProducerIsAsked(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{MaxTopicsPerStream: 2}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		three := []Topic{mustTopic(t, "instance:apps/a"), mustTopic(t, "instance:apps/b"), mustTopic(t, "instance:apps/c")}
+		if _, err := e.b.Open(context.Background(), session("alice"), three, ""); !errors.Is(err, ErrTooManyTopics) {
+			t.Fatalf("three topics: %v", err)
+		}
+		if e.prod.attributeCalls != 0 {
+			t.Errorf("Attributes called %d times for a refused request", e.prod.attributeCalls)
+		}
+	})
+}
