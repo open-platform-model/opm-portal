@@ -22,8 +22,8 @@
 
 ## 4. Tier 4: events (internal/readmodel)
 
-- [ ] 4.1 Add `Events`: `events.k8s.io/v1` lists in the object's namespace or `default` for the Platform and registrations, `regarding.*` field selectors plus the same filter client-side, folding on (regarding uid, type, reason, note) with series, deprecated and plain counts and the latest time, newest first; verify with F1 (Platform `Generated` events from `default`, kubelet lines with `eventTime: null`, the CLI-owned instance's `ManagedExternally`) and a not-covered grant
-- [ ] 4.2 `task check` green, then commit `chore(readmodel): read events about one object on demand`
+- [x] 4.1 Add `Events`: `events.k8s.io/v1` lists in the object's namespace or `default` for the Platform and registrations, `regarding.*` field selectors plus the same filter client-side, folding on (regarding uid, type, reason, note) with series, deprecated and plain counts and the latest time, newest first; verify with F1 (Platform `Generated` events from `default`, kubelet lines with `eventTime: null`, the CLI-owned instance's `ManagedExternally`) and a not-covered grant
+- [x] 4.2 `task check` green, then commit `chore(readmodel): read events about one object on demand`
 
 ## 5. Grant signatures, measurements and the record (internal/readmodel, design.md)
 
