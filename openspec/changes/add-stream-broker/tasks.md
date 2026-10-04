@@ -7,9 +7,9 @@
 
 ## 2. Broker: subscriptions, authorization and delivery (internal/stream)
 
-- [ ] 2.1 Add `Item`, `Producer`, `Session`, `Options`, the errors, `New`, `Publish`, `Open` (fresh streams only), `Subscribe`, `Unsubscribe`, `Close`, and `Stream.Serve` writing `open`, `snapshot`, item and `closed` messages with strictly increasing ids; verify with `synctest` tests over a fake producer and a real local `authz.Checker` on a fake clientset: snapshot then changes, a change racing the snapshot is never lost, topics added and removed on an open stream, `Activate`/`release` refcounting
-- [ ] 2.2 Gate subscriptions and deliveries through `authz`: synchronous check before registering a topic, `Covers` then re-`Check` before each delivery and on each heartbeat, per-item gate, `forbidden` and `upstream_unavailable` closes, unauthenticated sessions refused with no review; verify with tests that a namespace-limited subscriber gets zero items of another namespace from snapshots and changes, that a revoked permission closes the topic after the TTL, and that a review error delivers nothing
-- [ ] 2.3 `task check` green, then commit `chore(stream): add the broker with per-subscriber authorization`
+- [x] 2.1 Add `Producer`, `Session`, `Options`, the errors, `New`, `Publish`, `Open` (fresh streams only), `Subscribe`, `Unsubscribe`, `Close`, and `Stream.Serve` writing `open`, `snapshot`, item and `closed` messages with strictly increasing ids; verify with `synctest` tests over a fake producer and a real local `authz.Checker` on a fake clientset: snapshot then changes, a change racing the snapshot is never lost, topics added and removed on an open stream, `Activate`/`release` refcounting
+- [x] 2.2 Gate subscriptions and deliveries through `authz`: synchronous check before registering a topic, `Covers` then re-`Check` before each delivery and on each heartbeat, per-item gate, `forbidden` and `upstream_unavailable` closes, unauthenticated sessions refused with no review; verify with tests that a namespace-limited subscriber gets zero items of another namespace from snapshots and changes, that a revoked permission closes the topic after the TTL, and that a review error delivers nothing
+- [x] 2.3 `task check` green, then commit `chore(stream): add the broker with per-subscriber authorization`
 
 ## 3. Resume, keepalive and bounds (internal/stream)
 
