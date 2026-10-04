@@ -14,9 +14,9 @@
 
 ## 3. Applied axis and registration verdicts
 
-- [ ] 3.1 Add `AppliedState`, `Applied`, `Note` and `ReadApplied(u)` with the first-match order of the design; verify against every captured ModuleInstance, ModulePackage and Platform sample (podinfo healthy and broken Applied, cert-manager apply-failed Failed and retrying, CLI-owned ManagedExternally, Flux-less package Failed `SourceNotReady`, fresh Platform Applied with an `UnfulfilledContracts` note), plus synthetic Stalled, Suspended, Reconciling, Drifted and unknown-kind cases, and a test that changing `failureCounters` changes nothing
-- [ ] 3.2 Add `Verdict`, `Registration` and `ReadRegistration(u)`; verify against every captured TransformerRegistration (refusals Refused, rendered beta.5 claim Refused `CatalogUnresolved`, accepted-active Accepted, removal-blocked RemovalBlocked with accepted and active true)
-- [ ] 3.3 `task check` green, then commit `chore(health): read the applied axis and registration verdicts`
+- [x] 3.1 Add `AppliedState`, `Applied`, `Note` and `ReadApplied(u)` with the first-match order of the design; verify against every captured ModuleInstance, ModulePackage and Platform sample (podinfo healthy and broken Applied, cert-manager apply-failed Failed and retrying, CLI-owned ManagedExternally, Flux-less package Failed `SourceNotReady`, fresh Platform Applied with an `UnfulfilledContracts` note), plus synthetic Stalled, Suspended, Reconciling, Drifted and unknown-kind cases, and a test that changing `failureCounters` changes nothing
+- [x] 3.2 Add `Verdict`, `Registration` and `ReadRegistration(u)`; verify against every captured TransformerRegistration (refusals Refused, rendered beta.5 claim Refused `CatalogUnresolved`, accepted-active Accepted, removal-blocked RemovalBlocked with accepted and active true)
+- [x] 3.3 `task check` green, then commit `chore(health): read the applied axis and registration verdicts`
 
 ## 4. Reason explanations
 
