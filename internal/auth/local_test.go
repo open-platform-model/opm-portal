@@ -54,6 +54,7 @@ func newFixture(t *testing.T) *fixture {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "signed in at "+r.URL.RequestURI())
 	}))
 	return f
 }
@@ -117,25 +118,19 @@ func launchPathOf(t *testing.T, l *Local) string {
 	return u.RequestURI()
 }
 
-// checkHandOff checks that res is the page that moves a launched browser
-// on to the landing page, and that it carries no token.
+// checkHandOff checks that res is the landing page itself, served by the
+// next handler under the session for the landing path, with no redirect
+// and no token.
 func checkHandOff(t *testing.T, res result) {
 	t.Helper()
 	if res.status != http.StatusOK {
 		t.Fatalf("launch status = %d; want 200", res.status)
 	}
-	if ct := res.header.Get("Content-Type"); ct != "text/html; charset=utf-8" {
-		t.Fatalf("launch Content-Type = %q", ct)
-	}
 	if res.header.Get("Location") != "" || res.header.Get("Cache-Control") != "no-store" {
 		t.Fatalf("launch headers = %v; want no Location and Cache-Control no-store", res.header)
 	}
-	const to = "/api/v1alpha1/clusters/default/instances"
-	if !strings.Contains(res.body, `<meta http-equiv="refresh" content="0;url=`+to+`">`) || !strings.Contains(res.body, `<a href="`+to+`">`) {
-		t.Fatalf("launch page = %s; want a refresh and a link to the landing page", res.body)
-	}
-	if strings.Contains(res.body, "token") {
-		t.Fatalf("launch page names the token: %s", res.body)
+	if want := "signed in at /api/v1alpha1/clusters/default/instances"; res.body != want {
+		t.Fatalf("launch answered %q; want the landing page under the session (%q)", res.body, want)
 	}
 }
 
@@ -212,10 +207,14 @@ func TestLaunchRefusals(t *testing.T) {
 	if bodies[0] != bodies[1] || bodies[1] != bodies[2] {
 		t.Errorf("refusal bodies differ: %q", bodies)
 	}
-	// A refused attempt does not spend the token.
-	f.launch(t)
+	// A refused attempt reaches nothing and does not spend the token; the
+	// launch then serves the landing page once.
 	if f.reached != 0 {
-		t.Fatalf("launch requests reached the next handler %d times", f.reached)
+		t.Fatalf("refused launches reached the next handler %d times", f.reached)
+	}
+	f.launch(t)
+	if f.reached != 1 {
+		t.Fatalf("the launch reached the next handler %d times; want once, for the landing page", f.reached)
 	}
 	if got := f.do(t, request{method: http.MethodPost, target: f.launchPath(t), header: map[string]string{"Sec-Fetch-Site": "same-origin"}}).status; got != http.StatusMethodNotAllowed {
 		t.Errorf("POST launch = %d; want 405", got)

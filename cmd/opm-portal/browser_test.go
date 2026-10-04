@@ -11,11 +11,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
+	"github.com/open-platform-model/opm-portal/internal/ui"
 )
 
 // playwrightImage pins the browsers; the Python package installed in it
@@ -101,15 +103,28 @@ func serveFrontDoor(t *testing.T) frontDoor {
 	if err != nil {
 		t.Fatal(err)
 	}
+	pages, err := ui.New(ui.Config{API: http.NotFoundHandler()})
+	if err != nil {
+		t.Fatal(err)
+	}
 	srv := &http.Server{
 		Handler: gate.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			if strings.HasPrefix(r.URL.Path, "/static/") {
+				pages.ServeHTTP(w, r)
+				return
+			}
+			// A stand-in landing page under the page policy, loading the
+			// page script that replaces the launch address.
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.Header().Set("Content-Security-Policy", ui.PagePolicy)
 			if _, _, err := gate.Authenticate(r); err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				_, _ = io.WriteString(w, "no session\n")
 				return
 			}
-			_, _ = io.WriteString(w, "signed in\n")
+			_, _ = io.WriteString(w, `<!doctype html><meta charset="utf-8"><title>landing</title>`+
+				`<body><main id="main" data-canonical="`+landing+`">signed in</main>`+
+				`<script src="/static/portal.js"></script></body>`)
 		})),
 		ReadHeaderTimeout: 10 * time.Second,
 	}

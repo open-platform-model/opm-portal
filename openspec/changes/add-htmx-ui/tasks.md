@@ -23,7 +23,7 @@
 - [x] 3.2 `cmd/opm-portal`: mount the read API under its prefix and the UI everywhere else; landing `/`
 - [x] 3.3 Tests: auth launch serves the landing under the session; browser test stand-in page loads `portal.js` under the page policy; e2e launch and instance page
 - [x] 3.4 Run `task test:browser` (Chromium, Firefox, WebKit, both launch paths)
-- [ ] 3.5 `task check` green, then commit `feat(local): land a launch on the platform page`
+- [x] 3.5 `task check` green, then commit `feat(local): land a launch on the platform page`
 
 ## 4. End to end, screenshots and docs (test, README, AGENTS.md)
 

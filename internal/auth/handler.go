@@ -1,15 +1,14 @@
 package auth
 
 import (
-	"html"
 	"io"
 	"net/http"
 	"strings"
 )
 
-// securityHeaders are set on every response, refusals included. The only
-// HTML the portal serves is the launch's hand-off page, which needs no
-// script, style or subresource, so the policy allows nothing at all.
+// securityHeaders are set on every response, refusals included. The policy
+// allows nothing at all; the UI's pages replace it with their own, which
+// widens it only to the portal's own origin.
 var securityHeaders = [][2]string{
 	{"Content-Security-Policy", "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"},
 	{"X-Content-Type-Options", "nosniff"},
@@ -33,10 +32,9 @@ const (
 // authenticates through Authenticate.
 func (l *Local) Handler(next http.Handler) http.Handler {
 	cop := http.NewCrossOriginProtection()
-	launch := http.HandlerFunc(l.serveLaunch)
 	inner := cop.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == LaunchPath {
-			launch(w, r)
+			l.serveLaunch(w, r, next)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -55,10 +53,18 @@ func (l *Local) Handler(next http.Handler) http.Handler {
 	})
 }
 
-// serveLaunch exchanges the launch token for the session. A request that
-// already carries the live session is sent on whatever its token, so
-// opening the link again after a launch lands where the first one did.
-func (l *Local) serveLaunch(w http.ResponseWriter, r *http.Request) {
+// serveLaunch exchanges the launch token for the session and answers with
+// the landing page itself, served by next under the new session. A request
+// that already carries the live session gets the landing page whatever its
+// token, so opening the link again lands where the first one did.
+//
+// It does not redirect: serve --open starts the launch from a file:// page,
+// and a browser treats a redirect as part of that cross-site navigation,
+// withholding the new SameSite=Strict cookie from the landing request. The
+// page's own requests start on the portal's origin, so they carry it; its
+// script then replaces the address, so the spent token leaves the history.
+// Referrer-Policy keeps the launch URL out of every later request.
+func (l *Local) serveLaunch(w http.ResponseWriter, r *http.Request, next http.Handler) {
 	w.Header().Set("Cache-Control", "no-store")
 	if r.Method != http.MethodGet {
 		w.Header().Set("Allow", http.MethodGet)
@@ -66,7 +72,7 @@ func (l *Local) serveLaunch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, ok := l.sessionOf(r); ok {
-		l.handOff(w)
+		next.ServeHTTP(w, l.landingRequest(r, nil))
 		return
 	}
 	cookie, ok := l.launch(r.URL.Query().Get("token"))
@@ -77,27 +83,21 @@ func (l *Local) serveLaunch(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 	l.log.Info("browser session started")
-	l.handOff(w)
+	next.ServeHTTP(w, l.landingRequest(r, cookie))
 }
 
-// handOff answers a launch with a page that moves on to the landing page,
-// not with a redirect. serve --open starts the launch from a file:// page,
-// and a browser treats a redirect as part of that cross-site navigation,
-// withholding the new SameSite=Strict cookie from the landing request.
-// The refresh below starts from this page, on the portal's own origin, so
-// the landing request is same-site and carries the session. The page names
-// no token; Referrer-Policy keeps the launch URL out of the next request.
-func (l *Local) handOff(w http.ResponseWriter) {
-	h := w.Header()
-	h.Set("Content-Type", "text/html; charset=utf-8")
-	h.Set("Cache-Control", "no-store")
-	w.WriteHeader(http.StatusOK)
-	to := html.EscapeString(l.landing)
-	page := `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=` + to + `">` +
-		`<title>opm-portal</title><p><a href="` + to + `">Continue to opm-portal</a></p>` + "\n"
-	if _, err := io.WriteString(w, page); err != nil {
-		l.log.Debug("writing the launch hand-off page", "error", err)
+// landingRequest is r as a request for the landing page, carrying the new
+// session's cookie when one was just set, and no token.
+func (l *Local) landingRequest(r *http.Request, cookie *http.Cookie) *http.Request {
+	lr := r.Clone(r.Context())
+	u := *r.URL
+	u.Path, u.RawPath, u.RawQuery = l.landing, "", ""
+	lr.URL, lr.RequestURI = &u, l.landing
+	if cookie != nil {
+		lr.Header.Del("Cookie")
+		lr.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})
 	}
+	return lr
 }
 
 func (l *Local) refuse(w http.ResponseWriter, status int, body string) {

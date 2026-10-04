@@ -33,6 +33,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/logs"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
 	"github.com/open-platform-model/opm-portal/internal/stream"
+	"github.com/open-platform-model/opm-portal/internal/ui"
 )
 
 const (
@@ -41,9 +42,8 @@ const (
 	shutdownTimeout = 5 * time.Second
 )
 
-// landing is where a browser goes after its launch, until the portal has
-// pages of its own.
-const landing = api.Prefix + "/clusters/" + api.DefaultCluster + "/instances"
+// landing is the page a launch answers with: the Platform.
+const landing = "/"
 
 // serveOptions are the serve subcommand's flags.
 type serveOptions struct {
@@ -216,7 +216,7 @@ func runLocal(ctx context.Context, o serveOptions, addr string, stdout io.Writer
 	defer p.close()
 
 	httpSrv := &http.Server{
-		Handler:           p.gate.Handler(p.api),
+		Handler:           p.gate.Handler(p.site),
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       2 * time.Minute,
 		ErrorLog:          slog.NewLogLogger(log.Handler(), slog.LevelWarn),
@@ -295,6 +295,9 @@ type portal struct {
 	model *readmodel.Model
 	api   *api.Server
 	gate  *auth.Local
+	// site serves the read API under api.Prefix and the pages everywhere
+	// else.
+	site http.Handler
 }
 
 func (p *portal) close() {
@@ -383,7 +386,20 @@ func wire(c cluster, model *readmodel.Model, bound netip.AddrPort, log *slog.Log
 		return nil, err
 	}
 	logsProducer.SetPublisher(srv.Broker())
-	return &portal{model: model, api: srv, gate: gate}, nil
+	pages, err := ui.New(ui.Config{API: srv, APIBase: api.Prefix + "/clusters/" + api.DefaultCluster, Logger: log})
+	if err != nil {
+		srv.Close()
+		return nil, err
+	}
+	return &portal{model: model, api: srv, gate: gate, site: site(srv, pages)}, nil
+}
+
+// site mounts the read API under its prefix and the pages everywhere else.
+func site(apiHandler, pages http.Handler) http.Handler {
+	mux := http.NewServeMux()
+	mux.Handle(api.Prefix+"/", apiHandler)
+	mux.Handle("/", pages)
+	return mux
 }
 
 // openLaunch opens url in a browser without putting it on a command line,
