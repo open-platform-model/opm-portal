@@ -1,0 +1,541 @@
+# podinfo healthy: two replicas running.
+# Captured live from a throwaway kind cluster (Kubernetes v1.36.1, opm-operator v1.0.0-beta.5),
+# enhancement 0030 experiment 01. managedFields and annotations removed; no Secrets.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    creationTimestamp: '2026-10-04T13:41:11Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: podinfo
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+      module-instance.opmodel.dev/uuid: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+      module.opmodel.dev/name: podinfo
+      module.opmodel.dev/uuid: 88d73eac-695b-5baf-a3f1-1101b88eea73
+      module.opmodel.dev/version: 0.1.11
+    name: podinfo-podinfo
+    namespace: default
+    resourceVersion: '1177'
+    uid: 99d8e0b3-257d-4384-8c75-ad31cc64e4b5
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: podinfo
+        component.opmodel.dev/name: podinfo
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: podinfo
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: podinfo
+          component.opmodel.dev/name: podinfo
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: podinfo
+      spec:
+        containers:
+        - image: ghcr.io/stefanprodan/podinfo:6.7.1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 9898
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: podinfo
+          ports:
+          - containerPort: 9898
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /readyz
+              port: 9898
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:41:15Z'
+      lastUpdateTime: '2026-10-04T13:41:15Z'
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: 'True'
+      type: Available
+    - lastTransitionTime: '2026-10-04T13:41:11Z'
+      lastUpdateTime: '2026-10-04T13:41:15Z'
+      message: ReplicaSet "podinfo-podinfo-d9585d794" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: 'True'
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    terminatingReplicas: 0
+    updatedReplicas: 2
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: '2026-10-04T13:41:11Z'
+    generateName: podinfo-podinfo-d9585d794-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+      pod-template-hash: d9585d794
+    name: podinfo-podinfo-d9585d794-5m9tx
+    namespace: default
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: podinfo-podinfo-d9585d794
+      uid: d16fabdd-921f-419f-b0c9-ef5605c5c4b0
+    resourceVersion: '1168'
+    uid: cb104646-7b48-4d74-a4e5-54bf99e304d7
+  spec:
+    containers:
+    - image: ghcr.io/stefanprodan/podinfo:6.7.1
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /healthz
+          port: 9898
+          scheme: HTTP
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      name: podinfo
+      ports:
+      - containerPort: 9898
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /readyz
+          port: 9898
+          scheme: HTTP
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-2pxp6
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: opm-portal-probe-control-plane
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-2pxp6
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:11Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:11Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:15Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:15Z'
+      observedGeneration: 1
+      status: 'True'
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:11Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://7995e03a9454279b7ffea6cca216cf6768c7a76ae7fae59d6067717b33a53187
+      image: ghcr.io/stefanprodan/podinfo:6.7.1
+      imageID: ghcr.io/stefanprodan/podinfo@sha256:862ca45e61b32392f7941a1bdfdbe5ff8b6899070135f1bdca1c287d0057fc94
+      lastState: {}
+      name: podinfo
+      ready: true
+      resources: {}
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: '2026-10-04T13:41:15Z'
+      user:
+        linux:
+          gid: 101
+          supplementalGroups:
+          - 101
+          uid: 100
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-2pxp6
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.89.0.2
+    hostIPs:
+    - ip: 10.89.0.2
+    observedGeneration: 1
+    phase: Running
+    podIP: 10.244.0.7
+    podIPs:
+    - ip: 10.244.0.7
+    qosClass: BestEffort
+    resources: {}
+    startTime: '2026-10-04T13:41:11Z'
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: '2026-10-04T13:41:11Z'
+    generateName: podinfo-podinfo-d9585d794-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+      pod-template-hash: d9585d794
+    name: podinfo-podinfo-d9585d794-j6jr9
+    namespace: default
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: podinfo-podinfo-d9585d794
+      uid: d16fabdd-921f-419f-b0c9-ef5605c5c4b0
+    resourceVersion: '1172'
+    uid: 845ed964-a392-419e-bff3-a27ac774c89d
+  spec:
+    containers:
+    - image: ghcr.io/stefanprodan/podinfo:6.7.1
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /healthz
+          port: 9898
+          scheme: HTTP
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      name: podinfo
+      ports:
+      - containerPort: 9898
+        name: http
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /readyz
+          port: 9898
+          scheme: HTTP
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-k7fk2
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: opm-portal-probe-control-plane
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-k7fk2
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:11Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:11Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:15Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:15Z'
+      observedGeneration: 1
+      status: 'True'
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:41:11Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://5b0c30a1abd4f02d9826eaf68f8c6038339954e52084c6b7123cd41388143866
+      image: ghcr.io/stefanprodan/podinfo:6.7.1
+      imageID: ghcr.io/stefanprodan/podinfo@sha256:862ca45e61b32392f7941a1bdfdbe5ff8b6899070135f1bdca1c287d0057fc94
+      lastState: {}
+      name: podinfo
+      ready: true
+      resources: {}
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: '2026-10-04T13:41:14Z'
+      user:
+        linux:
+          gid: 101
+          supplementalGroups:
+          - 101
+          uid: 100
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-k7fk2
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.89.0.2
+    hostIPs:
+    - ip: 10.89.0.2
+    observedGeneration: 1
+    phase: Running
+    podIP: 10.244.0.8
+    podIPs:
+    - ip: 10.244.0.8
+    qosClass: BestEffort
+    resources: {}
+    startTime: '2026-10-04T13:41:11Z'
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    creationTimestamp: '2026-10-04T13:41:11Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+      pod-template-hash: d9585d794
+    name: podinfo-podinfo-d9585d794
+    namespace: default
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: podinfo-podinfo
+      uid: 99d8e0b3-257d-4384-8c75-ad31cc64e4b5
+    resourceVersion: '1176'
+    uid: d16fabdd-921f-419f-b0c9-ef5605c5c4b0
+  spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: podinfo
+        component.opmodel.dev/name: podinfo
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: podinfo
+        pod-template-hash: d9585d794
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: podinfo
+          component.opmodel.dev/name: podinfo
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: podinfo
+          pod-template-hash: d9585d794
+      spec:
+        containers:
+        - image: ghcr.io/stefanprodan/podinfo:6.7.1
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 9898
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: podinfo
+          ports:
+          - containerPort: 9898
+            name: http
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /readyz
+              port: 9898
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 2
+    fullyLabeledReplicas: 2
+    observedGeneration: 1
+    readyReplicas: 2
+    replicas: 2
+    terminatingReplicas: 0
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: '2026-10-04T13:41:11Z'
+    labels:
+      app.kubernetes.io/instance: podinfo
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+      module-instance.opmodel.dev/uuid: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+      module.opmodel.dev/name: podinfo
+      module.opmodel.dev/uuid: 88d73eac-695b-5baf-a3f1-1101b88eea73
+      module.opmodel.dev/version: 0.1.11
+    name: podinfo-podinfo
+    namespace: default
+    resourceVersion: '1118'
+    uid: d34d1c26-0337-43ed-9be2-ccc58a4d1d2d
+  spec:
+    clusterIP: 10.96.247.98
+    clusterIPs:
+    - 10.96.247.98
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 9898
+      protocol: TCP
+      targetPort: 9898
+    selector:
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
