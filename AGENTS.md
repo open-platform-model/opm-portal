@@ -198,15 +198,16 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task openspec:check`: `openspec validate --all --strict` (install with
   `task openspec:install`).
 - `task deps:release-check`: the G1 release-pin gate.
-- `task check`: fmt, vet, lint, openspec, test.
+- `task check`: fmt, vet, lint, openspec, test, capture check.
 - `task e2e:up` / `task e2e:down`: create or delete the throwaway kind cluster `opm-portal-e2e`
   with the released operator and fixture set F1 (podman by default, `E2E_PROVIDER=docker`
-  otherwise; needs kind, kubectl, curl). Its kubeconfig is `.e2e/kubeconfig`; the scripts never
-  use another context.
+  otherwise, remembered in `.e2e/provider` for capture and down; needs kubectl, curl and the
+  kind release `test/e2e/versions.env` pins). Its kubeconfig is `.e2e/kubeconfig`; the scripts
+  never use another context.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
-  `task e2e:capture:check` refuses a capture holding a Secret, `managedFields`, the
-  last-applied annotation or `spec.values`. Moving a pin in `test/e2e/versions.env` means
-  recapturing.
+  `task e2e:capture:check` refuses any file under `testdata/clusters/` holding a Secret,
+  `managedFields`, the last-applied annotation or `spec.values`, or that does not parse. Moving
+  a pin in `test/e2e/versions.env` means recapturing.
 - Single test: `go test ./cmd/opm-portal -run TestRun`.
 
 ## Working Style for Agents

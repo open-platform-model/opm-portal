@@ -136,7 +136,8 @@ context: |
   3. `task lint` — golangci-lint passes.
   4. `task test` — all tests pass.
   5. `task openspec:check` — main specs and active changes validate under `--strict`.
-  `task check` runs all five.
+  6. `task e2e:capture:check` — no committed cluster capture holds a Secret, values or managedFields.
+  `task check` runs all six.
 
 rules:
   proposal:

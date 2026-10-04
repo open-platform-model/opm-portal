@@ -26,7 +26,7 @@ Requires Go (the version in `go.mod`), [Task](https://taskfile.dev) and
 ```bash
 task build              # bin/opm-portal
 ./bin/opm-portal        # prints the version
-task check              # fmt, vet, lint, openspec, test
+task check              # fmt, vet, lint, openspec, test, capture check
 ```
 
 `task openspec:check` needs the `openspec` CLI (`task openspec:install`, needs npm).
