@@ -15,7 +15,8 @@
 //   - Activate opens one upstream stream per topic, shared by every
 //     subscriber, as the reading identity after that identity's own check;
 //     the release closes it. Once a read has ended with a logend, the next
-//     admitted attach starts a new read on the same topic.
+//     new subscription (Follow) starts a new read on the same topic; a
+//     reconnect resumes and never does, so the logend stays the end.
 //
 // The portal bounds the output itself and never asks the API server for a
 // byte limit, which would end a followed stream outright: an oversize line

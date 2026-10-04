@@ -31,8 +31,8 @@ const (
 	// ReasonCompleted: the previous container's output was read to its end.
 	ReasonCompleted = "completed"
 	// ReasonUpstreamClosed: the API server ended the stream while the
-	// container still runs. Following the topic again starts a new tail,
-	// whether or not others still hold it.
+	// container still runs. Unsubscribing and subscribing again starts a
+	// new tail, whether or not others still hold it; a reconnect does not.
 	ReasonUpstreamClosed = "upstream_closed"
 	// ReasonContainerWaiting: the container has not started yet, or is
 	// waiting to restart.

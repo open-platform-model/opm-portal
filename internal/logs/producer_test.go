@@ -431,7 +431,7 @@ func TestInitAndEphemeralContainersCanBeFollowed(t *testing.T) {
 	}
 }
 
-func TestAnEndedReadRestartsOnTheNextAdmit(t *testing.T) {
+func TestAnEndedReadRestartsOnANewFollowOnly(t *testing.T) {
 	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{})
 	u.activate(t, liveTopic)
 	first := u.src.open(t)
@@ -446,9 +446,16 @@ func TestAnEndedReadRestartsOnTheNextAdmit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Admit also runs on a reconnect, so it never restarts a read.
 	if err := u.p.Admit(context.Background(), alice, topic, []authz.Grant{g}); err != nil {
 		t.Fatal(err)
 	}
+	u.pub.none(t)
+	if _, logs := u.src.calls(); logs != 1 {
+		t.Fatalf("%d log streams opened after Admit, want 1", logs)
+	}
+
+	u.p.Follow(topic)
 	second := u.src.open(t)
 	second.write(t, liveTS(u.clock.Now().Add(time.Second), "two"))
 	m := u.pub.next(t)
@@ -460,11 +467,28 @@ func TestAnEndedReadRestartsOnTheNextAdmit(t *testing.T) {
 		t.Errorf("snapshot after the restart = %d items, %v; want only the new read", len(items), err)
 	}
 	// A read in progress is not restarted.
-	if err := u.p.Admit(context.Background(), alice, topic, []authz.Grant{g}); err != nil {
-		t.Fatal(err)
-	}
+	u.p.Follow(topic)
 	if _, logs := u.src.calls(); logs != 2 {
 		t.Errorf("%d log streams opened, want 2", logs)
+	}
+}
+
+func TestAClosedActivationHasAnEmptySnapshot(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{})
+	u.activate(t, liveTopic)
+	fs := u.src.open(t)
+	fs.write(t, liveTS(u.clock.Now().Add(time.Second), "old"))
+	_ = fs.w.Close()
+	u.pub.next(t)
+	u.pub.next(t)
+	topic := mustTopic(t, liveTopic)
+	// The broker dropped the topic and its release has begun: the
+	// activation is closed but not yet gone.
+	tl := u.p.active(topic)
+	tl.close()
+	items, err := u.p.Snapshot(context.Background(), topic)
+	if err != nil || len(items) != 0 {
+		t.Errorf("snapshot of a closed activation = %d items, %v; want none", len(items), err)
 	}
 }
 

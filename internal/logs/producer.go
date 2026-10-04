@@ -117,7 +117,7 @@ type Config struct {
 }
 
 // Producer serves log topics to a stream.Broker. It implements
-// stream.Producer and stream.Admitter.
+// stream.Producer, stream.Admitter and stream.Follower.
 type Producer struct {
 	cfg  Config
 	opts Options
@@ -136,6 +136,7 @@ type Producer struct {
 var (
 	_ stream.Producer = (*Producer)(nil)
 	_ stream.Admitter = (*Producer)(nil)
+	_ stream.Follower = (*Producer)(nil)
 )
 
 // New returns a Producer for cfg. Call SetPublisher before the broker
@@ -193,12 +194,8 @@ func (p *Producer) Attributes(t stream.Topic) ([]authz.Attributes, bool) {
 // Admit implements stream.Admitter: the topic attaches only when an OPM
 // inventory who may read reaches the Pod (0030:D10:R1). It runs after the
 // broker allowed the topic's read, so nothing is looked up for a caller
-// without it, and every refusal is the same one.
-//
-// An admitted attach to a topic whose read has ended starts a new read, so
-// following again after a logend tails the container afresh even while
-// other subscribers still hold the topic. They receive the new read's
-// messages after their logend, with higher seq numbers.
+// without it, and every refusal is the same one. Admit starts nothing: it
+// also runs on a reconnect, which never reopens an ended read.
 func (p *Producer) Admit(ctx context.Context, who authz.Identity, t stream.Topic, grants []authz.Grant) error {
 	if t.Kind() != stream.KindLog || len(grants) != 1 {
 		return stream.ErrNotAdmitted
@@ -206,14 +203,24 @@ func (p *Producer) Admit(ctx context.Context, who authz.Identity, t stream.Topic
 	_, err := p.cfg.Reach.ReachPod(ctx, who, grants[0], t.Namespace(), t.Name())
 	switch {
 	case err == nil:
-		if tl := p.active(t); tl != nil {
-			tl.start()
-		}
 		return nil
 	case errors.Is(err, readmodel.ErrNotReachable), errors.Is(err, readmodel.ErrNotCovered):
 		return stream.ErrNotAdmitted
 	}
 	return fmt.Errorf("deciding whether an inventory reaches the pod: %w", err)
+}
+
+// Follow implements stream.Follower: a new subscription to a topic whose
+// read has ended starts a new read, so unsubscribing and subscribing again
+// after a logend tails the container afresh, even while other subscribers
+// still hold the topic. They receive the new read's messages after their
+// logend, with higher seq numbers. A reconnect resumes a subscription and
+// is no follow: for it the logend stays the end. A read in progress is left
+// as it is.
+func (p *Producer) Follow(t stream.Topic) {
+	if tl := p.active(t); tl != nil {
+		tl.start()
+	}
 }
 
 // Snapshot implements stream.Producer: the topic's recent messages. A
@@ -233,7 +240,9 @@ func (p *Producer) Snapshot(_ context.Context, t stream.Topic) ([]stream.Item, e
 // The broker calls a release after it dropped the topic, so a new
 // subscriber can activate the topic again before the old activation's
 // release ran. The new activation supersedes the old one at once: nothing
-// the old one reads afterwards is published.
+// the old one reads afterwards is published. A closed activation leaves
+// the topic at once and its snapshot is empty, so a subscriber that
+// re-creates the topic never sees the old activation's lines or logend.
 func (p *Producer) Activate(t stream.Topic) func() {
 	ctx, cancel := context.WithCancel(context.Background())
 	tl := &tail{p: p, topic: t, read: podLogRead(t), ctx: ctx, cancel: cancel}
@@ -249,18 +258,18 @@ func (p *Producer) Activate(t stream.Topic) func() {
 	return func() {
 		once.Do(func() {
 			tl.close()
-			tl.runs.Wait()
 			p.mu.Lock()
 			if p.tails[t] == tl {
 				delete(p.tails, t)
 			}
 			p.mu.Unlock()
+			tl.runs.Wait()
 		})
 	}
 }
 
 // tail is one activation of a log topic. It reads the container's log
-// through one upstream stream at a time; an attach after a read ended
+// through one upstream stream at a time; a new follow after a read ended
 // starts the next read.
 type tail struct {
 	p      *Producer
@@ -304,9 +313,13 @@ func (tl *tail) close() {
 	tl.mu.Unlock()
 }
 
+// recent returns the snapshot buffer; a closed activation's is empty.
 func (tl *tail) recent() []stream.Item {
 	tl.mu.Lock()
 	defer tl.mu.Unlock()
+	if tl.closed {
+		return []stream.Item{}
+	}
 	out := make([]stream.Item, len(tl.buf))
 	copy(out, tl.buf)
 	return out
@@ -315,7 +328,7 @@ func (tl *tail) recent() []stream.Item {
 // emit records m in the buffer, then publishes it, as the producer
 // contract requires. Both happen under the tail's lock, so messages are
 // published in seq order, and none once the activation is closed. A logend
-// ends the read: the next admitted attach starts a new one.
+// ends the read: the next new follow starts a new one.
 func (tl *tail) emit(m Message) {
 	event := stream.EventLog
 	if m.Type == TypeEnd {

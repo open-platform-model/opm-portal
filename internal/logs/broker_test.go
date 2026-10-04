@@ -86,6 +86,7 @@ func (r *sseRecorder) Write(p []byte) (int, error) {
 func (r *sseRecorder) Flush() {}
 
 type event struct {
+	id   string
 	name string
 	data struct {
 		Topic string          `json:"topic"`
@@ -106,6 +107,8 @@ func (r *sseRecorder) events(t testing.TB) []event {
 		for line := range strings.SplitSeq(block, "\n") {
 			field, value, _ := strings.Cut(line, ": ")
 			switch field {
+			case "id":
+				e.id = value
 			case "event":
 				e.name = value
 			case "data":
@@ -313,5 +316,80 @@ func TestFollowingAgainAfterTheEndRestartsASharedTopic(t *testing.T) {
 	})
 	if _, logs := s.src.calls(); logs != 2 {
 		t.Errorf("%d upstream streams, want 2: one per read", logs)
+	}
+}
+
+// lastID returns the id of the last event that carried one.
+func (r *sseRecorder) lastID(t testing.TB) string {
+	t.Helper()
+	id := ""
+	for _, e := range r.events(t) {
+		if e.id != "" {
+			id = e.id
+		}
+	}
+	return id
+}
+
+func TestAReconnectNeverReopensAnEndedRead(t *testing.T) {
+	s := newSystem(t)
+	a := s.open(t, "alice", liveTopic)
+	fs := s.src.open(t)
+	fs.write(t, liveTS(time.Now().Add(time.Second), "before"))
+	_ = fs.w.Close()
+	ended := func(r *sseRecorder) bool {
+		for _, e := range r.events(t) {
+			if e.name == stream.EventLogEnd {
+				return true
+			}
+		}
+		return false
+	}
+	eventually(t, "the end", func() bool { return ended(a.rec) })
+
+	// Alice's connection drops and she resumes with her Last-Event-ID, as
+	// an EventSource does.
+	last := a.rec.lastID(t)
+	a.cancel()
+	<-a.done
+	aliceSession := stream.Session{Key: "session-alice", Identity: alice}
+	st, err := s.b.Open(t.Context(), aliceSession, nil, last)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.ID() != a.ID() {
+		t.Fatalf("the reconnect opened stream %s, want the resumed %s", st.ID(), a.ID())
+	}
+	rec := &sseRecorder{}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		_ = st.Serve(ctx, rec)
+	}()
+	t.Cleanup(func() {
+		cancel()
+		<-done
+	})
+	eventually(t, "the resumed stream", func() bool { return len(rec.events(t)) > 0 })
+	time.Sleep(50 * time.Millisecond)
+	if _, logs := s.src.calls(); logs != 1 {
+		t.Fatalf("%d upstream streams after a plain reconnect, want 1", logs)
+	}
+	if got := rec.texts(t); len(got) != 0 {
+		t.Errorf("lines after the reconnect: %v", got)
+	}
+
+	// An explicit re-follow does start a new read.
+	topic := mustTopic(t, liveTopic)
+	if err := s.b.Unsubscribe(aliceSession, st.ID(), topic); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.b.Subscribe(t.Context(), aliceSession, st.ID(), topic); err != nil {
+		t.Fatal(err)
+	}
+	s.src.open(t)
+	if _, logs := s.src.calls(); logs != 2 {
+		t.Errorf("%d upstream streams after a re-follow, want 2", logs)
 	}
 }
