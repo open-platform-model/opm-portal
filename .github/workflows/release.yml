@@ -40,6 +40,12 @@ jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
+    # The only job that reads RELEASE_APP_PRIVATE_KEY. The release environment
+    # admits main only, so a workflow run on any other branch cannot read the
+    # key once it lives there.
+    environment: release
+    # release-please acts through the App token; GITHUB_TOKEN is unused.
+    permissions: {}
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -53,6 +59,12 @@ jobs:
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # The token is this job's only credential: scope it to what
+          # release-please uses (commits, release PRs, labels), never the
+          # installation's full grant.
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
 
       - name: Run release-please
         id: release
@@ -77,6 +89,8 @@ jobs:
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
           fetch-depth: 0
+          # The job token stays out of .git/config while build tooling runs.
+          persist-credentials: false
 
       - name: Check the release is still a draft
         env:
@@ -85,10 +99,13 @@ jobs:
           TAG: ${{ needs.release-please.outputs.tag_name }}
         run: .github/scripts/release-guard.sh assert-draft "${TAG}"
 
+      # No cache: a release binary never builds on a cache another run, on
+      # any branch, could have written.
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+          cache: false
 
       # goreleaser attaches the archives and checksums.txt to the existing
       # draft and leaves it a draft (.goreleaser.yml); publish-release
@@ -118,6 +135,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
+          # The job token stays out of .git/config while build tooling runs.
+          persist-credentials: false
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -161,7 +180,9 @@ jobs:
             type=raw,value=latest
 
       # No QEMU: the Dockerfile's builder runs on the build platform and
-      # cross-compiles, and the final stage has no RUN step.
+      # cross-compiles, and the final stage has no RUN step. No cache-from or
+      # cache-to: a release image never builds on a cache another run could
+      # have written.
       - name: Build and push image
         id: build
         if: steps.probe.outputs.state == 'absent'
@@ -172,8 +193,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Resolve the release image digest
         id: digest
@@ -273,6 +292,8 @@ jobs:
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
           sparse-checkout: .github/scripts
+          # The job token stays out of .git/config while build tooling runs.
+          persist-credentials: false
 
       - name: Publish the draft release
         env:
