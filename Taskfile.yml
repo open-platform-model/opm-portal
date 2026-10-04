@@ -95,6 +95,14 @@ tasks:
     cmds:
       - openspec validate --all --strict --no-interactive
 
+  #########################
+  ## Release tasks
+  #########################
+  deps:release-check:
+    desc: 'Release-pin gate G1 (workspace RELEASING.md, "Gates"): fail on a go.mod replace, or a pseudo-version or untagged OPM Go pin'
+    cmds:
+      - hack/release-pin-check.sh
+
   check:
     desc: Run all checks (fmt, vet, lint, openspec, test)
     cmds:

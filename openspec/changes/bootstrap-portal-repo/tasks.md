@@ -16,10 +16,10 @@
 
 ## 3. Pull request checks
 
-- [ ] 3.1 Add `hack/release-pin-check.sh` (G1 without the operator's `cue.mod` clauses) behind a new `task deps:release-check`; verify it prints `release-pin-check: ok` on this tree and fails on a scratch copy whose `go.mod` has a `replace`
-- [ ] 3.2 Add `.github/workflows/lint.yml` (job `name: Lint`: G1 on `release-please--*` heads, `task openspec:check`, golangci-lint v2.11.3) and `.github/workflows/test.yml` (job `name: Test`, `task test`); verify no other job is named `Lint`
-- [ ] 3.3 Add `.github/workflows/pr-title.yml` copied from the cli and `.github/dependabot.yml` from opm-operator (ignoring `github.com/open-platform-model/*` and docs-kit)
-- [ ] 3.4 `actionlint` and `task check` green, then commit `ci: add the Lint, Test and PR-title checks`
+- [x] 3.1 Add `hack/release-pin-check.sh` (G1 without the operator's `cue.mod` clauses) behind a new `task deps:release-check`; verify it prints `release-pin-check: ok` on this tree and fails on a scratch copy whose `go.mod` has a `replace`
+- [x] 3.2 Add `.github/workflows/lint.yml` (job `name: Lint`: G1 on `release-please--*` heads, `task openspec:check`, golangci-lint v2.11.3) and `.github/workflows/test.yml` (job `name: Test`, `task test`); verify no other job is named `Lint`
+- [x] 3.3 Add `.github/workflows/pr-title.yml` copied from the cli and `.github/dependabot.yml` from opm-operator (ignoring `github.com/open-platform-model/*` and docs-kit)
+- [x] 3.4 `actionlint` and `task check` green, then commit `ci: add the Lint, Test and PR-title checks`
 
 ## 4. Release pipeline
 

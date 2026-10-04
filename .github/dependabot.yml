@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+    ignore:
+      # docs-kit's publish.yml moves only with .opm-docs-version, after the site bumps (docs-kit C5, C12).
+      - dependency-name: "open-platform-model/docs-kit*"
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      # build is a hidden type here, so a Dependabot Go bump releases nothing as
+      # titled. Retitle it fix(deps) only for a security fix the binaries and
+      # image must ship (workspace RELEASING.md, "Dependabot PRs"); the squash
+      # merge carries the PR title only. deps would release: it is a visible
+      # section in release-please-config.json.
+      prefix: "build"
+      include: "scope"
+    groups:
+      # The Kubernetes stack moves in lockstep; bump it as one PR.
+      kubernetes:
+        patterns:
+          - "k8s.io/*"
+          - "sigs.k8s.io/*"
+    ignore:
+      # OPM modules move by hand as a fix(deps) PR while this repo is a leaf
+      # outside the release cascade (workspace RELEASING.md, "Pin classes").
+      - dependency-name: "github.com/open-platform-model/*"

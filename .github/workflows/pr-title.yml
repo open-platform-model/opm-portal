@@ -1,0 +1,63 @@
+name: PR Title
+
+# Squash-merge is the norm here. release-please parses the squash commit title
+# as a Conventional Commit to build the changelog and pick the next version.
+# That title equals the PR title only once the repo's
+# squash_merge_commit_title is PR_TITLE (owner setting, workspace RELEASING.md,
+# section "Owner settings"); until then a one-commit PR squashes under its
+# commit subject, so that subject must be a Conventional Commit too. The squash
+# body is BLANK under the same owner settings, so the PR title is all
+# release-please reads: a breaking change is a "!" in the title, and a forced
+# version is a release-as key in
+# release-please-config.json, landed by a normal PR and removed by another
+# once that release is cut (release-please re-applies it on every run).
+# A non-conventional PR title (e.g. a branch name like "Feat/cli cr inventory
+# backend", cli PR #111) produces an unparseable merge commit, so release-please
+# silently skips it and cuts no release. This check fails the PR until its
+# title is a valid Conventional Commit, keeping main's history
+# release-please-parseable. (Copied from the cli; same guard as the library.)
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+permissions:
+  pull-requests: read
+
+jobs:
+  validate:
+    name: Validate Conventional Commit title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Keep in lockstep with release-please-config.json changelog-sections.
+          types: |
+            feat
+            fix
+            perf
+            revert
+            deps
+            docs
+            refactor
+            test
+            ci
+            build
+            chore
+          # Scopes are optional, so do not require one. The action accepts a
+          # trailing "!" for breaking changes (e.g. "feat(inventory)!: ...")
+          # out of the box.
+          requireScope: false
+          # Subject must not start with an uppercase letter — rejects
+          # branch-name titles like "Feat/cli cr inventory backend".
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the PR title "{title}" must start
+            lowercase (imperative mood, no leading capital).
