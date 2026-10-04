@@ -1,0 +1,28 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModulePackage",
+    "namespace": "pkg",
+    "name": "podinfo"
+  },
+  "items": [
+    {
+      "type": "Warning",
+      "reason": "SourceNotReady",
+      "note": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModulePackage",
+        "namespace": "pkg",
+        "name": "podinfo"
+      },
+      "count": 3,
+      "lastSeen": "2026-10-04T18:04:23.356518Z"
+    }
+  ]
+}

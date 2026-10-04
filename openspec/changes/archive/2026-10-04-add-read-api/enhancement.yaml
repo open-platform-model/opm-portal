@@ -1,0 +1,21 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
+#
+# - 0030:D2: R2, R4, R5 and R6 land with the API; R1 (every fact the UI shows
+#   is in the API) and R3 (the UI renders an unknown enum as unknown) need the
+#   UI: add-htmx-ui.
+# - 0030:D7: R1 and R2 land for every API resource; R4 lands for events; log
+#   streams (add-pod-log-streaming) and YAML views still need it.
+# - 0030:D8: R2 and R3 hold for the API documents; R4 (documentation) waits
+#   for the docs change.
+# - 0030:D9: R2 and R4 have API resources; their labels are pages.
+#
+# Before logging, diff this list against proposal.md's "Not in this change"
+# paragraph.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []

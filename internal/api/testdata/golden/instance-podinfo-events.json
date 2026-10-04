@@ -1,0 +1,58 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "default",
+    "name": "podinfo"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "NoOp",
+      "note": "No changes detected",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:31.637717Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ReconciliationSucceeded",
+      "note": "Reconciliation succeeded",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:06.945269Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Applied",
+      "note": "Applied 2 resources (2 created, 0 updated, 0 unchanged)",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:06.945177Z"
+    }
+  ]
+}

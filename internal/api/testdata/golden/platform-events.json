@@ -1,0 +1,26 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "Platform",
+    "name": "cluster"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "Generated",
+      "note": "Platform module generated and built for generation 1",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "Platform",
+        "name": "cluster"
+      },
+      "count": 2,
+      "lastSeen": "2026-10-04T18:04:23.340984Z"
+    }
+  ]
+}

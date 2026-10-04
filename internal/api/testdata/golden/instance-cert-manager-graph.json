@@ -1,0 +1,947 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Graph",
+  "scope": "instance",
+  "root": "mi:cert-manager/cert-manager",
+  "layout": {
+    "width": 1552,
+    "height": 440,
+    "nodeWidth": 200,
+    "nodeHeight": 44,
+    "columns": [
+      {
+        "title": "Module",
+        "x": 16
+      },
+      {
+        "title": "Instance",
+        "x": 280
+      },
+      {
+        "title": "Components",
+        "x": 544
+      },
+      {
+        "title": "Objects",
+        "x": 808
+      },
+      {
+        "title": "Runtime",
+        "x": 1072
+      },
+      {
+        "title": "Runtime",
+        "x": 1336
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5",
+      "kind": "module",
+      "label": "opmodel.dev/modules/cert_manager@v2",
+      "version": "v2.0.5",
+      "column": 0,
+      "row": 0,
+      "x": 16,
+      "y": 212
+    },
+    {
+      "id": "mi:cert-manager/cert-manager",
+      "kind": "instance",
+      "label": "cert-manager/cert-manager",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 42,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded"
+      },
+      "owner": "operator",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1",
+        "opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1",
+        "opmodel.dev/catalogs/opm/resources/role@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/service-account@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1",
+        "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/security-context@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"
+      ],
+      "column": 1,
+      "row": 0,
+      "x": 280,
+      "y": 212
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/cainjector",
+      "kind": "component",
+      "label": "cainjector",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 0,
+      "x": 544,
+      "y": 128
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller",
+      "kind": "component",
+      "label": "controller",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 1,
+      "x": 544,
+      "y": 184
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/webhook",
+      "kind": "component",
+      "label": "webhook",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 3,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 2,
+      "x": 544,
+      "y": 240
+    },
+    {
+      "id": "grp:configuration/mi/cert-manager/cert-manager",
+      "kind": "group",
+      "label": "17 configuration components",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 35,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "group": {
+        "kind": "configuration",
+        "members": [
+          "cainjector-leaderelection-role",
+          "cainjector-rbac",
+          "controller-approve-rbac",
+          "controller-certificates-rbac",
+          "controller-challenges-rbac",
+          "controller-clusterissuers-rbac",
+          "controller-csr-rbac",
+          "controller-ingress-shim-rbac",
+          "controller-issuers-rbac",
+          "controller-leaderelection-role",
+          "controller-orders-rbac",
+          "crds",
+          "namespace",
+          "webhook-dynamic-serving-role",
+          "webhook-mutating",
+          "webhook-sar-rbac",
+          "webhook-validating"
+        ]
+      },
+      "column": 2,
+      "row": 3,
+      "x": 544,
+      "y": 296
+    },
+    {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
+      "kind": "object",
+      "label": "cert-manager-cainjector",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 0,
+      "x": 808,
+      "y": 44
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "kind": "object",
+      "label": "cert-manager-cainjector",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 1,
+      "x": 808,
+      "y": 100
+    },
+    {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager",
+      "kind": "object",
+      "label": "cert-manager",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 2,
+      "x": 808,
+      "y": 156
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "kind": "object",
+      "label": "cert-manager-controller",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 3,
+      "x": 808,
+      "y": 212
+    },
+    {
+      "id": "obj:_/Service/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "version": "v1",
+        "kind": "Service",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Service is ready"
+      },
+      "column": 3,
+      "row": 4,
+      "x": 808,
+      "y": 268
+    },
+    {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 5,
+      "x": 808,
+      "y": 324
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 6,
+      "x": 808,
+      "y": 380
+    },
+    {
+      "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "kind": "runtime",
+      "label": "cert-manager-cainjector-5d69c59bd",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 0,
+      "x": 1072,
+      "y": 156
+    },
+    {
+      "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "kind": "runtime",
+      "label": "cert-manager-controller-7c9bddd644",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 1,
+      "x": 1072,
+      "y": 212
+    },
+    {
+      "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "kind": "runtime",
+      "label": "cert-manager-webhook-6c5bb576f5",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 2,
+      "x": 1072,
+      "y": 268
+    },
+    {
+      "id": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "kind": "runtime",
+      "label": "cert-manager-cainjector-5d69c59bd-htjjq",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 0,
+      "x": 1336,
+      "y": 156
+    },
+    {
+      "id": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "kind": "runtime",
+      "label": "cert-manager-controller-7c9bddd644-cr5qm",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 1,
+      "x": 1336,
+      "y": 212
+    },
+    {
+      "id": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "kind": "runtime",
+      "label": "cert-manager-webhook-6c5bb576f5-slp22",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 2,
+      "x": 1336,
+      "y": 268
+    }
+  ],
+  "edges": [
+    {
+      "id": "controls|obj:apps/Deployment/cert-manager/cert-manager-cainjector|obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "to": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1008,
+          "y": 122
+        },
+        {
+          "x": 1040,
+          "y": 122
+        },
+        {
+          "x": 1040,
+          "y": 178
+        },
+        {
+          "x": 1072,
+          "y": 178
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/Deployment/cert-manager/cert-manager-controller|obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "to": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1008,
+          "y": 234
+        },
+        {
+          "x": 1040,
+          "y": 234
+        },
+        {
+          "x": 1040,
+          "y": 234
+        },
+        {
+          "x": 1072,
+          "y": 234
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/Deployment/cert-manager/cert-manager-webhook|obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "to": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1008,
+          "y": 402
+        },
+        {
+          "x": 1040,
+          "y": 402
+        },
+        {
+          "x": 1040,
+          "y": 290
+        },
+        {
+          "x": 1072,
+          "y": 290
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd|obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "to": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1272,
+          "y": 178
+        },
+        {
+          "x": 1304,
+          "y": 178
+        },
+        {
+          "x": 1304,
+          "y": 178
+        },
+        {
+          "x": 1336,
+          "y": 178
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644|obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "to": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1272,
+          "y": 234
+        },
+        {
+          "x": 1304,
+          "y": 234
+        },
+        {
+          "x": 1304,
+          "y": 234
+        },
+        {
+          "x": 1336,
+          "y": 234
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5|obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "to": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1272,
+          "y": 290
+        },
+        {
+          "x": 1304,
+          "y": 290
+        },
+        {
+          "x": 1304,
+          "y": 290
+        },
+        {
+          "x": 1336,
+          "y": 290
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/cainjector",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/cainjector",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 150
+        },
+        {
+          "x": 544,
+          "y": 150
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 206
+        },
+        {
+          "x": 544,
+          "y": 206
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/webhook",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/webhook",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 262
+        },
+        {
+          "x": 544,
+          "y": 262
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "grp:configuration/mi/cert-manager/cert-manager",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 234
+        },
+        {
+          "x": 512,
+          "y": 318
+        },
+        {
+          "x": 544,
+          "y": 318
+        }
+      ]
+    },
+    {
+      "id": "instantiates|mi:cert-manager/cert-manager|mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5",
+      "kind": "instantiates",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5",
+      "source": "ModuleInstance spec.module",
+      "route": [
+        {
+          "x": 280,
+          "y": 234
+        },
+        {
+          "x": 248,
+          "y": 234
+        },
+        {
+          "x": 248,
+          "y": 234
+        },
+        {
+          "x": 216,
+          "y": 234
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector|obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector",
+      "to": "obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 150
+        },
+        {
+          "x": 776,
+          "y": 150
+        },
+        {
+          "x": 776,
+          "y": 66
+        },
+        {
+          "x": 808,
+          "y": 66
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector|obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector",
+      "to": "obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 150
+        },
+        {
+          "x": 776,
+          "y": 150
+        },
+        {
+          "x": 776,
+          "y": 122
+        },
+        {
+          "x": 808,
+          "y": 122
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller|obj:_/ServiceAccount/cert-manager/cert-manager",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller",
+      "to": "obj:_/ServiceAccount/cert-manager/cert-manager",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 206
+        },
+        {
+          "x": 776,
+          "y": 206
+        },
+        {
+          "x": 776,
+          "y": 178
+        },
+        {
+          "x": 808,
+          "y": 178
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller|obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller",
+      "to": "obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 206
+        },
+        {
+          "x": 776,
+          "y": 206
+        },
+        {
+          "x": 776,
+          "y": 234
+        },
+        {
+          "x": 808,
+          "y": 234
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook|obj:_/Service/cert-manager/cert-manager-webhook",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook",
+      "to": "obj:_/Service/cert-manager/cert-manager-webhook",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 262
+        },
+        {
+          "x": 776,
+          "y": 262
+        },
+        {
+          "x": 776,
+          "y": 290
+        },
+        {
+          "x": 808,
+          "y": 290
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook|obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook",
+      "to": "obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 262
+        },
+        {
+          "x": 776,
+          "y": 262
+        },
+        {
+          "x": 776,
+          "y": 346
+        },
+        {
+          "x": 808,
+          "y": 346
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook|obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook",
+      "to": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 262
+        },
+        {
+          "x": 776,
+          "y": 262
+        },
+        {
+          "x": 776,
+          "y": 402
+        },
+        {
+          "x": 808,
+          "y": 402
+        }
+      ]
+    }
+  ]
+}

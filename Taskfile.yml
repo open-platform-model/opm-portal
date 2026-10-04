@@ -8,6 +8,8 @@ vars:
   BUILD_DIR: bin
   # Kept in lockstep with the openspec install in .github/workflows/lint.yml.
   OPENSPEC_VERSION: 1.12.0
+  # Kept in lockstep with the oasdiff install in .github/workflows/lint.yml.
+  OASDIFF_VERSION: v1.33.0
 
 tasks:
   default:
@@ -127,6 +129,24 @@ tasks:
         msg: "openspec not found: run `task openspec:install` (needs npm)"
     cmds:
       - openspec validate --all --strict --no-interactive
+
+  #########################
+  ## Read API contract
+  #########################
+  api:install-oasdiff:
+    desc: Install the oasdiff version CI pins
+    cmds:
+      - go install github.com/oasdiff/oasdiff@{{.OASDIFF_VERSION}}
+
+  api:breaking:
+    desc: 'Fail on a breaking change to openapi/v1alpha1.yaml against BASE (default origin/main) unless PR_TITLE carries "!"'
+    vars:
+      BASE: '{{.BASE | default "origin/main"}}'
+    preconditions:
+      - sh: command -v oasdiff >/dev/null
+        msg: "oasdiff not found: run `task api:install-oasdiff`"
+    cmds:
+      - hack/api-breaking.sh {{.BASE}}
 
   #########################
   ## Release tasks

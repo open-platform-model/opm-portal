@@ -133,6 +133,8 @@ type Model struct {
 	inventory map[schema.GroupVersionResource]*inventoryKind
 	children  map[string]*childWatch
 	childList map[string]childListing
+
+	feed changeFeed
 }
 
 // New returns a Model for cfg. It reads nothing until Start.

@@ -1,0 +1,122 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Platform",
+  "name": "cluster",
+  "uid": "e99bd454-ca6f-4bf1-9213-2d59665c673d",
+  "type": "kubernetes",
+  "operatorVersion": "v1.0.0-beta.6",
+  "reconcile": {
+    "state": "Applied",
+    "reason": "Generated",
+    "message": "Platform module generated and built for generation 1",
+    "since": "2026-10-04T18:03:50Z",
+    "notes": [
+      {
+        "type": "ContractsFulfilled",
+        "status": "False",
+        "reason": "UnfulfilledContracts",
+        "message": "1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:\n  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)",
+        "lastTransitionTime": "2026-10-04T18:04:23Z",
+        "observedGeneration": 1
+      }
+    ]
+  },
+  "conditions": [
+    {
+      "type": "Ready",
+      "status": "True",
+      "reason": "Generated",
+      "message": "Platform module generated and built for generation 1",
+      "lastTransitionTime": "2026-10-04T18:03:50Z",
+      "observedGeneration": 1
+    },
+    {
+      "type": "ContractsFulfilled",
+      "status": "False",
+      "reason": "UnfulfilledContracts",
+      "message": "1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:\n  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)",
+      "lastTransitionTime": "2026-10-04T18:04:23Z",
+      "observedGeneration": 1
+    }
+  ],
+  "subscriptions": [
+    {
+      "catalog": "opmodel.dev/catalogs/opm@v4",
+      "version": "4.6.0",
+      "enable": true
+    }
+  ],
+  "catalogs": [
+    {
+      "catalog": "opmodel.dev/catalogs/opm@v4",
+      "version": "4.6.0",
+      "enabled": true,
+      "source": "Subscription",
+      "claimants": []
+    },
+    {
+      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "version": "0.1.0",
+      "enabled": true,
+      "source": "Registration",
+      "claimants": [
+        "default.backup-provider"
+      ],
+      "contributedBy": "default.backup-provider"
+    }
+  ],
+  "registrations": [
+    {
+      "name": "default.backup-provider",
+      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "version": "0.1.0",
+      "provides": [
+        "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
+      ],
+      "provider": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "backup-provider"
+      },
+      "accepted": true,
+      "active": true,
+      "verdict": "Accepted",
+      "reason": "Accepted",
+      "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
+      "activeReason": "ProviderReady",
+      "activeMessage": "Provider ModuleInstance default/backup-provider is Ready",
+      "reconcile": {
+        "state": "Applied",
+        "reason": "Accepted",
+        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
+        "since": "2026-10-04T18:04:22Z"
+      }
+    },
+    {
+      "name": "default.refused-claim-fixture",
+      "catalog": "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+      "version": "0.1.0",
+      "provider": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "refused-claim-fixture"
+      },
+      "accepted": false,
+      "active": false,
+      "verdict": "Refused",
+      "reason": "CatalogUnresolved",
+      "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found",
+      "reconcile": {
+        "state": "Stalled",
+        "reason": "CatalogUnresolved",
+        "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found",
+        "since": "2026-10-04T18:04:26Z"
+      }
+    }
+  ],
+  "registrationsAccess": "ok"
+}

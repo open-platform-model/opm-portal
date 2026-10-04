@@ -360,3 +360,18 @@ func TestFailedReaderReviewAtStartIsAskedAgain(t *testing.T) {
 		t.Fatal("ListInstances after reviews recover is empty")
 	}
 }
+
+func TestRegistration(t *testing.T) {
+	e := newEnv(t, loadF1(t), allowAll, allowAll)
+	name := "default.backup-provider"
+	got, err := e.m.Registration(t.Context(), alice, e.grant(t, "get", registrations, "", name), name)
+	if err != nil || got.Name != name || !got.Standing.Accepted || !got.Standing.Active {
+		t.Errorf("Registration(%s) = %+v, %v", name, got, err)
+	}
+	if _, err := e.m.Registration(t.Context(), alice, e.grant(t, "get", registrations, "", "nothing"), "nothing"); !errors.Is(err, ErrNotFound) {
+		t.Errorf("missing registration: %v, want ErrNotFound", err)
+	}
+	if _, err := e.m.Registration(t.Context(), alice, e.grant(t, "get", registrations, "", name), "other"); !errors.Is(err, ErrNotCovered) {
+		t.Errorf("uncovered registration: %v, want ErrNotCovered", err)
+	}
+}

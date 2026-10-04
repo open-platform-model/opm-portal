@@ -591,3 +591,25 @@ func TestLayoutOrdersByBarycenter(t *testing.T) {
 		t.Error("two builds differ")
 	}
 }
+
+// TestContributor: the read API names the contributing registration by the
+// rule the contributes edge follows.
+func TestContributor(t *testing.T) {
+	p := newCluster(t, f1(t), readmodeltest.AllowAll).platform(t).Platform
+	got := map[string]string{}
+	for _, c := range p.Catalogs {
+		got[c.Catalog] = Contributor(c, p.Registrations)
+	}
+	want := map[string]string{
+		"opmodel.dev/catalogs/opm@v4":                     "",
+		"testing.opmodel.dev/catalogs/operator/backup@v0": "default.backup-provider",
+	}
+	if len(got) != len(want) {
+		t.Fatalf("catalogs = %v", got)
+	}
+	for c, reg := range want {
+		if got[c] != reg {
+			t.Errorf("Contributor(%s) = %q, want %q", c, got[c], reg)
+		}
+	}
+}

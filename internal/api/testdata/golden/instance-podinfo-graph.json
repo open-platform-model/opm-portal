@@ -1,0 +1,402 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Graph",
+  "scope": "instance",
+  "root": "mi:default/podinfo",
+  "layout": {
+    "width": 1552,
+    "height": 160,
+    "nodeWidth": 200,
+    "nodeHeight": 44,
+    "columns": [
+      {
+        "title": "Module",
+        "x": 16
+      },
+      {
+        "title": "Instance",
+        "x": 280
+      },
+      {
+        "title": "Components",
+        "x": 544
+      },
+      {
+        "title": "Objects",
+        "x": 808
+      },
+      {
+        "title": "Runtime",
+        "x": 1072
+      },
+      {
+        "title": "Runtime",
+        "x": 1336
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11",
+      "kind": "module",
+      "label": "testing.opmodel.dev/modules/operator/podinfo@v0",
+      "version": "v0.1.11",
+      "column": 0,
+      "row": 0,
+      "x": 16,
+      "y": 72
+    },
+    {
+      "id": "mi:default/podinfo",
+      "kind": "instance",
+      "label": "default/podinfo",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded"
+      },
+      "owner": "operator",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1"
+      ],
+      "column": 1,
+      "row": 0,
+      "x": 280,
+      "y": 72
+    },
+    {
+      "id": "comp:mi/default/podinfo/podinfo",
+      "kind": "component",
+      "label": "podinfo",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 0,
+      "x": 544,
+      "y": 72
+    },
+    {
+      "id": "obj:_/Service/default/podinfo-podinfo",
+      "kind": "object",
+      "label": "podinfo-podinfo",
+      "ref": {
+        "version": "v1",
+        "kind": "Service",
+        "namespace": "default",
+        "name": "podinfo-podinfo"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Service is ready"
+      },
+      "column": 3,
+      "row": 0,
+      "x": 808,
+      "y": 44
+    },
+    {
+      "id": "obj:apps/Deployment/default/podinfo-podinfo",
+      "kind": "object",
+      "label": "podinfo-podinfo",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "default",
+        "name": "podinfo-podinfo"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 2"
+      },
+      "column": 3,
+      "row": 1,
+      "x": 808,
+      "y": 100
+    },
+    {
+      "id": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
+      "kind": "runtime",
+      "label": "podinfo-podinfo-d9585d794",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 2"
+      },
+      "replicas": 2,
+      "column": 4,
+      "row": 0,
+      "x": 1072,
+      "y": 72
+    },
+    {
+      "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
+      "kind": "runtime",
+      "label": "podinfo-podinfo-d9585d794-4lg6h",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 0,
+      "x": 1336,
+      "y": 44
+    },
+    {
+      "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx",
+      "kind": "runtime",
+      "label": "podinfo-podinfo-d9585d794-kp2jx",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-kp2jx"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 1,
+      "x": 1336,
+      "y": 100
+    }
+  ],
+  "edges": [
+    {
+      "id": "controls|obj:apps/Deployment/default/podinfo-podinfo|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/default/podinfo-podinfo",
+      "to": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1008,
+          "y": 122
+        },
+        {
+          "x": 1040,
+          "y": 122
+        },
+        {
+          "x": 1040,
+          "y": 94
+        },
+        {
+          "x": 1072,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794|obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
+      "to": "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1272,
+          "y": 94
+        },
+        {
+          "x": 1304,
+          "y": 94
+        },
+        {
+          "x": 1304,
+          "y": 66
+        },
+        {
+          "x": 1336,
+          "y": 66
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794|obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
+      "to": "obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1272,
+          "y": 94
+        },
+        {
+          "x": 1304,
+          "y": 94
+        },
+        {
+          "x": 1304,
+          "y": 122
+        },
+        {
+          "x": 1336,
+          "y": 122
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:default/podinfo|comp:mi/default/podinfo/podinfo",
+      "kind": "hasComponent",
+      "from": "mi:default/podinfo",
+      "to": "comp:mi/default/podinfo/podinfo",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 94
+        },
+        {
+          "x": 512,
+          "y": 94
+        },
+        {
+          "x": 512,
+          "y": 94
+        },
+        {
+          "x": 544,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "instantiates|mi:default/podinfo|mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11",
+      "kind": "instantiates",
+      "from": "mi:default/podinfo",
+      "to": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11",
+      "source": "ModuleInstance spec.module",
+      "route": [
+        {
+          "x": 280,
+          "y": 94
+        },
+        {
+          "x": 248,
+          "y": 94
+        },
+        {
+          "x": 248,
+          "y": 94
+        },
+        {
+          "x": 216,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/default/podinfo/podinfo|obj:_/Service/default/podinfo-podinfo",
+      "kind": "owns",
+      "from": "comp:mi/default/podinfo/podinfo",
+      "to": "obj:_/Service/default/podinfo-podinfo",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 66
+        },
+        {
+          "x": 808,
+          "y": 66
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/default/podinfo/podinfo|obj:apps/Deployment/default/podinfo-podinfo",
+      "kind": "owns",
+      "from": "comp:mi/default/podinfo/podinfo",
+      "to": "obj:apps/Deployment/default/podinfo-podinfo",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 122
+        },
+        {
+          "x": 808,
+          "y": 122
+        }
+      ]
+    }
+  ]
+}
