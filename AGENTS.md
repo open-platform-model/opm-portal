@@ -192,7 +192,7 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task fmt`: `go fmt` plus golangci-lint's gofmt and goimports formatters.
 - `task vet`: `go vet ./...`.
 - `task lint` / `task lint:fix`: golangci-lint.
-- `task test`: `go test ./...`.
+- `task test`: `go test -race ./...` (the race detector needs cgo and a C compiler).
 - `task openspec:check`: `openspec validate --all --strict` (install with
   `task openspec:install`).
 - `task deps:release-check`: the G1 release-pin gate.
