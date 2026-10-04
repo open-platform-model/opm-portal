@@ -341,3 +341,24 @@ func TestNoTokenOrCookieInLogs(t *testing.T) {
 		}
 	}
 }
+
+func TestBoundHostIsAllowedAndLaunched(t *testing.T) {
+	for host, want := range map[string]string{"127.0.0.5": "127.0.0.5:8123", "::1": "[::1]:8123"} {
+		l, err := NewLocal(LocalConfig{Identity: me, Host: host, Port: port})
+		if err != nil {
+			t.Fatal(err)
+		}
+		u, err := url.Parse(l.LaunchURL())
+		if err != nil || u.Host != want {
+			t.Fatalf("launch URL host for %s = %q, %v; want %q", host, u.Host, err, want)
+		}
+		h := l.Handler(http.NotFoundHandler())
+		req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/x", http.NoBody)
+		req.Host = want
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, req)
+		if rec.Code == http.StatusForbidden {
+			t.Errorf("Host %s refused; want it allowed", want)
+		}
+	}
+}

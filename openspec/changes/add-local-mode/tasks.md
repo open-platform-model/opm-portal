@@ -21,7 +21,7 @@
 
 ## 4. End to end and docs (cmd/opm-portal, Taskfile, README, AGENTS.md)
 
-- [ ] 4.1 `cmd/opm-portal/e2e_test.go` (build tag `e2e`): build the binary, run `serve` against the fixture cluster's kubeconfig, launch, then fetch the instance list and the `default/podinfo` graph with the session cookie, and get `401` without it and `403` for a foreign `Host`; `task e2e:local`
-- [ ] 4.2 Run it against a throwaway podman cluster `opm-portal-e2e-local` (`E2E_CLUSTER=opm-portal-e2e-local task e2e:up`), then delete the cluster
-- [ ] 4.3 README: how to run local mode, what it reads and creates, the cookie flags on plain HTTP and the residual cross-port risk; `AGENTS.md`: layout, commands, the binary's modes; `Taskfile.yml` `run` description
-- [ ] 4.4 `task check` green, then commit `docs(local): document running the portal locally`
+- [x] 4.1 `cmd/opm-portal/e2e_test.go` (build tag `e2e`): build the binary, run `serve` against the fixture cluster's kubeconfig, launch, then fetch the instance list and the `default/podinfo` graph with the session cookie, and get `401` without it and `403` for a foreign `Host`; `task e2e:local`
+- [x] 4.2 Run it against a throwaway podman cluster `opm-portal-e2e-local` (`E2E_CLUSTER=opm-portal-e2e-local task e2e:up`), then delete the cluster
+- [x] 4.3 README: how to run local mode, what it reads and creates, the cookie flags on plain HTTP and the residual cross-port risk; `AGENTS.md`: layout, commands, the binary's modes; `Taskfile.yml` `run` description
+- [x] 4.4 `task check` green, then commit `test(e2e): run the local-mode binary against the fixture cluster`

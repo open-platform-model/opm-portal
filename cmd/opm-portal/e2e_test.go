@@ -1,0 +1,312 @@
+//go:build e2e
+
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+)
+
+// TestLocalMode runs the built binary against the kind fixture cluster
+// (task e2e:up) through test/e2e/local.sh, which names its kubeconfig and
+// context in OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT.
+func TestLocalMode(t *testing.T) {
+	kubeconfig, kubeContext := os.Getenv("OPM_PORTAL_E2E_KUBECONFIG"), os.Getenv("OPM_PORTAL_E2E_CONTEXT")
+	if kubeconfig == "" || kubeContext == "" {
+		t.Skip("OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT are not set: run task e2e:local")
+	}
+	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
+	defer cancel()
+
+	bin := filepath.Join(t.TempDir(), "opm-portal")
+	if out, err := exec.CommandContext(ctx, "go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+		t.Fatalf("go build: %v\n%s", err, out)
+	}
+	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", kubeconfig, "--context", kubeContext)
+	base := p.launch.Scheme + "://" + p.launch.Host
+	instances := base + "/api/v1alpha1/clusters/default/instances"
+
+	// Without the session every read is refused before anything is read.
+	plain := &http.Client{Timeout: 30 * time.Second}
+	if res := get(ctx, t, plain, instances, nil); res.status != http.StatusUnauthorized || !strings.Contains(res.body, `"unauthenticated"`) {
+		t.Fatalf("no session: %d %s; want 401 unauthenticated", res.status, res.body)
+	}
+	browser, cookie := launch(ctx, t, p.launch)
+	// The token is spent.
+	if res := get(ctx, t, plain, p.launch.String(), nil); res.status != http.StatusForbidden {
+		t.Fatalf("second launch: %d; want 403", res.status)
+	}
+	readAsTheUser(ctx, t, browser, instances)
+	refuseForeignRequests(ctx, t, browser, instances, p.launch.Port())
+	// A podinfo container's log streams on the read API's stream.
+	followLog(ctx, t, browser, base, logTopic(ctx, t, kubeconfig, kubeContext))
+
+	// Interrupt: the process stops cleanly, and its output never held the
+	// token or the cookie.
+	p.stop(t)
+	stderr := p.stderr.String()
+	if strings.Contains(stderr, p.launch.Query().Get("token")) || strings.Contains(stderr, cookie) {
+		t.Fatalf("stderr carries the token or the cookie:\n%s", stderr)
+	}
+	if !strings.Contains(stderr, "reading as the kubeconfig's user") {
+		t.Fatalf("stderr does not log the identity:\n%s", stderr)
+	}
+}
+
+// launch opens the launch link like a browser and returns a client holding
+// the session, and the cookie's value.
+func launch(ctx context.Context, t *testing.T, link *url.URL) (browser *http.Client, cookie string) {
+	t.Helper()
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	browser = &http.Client{Jar: jar, Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}}
+	if res := get(ctx, t, browser, link.String(), nil); res.status != http.StatusSeeOther {
+		t.Fatalf("launch: %d %s; want 303", res.status, res.body)
+	}
+	cookies := jar.Cookies(link)
+	if len(cookies) != 1 || !strings.HasPrefix(cookies[0].Name, "opm-portal-") {
+		t.Fatalf("launch cookies = %d; want the one session cookie", len(cookies))
+	}
+	return browser, cookies[0].Value
+}
+
+// readAsTheUser reads the instance list and the podinfo graph with the
+// session.
+func readAsTheUser(ctx context.Context, t *testing.T, browser *http.Client, instances string) {
+	t.Helper()
+	res := get(ctx, t, browser, instances, nil)
+	if res.status != http.StatusOK || !strings.Contains(res.body, `"name":"podinfo"`) {
+		t.Fatalf("instances: %d %.300s; want 200 with podinfo", res.status, res.body)
+	}
+	res = get(ctx, t, browser, instances+"/default/podinfo/graph", nil)
+	var graph struct {
+		Kind  string            `json:"kind"`
+		Nodes []json.RawMessage `json:"nodes"`
+	}
+	if res.status != http.StatusOK || json.Unmarshal([]byte(res.body), &graph) != nil || graph.Kind != "Graph" || len(graph.Nodes) == 0 {
+		t.Fatalf("graph: %d %.300s; want 200 with a Graph", res.status, res.body)
+	}
+}
+
+// refuseForeignRequests checks that a DNS-rebinding request (another Host)
+// is refused, session or not, and a cross-site write before the read API.
+func refuseForeignRequests(ctx context.Context, t *testing.T, browser *http.Client, instances, port string) {
+	t.Helper()
+	if res := get(ctx, t, browser, instances, map[string]string{"Host": "attacker.example:" + port}); res.status != http.StatusForbidden {
+		t.Fatalf("foreign Host: %d; want 403", res.status)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, instances, http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	post, err := browser.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = post.Body.Close()
+	if post.StatusCode != http.StatusForbidden {
+		t.Fatalf("cross-site POST: %d; want 403", post.StatusCode)
+	}
+}
+
+type portalProcess struct {
+	cmd    *exec.Cmd
+	launch *url.URL
+	stderr *syncBuffer
+	done   chan error
+}
+
+func startPortal(ctx context.Context, t *testing.T, bin string, args ...string) *portalProcess {
+	t.Helper()
+	cmd := exec.CommandContext(ctx, bin, args...)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := &portalProcess{cmd: cmd, stderr: &syncBuffer{}, done: make(chan error, 1)}
+	cmd.Stderr = p.stderr
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	go func() { p.done <- cmd.Wait() }()
+	t.Cleanup(func() {
+		if cmd.ProcessState == nil {
+			_ = cmd.Process.Kill()
+		}
+	})
+	lines := make(chan string, 1)
+	go func() {
+		sc := bufio.NewScanner(stdout)
+		for sc.Scan() {
+			if i := strings.Index(sc.Text(), "http://"); i >= 0 {
+				lines <- sc.Text()[i:]
+			}
+		}
+		_, _ = io.Copy(io.Discard, stdout)
+	}()
+	select {
+	case line := <-lines:
+		u, err := url.Parse(strings.TrimSpace(line))
+		if err != nil {
+			t.Fatal(err)
+		}
+		p.launch = u
+	case err := <-p.done:
+		t.Fatalf("opm-portal exited before printing the launch link: %v\n%s", err, p.stderr.String())
+	case <-time.After(90 * time.Second):
+		t.Fatalf("no launch link within 90 s\n%s", p.stderr.String())
+	}
+	return p
+}
+
+func (p *portalProcess) stop(t *testing.T) {
+	t.Helper()
+	if err := p.cmd.Process.Signal(os.Interrupt); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case err := <-p.done:
+		if err != nil {
+			t.Fatalf("opm-portal exited with %v\n%s", err, p.stderr.String())
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatalf("opm-portal did not stop within 10 s of SIGINT\n%s", p.stderr.String())
+	}
+}
+
+type result struct {
+	status int
+	body   string
+}
+
+func get(ctx context.Context, t *testing.T, c *http.Client, target string, header map[string]string) result {
+	t.Helper()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for k, v := range header {
+		if k == "Host" {
+			req.Host = v
+			continue
+		}
+		req.Header.Set(k, v)
+	}
+	res, err := c.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = res.Body.Close() }()
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return result{status: res.StatusCode, body: string(b)}
+}
+
+// logTopic returns the log topic of a podinfo Pod's first container.
+func logTopic(ctx context.Context, t *testing.T, kubeconfig, kubeContext string) string {
+	t.Helper()
+	cfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{CurrentContext: kubeContext}).ClientConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pods, err := cs.CoreV1().Pods("default").List(ctx, metav1.ListOptions{LabelSelector: "module-instance.opmodel.dev/name=podinfo"})
+	if err != nil || len(pods.Items) == 0 {
+		t.Fatalf("listing podinfo Pods: %v", err)
+	}
+	pod := pods.Items[0]
+	return "log:default/" + pod.Name + "/" + pod.Spec.Containers[0].Name
+}
+
+// followLog opens a stream on topic and waits for a log line, in its
+// snapshot or as a log message.
+func followLog(ctx context.Context, t *testing.T, c *http.Client, base, topic string) {
+	t.Helper()
+	sctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(sctx, http.MethodGet, base+"/api/v1alpha1/clusters/default/stream?topics="+url.QueryEscape(topic), http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := (&http.Client{Jar: c.Jar}).Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = res.Body.Close() }()
+	if res.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(res.Body)
+		t.Fatalf("stream %s: %d %s", topic, res.StatusCode, b)
+	}
+	sc := bufio.NewScanner(res.Body)
+	sc.Buffer(make([]byte, 1<<20), 1<<22)
+	var event string
+	for sc.Scan() {
+		line := sc.Text()
+		if name, ok := strings.CutPrefix(line, "event: "); ok {
+			event = name
+			continue
+		}
+		data, ok := strings.CutPrefix(line, "data: ")
+		if !ok {
+			continue
+		}
+		switch event {
+		case "closed":
+			t.Fatalf("log topic closed: %s", data)
+		case "log":
+			return
+		case "snapshot":
+			if strings.Contains(data, `"type":"line"`) {
+				return
+			}
+		}
+	}
+	t.Fatalf("no log line on %s: %v", topic, sc.Err())
+}
+
+// syncBuffer is a bytes.Buffer safe for the process's writer and the test.
+type syncBuffer struct {
+	mu sync.Mutex
+	b  bytes.Buffer
+}
+
+func (s *syncBuffer) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.Write(p)
+}
+
+func (s *syncBuffer) String() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.String()
+}
