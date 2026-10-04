@@ -59,8 +59,10 @@ func TestForgingPackageDoesNotCompile(t *testing.T) {
 
 // TestNoGrantConstructionOutsideCheck scans every Go file in the module. No
 // file outside this package may write a Grant composite literal, call
-// new(authz.Grant), or declare a type from it; inside this package only
-// issue may fill one in, and only Checker.Check may call issue.
+// new(authz.Grant), or declare a type from it. Inside this package only issue
+// may fill one in (no filled-in Grant or grantData literal elsewhere, and no
+// assignment to a sealed field anywhere), and only Checker.Check may refer to
+// issue, so it cannot be called or passed on as a function value elsewhere.
 func TestNoGrantConstructionOutsideCheck(t *testing.T) {
 	root := moduleRoot(t)
 	var findings []string
@@ -118,7 +120,15 @@ type G = authz.Grant`, false},
 		{"literal in authz outside issue", `package authz
 func mint() Grant { return Grant{sealed: &grantData{}} }`, true},
 		{"issue outside Check", `package authz
-func mint() Grant { return issue(Identity{}, Attributes{}) }`, true},
+func mint() Grant { return issue(Identity{}, Attributes{}, time.Time{}, nil) }`, true},
+		{"sealed field assignment", `package authz
+func mint(d *grantData) Grant { var g Grant; g.sealed = d; return g }`, true},
+		{"grantData literal outside issue", `package authz
+func mk() *grantData { return &grantData{} }`, true},
+		{"issue as a function value", `package authz
+var mintFn = issue`, true},
+		{"issue through a local variable", `package authz
+func mint() Grant { f := issue; return f(Identity{}, Attributes{}, time.Time{}, nil) }`, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -151,6 +161,10 @@ func scanGrantConstruction(t *testing.T, name string, src []byte, inAuthz bool) 
 		fn, _ := decl.(*ast.FuncDecl)
 		fnName := funcName(fn)
 		ast.Inspect(decl, func(n ast.Node) bool {
+			if fn != nil && n == fn.Name {
+				// The function's own name is a declaration, not a use.
+				return true
+			}
 			s.visit(n, fnName)
 			return true
 		})
@@ -196,8 +210,25 @@ func (s *grantScan) visit(n ast.Node, fnName string) {
 		if !allowed && s.isGrant(n.Type) {
 			s.report(n, "Grant composite literal outside issue")
 		}
+		if s.inAuthz && fnName != "issue" && isIdent(n.Type, "grantData") {
+			s.report(n, "grantData composite literal outside issue")
+		}
+	case *ast.AssignStmt:
+		for _, lhs := range n.Lhs {
+			if sel, ok := unparen(lhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "sealed" {
+				s.report(n, "assignment to a Grant's sealed field")
+			}
+		}
 	case *ast.CallExpr:
-		s.visitCall(n, fnName)
+		if isIdent(n.Fun, "new") && len(n.Args) == 1 && s.isGrant(n.Args[0]) {
+			s.report(n, "new(Grant)")
+		}
+	case *ast.Ident:
+		// Any use of issue, called or not, outside Check: a function value
+		// passed on would let its holder mint grants.
+		if s.inAuthz && !s.isTest && n.Name == "issue" && fnName != "(*Checker).Check" {
+			s.report(n, "issue referred to outside Checker.Check")
+		}
 	case *ast.TypeSpec:
 		if !s.inAuthz && s.isGrant(n.Type) {
 			s.report(n, "type declared from Grant")
@@ -205,17 +236,9 @@ func (s *grantScan) visit(n ast.Node, fnName string) {
 	}
 }
 
-func (s *grantScan) visitCall(n *ast.CallExpr, fnName string) {
-	id, ok := n.Fun.(*ast.Ident)
-	if !ok {
-		return
-	}
-	if id.Name == "new" && len(n.Args) == 1 && s.isGrant(n.Args[0]) {
-		s.report(n, "new(Grant)")
-	}
-	if s.inAuthz && !s.isTest && id.Name == "issue" && fnName != "(*Checker).Check" {
-		s.report(n, "issue called outside Checker.Check")
-	}
+func isIdent(e ast.Expr, name string) bool {
+	id, ok := unparen(e).(*ast.Ident)
+	return ok && id.Name == name
 }
 
 func authzLocalName(file *ast.File) string {

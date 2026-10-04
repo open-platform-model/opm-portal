@@ -93,7 +93,8 @@ authz.Grant` and `undefined: authz.issue`.
 **Decision**: option 2, with three tests: reflection asserts every field is unexported; a test
 builds `testdata/forge` and requires the compiler to refuse both forgeries; an AST scan of the
 whole module refuses any `authz.Grant` literal, `new(authz.Grant)` or type declared from it outside
-the package, and inside it refuses a filled-in literal outside `issue` and a call to `issue`
+the package, and inside it refuses a filled-in `Grant` or any `grantData` literal outside `issue`,
+any assignment to a `sealed` field, and any reference to `issue` (a call or a function value)
 outside `(*Checker).Check`. The scanner has its own test that it flags each pattern.
 **Rationale**: the compiler is the proof that no other package fills one in; the scan keeps the
 package itself honest, where the compiler cannot help. Neither proves that a read path calls
