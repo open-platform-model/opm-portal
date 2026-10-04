@@ -772,6 +772,79 @@ func TestAGrantExpiringDuringSlowRendersIsAskedAgain(t *testing.T) {
 	}
 }
 
+// Nothing is written under a grant that expired while it was being made: a
+// snapshot or render that outlives the topic's grant is gated again right
+// before the write, and a revoked grant closes the topic.
+func TestNothingIsWrittenUnderAGrantThatExpiredBeforeTheWrite(t *testing.T) {
+	render := func(e *env, d time.Duration, revoke bool) func(ctx context.Context, _ authz.Identity) (json.RawMessage, error) {
+		return func(context.Context, authz.Identity) (json.RawMessage, error) {
+			if revoke {
+				e.policy.set("alice", denyAll)
+			}
+			time.Sleep(d)
+			return json.RawMessage(`{"name": "one", "namespace": "team-a", "v": 1}`), nil
+		}
+	}
+	listed := func(r func(context.Context, authz.Identity) (json.RawMessage, error)) Item {
+		return Item{Event: EventUpsert, Attrs: authz.Attributes{Verb: "list", Resource: instancesGVR, Namespace: "team-a"}, Render: r}
+	}
+	cases := []struct {
+		name  string
+		setup func(t *testing.T, e *env, teamA Topic)
+		live  func(t *testing.T, e *env, teamA Topic)
+	}{
+		{"an empty snapshot", func(_ *testing.T, e *env, _ Topic) {
+			e.prod.snapshotWait = func(context.Context) {
+				e.policy.set("alice", denyAll)
+				// Past the 30 s the topic's grant lives, with no item to
+				// gate the topic again.
+				time.Sleep(31 * time.Second)
+			}
+		}, nil},
+		{"the last render of a snapshot", func(_ *testing.T, e *env, teamA Topic) {
+			// The second render starts within the grant's 30 s and ends
+			// past them.
+			e.prod.seed(teamA, "a", listed(render(e, 20*time.Second, false)))
+			e.prod.seed(teamA, "b", listed(render(e, 20*time.Second, true)))
+		}, nil},
+		{"the render of a live item", nil, func(t *testing.T, e *env, teamA Topic) {
+			time.Sleep(25 * time.Second)
+			e.prod.upsert(t, teamA, listed(render(e, 10*time.Second, true)))
+		}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+				e.policy.set("alice", listOnly("team-a"))
+				teamA := mustTopic(t, "instances:team-a")
+				if c.setup != nil {
+					c.setup(t, e, teamA)
+				}
+				sv := e.open(session("alice"), "instances:team-a")
+				synctest.Wait()
+				if c.live != nil {
+					c.live(t, e, teamA)
+				}
+				time.Sleep(time.Minute)
+				synctest.Wait()
+
+				evs := nonHeartbeats(sv.rec.take())
+				want := []string{"open()", "closed(instances:team-a)forbidden"}
+				if c.live != nil {
+					want = []string{"open()", "snapshot(instances:team-a)", "closed(instances:team-a)forbidden"}
+				}
+				if !slices.Equal(evs, want) {
+					t.Errorf("events = %v, want %v", evs, want)
+				}
+				if n := e.policy.count(); n != 2 {
+					t.Errorf("%d reviews sent, want 2 (the expired grant asked again)", n)
+				}
+			})
+		})
+	}
+}
+
 // A list topic is served only under the one list read a GET list needs; a
 // producer that names anything else does not serve it, and no review is
 // sent.

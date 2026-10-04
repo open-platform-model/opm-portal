@@ -47,8 +47,9 @@
 //     message.
 //   - Only the session and identity that opened a stream can change its
 //     topics or resume it.
-//   - Before each delivery, and on each heartbeat, the topic's grants are
-//     checked with Grant.Covers; an expired grant is checked again.
+//   - Before each delivery, again right before it is written, and on each
+//     heartbeat, the topic's grants are checked with Grant.Covers; an
+//     expired grant is checked again, and a denial closes the topic.
 //   - Each item is delivered only when the subscriber may read Item.Attrs.
 //     An item within the scope of the topic's reads is delivered under the
 //     topic's grants; one that expired during a slow snapshot or render is

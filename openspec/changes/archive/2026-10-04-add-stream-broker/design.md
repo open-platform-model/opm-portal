@@ -140,10 +140,11 @@ events` in `apps`) and for each item's `Attrs`.
   whose topic was detached or attached again in the meantime is not written. Unwritten closings
   count once each towards `MaxTopicsPerStream`, excluding topics asked for again, so the record
   stays bounded.
-- **Before each delivery** the writer checks the topic's held grants with `Grant.Covers`; an
-  expired grant is re-checked with `Check`. A denial or error closes the topic. The same check
-  runs on each heartbeat, so a revocation closes a quiet topic within one decision TTL plus one
-  heartbeat.
+- **Before each delivery**, and again right before it is written, the writer checks the topic's
+  held grants with `Grant.Covers`; an expired grant is re-checked with `Check`, so nothing is
+  written under a decision that expired during a slow snapshot or render. A denial or error
+  closes the topic. The same check runs on each heartbeat, so a revocation closes a quiet topic
+  within one decision TTL plus one heartbeat.
 - **Per item**: inclusion is decided by scope. An item whose `Item.Attrs` falls within one of
   the topic's reads (same verb, resource and subresource; the read's namespace and name empty
   or equal) is delivered under the topic's grants, which are gated again first: a grant that

@@ -200,6 +200,11 @@ func (s *Stream) deliverSnapshot(ctx context.Context, wr *writer, e *entry) erro
 		s.b.log.Warn("snapshot payload is not JSON", "topic", e.topic.String(), "error", err)
 		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
 	}
+	// Snapshot or the last render may have outlived a grant: gate again
+	// before writing, which asks again only for a grant that has expired.
+	if code := s.gateTopic(ctx, e.sub); code != "" {
+		return s.closeTopic(ctx, wr, e.sub, code)
+	}
 	id, ok := s.eventID(e.sub, e.seq)
 	if !ok {
 		return nil
@@ -228,6 +233,10 @@ func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
 	if err != nil {
 		s.b.log.Warn("item payload is not JSON", "topic", e.topic.String(), "error", err)
 		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
+	}
+	// The render may have outlived a grant: gate again before writing.
+	if code := s.gateTopic(ctx, e.sub); code != "" {
+		return s.closeTopic(ctx, wr, e.sub, code)
 	}
 	id, ok := s.eventID(e.sub, e.seq)
 	if !ok {
@@ -265,12 +274,13 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 // An item within the scope of the topic's own reads needs no review of its
 // own: it is delivered under the topic's grants. Those were proven valid
 // before the snapshot or delivery began, but one can expire during a slow
-// snapshot or render; the topic is then gated again, and a denial closes it,
-// so a snapshot is never silently cut short. On a list topic nothing else
-// is delivered and nothing is reviewed: a list carries only the items within
-// the scope of its list grant, as a GET list does (0030:D7:R2), so no review
-// per item is sent and none can fail. On an object topic an item that
-// reveals another read is reviewed on its own.
+// snapshot or render; the topic is then gated again before each item and
+// before the write, and a denial closes it, so a snapshot is never silently
+// cut short and nothing is written under an expired decision. On a list
+// topic nothing else is delivered and nothing is reviewed: a list carries
+// only the items within the scope of its list grant, as a GET list does
+// (0030:D7:R2), so no review per item is sent and none can fail. On an
+// object topic an item that reveals another read is reviewed on its own.
 func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data json.RawMessage, code string) {
 	b, who := s.b, s.st.who
 	switch {
