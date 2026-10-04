@@ -1,0 +1,21 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
+#
+# - 0030:D3: R9 (views answered from held state) lands at the read-model
+#   layer; R1-R8 are health's and the API's.
+# - 0030:D7: R2/R3 (list filtering, per-item access states) land here for the
+#   read model's views; R1 and R4 complete with add-read-api.
+# - 0030:D8: R1-R3 hold for what the read model stores and returns; YAML
+#   views and the documentation (R4) come later.
+# - 0030:D9: R3/R4 (folded repeats, Platform and registration events in
+#   default) land here; R2 and R5 are page labels.
+#
+# Before logging, diff this list against proposal.md's "Not in this change"
+# paragraph.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []
