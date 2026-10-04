@@ -23,6 +23,12 @@ KC=$STATE_DIR/kubeconfig
 OPM_BIN=$STATE_DIR/bin/opm-$OPM_CLI_VERSION
 # shellcheck disable=SC2034 # read by the scripts that source this file
 FIXTURES=$E2E_DIR/fixtures/f1
+# up.sh records the provider it created the cluster with, so capture and down find that cluster
+# without being told again. An explicit E2E_PROVIDER wins; podman is the default.
+PROVIDER_FILE=$STATE_DIR/provider
+if [ -z "${E2E_PROVIDER:-}" ] && [ -f "$PROVIDER_FILE" ]; then
+  E2E_PROVIDER=$(cat "$PROVIDER_FILE")
+fi
 E2E_PROVIDER=${E2E_PROVIDER:-podman}
 
 unset KUBECONFIG

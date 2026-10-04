@@ -3,8 +3,8 @@
 # up.sh: create the throwaway kind cluster opm-portal-e2e, install the released opm-operator
 # with the pinned, checksum-verified opm CLI, apply the fixture set F1 and wait for it to settle.
 #
-#   E2E_PROVIDER=podman (default) | docker
-#   OPM_OPERATOR_VERSION=<release tag>  install that operator instead of the CLI's embedded pin
+#   E2E_PROVIDER=podman (default) | docker; recorded in .e2e/provider for capture and down
+#   OPM_OPERATOR_VERSION=<release tag>  install that operator instead of the versions.env pin
 # shellcheck source=lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -12,11 +12,14 @@ for tool in kind kubectl curl tar; do
   command -v "$tool" >/dev/null || die "$tool not found on PATH"
 done
 
-# fetch_cli downloads the pinned opm release archive and checks its sha256 against
-# versions.env before extracting it.
+kind_have=$(kind version | awk '{print $2}')
+[ "$kind_have" = "$KIND_VERSION" ] ||
+  die "kind $kind_have is on PATH, versions.env pins $KIND_VERSION: go install sigs.k8s.io/kind@$KIND_VERSION"
+
+# fetch_cli downloads the pinned opm release archive once, keeps it in .e2e/bin, and checks its
+# sha256 against versions.env before every extraction.
 fetch_cli() {
-  [ -x "$OPM_BIN" ] && return 0
-  local os arch pin want archive got tmp
+  local os arch pin want archive cached got
   os=$(uname -s | tr '[:upper:]' '[:lower:]')
   case "$(uname -m)" in
     x86_64 | amd64) arch=amd64 ;;
@@ -27,19 +30,25 @@ fetch_cli() {
   want=${!pin:-}
   [ -n "$want" ] || die "no $pin pin in versions.env"
   archive=opm-$os-$arch.tar.gz
-  tmp=$(mktemp -d "$STATE_DIR/dl.XXXXXX")
-  log "downloading opm $OPM_CLI_VERSION ($archive)"
-  curl -fsSL -o "$tmp/$archive" \
-    "https://github.com/open-platform-model/cli/releases/download/$OPM_CLI_VERSION/$archive"
-  got=$(sha256sum "$tmp/$archive" | cut -d' ' -f1)
+  cached=$STATE_DIR/bin/opm-$OPM_CLI_VERSION-$os-$arch.tar.gz
+  mkdir -p "$STATE_DIR/bin"
+  fetch_tmp=$(mktemp -d "$STATE_DIR/dl.XXXXXX")
+  trap 'rm -rf "$fetch_tmp"' EXIT
+  if [ ! -f "$cached" ]; then
+    log "downloading opm $OPM_CLI_VERSION ($archive)"
+    curl -fsSL -o "$fetch_tmp/$archive" \
+      "https://github.com/open-platform-model/cli/releases/download/$OPM_CLI_VERSION/$archive"
+    mv "$fetch_tmp/$archive" "$cached"
+  fi
+  # The kept archive is hashed on every run and the binary re-extracted from it, so neither a
+  # replaced download nor a binary swapped in .e2e/bin is ever run.
+  got=$(sha256sum "$cached" | cut -d' ' -f1)
   if [ "$got" != "$want" ]; then
-    rm -rf "$tmp"
+    rm -f "$cached"
     die "sha256 mismatch for $archive: got $got, pinned $want"
   fi
-  tar -xzf "$tmp/$archive" -C "$tmp" opm
-  mkdir -p "$(dirname "$OPM_BIN")"
-  mv "$tmp/opm" "$OPM_BIN"
-  rm -rf "$tmp"
+  tar -xzf "$cached" -C "$fetch_tmp" opm
+  mv -f "$fetch_tmp/opm" "$OPM_BIN"
   log "opm $OPM_CLI_VERSION verified ($got)"
 }
 
@@ -54,12 +63,28 @@ create_cluster() {
     kind_cmd "${args[@]}"
   fi
   chmod 600 "$KC"
+  echo "$E2E_PROVIDER" >"$PROVIDER_FILE"
 }
 
+# install_operator installs the operator without the CLI's Platform, which would subscribe to the
+# newest catalog release, and applies one pinned to OPM_CATALOG_VERSION instead.
 install_operator() {
-  local args=(operator install --timeout 5m)
+  local args=(operator install --skip-platform --timeout 5m)
   [ -n "$OPM_OPERATOR_VERSION" ] && args+=(--version "$OPM_OPERATOR_VERSION")
   opm_k "${args[@]}"
+  log "applying the cluster Platform pinned to $OPM_CATALOG $OPM_CATALOG_VERSION"
+  k apply -f - <<EOF
+apiVersion: opmodel.dev/v1alpha1
+kind: Platform
+metadata:
+  name: cluster
+spec:
+  type: kubernetes
+  registry:
+    "$OPM_CATALOG":
+      enable: true
+      version: "$OPM_CATALOG_VERSION"
+EOF
   wait_until 120 "Platform cluster Ready=True" cond_is platforms.opmodel.dev - cluster Ready status True
 }
 

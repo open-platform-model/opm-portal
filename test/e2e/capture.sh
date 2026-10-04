@@ -23,8 +23,8 @@ require_fixture_cluster
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-# STRIP removes what the portal never serves, drops any Secret that slipped in, drops CRD
-# schemas (about 90% of the capture's bytes, and nothing the portal reads), and sorts the list
+# STRIP removes what the portal never serves, drops any Secret that slipped in, drops Node
+# events (kubelet and host noise that differs by provider, not OPM state), drops CRD schemas (about 90% of the capture's bytes, and nothing the portal reads), and sorts the list
 # so a recapture diffs by content, not by API server order.
 STRIP='
   .items |= map(
@@ -35,6 +35,7 @@ STRIP='
     | with(select(.kind == "CustomResourceDefinition"); del(.spec.versions[].schema))
   )
   | .items |= map(select(.kind != "Secret"))
+  | .items |= map(select(.kind != "Event" or .regarding.kind != "Node"))
   | .items |= sort_by(.kind, .metadata.namespace // "", .metadata.name)
   | del(.metadata)
 '
