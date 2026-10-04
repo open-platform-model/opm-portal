@@ -12,7 +12,8 @@ COPY go.* ./
 RUN --mount=type=cache,target=/go/pkg/mod \
     go mod download
 
-# Go sources (.dockerignore re-includes only *.go and the module files).
+# Go sources (.dockerignore re-includes only the module files and the cmd/,
+# internal/ and api/ trees, minus tests).
 COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod \

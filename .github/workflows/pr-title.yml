@@ -2,11 +2,9 @@ name: PR Title
 
 # Squash-merge is the norm here. release-please parses the squash commit title
 # as a Conventional Commit to build the changelog and pick the next version.
-# That title equals the PR title only once the repo's
-# squash_merge_commit_title is PR_TITLE (owner setting, workspace RELEASING.md,
-# section "Owner settings"); until then a one-commit PR squashes under its
-# commit subject, so that subject must be a Conventional Commit too. The squash
-# body is BLANK under the same owner settings, so the PR title is all
+# That title equals the PR title because the repo's squash_merge_commit_title
+# is PR_TITLE (owner setting, workspace RELEASING.md, section "Owner
+# settings"). The squash body is BLANK under the same settings, so the PR title is all
 # release-please reads: a breaking change is a "!" in the title, and a forced
 # version is a release-as key in
 # release-please-config.json, landed by a normal PR and removed by another

@@ -18,9 +18,10 @@ on:
     branches:
       - main
 
+# release-please acts through the App token, never GITHUB_TOKEN, so the
+# workflow default is read-only; each later job declares what it needs.
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 # One release run at a time. Draft releases defeat release-please's duplicate
 # guard (GitHub accepts several drafts for one tag), and two image jobs could

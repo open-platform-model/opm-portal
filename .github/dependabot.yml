@@ -7,7 +7,8 @@ updates:
     commit-message:
       prefix: "ci"
     ignore:
-      # docs-kit's publish.yml moves only with .opm-docs-version, after the site bumps (docs-kit C5, C12).
+      # No docs-kit workflow yet; the publish-portal-docs change adds publish.yml.
+      # It moves only with .opm-docs-version, after the site bumps (docs-kit C5, C12).
       - dependency-name: "open-platform-model/docs-kit*"
   - package-ecosystem: "gomod"
     directory: "/"
