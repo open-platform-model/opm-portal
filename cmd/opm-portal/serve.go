@@ -318,12 +318,33 @@ func build(ctx context.Context, c cluster, o serveOptions, bound netip.AddrPort,
 	if err := model.Start(ctx); err != nil {
 		return nil, err
 	}
+	logDenied(log, model.Denied())
 	p, err := wire(c, model, bound, log)
 	if err != nil {
 		model.Stop()
 		return nil, err
 	}
 	return p, nil
+}
+
+// logDenied warns once per OPM kind scope the kubeconfig's user may not
+// list and watch, so a user whose pages answer forbidden learns why, and,
+// for a namespaced kind read cluster-wide, that --namespaces can narrow it
+// to namespaces they may read (0030:D5:R5).
+func logDenied(log *slog.Logger, denied []readmodel.DeniedScope) {
+	for _, d := range denied {
+		switch {
+		case d.Namespaced && d.Namespace == "":
+			log.Warn("the kubeconfig's user may not list and watch this kind cluster-wide, so it reads as forbidden; "+
+				"pass --namespaces with the namespaces you may read", "resource", d.Resource)
+		case d.Namespaced:
+			log.Warn("the kubeconfig's user may not list and watch this kind in a namespace --namespaces names, so it reads as forbidden there",
+				"resource", d.Resource, "namespace", d.Namespace)
+		default:
+			log.Warn("the kubeconfig's user may not list and watch this cluster-scoped kind, so it reads as forbidden",
+				"resource", d.Resource)
+		}
+	}
 }
 
 func wire(c cluster, model *readmodel.Model, bound netip.AddrPort, log *slog.Logger) (*portal, error) {

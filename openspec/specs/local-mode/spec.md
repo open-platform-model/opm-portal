@@ -52,14 +52,23 @@ Source: 0030:D5:R1/R6/R7, 0030:D6:R2.
 ### Requirement: Namespaced reads can be limited for users without cluster-wide access
 
 `--namespaces` SHALL limit the read model's namespaced OPM kinds to the listed namespaces, so a
-user who may not list them cluster-wide can still read them in the namespaces they may.
-Source: 0030:D5:R5.
+user who may not list them cluster-wide can still read them in the namespaces they may. At
+startup the portal SHALL log one warning on standard error for each OPM kind, and each namespace
+`--namespaces` names, that the identity may not list and watch; a warning for a namespaced kind
+read cluster-wide SHALL name `--namespaces`. Source: 0030:D5:R5.
 
 #### Scenario: A namespace-scoped user
 
 - **WHEN** a user who may list ModuleInstances only in `team-a` runs
   `opm-portal serve --namespaces team-a`
 - **THEN** the instance list of `team-a` is served
+
+#### Scenario: A namespace-scoped user without --namespaces
+
+- **WHEN** a user who may list ModuleInstances only in `team-a` runs `opm-portal serve`
+- **THEN** standard error warns that the user may not list and watch `moduleinstances`
+  cluster-wide and names `--namespaces`
+- **AND** the cluster-wide instance list answers with access `forbidden`
 
 ### Requirement: A browser is admitted only through a one-time launch token
 

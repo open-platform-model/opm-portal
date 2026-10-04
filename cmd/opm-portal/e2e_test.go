@@ -107,8 +107,19 @@ func TestLocalModeNamespaces(t *testing.T) {
 		t.Fatalf("cluster-wide list: %d %.300s; want 200 with access forbidden", res.status, res.body)
 	}
 	p.stop(t)
-	if !strings.Contains(p.stderr.String(), "user=system:serviceaccount:default:"+scopedReader) {
-		t.Fatalf("stderr does not name the ServiceAccount:\n%s", p.stderr.String())
+	stderr := p.stderr.String()
+	if !strings.Contains(stderr, "user=system:serviceaccount:default:"+scopedReader) {
+		t.Fatalf("stderr does not name the ServiceAccount:\n%s", stderr)
+	}
+	if !strings.Contains(stderr, "cluster-scoped kind, so it reads as forbidden\" resource=platforms") || strings.Contains(stderr, "pass --namespaces") {
+		t.Fatalf("stderr does not warn of the denied cluster-scoped kinds alone:\n%s", stderr)
+	}
+
+	// Without --namespaces the user is told the flag is the way in.
+	p = startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped)
+	p.stop(t)
+	if stderr := p.stderr.String(); !strings.Contains(stderr, "pass --namespaces with the namespaces you may read\" resource=moduleinstances") {
+		t.Fatalf("stderr does not point a namespace-scoped user at --namespaces:\n%s", stderr)
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"log/slog"
 	"net"
 	"os"
 	"path/filepath"
@@ -15,6 +16,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
+
+	"github.com/open-platform-model/opm-portal/internal/readmodel"
 )
 
 func TestServeRefusesBeforeReadingTheKubeconfig(t *testing.T) {
@@ -218,5 +221,41 @@ func TestOpenLaunchKeepsTheTokenOffTheCommandLine(t *testing.T) {
 	cleanup()
 	if _, err := os.Stat(opened); !os.IsNotExist(err) {
 		t.Errorf("cleanup after a failure left the page: %v", err)
+	}
+}
+
+func TestLogDeniedNamesTheFlagWhereItHelps(t *testing.T) {
+	var buf bytes.Buffer
+	log := slog.New(slog.NewTextHandler(&buf, nil))
+	logDenied(log, []readmodel.DeniedScope{
+		{Resource: "moduleinstances", Namespaced: true},
+		{Resource: "modulepackages", Namespaced: true, Namespace: "team-b"},
+		{Resource: "transformerregistrations"},
+	})
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	if len(lines) != 3 {
+		t.Fatalf("logged %d lines, want 3:\n%s", len(lines), buf.String())
+	}
+	for i, want := range []struct {
+		has   []string
+		names bool // names --namespaces as the way out
+	}{
+		{[]string{"level=WARN", "cluster-wide", "resource=moduleinstances"}, true},
+		{[]string{"level=WARN", "resource=modulepackages", "namespace=team-b"}, false},
+		{[]string{"level=WARN", "cluster-scoped", "resource=transformerregistrations"}, false},
+	} {
+		for _, s := range want.has {
+			if !strings.Contains(lines[i], s) {
+				t.Errorf("line %d = %s; want %q", i, lines[i], s)
+			}
+		}
+		if got := strings.Contains(lines[i], "pass --namespaces"); got != want.names {
+			t.Errorf("line %d names the flag = %v, want %v: %s", i, got, want.names, lines[i])
+		}
+	}
+	buf.Reset()
+	logDenied(log, nil)
+	if buf.Len() != 0 {
+		t.Errorf("logged with nothing denied: %s", buf.String())
 	}
 }
