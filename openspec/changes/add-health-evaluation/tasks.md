@@ -7,10 +7,10 @@
 
 ## 2. Roll-up
 
-- [ ] 2.1 Add `Ref`, `Access`, `Entry`, `Input`, `Result`, `Summary`, `Counts` and `Evaluate(in)`: per-entry health (absent object Missing, Secret withheld whatever was passed, non-ok access excluded), worst-of per component and instance, `Partial`, oldest `EvaluatedAt`, `Live`
-- [ ] 2.2 Propagate the Pod rule: walk each degraded Pod's controller owner chain by UID through children and inventory objects (eight hops at most) and mark the inventory object reached Degraded; verify with the phase 4 capture (instance Degraded within the same evaluation, Deployment reason `ImagePullBackOff`) and a Pod whose chain reaches nothing
-- [ ] 2.3 Verify the roll-up with tests built from captured inventories: cert-manager (42 entries, Healthy), podinfo phases 3/4/5 (Healthy, Degraded, Degraded), the CLI-owned web instance (Healthy), plus forbidden, not readable, Secret, empty inventory, missing object and polled-entry cases
-- [ ] 2.4 `task check` green, then commit `chore(health): roll object health up to components and the instance`
+- [x] 2.1 Add `Ref`, `Access`, `Entry`, `Input`, `Result`, `Summary`, `Counts` and `Evaluate(in)`: per-entry health (absent object Missing, Secret withheld whatever was passed, non-ok access excluded), worst-of per component and instance, `Partial`, oldest `EvaluatedAt`, `Live`
+- [x] 2.2 Propagate the Pod rule: walk each degraded Pod's controller owner chain by UID through children and inventory objects (eight hops at most) and mark the inventory object reached Degraded; verify with the phase 4 capture (instance Degraded within the same evaluation, Deployment reason `ImagePullBackOff`) and a Pod whose chain reaches nothing
+- [x] 2.3 Verify the roll-up with tests built from captured inventories: cert-manager (42 entries, Healthy), podinfo phases 3/4/5 (Healthy, Degraded, Degraded), the CLI-owned web instance (Healthy), plus forbidden, not readable, Secret, empty inventory, missing object and polled-entry cases
+- [x] 2.4 `task check` green, then commit `chore(health): roll object health up to components and the instance`
 
 ## 3. Applied axis and registration verdicts
 
