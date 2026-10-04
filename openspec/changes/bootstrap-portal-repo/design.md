@@ -82,8 +82,10 @@ all three, because a skipped separate job counts as passing.
 Operator shape: `golang:1.26` builder on `$BUILDPLATFORM`, `CGO_ENABLED=0`, cache mounts,
 `gcr.io/distroless/static:nonroot`, `USER 65532:65532`. It copies `go.*` rather than
 `go.mod go.sum`, because a module with no dependencies has no `go.sum`. `.dockerignore`
-re-includes only Go sources and module files; a later change that embeds web assets must
-re-include them.
+ignores everything and re-includes the module files and the whole `cmd/`, `internal/` and `api/`
+trees (tests and `testdata/` excluded). The operator's form re-includes `**/*.go` only; podman
+(buildah) does not walk into an excluded directory to find those files, and a later `go:embed`
+of web assets would miss them under either builder.
 
 ## Risks / Trade-offs
 

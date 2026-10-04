@@ -23,8 +23,8 @@
 
 ## 4. Release pipeline
 
-- [ ] 4.1 Add `release-please-config.json` (0.x: `bump-minor-pre-major`, `initial-version` `0.1.0`, draft, tags `vX.Y.Z`, `extra-files` the version file, opm-operator's `changelog-sections`) and `.release-please-manifest.json` (`0.0.0`); verify both parse with `jq`
-- [ ] 4.2 Add `.goreleaser.yml` (linux and darwin, amd64 and arm64, archives `opm-portal-<os>-<arch>`, `checksums.txt`, attach to the existing draft without publishing); verify with `goreleaser check` when available, otherwise by review against the cli config
-- [ ] 4.3 Add `Dockerfile` (golang builder on `$BUILDPLATFORM`, distroless `static:nonroot`, `USER 65532:65532`) and `.dockerignore`; verify an image builds and runs `opm-portal` when podman or docker is available
-- [ ] 4.4 Add `.github/scripts/image-tag-guard.sh` (copied) and `.github/scripts/release-guard.sh` (asset list: the four archives and `checksums.txt`) and `.github/workflows/release.yml` (release-please, image-release, binaries, publish-release); verify the guard scripts pass `bash -n` and the workflow passes `actionlint`
-- [ ] 4.5 `actionlint` and `task check` green, then commit `ci(release): add release-please, goreleaser binaries and the release image`
+- [x] 4.1 Add `release-please-config.json` (0.x: `bump-minor-pre-major`, `initial-version` `0.1.0`, draft, tags `vX.Y.Z`, `extra-files` the version file, opm-operator's `changelog-sections`) and `.release-please-manifest.json` (`0.0.0`); verify both parse with `jq`
+- [x] 4.2 Add `.goreleaser.yml` (linux and darwin, amd64 and arm64, archives `opm-portal-<os>-<arch>`, `checksums.txt`, attach to the existing draft without publishing); verify with `goreleaser check` when available, otherwise by review against the cli config
+- [x] 4.3 Add `Dockerfile` (golang builder on `$BUILDPLATFORM`, distroless `static:nonroot`, `USER 65532:65532`) and `.dockerignore`; verify an image builds and runs `opm-portal` when podman or docker is available
+- [x] 4.4 Add `.github/scripts/image-tag-guard.sh` (copied) and `.github/scripts/release-guard.sh` (asset list: the four archives and `checksums.txt`) and `.github/workflows/release.yml` (release-please, image-release, binaries, publish-release); verify the guard scripts pass `bash -n` and the workflow passes `actionlint`
+- [x] 4.5 `actionlint` and `task check` green, then commit `ci(release): add release-please, goreleaser binaries and the release image`

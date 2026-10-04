@@ -1,0 +1,44 @@
+version: 2
+project_name: opm-portal
+
+# Binaries for running the portal on your own machine (milestone 1: it reads
+# the cluster with your kubeconfig). The container image is built by the
+# image-release job of release.yml, not here.
+builds:
+  - main: ./cmd/opm-portal
+    binary: opm-portal
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - name_template: >-
+      {{ .ProjectName }}-{{ .Os }}-{{ .Arch }}
+    files:
+      - LICENSE
+
+checksum:
+  name_template: checksums.txt
+
+release:
+  # release-please creates the tag and a draft release; goreleaser attaches
+  # the archives and checksums to that draft (matched by name, which equals
+  # the tag) and leaves it a draft. release.yml's publish-release job
+  # publishes it once the image job has succeeded too (release-guard.sh).
+  draft: true
+  use_existing_draft: true
+  mode: keep-existing
+  # A re-run on the same draft replaces an asset a failed run left behind.
+  replace_existing_artifacts: true
+  prerelease: auto
+
+changelog:
+  # release-please writes the release notes.
+  disable: true
