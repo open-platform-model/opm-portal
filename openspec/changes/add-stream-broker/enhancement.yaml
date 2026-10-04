@@ -1,0 +1,19 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
+#
+# - 0030:D2 (the read API and its change stream): this change lands the broker
+#   behind R5 (same shapes, resume or re-read). No client can reach it until the
+#   read API mounts the stream; that change claims D2.
+# - 0030:D7 (lists contain only readable items): the broker filters each
+#   delivered item per subscriber, the stream half of R2. The read API and read
+#   model complete D7.
+#
+# Before logging, diff this list against proposal.md's "Not in this change"
+# paragraph.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []
