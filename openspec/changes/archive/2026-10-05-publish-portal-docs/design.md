@@ -91,13 +91,15 @@ built").
 ### Installing from a release
 
 **Context**: a release's docs bundle never changes. A how-to that installs with
-`go install ...@main` would, read in an older release's bundle, install code newer than its pages.
+`go install ...@main` would install unreleased code, and one that names a version would break or
+go stale as releases move on.
 **Decision**: the how-to downloads the archive for the reader's system from the releases page
 through `releases/latest/download/`, checks it against `checksums.txt` (the assets
 `.goreleaser.yml` builds) and names no version. A source build is a one-line note pinned to
 `latest`.
-**Rationale**: the commands stay true at every release, and the reader gets a binary the release
-workflow built and checksummed.
+**Rationale**: the commands name no version or branch, so they never break and never install
+unreleased code, and the reader gets a binary the release workflow built and checksummed. They
+install the newest release, which can be newer than the pages of an older release's bundle.
 
 ### Pins and workflow
 

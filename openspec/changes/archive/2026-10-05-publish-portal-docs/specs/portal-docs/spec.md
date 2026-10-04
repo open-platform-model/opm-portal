@@ -129,9 +129,10 @@ after the next release.
 
 The how-to for running the portal locally SHALL install `opm-portal` from the portal's GitHub
 releases page: the archive for the reader's system and its entry in `checksums.txt`, checked
-before the binary is used. Its commands SHALL name no version, so the page stays true in the
-bundle of every release. A note on building from source SHALL use `go install` with `latest`,
-never a branch, because a release's bundle would otherwise install code newer than the pages.
+before the binary is used. Its commands SHALL name no version or branch, so they never break and
+never install unreleased code. A note on building from source SHALL use `go install` with
+`latest`, never a branch. The commands install the newest release, which can be newer than the
+pages of an older release's bundle.
 
 #### Scenario: A reader follows the how-to in an older release's bundle
 
