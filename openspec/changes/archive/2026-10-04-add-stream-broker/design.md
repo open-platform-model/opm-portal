@@ -102,11 +102,11 @@ retry: 3000
 event: open
 data: {"stream":"<id>"}
 
-id: <epoch>.<stream>.<seq>
+id: <epoch>.<stream>.<n>
 event: snapshot
 data: {"topic":"instance:apps/blog","items":[{...},{...}]}
 
-id: <epoch>.<stream>.<seq>
+id: <epoch>.<stream>.<n>
 event: upsert                     (or delete, k8sevent)
 data: {"topic":"instance:apps/blog","item":{...}}
 
@@ -129,7 +129,8 @@ events` in `apps`) and for each item's `Attrs`.
 - **Subscribe** (`Open`, `Subscribe`, reattach): every topic attribute is checked synchronously,
   before the topic is registered and before `Activate`, so a caller cannot make the read model
   start watches for topics it may not read. A denied topic is not registered; the stream gets a
-  `closed` message for it.
+  `closed` message for it, held for the next connection while the stream is detached. `Subscribe`
+  and `Unsubscribe` find the stream only for the session key and identity that opened it.
 - **Before each delivery** the writer checks the topic's held grants with `Grant.Covers`; an
   expired grant is re-checked with `Check`. A denial or error closes the topic. The same check
   runs on each heartbeat, so a revocation closes a quiet topic within one decision TTL plus one
@@ -150,8 +151,11 @@ before registration and what came after. The writer calls `Producer.Snapshot` wh
 marker; the producer updates its state before it publishes, so a change is in the snapshot, after
 it, or both.
 
-Event ids are `<epoch>.<stream id>.<seq>`; the epoch is random per broker, so ids from a previous
-process never resume. A disconnected stream stays registered, detached, for `ResumeWindow`, keeping
+Event ids are `<epoch>.<stream id>.<n>`, where `n` counts the stream's own delivered events; the
+epoch is random per broker, so ids from a previous process never resume. The broker-wide sequence
+never leaves the process: its gaps would count other users' activity and the items left out for
+this reader (0030:D7:R2). Each stream remembers the sequence behind its last `QueueSize` ids, and a
+resume from an id it no longer remembers snapshots every topic. A disconnected stream stays registered, detached, for `ResumeWindow`, keeping
 its topic subscriptions (and so the topics' rings) alive. `Open` with a `Last-Event-ID` naming a
 detached or still-attached stream of the same session reattaches it (a still-attached one is
 taken over: its old writer ends). For each topic: a sequence below the topic's snapshot marker, or

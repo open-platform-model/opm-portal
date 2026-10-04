@@ -37,8 +37,8 @@ bad request before the stream opens.
 
 A stream SHALL carry every topic attached to it, multiplexed, with each message naming its topic.
 A client SHALL be able to attach and detach topics while the stream stays open. The first message
-on a stream SHALL name the stream's identifier, which only the session that opened it can use to
-change its topics. A stream SHALL carry at most a configured number of topics.
+on a stream SHALL name the stream's identifier, which only the session that opened it, under the
+identity that opened it, can use to change its topics. A stream SHALL carry at most a configured number of topics.
 
 #### Scenario: Adding a topic to an open stream
 
@@ -57,6 +57,13 @@ change its topics. A stream SHALL carry at most a configured number of topics.
 - **WHEN** a session other than the one that opened stream S asks to attach a topic to S
 - **THEN** the request is refused exactly as for a stream that does not exist
 
+#### Scenario: Another identity in the same session cannot change a stream
+
+- **WHEN** the session that opened stream S now names a different identity and asks to attach a
+  topic to S
+- **THEN** the request is refused exactly as for a stream that does not exist
+- **AND** no authorization review is sent
+
 ### Requirement: Every subscription and every delivery is authorized for the subscriber
 
 The portal SHALL authorize a topic for the stream's identity, on the reads the topic stands for,
@@ -65,7 +72,8 @@ the decision behind it has expired. Each change SHALL be delivered only to subsc
 read the object it reveals; items a subscriber may not read SHALL be left out without a trace,
 and a snapshot SHALL contain only items the subscriber may read. A denied topic SHALL be closed on
 the stream with a `forbidden` code (or `unauthenticated` when the authorizer does not serve the
-stream's identity) and SHALL deliver nothing; an authorization error SHALL close the topic with an
+stream's identity) and SHALL deliver nothing; a topic denied while the stream is disconnected
+SHALL be closed first thing on its next connection; an authorization error SHALL close the topic with an
 `upstream_unavailable` code and SHALL deliver nothing. A stream SHALL NOT open
 for an unauthenticated identity, and no authorization review SHALL be sent for one. Source:
 0030:D7:R2, 0030:D6:R4.
@@ -84,10 +92,19 @@ for an unauthenticated identity, and no authorization review SHALL be sent for o
 - **AND** never a snapshot or change for it
 - **AND** the message reads the same whether or not `apps/blog` exists
 
+#### Scenario: A topic denied while the stream is away is closed on reconnect
+
+- **WHEN** a client attaches `instance:apps/blog`, which it may not read, while its stream is
+  disconnected
+- **AND** the stream reconnects within the resume window
+- **THEN** the reconnected stream delivers a closed message for that topic with code `forbidden`
+  before anything else
+
 #### Scenario: A revoked permission stops delivery
 
 - **WHEN** a subscriber's permission to read `apps/blog` is revoked while its stream is open
-- **THEN** within one authorization decision lifetime the topic is closed with code `forbidden`
+- **THEN** within one authorization decision lifetime plus one heartbeat interval the topic is
+  closed with code `forbidden`
 - **AND** no change published after the closing is delivered for it
 
 #### Scenario: An authorization error delivers nothing
@@ -109,13 +126,21 @@ the subscriber may read, in the same document shapes as the read API's `GET`s. E
 message for the topic SHALL be an `upsert`, a `delete` or an event item in those shapes. No change
 made after the snapshot was taken SHALL be missed; a change MAY repeat state the snapshot already
 carried, and clients apply upserts and deletes idempotently. Every snapshot and change SHALL carry
-an event identifier, and identifiers SHALL strictly increase along a stream. Source: 0030:D2:R5.
+an event identifier, and identifiers SHALL strictly increase along a stream. Identifiers SHALL
+count only the events delivered on that stream, so their gaps reveal nothing about items left out
+for the subscriber, other topics or other streams. Source: 0030:D2:R5, 0030:D7:R2.
 
 #### Scenario: A change racing the snapshot is not lost
 
 - **WHEN** an instance changes while a new subscriber's snapshot is being taken
 - **THEN** the subscriber receives the change in the snapshot, after it as an upsert, or both
 - **AND** never neither
+
+#### Scenario: Identifiers reveal nothing left out
+
+- **WHEN** topic `instances` publishes five changes, of which the subscriber may read three, while
+  other streams follow other topics
+- **THEN** the subscriber's three changes carry consecutive identifiers
 
 ### Requirement: A reconnecting stream resumes or re-reads
 
