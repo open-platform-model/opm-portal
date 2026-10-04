@@ -37,6 +37,11 @@ deletes it. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise),
 jq, and never touch a cluster other than `opm-portal-e2e` (or the `opm-portal-e2e-<suffix>`
 cluster `E2E_CLUSTER` names).
 
+## Documentation
+
+The user documentation lives in [`docs/site/`](docs/site/) and is published to opmodel.dev as a
+docs-kit bundle by the `Docs` workflow. `task docs:bundle:check` builds and lints it locally.
+
 ## Contributing
 
 Read [`AGENTS.md`](AGENTS.md) and [`CONSTITUTION.md`](CONSTITUTION.md) first. Changes are planned

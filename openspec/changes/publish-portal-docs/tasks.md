@@ -15,5 +15,5 @@
 
 ## 3. Repository guides
 
-- [ ] 3.1 `AGENTS.md` (layout, commands) and `README.md` name the docs bundle and its tasks
-- [ ] 3.2 `task docs:bundle:check` and `task check` green, then commit `docs: name the docs bundle in the repository guides`
+- [x] 3.1 `AGENTS.md` (layout, commands) and `README.md` name the docs bundle and its tasks
+- [x] 3.2 `task docs:bundle:check` and `task check` green, then commit `docs: name the docs bundle in the repository guides`
