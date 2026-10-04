@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	fakediscovery "k8s.io/client-go/discovery/fake"
 	dynfake "k8s.io/client-go/dynamic/fake"
 
 	"github.com/open-platform-model/opm-portal/internal/authz"
@@ -87,6 +88,7 @@ type env struct {
 	srv    *Server
 	model  *readmodel.Model
 	client *dynfake.FakeDynamicClient
+	disc   *fakediscovery.FakeDiscovery
 	az     *recorder
 	// principal is what Authenticate returns.
 	principal Principal
@@ -107,9 +109,10 @@ func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRul
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
 	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, reader.Username: readerChecker}}
 	client := readmodeltest.Dynamic(objs...)
+	disc := readmodeltest.Discovery(readmodeltest.Kinds...)
 	m, err := readmodel.New(readmodel.Config{
 		Dynamic:     client,
-		Discovery:   readmodeltest.Discovery(readmodeltest.Kinds...),
+		Discovery:   disc,
 		Authorizer:  az,
 		Reader:      reader,
 		SyncTimeout: 5 * time.Second,
@@ -122,7 +125,7 @@ func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRul
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
-	e := &env{model: m, client: client, az: az, principal: Principal{Identity: alice, Session: "session-alice"}}
+	e := &env{model: m, client: client, disc: disc, az: az, principal: Principal{Identity: alice, Session: "session-alice"}}
 	cfg := Config{
 		Model:      m,
 		Authorizer: az,

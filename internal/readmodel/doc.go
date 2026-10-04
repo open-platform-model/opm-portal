@@ -18,8 +18,10 @@
 //   - Tier 4: events about one object, listed when asked, folded so a repeat
 //     shows once with a count.
 //
-// Kinds are resolved through discovery, cached for the process; ResolveKind
-// exposes the resolver. TuneConfig raises the reading client's request rate.
+// Kinds are resolved through discovery, cached for the process; an
+// inventory kind the cache does not know refreshes it once. ResolveKind
+// exposes the cache for kinds a request names and never refreshes it.
+// TuneConfig raises the reading client's request rate.
 //
 // # Changes
 //

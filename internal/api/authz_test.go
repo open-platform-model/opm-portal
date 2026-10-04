@@ -283,6 +283,25 @@ func TestEventsAuthorizeEveryReadFirst(t *testing.T) {
 	}
 }
 
+// TestEventsNamedKindNeverRefreshesDiscovery: a caller who may not read
+// the owner is refused before the kind they name is looked up, and a kind
+// the cluster does not serve never refreshes the discovery every reader
+// shares, whoever asks.
+func TestEventsNamedKindNeverRefreshesDiscovery(t *testing.T) {
+	for _, rule := range []readmodeltest.Rule{denyAll, readmodeltest.AllowAll} {
+		e := newEnv(t, loadF1(t), rule)
+		e.get(t, base+"/instances/default/podinfo")
+		before := len(e.disc.Actions())
+		for _, kind := range []string{"Widgeta", "Widgetb", "Widgetc"} {
+			res := e.get(t, base+"/instances/default/podinfo/events?group=example.com&kind="+kind+"&namespace=default&name=w")
+			expectProblem(t, res, http.StatusForbidden, v1.CodeForbidden)
+		}
+		if n := len(e.disc.Actions()) - before; n != 0 {
+			t.Errorf("unknown kinds sent %d discovery requests", n)
+		}
+	}
+}
+
 func nodeByID(g v1.Graph, id string) *v1.GraphNode {
 	for i := range g.Nodes {
 		if g.Nodes[i].ID == id {

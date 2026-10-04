@@ -396,7 +396,13 @@ func (s *Server) ownerEventsDoc(ctx context.Context, who authz.Identity, o owner
 	if !named || (about.Group == opmGroup && about.Kind == o.kind && about.Namespace == o.namespace && about.Name == o.name) {
 		about, named = o.ref(), false
 	}
-	reads := []authz.Attributes{o.get()}
+	// The owner get is reviewed before anything the request names is
+	// looked up, the kind included.
+	og, err := s.authorize(ctx, who, o.get())
+	if err != nil {
+		return v1.EventList{}, err
+	}
+	var reads []authz.Attributes
 	if named {
 		get, version, err := s.objectGet(about)
 		if err != nil {
@@ -410,14 +416,31 @@ func (s *Server) ownerEventsDoc(ctx context.Context, who authz.Identity, o owner
 	if err != nil {
 		return v1.EventList{}, err
 	}
-	components, err := s.ownerComponents(ctx, who, g[0], o)
-	if err != nil {
+	if err := s.ownerReaches(ctx, who, og[0], o, about, named); err != nil {
 		return v1.EventList{}, err
 	}
-	if named && !reaches(components, about) {
-		return v1.EventList{}, forbidden()
-	}
 	return s.events(ctx, who, g[len(g)-1], about)
+}
+
+// ownerReaches checks the owner exists and, when the request names an
+// object, that the owner's inventory reaches it. Only a named object needs
+// the inventory walked; the owner's own events need just its existence, so
+// a missing owner is still not found without evaluating its health.
+func (s *Server) ownerReaches(ctx context.Context, who authz.Identity, g authz.Grant, o owner, about readmodel.ObjectRef, named bool) error {
+	if !named {
+		if o.kind == kindModulePackage {
+			return s.cfg.Model.PackageExists(ctx, who, g, o.namespace, o.name)
+		}
+		return s.cfg.Model.InstanceExists(ctx, who, g, o.namespace, o.name)
+	}
+	components, err := s.ownerComponents(ctx, who, g, o)
+	if err != nil {
+		return err
+	}
+	if !reaches(components, about) {
+		return forbidden()
+	}
+	return nil
 }
 
 // objectGet is the get a caller needs on the object an events request
