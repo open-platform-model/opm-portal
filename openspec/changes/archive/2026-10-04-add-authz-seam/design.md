@@ -127,8 +127,11 @@ sorted groups, sorted extra), so group order does not matter.
 #### Refusals decided without the cluster
 
 **Decision**: verbs other than `get`, `list`, `watch` are `forbidden` (the portal is read-only,
-Principle V); core `secrets` is `forbidden` whatever RBAC says (0030:D8:R1); an empty verb or
-resource or a `*` in any attribute is `invalid`. None reaches a backend or the cache.
+Principle V); a subresource other than none, `status` or `log` is `forbidden`, because a `get` on
+`pods/exec`, `pods/attach`, `pods/portforward` or a `proxy` subresource opens a stream into a
+workload or node (`nodes/proxy` is a known exec path) and 0030 needs only `pods/log` (0030:D10,
+0030:D11) and status; core `secrets` is `forbidden` whatever RBAC says (0030:D8:R1); an empty verb
+or resource or a `*` in any attribute is `invalid`. None reaches a backend or the cache.
 **Rationale**: these are portal policy, not RBAC questions; asking the cluster would only add a
 way to get them wrong.
 

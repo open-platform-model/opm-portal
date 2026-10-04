@@ -63,12 +63,20 @@ whatever groups, UID or extra values it carries. Source: 0030:D6:R2, applied in 
 ### Requirement: Reads the portal never makes are refused without asking
 
 The portal SHALL refuse, without asking the cluster, any request whose verb is not `get`, `list`
-or `watch`, any request on core `secrets` whatever the caller's RBAC (Source: 0030:D8:R1), and any
-request with an empty verb or resource or a wildcard in any attribute.
+or `watch`, any request whose subresource is not empty, `status` or `log` (a `get` on `exec`,
+`attach`, `portforward` or `proxy` opens a stream into a workload or node), any request on core
+`secrets` whatever the caller's RBAC (Source: 0030:D8:R1), and any request with an empty verb or
+resource or a wildcard in any attribute.
 
 #### Scenario: Write verb
 
 - **WHEN** a request asks to `delete` a Deployment
+- **THEN** it is refused as forbidden
+- **AND** the cluster receives no request
+
+#### Scenario: Streaming subresource
+
+- **WHEN** a request asks to `get` Pod `p`'s `exec` subresource, or Node `n`'s `proxy` subresource
 - **THEN** it is refused as forbidden
 - **AND** the cluster receives no request
 

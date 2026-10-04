@@ -23,6 +23,13 @@ type Attributes struct {
 // readVerbs are the only verbs the portal ever asks for.
 var readVerbs = map[string]bool{"get": true, "list": true, "watch": true}
 
+// readSubresources are the only subresources the portal ever reads: the
+// object itself, its status, and a Pod's log (0030:D10, 0030:D11). Others
+// are refused because a get on them is not a read: pods/exec, pods/attach
+// and pods/portforward, and the proxy subresources (nodes/proxy is an exec
+// path), are authorized as get when upgraded to a stream.
+var readSubresources = map[string]bool{"": true, "status": true, "log": true}
+
 const wildcard = "*"
 
 // validate refuses attributes the portal must never authorize, before any
@@ -36,6 +43,10 @@ func (a Attributes) validate() error {
 		return &DenialError{Code: CodeInvalid, Attributes: a}
 	case !readVerbs[a.Verb]:
 		// The portal is read-only: no grant is ever issued for a write verb.
+		return &DenialError{Code: CodeForbidden, Attributes: a}
+	case !readSubresources[a.Subresource]:
+		// A get on exec, attach, portforward or proxy opens a stream into
+		// the workload or node; the portal never asks for one.
 		return &DenialError{Code: CodeForbidden, Attributes: a}
 	case a.Resource.Group == "" && a.Resource.Resource == "secrets":
 		// The portal never reads Secret data, whatever the caller's RBAC (0030:D8:R1).

@@ -35,6 +35,8 @@
 //   - the identity's username is empty, blank or "system:anonymous", whatever
 //     groups it carries;
 //   - the verb is not get, list or watch (the portal is read-only);
+//   - the subresource is not empty, status or log (a get on exec, attach,
+//     portforward or proxy opens a stream into a workload or node);
 //   - the resource is core "secrets" (the portal never reads Secret data);
 //   - the attributes are malformed or use a wildcard.
 //

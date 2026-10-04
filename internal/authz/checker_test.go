@@ -96,6 +96,13 @@ func TestRefusedAttributesNeverReachTheBackend(t *testing.T) {
 		{"get secret", Attributes{Verb: "get", Resource: secrets, Namespace: "a", Name: "db"}, CodeForbidden},
 		{"list secrets", Attributes{Verb: "list", Resource: secrets, Namespace: "a"}, CodeForbidden},
 		{"watch secrets cluster-wide", Attributes{Verb: "watch", Resource: secrets}, CodeForbidden},
+		{"get pods/exec", Attributes{Verb: "get", Resource: pods, Subresource: "exec", Namespace: "a", Name: "p"}, CodeForbidden},
+		{"get pods/attach", Attributes{Verb: "get", Resource: pods, Subresource: "attach", Namespace: "a", Name: "p"}, CodeForbidden},
+		{"get pods/portforward", Attributes{Verb: "get", Resource: pods, Subresource: "portforward", Namespace: "a", Name: "p"}, CodeForbidden},
+		{"get pods/proxy", Attributes{Verb: "get", Resource: pods, Subresource: "proxy", Namespace: "a", Name: "p"}, CodeForbidden},
+		{"get nodes/proxy", Attributes{Verb: "get", Resource: schema.GroupVersionResource{Version: "v1", Resource: "nodes"}, Subresource: "proxy", Name: "n"}, CodeForbidden},
+		{"get services/proxy", Attributes{Verb: "get", Resource: schema.GroupVersionResource{Version: "v1", Resource: "services"}, Subresource: "proxy", Namespace: "a", Name: "s"}, CodeForbidden},
+		{"get deployments/scale", Attributes{Verb: "get", Resource: deployments, Subresource: "scale", Namespace: "a", Name: "web"}, CodeForbidden},
 		{"empty verb", Attributes{Resource: deployments}, CodeInvalid},
 		{"empty resource", Attributes{Verb: "get"}, CodeInvalid},
 		{"wildcard verb", Attributes{Verb: "*", Resource: deployments}, CodeInvalid},
@@ -112,6 +119,24 @@ func TestRefusedAttributesNeverReachTheBackend(t *testing.T) {
 				t.Fatalf("backend asked %d times for a refused request", n)
 			}
 		})
+	}
+}
+
+// TestReadSubresourcesReachTheBackend: the object, its status and a Pod's
+// log are the reads the portal makes, so they are asked about.
+func TestReadSubresourcesReachTheBackend(t *testing.T) {
+	for _, req := range []Attributes{
+		getDeployment("a", "web"),
+		{Verb: "get", Resource: deployments, Subresource: "status", Namespace: "a", Name: "web"},
+		{Verb: "get", Resource: pods, Subresource: "log", Namespace: "a", Name: "p"},
+	} {
+		backend := &fakeDecider{allowed: true}
+		if _, err := newChecker(backend, Options{}).Check(t.Context(), alice, req); err != nil {
+			t.Errorf("Check(%s) = %v, want a grant", req, err)
+		}
+		if n := backend.calls.Load(); n != 1 {
+			t.Errorf("backend asked %d times for %s, want 1", n, req)
+		}
 	}
 }
 
