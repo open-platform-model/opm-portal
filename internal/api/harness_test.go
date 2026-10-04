@@ -96,8 +96,15 @@ type env struct {
 // read everything.
 func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule readmodeltest.Rule, opts ...func(*Config)) *env {
 	t.Helper()
+	return newEnvWithReader(t, objs, callerRule, readmodeltest.AllowAll, opts...)
+}
+
+// newEnvWithReader is newEnv with the reader's reviews following
+// readerRule.
+func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule readmodeltest.Rule, opts ...func(*Config)) *env {
+	t.Helper()
 	caller, _ := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
-	readerChecker, _ := readmodeltest.NewChecker(t, reader, readmodeltest.AllowAll, authz.Options{})
+	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
 	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, reader.Username: readerChecker}}
 	client := readmodeltest.Dynamic(objs...)
 	m, err := readmodel.New(readmodel.Config{

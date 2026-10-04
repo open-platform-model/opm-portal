@@ -96,8 +96,8 @@ authorization of every read the response will serve, then the read model.
 | `packages…` | the same on `modulepackages` |
 | `platform` | get `platforms` `cluster` (registrations are authorized inside the view) |
 | `platform/graph` | get `platforms` `cluster`; then, per distinct provider, get `moduleinstances` `ns/name` as a lookup, not a gate |
-| `platform/events` | get `platforms` `cluster`; list `events` in `default` |
-| `platform/registrations/{name}/events` | get `transformerregistrations` `name`; list `events` in `default` |
+| `platform/events` | get `platforms` `cluster`; list `events` in `default`; then the Platform is looked up, so a missing one is `not_found` |
+| `platform/registrations/{name}/events` | get `transformerregistrations` `name`; list `events` in `default`; then the registration is looked up (`readmodel.Model.Registration`) |
 | `stream` | the broker authorizes each topic (the producer names the same reads as the GET) |
 
 Inside a view, the read model authorizes each inventory object and the runtime children for the
@@ -119,8 +119,9 @@ Mapping read-model and authz errors:
 The forbidden document is one constant (`detail`: "The request was refused: you may not read
 this, or the portal does not serve it."), so a caller cannot tell which check failed or whether
 the object exists (0030:D7:R1). Problem `type` is `about:blank` with the status's reason phrase
-as `title`; `code` is the machine-readable part. A problem's `instance` is the request path,
-which the client sent.
+as `title`; `code` is the machine-readable part. A problem carries no `instance` member: echoing
+the path would make the refusal for an existing object and a missing one differ by their names,
+and one constant body is simpler to hold to 0030:D7:R1.
 
 ### D-c: The identity seam
 
@@ -130,11 +131,13 @@ type Principal struct {
     Session  string // stream ownership and caps; never logged
 }
 type Config struct {
-    Authorizer   authz.Authorizer
     Model        *readmodel.Model
+    Authorizer   authz.Authorizer
     Authenticate func(*http.Request) (Principal, error)
     Reader       authz.Identity // holds runtime-children watches for live topics
-    Broker       stream.Options
+    Stream       stream.Options // the broker's caps and timers
+    Coalesce     time.Duration  // default 250 ms
+    Refresh      time.Duration  // default 30 s
     Logger       *slog.Logger
 }
 func New(cfg Config) (*Server, error)   // Server is an http.Handler; Close stops the producer

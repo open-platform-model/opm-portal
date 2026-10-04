@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 	"testing"
@@ -289,4 +290,46 @@ func nodeByID(g v1.Graph, id string) *v1.GraphNode {
 		}
 	}
 	return nil
+}
+
+// TestPortalCannotReadIsItsOwnCode: when the reading identity may not list
+// a kind the caller may read, the answer says the portal cannot read it.
+func TestPortalCannotReadIsItsOwnCode(t *testing.T) {
+	e := newEnvWithReader(t, loadF1(t), readmodeltest.AllowAll, readmodeltest.DenyResources("modulepackages"))
+	expectProblem(t, e.get(t, base+"/packages/pkg/podinfo"), http.StatusServiceUnavailable, v1.CodeNotReadableByPortal)
+	expectProblem(t, e.get(t, base+"/packages"), http.StatusServiceUnavailable, v1.CodeNotReadableByPortal)
+}
+
+// TestGraphOptions: expand shows a group's members; showScaledDown is read.
+func TestGraphOptions(t *testing.T) {
+	e := newEnv(t, loadF1(t), readmodeltest.AllowAll)
+	graphOf := func(path string) v1.Graph {
+		t.Helper()
+		var g v1.Graph
+		res := e.get(t, path)
+		if err := json.Unmarshal(res.body, &g); err != nil || res.status != http.StatusOK {
+			t.Fatalf("GET %s = %d %s", path, res.status, res.body)
+		}
+		return g
+	}
+	collapsed := graphOf(base + "/instances/cert-manager/cert-manager/graph")
+	var group string
+	for _, n := range collapsed.Nodes {
+		if n.Group != nil && n.Group.Kind == "configuration" {
+			group = n.ID
+		}
+	}
+	if group == "" {
+		t.Fatal("no configuration group in the collapsed graph")
+	}
+	expanded := graphOf(base + "/instances/cert-manager/cert-manager/graph?expand=" + url.QueryEscape(group) + "&showScaledDown=true")
+	members := 0
+	for _, n := range expanded.Nodes {
+		if n.MemberOf == group {
+			members++
+		}
+	}
+	if members == 0 || len(expanded.Nodes) <= len(collapsed.Nodes) {
+		t.Errorf("expanding %s: %d members, %d nodes against %d", group, members, len(expanded.Nodes), len(collapsed.Nodes))
+	}
 }

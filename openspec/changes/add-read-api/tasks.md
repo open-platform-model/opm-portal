@@ -31,3 +31,8 @@
 - [x] 5.1 Add `hack/api-breaking.sh` (base copy via `git show`, no base copy passes, `!` in `PR_TITLE` lets a breaking diff pass) and a `task api:breaking`; verify locally that removing a response property fails without `!` and passes with it
 - [x] 5.2 Add the step to the `Lint` job on pull requests (oasdiff pinned, title through `env`); `actionlint` clean; update `AGENTS.md` (layout, commands)
 - [x] 5.3 `task check` green, then commit `ci(api): fail a breaking OpenAPI change without a breaking title`
+
+## 6. Verify fixes (internal/api, design.md)
+
+- [x] 6.1 Align design.md with the code (no problem `instance` member, the `Config` shape, the event resources' lookups); test `not_readable_by_portal` with a reader that may not list packages, and the graph `expand` and `showScaledDown` parameters through the API
+- [x] 6.2 `task check` green, then commit `test(api): cover the portal-unreadable code and graph options`
