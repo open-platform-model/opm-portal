@@ -22,8 +22,9 @@ const (
 	// It comes before the next delivered line, at the end, or after the
 	// marker delay when no line follows, whichever is first.
 	MarkerRateLimited = "rate-limited"
-	// MarkerSkipped reports how many initial-tail lines past the tail cap
-	// were skipped, at the same moments.
+	// MarkerSkipped reports how many of the oldest initial-tail lines did
+	// not fit the tail cap. It comes first in the tail, before the newest
+	// lines that did.
 	MarkerSkipped = "skipped"
 
 	// ReasonContainerStopped: the followed container stopped.

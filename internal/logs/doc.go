@@ -21,7 +21,8 @@
 // The portal bounds the output itself and never asks the API server for a
 // byte limit, which would end a followed stream outright: an oversize line
 // is cut and marked, lines over the rate are dropped and counted, and an
-// oversize initial tail skips ahead with a marker. A container that stops
+// oversize initial tail keeps its newest lines after a marker counting the
+// older ones. A container that stops
 // ends its topic with a logend message.
 //
 // Log lines are untrusted text. They travel only as JSON strings in stream

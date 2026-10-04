@@ -40,8 +40,8 @@ type Options struct {
 	// MaxLineBytes caps one line, its timestamp included; a longer line is
 	// cut and marked. Default 16 KiB.
 	MaxLineBytes int
-	// MaxTailBytes caps the initial tail; tail lines past it are skipped
-	// and counted. Default 1 MiB.
+	// MaxTailBytes caps the initial tail: its newest lines within the cap
+	// are sent, the older ones skipped and counted. Default 1 MiB.
 	MaxTailBytes int
 	// LinesPerSecond and LineBurst bound live lines. Default 200 and 500.
 	LinesPerSecond float64
@@ -55,8 +55,9 @@ type Options struct {
 	// BufferBytes caps the encoded size of the messages a snapshot
 	// carries; the oldest leave first. Default 1 MiB.
 	BufferBytes int
-	// MarkerDelay is how long a dropped or skipped line may wait for its
-	// marker when no delivered line follows. Default 250ms.
+	// MarkerDelay is how long a dropped line may wait for its marker when
+	// no delivered line follows, and how long the initial tail may stay
+	// quiet before it is sent. Default 250ms.
 	MarkerDelay time.Duration
 	// Logger receives operational logs, never log content. Default:
 	// discarded.
@@ -493,9 +494,12 @@ func (tl *tail) whyEnded(ctx context.Context) string {
 
 // copy reads lines from r and emits them within the topic's bounds until r
 // ends. The initial tail is the lines stamped before start, at most
-// TailLines of them, ending at the first line that is not: it is bounded by
-// MaxTailBytes. The rest are live, bounded by the rate. The previous
-// container's output is all tail.
+// TailLines of them, ending at the first line that is not: it is held until
+// it ends, then its newest lines within MaxTailBytes are sent after a
+// skipped marker counting the older ones. A followed tail also ends when no
+// line arrives for MarkerDelay, so a quiet container's tail is not held
+// back. The rest are live, bounded by the rate. The previous container's
+// output is all tail.
 //
 // start is the portal's clock and the stamps are the node's, so a node
 // clock ahead of the portal's counts tail lines as live (bounded by the
@@ -507,11 +511,10 @@ func (tl *tail) copy(ctx context.Context, r io.Reader, start time.Time) error {
 	o := tl.p.opts
 	lr := newLineReader(r, o.MaxLineBytes)
 	lim := &limiter{lines: newBucket(o.LinesPerSecond, o.LineBurst, start), bytes: newBucket(o.BytesPerSecond, o.ByteBurst, start)}
-	mk := &marks{tl: tl, delay: o.MarkerDelay}
+	mk := &marks{tl: tl, delay: o.MarkerDelay, holding: true, maxTail: o.MaxTailBytes, follow: !tl.topic.Previous()}
 	defer mk.stop()
-	var tailBytes int
 	var tailLines int64
-	inTail, tailFull := true, false
+	inTail := true
 	for ctx.Err() == nil {
 		line, err := lr.next()
 		if err != nil {
@@ -519,21 +522,6 @@ func (tl *tail) copy(ctx context.Context, r io.Reader, start time.Time) error {
 			return err
 		}
 		size := len(line.text)
-		inTail = tl.topic.Previous() || (inTail && tailLines < o.TailLines && !line.time.IsZero() && line.time.Before(start))
-		if inTail {
-			tailLines++
-			// Once the tail cap is reached the rest of the tail is skipped,
-			// so the stream skips ahead to live output.
-			if tailFull || tailBytes+size > o.MaxTailBytes {
-				tailFull = true
-				mk.count(&mk.skipped)
-				continue
-			}
-			tailBytes += size
-		} else if !lim.allow(o.Now(), size) {
-			mk.count(&mk.dropped)
-			continue
-		}
 		m := Message{Type: TypeLine, Text: line.text}
 		if !line.time.IsZero() {
 			m.Time = &line.time
@@ -541,24 +529,84 @@ func (tl *tail) copy(ctx context.Context, r io.Reader, start time.Time) error {
 		if line.cut > 0 {
 			m.Marker, m.Cut = MarkerTruncated, line.cut
 		}
+		inTail = tl.topic.Previous() || (inTail && tailLines < o.TailLines && !line.time.IsZero() && line.time.Before(start))
+		if inTail {
+			tailLines++
+			if mk.hold(m, size) {
+				if tailLines >= o.TailLines {
+					mk.flush()
+				}
+				continue
+			}
+			// The tail was sent after a quiet spell: the rest is live.
+			inTail = false
+		}
+		mk.release()
+		if !lim.allow(o.Now(), size) {
+			mk.count(&mk.dropped)
+			continue
+		}
 		mk.flushThen(m)
 	}
 	return ctx.Err()
 }
 
-// marks counts the lines one read skipped or dropped and sends their
-// markers before the next delivered line, or after the marker delay when no
-// line follows, so a burst followed by silence is still marked
-// (0030:D10:R3).
+// marks holds one read's initial tail until it ends, and counts the lines
+// the read skipped or dropped. It sends their markers before the next
+// delivered line, or after the marker delay when no line follows, so a
+// burst followed by silence is still marked (0030:D10:R3).
 type marks struct {
-	tl    *tail
-	delay time.Duration
+	tl      *tail
+	delay   time.Duration
+	maxTail int
+	follow  bool
 
-	mu      sync.Mutex
-	skipped int64
-	dropped int64
-	timer   *time.Timer
-	stopped bool
+	mu        sync.Mutex
+	holding   bool // the initial tail has not ended
+	held      []heldLine
+	heldBytes int
+	tailTimer *time.Timer
+	skipped   int64
+	dropped   int64
+	timer     *time.Timer
+	stopped   bool
+}
+
+// heldLine is one initial-tail line waiting for the tail to end.
+type heldLine struct {
+	m    Message
+	size int
+}
+
+// hold adds m to the initial tail, skipping the oldest held lines past the
+// tail cap. It returns false once the tail has ended. A followed tail ends
+// MarkerDelay after its latest line.
+func (mk *marks) hold(m Message, size int) bool {
+	mk.mu.Lock()
+	defer mk.mu.Unlock()
+	if !mk.holding || mk.stopped {
+		return false
+	}
+	mk.held = append(mk.held, heldLine{m: m, size: size})
+	mk.heldBytes += size
+	drop := 0
+	for drop < len(mk.held) && mk.heldBytes > mk.maxTail {
+		mk.heldBytes -= mk.held[drop].size
+		drop++
+	}
+	if drop > 0 {
+		mk.skipped += int64(drop)
+		clear(mk.held[:drop])
+		mk.held = append(mk.held[:0], mk.held[drop:]...)
+	}
+	if mk.follow {
+		if mk.tailTimer == nil {
+			mk.tailTimer = time.AfterFunc(mk.delay, mk.flush)
+		} else {
+			mk.tailTimer.Reset(mk.delay)
+		}
+	}
+	return true
 }
 
 // count adds one to *n and arms the marker timer.
@@ -571,7 +619,14 @@ func (mk *marks) count(n *int64) {
 	}
 }
 
-// flush sends the pending markers.
+// release ends the initial tail and sends it, if it has not ended yet.
+func (mk *marks) release() {
+	mk.mu.Lock()
+	defer mk.mu.Unlock()
+	mk.releaseLocked()
+}
+
+// flush ends the initial tail and sends the pending markers.
 func (mk *marks) flush() {
 	mk.mu.Lock()
 	defer mk.mu.Unlock()
@@ -586,7 +641,33 @@ func (mk *marks) flushThen(m Message) {
 	mk.tl.emit(m)
 }
 
+// releaseLocked sends the held tail: a skipped marker for the lines past
+// the cap, then the lines kept, oldest first.
+func (mk *marks) releaseLocked() {
+	if !mk.holding {
+		return
+	}
+	mk.holding = false
+	if mk.tailTimer != nil {
+		mk.tailTimer.Stop()
+		mk.tailTimer = nil
+	}
+	held := mk.held
+	mk.held, mk.heldBytes = nil, 0
+	if mk.stopped {
+		return
+	}
+	if mk.skipped > 0 {
+		mk.tl.emit(Message{Type: TypeMarker, Marker: MarkerSkipped, Dropped: mk.skipped})
+		mk.skipped = 0
+	}
+	for i := range held {
+		mk.tl.emit(held[i].m)
+	}
+}
+
 func (mk *marks) flushLocked() {
+	mk.releaseLocked()
 	if mk.timer != nil {
 		mk.timer.Stop()
 		mk.timer = nil
@@ -604,16 +685,17 @@ func (mk *marks) flushLocked() {
 	}
 }
 
-// stop disarms the timer once the read is over; its markers were flushed
-// or the activation is closed.
+// stop disarms the timers once the read is over; its tail and markers were
+// flushed, or the activation is closed and they are dropped.
 func (mk *marks) stop() {
 	mk.mu.Lock()
 	defer mk.mu.Unlock()
+	mk.stopped = true
+	mk.releaseLocked()
 	if mk.timer != nil {
 		mk.timer.Stop()
 		mk.timer = nil
 	}
-	mk.stopped = true
 }
 
 // hasContainer reports whether pod has a container, init container or

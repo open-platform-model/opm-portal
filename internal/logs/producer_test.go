@@ -159,7 +159,7 @@ func TestAByteRateBoundsLinesToo(t *testing.T) {
 	}
 }
 
-func TestALargeTailSkipsAheadToLiveOutput(t *testing.T) {
+func TestALargeTailKeepsItsNewestLines(t *testing.T) {
 	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{MaxTailBytes: 10})
 	u.activate(t, liveTopic)
 	fs := u.src.open(t)
@@ -170,7 +170,39 @@ func TestALargeTailSkipsAheadToLiveOutput(t *testing.T) {
 	for range 4 {
 		got = append(got, u.pub.next(t))
 	}
-	if ts := types(got); !slices.Equal(ts, []string{"line", "line", "marker:skipped", "line"}) || got[2].Dropped != 2 || got[3].Text != "live" {
+	texts := []string{got[1].Text, got[2].Text, got[3].Text}
+	if ts := types(got); !slices.Equal(ts, []string{"marker:skipped", "line", "line", "line"}) || got[0].Dropped != 2 || !slices.Equal(texts, []string{"ccccc", "d", "live"}) {
+		t.Errorf("messages = %v (%+v), want the two oldest skipped and ccccc, d, live", ts, got)
+	}
+}
+
+func TestAQuietTailIsSentAfterTheMarkerDelay(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{MaxTailBytes: 10, MarkerDelay: 20 * time.Millisecond})
+	u.activate(t, liveTopic)
+	fs := u.src.open(t)
+	old := u.clock.Now().Add(-time.Hour)
+	fs.write(t, liveTS(old, "aaaaa"), liveTS(old, "bbbbb"), liveTS(old, "ccccc"))
+	got := []Message{u.pub.next(t), u.pub.next(t), u.pub.next(t)}
+	if ts := types(got); !slices.Equal(ts, []string{"marker:skipped", "line", "line"}) || got[0].Dropped != 1 || got[1].Text != "bbbbb" || got[2].Text != "ccccc" {
+		t.Errorf("tail after silence = %v (%+v)", ts, got)
+	}
+	// The tail has ended: a line stamped before the stream opened that
+	// arrives now is live, not a tail line held back.
+	fs.write(t, liveTS(old, "late"))
+	if m := u.pub.next(t); m.Text != "late" {
+		t.Errorf("after the tail = %+v, want the late line", m)
+	}
+}
+
+func TestAPreviousContainersTailKeepsItsNewestLines(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{MaxTailBytes: 10})
+	u.activate(t, liveTopic+"/previous")
+	fs := u.src.open(t)
+	old := u.clock.Now().Add(-time.Hour)
+	fs.write(t, liveTS(old, "aaaaa"), liveTS(old, "bbbbb"), liveTS(old, "ccccc"))
+	_ = fs.w.Close()
+	got := []Message{u.pub.next(t), u.pub.next(t), u.pub.next(t), u.pub.next(t)}
+	if ts := types(got); !slices.Equal(ts, []string{"marker:skipped", "line", "line", "end:" + ReasonCompleted}) || got[1].Text != "bbbbb" {
 		t.Errorf("messages = %v (%+v)", ts, got)
 	}
 }
@@ -531,7 +563,7 @@ func TestTheTailEndsAtTheFirstLiveLineOrTailLines(t *testing.T) {
 	}{
 		// A node clock behind the portal's: live lines look old, but the
 		// tail never holds more than TailLines lines.
-		{"node clock behind", []time.Duration{-time.Hour, -time.Hour, -time.Second, -time.Second}, []string{"line", "marker:skipped", "line", "line"}},
+		{"node clock behind", []time.Duration{-time.Hour, -time.Hour, -time.Second, -time.Second}, []string{"marker:skipped", "line", "line", "line"}},
 		// A line stamped after the stream opened ends the tail, and an
 		// older-looking line after it is live, not skipped.
 		{"first live line", []time.Duration{-time.Hour, time.Second, -time.Hour, -time.Hour}, []string{"line", "line", "line", "line"}},
