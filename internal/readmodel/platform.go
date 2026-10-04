@@ -36,6 +36,19 @@ func (m *Model) Platform(ctx context.Context, who authz.Identity, g authz.Grant)
 	return view, nil
 }
 
+// Registration returns one TransformerRegistration. g must cover get
+// transformerregistrations name.
+func (m *Model) Registration(ctx context.Context, who authz.Identity, g authz.Grant, name string) (RegistrationView, error) {
+	if err := covers(who, g, "get", registrations, "", name); err != nil {
+		return RegistrationView{}, err
+	}
+	u, err := m.getHeld(ctx, registrations, "", name)
+	if err != nil {
+		return RegistrationView{}, err
+	}
+	return registrationView(u), nil
+}
+
 // readableRegistrations returns every registration when the caller may
 // list them, and an access state saying why not otherwise.
 func (m *Model) readableRegistrations(ctx context.Context, who authz.Identity) ([]RegistrationView, health.Access) {

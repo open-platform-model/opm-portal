@@ -13,11 +13,11 @@
 
 ## 3. Handlers (internal/api)
 
-- [ ] 3.1 Add the server: the `Authenticate` seam (401 before routing), the route table, cluster check, path validation, 404 and 405 as problems, the error mapping and the single forbidden document
-- [ ] 3.2 Add the view-to-wire mapping and the handlers for instances, packages, platform (claimants, contributedBy), the three graphs (provider lookups authorized per provider) and the events resources with the reach gate
-- [ ] 3.3 Add the contract test: every route in the OpenAPI document with its 200 schema, every wire type matching its schema
-- [ ] 3.4 Add golden JSON tests from F1 through `httptest` with SSAR-backed checkers on the fake cluster (`-update` rewrites), and the denial tests with a fake authorizer: forbidden existing and missing byte-identical, list denial empty with no count, partial access, unauthenticated without review, unavailable review, unknown cluster, bad names, an unreached Lease's events refused like a forbidden read, a forbidden provider in the platform graph, and no `values` or last-applied annotation anywhere
-- [ ] 3.5 `task check` green, then commit `feat(api): serve instances, packages, the platform, graphs and events`
+- [x] 3.1 Add the server: the `Authenticate` seam (401 before routing), the route table, cluster check, path validation, 404 and 405 as problems, the error mapping and the single forbidden document
+- [x] 3.2 Add the view-to-wire mapping and the handlers for instances, packages, platform (claimants, contributedBy), the three graphs (provider lookups authorized per provider) and the events resources with the reach gate; add `readmodel.Model.Registration` so a registration's events answer not found for a missing claim
+- [x] 3.3 Add the contract test: every route in the OpenAPI document with its 200 schema, every wire type matching its schema
+- [x] 3.4 Add golden JSON tests from F1 through `httptest` with SSAR-backed checkers on the fake cluster (`-update` rewrites), and the denial tests with a fake authorizer: forbidden existing and missing byte-identical, list denial empty with no count, partial access, unauthenticated without review, unavailable review, unknown cluster, bad names, an unreached Lease's events refused like a forbidden read, a forbidden provider in the platform graph, and no `values` or last-applied annotation anywhere
+- [x] 3.5 `task check` green, then commit `feat(api): serve instances, packages, the platform, graphs and events`
 
 ## 4. The change stream (internal/api)
 

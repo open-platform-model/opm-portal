@@ -1,0 +1,124 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "InstanceList",
+  "access": "ok",
+  "items": [
+    {
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "backup-consumer"
+      },
+      "uid": "261e62d9-0c74-42f9-8c09-38ecd70e4725",
+      "module": {
+        "path": "testing.opmodel.dev/modules/operator/backup_consumer@v0",
+        "version": "v0.1.0"
+      },
+      "owner": "operator",
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded",
+        "since": "2026-10-04T18:04:24Z"
+      },
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "inventoryCount": 1,
+      "lastAppliedAt": "2026-10-04T18:04:24Z"
+    },
+    {
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "backup-provider"
+      },
+      "uid": "92a79284-19de-43ac-9629-3b75e8a0aa51",
+      "module": {
+        "path": "testing.opmodel.dev/modules/operator/backup_provider@v0",
+        "version": "v0.1.0"
+      },
+      "owner": "operator",
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded",
+        "since": "2026-10-04T18:04:21Z"
+      },
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "inventoryCount": 1,
+      "lastAppliedAt": "2026-10-04T18:04:21Z"
+    },
+    {
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "uid": "c6f5d8d6-af26-447e-8ac0-96b5cc25c40f",
+      "module": {
+        "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
+        "version": "v0.1.11"
+      },
+      "owner": "operator",
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded",
+        "since": "2026-10-04T18:04:06Z"
+      },
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "inventoryCount": 2,
+      "lastAppliedAt": "2026-10-04T18:04:06Z"
+    }
+  ]
+}

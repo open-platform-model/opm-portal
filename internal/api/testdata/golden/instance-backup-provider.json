@@ -1,0 +1,123 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Instance",
+  "ref": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "default",
+    "name": "backup-provider"
+  },
+  "uid": "92a79284-19de-43ac-9629-3b75e8a0aa51",
+  "module": {
+    "path": "testing.opmodel.dev/modules/operator/backup_provider@v0",
+    "version": "v0.1.0"
+  },
+  "owner": "operator",
+  "reconcile": {
+    "state": "Applied",
+    "reason": "ReconciliationSucceeded",
+    "message": "Reconciliation succeeded",
+    "since": "2026-10-04T18:04:21Z"
+  },
+  "health": {
+    "state": "Healthy",
+    "counts": {
+      "healthy": 1,
+      "progressing": 0,
+      "degraded": 0,
+      "missing": 0,
+      "unknown": 0,
+      "forbidden": 0,
+      "notReadable": 0,
+      "withheld": 0
+    },
+    "partial": false,
+    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "live": true
+  },
+  "inventoryCount": 1,
+  "lastAppliedAt": "2026-10-04T18:04:21Z",
+  "serviceAccountName": "backup-provider-applier",
+  "conditions": [
+    {
+      "type": "Ready",
+      "status": "True",
+      "reason": "ReconciliationSucceeded",
+      "message": "Reconciliation succeeded",
+      "lastTransitionTime": "2026-10-04T18:04:21Z",
+      "observedGeneration": 1
+    },
+    {
+      "type": "ModuleResolved",
+      "status": "True",
+      "reason": "ModuleResolved",
+      "message": "module resolved: testing.opmodel.dev/modules/operator/backup_provider@v0@v0.1.0",
+      "lastTransitionTime": "2026-10-04T18:04:21Z",
+      "observedGeneration": 1
+    }
+  ],
+  "history": [
+    {
+      "action": "reconcile",
+      "phase": "complete",
+      "sequence": 1,
+      "startedAt": "2026-10-04T18:04:21Z",
+      "finishedAt": "2026-10-04T18:04:21Z",
+      "inventoryCount": 1,
+      "inventoryDigest": "sha256:84e2a1d301d1c82d1e7948f7a78bb57902cadef80350e90591308c52b3d77e00",
+      "digests": {
+        "source": "sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1",
+        "config": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "render": "sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b"
+      }
+    }
+  ],
+  "lastApplied": {
+    "source": "sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1",
+    "config": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "render": "sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b"
+  },
+  "renderContracts": [
+    "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
+  ],
+  "components": [
+    {
+      "name": "registration",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "opmodel.dev",
+            "version": "v1alpha1",
+            "kind": "TransformerRegistration",
+            "name": "default.backup-provider"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is Ready"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    }
+  ]
+}

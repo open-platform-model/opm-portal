@@ -1,0 +1,210 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Instance",
+  "ref": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "default",
+    "name": "podinfo"
+  },
+  "uid": "c6f5d8d6-af26-447e-8ac0-96b5cc25c40f",
+  "module": {
+    "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
+    "version": "v0.1.11"
+  },
+  "owner": "operator",
+  "reconcile": {
+    "state": "Applied",
+    "reason": "ReconciliationSucceeded",
+    "message": "Reconciliation succeeded",
+    "since": "2026-10-04T18:04:06Z"
+  },
+  "health": {
+    "state": "Healthy",
+    "counts": {
+      "healthy": 2,
+      "progressing": 0,
+      "degraded": 0,
+      "missing": 0,
+      "unknown": 0,
+      "forbidden": 0,
+      "notReadable": 0,
+      "withheld": 0
+    },
+    "partial": false,
+    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "live": true
+  },
+  "inventoryCount": 2,
+  "lastAppliedAt": "2026-10-04T18:04:06Z",
+  "serviceAccountName": "podinfo-applier",
+  "conditions": [
+    {
+      "type": "Ready",
+      "status": "True",
+      "reason": "ReconciliationSucceeded",
+      "message": "Reconciliation succeeded",
+      "lastTransitionTime": "2026-10-04T18:04:06Z",
+      "observedGeneration": 1
+    },
+    {
+      "type": "ModuleResolved",
+      "status": "True",
+      "reason": "ModuleResolved",
+      "message": "module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11",
+      "lastTransitionTime": "2026-10-04T18:04:06Z",
+      "observedGeneration": 1
+    }
+  ],
+  "history": [
+    {
+      "action": "reconcile",
+      "phase": "complete",
+      "sequence": 1,
+      "startedAt": "2026-10-04T18:04:06Z",
+      "finishedAt": "2026-10-04T18:04:06Z",
+      "inventoryCount": 2,
+      "inventoryDigest": "sha256:eb44516d458a23e3a71316e94e842a07cbd8f0ee7de5985c98c86c128853fced",
+      "digests": {
+        "source": "sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969",
+        "config": "sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44",
+        "render": "sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e"
+      }
+    }
+  ],
+  "lastApplied": {
+    "source": "sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969",
+    "config": "sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44",
+    "render": "sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e"
+  },
+  "renderContracts": [
+    "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1"
+  ],
+  "components": [
+    {
+      "name": "podinfo",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "default",
+            "name": "podinfo-podinfo"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Deployment is available. Replicas: 2"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true,
+          "children": [
+            {
+              "ref": {
+                "version": "v1",
+                "kind": "Pod",
+                "namespace": "default",
+                "name": "podinfo-podinfo-d9585d794-4lg6h"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "default",
+                "name": "podinfo-podinfo-d9585d794"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "Pod is Ready"
+              }
+            },
+            {
+              "ref": {
+                "version": "v1",
+                "kind": "Pod",
+                "namespace": "default",
+                "name": "podinfo-podinfo-d9585d794-kp2jx"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "default",
+                "name": "podinfo-podinfo-d9585d794"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "Pod is Ready"
+              }
+            },
+            {
+              "ref": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "default",
+                "name": "podinfo-podinfo-d9585d794"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "Deployment",
+                "namespace": "default",
+                "name": "podinfo-podinfo"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "ReplicaSet is available. Replicas: 2"
+              },
+              "replicas": 2
+            }
+          ]
+        },
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "default",
+            "name": "podinfo-podinfo"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Service is ready"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    }
+  ]
+}

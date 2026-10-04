@@ -240,36 +240,6 @@ paths:
                 $ref: '#/components/schemas/EventList'
         default:
           $ref: '#/components/responses/Problem'
-  /clusters/{cluster}/stream:
-    get:
-      operationId: stream
-      summary: A server-sent-events stream of the named topics
-      description: |
-        Topics: platform, instances, instances:<namespace>, instance:<namespace>/<name>,
-        package:<namespace>/<name>, and events:<platform | instance:... | package:... |
-        registration:<name>>. Each topic carries one document, the one its GET returns:
-        Platform, InstanceList, Instance, Package or EventList, rendered for the caller. A
-        snapshot event carries {topic, items: [document]}; upsert, delete and k8sevent events
-        carry {topic, item: document}. A delete, and a snapshot of an object that does not
-        exist, carry a Removed document. A topic the caller may not follow is closed with a
-        closed event naming a problem code. Reconnect with Last-Event-ID to resume.
-      parameters:
-        - $ref: '#/components/parameters/cluster'
-        - name: topics
-          in: query
-          required: true
-          description: Comma-separated topic names.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: The event stream.
-          content:
-            text/event-stream:
-              schema:
-                type: string
-        default:
-          $ref: '#/components/responses/Problem'
 components:
   parameters:
     cluster:
@@ -1018,7 +988,7 @@ components:
             $ref: '#/components/schemas/GraphKindCount'
     GraphNode:
       type: object
-      required: [id, kind, label, column, row, x, y]
+      required: [id, kind, label, column, row, x, "y"]
       properties:
         id:
           description: "Stable across restarts and a delete and recreate; never holds a UID."
@@ -1071,15 +1041,15 @@ components:
           type: integer
         x:
           type: integer
-        y:
+        "y":
           type: integer
     GraphPoint:
       type: object
-      required: [x, y]
+      required: [x, "y"]
       properties:
         x:
           type: integer
-        y:
+        "y":
           type: integer
     GraphEdge:
       type: object
