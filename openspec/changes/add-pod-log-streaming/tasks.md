@@ -9,9 +9,9 @@
 
 ## 2. Read model: Pod reachability
 
-- [ ] 2.1 `internal/readmodel/reach.go`: `ReachPod`, `PodReach`, `ErrNotReachable` per design
-- [ ] 2.2 Tests on the F1 capture: a podinfo Pod reaches its Deployment; a stray Pod, a missing Pod and a Pod behind a forbidden Deployment get `ErrNotReachable`; an uncovered grant reads nothing; an unavailable kind is `ErrUnavailable`
-- [ ] 2.3 `task check` green, then commit `chore(readmodel): answer whether an inventory reaches a pod`
+- [x] 2.1 `internal/readmodel/reach.go`: `ReachPod`, `PodReach`, `ErrNotReachable` per design
+- [x] 2.2 Tests on the F1 capture: a podinfo Pod reaches its Deployment; a stray Pod, a missing Pod and a Pod behind a forbidden Deployment get `ErrNotReachable`; an uncovered grant reads nothing; an unavailable kind is `ErrUnavailable`
+- [x] 2.3 `task check` green, then commit `chore(readmodel): answer whether an inventory reaches a pod`
 
 ## 3. Logs: bounded reader and producer
 
