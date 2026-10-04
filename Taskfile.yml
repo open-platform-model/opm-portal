@@ -102,7 +102,7 @@ tasks:
       - test/e2e/capture.sh
 
   e2e:capture:check:
-    desc: Refuse a capture in testdata/clusters/f1 that holds a Secret, managedFields, the last-applied annotation or spec.values
+    desc: Refuse any file under testdata/clusters that holds a Secret, managedFields, the last-applied annotation or spec.values, or does not parse
     cmds:
       - test/e2e/check-capture.sh
 

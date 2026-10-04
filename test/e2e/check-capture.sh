@@ -3,35 +3,49 @@
 # Secret, managedFields, the last-applied annotation, or a ModuleInstance's or ModulePackage's
 # spec.values; and a CRD schema, which captures leave out for size. Reads files only; never
 # contacts a cluster.
+#
+# Checks every file under dir (default testdata/clusters), recursively and whatever its
+# extension, except Markdown. Every document in a file is checked: a List by its items, any
+# other object as itself. A file that does not parse as YAML (JSON included) fails the check.
 set -euo pipefail
 
-DIR=${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/testdata/clusters/f1}
+DIR=${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/testdata/clusters}
 command -v yq >/dev/null || { echo "check-capture: yq not found on PATH" >&2; exit 1; }
+[ -d "$DIR" ] || { echo "check-capture: no directory $DIR" >&2; exit 1; }
 
-shopt -s nullglob
 files=()
-for f in "$DIR"/*.yaml; do
-  [ "$(basename "$f")" = meta.yaml ] || files+=("$f")
-done
+while IFS= read -r -d '' f; do
+  files+=("$f")
+done < <(find "$DIR" -type f ! -name '*.md' -print0 | sort -z)
 [ "${#files[@]}" -gt 0 ] || { echo "check-capture: no capture files in $DIR" >&2; exit 1; }
+
+err=$(mktemp)
+trap 'rm -f "$err"' EXIT
 
 failed=0
 for f in "${files[@]}"; do
-  hits=$(yq '
-    .items[]
+  rel=${f#"$DIR"/}
+  if ! hits=$(yq -p yaml -o yaml '
+    select(tag == "!!map")
+    | (.items // [.])[]
+    | select(tag == "!!map")
     | select(
         .kind == "Secret"
         or .metadata.managedFields != null
         or .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"] != null
         or ((.kind == "ModuleInstance" or .kind == "ModulePackage") and .spec.values != null)
-        or (.kind == "CustomResourceDefinition" and ([.spec.versions[] | select(.schema != null)] | length) > 0)
+        or (.kind == "CustomResourceDefinition" and ([.spec.versions[]? | select(.schema != null)] | length) > 0)
       )
-    | .kind + " " + (.metadata.namespace // "-") + "/" + .metadata.name
-  ' "$f")
+    | (.kind // "-") + " " + (.metadata.namespace // "-") + "/" + (.metadata.name // "-")
+  ' "$f" 2>"$err"); then
+    failed=1
+    echo "check-capture: $rel: does not parse: $(cat "$err")" >&2
+    continue
+  fi
   if [ -n "$hits" ]; then
     failed=1
     while IFS= read -r hit; do
-      echo "check-capture: $(basename "$f"): $hit holds a Secret, managedFields, the last-applied annotation, spec.values or a CRD schema" >&2
+      echo "check-capture: $rel: $hit holds a Secret, managedFields, the last-applied annotation, spec.values or a CRD schema" >&2
     done <<<"$hits"
   fi
 done
