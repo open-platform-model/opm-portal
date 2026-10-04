@@ -60,10 +60,18 @@ func TestForgingPackageDoesNotCompile(t *testing.T) {
 // TestNoGrantConstructionOutsideCheck scans every Go file in the module. No
 // file outside this package may write a Grant composite literal, call
 // new(authz.Grant), or declare a type from it. Inside this package only issue
-// may fill one in (no filled-in Grant or grantData literal elsewhere, no
-// assignment to or through a sealed field anywhere, and no copy of the sealed
-// pointer into a variable), and only Checker.Check may refer to
-// issue, so it cannot be called or passed on as a function value elsewhere.
+// may fill one in (no filled-in Grant literal, grantData literal or
+// new(grantData) elsewhere), and only Checker.Check may refer to issue, so it
+// cannot be called or passed on as a function value elsewhere.
+//
+// An issued grant's data is reached through the field sealed, and the scan
+// allowlists who may name it: issue and the read-only methods Valid,
+// Identity, Attributes, Expires and Covers (sealedReaders). A sealed selector
+// anywhere else is refused, whatever it is used for (copied, passed, returned,
+// addressed, sliced), and no method may be declared on grantData. Inside the
+// allowlisted functions, writes to or through sealed and copies of the sealed
+// pointer are still refused. The scan's limits are in the archived change's
+// design.md, Risks.
 func TestNoGrantConstructionOutsideCheck(t *testing.T) {
 	root := moduleRoot(t)
 	var findings []string
@@ -136,6 +144,23 @@ func steal(g Grant) { d := g.sealed; d.expires = time.Time{} }`, true},
 func mk() *grantData { return &grantData{} }`, true},
 		{"issue as a function value", `package authz
 var mintFn = issue`, true},
+		{"sealed pointer declared with var", `package authz
+func steal(g Grant) { var d = g.sealed; d.expires = time.Time{} }`, true},
+		{"sealed pointer passed to a function", `package authz
+func steal(g Grant) { mutate(g.sealed) }
+func mutate(d *grantData) { d.idKey = "" }`, true},
+		{"sealed pointer returned", `package authz
+func leak(g Grant) *grantData { return g.sealed }`, true},
+		{"address of a sealed field", `package authz
+func steal(g Grant) { p := &g.sealed.expires; *p = time.Time{} }`, true},
+		{"sealed slice aliased", `package authz
+func regroup(g Grant) { gs := g.sealed.identity.Groups; gs[0] = "system:masters" }`, true},
+		{"method on grantData", `package authz
+func (d *grantData) extend() { d.expires = d.expires.Add(time.Hour) }`, true},
+		{"write inside an allowlisted method", `package authz
+func (g Grant) Covers(who Identity, req Attributes) error { g.sealed.expires = time.Time{}; return nil }`, true},
+		{"new grantData outside issue", `package authz
+func mk() *grantData { return new(grantData) }`, true},
 		{"issue through a local variable", `package authz
 func mint() Grant { f := issue; return f(Identity{}, Attributes{}, time.Time{}, nil) }`, true},
 	}
@@ -169,6 +194,9 @@ func scanGrantConstruction(t *testing.T, name string, src []byte, inAuthz bool) 
 	for _, decl := range file.Decls {
 		fn, _ := decl.(*ast.FuncDecl)
 		fnName := funcName(fn)
+		if inAuthz && receiverIs(fn, "grantData") {
+			s.report(fn, "method declared on grantData")
+		}
 		ast.Inspect(decl, func(n ast.Node) bool {
 			if fn != nil && n == fn.Name {
 				// The function's own name is a declaration, not a use.
@@ -220,8 +248,10 @@ func (s *grantScan) visit(n ast.Node, fnName string) {
 			s.report(n, "assignment through a Grant's sealed data")
 		}
 	case *ast.CallExpr:
-		if isIdent(n.Fun, "new") && len(n.Args) == 1 && s.isGrant(n.Args[0]) {
-			s.report(n, "new(Grant)")
+		s.visitNew(n, fnName)
+	case *ast.SelectorExpr:
+		if s.inAuthz && n.Sel.Name == "sealed" && !sealedReaders[fnName] {
+			s.report(n, "a Grant's sealed data named outside issue and its read-only methods")
 		}
 	case *ast.Ident:
 		s.visitIdent(n, fnName)
@@ -229,6 +259,31 @@ func (s *grantScan) visit(n ast.Node, fnName string) {
 		if !s.inAuthz && s.isGrant(n.Type) {
 			s.report(n, "type declared from Grant")
 		}
+	}
+}
+
+// sealedReaders are the only functions that may name a Grant's sealed field:
+// issue fills it in, and the methods read it without letting it escape.
+var sealedReaders = map[string]bool{
+	"issue":            true,
+	"Grant.Valid":      true,
+	"Grant.Identity":   true,
+	"Grant.Attributes": true,
+	"Grant.Expires":    true,
+	"Grant.Covers":     true,
+}
+
+// visitNew: new(Grant) anywhere outside authz, and new(grantData) inside it
+// outside issue, is construction.
+func (s *grantScan) visitNew(n *ast.CallExpr, fnName string) {
+	if !isIdent(n.Fun, "new") || len(n.Args) != 1 {
+		return
+	}
+	if s.isGrant(n.Args[0]) {
+		s.report(n, "new(Grant)")
+	}
+	if s.inAuthz && fnName != "issue" && isIdent(n.Args[0], "grantData") {
+		s.report(n, "new(grantData) outside issue")
 	}
 }
 
@@ -298,6 +353,18 @@ func reachesSealed(e ast.Expr) bool {
 func isIdent(e ast.Expr, name string) bool {
 	id, ok := unparen(e).(*ast.Ident)
 	return ok && id.Name == name
+}
+
+// receiverIs reports whether fn is a method on typ or *typ.
+func receiverIs(fn *ast.FuncDecl, typ string) bool {
+	if fn == nil || fn.Recv == nil || len(fn.Recv.List) == 0 {
+		return false
+	}
+	recv := fn.Recv.List[0].Type
+	if star, ok := recv.(*ast.StarExpr); ok {
+		recv = star.X
+	}
+	return isIdent(recv, typ)
 }
 
 func authzLocalName(file *ast.File) string {
