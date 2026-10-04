@@ -1,7 +1,7 @@
 ## 1. Kind environment and the F1 fixture set
 
 - [x] 1.1 Add `test/e2e/versions.env` (kind version, pinned node image, `OPM_CLI_VERSION` and the four `OPM_CLI_SHA256_<os>_<arch>` values from the release's `checksums.txt`, optional `OPM_OPERATOR_VERSION`)
-- [x] 1.2 Add `test/e2e/lib.sh` (fixed cluster, context and `.e2e/kubeconfig`; `KUBECONFIG` unset; `k()`/`opm()` wrappers with explicit `--kubeconfig`/`--context`; loopback-server guard; polling wait helper) and `test/e2e/down.sh`
+- [x] 1.2 Add `test/e2e/lib.sh` (fixed cluster, context and `.e2e/kubeconfig`; `KUBECONFIG` unset; `k()`/`opm_k()` wrappers with explicit `--kubeconfig`/`--context`; loopback-server guard; polling wait helper) and `test/e2e/down.sh`
 - [x] 1.3 Add the F1 fixtures under `test/e2e/fixtures/f1/` (cert-manager with its applier, podinfo, ModulePackage without Flux, backup provider and consumer copied from opm-operator `main`, CLI-owned `web/` instance package)
 - [x] 1.4 Add `test/e2e/up.sh` (existing-cluster refusal, podman or docker create with the pinned image, checksum-verified CLI download, operator install, F1 apply in order, settle rules, verdict summary); verify `bash -n` and `shellcheck` when available, and that a forged pin makes the download step exit non-zero
 - [x] 1.5 Add `e2e:up`, `e2e:down` to `Taskfile.yml` and `/.e2e/` to `.gitignore`

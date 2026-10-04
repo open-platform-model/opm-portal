@@ -92,7 +92,7 @@ request. Source: 0030:D8.
 #### Scenario: Clean capture
 
 - **WHEN** `task e2e:capture` runs against a settled F1 cluster
-- **THEN** `testdata/clusters/f1/` holds the six files and `task e2e:capture:check` exits 0
+- **THEN** `testdata/clusters/f1/` holds `meta.yaml` and the six object lists, and `task e2e:capture:check` exits 0
 
 #### Scenario: Values left in a capture
 

@@ -43,7 +43,7 @@ Observations from that capture that shape this change (experiment 01 `README.md`
 
 ```text
 test/e2e/versions.env              pins: kind, node image, opm CLI version + sha256 per platform
-test/e2e/lib.sh                    shared env, guards, k() / opm() wrappers, wait helper
+test/e2e/lib.sh                    shared env, guards, k() / opm_k() wrappers, wait helper
 test/e2e/up.sh, down.sh            create, install, apply F1, settle / delete
 test/e2e/capture.sh                snapshot into testdata/clusters/f1 (or $1)
 test/e2e/check-capture.sh          refuse a capture that breaks the strip rules
@@ -56,7 +56,7 @@ testdata/clusters/f1/              committed capture + README.md
 ### Guards
 
 `lib.sh` fixes the cluster name `opm-portal-e2e`, the context `kind-opm-portal-e2e` and the
-kubeconfig `.e2e/kubeconfig`. `k()` and `opm()` pass `--kubeconfig` and `--context` on every
+kubeconfig `.e2e/kubeconfig`. `k()` and `opm_k()` pass `--kubeconfig` and `--context` on every
 call and the scripts unset `KUBECONFIG`, so a developer's current context is never read or
 written. Before any write, `up.sh` checks that the kubeconfig's current context is the expected
 one and that its server is a loopback address; `capture.sh` checks the same before reading.
@@ -138,7 +138,9 @@ The scripts read, as kind's cluster-admin kubeconfig, on the throwaway cluster: 
 `schedule`, never on `pull_request`. It installs kind from the `KIND_VERSION` pin with
 `go install`, runs `task e2e:up E2E_PROVIDER=docker` and `task e2e:capture`, uploads
 `testdata/clusters/f1/` as an artifact, and runs `task e2e:down` under `if: always()`.
-`permissions: contents: read`; GHCR pulls are anonymous.
+`permissions: contents: read`; GHCR pulls are anonymous. The `Test` job runs
+`task e2e:capture:check` on every pull request, so a hand edit to a committed capture cannot
+bring back values or a Secret.
 
 ## Research & Decisions
 

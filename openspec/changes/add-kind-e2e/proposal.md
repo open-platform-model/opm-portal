@@ -32,7 +32,7 @@ cluster to run against.
 - One committed capture from a run on a new throwaway podman cluster, deleted afterwards.
 - A CI workflow `E2E` (manual dispatch and a nightly schedule, not on pull requests, because it
   pulls from GHCR) that runs `e2e:up` and `e2e:capture` on docker kind and uploads the capture as
-  an artifact.
+  an artifact. The `Test` check gains a `task e2e:capture:check` step for the committed capture.
 
 The backup claim is accepted and active only on an operator built on library v1.0.0-beta.2 or
 later, and no released operator is (opm-operator release PR 208 is open). The environment does
