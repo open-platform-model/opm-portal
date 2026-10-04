@@ -3,14 +3,19 @@
 // fail. It lives under testdata so ./... never builds it.
 package forge
 
-import "github.com/open-platform-model/opm-portal/internal/authz"
+import (
+	"time"
+
+	"github.com/open-platform-model/opm-portal/internal/authz"
+)
 
 // ByLiteral fills the grant's field from outside the package.
 func ByLiteral() authz.Grant {
 	return authz.Grant{sealed: nil}
 }
 
-// ByIssue calls the package's unexported constructor.
+// ByIssue calls the package's unexported constructor with its real
+// signature (who, req, expires, now), so only the export rule refuses it.
 func ByIssue() authz.Grant {
-	return authz.issue(authz.Identity{Username: "mallory"}, authz.Attributes{})
+	return authz.issue(authz.Identity{Username: "mallory"}, authz.Attributes{}, time.Now().Add(time.Hour), time.Now)
 }

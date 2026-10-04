@@ -60,8 +60,9 @@ func TestForgingPackageDoesNotCompile(t *testing.T) {
 // TestNoGrantConstructionOutsideCheck scans every Go file in the module. No
 // file outside this package may write a Grant composite literal, call
 // new(authz.Grant), or declare a type from it. Inside this package only issue
-// may fill one in (no filled-in Grant or grantData literal elsewhere, and no
-// assignment to a sealed field anywhere), and only Checker.Check may refer to
+// may fill one in (no filled-in Grant or grantData literal elsewhere, no
+// assignment to or through a sealed field anywhere, and no copy of the sealed
+// pointer into a variable), and only Checker.Check may refer to
 // issue, so it cannot be called or passed on as a function value elsewhere.
 func TestNoGrantConstructionOutsideCheck(t *testing.T) {
 	root := moduleRoot(t)
@@ -123,6 +124,14 @@ func mint() Grant { return Grant{sealed: &grantData{}} }`, true},
 func mint() Grant { return issue(Identity{}, Attributes{}, time.Time{}, nil) }`, true},
 		{"sealed field assignment", `package authz
 func mint(d *grantData) Grant { var g Grant; g.sealed = d; return g }`, true},
+		{"issued grant's expiry extended", `package authz
+func extend(g Grant) { g.sealed.expires = time.Now().Add(time.Hour) }`, true},
+		{"issued grant retargeted", `package authz
+func retarget(g Grant, k string) { (g.sealed).idKey = k }`, true},
+		{"issued grant's groups rewritten", `package authz
+func regroup(g Grant) { g.sealed.identity.Groups[0] = "system:masters" }`, true},
+		{"sealed pointer copied out", `package authz
+func steal(g Grant) { d := g.sealed; d.expires = time.Time{} }`, true},
 		{"grantData literal outside issue", `package authz
 func mk() *grantData { return &grantData{} }`, true},
 		{"issue as a function value", `package authz
@@ -206,20 +215,28 @@ func (s *grantScan) visit(n ast.Node, fnName string) {
 		s.visitLiteral(n, fnName)
 	case *ast.AssignStmt:
 		s.visitAssign(n)
+	case *ast.IncDecStmt:
+		if s.inAuthz && reachesSealed(n.X) {
+			s.report(n, "assignment through a Grant's sealed data")
+		}
 	case *ast.CallExpr:
 		if isIdent(n.Fun, "new") && len(n.Args) == 1 && s.isGrant(n.Args[0]) {
 			s.report(n, "new(Grant)")
 		}
 	case *ast.Ident:
-		// Any use of issue, called or not, outside Check: a function value
-		// passed on would let its holder mint grants.
-		if s.inAuthz && !s.isTest && n.Name == "issue" && fnName != "(*Checker).Check" {
-			s.report(n, "issue referred to outside Checker.Check")
-		}
+		s.visitIdent(n, fnName)
 	case *ast.TypeSpec:
 		if !s.inAuthz && s.isGrant(n.Type) {
 			s.report(n, "type declared from Grant")
 		}
+	}
+}
+
+// visitIdent: any use of issue, called or not, outside Check is refused; a
+// function value passed on would let its holder mint grants.
+func (s *grantScan) visitIdent(n *ast.Ident, fnName string) {
+	if s.inAuthz && !s.isTest && n.Name == "issue" && fnName != "(*Checker).Check" {
+		s.report(n, "issue referred to outside Checker.Check")
 	}
 }
 
@@ -236,10 +253,44 @@ func (s *grantScan) visitLiteral(n *ast.CompositeLit, fnName string) {
 	}
 }
 
+// visitAssign: an issued grant's data is shared by pointer, so writing to
+// sealed, or to anything reached through it (g.sealed.expires,
+// g.sealed.identity.Groups[0]), would retarget or extend every copy of the
+// grant. Copying the pointer out (d := g.sealed) is refused too, because a
+// write through the copy would not show in this scan. issue builds the data
+// with a literal and needs no assignment, so no function is exempt.
 func (s *grantScan) visitAssign(n *ast.AssignStmt) {
+	if !s.inAuthz {
+		return
+	}
 	for _, lhs := range n.Lhs {
-		if sel, ok := unparen(lhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "sealed" {
-			s.report(n, "assignment to a Grant's sealed field")
+		if reachesSealed(lhs) {
+			s.report(n, "assignment through a Grant's sealed data")
+		}
+	}
+	for _, rhs := range n.Rhs {
+		if sel, ok := unparen(rhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "sealed" {
+			s.report(n, "a Grant's sealed pointer copied into a variable")
+		}
+	}
+}
+
+// reachesSealed reports whether e is sealed, or a selector, index or
+// dereference chain that passes through a selector named sealed.
+func reachesSealed(e ast.Expr) bool {
+	for {
+		switch x := unparen(e).(type) {
+		case *ast.SelectorExpr:
+			if x.Sel.Name == "sealed" {
+				return true
+			}
+			e = x.X
+		case *ast.IndexExpr:
+			e = x.X
+		case *ast.StarExpr:
+			e = x.X
+		default:
+			return false
 		}
 	}
 }
