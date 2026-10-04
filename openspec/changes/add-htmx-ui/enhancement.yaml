@@ -1,0 +1,8 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# Draft: claims are settled at archive, after verify, whole decisions only.
+implements:
+  - enhancement: "0030"
+    decisions: [D5]
+    resolves: []
