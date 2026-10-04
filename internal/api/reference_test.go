@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"maps"
 	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strconv"
@@ -74,9 +75,34 @@ func referenceSection(t *testing.T, heading string) string {
 var codeRow = regexp.MustCompile("(?m)^\\| \\d{3} \\| `([a-z_]+)` \\|")
 
 // TestReadAPIReferenceListsEveryProblemCode: the reference page's problem
-// code table names exactly the codes of the OpenAPI document's Problem.code
-// enum, which TestEnumsMatchTheGoConstants holds to the v1alpha1 constants.
+// code table names exactly the Code constants of api/v1alpha1, read from the
+// package's source so a constant added there fails here until the page
+// follows, and exactly the codes of the OpenAPI document's Problem.code enum.
 func TestReadAPIReferenceListsEveryProblemCode(t *testing.T) {
+	listed := map[string]bool{}
+	for _, m := range codeRow.FindAllStringSubmatch(referenceSection(t, "Problem codes"), -1) {
+		listed[m[1]] = true
+	}
+	for source, want := range map[string][]string{
+		"api/v1alpha1":          problemCodeConstants(t),
+		"openapi/v1alpha1.yaml": openAPIProblemCodes(t),
+	} {
+		for _, c := range want {
+			if !listed[c] {
+				t.Errorf("%s does not list the problem code %s, which %s has", readAPIReferencePath, c, source)
+			}
+		}
+		for _, c := range slices.Sorted(maps.Keys(listed)) {
+			if !slices.Contains(want, c) {
+				t.Errorf("%s lists the problem code %s, which %s does not have", readAPIReferencePath, c, source)
+			}
+		}
+	}
+}
+
+// openAPIProblemCodes returns the OpenAPI document's Problem.code enum.
+func openAPIProblemCodes(t *testing.T) []string {
+	t.Helper()
 	raw, err := os.ReadFile(openAPIPath)
 	if err != nil {
 		t.Fatal(err)
@@ -97,24 +123,63 @@ func TestReadAPIReferenceListsEveryProblemCode(t *testing.T) {
 	if err := yaml.Unmarshal(raw, &doc); err != nil {
 		t.Fatal(err)
 	}
-	want := doc.Components.Schemas.Problem.Properties.Code.Enum
-	if len(want) == 0 {
+	codes := doc.Components.Schemas.Problem.Properties.Code.Enum
+	if len(codes) == 0 {
 		t.Fatal("openapi/v1alpha1.yaml has no Problem.code enum")
 	}
-	listed := map[string]bool{}
-	for _, m := range codeRow.FindAllStringSubmatch(referenceSection(t, "Problem codes"), -1) {
-		listed[m[1]] = true
+	return codes
+}
+
+// problemCodeConstants returns the values of the constants named Code* in
+// api/v1alpha1's non-test source files.
+func problemCodeConstants(t *testing.T) []string {
+	t.Helper()
+	const dir = "../../api/v1alpha1"
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, c := range want {
-		if !listed[c] {
-			t.Errorf("%s does not list the problem code %s", readAPIReferencePath, c)
+	var codes []string
+	fset := token.NewFileSet()
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
+			continue
+		}
+		f, err := parser.ParseFile(fset, filepath.Join(dir, e.Name()), nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, decl := range f.Decls {
+			gd, ok := decl.(*ast.GenDecl)
+			if !ok || gd.Tok != token.CONST {
+				continue
+			}
+			for _, spec := range gd.Specs {
+				vs := spec.(*ast.ValueSpec)
+				for i, name := range vs.Names {
+					if !strings.HasPrefix(name.Name, "Code") {
+						continue
+					}
+					if i >= len(vs.Values) {
+						t.Fatalf("the constant %s in %s has no value of its own", name.Name, e.Name())
+					}
+					lit, ok := vs.Values[i].(*ast.BasicLit)
+					if !ok || lit.Kind != token.STRING {
+						t.Fatalf("the constant %s in %s is not a string literal", name.Name, e.Name())
+					}
+					s, err := strconv.Unquote(lit.Value)
+					if err != nil {
+						t.Fatal(err)
+					}
+					codes = append(codes, s)
+				}
+			}
 		}
 	}
-	for _, c := range slices.Sorted(maps.Keys(listed)) {
-		if !slices.Contains(want, c) {
-			t.Errorf("%s lists the problem code %s, which openapi/v1alpha1.yaml does not have", readAPIReferencePath, c)
-		}
+	if len(codes) == 0 {
+		t.Fatalf("%s declares no Code constants", dir)
 	}
+	return codes
 }
 
 // topicRow matches a row of the topic table: | `instance:<namespace>/<name>` | ...
