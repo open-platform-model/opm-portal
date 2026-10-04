@@ -82,7 +82,9 @@ request with an empty verb or resource or a wildcard in any attribute.
 
 The portal SHALL treat an access review that fails, times out, or reports an evaluation error
 without allowing as a denial with an `unavailable` code, never as an allow. An explicit deny SHALL
-win over an allow, and a review with no opinion SHALL be a denial. Source: 0030:D6:R4.
+win over an allow, and a review with no opinion SHALL be a denial. The refusal's message SHALL NOT
+carry the failure's own text, which can name the API server, users, roles or objects. Source:
+0030:D6:R4.
 
 #### Scenario: Review call fails
 
@@ -94,6 +96,7 @@ win over an allow, and a review with no opinion SHALL be a denial. Source: 0030:
 
 - **WHEN** the access review's status carries an evaluation error and is not allowed
 - **THEN** the read is refused as unavailable
+- **AND** the refusal's message does not carry the evaluation error's text
 
 #### Scenario: No opinion
 

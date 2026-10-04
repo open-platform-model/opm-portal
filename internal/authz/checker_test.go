@@ -136,6 +136,9 @@ func TestCheckOutcomes(t *testing.T) {
 				if errors.Is(tc.backend.err, apiErr) && !errors.Is(d, apiErr) {
 					t.Errorf("denial does not wrap the backend error: %v", d)
 				}
+				if strings.Contains(d.Error(), apiErr.Error()) {
+					t.Errorf("denial text %q carries the backend error's text", d)
+				}
 				return
 			}
 			if err != nil || !g.Valid() {

@@ -3,6 +3,7 @@ package authz
 import (
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -110,6 +111,25 @@ func TestLocalVerdicts(t *testing.T) {
 			}
 			requireDenial(t, g, err, tc.want)
 		})
+	}
+}
+
+// TestUnavailableDenialHidesItsCause: an evaluation error or a transport
+// error can name principals, roles or the API server, so the denial's text
+// leaves it out; the cause stays reachable through Unwrap for logs.
+func TestUnavailableDenialHidesItsCause(t *testing.T) {
+	const evalErr = "webhook: user mallory bound to role cluster-admin"
+	rc := newReviewCluster(t)
+	rc.status = authorizationv1.SubjectAccessReviewStatus{EvaluationError: evalErr}
+	g, err := rc.checker(t, alice).Check(t.Context(), alice, getDeployment("team-a", "web"))
+	d := requireDenial(t, g, err, CodeUnavailable)
+	for _, leak := range []string{"mallory", "cluster-admin", "webhook"} {
+		if strings.Contains(d.Error(), leak) {
+			t.Errorf("denial %q carries %q from the evaluation error", d, leak)
+		}
+	}
+	if cause := errors.Unwrap(d); cause == nil || !strings.Contains(cause.Error(), "mallory") {
+		t.Errorf("Unwrap = %v, want the evaluation error for logs", cause)
 	}
 }
 

@@ -134,14 +134,17 @@ way to get them wrong.
 `EvaluationError`, as the API server itself would); `EvaluationError` without `Allowed` is an
 error and so `unavailable`; neither flag is `forbidden`. A transport or API error, a timeout
 (`Options.Timeout`, default 5 s) or a nil response is `unavailable`. `unavailable` wraps its cause
-for logs; the read API will map it to its own problem code.
+for server-side logs; the read API will map it to its own problem code.
 **Rationale**: 0030:D6:R4 and the architecture's "error, timeout or evaluationError without
 allowed is a deny".
 
 #### What a denial says
 
 **Decision**: `DenialError.Error()` is `authorization <code>: <verb> <group/resource[/sub]>[ in
-namespace <ns>]` plus the cause for `unavailable`. It never names the object or the identity.
+namespace <ns>]`. It never names the object or the identity, and it leaves out the cause of an
+`unavailable` denial: a transport error names the API server and a webhook authorizer's
+evaluation error can name users, roles or objects. The cause stays reachable through `Unwrap`, for
+server-side logs only.
 **Rationale**: 0030:D7:R1 (identical for existing and missing objects) and the security rule that
 no principal or credential appears in an error.
 
