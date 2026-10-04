@@ -348,21 +348,7 @@ func responseWriterUses(t *testing.T) []string {
 	t.Helper()
 	var out []string
 	for _, fn := range packageFuncs(t) {
-		// The names of fn's parameters typed http.ResponseWriter,
-		// including those of the function literals inside it.
-		params := map[string]bool{}
-		ast.Inspect(fn, func(n ast.Node) bool {
-			if ft, ok := n.(*ast.FuncType); ok && ft.Params != nil {
-				for _, f := range ft.Params.List {
-					if exprString(f.Type) == "http.ResponseWriter" {
-						for _, name := range f.Names {
-							params[name.Name] = true
-						}
-					}
-				}
-			}
-			return true
-		})
+		params := writerParams(fn)
 		var stack []ast.Node
 		ast.Inspect(fn.Body, func(n ast.Node) bool {
 			if n == nil {
@@ -374,28 +360,7 @@ func responseWriterUses(t *testing.T) []string {
 				parent = stack[len(stack)-1]
 			}
 			stack = append(stack, n)
-			var use ast.Expr
-			switch x := n.(type) {
-			case *ast.SelectorExpr:
-				if x.Sel.Name == "w" {
-					use = x
-				}
-			case *ast.Ident:
-				if !params[x.Name] {
-					break
-				}
-				if sel, ok := parent.(*ast.SelectorExpr); ok && sel.Sel == x {
-					break // a field or method named like the parameter
-				}
-				if kv, ok := parent.(*ast.KeyValueExpr); ok && kv.Key == x {
-					break // a composite literal's key
-				}
-				if _, ok := parent.(*ast.Field); ok {
-					break // a function literal's parameter
-				}
-				use = x
-			}
-			if use != nil {
+			if use := writerUse(n, parent, params); use != nil {
 				out = append(out, fn.Name.Name+": "+describeUse(use, parent, stack))
 			}
 			return true
@@ -403,6 +368,54 @@ func responseWriterUses(t *testing.T) []string {
 	}
 	slices.Sort(out)
 	return out
+}
+
+// writerParams returns the names of fn's parameters typed
+// http.ResponseWriter, including those of the function literals inside it.
+func writerParams(fn *ast.FuncDecl) map[string]bool {
+	params := map[string]bool{}
+	ast.Inspect(fn, func(n ast.Node) bool {
+		if ft, ok := n.(*ast.FuncType); ok && ft.Params != nil {
+			for _, f := range ft.Params.List {
+				if exprString(f.Type) == "http.ResponseWriter" {
+					for _, name := range f.Names {
+						params[name.Name] = true
+					}
+				}
+			}
+		}
+		return true
+	})
+	return params
+}
+
+// writerUse returns n when it is a use of the writer's field w or of one of
+// params, whose parent node is parent, and nil otherwise.
+func writerUse(n, parent ast.Node, params map[string]bool) ast.Expr {
+	switch x := n.(type) {
+	case *ast.SelectorExpr:
+		if x.Sel.Name == "w" {
+			return x
+		}
+	case *ast.Ident:
+		if !params[x.Name] {
+			return nil
+		}
+		switch p := parent.(type) {
+		case *ast.SelectorExpr:
+			if p.Sel == x {
+				return nil // a field or method named like the parameter
+			}
+		case *ast.KeyValueExpr:
+			if p.Key == x {
+				return nil // a composite literal's key
+			}
+		case *ast.Field:
+			return nil // a function literal's parameter
+		}
+		return x
+	}
+	return nil
 }
 
 // describeUse says how the expression use, whose parent node is parent, is
