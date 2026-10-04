@@ -1,9 +1,9 @@
 ## 1. Topics and the ring buffer (internal/stream)
 
-- [ ] 1.1 Add `Kind`, `Topic`, `ParseTopic` and `*TopicError` with the grammar in the spec (DNS-1123 namespaces and names, `events:` refs limited to object topics, `log:` parsed and reserved); verify with a table test of accepted and refused names, including wildcards, empty segments, upper case, nested `events:` and over-long names
-- [ ] 1.2 Add the per-topic ring (fixed capacity, a floor that records the highest evicted sequence, `covers(after)`, `since(after)`); verify with table tests for wrap-around, a floor set at creation, and a gap after overflow
-- [ ] 1.3 Add the package documentation (`doc.go`) stating the producer contract and the authorization rules; verify `go doc ./internal/stream` prints it
-- [ ] 1.4 `task check` green, then commit `chore(stream): add stream topics and the per-topic ring buffer`
+- [x] 1.1 Add `Kind`, `Topic`, `ParseTopic` and `*TopicError` with the grammar in the spec (DNS-1123 namespaces and names, `events:` refs limited to object topics, `log:` parsed and reserved); verify with a table test of accepted and refused names, including wildcards, empty segments, upper case, nested `events:` and over-long names
+- [x] 1.2 Add `Item` with its validation and the per-topic ring (fixed capacity, a floor that records the highest evicted sequence, `covers(after)`, `since(after)`); verify with table tests for wrap-around, a floor set at creation, and a gap after overflow, and a table test of valid and invalid items
+- [x] 1.3 Add the package documentation (`doc.go`) stating the producer contract and the authorization rules; verify `go doc ./internal/stream` prints it
+- [x] 1.4 `task check` green, then commit `chore(stream): add stream topics and the per-topic ring buffer`
 
 ## 2. Broker: subscriptions, authorization and delivery (internal/stream)
 
