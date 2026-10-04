@@ -1,6 +1,7 @@
 package health
 
 import (
+	"fmt"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,8 +87,14 @@ type Applied struct {
 // ReadApplied reads the applied state of a ModuleInstance, ModulePackage,
 // Platform or TransformerRegistration from its conditions and spec. The
 // first match wins: a CLI owner, suspension, Stalled, Ready=False,
-// Reconciling or Ready=Unknown, Ready=True. Failure counters are never read:
-// the drift counter climbs on healthy instances.
+// Reconciling or Ready=Unknown, a Ready=True written for an older generation
+// (Reconciling), Ready=True. Failure counters are never read: the drift
+// counter climbs on healthy instances.
+//
+// For a TransformerRegistration the verdict from ReadRegistration, not this
+// state, decides how the registration is shown: a blocked removal reads
+// Stalled here, the same as a refusal, but its verdict is RemovalBlocked and
+// it is never shown as refused (0030:D4:R7).
 func ReadApplied(u *unstructured.Unstructured) Applied {
 	if u == nil || u.GroupVersionKind().Group != operatorGroup || !operatorKinds[u.GetKind()] {
 		return Applied{State: AppliedStateUnknown, Message: "not an OPM operator kind"}
@@ -98,14 +105,11 @@ func ReadApplied(u *unstructured.Unstructured) Applied {
 	reconciling := conds[conditionReconciling]
 	notes := appliedNotes(conds)
 
-	owner := stringAt(u.Object, "spec", "owner")
-	suspend := boolAt(u.Object, "spec", "suspend")
+	if state, ok := deliberateState(u, ready); ok {
+		return fromCondition(state, ready, notes)
+	}
 
 	switch {
-	case owner == "cli" || ready.Reason == reasonManagedExternally:
-		return fromCondition(AppliedStateManagedExternally, ready, notes)
-	case suspend || ready.Reason == reasonSuspended:
-		return fromCondition(AppliedStateSuspended, ready, notes)
 	case stalled.Status == metav1.ConditionTrue:
 		return fromCondition(AppliedStateStalled, stalled, notes)
 	case ready.Status == metav1.ConditionFalse:
@@ -116,6 +120,11 @@ func ReadApplied(u *unstructured.Unstructured) Applied {
 		return fromCondition(AppliedStateReconciling, reconciling, notes)
 	case ready.Status == metav1.ConditionUnknown:
 		return fromCondition(AppliedStateReconciling, ready, notes)
+	case staleReady(u, ready):
+		// The spec changed and the operator has not reported on it yet.
+		a := fromCondition(AppliedStateReconciling, ready, notes)
+		a.Message = fmt.Sprintf("generation %d not reconciled yet; Ready=True is for generation %d", u.GetGeneration(), ready.ObservedGeneration)
+		return a
 	case ready.Status == metav1.ConditionTrue:
 		return fromCondition(AppliedStateApplied, ready, notes)
 	case !hasReady:
@@ -123,6 +132,25 @@ func ReadApplied(u *unstructured.Unstructured) Applied {
 	default:
 		return fromCondition(AppliedStateUnknown, ready, notes)
 	}
+}
+
+// deliberateState reports a state a person chose: the CLI owns the object,
+// or it is suspended. Both are neutral and win over every condition.
+func deliberateState(u *unstructured.Unstructured, ready Condition) (AppliedState, bool) {
+	switch {
+	case stringAt(u.Object, "spec", "owner") == "cli" || ready.Reason == reasonManagedExternally:
+		return AppliedStateManagedExternally, true
+	case boolAt(u.Object, "spec", "suspend") || ready.Reason == reasonSuspended:
+		return AppliedStateSuspended, true
+	default:
+		return "", false
+	}
+}
+
+// staleReady reports a Ready=True written for an older generation than the
+// object's. A condition without observedGeneration is not judged.
+func staleReady(u *unstructured.Unstructured, ready Condition) bool {
+	return ready.Status == metav1.ConditionTrue && ready.ObservedGeneration > 0 && ready.ObservedGeneration < u.GetGeneration()
 }
 
 func fromCondition(state AppliedState, c Condition, notes []Note) Applied {

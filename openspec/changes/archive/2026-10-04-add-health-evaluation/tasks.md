@@ -29,3 +29,6 @@
 - [x] 5.1 Add `Input.ChildrenAccess`: when the children could not be read, skip the Pod rule, mark readable workloads that can own Pods `ChildrenUnread`, and make their component and the instance partial; verify with the phase 4 capture and the children forbidden, not readable and unset
 - [x] 5.2 Follow only owner references marked controller; verify a Pod with a plain owner reference to the inventory Deployment changes nothing
 - [x] 5.3 `task check` green, then commit `chore(health): mark health partial when children are unread`
+- [x] 5.4 Read a `Ready=True` whose `observedGeneration` is older than the object's generation as Reconciling; verify with the podinfo capture one generation ahead and a condition without `observedGeneration`
+- [x] 5.5 Pin the applied state of the refused and removal-blocked registrations (both Stalled) and state that the verdict decides how a registration is shown; verify with both captures
+- [x] 5.6 `task check` green, then commit `chore(health): read a stale ready as reconciling`

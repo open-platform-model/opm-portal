@@ -115,7 +115,8 @@ TransformerRegistration's applied state from its conditions and spec as exactly 
 Reconciling, Failed, Stalled, Suspended, ManagedExternally or Unknown, by the first match of:
 a CLI owner or `ManagedExternally` reason is ManagedExternally; suspension is Suspended;
 `Stalled=True` is Stalled; `Ready=False` is Failed, marked as retrying while
-`Reconciling=True`; `Reconciling=True` or `Ready=Unknown` is Reconciling; `Ready=True` is
+`Reconciling=True`; `Reconciling=True` or `Ready=Unknown` is Reconciling; `Ready=True` whose
+`observedGeneration` is older than the object's generation is Reconciling; `Ready=True` is
 Applied; anything else is Unknown. `Ready=True` SHALL be Applied and never Healthy, and the
 applied state SHALL NOT be derived from health nor health from it. Failure counters SHALL never
 change either axis. `ContractsFulfilled=False` and `Drifted=True` SHALL be informational notes
@@ -152,6 +153,12 @@ that never change the state. Source: 0030:D3:R1/R6/R7/R8.
 - **WHEN** the captured ModulePackage with `Ready=False/SourceNotReady` is read
 - **THEN** its applied state is Failed with reason `SourceNotReady`
 
+#### Scenario: Spec edited, operator not caught up
+
+- **WHEN** the captured podinfo ModuleInstance is read with its generation one past the
+  `observedGeneration` of its `Ready=True` condition
+- **THEN** its applied state is Reconciling
+
 #### Scenario: Unknown kind
 
 - **WHEN** an object of a kind other than the four operator kinds is read
@@ -163,7 +170,9 @@ The portal SHALL read a TransformerRegistration's acceptance and activation from
 `status.accepted` and `status.active`, an absent field meaning false, and SHALL report a verdict
 of Accepted, Refused, Pending, RemovalBlocked or Unknown. A registration whose `Ready` reason is
 `DependentsRemain` SHALL be RemovalBlocked and keep its accepted and active values, never
-Refused. Source: 0030:D4:R4/R7.
+Refused. For a TransformerRegistration the verdict, not the applied state, SHALL decide how it
+is shown: a refusal and a blocked removal are both Stalled on the applied axis.
+Source: 0030:D4:R4/R7.
 
 #### Scenario: Refused claim
 
@@ -184,6 +193,12 @@ Refused. Source: 0030:D4:R4/R7.
   (`Stalled=True` and `Ready=False/DependentsRemain`, `accepted: true`, `active: true`) is read
 - **THEN** its verdict is RemovalBlocked with the operator's message, and it stays accepted and
   active
+
+#### Scenario: Applied state does not separate refusal from removal
+
+- **WHEN** the captured refused claim and the captured removal-blocked claim are read on both
+  axes
+- **THEN** both applied states are Stalled, and the verdicts are Refused and RemovalBlocked
 
 ### Requirement: Every operator condition reason has an explanation
 

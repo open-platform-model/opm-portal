@@ -10,27 +10,33 @@ import (
 func TestReadApplied_Captured(t *testing.T) {
 	tests := []struct {
 		file     string
+		index    int
 		want     AppliedState
 		reason   string
 		retrying bool
 		notes    []string
 	}{
-		{"mi-podinfo-healthy.yaml", AppliedStateApplied, "ReconciliationSucceeded", false, nil},
+		{"mi-podinfo-healthy.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
 		// One minute after the image break: the operator still says applied.
-		{"mi-podinfo-image-broken.yaml", AppliedStateApplied, "ReconciliationSucceeded", false, nil},
-		{"mi-cert-manager-phase3-healthy.yaml", AppliedStateApplied, "ReconciliationSucceeded", false, nil},
-		{"mi-backup-consumer-ready.yaml", AppliedStateApplied, "ReconciliationSucceeded", false, nil},
-		{"mi-apply-failed.yaml", AppliedStateFailed, "ApplyFailed", true, nil},
-		{"mi-cli-owned.yaml", AppliedStateManagedExternally, "ManagedExternally", false, nil},
-		{"mp-source-not-ready.yaml", AppliedStateFailed, "SourceNotReady", true, nil},
-		{"platform-fresh.yaml", AppliedStateApplied, "Generated", false, []string{"UnfulfilledContracts"}},
-		{"platform-registration-entry.yaml", AppliedStateApplied, "Generated", false, []string{"UnfulfilledContracts"}},
-		{"treg-catalog-unresolved.yaml", AppliedStateStalled, "CatalogUnresolved", false, nil},
-		{"treg-accepted-active.yaml", AppliedStateApplied, "Accepted", false, nil},
+		{"mi-podinfo-image-broken.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
+		{"mi-cert-manager-phase3-healthy.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
+		{"mi-backup-consumer-ready.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
+		{"mi-apply-failed.yaml", 0, AppliedStateFailed, "ApplyFailed", true, nil},
+		{"mi-cli-owned.yaml", 0, AppliedStateManagedExternally, "ManagedExternally", false, nil},
+		{"mp-source-not-ready.yaml", 0, AppliedStateFailed, "SourceNotReady", true, nil},
+		{"platform-fresh.yaml", 0, AppliedStateApplied, "Generated", false, []string{"UnfulfilledContracts"}},
+		{"platform-registration-entry.yaml", 0, AppliedStateApplied, "Generated", false, []string{"UnfulfilledContracts"}},
+		{"treg-catalog-unresolved.yaml", 0, AppliedStateStalled, "CatalogUnresolved", false, nil},
+		{"treg-accepted-active.yaml", 0, AppliedStateApplied, "Accepted", false, nil},
+		// Refusals and a blocked removal all read Stalled; only the
+		// registration verdict tells them apart (TestReadRegistration_Captured).
+		{"treg-refusals.yaml", 0, AppliedStateStalled, "ProvidesMismatch", false, nil},
+		{"treg-refusals.yaml", 1, AppliedStateStalled, "ProviderMismatch", false, nil},
+		{"treg-removal-blocked.yaml", 0, AppliedStateStalled, "DependentsRemain", false, nil},
 	}
 	for _, tt := range tests {
-		t.Run(tt.file, func(t *testing.T) {
-			got := ReadApplied(loadCapture(t, tt.file)[0])
+		t.Run(tt.file+"/"+tt.reason, func(t *testing.T) {
+			got := ReadApplied(loadCapture(t, tt.file)[tt.index])
 			if got.State != tt.want || got.Reason != tt.reason || got.Retrying != tt.retrying {
 				t.Fatalf("got %+v, want %s/%s retrying=%v", got, tt.want, tt.reason, tt.retrying)
 			}
@@ -102,6 +108,36 @@ func TestReadApplied_Synthetic(t *testing.T) {
 				t.Fatalf("got %+v, want %s/%s", got, tt.want, tt.reason)
 			}
 		})
+	}
+}
+
+// Between a spec edit and the operator's next reconcile, Ready=True still
+// describes the previous generation.
+func TestReadApplied_StaleReadyIsReconciling(t *testing.T) {
+	obj := loadCapture(t, "mi-podinfo-image-broken.yaml")[0]
+	obj.SetGeneration(obj.GetGeneration() + 1)
+	got := ReadApplied(obj)
+	if got.State != AppliedStateReconciling || got.Reason != "ReconciliationSucceeded" {
+		t.Fatalf("got %+v, want Reconciling", got)
+	}
+	// A condition without observedGeneration cannot be judged stale.
+	synthetic := operatorObject("ModuleInstance", nil, cond("Ready", "True", "ReconciliationSucceeded"))
+	synthetic.SetGeneration(3)
+	if got := ReadApplied(synthetic); got.State != AppliedStateApplied {
+		t.Fatalf("without observedGeneration got %+v, want Applied", got)
+	}
+}
+
+// The registration verdict, not the applied state, tells a refusal from a
+// blocked removal: both are Stalled on the applied axis.
+func TestRegistrationVerdictSeparatesWhatAppliedCannot(t *testing.T) {
+	refused := loadCapture(t, "treg-refusals.yaml")[0]
+	blocked := loadCapture(t, "treg-removal-blocked.yaml")[0]
+	if ReadApplied(refused).State != ReadApplied(blocked).State {
+		t.Fatal("expected both registrations Stalled on the applied axis")
+	}
+	if ReadRegistration(refused).Verdict != VerdictRefused || ReadRegistration(blocked).Verdict != VerdictRemovalBlocked {
+		t.Fatal("verdicts do not separate a refusal from a blocked removal")
 	}
 }
 

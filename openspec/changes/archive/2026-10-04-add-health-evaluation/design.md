@@ -132,8 +132,10 @@ sets `Ready=Unknown/ManagedExternally`) and the captured samples.
 3. `Stalled=True`: Stalled, with the Stalled reason and message.
 4. `Ready=False`: Failed, with `Retrying` set when `Reconciling=True`.
 5. `Reconciling=True`, or `Ready=Unknown`: Reconciling.
-6. `Ready=True`: Applied.
-7. Otherwise (no Ready condition, an unknown kind): Unknown.
+6. `Ready=True` whose `observedGeneration` is older than `metadata.generation`: Reconciling, the
+   kstatus rule for every other kind (a condition without `observedGeneration` is not judged).
+7. `Ready=True`: Applied.
+8. Otherwise (no Ready condition, an unknown kind): Unknown.
 `Since` is the deciding condition's `lastTransitionTime`. Informational notes, which never move
 the state: `ContractsFulfilled=False` on a Platform (normal on a fresh install, observation 11)
 and `Drifted=True`. `status.failureCounters` is never read (observation 6, 0030:D3:R7).
@@ -148,6 +150,8 @@ condition pair (0030:D4:R4). Verdict: `Ready` reason `DependentsRemain` is Remov
 `Ready=False` is Refused with its reason; `Ready=Unknown` is Pending
 (`ProviderInventoryPending` or reconciling); no `Ready` is Unknown. The `Active` condition's
 reason and message ride along, because `ProviderNotReady` explains an accepted, inactive claim.
+For a TransformerRegistration the verdict, not the applied state, decides styling: a refusal and
+a blocked removal are both Stalled on the applied axis.
 
 ### Reason explanations
 
@@ -177,9 +181,6 @@ Secret it is handed.
 - [The copied reason list drifts from the operator] → the opt-in parity test, run locally
   against a checkout; moving the constants into the operator's `api/` package (a proposed operator change)
   would turn the copy into an import.
-- [Applied stays Applied while the operator works on a newer generation whose `Ready` was not
-  rewritten yet] → not handled here; the operator rewrites `Ready=Unknown` when it starts
-  reconciling, and the read API can expose `observedGeneration` beside the state.
 - [The Pod rule's reason list is closed] → it is exactly the list 0030:D3 names; a new reason
   needs a decision, not a code edit.
 - [A Pod mid-deletion with a waiting reason marks its workload Degraded for its grace period]
