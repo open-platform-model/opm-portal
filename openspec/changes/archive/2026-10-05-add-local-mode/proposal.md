@@ -67,5 +67,6 @@ This change is that runnable binary.
   the server.
 - SemVer: MINOR after 1.0 (a new command). On the 0.x line it ships as `feat(local)` and cuts a
   minor release.
-- Enhancement link: completes 0030:D5 (R1 to R7) and makes 0030:D10 observable: the logs producer
-  landed its requirements behind the broker, and this change serves its topics on the read API.
+- Enhancement link: lands 0030:D5 R1 to R6 (R7, locked nodes shown, waits for the UI, so D5 is
+  not claimed here) and completes 0030:D10: the logs producer landed its requirements behind the
+  broker, and this change serves its topics on the read API.
