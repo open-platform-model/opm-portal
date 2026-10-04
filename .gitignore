@@ -35,5 +35,5 @@ go.work.sum
 # go-task checksum state
 .task/
 
-# e2e fixture cluster state: kubeconfig, downloaded opm CLI, CUE cache
+# e2e fixture cluster state: kubeconfig, provider, downloaded opm CLI, CUE cache
 /.e2e/

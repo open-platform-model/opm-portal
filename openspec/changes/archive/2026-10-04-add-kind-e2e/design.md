@@ -50,7 +50,7 @@ test/e2e/check-capture.sh          refuse a capture that breaks the strip rules
 test/e2e/fixtures/f1/*.yaml        operator-owned fixtures, applied in name order
 test/e2e/fixtures/f1/web/          CLI-owned instance package (opm instance apply)
 testdata/clusters/f1/              committed capture + README.md
-.e2e/                              gitignored: kubeconfig, opm binary, CUE cache
+.e2e/                              gitignored: kubeconfig, provider, opm archive and binary, CUE cache
 ```
 
 ### Guards
