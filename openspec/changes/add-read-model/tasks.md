@@ -27,7 +27,7 @@
 
 ## 5. Grant signatures, measurements and the record (internal/readmodel, design.md)
 
-- [ ] 5.1 Add the signature test: every exported read method of `Model` takes an `authz.Identity` and an `authz.Grant`; verify it fails when a method without a grant is added
-- [ ] 5.2 Add `TestMeasureF1`: cold and warm latency of `Instance` for cert-manager and of `ListInstances`, the cluster requests each makes, and the heap held by a warm model over F1; record the numbers in design.md, Measurements on F1
-- [ ] 5.3 Add the package documentation (`doc.go`); verify `go doc ./internal/readmodel` prints it
-- [ ] 5.4 `task check` green, then commit `chore(readmodel): measure the read model on F1 and document it`
+- [x] 5.1 Add the signature test: every exported read method of `Model` takes an `authz.Identity` and an `authz.Grant`; verify it fails when a method without a grant is added
+- [x] 5.2 Add `TestMeasureF1`: cold and warm latency of `Instance` for cert-manager and of `ListInstances`, the cluster requests each makes, and the heap held by a warm model over F1; record the numbers in design.md, Measurements on F1
+- [x] 5.3 Add the package documentation (`doc.go`); verify `go doc ./internal/readmodel` prints it
+- [x] 5.4 `task check` green, then commit `chore(readmodel): measure the read model on F1 and document it`

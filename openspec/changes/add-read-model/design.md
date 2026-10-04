@@ -131,8 +131,10 @@ GVRs are fixed: `opmodel.dev/v1alpha1` `moduleinstances`, `modulepackages`, `pla
   `notReadable`. Every informer is label-selected on `module-instance.opmodel.dev/uuid` (exists).
 - A janitor stops a kind's informers (and poller) once no view has used them for
   `Config.IdleTimeout` (default 5 min).
-- `acquire` waits for a new informer to sync, bounded by the request context and
-  `SyncTimeout`; entries whose informer has not synced are `notReadable`, never `Missing`.
+- `acquire` starts informers without waiting; a view starts every kind it needs, then waits once
+  for all of them, bounded by the request context and `SyncTimeout`, polling every 5 ms
+  (client-go's own wait polls every 100 ms, which a cold cert-manager read paid eleven times in a
+  first cut). Entries whose informer has not synced are `notReadable`, never `Missing`.
 - A synced informer that does not hold an entry's object means the object is absent: the entry
   is `Missing` (read, not found).
 
@@ -158,7 +160,8 @@ never read reads it once synchronously. A 404 is `Missing`, a 403 `forbidden` fo
 ### Tier 4: events
 
 `Events(ctx, who, g, about)` lists `events.k8s.io/v1` events in the object's namespace, or in
-`default` for a cluster-scoped object (observation 5), with the field selector
+`default` for a cluster-scoped object (observation 5; exported as `EventNamespace`, so the read
+API knows which namespace the caller's list grant must name), with the field selector
 `regarding.kind=K,regarding.name=N[,regarding.namespace=NS]`, and filters the result on the same
 fields client-side (a fake client ignores field selectors; a real one has filtered already).
 Lines are folded on (regarding uid, type, reason, note): the count sums each event's
@@ -257,9 +260,39 @@ per kind (11 for cert-manager), so burst 100 covers a cold start without throttl
 
 ### Measurements on F1
 
-Recorded by `TestMeasureF1` (section 5) with the fake dynamic client fed from
-`testdata/clusters/f1`, so they measure the portal's own work, not the network. Filled in at
-implementation.
+Two tests record them. `TestMeasureF1` runs on every `task test` against the fake dynamic client
+fed from `testdata/clusters/f1`, so it measures the portal's own work with no network.
+`TestMeasureLive` runs the same reads against the kind fixture cluster when
+`OPM_PORTAL_MEASURE_KUBECONFIG` names its kubeconfig; it was run on 2026-10-04 on a fresh
+`task e2e:up` cluster (podman kind, Kubernetes v1.36.1, opm-operator v1.0.0-beta.6, the F1
+fixtures), as the kubeconfig's own identity (`kubernetes-admin`), reading through the local
+SelfSubjectAccessReview `Checker`. Each figure is the range over two or three runs.
+
+| Measure | Fake cluster (F1) | Live, client-go defaults (QPS 5, burst 10) | Live, `TuneConfig` (QPS 50, burst 100) |
+| --- | --- | --- | --- |
+| `Start` (four OPM kinds listed and synced) | 43-55 ms | 11-13 ms | 11-13 ms |
+| `Instance` cert-manager, cold (42 entries, 11 kinds) | 6.4-7.7 ms | **7.0 s** | **43-57 ms** |
+| cluster requests on that cold read | 25 (11 lists, 11 watches, 3 child lists) | 16 reads + 36 access reviews | 16 reads + 36 access reviews |
+| `Instance` cert-manager, warm | 0.34-0.41 ms | 0.48-0.65 ms | 0.45-0.52 ms |
+| cluster requests on a warm read | 0 | 0 reads, 0 reviews (20 calls) | 0 reads, 0 reviews (20 calls) |
+| `ListInstances` (5 instances), first after cert-manager | 12 ms | 2.8 s | 33-35 ms |
+| `ListInstances`, warm | 0.40-0.48 ms | n/a | n/a |
+| heap held by a warm model over F1 | 1.0-1.1 MiB | not measured | not measured |
+
+What the numbers say:
+
+- The capture's 7.4 to 9.4 s per graph (0030:D3:R9) is reproduced at client-go's default
+  rate limit even with the tiers in place: a cold read sends 52 requests, and most of them are
+  access reviews (two per kind for the reader, one per kind and namespace for the caller, three
+  for the children). The rate limit, not the reads, is the cost. `TuneConfig` brings the cold read
+  to tens of milliseconds, and the wiring change (`add-local-mode`) MUST apply it to both the
+  dynamic client and the review client.
+- A warm read sends nothing: the inventory comes from the informers and every decision from the
+  authorizer's 30 s cache. After 30 s the decisions are asked again (about 36 reviews for
+  cert-manager), which at the tuned rate is a few tens of milliseconds.
+- Memory over F1 is about 1 MiB. The F1 capture has its CRD schemas removed already; live CRDs
+  carry them, and the strip transform drops them before they are stored, so the live figure for
+  cert-manager's six CRDs is expected in the same range. A budget at scale is later work.
 
 ## Risks / Trade-offs
 
