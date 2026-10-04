@@ -429,6 +429,7 @@ func TestTopicsThatCannotAttach(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{MaxTopicsPerStream: 2}, "alice")
 		e.policy.set("alice", allowNamespaces("apps"))
+		// The fake producer serves no log topic.
 		logTopic := mustTopic(t, "log:apps/blog-0/server")
 		if _, err := e.b.Open(context.Background(), session("alice"), []Topic{logTopic}, ""); !errors.Is(err, ErrTopicNotServed) {
 			t.Errorf("log topic: %v", err)

@@ -1,11 +1,11 @@
 ## 1. Stream: serve log topics
 
-- [ ] 1.1 `internal/stream/topic.go`: accept the optional `/previous` segment on log topics (`Topic.Previous()`), round-trip it in `String`; topic tests for the new and malformed forms
-- [ ] 1.2 `internal/stream/item.go`: add the `log` and `logend` item events
-- [ ] 1.3 `internal/stream/broker.go`: drop the log-topic refusal; add `Admitter`, `ErrNotAdmitted` and call `Admit` in `authorize` after a topic's reads are allowed; add `MaxLogTopicsPerSession` (4) and `MaxLogTopics` (50) checked before any review
-- [ ] 1.4 `internal/stream/mux.go`: `Mux` routing kinds to producers, delegating `Admit`
-- [ ] 1.5 Broker tests: admission refusal closes with `forbidden` and starts no activation, admission error closes with `upstream_unavailable`, reattach admits again, log caps per session and per process, `Mux` routing; update `doc.go` and the reserved-topic test
-- [ ] 1.6 `task check` green, then commit `chore(stream): serve log topics behind per-identity admission`
+- [x] 1.1 `internal/stream/topic.go`: accept the optional `/previous` segment on log topics (`Topic.Previous()`), round-trip it in `String`; topic tests for the new and malformed forms
+- [x] 1.2 `internal/stream/item.go`: add the `log` and `logend` item events
+- [x] 1.3 `internal/stream/broker.go`: drop the log-topic refusal; add `Admitter`, `ErrNotAdmitted` and call `Admit` in `authorize` after a topic's reads are allowed; add `MaxLogTopicsPerSession` (4) and `MaxLogTopics` (50) checked before any review
+- [x] 1.4 `internal/stream/mux.go`: `Mux` routing kinds to producers, delegating `Admit`
+- [x] 1.5 Broker tests: admission refusal closes with `forbidden` and starts no activation, admission error closes with `upstream_unavailable`, reattach admits again, log caps per session and per process, `Mux` routing; update `doc.go` and the reserved-topic test
+- [x] 1.6 `task check` green, then commit `chore(stream): serve log topics behind per-identity admission`
 
 ## 2. Read model: Pod reachability
 

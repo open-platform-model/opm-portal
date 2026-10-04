@@ -41,6 +41,10 @@ var (
 	ErrDisconnected = errors.New("stream: client disconnected")
 	// ErrIdle ends a stream that carried no topic for the idle timeout.
 	ErrIdle = errors.New("stream: idle")
+	// ErrNotAdmitted is what an Admitter returns to refuse a topic. The
+	// topic is closed with the code a denial gives, so a refusal reads the
+	// same as a missing permission.
+	ErrNotAdmitted = errors.New("stream: topic not admitted")
 )
 
 // Closing codes a closed message carries. They are the read API's problem
@@ -69,6 +73,20 @@ type Producer interface {
 	Activate(t Topic) (release func())
 }
 
+// Admitter is an optional extension of Producer, for topics that need more
+// than their reads: a Pod log topic, for example, is served only for a Pod an
+// OPM inventory the subscriber may read reaches (0030:D10:R1). The broker
+// calls Admit after every read Attributes names for t is allowed for who, and
+// before t attaches, whenever it authorizes a topic: on Open, Subscribe and
+// a reconnect. grants are those reads' grants, in Attributes order. Returning
+// ErrNotAdmitted (or wrapping it) closes the topic with the code a denial
+// gives; a *authz.DenialError closes it as that denial would; any other error
+// closes it with upstream_unavailable. Nothing is activated for a refused
+// topic.
+type Admitter interface {
+	Admit(ctx context.Context, who authz.Identity, t Topic, grants []authz.Grant) error
+}
+
 // Session is who opens a stream: the session it belongs to and the identity
 // every read on it is authorized for. Key identifies the session for caps and
 // stream ownership; the broker never logs it.
@@ -86,6 +104,12 @@ type Options struct {
 	MaxStreams int
 	// MaxTopicsPerStream caps the topics on one stream. Default 32.
 	MaxTopicsPerStream int
+	// MaxLogTopicsPerSession caps the log topics one session follows
+	// across its streams. Default 4.
+	MaxLogTopicsPerSession int
+	// MaxLogTopics caps the distinct log topics the process serves at
+	// once; each holds one upstream log stream. Default 50.
+	MaxLogTopics int
 	// RingSize is how many recent changes each topic keeps for resume.
 	// Default 1000.
 	RingSize int
@@ -120,6 +144,8 @@ func (o Options) withDefaults() Options {
 	setInt(&o.MaxStreamsPerSession, 2)
 	setInt(&o.MaxStreams, 500)
 	setInt(&o.MaxTopicsPerStream, 32)
+	setInt(&o.MaxLogTopicsPerSession, 4)
+	setInt(&o.MaxLogTopics, 50)
 	setInt(&o.RingSize, 1000)
 	setInt(&o.QueueSize, 256)
 	setDur(&o.HeartbeatInterval, 15*time.Second)
@@ -296,9 +322,6 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 		if t.Kind() == "" {
 			return nil, nil, fmt.Errorf("%w: the zero topic", ErrTopicNotServed)
 		}
-		if t.Kind() == KindLog {
-			return nil, nil, fmt.Errorf("%w: %s (log topics are not served yet)", ErrTopicNotServed, t)
-		}
 		a, ok := b.producer.Attributes(t)
 		if !ok || len(a) == 0 {
 			return nil, nil, fmt.Errorf("%w: %s", ErrTopicNotServed, t)
@@ -351,9 +374,36 @@ func (b *Broker) authorize(ctx context.Context, who authz.Identity, topics []Top
 			}
 			a.grants = append(a.grants, g)
 		}
+		if a.code == "" {
+			a.code = b.admit(ctx, who, t, a.grants)
+			if a.code != "" {
+				a.grants = nil
+			}
+		}
 		out = append(out, a)
 	}
 	return out
+}
+
+// admit asks the producer, when it is an Admitter, whether who may follow t
+// now that t's reads are allowed. It returns a closing code, or "".
+func (b *Broker) admit(ctx context.Context, who authz.Identity, t Topic, grants []authz.Grant) string {
+	ad, ok := b.producer.(Admitter)
+	if !ok {
+		return ""
+	}
+	err := ad.Admit(ctx, who, t, grants)
+	switch {
+	case err == nil:
+		return ""
+	case errors.Is(err, ErrNotAdmitted):
+		return CodeForbidden
+	}
+	if code := closeCode(err); code != CodeUpstreamUnavailable {
+		return code
+	}
+	b.log.Warn("admitting a topic failed", "topic", t.String(), "error", err)
+	return CodeUpstreamUnavailable
 }
 
 // closeCode maps an authorization failure to a closing code. Anything that
@@ -403,6 +453,9 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 
 	b.mu.Lock()
 	release, err := b.makeRoomLocked(s.Key)
+	if err == nil {
+		err = b.logCapLocked(s.Key, topics)
+	}
 	b.mu.Unlock()
 	runAll(release)
 	if err != nil {
@@ -413,6 +466,9 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 
 	b.mu.Lock()
 	release, err = b.makeRoomLocked(s.Key)
+	if err == nil {
+		err = b.logCapLocked(s.Key, topics)
+	}
 	if err != nil {
 		b.mu.Unlock()
 		runAll(release)
@@ -662,6 +718,48 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 	return activate
 }
 
+// logCapLocked refuses adding the log topics among fresh to session when
+// the session would follow more than MaxLogTopicsPerSession log topics, or
+// the process would serve more than MaxLogTopics distinct ones. fresh holds
+// topics none of the session's streams it is added to carries yet; a topic
+// another subscriber already follows does not count again for the process.
+func (b *Broker) logCapLocked(session string, fresh []Topic) error {
+	var asked, newToProcess int
+	for _, t := range fresh {
+		if t.Kind() != KindLog {
+			continue
+		}
+		asked++
+		if b.topics[t] == nil {
+			newToProcess++
+		}
+	}
+	if asked == 0 {
+		return nil
+	}
+	held := 0
+	for _, st := range b.streams {
+		if st.session != session {
+			continue
+		}
+		for t := range st.subs {
+			if t.Kind() == KindLog {
+				held++
+			}
+		}
+	}
+	active := 0
+	for t := range b.topics {
+		if t.Kind() == KindLog {
+			active++
+		}
+	}
+	if held+asked > b.opts.MaxLogTopicsPerSession || active+newToProcess > b.opts.MaxLogTopics {
+		return ErrTooManyTopics
+	}
+	return nil
+}
+
 // pendLocked records that st's client must be told topic closed with code,
 // replacing an older closing of the same topic, and returns the entry to
 // queue.
@@ -745,8 +843,9 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 		}
 	}
 	held := heldLocked(st, fresh)
+	capErr := b.logCapLocked(st.session, fresh)
 	b.mu.Unlock()
-	if held+len(fresh) > b.opts.MaxTopicsPerStream {
+	if held+len(fresh) > b.opts.MaxTopicsPerStream || capErr != nil {
 		// Refused before any review is sent.
 		return ErrTooManyTopics
 	}
@@ -757,7 +856,7 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 		b.mu.Unlock()
 		return ErrNoStream
 	}
-	if heldLocked(st, fresh)+len(fresh) > b.opts.MaxTopicsPerStream {
+	if heldLocked(st, fresh)+len(fresh) > b.opts.MaxTopicsPerStream || b.logCapLocked(st.session, fresh) != nil {
 		b.mu.Unlock()
 		return ErrTooManyTopics
 	}
