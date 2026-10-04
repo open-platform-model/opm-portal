@@ -19,7 +19,8 @@ const (
 // within a column, nodes are ordered by the barycenter of their neighbors:
 // the first column by id, each later one by its neighbors' rows in the
 // column before (ties by id, none last), then one upward sweep by the
-// neighbors' rows in the column after (ties by the current row). Every
+// neighbors' rows in the column after (ties by the current row), which
+// moves only the nodes with such neighbors, among the rows they hold. Every
 // step is deterministic, so the same graph always lays out the same way.
 func layout(g *Graph, titles []string) {
 	columns := compactColumns(g, titles)
@@ -68,7 +69,7 @@ func compactColumns(g *Graph, titles []string) [][]*Node {
 // orderColumns sorts each column: the first by id, each later one by its
 // neighbors' rows in the column before (ties by id, none last), then one
 // upward sweep by the neighbors' rows in the column after (ties by the
-// current row).
+// current row), among the rows of the nodes that have such neighbors.
 func orderColumns(columns [][]*Node, edges []Edge) {
 	neighbors := map[string][]string{}
 	for i := range edges {
@@ -98,20 +99,32 @@ func orderColumns(columns [][]*Node, edges []Edge) {
 		setRows(col)
 	}
 	for k := len(columns) - 2; k >= 0; k-- {
-		col := columns[k]
-		keys := barycenters(col, columns[k+1], neighbors, row)
-		for _, n := range col {
-			if keys[n.ID].count == 0 {
-				keys[n.ID] = barycenter{sum: row[n.ID], count: 1}
-			}
+		sweepUp(columns[k], barycenters(columns[k], columns[k+1], neighbors, row), row)
+		setRows(columns[k])
+	}
+}
+
+// sweepUp reorders the nodes of col that have neighbors in the column after
+// by their barycenter there, ties by the current row, within the rows they
+// already hold. A node without such a neighbor keeps its row: its own row
+// and a barycenter of the next column's rows are not on one scale.
+func sweepUp(col []*Node, keys map[string]barycenter, row map[string]int) {
+	var slots []int
+	var movable []*Node
+	for i, n := range col {
+		if keys[n.ID].count > 0 {
+			slots = append(slots, i)
+			movable = append(movable, n)
 		}
-		sort.Slice(col, func(i, j int) bool {
-			if c := keys[col[i].ID].compare(keys[col[j].ID]); c != 0 {
-				return c < 0
-			}
-			return row[col[i].ID] < row[col[j].ID]
-		})
-		setRows(col)
+	}
+	sort.SliceStable(movable, func(i, j int) bool {
+		if c := keys[movable[i].ID].compare(keys[movable[j].ID]); c != 0 {
+			return c < 0
+		}
+		return row[movable[i].ID] < row[movable[j].ID]
+	})
+	for i, slot := range slots {
+		col[slot] = movable[i]
 	}
 }
 

@@ -99,7 +99,7 @@ func TestEdgesNameTheirSource(t *testing.T) {
 	graphs := []Graph{
 		Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{"grp:configuration/mi/cert-manager/cert-manager"}}),
 		Instance(c.instance(t, "web", "web"), Options{}),
-		Package(c.pkg(t, "pkg", "podinfo"), Options{}),
+		Package(c.pkg(t), Options{}),
 		Platform(c.platform(t), Options{}),
 	}
 	for _, g := range graphs {
@@ -161,6 +161,20 @@ func TestCertManagerCollapsed(t *testing.T) {
 	}
 	if len(g.Nodes) != 19 {
 		t.Errorf("%d nodes, want 19", len(g.Nodes))
+	}
+	if !slices.IsSorted(group.Group.Members) {
+		t.Errorf("members %v are not sorted", group.Group.Members)
+	}
+}
+
+// TestGroupIgnoresInventoryOrder: the operator may reorder
+// status.inventory; the graph stays the same.
+func TestGroupIgnoresInventoryOrder(t *testing.T) {
+	d := newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager")
+	want := Instance(d, Options{})
+	slices.Reverse(d.Components)
+	if got := Instance(d, Options{}); !reflect.DeepEqual(got, want) {
+		t.Error("reversing the components changed the graph")
 	}
 }
 
@@ -333,7 +347,7 @@ func TestNodeCapKeepsHealth(t *testing.T) {
 }
 
 func TestPackageGraph(t *testing.T) {
-	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t, "pkg", "podinfo"), Options{})
+	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), Options{})
 	root := nodeByID(t, g, "mp:pkg/podinfo")
 	if root.Applied.State != health.AppliedStateFailed || root.Applied.Reason != "SourceNotReady" {
 		t.Errorf("root applied = %+v, want Failed SourceNotReady", root.Applied)
@@ -341,6 +355,29 @@ func TestPackageGraph(t *testing.T) {
 	src := "src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release"
 	if _, ok := edgeBetween(g, EdgeSourcedFrom, root.ID, src); !ok || len(g.Nodes) != 2 {
 		t.Fatalf("nodes %+v, want the package and its source", g.Nodes)
+	}
+}
+
+// TestForeignNamespaceDependency: the operator refuses a dependsOn entry in
+// another namespace, so its edge is drawn unverified; a same-namespace one
+// is not marked.
+func TestForeignNamespaceDependency(t *testing.T) {
+	objs := f1(t)
+	pkg := readmodeltest.Find(t, objs, "ModulePackage", "podinfo")
+	deps := []any{
+		map[string]any{"name": "base"},
+		map[string]any{"name": "shared", "namespace": "other"},
+	}
+	if err := unstructured.SetNestedSlice(pkg.Object, deps, "spec", "dependsOn"); err != nil {
+		t.Fatal(err)
+	}
+	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkg(t), Options{})
+	if e, ok := edgeBetween(g, EdgeDependsOn, "mp:pkg/podinfo", "mp:pkg/base"); !ok || e.Verified != nil {
+		t.Errorf("same-namespace edge = %+v, want drawn and unmarked", e)
+	}
+	e, ok := edgeBetween(g, EdgeDependsOn, "mp:pkg/podinfo", "mp:other/shared")
+	if !ok || e.Verified == nil || *e.Verified || e.Reason != ReasonForeignNamespace {
+		t.Errorf("foreign edge = %+v, want unverified ForeignNamespace", e)
 	}
 }
 
@@ -475,6 +512,21 @@ func TestPlatformProviderForbidden(t *testing.T) {
 	}
 	if n := nodeByID(t, g, "mi:default/backup-provider"); n.Access != health.AccessForbidden || n.Health != nil {
 		t.Errorf("provider = %+v, want forbidden", n)
+	}
+}
+
+// TestProviderNotLookedUp: without a lookup the graph says so instead of
+// guessing the provider unreadable.
+func TestProviderNotLookedUp(t *testing.T) {
+	in := newCluster(t, f1(t), readmodeltest.AllowAll).platform(t)
+	in.Providers = nil
+	g := Platform(in, Options{})
+	e, ok := edgeBetween(g, EdgeProvidedBy, "treg:default.backup-provider", "mi:default/backup-provider")
+	if !ok || e.Verified == nil || *e.Verified || e.Reason != ReasonProviderNotLookedUp {
+		t.Errorf("edge = %+v, want unverified ProviderNotLookedUp", e)
+	}
+	if n := nodeByID(t, g, "mi:default/backup-provider"); n.Access != "" || n.Missing || n.Health != nil {
+		t.Errorf("provider = %+v, want no access, not missing, no health", n)
 	}
 }
 

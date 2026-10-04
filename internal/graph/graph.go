@@ -84,7 +84,14 @@ const (
 	ReasonProviderNotFound       = "ProviderNotFound"
 	ReasonProviderUnreadable     = "ProviderUnreadable"
 	ReasonNotInProviderInventory = "NotInProviderInventory"
+	// ReasonProviderNotLookedUp: the caller passed no lookup for the
+	// provider, so nothing is known about it.
+	ReasonProviderNotLookedUp = "ProviderNotLookedUp"
 )
+
+// ReasonForeignNamespace: a dependsOn entry names a package in another
+// namespace, which the operator refuses.
+const ReasonForeignNamespace = "ForeignNamespace"
 
 // Graph is one graph with its layout.
 type Graph struct {
@@ -189,7 +196,7 @@ type PlatformFacts struct {
 // Group is what a group node stands in for.
 type Group struct {
 	Kind GroupKind `json:"kind"`
-	// Members are the labels of what the group holds, in order.
+	// Members are the labels of what the group holds, sorted.
 	Members []string `json:"members,omitempty"`
 	// Hidden counts, for the node-cap summary, the dropped nodes by kind.
 	// The summary's Health counts them by state.

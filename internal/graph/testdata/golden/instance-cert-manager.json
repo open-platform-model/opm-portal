@@ -121,6 +121,21 @@
       "y": 184
     },
     {
+      "id": "comp:mi/cert-manager/cert-manager/webhook",
+      "kind": "component",
+      "label": "webhook",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 3
+        }
+      },
+      "column": 2,
+      "row": 2,
+      "x": 544,
+      "y": 240
+    },
+    {
       "id": "grp:configuration/mi/cert-manager/cert-manager",
       "kind": "group",
       "label": "17 configuration components",
@@ -133,39 +148,24 @@
       "group": {
         "kind": "configuration",
         "members": [
-          "namespace",
-          "crds",
-          "webhook-validating",
-          "webhook-mutating",
-          "cainjector-rbac",
-          "controller-issuers-rbac",
-          "controller-clusterissuers-rbac",
-          "controller-certificates-rbac",
-          "controller-orders-rbac",
-          "controller-challenges-rbac",
-          "controller-ingress-shim-rbac",
-          "controller-approve-rbac",
-          "controller-csr-rbac",
-          "webhook-sar-rbac",
           "cainjector-leaderelection-role",
+          "cainjector-rbac",
+          "controller-approve-rbac",
+          "controller-certificates-rbac",
+          "controller-challenges-rbac",
+          "controller-clusterissuers-rbac",
+          "controller-csr-rbac",
+          "controller-ingress-shim-rbac",
+          "controller-issuers-rbac",
           "controller-leaderelection-role",
-          "webhook-dynamic-serving-role"
+          "controller-orders-rbac",
+          "crds",
+          "namespace",
+          "webhook-dynamic-serving-role",
+          "webhook-mutating",
+          "webhook-sar-rbac",
+          "webhook-validating"
         ]
-      },
-      "column": 2,
-      "row": 2,
-      "x": 544,
-      "y": 240
-    },
-    {
-      "id": "comp:mi/cert-manager/cert-manager/webhook",
-      "kind": "component",
-      "label": "webhook",
-      "health": {
-        "state": "Healthy",
-        "counts": {
-          "healthy": 3
-        }
       },
       "column": 2,
       "row": 3,
@@ -216,6 +216,27 @@
       "y": 100
     },
     {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager",
+      "kind": "object",
+      "label": "cert-manager",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 2,
+      "x": 808,
+      "y": 156
+    },
+    {
       "id": "obj:apps/Deployment/cert-manager/cert-manager-controller",
       "kind": "object",
       "label": "cert-manager-controller",
@@ -233,52 +254,9 @@
         "message": "Deployment is available. Replicas: 1"
       },
       "column": 3,
-      "row": 2,
-      "x": 808,
-      "y": 156
-    },
-    {
-      "id": "obj:_/ServiceAccount/cert-manager/cert-manager",
-      "kind": "object",
-      "label": "cert-manager",
-      "ref": {
-        "version": "v1",
-        "kind": "ServiceAccount",
-        "namespace": "cert-manager",
-        "name": "cert-manager"
-      },
-      "access": "ok",
-      "health": {
-        "state": "Healthy",
-        "reason": "Current",
-        "message": "Resource is current"
-      },
-      "column": 3,
       "row": 3,
       "x": 808,
       "y": 212
-    },
-    {
-      "id": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
-      "kind": "object",
-      "label": "cert-manager-webhook",
-      "ref": {
-        "group": "apps",
-        "version": "v1",
-        "kind": "Deployment",
-        "namespace": "cert-manager",
-        "name": "cert-manager-webhook"
-      },
-      "access": "ok",
-      "health": {
-        "state": "Healthy",
-        "reason": "Current",
-        "message": "Deployment is available. Replicas: 1"
-      },
-      "column": 3,
-      "row": 4,
-      "x": 808,
-      "y": 268
     },
     {
       "id": "obj:_/Service/cert-manager/cert-manager-webhook",
@@ -297,9 +275,9 @@
         "message": "Service is ready"
       },
       "column": 3,
-      "row": 5,
+      "row": 4,
       "x": 808,
-      "y": 324
+      "y": 268
     },
     {
       "id": "obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
@@ -316,6 +294,28 @@
         "state": "Healthy",
         "reason": "Current",
         "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 5,
+      "x": 808,
+      "y": 324
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
       },
       "column": 3,
       "row": 6,
@@ -490,11 +490,11 @@
       "route": [
         {
           "x": 1008,
-          "y": 178
+          "y": 234
         },
         {
           "x": 1040,
-          "y": 178
+          "y": 234
         },
         {
           "x": 1040,
@@ -515,11 +515,11 @@
       "route": [
         {
           "x": 1008,
-          "y": 290
+          "y": 402
         },
         {
           "x": 1040,
-          "y": 290
+          "y": 402
         },
         {
           "x": 1040,
@@ -673,11 +673,11 @@
         },
         {
           "x": 512,
-          "y": 318
+          "y": 262
         },
         {
           "x": 544,
-          "y": 318
+          "y": 262
         }
       ]
     },
@@ -698,11 +698,11 @@
         },
         {
           "x": 512,
-          "y": 262
+          "y": 318
         },
         {
           "x": 544,
-          "y": 262
+          "y": 318
         }
       ]
     },
@@ -798,11 +798,11 @@
         },
         {
           "x": 776,
-          "y": 234
+          "y": 178
         },
         {
           "x": 808,
-          "y": 234
+          "y": 178
         }
       ]
     },
@@ -823,11 +823,11 @@
         },
         {
           "x": 776,
-          "y": 178
+          "y": 234
         },
         {
           "x": 808,
-          "y": 178
+          "y": 234
         }
       ]
     },
@@ -840,19 +840,19 @@
       "route": [
         {
           "x": 744,
-          "y": 318
+          "y": 262
         },
         {
           "x": 776,
-          "y": 318
+          "y": 262
         },
         {
           "x": 776,
-          "y": 346
+          "y": 290
         },
         {
           "x": 808,
-          "y": 346
+          "y": 290
         }
       ]
     },
@@ -865,19 +865,19 @@
       "route": [
         {
           "x": 744,
-          "y": 318
+          "y": 262
         },
         {
           "x": 776,
-          "y": 318
+          "y": 262
         },
         {
           "x": 776,
-          "y": 402
+          "y": 346
         },
         {
           "x": 808,
-          "y": 402
+          "y": 346
         }
       ]
     },
@@ -890,19 +890,19 @@
       "route": [
         {
           "x": 744,
-          "y": 318
+          "y": 262
         },
         {
           "x": 776,
-          "y": 318
+          "y": 262
         },
         {
           "x": 776,
-          "y": 290
+          "y": 402
         },
         {
           "x": 808,
-          "y": 290
+          "y": 402
         }
       ]
     }

@@ -148,7 +148,7 @@ func (b *builder) provider(reg string, r *readmodel.RegistrationView, l *Provide
 		}
 		switch {
 		case l == nil:
-			n.Access = health.AccessNotReadable
+			// Not looked up: no access to state, and none guessed.
 		case l.Access == health.AccessOK:
 			n.Access = health.AccessOK
 			n.Missing = true
@@ -165,7 +165,9 @@ func (b *builder) provider(reg string, r *readmodel.RegistrationView, l *Provide
 
 func verifyProvider(registration string, l *ProviderLookup) (verified bool, reason string) {
 	switch {
-	case l == nil || l.Access != health.AccessOK:
+	case l == nil:
+		return false, ReasonProviderNotLookedUp
+	case l.Access != health.AccessOK:
 		return false, ReasonProviderUnreadable
 	case l.Instance == nil:
 		return false, ReasonProviderNotFound

@@ -11,7 +11,8 @@ to catalog; the registration's
 `spec.providerRef` for registration to provider instance; `spec.module` for instance to module;
 `spec.sourceRef` and `spec.dependsOn` for package to source and to package; `status.inventory`
 for owner to component and component to object; controller `metadata.ownerReferences` for object
-to runtime child. Source: 0030:D4:R1.
+to runtime child. A `spec.dependsOn` entry naming another namespace, which the operator refuses,
+SHALL be drawn unverified with reason `ForeignNamespace`. Source: 0030:D4:R1.
 
 #### Scenario: cert-manager's edges
 
@@ -26,6 +27,11 @@ to runtime child. Source: 0030:D4:R1.
   `spec.catalog` is in no registry entry, and its node still names that catalog as text
 - **AND** registration `default.backup-provider` contributes to
   `testing.opmodel.dev/catalogs/operator/backup@v0`
+
+#### Scenario: Dependency in another namespace
+
+- **WHEN** a package's `spec.dependsOn` names `shared` in namespace `other`
+- **THEN** its `dependsOn` edge to `mp:other/shared` is unverified with reason `ForeignNamespace`
 
 #### Scenario: Duplicate claim on a contributed catalog
 
@@ -49,8 +55,10 @@ Source: 0030:D4:R3.
 Every registration SHALL have an edge to the instance its `spec.providerRef` names. The edge
 SHALL be verified only when that instance was read and its inventory holds a
 TransformerRegistration of the registration's name; otherwise it SHALL be unverified with the
-reason: the provider was not found, could not be read, or does not hold the registration in its
-inventory. A provider that could not be read SHALL still be drawn, marked with its access.
+reason: the provider was not found, could not be read, does not hold the registration in its
+inventory, or was not looked up by the caller. A provider that could not be read SHALL still be
+drawn, marked with its access; one that was not looked up SHALL be drawn with no access, never a
+guessed one.
 Source: 0030:D4:R2.
 
 #### Scenario: Accepted claim
@@ -71,6 +79,12 @@ Source: 0030:D4:R2.
 - **THEN** the edge is unverified with reason `ProviderUnreadable` and the provider node is
   marked forbidden
 
+#### Scenario: Provider not looked up
+
+- **WHEN** the caller passes no lookup for `default/backup-provider`
+- **THEN** the edge is unverified with reason `ProviderNotLookedUp` and the provider node carries
+  no access
+
 ### Requirement: Registrations show acceptance and activation apart
 
 A registration node SHALL carry `accepted` and `active` as two values, its verdict, and the
@@ -89,8 +103,9 @@ Source: 0030:D4:R4/R7.
 
 When an instance or package has two or more components that hold no workload (no Deployment,
 StatefulSet, DaemonSet, ReplicaSet, Job, CronJob or Pod entry), they SHALL be shown as one group
-node whose health is the worst of theirs, partial when any is, with their objects hidden. The
-group SHALL be shown expanded when the graph is asked to expand its id. Source: 0030:D4:R5.
+node whose health is the worst of theirs, partial when any is, with their objects hidden and
+their names listed sorted, so a reordered inventory yields the same group. The group SHALL be
+shown expanded when the graph is asked to expand its id. Source: 0030:D4:R5.
 
 #### Scenario: cert-manager collapsed
 

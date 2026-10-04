@@ -110,7 +110,14 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 		ref.Namespace = depNS
 		n := Node{ID: packageID(depNS, dep.Name), Kind: KindPackage, Label: depNS + "/" + dep.Name, Ref: refOf(ref)}
 		b.add(n, colUpstream)
-		b.edge(EdgeDependsOn, root.ID, n.ID)
+		e := b.edge(EdgeDependsOn, root.ID, n.ID)
+		// The operator refuses a dependency in another namespace
+		// (opm-operator modulepackage_types.go dependsOn), so the edge is
+		// what the spec asks for, not a dependency it honors.
+		if depNS != ns {
+			unverified := false
+			e.Verified, e.Reason = &unverified, ReasonForeignNamespace
+		}
 	}
 	b.inventory(root.ID, d.Components)
 	return b.finish()
@@ -171,6 +178,8 @@ func (b *builder) inventory(owner string, components []readmodel.Component) {
 		}
 	}
 	if groupNode != nil {
+		// Sorted, so reordering status.inventory does not change the group.
+		slices.Sort(groupNode.Group.Members)
 		groupNode.Label = plural(len(groupNode.Group.Members), "configuration component", "configuration components")
 		b.add(*groupNode, colComponent)
 		b.edge(EdgeHasComponent, owner, groupNode.ID)

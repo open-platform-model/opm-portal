@@ -47,6 +47,20 @@ Evidence used throughout:
 - Requires edges, and a column of consumer instances: 0030:D4:R3 defers them until the operator
   records provider demand.
 
+## Authorization
+
+The graph package reads nothing: every value comes from a read-model view that already took the
+caller's grant, so it adds no Kubernetes read of its own. The reads behind the views are
+`read-model`'s: `get moduleinstances` or `get modulepackages` for the owner, `get` on each
+inventory object's resource checked as the caller, and `get platforms` with
+`list transformerregistrations` for the platform view.
+
+The platform graph needs one more read the caller makes before calling `Platform`: for each
+distinct `spec.providerRef`, `get moduleinstances` on that name in that namespace, under its own
+grant (0030:D7). `add-read-api` owns obtaining that grant. A denial is passed as a lookup with
+access `forbidden`, and a provider the handler did not look up is drawn with reason
+`ProviderNotLookedUp`, so a missing grant never shows as an unreadable provider.
+
 ## Decisions
 
 ### Package shape
@@ -111,7 +125,7 @@ changes on upgrade.
 | `providedBy` | registration -> instance | registration `spec.providerRef`, verified against the provider's `status.inventory` |
 | `instantiates` | instance -> module | ModuleInstance `spec.module` |
 | `sourcedFrom` | package -> source | ModulePackage `spec.sourceRef` |
-| `dependsOn` | package -> package | ModulePackage `spec.dependsOn` |
+| `dependsOn` | package -> package | ModulePackage `spec.dependsOn`; an entry in another namespace, which the operator refuses, is unverified with reason `ForeignNamespace` |
 | `hasComponent` | instance or package -> component or configuration group | `status.inventory` entries' `component` |
 | `owns` | component -> object | `status.inventory` entries |
 | `controls` | object -> runtime child or Pod group | controller `metadata.ownerReferences` below an inventory object |
@@ -147,7 +161,11 @@ Columns are fixed per scope and kind; an empty column takes no space.
 
 Ordering: the first column by id; each later column by the barycenter of its neighbours' rows in
 the column before (a node without one goes last), ties by id; then one upward sweep, each column
-by the barycenter of its neighbours' rows in the column after, ties by the current row. Integer
+by the barycenter of its neighbours' rows in the column after, ties by the current row. The sweep
+reorders only the nodes that have a neighbour in the column after, among the rows they hold; the
+others keep their rows, since their own row and a mean of the next column's rows are not on one
+scale. On F1 this took the expanded cert-manager graph from 42 crossings between adjacent
+columns to none. Group members are sorted by name, so a reordered inventory changes nothing. Integer
 coordinates: node 200 x 44, column pitch 264, row pitch 56, columns centred vertically on the
 tallest. An edge route is a cubic Bézier from the right middle of the left node to the left middle
 of the right node, control points at the horizontal midpoint.
@@ -180,8 +198,9 @@ inventory disagree. In F1 the refused claim's provider does not exist.
 **Decision**: The `providedBy` edge is always drawn and carries `verified`. It is verified only
 when the provider instance was read and its inventory holds a TransformerRegistration of that
 name; otherwise `reason` says why: `ProviderNotFound`, `ProviderUnreadable` (forbidden or not
-readable, never guessed) or `NotInProviderInventory`. A provider node that could not be read is
-still drawn, with its access, so the edge has an end.
+readable, never guessed), `NotInProviderInventory`, or `ProviderNotLookedUp` when the caller
+passed no lookup for it. A provider node that could not be read is still drawn, with its access,
+so the edge has an end; one not looked up is drawn with no access.
 
 ### Runtime children in the view
 
