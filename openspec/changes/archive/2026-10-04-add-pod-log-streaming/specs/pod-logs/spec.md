@@ -8,8 +8,9 @@ and how the portal bounds, marks and ends each log stream.
 ### Requirement: Logs are served only for Pods an OPM inventory reaches
 
 A log topic SHALL attach only when its Pod is a runtime child of an inventory object the caller
-may read. A topic for a Pod no inventory reaches, a Pod reached only through objects the caller
-may not read, and a Pod that does not exist SHALL each be closed with the same `forbidden` code
+may read, in the inventory of a ModuleInstance or ModulePackage the caller may get. A topic for a
+Pod no inventory reaches, a Pod reached only through objects the caller may not read (the
+inventory object or its owner), and a Pod that does not exist SHALL each be closed with the same `forbidden` code
 a missing permission gives, and SHALL deliver nothing. No upstream log stream SHALL be opened for
 a topic that did not attach. Source: 0030:D10:R1, 0030:D7:R1.
 
@@ -24,6 +25,12 @@ a topic that did not attach. Source: 0030:D10:R1, 0030:D7:R1.
 - **WHEN** a caller allowed `get pods/log` follows a log topic for a Pod no inventory reaches
 - **THEN** the topic is closed with code `forbidden`, the same message a missing permission gives
 - **AND** no upstream log stream is opened
+
+#### Scenario: A Pod whose owning instance the caller may not read
+
+- **WHEN** a caller allowed `get pods/log` and the Deployment, but not `get` on the `podinfo`
+  ModuleInstance, follows a log topic for one of the Deployment's Pods
+- **THEN** the topic is closed with code `forbidden`, the same message a missing permission gives
 
 ### Requirement: Pod log access is checked before the stream starts and before each delivery
 

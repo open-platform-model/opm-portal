@@ -63,6 +63,7 @@ func TestAPodNoReadableInventoryReachesIsRefused(t *testing.T) {
 		{"missing Pod", "no-such-pod", allowAll},
 		{"Deployment forbidden", f1Pod, denyDeployments},
 		{"Pods not listable", f1Pod, denyResources("pods")},
+		{"owner not readable", f1Pod, denyResources("moduleinstances", "modulepackages")},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

@@ -228,7 +228,8 @@ reading them.
 The read model SHALL answer, for a caller and one Pod, the inventory object of a ModuleInstance or
 ModulePackage that the Pod is a runtime child of, through the same controller chain the views'
 runtime children follow (a ReplicaSet, a Job, or the inventory workload itself). The answer SHALL
-count only inventory objects the caller may read and runtime children the caller may list. The
+count only owners the caller may get, inventory objects the caller may read and runtime children
+the caller may list; an owner SHALL be authorized before its inventory is read. The
 caller's grant SHALL cover `get` on the Pod's `log` subresource before anything is looked up. A
 Pod that does not exist, that no inventory reaches, or that is reached only through objects the
 caller may not read SHALL get one and the same refusal; a read the reading identity cannot make
@@ -249,6 +250,13 @@ SHALL be reported as unavailable. Source: 0030:D10:R1, 0030:D7:R1.
 
 - **WHEN** a caller who may not get the Deployment asks about one of its Pods
 - **THEN** the read model refuses with the not-reachable refusal
+
+#### Scenario: A Pod whose owner the caller may not read
+
+- **WHEN** a caller who may read the Deployment but may not get the `podinfo` ModuleInstance asks
+  about one of the Deployment's Pods
+- **THEN** the read model refuses with the not-reachable refusal, as it does for a Pod no
+  inventory reaches
 
 #### Scenario: A grant that does not cover the Pod's log
 

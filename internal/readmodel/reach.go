@@ -35,9 +35,9 @@ func podLogRead(namespace, pod string) authz.Attributes {
 // ReachPod answers which inventory object reaches Pod namespace/pod for the
 // caller, through the runtime children the instance and package views carry
 // (0030:D10:R1). g must cover get pods/log on the Pod; nothing is looked up
-// otherwise. Only inventory objects the caller may read and children the
-// caller may list count, so a Pod reached only through objects the caller may
-// not read is ErrNotReachable, as are a Pod no inventory reaches and a Pod
+// otherwise. Only owners the caller may get, inventory objects the caller may
+// read and children the caller may list count, so a Pod reached only through
+// objects the caller may not read is ErrNotReachable, as are a Pod no inventory reaches and a Pod
 // that does not exist. ErrUnavailable means the answer could not be read.
 func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant, namespace, pod string) (PodReach, error) {
 	if err := g.Covers(who, podLogRead(namespace, pod)); err != nil {
@@ -67,6 +67,12 @@ func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant,
 		}
 		for _, u := range owners {
 			if u.GetName() != instance {
+				continue
+			}
+			// The owner is authorized before its inventory is read, so an
+			// owner the caller may not get never decides the answer
+			// (0030:D7:R1).
+			if ev.m.callerAccess(ctx, who, "get", resource, u.GetNamespace(), u.GetName()) != health.AccessOK {
 				continue
 			}
 			if via, ok := reachedVia(ev.inventoryHealth(ctx, u), namespace, pod); ok {
