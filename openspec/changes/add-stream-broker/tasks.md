@@ -19,5 +19,5 @@
 
 ## 4. Internal HTTP handler (internal/stream)
 
-- [ ] 4.1 Add `NewHandler` and `HandlerOptions` (GET only, session lookup failing closed, `topics` query parsing, `Last-Event-ID` header, SSE headers, error mapping); verify with `httptest.Server` tests for the headers and first messages, 400 on a bad or reserved topic, 401 on an empty identity, 429 on the third stream, and a reconnect with `Last-Event-ID` that resumes over real HTTP
-- [ ] 4.2 `task check` green, then commit `chore(stream): serve a stream through an internal handler`
+- [x] 4.1 Add `NewHandler` and `HandlerOptions` (GET only, session lookup failing closed, `topics` query parsing, `Last-Event-ID` header, SSE headers, error mapping); verify with `httptest.Server` tests for the headers and first messages, 400 on a bad or reserved topic, 401 on an empty identity, 429 on the third stream, and a reconnect with `Last-Event-ID` that resumes over real HTTP
+- [x] 4.2 `task check` green, then commit `chore(stream): serve a stream through an internal handler`
