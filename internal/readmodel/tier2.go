@@ -18,12 +18,17 @@ type inventoryKind struct {
 	resource   schema.GroupVersionResource
 	namespaced bool
 
-	mu       sync.Mutex
+	// lastUsed is guarded by the Model's mu, so the janitor decides idleness
+	// and acquire records a use without waiting on mu below, which is held
+	// only for bookkeeping, never across an access review.
 	lastUsed time.Time
-	decided  bool              // whether the reader was allowed or denied cluster-wide
-	cluster  *watch            // the cluster-wide informer, when allowed
-	perNS    map[string]*watch // per-namespace informers; nil when not allowed there
-	poller   *poller           // objects the reader may get but not watch
+
+	mu      sync.Mutex
+	stopped bool              // set by stop; nothing starts afterwards
+	decided bool              // whether the reader was allowed or denied cluster-wide
+	cluster *watch            // the cluster-wide informer, when allowed
+	perNS   map[string]*watch // per-namespace informers; nil when not allowed there
+	poller  *poller           // objects the reader may get but not watch
 }
 
 // heldObject is one inventory object as a view reads it.
@@ -36,56 +41,112 @@ type heldObject struct {
 
 // acquire returns the held kind, starting its informers for the namespaces
 // a view needs on first use and recording the use, which keeps the kind from
-// idling out. It returns the informers it started, which the caller waits
-// for (once for every kind a view needs); one still syncing reads as not
-// readable.
+// idling out. It returns the informers the view reads from, which the caller
+// waits for (once for every kind a view needs); one still syncing reads as
+// not readable. The reader's access reviews run without holding the kind's
+// lock, so a slow review delays only the view that asked.
 func (m *Model) acquire(ctx context.Context, kind resolvedKind, namespaces []string) (*inventoryKind, []*watch) {
+	k := m.useKind(kind)
+	askCluster, askNS, ok := k.undecided(namespaces)
+	if !ok {
+		return k, nil
+	}
+	// A review that could not be made decides nothing: the next view asks
+	// again instead of settling for a narrower scope.
+	cluster := health.AccessNotReadable
+	if askCluster {
+		cluster = m.readerWatchAccess(ctx, k.resource, "")
+	}
+	perNS := map[string]health.Access{}
+	if cluster != health.AccessOK {
+		for _, ns := range askNS {
+			perNS[ns] = m.readerWatchAccess(ctx, k.resource, ns)
+		}
+	}
+	return k, m.install(k, askCluster, cluster, perNS, namespaces)
+}
+
+// useKind returns the held kind, creating it on first use, and records the
+// use under the Model's lock, where the janitor decides idleness. After
+// Stop it returns a stopped kind that is not held.
+func (m *Model) useKind(kind resolvedKind) *inventoryKind {
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	k := m.inventory[kind.Resource]
 	if k == nil {
 		k = &inventoryKind{resource: kind.Resource, namespaced: kind.Namespaced, perNS: map[string]*watch{}}
-		m.inventory[kind.Resource] = k
+		if m.stopped {
+			k.stopped = true
+		} else {
+			m.inventory[kind.Resource] = k
+		}
 	}
-	stopped := m.stopped
-	m.mu.Unlock()
-	if stopped {
-		return k, nil
-	}
-
-	k.mu.Lock()
 	k.lastUsed = m.cfg.Now()
-	var fresh []*watch
-	if !k.decided {
-		// A review that could not be made decides nothing: the next view
-		// asks again instead of settling for a narrower scope.
-		switch m.readerWatchAccess(ctx, k.resource, "") {
+	return k
+}
+
+// undecided returns whether the cluster-wide scope still needs a review,
+// and which of namespaces do. ok is false once the kind has stopped.
+func (k *inventoryKind) undecided(namespaces []string) (askCluster bool, askNS []string, ok bool) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if k.stopped {
+		return false, nil, false
+	}
+	if k.cluster == nil && k.namespaced {
+		for _, ns := range namespaces {
+			if _, asked := k.perNS[ns]; !asked {
+				askNS = append(askNS, ns)
+			}
+		}
+	}
+	return !k.decided, askNS, true
+}
+
+// install records the reviews' answers, starting the informers they allow
+// unless another view already decided the scope or the kind has stopped,
+// and returns the informers serving namespaces.
+func (m *Model) install(k *inventoryKind, askedCluster bool, cluster health.Access, perNS map[string]health.Access, namespaces []string) []*watch {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if k.stopped {
+		return nil
+	}
+	if askedCluster && !k.decided {
+		switch cluster {
 		case health.AccessOK:
 			k.decided = true
 			k.cluster = m.startWatch(k.resource, "", instanceUUIDLabel)
-			fresh = append(fresh, k.cluster)
+			// The cluster-wide informer replaces any per-namespace ones
+			// started while the cluster-wide review could not be made.
+			for ns, w := range k.perNS {
+				w.close()
+				delete(k.perNS, ns)
+			}
 		case health.AccessForbidden, health.AccessWithheld:
 			k.decided = true
 		case health.AccessNotReadable:
 		}
 	}
-	if k.cluster == nil && k.namespaced {
-		for _, ns := range namespaces {
-			if _, asked := k.perNS[ns]; asked {
-				continue
-			}
-			switch m.readerWatchAccess(ctx, k.resource, ns) {
+	if k.cluster != nil {
+		return []*watch{k.cluster}
+	}
+	var reads []*watch
+	for _, ns := range namespaces {
+		if _, asked := k.perNS[ns]; !asked {
+			switch perNS[ns] {
 			case health.AccessOK:
-				w := m.startWatch(k.resource, ns, instanceUUIDLabel)
-				fresh = append(fresh, w)
-				k.perNS[ns] = w
+				k.perNS[ns] = m.startWatch(k.resource, ns, instanceUUIDLabel)
 			case health.AccessForbidden, health.AccessWithheld:
 				k.perNS[ns] = nil
 			case health.AccessNotReadable:
 			}
 		}
+		if w := k.perNS[ns]; w != nil {
+			reads = append(reads, w)
+		}
 	}
-	k.mu.Unlock()
-	return k, fresh
+	return reads
 }
 
 // watchFor returns the informer holding objects in namespace, or nil when
@@ -109,13 +170,21 @@ func (m *Model) lookup(ctx context.Context, k *inventoryKind, ref health.Ref) he
 		obj, _ := w.get(ref.Namespace, ref.Name)
 		return heldObject{object: obj, access: health.AccessOK, evaluatedAt: m.cfg.Now(), live: true}
 	}
-	return m.pollerFor(k).read(ctx, m, ref.Namespace, ref.Name)
+	p := m.pollerFor(k)
+	if p == nil {
+		return heldObject{access: health.AccessNotReadable, evaluatedAt: m.cfg.Now()}
+	}
+	return p.read(ctx, m, ref.Namespace, ref.Name)
 }
 
-// pollerFor returns the kind's poller, starting it on first use.
+// pollerFor returns the kind's poller, starting it on first use, or nil
+// once the kind has stopped.
 func (m *Model) pollerFor(k *inventoryKind) *poller {
 	k.mu.Lock()
 	defer k.mu.Unlock()
+	if k.stopped {
+		return nil
+	}
 	if k.poller == nil {
 		k.poller = newPoller(k.resource)
 		go k.poller.run(m)
@@ -127,6 +196,7 @@ func (m *Model) pollerFor(k *inventoryKind) *poller {
 func (k *inventoryKind) stop() {
 	k.mu.Lock()
 	defer k.mu.Unlock()
+	k.stopped = true
 	k.cluster.close()
 	for _, w := range k.perNS {
 		w.close()
@@ -134,12 +204,6 @@ func (k *inventoryKind) stop() {
 	if k.poller != nil {
 		k.poller.close()
 	}
-}
-
-func (k *inventoryKind) idleSince(cutoff time.Time) bool {
-	k.mu.Lock()
-	defer k.mu.Unlock()
-	return k.lastUsed.Before(cutoff)
 }
 
 // sweep stops every inventory kind no view has used for IdleTimeout, and
@@ -150,7 +214,7 @@ func (m *Model) sweep() {
 	m.mu.Lock()
 	var idle []*inventoryKind
 	for gvr, k := range m.inventory {
-		if k.idleSince(cutoff) {
+		if k.lastUsed.Before(cutoff) {
 			idle = append(idle, k)
 			delete(m.inventory, gvr)
 		}

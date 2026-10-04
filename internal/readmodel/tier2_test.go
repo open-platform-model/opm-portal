@@ -461,3 +461,120 @@ func TestFailedReaderReviewDecidesNothing(t *testing.T) {
 		t.Fatalf("Deployment after reviews recover = %+v, want live and readable", o)
 	}
 }
+
+// gate holds every reader review of one resource until it is opened, and
+// says when the first one is waiting.
+type gate struct {
+	resource string
+	waiting  chan struct{}
+	open     chan struct{}
+	once     sync.Once
+}
+
+func newGate(resource string) *gate {
+	return &gate{resource: resource, waiting: make(chan struct{}), open: make(chan struct{})}
+}
+
+func (g *gate) rule(_ string, ra authorizationv1.ResourceAttributes) bool {
+	if ra.Resource == g.resource {
+		g.once.Do(func() { close(g.waiting) })
+		<-g.open
+	}
+	return true
+}
+
+// TestSlowReaderReviewStallsOnlyItsView: while the reader's review for
+// Deployments hangs in a cold instance read, the janitor and a tier-1 read
+// still finish at once.
+func TestSlowReaderReviewStallsOnlyItsView(t *testing.T) {
+	g := newGate("deployments")
+	e := newEnv(t, loadF1(t), allowAll, g.rule)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		e.instance(t, "default", "podinfo")
+	}()
+	<-g.waiting
+	defer func() { close(g.open); <-done }()
+
+	quick := make(chan error, 1)
+	go func() {
+		e.m.sweep()
+		_, err := e.m.ListPackages(t.Context(), alice, e.grant(t, "list", modulePackages, "", ""), "")
+		quick <- err
+	}()
+	select {
+	case err := <-quick:
+		if err != nil {
+			t.Fatalf("ListPackages = %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("sweep and a tier-1 read waited on a pending reader review")
+	}
+}
+
+// TestKindSweptDuringItsReviewStartsNothing: a kind the janitor stops while
+// its first view waits on the reader's review starts no informer once the
+// review returns, so nothing runs that Stop cannot reach.
+func TestKindSweptDuringItsReviewStartsNothing(t *testing.T) {
+	clock := &fakeClock{t: time.Unix(1_800_000_000, 0)}
+	g := newGate("deployments")
+	e := newEnv(t, loadF1(t), allowAll, g.rule, func(c *Config) {
+		c.Now = clock.now
+		c.IdleTimeout = time.Minute
+	})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		e.instance(t, "default", "podinfo")
+	}()
+	<-g.waiting
+	e.m.mu.Lock()
+	dep := e.m.inventory[clusterKinds[6].gvr()]
+	e.m.mu.Unlock()
+	clock.advance(2 * time.Minute)
+	e.m.sweep()
+	close(g.open)
+	<-done
+
+	dep.mu.Lock()
+	defer dep.mu.Unlock()
+	if !dep.stopped || dep.cluster != nil || len(dep.perNS) != 0 || dep.poller != nil {
+		t.Fatalf("swept Deployment kind started something: cluster=%v perNS=%v poller=%v", dep.cluster, dep.perNS, dep.poller)
+	}
+}
+
+// TestPolledObjectsNoViewReadsAreDropped: the poller stops refreshing an
+// object once no view has read it for the idle period.
+func TestPolledObjectsNoViewReadsAreDropped(t *testing.T) {
+	clock := &fakeClock{t: time.Unix(1_800_000_000, 0)}
+	getOnly := func(_ string, ra authorizationv1.ResourceAttributes) bool {
+		return ra.Resource != "services" || ra.Verb == "get"
+	}
+	e := newEnv(t, loadF1(t), allowAll, getOnly, func(c *Config) {
+		c.Now = clock.now
+		c.IdleTimeout = time.Minute
+		c.PollInterval = 10 * time.Millisecond
+	})
+	e.instance(t, "default", "podinfo")
+	e.m.mu.Lock()
+	svc := e.m.inventory[clusterKinds[2].gvr()]
+	e.m.mu.Unlock()
+	p := svc.poller
+	size := func() int {
+		p.mu.Lock()
+		defer p.mu.Unlock()
+		return len(p.entries)
+	}
+	if size() != 1 {
+		t.Fatalf("poller holds %d objects, want the one Service", size())
+	}
+	clock.advance(2 * time.Minute)
+	deadline := time.Now().Add(5 * time.Second)
+	for size() != 0 && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	if size() != 0 {
+		t.Fatal("poller still refreshes a Service no view has read for the idle period")
+	}
+}

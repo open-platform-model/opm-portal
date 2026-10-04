@@ -12,27 +12,34 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/health"
 )
 
-// pollTimeout bounds one poll.
-const pollTimeout = 10 * time.Second
+// readTimeout bounds one direct read: a poll, an on-demand list of runtime
+// children, or an events list.
+const readTimeout = 10 * time.Second
 
 // poller refreshes, by reading them one at a time, the objects of a kind the
 // reader may get but not list and watch. Every result says it is not live
-// and when it was read (0030:D3:R5).
+// and when it was read (0030:D3:R5). An object no view has read for
+// IdleTimeout is dropped instead of refreshed.
 type poller struct {
 	resource schema.GroupVersionResource
 
 	mu      sync.Mutex
-	objects map[string]heldObject
-	names   map[string][2]string // key -> namespace, name
+	entries map[string]*polled // by namespace/name
 	stop    chan struct{}
 	once    sync.Once
+}
+
+// polled is one object a poller refreshes.
+type polled struct {
+	namespace, name string
+	held            heldObject
+	lastRead        time.Time // when a view last read it
 }
 
 func newPoller(resource schema.GroupVersionResource) *poller {
 	return &poller{
 		resource: resource,
-		objects:  map[string]heldObject{},
-		names:    map[string][2]string{},
+		entries:  map[string]*polled{},
 		stop:     make(chan struct{}),
 	}
 }
@@ -44,15 +51,16 @@ func (p *poller) close() { p.once.Do(func() { close(p.stop) }) }
 func (p *poller) read(ctx context.Context, m *Model, namespace, name string) heldObject {
 	key := namespace + "/" + name
 	p.mu.Lock()
-	held, ok := p.objects[key]
-	p.mu.Unlock()
-	if ok {
+	if e, ok := p.entries[key]; ok {
+		e.lastRead = m.cfg.Now()
+		held := e.held
+		p.mu.Unlock()
 		return held
 	}
-	held = p.fetch(ctx, m, namespace, name)
+	p.mu.Unlock()
+	held := p.fetch(ctx, m, namespace, name)
 	p.mu.Lock()
-	p.objects[key] = held
-	p.names[key] = [2]string{namespace, name}
+	p.entries[key] = &polled{namespace: namespace, name: name, held: held, lastRead: m.cfg.Now()}
 	p.mu.Unlock()
 	return held
 }
@@ -63,7 +71,7 @@ func (p *poller) fetch(ctx context.Context, m *Model, namespace, name string) he
 	if !m.readerMay(ctx, "get", p.resource, namespace, name) {
 		return heldObject{access: health.AccessNotReadable, evaluatedAt: now}
 	}
-	ctx, cancel := context.WithTimeout(ctx, pollTimeout)
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 	obj, err := m.cfg.Dynamic.Resource(p.resource).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
 	switch {
@@ -95,23 +103,30 @@ func (p *poller) run(m *Model) {
 	}
 }
 
+// refresh reads again every object a view has read within IdleTimeout, and
+// drops the others.
 func (p *poller) refresh(ctx context.Context, m *Model) {
+	cutoff := m.cfg.Now().Add(-m.cfg.IdleTimeout)
 	p.mu.Lock()
-	targets := make([][2]string, 0, len(p.names))
-	for _, n := range p.names {
-		targets = append(targets, n)
+	targets := make([]*polled, 0, len(p.entries))
+	for key, e := range p.entries {
+		if e.lastRead.Before(cutoff) {
+			delete(p.entries, key)
+			continue
+		}
+		targets = append(targets, e)
 	}
 	p.mu.Unlock()
 
 	slots := make(chan struct{}, m.cfg.PollWorkers)
 	var wg sync.WaitGroup
-	for _, n := range targets {
+	for _, e := range targets {
 		slots <- struct{}{}
 		wg.Go(func() {
 			defer func() { <-slots }()
-			held := p.fetch(ctx, m, n[0], n[1])
+			held := p.fetch(ctx, m, e.namespace, e.name)
 			p.mu.Lock()
-			p.objects[n[0]+"/"+n[1]] = held
+			e.held = held
 			p.mu.Unlock()
 		})
 	}
