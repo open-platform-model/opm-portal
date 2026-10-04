@@ -14,7 +14,7 @@ design, implementation, validation and change management. The normative source i
 | **II** | [Separation of Concerns](#ii-separation-of-concerns) | Authorization, read model, derived views, API and UI stay in separate packages |
 | **III** | [The Read API Is the Contract](#iii-the-read-api-is-the-contract) | `/api/v1alpha1` is the durable interface; it changes only additively within a version |
 | **IV** | [Status Is Read, Never Inferred](#iv-status-is-read-never-inferred) | The portal shows what the cluster says, and shows unknown as unknown |
-| **V** | [Read-Only and Least Privilege](#v-read-only-and-least-privilege) | No writes (SubjectAccessReviews aside), no Secret data or values, act as the user, fail closed on an empty identity |
+| **V** | [Read-Only and Least Privilege](#v-read-only-and-least-privilege) | No writes (three non-persisted review APIs aside), no Secret data or values, act as the user, fail closed on an empty identity |
 | **VI** | [Semantic Versioning and Commit Discipline](#vi-semantic-versioning-and-commit-discipline) | SemVer on the 0.x line; Conventional Commits decide what releases |
 | **VII** | [Simplicity & YAGNI](#vii-simplicity--yagni) | Standard library first; complexity must be justified |
 | **VIII** | [Mergeable Sections](#viii-mergeable-sections) | Every section ends green and commits; every merge leaves `main` releasable |
@@ -79,9 +79,19 @@ The portal reports what the cluster says, with its source.
 
 ### V. Read-Only and Least Privilege
 
-- V1 MUST NOT create, update, patch or delete any Kubernetes object, except `create` on
-  `authorization.k8s.io` `subjectaccessreviews`, which milestone 2 needs and which is never
-  stored (0030:D11)
+- V1 MUST NOT create, update, patch or delete any Kubernetes object. The only allowed writes
+  are `create` on review APIs that answer in the response and store nothing, and which ones
+  depends on the mode:
+  - Local mode (milestone 1) MUST create only `authorization.k8s.io`
+    `selfsubjectaccessreviews`, to ask with the user's kubeconfig whether the user may make a
+    read so the UI can show locked nodes up front, and `authentication.k8s.io`
+    `selfsubjectreviews`, to learn which identity that kubeconfig authenticates as
+    (0030:D5:R6)
+  - In-cluster mode (milestone 2) MUST create only `authorization.k8s.io`
+    `subjectaccessreviews`, to check each read for the signed-in user (0030:D6:R9); it swaps
+    the backend behind the same seam
+  - In-cluster mode MUST NOT create a `selfsubjectaccessreviews` or `selfsubjectreviews`: there
+    it would check the portal's own ServiceAccount, not the user
 - The portal MUST NOT read Secret data
 - In V1 the portal MUST NOT serve any instance's or package's `spec.values`, and MUST strip the
   `kubectl.kubernetes.io/last-applied-configuration` annotation from every object it serves

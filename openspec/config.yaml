@@ -45,9 +45,14 @@ context: |
   - A degraded read (missing permission, unreachable API) is shown as such, never as empty.
 
   ### V. Read-Only and Least Privilege
-  - V1 MUST NOT create, update, patch or delete any Kubernetes object. The one exception is
-    `create` on `authorization.k8s.io` `subjectaccessreviews` (M2 access checks; a review is
-    never stored), per 0030:D11.
+  - V1 MUST NOT create, update, patch or delete any Kubernetes object. The only allowed writes
+    are `create` on review APIs that answer in the response and store nothing, per mode:
+    - Local mode (M1) MUST create only `authorization.k8s.io` `selfsubjectaccessreviews` (read
+      checks with the user's kubeconfig) and `authentication.k8s.io` `selfsubjectreviews`
+      (kubeconfig identity), per 0030:D5:R6.
+    - In-cluster mode (M2) MUST create only `authorization.k8s.io` `subjectaccessreviews`
+      (access checked as the signed-in user), per 0030:D6:R9. A self review in-cluster would
+      check the portal's own ServiceAccount, so it MUST NOT be sent.
   - The portal MUST NOT read Secret data. In V1 it MUST NOT serve any instance's or package's
     `spec.values`, and MUST strip the `kubectl.kubernetes.io/last-applied-configuration`
     annotation from every object it serves (0030:D8).

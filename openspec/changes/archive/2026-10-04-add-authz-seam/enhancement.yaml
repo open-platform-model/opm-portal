@@ -1,0 +1,20 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# No decision is claimed. A line claims a decision only when the change
+# delivered it whole, and none is whole here:
+#
+# - 0030:D7 (authorize before lookup): this change lands the seam (Check, the
+#   Grant, Covers). R1 has no read path yet, and R2-R4 (list filtering,
+#   per-item access states, the not-in-inventory refusal) land with the read
+#   model and the read API. The change that completes D7 claims it.
+# - 0030:D5 and 0030:D6: only guards and the local review backend they rely
+#   on. D5 completes with add-local-mode, D6 with add-oidc-sessions and
+#   add-sar-authorizer.
+#
+# Before logging, diff this list against proposal.md's "Not in this change"
+# paragraph.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []

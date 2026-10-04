@@ -69,9 +69,9 @@ tasks:
       - golangci-lint run --fix ./...
 
   test:
-    desc: Run all tests
+    desc: Run all tests under the race detector
     cmds:
-      - go test ./...
+      - go test -race ./...
 
   test:coverage:
     desc: Run tests with coverage

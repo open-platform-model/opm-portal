@@ -133,9 +133,13 @@ A portal renders cluster data to people and, from milestone 2, authenticates the
 hold in every change; a change that bends one needs an enhancement decision first.
 
 - **Read-only in V1.** No create, update, patch or delete on any Kubernetes object, and no
-  ClusterRole or Role that grants a write verb. The one exception is `create` on
-  `authorization.k8s.io` `subjectaccessreviews`, which milestone 2 needs to check access as the
-  user (0030:D11); a review is answered in the response and never stored. Writes start in V2,
+  ClusterRole or Role that grants a write verb. The only exceptions are `create` on review APIs
+  that answer in the response and store nothing, per mode. Local mode (milestone 1) creates
+  only `authorization.k8s.io` `selfsubjectaccessreviews` (a read check with the user's
+  kubeconfig) and `authentication.k8s.io` `selfsubjectreviews` (the kubeconfig's identity),
+  per 0030:D5:R6. In-cluster mode (milestone 2) creates only `authorization.k8s.io`
+  `subjectaccessreviews` (access checked as the signed-in user), per 0030:D6:R9; a self review
+  there would check the portal's own ServiceAccount, so it is forbidden. Writes start in V2,
   through the 0027 kinds.
 - **Never read Secret data, and show no values in V1.** No `get`, `list` or `watch` on
   `secrets`. No API document, YAML view or page shows an instance's or package's `spec.values`,
@@ -194,7 +198,7 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task fmt`: `go fmt` plus golangci-lint's gofmt and goimports formatters.
 - `task vet`: `go vet ./...`.
 - `task lint` / `task lint:fix`: golangci-lint.
-- `task test`: `go test ./...`.
+- `task test`: `go test -race ./...` (the race detector needs cgo and a C compiler).
 - `task openspec:check`: `openspec validate --all --strict` (install with
   `task openspec:install`).
 - `task deps:release-check`: the G1 release-pin gate.
@@ -272,5 +276,6 @@ Default is none: a comment says what the code does and why, in its own words.
 - `task check` after Go changes.
 - `actionlint` after workflow changes.
 - `openspec validate --all --strict` green before committing an OpenSpec artifact.
-- No Secret reads, no `spec.values` served, no write verb beyond the SubjectAccessReview
-  exception, no credential in a log (Security Rules).
+- No Secret reads, no `spec.values` served, no write verb beyond `create` on the review APIs
+  allowed for the mode (self reviews locally, `subjectaccessreviews` in-cluster), no credential
+  in a log (Security Rules).
