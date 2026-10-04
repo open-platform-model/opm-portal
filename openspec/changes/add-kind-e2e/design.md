@@ -71,8 +71,9 @@ the pinned value and stops on a mismatch, before extracting. Pinning the digest,
 trusting the `checksums.txt` downloaded beside the archive, means a replaced release asset is
 caught. The operator is the CLI's embedded pin unless `OPM_OPERATOR_VERSION` is set, which
 passes `--version` to `opm operator install`. `OPM_REGISTRY` is set to the GHCR mapping and
-`CUE_CACHE_DIR` to `.e2e/cue-cache`, so a developer's `~/.opm/config.cue` and CUE cache take no
-part.
+`CUE_CACHE_DIR` to `.e2e/cue-cache`, so a developer's registry mapping and CUE module cache
+take no part. The CLI still writes the platform module it generates under `~/.opm/cache`; it
+has no setting to move that.
 
 ### Provider
 
@@ -118,7 +119,9 @@ Each file is a `kind: List` sorted by kind, namespace and name:
 
 Every item loses `metadata.managedFields` and the
 `kubectl.kubernetes.io/last-applied-configuration` annotation; ModuleInstances and
-ModulePackages lose `spec.values`. `check-capture.sh` fails on any `Secret`, any remaining
+ModulePackages lose `spec.values`. CustomResourceDefinitions lose `spec.versions[].schema`:
+cert-manager's six CRD schemas were 472 KB of a 1.17 MB `objects.yaml` in the first run, and the
+portal reads a CRD's metadata and conditions, never its schema. `check-capture.sh` fails on any `Secret`, any remaining
 `managedFields`, last-applied annotation or MI/MP `spec.values`, and `capture.sh` runs it last.
 
 ### Authorization

@@ -9,11 +9,11 @@
 
 ## 2. Capture into testdata
 
-- [ ] 2.1 Add `test/e2e/capture.sh` (OPM kinds, inventory objects without Secrets, labelled ReplicaSets and Pods, fixture-namespace events, `meta.yaml` with versions and verdicts; strip `managedFields`, last-applied, MI/MP `spec.values`; sorted lists) and `test/e2e/check-capture.sh`; add `e2e:capture` and `e2e:capture:check` tasks
-- [ ] 2.2 Verify `check-capture.sh` fails on a scratch file holding a Secret, and on one holding a ModuleInstance with `spec.values`
-- [ ] 2.3 Run `task e2e:up` on a new throwaway podman cluster `opm-portal-e2e`, then `task e2e:capture`, then `task e2e:down`; confirm no kind cluster remains
-- [ ] 2.4 Add `testdata/clusters/f1/README.md` (how the capture was made, its versions, the claim verdict and why)
-- [ ] 2.5 `task check` green, then commit `test(e2e): capture the F1 fixture cluster into testdata`
+- [x] 2.1 Add `test/e2e/capture.sh` (OPM kinds, inventory objects without Secrets, labelled ReplicaSets and Pods, fixture-namespace events, `meta.yaml` with versions and verdicts; strip `managedFields`, last-applied, MI/MP `spec.values`; sorted lists) and `test/e2e/check-capture.sh`; add `e2e:capture` and `e2e:capture:check` tasks
+- [x] 2.2 Verify `check-capture.sh` fails on a scratch file holding a Secret, and on one holding a ModuleInstance with `spec.values`
+- [x] 2.3 Run `task e2e:up` on a new throwaway podman cluster `opm-portal-e2e`, then `task e2e:capture`, then `task e2e:down`; confirm no kind cluster remains
+- [x] 2.4 Add `testdata/clusters/f1/README.md` (how the capture was made, its versions, the claim verdict and why)
+- [x] 2.5 `task check` green, then commit `test(e2e): capture the F1 fixture cluster into testdata`
 
 ## 3. Scheduled CI run
 

@@ -96,6 +96,16 @@ tasks:
     cmds:
       - test/e2e/down.sh
 
+  e2e:capture:
+    desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)
+    cmds:
+      - test/e2e/capture.sh
+
+  e2e:capture:check:
+    desc: Refuse a capture in testdata/clusters/f1 that holds a Secret, managedFields, the last-applied annotation or spec.values
+    cmds:
+      - test/e2e/check-capture.sh
+
   #########################
   ## OpenSpec tasks
   #########################

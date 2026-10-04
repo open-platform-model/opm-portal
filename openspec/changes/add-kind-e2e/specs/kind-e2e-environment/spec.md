@@ -84,7 +84,8 @@ ReplicaSets and Pods labelled with an instance name, the events of the fixture n
 SHALL NOT get, list or watch Secrets, and SHALL skip any inventory entry of kind `Secret`. Every
 captured object SHALL lack `metadata.managedFields` and the
 `kubectl.kubernetes.io/last-applied-configuration` annotation, and every ModuleInstance and
-ModulePackage SHALL lack `spec.values`. A capture that breaks any of these rules SHALL fail
+ModulePackage SHALL lack `spec.values`. CustomResourceDefinitions SHALL be captured without
+`spec.versions[].schema`. A capture that breaks any of these rules SHALL fail
 `task e2e:capture:check`, which the capture runs last. Source: 0030:D8.
 
 #### Scenario: Clean capture

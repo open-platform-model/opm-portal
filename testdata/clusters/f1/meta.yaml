@@ -1,0 +1,57 @@
+capturedAt: "2026-10-04T16:31:58Z"
+cluster:
+  name: opm-portal-e2e
+  provider: podman
+  kind: v0.32.0
+  nodeImage: kindest/node:v1.36.1@sha256:3489c7674813ba5d8b1a9977baea8a6e553784dab7b84759d1014dbd78f7ebd5
+  kubernetes: v1.36.1
+opmCLI: v1.0.0-beta.7
+operator:
+  image: ghcr.io/open-platform-model/opm-operator:v1.0.0-beta.5@sha256:cd48321b1ffb17481fc6818c0afa324ce0312bea4af11f36d44f8b91e63b34b1
+  version: v1.0.0-beta.5
+catalogs:
+  - catalog: opmodel.dev/catalogs/opm@v4
+    version: 4.6.0
+    source: Subscription
+instances:
+  - namespace: cert-manager
+    name: cert-manager
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: default
+    name: backup-consumer
+    owner: operator
+    ready: "False"
+    reason: ResolutionFailed
+  - namespace: default
+    name: backup-provider
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: default
+    name: podinfo
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: web
+    name: web
+    owner: cli
+    ready: Unknown
+    reason: ManagedExternally
+packages:
+  - namespace: pkg
+    name: podinfo
+    ready: "False"
+    reason: SourceNotReady
+registrations:
+  - name: default.backup-provider
+    ready: "False"
+    reason: CatalogUnresolved
+    accepted: false
+    active: false
+    note: not accepted and active on this operator; the claim is accepted only by an operator built on library v1.0.0-beta.2 or later
+inventory:
+  objects: 58
+  secretsSkipped: 0
+  missing: []
