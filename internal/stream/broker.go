@@ -113,6 +113,10 @@ type Options struct {
 	// RingSize is how many recent changes each topic keeps for resume.
 	// Default 1000.
 	RingSize int
+	// RingBytes caps the item data each topic's resume ring keeps, so a
+	// topic of large items, such as log lines, cannot hold RingSize of
+	// them. Default 2 MiB.
+	RingBytes int
 	// QueueSize bounds a stream's undelivered messages; a full queue
 	// evicts the stream's connection. Default 256.
 	QueueSize int
@@ -147,6 +151,7 @@ func (o Options) withDefaults() Options {
 	setInt(&o.MaxLogTopicsPerSession, 4)
 	setInt(&o.MaxLogTopics, 50)
 	setInt(&o.RingSize, 1000)
+	setInt(&o.RingBytes, 2<<20)
 	setInt(&o.QueueSize, 256)
 	setDur(&o.HeartbeatInterval, 15*time.Second)
 	setDur(&o.IdleTimeout, 30*time.Minute)
@@ -700,7 +705,7 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 		unpendLocked(st, d.topic)
 		tp := b.topics[d.topic]
 		if tp == nil {
-			tp = &topicState{ring: newRing(b.opts.RingSize, b.seq), subs: map[*streamState]*subscription{}}
+			tp = &topicState{ring: newRing(b.opts.RingSize, b.opts.RingBytes, b.seq), subs: map[*streamState]*subscription{}}
 			b.topics[d.topic] = tp
 			activate = append(activate, d.topic)
 		}
