@@ -153,21 +153,21 @@ func TestStripTransformPassesNonObjectsThrough(t *testing.T) {
 
 func TestKindResolverResolvesAndRefreshes(t *testing.T) {
 	deployments := clusterKinds[6]
-	widgets := testKind{schema.GroupVersionKind{Group: "example.com", Version: "v1", Kind: "Widget"}, "widgets", false}
+	widgets := testKind{GVK: schema.GroupVersionKind{Group: "example.com", Version: "v1", Kind: "Widget"}, Resource: "widgets"}
 	d := newDiscovery(deployments)
 	k := newKindResolver(d)
 
-	got, err := k.resolve(deployments.gvk)
-	if err != nil || got.Resource != deployments.gvr() || !got.Namespaced {
+	got, err := k.resolve(deployments.GVK)
+	if err != nil || got.Resource != deployments.GVR() || !got.Namespaced {
 		t.Fatalf("resolve(Deployment) = %+v, %v", got, err)
 	}
-	if _, err := k.resolve(widgets.gvk); err == nil {
+	if _, err := k.resolve(widgets.GVK); err == nil {
 		t.Fatal("resolved a kind discovery does not know")
 	}
 	// A CRD installed later resolves after one refresh.
 	setDiscovery(d, deployments, widgets)
-	got, err = k.resolve(widgets.gvk)
-	if err != nil || got.Resource != widgets.gvr() || got.Namespaced {
+	got, err = k.resolve(widgets.GVK)
+	if err != nil || got.Resource != widgets.GVR() || got.Namespaced {
 		t.Fatalf("resolve(Widget) after install = %+v, %v", got, err)
 	}
 }
@@ -185,7 +185,7 @@ func TestFakeInformerAssumptions(t *testing.T) {
 	withAnnotation.SetAnnotations(map[string]string{lastAppliedAnnotation: "{}"})
 
 	client := newDynamic(withAnnotation, unlabeled)
-	gvr := clusterKinds[6].gvr()
+	gvr := clusterKinds[6].GVR()
 	inf := dynamicinformer.NewFilteredDynamicInformer(client, gvr, "", 0, cache.Indexers{},
 		func(o *metav1.ListOptions) { o.LabelSelector = "module-instance.opmodel.dev/uuid" })
 	if err := inf.Informer().SetTransform(stripTransform); err != nil {

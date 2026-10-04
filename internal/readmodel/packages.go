@@ -62,9 +62,26 @@ func packageItem(u *unstructured.Unstructured) PackageItem {
 			Namespace:  str(u.Object, "spec", "sourceRef", "namespace"),
 			Name:       str(u.Object, "spec", "sourceRef", "name"),
 		},
+		DependsOn:      dependsOn(u),
 		Path:           str(u.Object, "spec", "path"),
 		Applied:        health.ReadApplied(u),
 		InventoryCount: inventoryCount(u, inventory(u)),
 		LastAppliedAt:  timestamp(u.Object, "status", "lastAppliedAt"),
 	}
+}
+
+// dependsOn reads spec.dependsOn as written.
+func dependsOn(u *unstructured.Unstructured) []ObjectRef {
+	raw := maps(u.Object, "spec", "dependsOn")
+	if len(raw) == 0 {
+		return nil
+	}
+	out := make([]ObjectRef, 0, len(raw))
+	for _, d := range raw {
+		out = append(out, ObjectRef{
+			Group: opmGroup, Version: opmVersion, Kind: "ModulePackage",
+			Namespace: str(d, "namespace"), Name: str(d, "name"),
+		})
+	}
+	return out
 }

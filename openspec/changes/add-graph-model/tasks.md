@@ -1,9 +1,9 @@
 ## 1. Read-model inputs the graph needs (internal/readmodel)
 
-- [ ] 1.1 Move the cluster-side test harness (kinds, list loaders, fake dynamic and discovery clients, the rule-answered local checker) to `internal/readmodel/readmodeltest`, which does not import `readmodel`; `readmodel`'s tests use it; verify `go test ./internal/readmodel/...`
-- [ ] 1.2 Add `RuntimeChild` and `InventoryObject.Children`: children whose controller chain reaches an inventory object, each with its direct controller owner, health and a ReplicaSet's replicas, attached only when the children read succeeded; verify podinfo's Deployment carries one ReplicaSet (2 replicas) and two Healthy Pods, and that unreadable Pods leave no children
-- [ ] 1.3 Add `PackageItem.DependsOn` from `spec.dependsOn`; verify `pkg/podinfo` has none
-- [ ] 1.4 `task check` green, then commit `chore(readmodel): keep runtime children and package dependencies in the views`
+- [x] 1.1 Move the cluster-side test harness (kinds, list loaders, fake dynamic and discovery clients, the rule-answered local checker) to `internal/readmodel/readmodeltest`, which does not import `readmodel`; `readmodel`'s tests use it; verify `go test ./internal/readmodel/...`
+- [x] 1.2 Add `RuntimeChild` and `InventoryObject.Children`: children whose controller chain reaches an inventory object, each with its direct controller owner, health and a ReplicaSet's replicas, attached only when the children read succeeded; verify podinfo's Deployment carries one ReplicaSet (2 replicas) and two Healthy Pods, and that unreadable Pods leave no children
+- [x] 1.3 Add `PackageItem.DependsOn` from `spec.dependsOn`; verify `pkg/podinfo` has none
+- [x] 1.4 `task check` green, then commit `chore(readmodel): keep runtime children and package dependencies in the views`
 
 ## 2. Graph model: ids, nodes, edges and collapse (internal/graph)
 

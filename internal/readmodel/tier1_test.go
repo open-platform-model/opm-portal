@@ -343,7 +343,7 @@ func TestHeldInstancesCarryNoValues(t *testing.T) {
 // read once reviews work starts the informer and is answered.
 func TestFailedReaderReviewAtStartIsAskedAgain(t *testing.T) {
 	e := newUnstartedEnv(t, loadF1(t), allowAll, allowAll)
-	e.readerR.setFail(true)
+	e.readerR.SetFail(true)
 	if err := e.m.Start(t.Context()); err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -351,7 +351,7 @@ func TestFailedReaderReviewAtStartIsAskedAgain(t *testing.T) {
 	if _, err := e.m.ListInstances(t.Context(), alice, g, ""); !errors.Is(err, ErrUnavailable) {
 		t.Fatalf("ListInstances while reviews fail = %v, want ErrUnavailable", err)
 	}
-	e.readerR.setFail(false)
+	e.readerR.SetFail(false)
 	items, err := e.m.ListInstances(t.Context(), alice, g, "")
 	if err != nil {
 		t.Fatalf("ListInstances after reviews recover = %v", err)

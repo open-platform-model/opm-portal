@@ -2,9 +2,12 @@ package readmodel
 
 import (
 	"context"
+	"sort"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/health"
@@ -29,11 +32,18 @@ func (m *Model) newEvaluator(who authz.Identity) *evaluator {
 	return &evaluator{m: m, who: who, children: map[string]childrenResult{}}
 }
 
+// evaluation is an evaluated inventory with, per entry, the runtime
+// children below it.
+type evaluation struct {
+	health.Result
+	children [][]RuntimeChild
+}
+
 // inventoryHealth reads every entry of owner's inventory the caller may
 // read, from held state, and evaluates the instance's health (0030:D3). An
 // entry the caller may not read is forbidden and never looked up; a Secret
 // is withheld and never read (0030:D7:R3, 0030:D8:R1).
-func (e *evaluator) inventoryHealth(ctx context.Context, owner *unstructured.Unstructured) health.Result {
+func (e *evaluator) inventoryHealth(ctx context.Context, owner *unstructured.Unstructured) evaluation {
 	refs := inventory(owner)
 	entries := make([]health.Entry, len(refs))
 	byKind := map[resolvedKind][]int{}
@@ -65,7 +75,99 @@ func (e *evaluator) inventoryHealth(ctx context.Context, owner *unstructured.Uns
 		}
 	}
 	children, access := e.childrenOf(ctx, owner.GetName(), entries)
-	return health.Evaluate(health.Input{Entries: entries, Children: children, ChildrenAccess: access})
+	res := health.Evaluate(health.Input{Entries: entries, Children: children, ChildrenAccess: access})
+	if access != health.AccessOK {
+		return evaluation{Result: res}
+	}
+	return evaluation{Result: res, children: runtimeChildren(entries, children)}
+}
+
+// maxOwnerHops bounds the controller walk from a child up to an inventory
+// object; a CronJob, Job, Pod chain is the longest built-in one.
+const maxOwnerHops = 8
+
+// runtimeChildren returns, per entry, the children whose chain of
+// controller owner references reaches it, sorted by kind and name. A child
+// whose chain reaches no inventory object is left out.
+func runtimeChildren(entries []health.Entry, children []*unstructured.Unstructured) [][]RuntimeChild {
+	out := make([][]RuntimeChild, len(entries))
+	inventoryByUID := make(map[types.UID]int, len(entries))
+	for i := range entries {
+		if obj := entries[i].Object; entries[i].Access == health.AccessOK && obj != nil {
+			inventoryByUID[obj.GetUID()] = i
+		}
+	}
+	childByUID := make(map[types.UID]*unstructured.Unstructured, len(children))
+	for _, c := range children {
+		childByUID[c.GetUID()] = c
+	}
+	for _, c := range children {
+		owner, ok := controllerOf(c)
+		if !ok {
+			continue
+		}
+		i, ok := reachInventory(owner, childByUID, inventoryByUID)
+		if !ok {
+			continue
+		}
+		gvk := schema.FromAPIVersionAndKind(owner.APIVersion, owner.Kind)
+		out[i] = append(out[i], RuntimeChild{
+			Ref:      refOf(c),
+			Owner:    ObjectRef{Group: gvk.Group, Version: gvk.Version, Kind: gvk.Kind, Namespace: c.GetNamespace(), Name: owner.Name},
+			Health:   health.Object(c),
+			Replicas: replicasOf(c),
+		})
+	}
+	for i := range out {
+		sort.Slice(out[i], func(a, b int) bool {
+			x, y := out[i][a].Ref, out[i][b].Ref
+			if x.Kind != y.Kind {
+				return x.Kind < y.Kind
+			}
+			return x.Name < y.Name
+		})
+	}
+	return out
+}
+
+// reachInventory follows controllers from owner until it reaches an
+// inventory object.
+func reachInventory(owner metav1.OwnerReference, children map[types.UID]*unstructured.Unstructured, inventory map[types.UID]int) (int, bool) {
+	for range maxOwnerHops {
+		if i, ok := inventory[owner.UID]; ok {
+			return i, true
+		}
+		next, ok := children[owner.UID]
+		if !ok {
+			return 0, false
+		}
+		if owner, ok = controllerOf(next); !ok {
+			return 0, false
+		}
+	}
+	return 0, false
+}
+
+// controllerOf returns the owner reference marked controller.
+func controllerOf(obj *unstructured.Unstructured) (metav1.OwnerReference, bool) {
+	for _, r := range obj.GetOwnerReferences() {
+		if r.Controller != nil && *r.Controller {
+			return r, true
+		}
+	}
+	return metav1.OwnerReference{}, false
+}
+
+// replicasOf returns a ReplicaSet's spec.replicas.
+func replicasOf(u *unstructured.Unstructured) *int64 {
+	if u.GetKind() != "ReplicaSet" {
+		return nil
+	}
+	n, ok := i64(u.Object, "spec", "replicas")
+	if !ok {
+		return nil
+	}
+	return &n
 }
 
 // authorizeEntry resolves an entry's kind and checks that the caller may
@@ -132,7 +234,8 @@ func (e *evaluator) childrenOf(ctx context.Context, instance string, entries []h
 
 // componentsOf groups an evaluated inventory by component, in the order the
 // components first appear in the inventory.
-func componentsOf(res health.Result) []Component {
+func componentsOf(ev evaluation) []Component {
+	res := ev.Result
 	summaries := make(map[string]health.Summary, len(res.Components))
 	for i := range res.Components {
 		summaries[res.Components[i].Name] = res.Components[i].Summary
@@ -147,7 +250,11 @@ func componentsOf(res health.Result) []Component {
 			index[o.Ref.Component] = at
 			out = append(out, Component{Name: o.Ref.Component, Health: summaries[o.Ref.Component]})
 		}
-		out[at].Objects = append(out[at].Objects, inventoryObject(o))
+		obj := inventoryObject(o)
+		if obj.Access == health.AccessOK && i < len(ev.children) {
+			obj.Children = ev.children[i]
+		}
+		out[at].Objects = append(out[at].Objects, obj)
 	}
 	return out
 }
