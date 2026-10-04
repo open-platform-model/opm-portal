@@ -17,3 +17,12 @@
 
 - [x] 3.1 Add the decision cache (TTL default 30 s, `MaxEntries` default 4096, injectable clock) and wire it into `Checker.Check` between the guards and the backend; verify with tests that allow and deny are reused within the TTL and re-asked after it, that unavailable outcomes are never stored, that identity, namespace, name and subresource separate entries while group order does not, that a full cache drops expired entries and otherwise stops storing, and that concurrent checks pass under `go test -race`
 - [x] 3.2 `task check` green, then commit `chore(authz): cache authorization decisions per identity and request`
+
+## 4. Review fixes (PR 8)
+
+- [x] 4.1 Claim no 0030 decision in `enhancement.yaml` (0030:D7 is delivered only in part); verify the proposal's enhancement link agrees
+- [x] 4.2 Leave the cause out of `DenialError.Error()` and keep it behind `Unwrap`; verify a test that an evaluation error's text does not reach the message
+- [x] 4.3 Bind a `Grant` to its identity (`Covers(who, req)`) and expire it with its decision; verify tests for another identity, reordered groups, expiry of a fresh, a cached and an uncached grant
+- [x] 4.4 Refuse every subresource but none, `status` and `log` before any review; verify cases for exec, attach, portforward and the proxy subresources
+- [x] 4.5 Flag `sealed` assignments, `grantData` literals outside `issue` and any reference to `issue` outside `Check` in the seal scan; verify a forgery case for each
+- [x] 4.6 Run `task test` under `-race`; verify `task check` is green

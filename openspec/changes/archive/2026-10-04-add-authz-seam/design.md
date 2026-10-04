@@ -202,6 +202,12 @@ The change reads no object. Its only cluster call is `create` on `authorization.
 
 ## Open Questions
 
+- Whether `create` on `selfsubjectaccessreviews`, which this change's local backend makes in
+  milestone 1, falls inside Principle V's write exception. CONSTITUTION.md, AGENTS.md and
+  `openspec/config.yaml` name only `create` on `subjectaccessreviews` ("which milestone 2 needs"),
+  and 0030 does not mention SSAR. Bending a principle needs an enhancement decision first, so this
+  is the owner's call: amend Principle V and 0030 to name `selfsubjectaccessreviews` (and
+  `selfsubjectreviews`, below), or take SSAR out of milestone 1. Nothing is amended here.
 - How `add-local-mode` obtains the kubeconfig identity it passes to `NewLocal`. The natural
   source is a `SelfSubjectReview` (`authentication.k8s.io/v1`), another create-only review that is
   never stored; whether it falls inside Principle V's review exception, which today names
