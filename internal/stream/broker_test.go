@@ -2,7 +2,9 @@ package stream
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -450,37 +452,87 @@ func TestTopicsThatCannotAttach(t *testing.T) {
 }
 
 // Event ids count the stream's own events only: items left out for the
-// reader, other topics and other streams leave no gap (0030:D7:R2).
+// reader, items a producer strays with, other topics and other streams leave
+// no gap (0030:D7:R2).
 func TestEventIDsRevealNothingPublishedElsewhere(t *testing.T) {
-	synctest.Test(t, func(t *testing.T) {
-		e := newEnv(t, Options{}, "alice", "bob")
-		e.policy.set("alice", allowNamespaces("team-a"))
-		e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
-		all := mustTopic(t, "instances")
-		teamA := mustTopic(t, "instances:team-a")
-		other := mustTopic(t, "instance:team-b/two")
-		e.prod.upsert(t, all, listItem("team-b", "two", 1))
-
-		a := e.open(session("alice"), "instances:team-a")
-		e.open(session("bob"), "instances", "instance:team-b/two")
-		e.open(session("bob"), "platform")
-		e.prod.upsert(t, all, listItem("team-b", "two", 2))
-		e.prod.upsert(t, other, instItem("team-b", "two", 2))
-		e.prod.upsert(t, teamA, listItem("team-a", "one", 1))
-		e.prod.upsert(t, teamA, listItem("team-b", "two", 3)) // left out
-		e.prod.upsert(t, all, listItem("team-b", "two", 3))
-		e.prod.upsert(t, teamA, listItem("team-a", "one", 2))
-		synctest.Wait()
-
-		var ids []uint64
-		for _, ev := range a.rec.take() {
-			if ev.ID != "" {
-				ids = append(ids, seqOf(t, ev.ID))
+	t.Run("items the reader may not read", func(t *testing.T) {
+		synctest.Test(t, func(t *testing.T) {
+			e := newEnv(t, Options{}, "alice", "bob")
+			// alice may read instance team-a/one and the pod web-0 only.
+			e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
+				switch a.Resource {
+				case instancesGVR.Resource:
+					return a.Namespace == "team-a" && a.Name == "one", nil
+				case podsGVR.Resource:
+					return a.Namespace == "team-a" && a.Name == "web-0", nil
+				}
+				return false, nil
+			})
+			e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
+			one := mustTopic(t, "instance:team-a/one")
+			a := e.open(session("alice"), "instance:team-a/one")
+			e.open(session("bob"), "instance:team-a/one")
+			for v := 1; v <= 5; v++ {
+				// Five changes on the topic; alice may read the first, third
+				// and fifth, which reveal web-0, and not the two of db-0.
+				name := "web-0"
+				if v%2 == 0 {
+					name = "db-0"
+				}
+				e.prod.upsert(t, one, podItem("team-a", name, v))
 			}
-		}
-		if want := []uint64{1, 2, 3}; !slices.Equal(ids, want) {
-			t.Errorf("alice's event ids = %v, want %v", ids, want)
-		}
+			synctest.Wait()
+
+			var ids []uint64
+			var vs []int
+			for _, ev := range a.rec.take() {
+				if ev.ID != "" {
+					ids = append(ids, seqOf(t, ev.ID))
+				}
+				if ev.Event == EventUpsert {
+					vs = append(vs, ev.versions(t)...)
+				}
+			}
+			if want := []int{1, 3, 5}; !slices.Equal(vs, want) {
+				t.Errorf("alice saw versions %v, want %v", vs, want)
+			}
+			// The snapshot, then her three changes.
+			if want := []uint64{1, 2, 3, 4}; !slices.Equal(ids, want) {
+				t.Errorf("alice's event ids = %v, want %v", ids, want)
+			}
+		})
+	})
+	t.Run("a stray list item, other topics and other streams", func(t *testing.T) {
+		synctest.Test(t, func(t *testing.T) {
+			e := newEnv(t, Options{}, "alice", "bob")
+			e.policy.set("alice", allowNamespaces("team-a"))
+			e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
+			all := mustTopic(t, "instances")
+			teamA := mustTopic(t, "instances:team-a")
+			other := mustTopic(t, "instance:team-b/two")
+			e.prod.upsert(t, all, listItem("team-b", "two", 1))
+
+			a := e.open(session("alice"), "instances:team-a")
+			e.open(session("bob"), "instances", "instance:team-b/two")
+			e.open(session("bob"), "platform")
+			e.prod.upsert(t, all, listItem("team-b", "two", 2))
+			e.prod.upsert(t, other, instItem("team-b", "two", 2))
+			e.prod.upsert(t, teamA, listItem("team-a", "one", 1))
+			e.prod.upsert(t, teamA, listItem("team-b", "two", 3)) // a producer fault, left out
+			e.prod.upsert(t, all, listItem("team-b", "two", 3))
+			e.prod.upsert(t, teamA, listItem("team-a", "one", 2))
+			synctest.Wait()
+
+			var ids []uint64
+			for _, ev := range a.rec.take() {
+				if ev.ID != "" {
+					ids = append(ids, seqOf(t, ev.ID))
+				}
+			}
+			if want := []uint64{1, 2, 3}; !slices.Equal(ids, want) {
+				t.Errorf("alice's event ids = %v, want %v", ids, want)
+			}
+		})
 	})
 }
 
@@ -596,4 +648,177 @@ func TestClosingAReplacedSubscriptionChangesNothing(t *testing.T) {
 			t.Errorf("the topic was released %d times", rel)
 		}
 	})
+}
+
+// podItem is an upsert of pod ns/name at version v on an object topic: the
+// read it reveals is that pod's, which the topic's grant does not cover.
+func podItem(ns, name string, v int) Item {
+	return Item{
+		Event: EventUpsert,
+		Attrs: authz.Attributes{Verb: "get", Resource: podsGVR, Namespace: ns, Name: name},
+		Data:  json.RawMessage(fmt.Sprintf(`{"name": %q, "namespace": %q, "v": %d}`, name, ns, v)),
+	}
+}
+
+// slowListItems seeds n list items of team-a on topic, each rendered by
+// render.
+func slowListItems(e *env, topic Topic, n int, render func(ctx context.Context, i int) (json.RawMessage, error)) {
+	for i := range n {
+		e.prod.seed(topic, fmt.Sprintf("team-a/i%d", i), Item{
+			Event:  EventUpsert,
+			Attrs:  authz.Attributes{Verb: "list", Resource: instancesGVR, Namespace: "team-a"},
+			Render: func(ctx context.Context, _ authz.Identity) (json.RawMessage, error) { return render(ctx, i) },
+		})
+	}
+}
+
+func listOnly(ns string) rule {
+	return func(a authorizationv1.ResourceAttributes) (bool, error) {
+		return a.Verb == "list" && a.Namespace == ns, nil
+	}
+}
+
+func denyAll(authorizationv1.ResourceAttributes) (bool, error) { return false, nil }
+
+// nonHeartbeats lists evs as "event(topic)code", leaving heartbeats out.
+func nonHeartbeats(evs []sse) []string {
+	var out []string
+	for _, ev := range evs {
+		if ev.Event != EventHeartbeat {
+			out = append(out, ev.Event+"("+ev.topic()+")"+ev.code())
+		}
+	}
+	return out
+}
+
+// A list grant that expires while the snapshot is taken is asked again: the
+// snapshot carries every item the reader may list, or the topic closes with
+// the denial; it never arrives cut short.
+func TestAGrantExpiringDuringASlowSnapshotIsAskedAgain(t *testing.T) {
+	for _, revoked := range []bool{false, true} {
+		t.Run(fmt.Sprintf("revoked=%v", revoked), func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+				e.policy.set("alice", listOnly("team-a"))
+				teamA := mustTopic(t, "instances:team-a")
+				e.prod.seed(teamA, "a", listItem("team-a", "one", 1))
+				e.prod.seed(teamA, "b", listItem("team-a", "two", 1))
+				e.prod.snapshotWait = func(context.Context) {
+					if revoked {
+						e.policy.set("alice", denyAll)
+					}
+					// Past the 30 s the topic's grant lives.
+					time.Sleep(31 * time.Second)
+				}
+				sv := e.open(session("alice"), "instances:team-a")
+				time.Sleep(time.Minute)
+				synctest.Wait()
+
+				evs := sv.rec.take()
+				if revoked {
+					if got, want := nonHeartbeats(evs), []string{"open()", "closed(instances:team-a)forbidden"}; !slices.Equal(got, want) {
+						t.Errorf("events = %v, want %v", got, want)
+					}
+					return
+				}
+				items, closed := delivered(t, evs)
+				if want := []string{"instances:team-a team-a/one", "instances:team-a team-a/two"}; !slices.Equal(items, want) || len(closed) != 0 {
+					t.Errorf("items = %v, closings = %v; want %v and none", items, closed, want)
+				}
+			})
+		})
+	}
+}
+
+// A list grant that expires between the renders of one snapshot is asked
+// again before the next item, as above.
+func TestAGrantExpiringDuringSlowRendersIsAskedAgain(t *testing.T) {
+	for _, revoked := range []bool{false, true} {
+		t.Run(fmt.Sprintf("revoked=%v", revoked), func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+				e.policy.set("alice", listOnly("team-a"))
+				teamA := mustTopic(t, "instances:team-a")
+				var renders int
+				slowListItems(e, teamA, 3, func(_ context.Context, i int) (json.RawMessage, error) {
+					// Three renders of 16 s cross the 30 s the grant lives.
+					time.Sleep(16 * time.Second)
+					renders++
+					if revoked && renders == 1 {
+						e.policy.set("alice", denyAll)
+					}
+					return json.RawMessage(fmt.Sprintf(`{"name": "i%d", "namespace": "team-a", "v": 1}`, i)), nil
+				})
+				sv := e.open(session("alice"), "instances:team-a")
+				time.Sleep(time.Minute)
+				synctest.Wait()
+
+				evs := sv.rec.take()
+				if revoked {
+					if got, want := nonHeartbeats(evs), []string{"open()", "closed(instances:team-a)forbidden"}; !slices.Equal(got, want) {
+						t.Errorf("events = %v, want %v", got, want)
+					}
+					if renders != 2 {
+						t.Errorf("%d renders, want 2 (none after the denial)", renders)
+					}
+					return
+				}
+				items, closed := delivered(t, evs)
+				if want := []string{"instances:team-a team-a/i0", "instances:team-a team-a/i1", "instances:team-a team-a/i2"}; !slices.Equal(items, want) || len(closed) != 0 {
+					t.Errorf("items = %v, closings = %v; want %v and none", items, closed, want)
+				}
+			})
+		})
+	}
+}
+
+// A list topic is served only under the one list read a GET list needs; a
+// producer that names anything else does not serve it, and no review is
+// sent.
+func TestAListTopicNeedsExactlyItsListRead(t *testing.T) {
+	list := func(ns string) authz.Attributes {
+		return authz.Attributes{Verb: "list", Resource: instancesGVR, Namespace: ns}
+	}
+	with := func(a authz.Attributes, f func(*authz.Attributes)) authz.Attributes {
+		f(&a)
+		return a
+	}
+	cases := []struct {
+		name  string
+		topic string
+		reads []authz.Attributes
+		ok    bool
+	}{
+		{"cluster-wide list", "instances", []authz.Attributes{list("")}, true},
+		{"namespace list", "instances:team-a", []authz.Attributes{list("team-a")}, true},
+		{"namespace list for the cluster-wide topic", "instances", []authz.Attributes{list("team-a")}, false},
+		{"cluster-wide list for a namespace topic", "instances:team-a", []authz.Attributes{list("")}, false},
+		{"another namespace", "instances:team-a", []authz.Attributes{list("team-b")}, false},
+		{"get, not list", "instances:team-a", []authz.Attributes{with(list("team-a"), func(a *authz.Attributes) { a.Verb = "get" })}, false},
+		{"watch, not list", "instances", []authz.Attributes{with(list(""), func(a *authz.Attributes) { a.Verb = "watch" })}, false},
+		{"a subresource", "instances:team-a", []authz.Attributes{with(list("team-a"), func(a *authz.Attributes) { a.Subresource = "status" })}, false},
+		{"a name", "instances:team-a", []authz.Attributes{with(list("team-a"), func(a *authz.Attributes) { a.Name = "one" })}, false},
+		{"two reads", "instances:team-a", []authz.Attributes{list("team-a"), list("team-a")}, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				e := newEnv(t, Options{}, "alice")
+				e.policy.set("alice", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
+				e.prod.attrsFor = func(Topic) ([]authz.Attributes, bool) { return c.reads, true }
+				_, err := e.b.Open(context.Background(), session("alice"), []Topic{mustTopic(t, c.topic)}, "")
+				if c.ok && err != nil {
+					t.Errorf("Open = %v, want it served", err)
+				}
+				if !c.ok {
+					if !errors.Is(err, ErrTopicNotServed) {
+						t.Errorf("Open = %v, want ErrTopicNotServed", err)
+					}
+					if n := e.policy.count(); n != 0 {
+						t.Errorf("%d reviews sent for a topic not served", n)
+					}
+				}
+			})
+		})
+	}
 }

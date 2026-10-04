@@ -32,3 +32,10 @@
 
 - [x] 6.1 Remove `TopicAccess` and the per-item list mode, restore `Producer.Attributes`, and make `instances` require a cluster-wide `list` grant and `instances:<ns>` a `list` grant on that namespace, carrying only items that grant covers with no review per item (the corrected ruling in `design.md`); verify that a reader limited to `team-a` is refused `instances` as `forbidden` and served `instances:team-a`, that only the topic reviews are sent however many items go out, that a stray item outside the grant is left out, and that a reader allowed single names is refused the list topic
 - [x] 6.2 `task check` green, then commit `fix(stream): require the list grant for list topics`
+
+## 7. Grant expiry during a snapshot and the list-read check (internal/stream)
+
+- [x] 7.1 Include an item by the scope of the topic's reads, gating the topic again before each item so a grant that expired during a slow snapshot or render is re-checked and a denial closes the topic instead of shrinking the snapshot; keep the producer-fault warning for an item outside the list read only; verify with `synctest` tests of a slow `Snapshot` past the TTL and slow renders across it, each with the reader still allowed (full snapshot) and revoked (closed `forbidden`, no snapshot)
+- [x] 7.2 Serve a list topic only when the producer names exactly one read for it, `list` with no subresource and no name in the topic's namespace; verify with a table test that every other shape is `ErrTopicNotServed` with no review sent
+- [x] 7.3 Reword the "Identifiers reveal nothing left out" scenario to an object topic with partly forbidden per-item reads, and extend the id test with that case asserting consecutive ids
+- [x] 7.4 `task check` green (new tests run 10 times under `-race`), then commit `chore(stream): gate list items by scope and re-check expired grants`

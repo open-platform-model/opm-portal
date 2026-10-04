@@ -178,9 +178,11 @@ for the subscriber, other topics or other streams. Source: 0030:D2:R5, 0030:D7:R
 
 #### Scenario: Identifiers reveal nothing left out
 
-- **WHEN** topic `instances` publishes five changes, of which the subscriber may read three, while
-  other streams follow other topics
-- **THEN** the subscriber's three changes carry consecutive identifiers
+- **WHEN** topic `instance:apps/blog` publishes five changes, of which three reveal a Pod the
+  subscriber may read and two reveal a Pod it may not, while other streams follow the same and
+  other topics
+- **THEN** the subscriber receives the three changes it may read, with consecutive identifiers
+  following the snapshot's
 
 ### Requirement: A reconnecting stream resumes or re-reads
 

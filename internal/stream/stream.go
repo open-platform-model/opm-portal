@@ -262,18 +262,28 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 // returns nil data for an item the reader may not see, or a closing code
 // when the decision or the render failed.
 //
-// An item the topic's grants cover needs no review. On a list topic nothing
-// else is delivered and nothing is reviewed: a list carries only the items
-// within the scope of its list grant, as a GET list does (0030:D7:R2), so
-// no review per item is sent and none can fail. On an object topic an item
-// that reveals another read is reviewed on its own.
+// An item within the scope of the topic's own reads needs no review of its
+// own: it is delivered under the topic's grants. Those were proven valid
+// before the snapshot or delivery began, but one can expire during a slow
+// snapshot or render; the topic is then gated again, and a denial closes it,
+// so a snapshot is never silently cut short. On a list topic nothing else
+// is delivered and nothing is reviewed: a list carries only the items within
+// the scope of its list grant, as a GET list does (0030:D7:R2), so no review
+// per item is sent and none can fail. On an object topic an item that
+// reveals another read is reviewed on its own.
 func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data json.RawMessage, code string) {
 	b, who := s.b, s.st.who
-	if !s.coveredByTopic(sub, it.Attrs) {
-		if sub.topic.Kind() == KindInstances {
-			b.log.Warn("dropping a list item outside the topic's list read", "topic", sub.topic.String())
-			return nil, ""
+	switch {
+	case withinTopic(sub.attrs, it.Attrs):
+		// gateTopic asks again only for a grant that has expired.
+		if code := s.gateTopic(ctx, sub); code != "" {
+			return nil, code
 		}
+	case sub.topic.Kind() == KindInstances:
+		// A producer fault: the item lies outside the topic's list read.
+		b.log.Warn("dropping a list item outside the topic's list read", "topic", sub.topic.String())
+		return nil, ""
+	default:
 		if _, err := b.az.Check(ctx, who, it.Attrs); err != nil {
 			if code := closeCode(err); code != CodeForbidden {
 				return nil, code
@@ -293,12 +303,17 @@ func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data
 	return data, ""
 }
 
-func (s *Stream) coveredByTopic(sub *subscription, req authz.Attributes) bool {
-	s.b.mu.Lock()
-	grants := append([]authz.Grant(nil), sub.grants...)
-	s.b.mu.Unlock()
-	for _, g := range grants {
-		if g.Covers(s.st.who, req) == nil {
+// withinTopic reports whether one of the topic's reads covers req by scope
+// alone, as Grant.Covers judges it apart from identity and expiry: the same
+// verb, resource and subresource, and a namespace and name that are empty
+// (every one) or equal.
+func withinTopic(reads []authz.Attributes, req authz.Attributes) bool {
+	for _, have := range reads {
+		if have.Verb == req.Verb &&
+			have.Resource == req.Resource &&
+			have.Subresource == req.Subresource &&
+			(have.Namespace == "" || have.Namespace == req.Namespace) &&
+			(have.Name == "" || have.Name == req.Name) {
 			return true
 		}
 	}

@@ -40,7 +40,8 @@
 //     the stream gets a closed message for it. A list topic needs the list
 //     grant a GET list needs, cluster-wide for "instances" and on the
 //     namespace for "instances:<ns>", and is refused with the same denial
-//     (0030:D7:R2).
+//     (0030:D7:R2). A producer that names any other read for a list topic
+//     does not serve it.
 //   - A closed message stays pending until a connection writes it, so one
 //     queued on a connection that ends is the next connection's first
 //     message.
@@ -49,11 +50,14 @@
 //   - Before each delivery, and on each heartbeat, the topic's grants are
 //     checked with Grant.Covers; an expired grant is checked again.
 //   - Each item is delivered only when the subscriber may read Item.Attrs.
-//     On a list topic the topic's list grant must cover it, and an item it
-//     does not cover is left out without a review, so a list carries only
-//     items within its grant's scope and costs no review per item. On an
-//     object topic an item the topic's grants do not cover is reviewed on
-//     its own. A forbidden item is left out without a trace.
+//     An item within the scope of the topic's reads is delivered under the
+//     topic's grants; one that expired during a slow snapshot or render is
+//     checked again, and a denial closes the topic rather than cut a
+//     snapshot short. On a list topic an item outside the list grant's scope
+//     is a producer fault and is left out without a review, so a list
+//     carries only items within its grant's scope and costs no review per
+//     item. On an object topic an item outside the topic's reads is reviewed
+//     on its own. A forbidden item is left out without a trace.
 //   - An authorization error is never a delivery: it closes the topic with
 //     the code upstream_unavailable.
 //

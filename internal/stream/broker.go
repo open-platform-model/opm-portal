@@ -303,9 +303,29 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 		if !ok || len(a) == 0 {
 			return nil, nil, fmt.Errorf("%w: %s", ErrTopicNotServed, t)
 		}
+		if t.Kind() == KindInstances && !isListRead(t, a) {
+			// A list topic is served under the list grant a GET list needs
+			// and nothing else (0030:D7:R2); a producer naming any other
+			// read is not trusted with it.
+			return nil, nil, fmt.Errorf("%w: %s (the producer names no list read for it)", ErrTopicNotServed, t)
+		}
 		attrs[t] = a
 	}
 	return out, attrs, nil
+}
+
+// verbList is the verb of a list topic's read.
+const verbList = "list"
+
+// isListRead reports whether attrs is exactly the read a list topic t
+// needs: one list of the whole resource in t's namespace (cluster-wide for
+// "instances"), naming no subresource and no object.
+func isListRead(t Topic, attrs []authz.Attributes) bool {
+	if len(attrs) != 1 {
+		return false
+	}
+	a := attrs[0]
+	return a.Verb == verbList && a.Subresource == "" && a.Name == "" && a.Namespace == t.Namespace()
 }
 
 // authorized is one topic's subscription decision.

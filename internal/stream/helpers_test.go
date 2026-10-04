@@ -139,6 +139,8 @@ type fakeProducer struct {
 	snapshotWait func(ctx context.Context)
 	// attributeCalls counts Attributes calls.
 	attributeCalls int
+	// attrsFor, when set, replaces the reads the producer names for a topic.
+	attrsFor func(Topic) ([]authz.Attributes, bool)
 }
 
 func newFakeProducer() *fakeProducer {
@@ -152,7 +154,11 @@ func newFakeProducer() *fakeProducer {
 func (p *fakeProducer) Attributes(t Topic) ([]authz.Attributes, bool) {
 	p.mu.Lock()
 	p.attributeCalls++
+	override := p.attrsFor
 	p.mu.Unlock()
+	if override != nil {
+		return override(t)
+	}
 	return p.reads(t)
 }
 
@@ -222,6 +228,16 @@ func (p *fakeProducer) counts(t Topic) (activations, releases int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	return p.activations[t], p.releases[t]
+}
+
+// seed sets an item's state under key without publishing it.
+func (p *fakeProducer) seed(topic Topic, key string, it Item) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.state[topic] == nil {
+		p.state[topic] = map[string]Item{}
+	}
+	p.state[topic][key] = it
 }
 
 // upsert sets an item's state and publishes it.
