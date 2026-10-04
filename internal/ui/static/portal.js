@@ -105,8 +105,25 @@
     return out;
   }
 
+  // changed re-renders every region that follows topic: the page is
+  // fetched again and only the region swapped, at most once per 400 ms per
+  // region. Regions carry no htmx attributes, so links inside them inherit
+  // nothing from them.
+  var refreshing = new Map();
   function changed(topic) {
-    following(topic).forEach(function (el) { htmx.trigger(el, "portal:changed"); });
+    following(topic).forEach(function (el) {
+      var id = el.id;
+      if (!id || refreshing.has(id)) {
+        return;
+      }
+      refreshing.set(id, window.setTimeout(function () {
+        refreshing.delete(id);
+        if (!document.getElementById(id)) {
+          return;
+        }
+        htmx.ajax("GET", location.pathname + location.search, { target: "#" + id, select: "#" + id, swap: "outerHTML" });
+      }, 400));
+    });
   }
 
   if (listener) {

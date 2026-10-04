@@ -11,7 +11,7 @@
   <button type="submit">Filter</button>
   <a class="clear" href="/instances">Show all</a>
 </form>
-<section class="panel panel-wide reveal" id="list" aria-label="Instances" data-follow="instances:default" hx-get="/instances?namespace=default" hx-trigger="portal:changed delay:400ms" hx-select="#list" hx-target="this" hx-swap="outerHTML">
+<section class="panel panel-wide reveal" id="list" aria-label="Instances" data-follow="instances:default">
 <div class="table-wrap">
 <table class="table rows">
   <thead><tr><th scope="col">Instance</th><th scope="col">Applied</th><th scope="col">Health</th><th scope="col">Module</th><th scope="col">Objects</th><th scope="col">Last applied</th></tr></thead>

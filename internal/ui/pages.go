@@ -296,22 +296,35 @@ func (h *Handler) components(base string, cs []v1.Component) []componentView {
 	out := make([]componentView, 0, len(cs))
 	for i := range cs {
 		c := componentView{Name: cs[i].Name, Health: cs[i].Health}
-		for j := range cs[i].Objects {
-			o := objectView{InventoryObject: cs[i].Objects[j], Text: refText(cs[i].Objects[j].Ref)}
-			if o.Access == v1.AccessOK && !isSecret(o.Ref) {
-				q := refQuery(o.Ref).Encode()
-				o.YAML, o.EventsURL = base+"/object?"+q, base+"/events?"+q
-			}
-			for k := range o.InventoryObject.Children {
-				ch := o.InventoryObject.Children[k]
-				q := refQuery(ch.Ref).Encode()
-				o.Children = append(o.Children, childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q})
-			}
-			c.Objects = append(c.Objects, o)
+		for _, obj := range objectsOf(&cs[i]) {
+			c.Objects = append(c.Objects, objectViewOf(base, obj))
 		}
 		out = append(out, c)
 	}
 	return out
+}
+
+// objectsOf returns pointers to a component's objects.
+func objectsOf(c *v1.Component) []*v1.InventoryObject {
+	out := make([]*v1.InventoryObject, len(c.Objects))
+	for j := range out {
+		out[j] = &c.Objects[j]
+	}
+	return out
+}
+
+func objectViewOf(base string, obj *v1.InventoryObject) objectView {
+	o := objectView{InventoryObject: *obj, Text: refText(obj.Ref)}
+	if o.Access == v1.AccessOK && !isSecret(o.Ref) {
+		q := refQuery(o.Ref).Encode()
+		o.YAML, o.EventsURL = base+"/object?"+q, base+"/events?"+q
+	}
+	for k := range obj.Children {
+		ch := obj.Children[k]
+		q := refQuery(ch.Ref).Encode()
+		o.Children = append(o.Children, childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q})
+	}
+	return o
 }
 
 // logPanes lists one pane per container of every Pod below the inventory.

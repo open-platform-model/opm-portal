@@ -402,3 +402,29 @@ func TestBoundHostIsAllowedAndLaunched(t *testing.T) {
 		}
 	}
 }
+
+// TestAPageReplacesOnlyThePolicy: a page the next handler serves may set
+// its own Content-Security-Policy; every other security header stays.
+func TestAPageReplacesOnlyThePolicy(t *testing.T) {
+	l, err := NewLocal(LocalConfig{Identity: me, Port: port})
+	if err != nil {
+		t.Fatal(err)
+	}
+	const pagePolicy = "default-src 'none'; script-src 'self'"
+	h := l.Handler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Security-Policy", pagePolicy)
+	}))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/", http.NoBody)
+	req.Host = "127.0.0.1:8123"
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	for _, kv := range securityHeaders {
+		want := kv[1]
+		if kv[0] == "Content-Security-Policy" {
+			want = pagePolicy
+		}
+		if got := rec.Header().Get(kv[0]); got != want {
+			t.Errorf("%s = %q; want %q", kv[0], got, want)
+		}
+	}
+}

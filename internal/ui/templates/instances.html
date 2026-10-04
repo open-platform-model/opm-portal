@@ -5,7 +5,7 @@
   <p class="lede">Each instance shows two separate values: <strong>Applied</strong>, what the operator applied, and <strong>Health</strong>, what the portal sees running. One never stands for the other.</p>
 </header>
 {{template "list-filter" .}}
-<section class="panel panel-wide reveal" id="list" aria-label="Instances" data-follow="{{index $p.Topics 0}}" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#list" hx-target="this" hx-swap="outerHTML">
+<section class="panel panel-wide reveal" id="list" aria-label="Instances" data-follow="{{index $p.Topics 0}}">
 {{if .Problem}}{{template "problem-region" .Problem}}
 {{else if .Forbidden}}{{template "list-locked" .}}
 {{else if .Instances}}

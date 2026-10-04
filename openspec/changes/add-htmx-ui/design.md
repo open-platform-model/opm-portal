@@ -134,9 +134,13 @@ body's `EventSource` lives on. A hidden element under the body listens for `sse:
 - `open` (carries the stream id): POST the current page's `data-topics` as `add`, and the topics
   the stream was opened with that the page no longer wants as `remove`.
 - After each boosted swap: POST the difference between the old and the new page's topics.
-- `upsert`, `delete`, `k8sevent`, and a `snapshot` after the topic's first: trigger
-  `portal:changed` on every region whose `data-follow` names the topic; regions re-fetch
-  themselves (`hx-get` of the page, `hx-select` of the region, `delay:400ms`).
+- `upsert`, `delete`, `k8sevent`, and a `snapshot` after the topic's first: every region whose
+  `data-follow` names the topic is re-rendered, at most once per 400 ms, by `htmx.ajax` fetching
+  the page and swapping only that region (`select` and `target` its id). Regions carry no htmx
+  attributes themselves: a first version put `hx-get`, `hx-target="this"` and `hx-select` on
+  them, and boosted links inside a region inherited those and swapped the wrong element (found
+  by a browser run of the navigation; `hx-disinherit` resolves to `unset`, which would swap the
+  whole body instead).
 - `log`, `logend`, and a log topic's snapshot: append `textContent` lines to the pane of that
   topic.
 - `closed`: mark the following regions as no longer live, with the code.
@@ -244,7 +248,9 @@ On the throwaway cluster `opm-portal-e2e-ui` (operator v1.0.0-beta.6, F1), with
 reported `ErrImagePull` 2.08 s after the patch (kubectl polled every 0.25 s); the open page, with
 no reload, showed **Degraded** 0.92 s after that, while its Applied badge still read **Applied**
 and the instance stayed `Ready=True`. The 0.92 s holds the producer's 250 ms coalescing and the
-page's 400 ms region debounce (0030:D3:R3). Screenshot: `instance-podinfo-image-break-light.png`.
+page's 400 ms region debounce (0030:D3:R3). Repeated on a fresh cluster after regions moved to
+`htmx.ajax` refreshes: `ErrImagePull` at +1.85 s, Degraded on the open page at +2.85 s (1.0 s
+later), still Applied. Screenshot: `instance-podinfo-image-break-light.png`.
 
 ## Risks / Trade-offs
 

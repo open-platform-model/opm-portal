@@ -31,3 +31,10 @@
 - [x] 4.2 README (pages, what the YAML view shows per 0030:D8:R4) and `AGENTS.md` (layout, `internal/ui`, UI goldens, the dev server)
 - [x] 4.3 Fix from the e2e run: a namespace-scoped user's launch landed on a 403 (the Platform is forbidden to them); a forbidden page now renders its locked region with 200, and htmx swaps 4xx and 5xx fragments so their regions show; commit `fix(ui): serve a locked page as 200 and show error fragments`
 - [x] 4.4 `task check` green, then commit `docs(ui): document the portal pages`
+
+## 5. Verify fixes (internal/ui, internal/auth)
+
+- [x] 5.1 Live regions carry no htmx attributes; `portal.js` re-renders them with `htmx.ajax`, so boosted links inside a region no longer inherit its target and select (found by a browser run of Platform, Instances, podinfo navigation)
+- [x] 5.2 Tests for states F1 lacks: an accepted, inactive claim and a removal-blocked claim on the Platform page; a Secret row without a YAML link; a page that replaces only the Content-Security-Policy behind the front door
+- [x] 5.3 Browser run: one stream across boosted navigation, topics moved by POST, keyboard activation of a graph node; the scripted image break on the live cluster again
+- [x] 5.4 `task check` green, then commit `fix(ui): refresh live regions from the page script`

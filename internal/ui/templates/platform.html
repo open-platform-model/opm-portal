@@ -9,7 +9,7 @@
   {{template "problem-region" .Problem}}
 </section>
 {{else}}{{with .Platform}}
-<header class="page-head reveal" id="platform-head" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#platform-head" hx-target="this" hx-swap="outerHTML">
+<header class="page-head reveal" id="platform-head" data-follow="platform">
   <p class="kicker">Platform · {{.Type}}{{with .OperatorVersion}} · operator {{.}}{{end}}</p>
   <h1>{{.Name}}</h1>
   <div class="axes">{{template "applied" .Reconcile}}</div>
@@ -30,7 +30,7 @@
   <div class="stat{{if .Refused}} stat-alert{{end}}"><span class="stat-n">{{.Refused}}</span><span class="stat-l">claims refused</span></div>
 </div>
 
-<section class="panel reveal" id="catalogs" aria-labelledby="catalogs-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#catalogs" hx-target="this" hx-swap="outerHTML">
+<section class="panel reveal" id="catalogs" aria-labelledby="catalogs-h" data-follow="platform">
   <h2 id="catalogs-h">Catalogs</h2>
   <h3 class="sub-h">Subscriptions</h3>
   {{if .Platform.Subscriptions}}
@@ -52,7 +52,7 @@
   </ul>
 </section>
 
-<section class="panel reveal" id="registrations" aria-labelledby="registrations-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#registrations" hx-target="this" hx-swap="outerHTML">
+<section class="panel reveal" id="registrations" aria-labelledby="registrations-h" data-follow="platform">
   <h2 id="registrations-h">Registrations <span class="h-note">transformer claims on catalogs</span></h2>
   {{if ne .Platform.RegistrationsAccess "ok"}}{{template "locked" .Platform.RegistrationsAccess}}<p class="muted">Only the registrations you may read are listed below.</p>{{end}}
   {{if .Platform.Registrations}}
@@ -81,13 +81,13 @@
   {{else if eq .Platform.RegistrationsAccess "ok"}}<p class="muted">No TransformerRegistration claims a catalog.</p>{{end}}
 </section>
 
-<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#graph" hx-target="this" hx-swap="outerHTML">
+<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="platform">
   <h2 id="graph-h">Platform graph <span class="h-note">select a node for details</span></h2>
   {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
 </section>
 
 
-<section class="panel panel-7 reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#conditions" hx-target="this" hx-swap="outerHTML">
+<section class="panel panel-7 reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
   <h2 id="conditions-h">Conditions</h2>
   {{template "conditions" .Platform.Conditions}}
 </section>
@@ -96,7 +96,7 @@
   {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node or a registration's events to see them here.</p>{{end}}
 </aside>
 
-<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:platform" hx-get="{{$p.Path}}" hx-trigger="portal:changed delay:400ms" hx-select="#events" hx-target="this" hx-swap="outerHTML">
+<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:platform">
   <h2 id="events-h">Recent events</h2>
   {{template "events-note"}}
   {{template "events-list" .Events}}
