@@ -106,7 +106,7 @@ components (the inventory entry's `component`; an entry without one goes under t
 name) to the instance. Only entries with `Access=ok` count. `forbidden` and `notReadable`
 entries are excluded and set `Partial`. A core `Secret` entry is `withheld` whatever the
 caller passed: the package never evaluates one, and it neither counts nor makes the result
-partial (0030:D3:R4). A summary with nothing counted is Unknown. `EvaluatedAt` is the oldest
+partial (0030:D3:R4). A summary with nothing counted is Unknown and not live, with a zero `EvaluatedAt`. `EvaluatedAt` is the oldest
 evaluation among counted entries, and `Live` is false when any counted entry is not live
 (0030:D3:R5). Counts per state and per non-ok access ride along for the list pages.
 

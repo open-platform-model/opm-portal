@@ -174,3 +174,13 @@ func TestReadRegistration_Synthetic(t *testing.T) {
 		t.Errorf("wrong kind: %+v", got)
 	}
 }
+
+// The two axes of one captured moment disagree, and both are reported: the
+// operator says applied while the workload is broken.
+func TestAxesStayApart_ImageBreak(t *testing.T) {
+	applied := ReadApplied(loadCapture(t, "mi-podinfo-image-broken.yaml")[0])
+	health := Evaluate(inputFromCapture(t, "mi-podinfo-image-broken.yaml", "objects-podinfo-phase4-broken-1min.yaml"))
+	if applied.State != AppliedStateApplied || health.Instance.State != Degraded {
+		t.Fatalf("applied %s, health %s; want Applied and Degraded", applied.State, health.Instance.State)
+	}
+}
