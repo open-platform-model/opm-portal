@@ -26,3 +26,4 @@
 - [x] 4.4 Refuse every subresource but none, `status` and `log` before any review; verify cases for exec, attach, portforward and the proxy subresources
 - [x] 4.5 Flag `sealed` assignments, `grantData` literals outside `issue` and any reference to `issue` outside `Check` in the seal scan; verify a forgery case for each
 - [x] 4.6 Run `task test` under `-race`; verify `task check` is green
+- [x] 4.7 `task check` green, then commit `docs(openspec): record the review fixes and the SSAR principle question`

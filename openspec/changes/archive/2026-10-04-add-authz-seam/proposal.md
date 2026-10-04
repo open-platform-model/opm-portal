@@ -16,8 +16,9 @@ any code reads the cluster.
   with a closed set of codes, and the `Authorizer` interface.
 - Fail-closed guards that run before any backend call: an empty, blank or anonymous identity is
   refused with no Kubernetes call (the 0030:D6:R2 rule, applied in both milestones), any verb other
-  than `get`, `list` or `watch` is refused, core `secrets` are refused whatever the caller's RBAC
-  (0030:D8:R1), and malformed or wildcard attributes are refused.
+  than `get`, `list` or `watch` is refused, any subresource other than none, `status` or `log` is
+  refused (exec, attach, portforward and proxy open streams), core `secrets` are refused whatever
+  the caller's RBAC (0030:D8:R1), and malformed or wildcard attributes are refused.
 - Deny on error: a failed, timed-out or unevaluable access review is a denial, never an allow,
   and is never cached (0030:D6:R4).
 - The local-mode backend: SelfSubjectAccessReviews sent with the user's kubeconfig (0030:D5:R1),
