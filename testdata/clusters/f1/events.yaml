@@ -1,0 +1,1653 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: default-scheduler
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-cainjector-5d69c59bd-htjjq.18db65a749bbaa46
+      namespace: cert-manager
+      resourceVersion: "755"
+      uid: fdeb7298-1c7e-4f0d-b8a6-30d180f587ac
+    note: Successfully assigned cert-manager/cert-manager-cainjector-5d69c59bd-htjjq to opm-portal-e2e-fix-control-plane
+    reason: Scheduled
+    regarding:
+      apiVersion: v1
+      kind: Pod
+      name: cert-manager-cainjector-5d69c59bd-htjjq
+      namespace: cert-manager
+      resourceVersion: "739"
+      uid: 1e3c6af3-e7d1-4ef2-ba70-a8d396c7a46b
+    reportingController: default-scheduler
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: cert-manager-cainjector-5d69c59bd-htjjq.18db65a76c07f6c9
+      namespace: cert-manager
+      resourceVersion: "782"
+      uid: ff73341a-c7e0-4d7a-910b-ff9213f250ae
+    note: Pulling image "quay.io/jetstack/cert-manager-cainjector:v1.21.0"
+    reason: Pulling
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-cainjector}
+      kind: Pod
+      name: cert-manager-cainjector-5d69c59bd-htjjq
+      namespace: cert-manager
+      resourceVersion: "746"
+      uid: 1e3c6af3-e7d1-4ef2-ba70-a8d396c7a46b
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:13Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:13Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:13Z"
+      name: cert-manager-cainjector-5d69c59bd-htjjq.18db65a903ad1baf
+      namespace: cert-manager
+      resourceVersion: "847"
+      uid: d4162a52-df4e-4305-ac52-daedde6d7db4
+    note: 'Successfully pulled image "quay.io/jetstack/cert-manager-cainjector:v1.21.0" in 2.102s (6.839s including waiting). Image size: 12363199 bytes.'
+    reason: Pulled
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-cainjector}
+      kind: Pod
+      name: cert-manager-cainjector-5d69c59bd-htjjq
+      namespace: cert-manager
+      resourceVersion: "746"
+      uid: 1e3c6af3-e7d1-4ef2-ba70-a8d396c7a46b
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:13Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:13Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:13Z"
+      name: cert-manager-cainjector-5d69c59bd-htjjq.18db65a904780141
+      namespace: cert-manager
+      resourceVersion: "848"
+      uid: 2fb206dc-cee1-4cd8-906d-5140a0145f2e
+    note: Container created
+    reason: Created
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-cainjector}
+      kind: Pod
+      name: cert-manager-cainjector-5d69c59bd-htjjq
+      namespace: cert-manager
+      resourceVersion: "746"
+      uid: 1e3c6af3-e7d1-4ef2-ba70-a8d396c7a46b
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:13Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:13Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:13Z"
+      name: cert-manager-cainjector-5d69c59bd-htjjq.18db65a90dd0369f
+      namespace: cert-manager
+      resourceVersion: "849"
+      uid: ae4dbe37-c38d-451d-bbd3-7e44534c84ef
+    note: Container started
+    reason: Started
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-cainjector}
+      kind: Pod
+      name: cert-manager-cainjector-5d69c59bd-htjjq
+      namespace: cert-manager
+      resourceVersion: "746"
+      uid: 1e3c6af3-e7d1-4ef2-ba70-a8d396c7a46b
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: replicaset-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-cainjector-5d69c59bd.18db65a7496809ef
+      namespace: cert-manager
+      resourceVersion: "743"
+      uid: 4a24bd1c-71d2-4c2f-b85f-7678a5aecd3c
+    note: 'Created pod: cert-manager-cainjector-5d69c59bd-htjjq'
+    reason: SuccessfulCreate
+    regarding:
+      apiVersion: apps/v1
+      kind: ReplicaSet
+      name: cert-manager-cainjector-5d69c59bd
+      namespace: cert-manager
+      resourceVersion: "734"
+      uid: 0287233e-91bd-4557-8a5b-d595d0a646c4
+    reportingController: replicaset-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:14Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:14Z"
+    deprecatedSource:
+      component: cert-manager-cainjector-5d69c59bd-htjjq_794d145f-863c-4e81-8437-83d74be42c18
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:14Z"
+      name: cert-manager-cainjector-leader-election.18db65a92b461518
+      namespace: cert-manager
+      resourceVersion: "855"
+      uid: b4e0b769-9b75-4b1f-8400-e1e5f91bc15c
+    note: cert-manager-cainjector-5d69c59bd-htjjq_794d145f-863c-4e81-8437-83d74be42c18 became leader
+    reason: LeaderElection
+    regarding:
+      apiVersion: coordination.k8s.io/v1
+      kind: Lease
+      name: cert-manager-cainjector-leader-election
+      namespace: cert-manager
+      resourceVersion: "854"
+      uid: 639a69a8-1f83-4ac8-a6e5-02be3a68dd2d
+    reportingController: cert-manager-cainjector-5d69c59bd-htjjq_794d145f-863c-4e81-8437-83d74be42c18
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: deployment-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-cainjector.18db65a74915fce4
+      namespace: cert-manager
+      resourceVersion: "736"
+      uid: f8c51da9-9c65-4445-9558-f2a8f9284676
+    note: Scaled up replica set cert-manager-cainjector-5d69c59bd from 0 to 1
+    reason: ScalingReplicaSet
+    regarding:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: cert-manager-cainjector
+      namespace: cert-manager
+      resourceVersion: "733"
+      uid: 4a25003f-1123-4a67-b502-82147bfc8347
+    reportingController: deployment-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: default-scheduler
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-controller-7c9bddd644-cr5qm.18db65a749e046b4
+      namespace: cert-manager
+      resourceVersion: "758"
+      uid: 0fb0710c-d38f-4e83-a28e-ccf586d54895
+    note: Successfully assigned cert-manager/cert-manager-controller-7c9bddd644-cr5qm to opm-portal-e2e-fix-control-plane
+    reason: Scheduled
+    regarding:
+      apiVersion: v1
+      kind: Pod
+      name: cert-manager-controller-7c9bddd644-cr5qm
+      namespace: cert-manager
+      resourceVersion: "742"
+      uid: 0cdf28f6-cb57-464a-82f8-53d819570baa
+    reportingController: default-scheduler
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: cert-manager-controller-7c9bddd644-cr5qm.18db65a7630a983d
+      namespace: cert-manager
+      resourceVersion: "778"
+      uid: c127dc94-5a2f-401f-a5fd-94ab20991040
+    note: Pulling image "quay.io/jetstack/cert-manager-controller:v1.21.0"
+    reason: Pulling
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-controller}
+      kind: Pod
+      name: cert-manager-controller-7c9bddd644-cr5qm
+      namespace: cert-manager
+      resourceVersion: "751"
+      uid: 0cdf28f6-cb57-464a-82f8-53d819570baa
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:09Z"
+      name: cert-manager-controller-7c9bddd644-cr5qm.18db65a80b4f4c9c
+      namespace: cert-manager
+      resourceVersion: "819"
+      uid: f3a96c3b-3e07-47f3-9e6f-f3b17e6cafa8
+    note: 'Successfully pulled image "quay.io/jetstack/cert-manager-controller:v1.21.0" in 2.822s (2.823s including waiting). Image size: 24827652 bytes.'
+    reason: Pulled
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-controller}
+      kind: Pod
+      name: cert-manager-controller-7c9bddd644-cr5qm
+      namespace: cert-manager
+      resourceVersion: "751"
+      uid: 0cdf28f6-cb57-464a-82f8-53d819570baa
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:09Z"
+      name: cert-manager-controller-7c9bddd644-cr5qm.18db65a80bfecc4a
+      namespace: cert-manager
+      resourceVersion: "820"
+      uid: 3050d3a6-92ad-43e9-a13c-89aa4e1b4c9b
+    note: Container created
+    reason: Created
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-controller}
+      kind: Pod
+      name: cert-manager-controller-7c9bddd644-cr5qm
+      namespace: cert-manager
+      resourceVersion: "751"
+      uid: 0cdf28f6-cb57-464a-82f8-53d819570baa
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:09Z"
+      name: cert-manager-controller-7c9bddd644-cr5qm.18db65a80fe3f137
+      namespace: cert-manager
+      resourceVersion: "821"
+      uid: fcb872e0-0e1f-4189-ab88-799594c95d65
+    note: Container started
+    reason: Started
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-controller}
+      kind: Pod
+      name: cert-manager-controller-7c9bddd644-cr5qm
+      namespace: cert-manager
+      resourceVersion: "751"
+      uid: 0cdf28f6-cb57-464a-82f8-53d819570baa
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: replicaset-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-controller-7c9bddd644.18db65a749999289
+      namespace: cert-manager
+      resourceVersion: "750"
+      uid: 763c8d64-e571-4f9c-8539-97e778e2ebc6
+    note: 'Created pod: cert-manager-controller-7c9bddd644-cr5qm'
+    reason: SuccessfulCreate
+    regarding:
+      apiVersion: apps/v1
+      kind: ReplicaSet
+      name: cert-manager-controller-7c9bddd644
+      namespace: cert-manager
+      resourceVersion: "738"
+      uid: 580f7fd1-548d-4db2-8697-0cb2c267e487
+    reportingController: replicaset-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: deployment-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-controller.18db65a74959ad74
+      namespace: cert-manager
+      resourceVersion: "741"
+      uid: 1bb99016-d413-49cd-8d09-27f201850cf2
+    note: Scaled up replica set cert-manager-controller-7c9bddd644 from 0 to 1
+    reason: ScalingReplicaSet
+    regarding:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: cert-manager-controller
+      namespace: cert-manager
+      resourceVersion: "735"
+      uid: a8928c15-f359-4852-b91a-02f777fa8d48
+    reportingController: deployment-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:09Z"
+    deprecatedSource:
+      component: cert-manager-leader-election
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:09Z"
+      name: cert-manager-controller.18db65a81ba32cf0
+      namespace: cert-manager
+      resourceVersion: "827"
+      uid: 9f148730-9e4e-41de-bb9e-236c019dee05
+    note: cert-manager-controller-7c9bddd644-cr5qm-external-cert-manager-controller became leader
+    reason: LeaderElection
+    regarding:
+      apiVersion: coordination.k8s.io/v1
+      kind: Lease
+      name: cert-manager-controller
+      namespace: cert-manager
+      resourceVersion: "825"
+      uid: 0d7ce6e7-cc26-43a5-a95c-d35dda6d537b
+    reportingController: cert-manager-leader-election
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: default-scheduler
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-webhook-6c5bb576f5-slp22.18db65a74a34a259
+      namespace: cert-manager
+      resourceVersion: "767"
+      uid: c8e43913-b7c1-4b10-a9dc-ae6eedc1ccf1
+    note: Successfully assigned cert-manager/cert-manager-webhook-6c5bb576f5-slp22 to opm-portal-e2e-fix-control-plane
+    reason: Scheduled
+    regarding:
+      apiVersion: v1
+      kind: Pod
+      name: cert-manager-webhook-6c5bb576f5-slp22
+      namespace: cert-manager
+      resourceVersion: "756"
+      uid: 1c9b9f3b-294e-4e65-8b88-74ed99f41336
+    reportingController: default-scheduler
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: cert-manager-webhook-6c5bb576f5-slp22.18db65a76b87ec5b
+      namespace: cert-manager
+      resourceVersion: "780"
+      uid: 70f33ebc-b30c-4f58-be86-9b111584ad00
+    note: Pulling image "quay.io/jetstack/cert-manager-webhook:v1.21.0"
+    reason: Pulling
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-webhook}
+      kind: Pod
+      name: cert-manager-webhook-6c5bb576f5-slp22
+      namespace: cert-manager
+      resourceVersion: "761"
+      uid: 1c9b9f3b-294e-4e65-8b88-74ed99f41336
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:11Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:11Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:11Z"
+      name: cert-manager-webhook-6c5bb576f5-slp22.18db65a8865702d9
+      namespace: cert-manager
+      resourceVersion: "835"
+      uid: a742fc86-a43c-4177-a305-f8b0618174bf
+    note: 'Successfully pulled image "quay.io/jetstack/cert-manager-webhook:v1.21.0" in 2.064s (4.744s including waiting). Image size: 19683061 bytes.'
+    reason: Pulled
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-webhook}
+      kind: Pod
+      name: cert-manager-webhook-6c5bb576f5-slp22
+      namespace: cert-manager
+      resourceVersion: "761"
+      uid: 1c9b9f3b-294e-4e65-8b88-74ed99f41336
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:11Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:11Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:11Z"
+      name: cert-manager-webhook-6c5bb576f5-slp22.18db65a88709ba39
+      namespace: cert-manager
+      resourceVersion: "836"
+      uid: 03fec129-fc2c-49ba-828b-23652fce428b
+    note: Container created
+    reason: Created
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-webhook}
+      kind: Pod
+      name: cert-manager-webhook-6c5bb576f5-slp22
+      namespace: cert-manager
+      resourceVersion: "761"
+      uid: 1c9b9f3b-294e-4e65-8b88-74ed99f41336
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:11Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:11Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:11Z"
+      name: cert-manager-webhook-6c5bb576f5-slp22.18db65a88f9b1521
+      namespace: cert-manager
+      resourceVersion: "837"
+      uid: e3fce612-80db-4958-9b9d-91426e38210d
+    note: Container started
+    reason: Started
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{cert-manager-webhook}
+      kind: Pod
+      name: cert-manager-webhook-6c5bb576f5-slp22
+      namespace: cert-manager
+      resourceVersion: "761"
+      uid: 1c9b9f3b-294e-4e65-8b88-74ed99f41336
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: replicaset-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-webhook-6c5bb576f5.18db65a749f97ac2
+      namespace: cert-manager
+      resourceVersion: "760"
+      uid: 9334f8e7-68c3-4f3a-b108-e5aa7651113d
+    note: 'Created pod: cert-manager-webhook-6c5bb576f5-slp22'
+    reason: SuccessfulCreate
+    regarding:
+      apiVersion: apps/v1
+      kind: ReplicaSet
+      name: cert-manager-webhook-6c5bb576f5
+      namespace: cert-manager
+      resourceVersion: "747"
+      uid: fb752c0b-b921-4942-bc3e-2500a0bbfc35
+    reportingController: replicaset-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:05Z"
+    deprecatedSource:
+      component: deployment-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager-webhook.18db65a749b36e40
+      namespace: cert-manager
+      resourceVersion: "754"
+      uid: 922f9c48-9eff-48fd-89b2-b5fcf6fe8d62
+    note: Scaled up replica set cert-manager-webhook-6c5bb576f5 from 0 to 1
+    reason: ScalingReplicaSet
+    regarding:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: cert-manager-webhook
+      namespace: cert-manager
+      resourceVersion: "740"
+      uid: f140d763-33ae-4b3e-954a-7e087c99ca7c
+    reportingController: deployment-controller
+    type: Normal
+  - action: Apply
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:05.989855Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager.18db65a74a44cea2
+      namespace: cert-manager
+      resourceVersion: "770"
+      uid: 7f9ddbc0-3123-4c65-acc5-92795c458ac8
+    note: Applied 42 resources (41 created, 1 updated, 0 unchanged)
+    reason: Applied
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: cert-manager
+      namespace: cert-manager
+      resourceVersion: "643"
+      uid: 5744c33f-e06a-4f6b-b78d-652ec49c10d6
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:05.989952Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:05Z"
+      name: cert-manager.18db65a74a460fdc
+      namespace: cert-manager
+      resourceVersion: "769"
+      uid: dc00d7c1-a067-436e-809b-a0ba4d760e32
+    note: Reconciliation succeeded
+    reason: ReconciliationSucceeded
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: cert-manager
+      namespace: cert-manager
+      resourceVersion: "643"
+      uid: 5744c33f-e06a-4f6b-b78d-652ec49c10d6
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:31.336781Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:31Z"
+      name: cert-manager.18db65ad3110087c
+      namespace: cert-manager
+      resourceVersion: "982"
+      uid: bfc6bc76-1785-407d-8ec7-72c8e6568d81
+    note: No changes detected
+    reason: NoOp
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: cert-manager
+      namespace: cert-manager
+      resourceVersion: "776"
+      uid: 5744c33f-e06a-4f6b-b78d-652ec49c10d6
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Apply
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:24.137192Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:24Z"
+      name: backup-consumer.18db65ab83ef0f01
+      namespace: default
+      resourceVersion: "934"
+      uid: e66b131a-22a0-4a08-b44e-f382219ab4ec
+    note: Applied 1 resources (1 created, 0 updated, 0 unchanged)
+    reason: Applied
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: backup-consumer
+      namespace: default
+      resourceVersion: "924"
+      uid: 261e62d9-0c74-42f9-8c09-38ecd70e4725
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:24.137246Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:24Z"
+      name: backup-consumer.18db65ab83efc904
+      namespace: default
+      resourceVersion: "935"
+      uid: dcea7f23-4b83-4cad-8c59-35df04d6da97
+    note: Reconciliation succeeded
+    reason: ReconciliationSucceeded
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: backup-consumer
+      namespace: default
+      resourceVersion: "924"
+      uid: 261e62d9-0c74-42f9-8c09-38ecd70e4725
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Apply
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:21.763869Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:21Z"
+      name: backup-provider.18db65aaf6790d86
+      namespace: default
+      resourceVersion: "910"
+      uid: 03ed1079-f24c-40b7-bc10-086a1d88263b
+    note: Applied 1 resources (1 created, 0 updated, 0 unchanged)
+    reason: Applied
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: backup-provider
+      namespace: default
+      resourceVersion: "902"
+      uid: 92a79284-19de-43ac-9629-3b75e8a0aa51
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:21.763938Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:21Z"
+      name: backup-provider.18db65aaf679f998
+      namespace: default
+      resourceVersion: "911"
+      uid: 845d9d95-61b1-4d2f-9ebe-b7f030dac4fc
+    note: Reconciliation succeeded
+    reason: ReconciliationSucceeded
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: backup-provider
+      namespace: default
+      resourceVersion: "902"
+      uid: 92a79284-19de-43ac-9629-3b75e8a0aa51
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:31.807810Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:31Z"
+      name: backup-provider.18db65ad4d235eda
+      namespace: default
+      resourceVersion: "986"
+      uid: 0c1f2ed1-9fb1-451c-a101-da7757e4dea7
+    note: No changes detected
+    reason: NoOp
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: backup-provider
+      namespace: default
+      resourceVersion: "912"
+      uid: 92a79284-19de-43ac-9629-3b75e8a0aa51
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Generate
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:03:50.810998Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:03:50Z"
+      name: cluster.18db65a3c189e2d9
+      namespace: default
+      resourceVersion: "628"
+      uid: dc703076-2c44-4cc9-b43b-220b2f8eb006
+    note: Platform module generated and built for generation 1
+    reason: Generated
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: Platform
+      name: cluster
+      resourceVersion: "619"
+      uid: e99bd454-ca6f-4bf1-9213-2d59665c673d
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Generate
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:23.340984Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:23Z"
+      name: cluster.18db65ab5479d767
+      namespace: default
+      resourceVersion: "925"
+      uid: b19999fc-0ce2-4491-8334-a1df6cb1a42b
+    note: Platform module generated and built for generation 1
+    reason: Generated
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: Platform
+      name: cluster
+      resourceVersion: "630"
+      uid: e99bd454-ca6f-4bf1-9213-2d59665c673d
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Accept
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:26.703771Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:26Z"
+      name: default.refused-claim-fixture.18db65ac1ce9f413
+      namespace: default
+      resourceVersion: "943"
+      uid: 2edd3c95-f451-4116-9423-eb6091eac984
+    note: 'Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found'
+    reason: CatalogUnresolved
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: TransformerRegistration
+      name: default.refused-claim-fixture
+      resourceVersion: "942"
+      uid: ee2ea355-194a-45c2-b598-bf4ac43c855f
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Warning
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: default-scheduler
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo-podinfo-d9585d794-4lg6h.18db65a7843ef722
+      namespace: default
+      resourceVersion: "807"
+      uid: 4db38eb4-dbb1-4387-b2e5-6eea054f8760
+    note: Successfully assigned default/podinfo-podinfo-d9585d794-4lg6h to opm-portal-e2e-fix-control-plane
+    reason: Scheduled
+    regarding:
+      apiVersion: v1
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-4lg6h
+      namespace: default
+      resourceVersion: "800"
+      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+    reportingController: default-scheduler
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:07Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:07Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:07Z"
+      name: podinfo-podinfo-d9585d794-4lg6h.18db65a79c4098cc
+      namespace: default
+      resourceVersion: "813"
+      uid: f238257e-6119-4865-9b70-5514fe5343d4
+    note: Pulling image "ghcr.io/stefanprodan/podinfo:6.7.1"
+    reason: Pulling
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-4lg6h
+      namespace: default
+      resourceVersion: "802"
+      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-4lg6h.18db65a9ba50b22d
+      namespace: default
+      resourceVersion: "874"
+      uid: 5d7da092-5809-4db4-a01e-e89c10b7024c
+    note: 'Successfully pulled image "ghcr.io/stefanprodan/podinfo:6.7.1" in 422ms (9.094s including waiting). Image size: 31081621 bytes.'
+    reason: Pulled
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-4lg6h
+      namespace: default
+      resourceVersion: "802"
+      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-4lg6h.18db65a9bb103ed6
+      namespace: default
+      resourceVersion: "875"
+      uid: 6e49d868-5378-4847-8e7f-757cc6f65e4e
+    note: Container created
+    reason: Created
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-4lg6h
+      namespace: default
+      resourceVersion: "802"
+      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-4lg6h.18db65a9be38ebf8
+      namespace: default
+      resourceVersion: "876"
+      uid: 33c3cebf-3222-4aba-a392-05d0aac78ab3
+    note: Container started
+    reason: Started
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-4lg6h
+      namespace: default
+      resourceVersion: "802"
+      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-4lg6h.18db65a9be583e22
+      namespace: default
+      resourceVersion: "877"
+      uid: aad1b385-5f06-46ab-857b-109178fe77cb
+    note: 'Readiness probe failed: Get "http://10.244.0.10:9898/readyz": dial tcp 10.244.0.10:9898: connect: connection refused'
+    reason: Unhealthy
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-4lg6h
+      namespace: default
+      resourceVersion: "802"
+      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Warning
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: default-scheduler
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo-podinfo-d9585d794-kp2jx.18db65a784357e1b
+      namespace: default
+      resourceVersion: "805"
+      uid: 7141103a-3ef0-47a5-834a-cd3faf065580
+    note: Successfully assigned default/podinfo-podinfo-d9585d794-kp2jx to opm-portal-e2e-fix-control-plane
+    reason: Scheduled
+    regarding:
+      apiVersion: v1
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-kp2jx
+      namespace: default
+      resourceVersion: "797"
+      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+    reportingController: default-scheduler
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:07Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:07Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:07Z"
+      name: podinfo-podinfo-d9585d794-kp2jx.18db65a79c2ad128
+      namespace: default
+      resourceVersion: "812"
+      uid: be847ee6-a7f5-485b-b853-8f3e911ac8b1
+    note: Pulling image "ghcr.io/stefanprodan/podinfo:6.7.1"
+    reason: Pulling
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-kp2jx
+      namespace: default
+      resourceVersion: "801"
+      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-kp2jx.18db65a9a1206625
+      namespace: default
+      resourceVersion: "862"
+      uid: 9ffc8396-a416-4f5b-9a42-525e65fb0906
+    note: 'Successfully pulled image "ghcr.io/stefanprodan/podinfo:6.7.1" in 2.641s (8.673s including waiting). Image size: 31081621 bytes.'
+    reason: Pulled
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-kp2jx
+      namespace: default
+      resourceVersion: "801"
+      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-kp2jx.18db65a9a1ed2cf9
+      namespace: default
+      resourceVersion: "863"
+      uid: 79df9d22-b88f-4bed-ae2d-8579d80fd837
+    note: Container created
+    reason: Created
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-kp2jx
+      namespace: default
+      resourceVersion: "801"
+      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-kp2jx.18db65a9a5366e48
+      namespace: default
+      resourceVersion: "864"
+      uid: 335a15ed-ade4-45da-ae89-a7e9a3979c94
+    note: Container started
+    reason: Started
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-kp2jx
+      namespace: default
+      resourceVersion: "801"
+      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:16Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:16Z"
+      name: podinfo-podinfo-d9585d794-kp2jx.18db65a9a5546a15
+      namespace: default
+      resourceVersion: "865"
+      uid: 138637cb-0873-48a2-b762-03b10d4e9629
+    note: 'Readiness probe failed: Get "http://10.244.0.9:9898/readyz": dial tcp 10.244.0.9:9898: connect: connection refused'
+    reason: Unhealthy
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{podinfo}
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-kp2jx
+      namespace: default
+      resourceVersion: "801"
+      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Warning
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: replicaset-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo-podinfo-d9585d794.18db65a783dd9098
+      namespace: default
+      resourceVersion: "799"
+      uid: 3242cc8e-fea1-4600-9d64-bf3f2dac2fcb
+    note: 'Created pod: podinfo-podinfo-d9585d794-kp2jx'
+    reason: SuccessfulCreate
+    regarding:
+      apiVersion: apps/v1
+      kind: ReplicaSet
+      name: podinfo-podinfo-d9585d794
+      namespace: default
+      resourceVersion: "792"
+      uid: 7efbd610-c621-4812-af6f-6bd32edc4dc0
+    reportingController: replicaset-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: replicaset-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo-podinfo-d9585d794.18db65a784133f63
+      namespace: default
+      resourceVersion: "803"
+      uid: b344c4f1-8a0d-4415-9dcc-c1caab5aab99
+    note: 'Created pod: podinfo-podinfo-d9585d794-4lg6h'
+    reason: SuccessfulCreate
+    regarding:
+      apiVersion: apps/v1
+      kind: ReplicaSet
+      name: podinfo-podinfo-d9585d794
+      namespace: default
+      resourceVersion: "792"
+      uid: 7efbd610-c621-4812-af6f-6bd32edc4dc0
+    reportingController: replicaset-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:06Z"
+    deprecatedSource:
+      component: deployment-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo-podinfo.18db65a783706b26
+      namespace: default
+      resourceVersion: "794"
+      uid: 2f9e3606-7458-432d-ae2b-4377f76f0222
+    note: Scaled up replica set podinfo-podinfo-d9585d794 from 0 to 2
+    reason: ScalingReplicaSet
+    regarding:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: podinfo-podinfo
+      namespace: default
+      resourceVersion: "789"
+      uid: 29b73074-fde9-4910-9d57-6676b1c5fd1f
+    reportingController: deployment-controller
+    type: Normal
+  - action: Apply
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:06.945177Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo.18db65a78335c967
+      namespace: default
+      resourceVersion: "791"
+      uid: 956a9ef5-6be7-4ffe-989d-ba0135e1a5d6
+    note: Applied 2 resources (2 created, 0 updated, 0 unchanged)
+    reason: Applied
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: podinfo
+      namespace: default
+      resourceVersion: "648"
+      uid: c6f5d8d6-af26-447e-8ac0-96b5cc25c40f
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:06.945269Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:06Z"
+      name: podinfo.18db65a783370be2
+      namespace: default
+      resourceVersion: "790"
+      uid: f5dfab95-a4cc-46c9-b749-13997e41562f
+    note: Reconciliation succeeded
+    reason: ReconciliationSucceeded
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: podinfo
+      namespace: default
+      resourceVersion: "648"
+      uid: c6f5d8d6-af26-447e-8ac0-96b5cc25c40f
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:31.637717Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:31Z"
+      name: podinfo.18db65ad42fff48b
+      namespace: default
+      resourceVersion: "984"
+      uid: 24e915ad-decd-400b-af64-b24f5bb96b3f
+    note: No changes detected
+    reason: NoOp
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: podinfo
+      namespace: default
+      resourceVersion: "796"
+      uid: c6f5d8d6-af26-447e-8ac0-96b5cc25c40f
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal
+  - action: Resolve
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:03:54.994797Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:03:54Z"
+      name: podinfo.18db65a4bae963ab
+      namespace: pkg
+      resourceVersion: "655"
+      uid: efb902cb-0c22-4134-9dc2-a9d181cee9f3
+    note: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+    reason: SourceNotReady
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModulePackage
+      name: podinfo
+      namespace: pkg
+      resourceVersion: "653"
+      uid: 5ae341c6-7de4-41d8-8799-817d4cb56ead
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Warning
+  - action: Resolve
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:23.346589Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:23Z"
+      name: podinfo.18db65ab54cf5ccb
+      namespace: pkg
+      resourceVersion: "928"
+      uid: c93b8ae4-fb6e-4225-a9c4-197894aa4a40
+    note: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+    reason: SourceNotReady
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModulePackage
+      name: podinfo
+      namespace: pkg
+      resourceVersion: "657"
+      uid: 5ae341c6-7de4-41d8-8799-817d4cb56ead
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Warning
+  - action: Resolve
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:23.356518Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:23Z"
+      name: podinfo.18db65ab5566db9a
+      namespace: pkg
+      resourceVersion: "930"
+      uid: 1e8eb390-01a5-441b-99ec-04844b4cd304
+    note: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+    reason: SourceNotReady
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModulePackage
+      name: podinfo
+      namespace: pkg
+      resourceVersion: "929"
+      uid: 5ae341c6-7de4-41d8-8799-817d4cb56ead
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Warning
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedSource:
+      component: default-scheduler
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:30Z"
+      name: web-web-6f7fbf94f9-v6hw2.18db65acf72506eb
+      namespace: web
+      resourceVersion: "974"
+      uid: 58a559bf-b4b6-41ba-9ac5-a02432cc88c4
+    note: Successfully assigned web/web-web-6f7fbf94f9-v6hw2 to opm-portal-e2e-fix-control-plane
+    reason: Scheduled
+    regarding:
+      apiVersion: v1
+      kind: Pod
+      name: web-web-6f7fbf94f9-v6hw2
+      namespace: web
+      resourceVersion: "969"
+      uid: 79d990ce-4cca-4678-9555-daa91258ec46
+    reportingController: default-scheduler
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:30Z"
+      name: web-web-6f7fbf94f9-v6hw2.18db65ad0f62ca18
+      namespace: web
+      resourceVersion: "978"
+      uid: 52bc8a89-1137-47b2-9780-30844e919045
+    note: Pulling image "nginx:1.27@sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7d"
+    reason: Pulling
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{web}
+      kind: Pod
+      name: web-web-6f7fbf94f9-v6hw2
+      namespace: web
+      resourceVersion: "971"
+      uid: 79d990ce-4cca-4678-9555-daa91258ec46
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:34Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:34Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:34Z"
+      name: web-web-6f7fbf94f9-v6hw2.18db65adefb0a239
+      namespace: web
+      resourceVersion: "995"
+      uid: 2d928748-617c-46ab-874c-617993a3c864
+    note: 'Successfully pulled image "nginx:1.27@sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7d" in 3.763s (3.763s including waiting). Image size: 72406859 bytes.'
+    reason: Pulled
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{web}
+      kind: Pod
+      name: web-web-6f7fbf94f9-v6hw2
+      namespace: web
+      resourceVersion: "971"
+      uid: 79d990ce-4cca-4678-9555-daa91258ec46
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:34Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:34Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:34Z"
+      name: web-web-6f7fbf94f9-v6hw2.18db65adf08a8ab9
+      namespace: web
+      resourceVersion: "996"
+      uid: 39e6e36a-6978-4f06-8794-52459e17b16f
+    note: Container created
+    reason: Created
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{web}
+      kind: Pod
+      name: web-web-6f7fbf94f9-v6hw2
+      namespace: web
+      resourceVersion: "971"
+      uid: 79d990ce-4cca-4678-9555-daa91258ec46
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:34Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:34Z"
+    deprecatedSource:
+      component: kubelet
+      host: opm-portal-e2e-fix-control-plane
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:34Z"
+      name: web-web-6f7fbf94f9-v6hw2.18db65adf38972e7
+      namespace: web
+      resourceVersion: "997"
+      uid: 430bee87-157e-4ce7-a0d1-7a8c795cdcdc
+    note: Container started
+    reason: Started
+    regarding:
+      apiVersion: v1
+      fieldPath: spec.containers{web}
+      kind: Pod
+      name: web-web-6f7fbf94f9-v6hw2
+      namespace: web
+      resourceVersion: "971"
+      uid: 79d990ce-4cca-4678-9555-daa91258ec46
+    reportingController: kubelet
+    reportingInstance: opm-portal-e2e-fix-control-plane
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedSource:
+      component: replicaset-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:30Z"
+      name: web-web-6f7fbf94f9.18db65acf6fba08d
+      namespace: web
+      resourceVersion: "970"
+      uid: 7d05daa4-98a0-45a9-9148-8a598d72dd59
+    note: 'Created pod: web-web-6f7fbf94f9-v6hw2'
+    reason: SuccessfulCreate
+    regarding:
+      apiVersion: apps/v1
+      kind: ReplicaSet
+      name: web-web-6f7fbf94f9
+      namespace: web
+      resourceVersion: "964"
+      uid: 2b87bc18-e647-4152-8c7a-797ab54f3cbd
+    reportingController: replicaset-controller
+    type: Normal
+  - apiVersion: events.k8s.io/v1
+    deprecatedCount: 1
+    deprecatedFirstTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedLastTimestamp: "2026-10-04T18:04:30Z"
+    deprecatedSource:
+      component: deployment-controller
+    eventTime: null
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:30Z"
+      name: web-web.18db65acf6b012f3
+      namespace: web
+      resourceVersion: "966"
+      uid: 86ed8200-72e7-4e0d-a482-fa7ba462e18d
+    note: Scaled up replica set web-web-6f7fbf94f9 from 0 to 1
+    reason: ScalingReplicaSet
+    regarding:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: web-web
+      namespace: web
+      resourceVersion: "963"
+      uid: 1820781d-0e30-483e-b9fe-df22edf32bd9
+    reportingController: deployment-controller
+    type: Normal
+  - action: Reconcile
+    apiVersion: events.k8s.io/v1
+    deprecatedFirstTimestamp: null
+    deprecatedLastTimestamp: null
+    deprecatedSource: {}
+    eventTime: "2026-10-04T18:04:31.816536Z"
+    kind: Event
+    metadata:
+      creationTimestamp: "2026-10-04T18:04:31Z"
+      name: web.18db65ad4da87bc7
+      namespace: web
+      resourceVersion: "988"
+      uid: a6ca4a7e-c45f-41a6-89c1-96e78a11d053
+    note: ModuleInstance is managed externally by the CLI
+    reason: ManagedExternally
+    regarding:
+      apiVersion: opmodel.dev/v1alpha1
+      kind: ModuleInstance
+      name: web
+      namespace: web
+      resourceVersion: "968"
+      uid: 1aa1e148-0f18-444d-aa45-b3bd17c7a61a
+    reportingController: opm-controller
+    reportingInstance: opm-controller-opm-operator-controller-manager-6776c74b5c-f4rdw
+    type: Normal

@@ -1,0 +1,66 @@
+capturedAt: "2026-10-04T18:04:44Z"
+cluster:
+  name: opm-portal-e2e-fix
+  provider: podman
+  kind: v0.32.0
+  nodeImage: kindest/node:v1.36.1@sha256:3489c7674813ba5d8b1a9977baea8a6e553784dab7b84759d1014dbd78f7ebd5
+  kubernetes: v1.36.1
+opmCLI: v1.0.0-beta.8
+operator:
+  image: ghcr.io/open-platform-model/opm-operator:v1.0.0-beta.6@sha256:7871a5dd6c2251196b4ac7ce50136a9491f4004e33036c64fa63a20ffaa9825e
+  version: v1.0.0-beta.6
+catalogs:
+  - catalog: opmodel.dev/catalogs/opm@v4
+    version: 4.6.0
+    source: Subscription
+  - catalog: testing.opmodel.dev/catalogs/operator/backup@v0
+    version: 0.1.0
+    source: Registration
+instances:
+  - namespace: cert-manager
+    name: cert-manager
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: default
+    name: backup-consumer
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: default
+    name: backup-provider
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: default
+    name: podinfo
+    owner: operator
+    ready: "True"
+    reason: ReconciliationSucceeded
+  - namespace: web
+    name: web
+    owner: cli
+    ready: Unknown
+    reason: ManagedExternally
+packages:
+  - namespace: pkg
+    name: podinfo
+    ready: "False"
+    reason: SourceNotReady
+registrations:
+  - name: default.backup-provider
+    ready: "True"
+    reason: Accepted
+    accepted: true
+    active: true
+  - name: default.refused-claim-fixture
+    ready: "False"
+    reason: CatalogUnresolved
+    accepted: false
+    active: false
+    deliberateRefusal: true
+    note: 'deliberate refusal fixture (test/e2e/fixtures/f1/60-refused-claim.yaml): refused on purpose'
+inventory:
+  objects: 59
+  secretsSkipped: 0
+  missing: []

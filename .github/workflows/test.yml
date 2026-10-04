@@ -38,3 +38,6 @@ jobs:
 
       - name: Run tests
         run: task test
+
+      - name: Check the committed cluster captures
+        run: task e2e:capture:check

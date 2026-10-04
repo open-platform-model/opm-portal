@@ -26,10 +26,16 @@ Requires Go (the version in `go.mod`), [Task](https://taskfile.dev) and
 ```bash
 task build              # bin/opm-portal
 ./bin/opm-portal        # prints the version
-task check              # fmt, vet, lint, openspec, test
+task check              # fmt, vet, lint, openspec, test, capture check
 ```
 
 `task openspec:check` needs the `openspec` CLI (`task openspec:install`, needs npm).
+
+`task e2e:up` builds a throwaway kind cluster with the released opm-operator and a set of test
+modules, `task e2e:capture` snapshots it into `testdata/clusters/f1/`, and `task e2e:down`
+deletes it. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
+jq, and never touch a cluster other than `opm-portal-e2e` (or the `opm-portal-e2e-<suffix>`
+cluster `E2E_CLUSTER` names).
 
 ## Contributing
 

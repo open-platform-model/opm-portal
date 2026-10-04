@@ -155,13 +155,14 @@ needs more than about five, the required response is:
 
 ## Quality Gates
 
-Before merge, these MUST pass (`task check` runs all five):
+Before merge, these MUST pass (`task check` runs all six):
 
 1. `task fmt`
 2. `task vet`
 3. `task lint`
 4. `task test`
 5. `task openspec:check`
+6. `task e2e:capture:check`
 
 ## Further Reading
 
