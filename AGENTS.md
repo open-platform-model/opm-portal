@@ -118,11 +118,12 @@ Read these first, in order:
 ├── api/v1alpha1/     # wire types of the read API (no logic)
 ├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
+├── docs/site/        # site pages, published as the opm-portal docs bundle (docs-kit.cue)
 ├── hack/             # helper scripts (release-pin gate, API breaking-change gate)
 ├── test/e2e/         # throwaway kind fixture cluster: pins, scripts, fixture set F1
 ├── testdata/         # committed cluster captures for golden suites (generated, never hand-edited)
 ├── openspec/         # OpenSpec config, main specs, changes
-├── .github/          # workflows (Lint, Test, PR Title, Release, E2E) and release guard scripts
+├── .github/          # workflows (Lint, Test, PR Title, Release, E2E, Docs) and release guard scripts
 └── Taskfile.yml      # source of truth for build, lint, test
 ```
 
@@ -224,6 +225,14 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   with their SHA-256 in `CHECKSUMS`; upgrade one by replacing the file, its line and the name the
   layout loads in one diff.
 - `task check`: fmt, vet, lint, openspec, test, capture check.
+- `task docs:bundle` / `task docs:bundle:check`: build, or build and lint, the `opm-portal` docs
+  bundle from `docs/site/` with the docs-kit release `.opm-docs-version` pins (installed into
+  `.bin/`). `task docs:pins:check` refuses a docs-kit `publish.yml` ref that names another
+  release; the `Lint` job runs it. Bump `.opm-docs-version` and every `publish.yml@` ref in one
+  PR. Pages under `docs/site/` follow the workspace `STYLE.md` ("Site Pages") and `VOICE.md`,
+  and stay under the two paths the bundle owns, `operating/portal/` and `reference/portal/`.
+  `TestReadAPIReferenceListsEveryPath` fails until `reference/portal/read-api.md` lists every
+  path of `openapi/v1alpha1.yaml`.
 - `task e2e:up` / `task e2e:down`: create or delete the throwaway kind cluster `opm-portal-e2e`
   with the released operator and fixture set F1 (podman by default, `E2E_PROVIDER=docker`
   otherwise, remembered in `.e2e/provider` for capture and down; needs kubectl, curl and the
@@ -306,6 +315,7 @@ Default is none: a comment says what the code does and why, in its own words.
 
 - `task check` after Go changes.
 - `actionlint` after workflow changes.
+- `task docs:bundle:check` after changes under `docs/site/` or to `docs-kit.cue`.
 - `openspec validate --all --strict` green before committing an OpenSpec artifact.
 - No Secret reads, no `spec.values` served, no write verb beyond `create` on the review APIs
   allowed for the mode (self reviews locally, `subjectaccessreviews` in-cluster), no credential

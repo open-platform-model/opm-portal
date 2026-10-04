@@ -37,3 +37,6 @@ go.work.sum
 
 # e2e fixture cluster state: kubeconfig, provider, downloaded opm CLI, CUE cache
 /.e2e/
+
+# docs bundle preview (task docs:bundle)
+/out/

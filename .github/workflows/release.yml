@@ -5,7 +5,8 @@ name: Release
 # binaries job (goreleaser: four archives and checksums.txt on the draft) and
 # the image-release job (ghcr.io/open-platform-model/opm-portal, signed, with
 # an SBOM and provenance). publish-release publishes the draft only after both
-# succeeded. Release tags are immutable: nothing here moves, deletes or
+# succeeded. publish-docs publishes the release's docs bundle once both have
+# run. Release tags are immutable: nothing here moves, deletes or
 # re-creates a tag, and a published release is never changed.
 #
 # Recovery: a failed run leaves a draft; finish it with "Re-run failed jobs",
@@ -275,6 +276,28 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.digest.outputs.digest }}
           push-to-registry: true
+
+  # The release's docs bundle (docs-kit.cue), built from the release tag by
+  # docs-kit's publish.yml: <version>.0, signed, then its moving tags. It runs
+  # after the artifacts the pages describe exist, and publish-release does not
+  # wait for it, so a docs failure never strands the draft; recover a failed
+  # run with docs.yml's release dispatch.
+  # publish.yml is pinned by docs-kit release tag, not a SHA: the signing
+  # certificate names it at this ref, and the site trusts only docs-kit's v*
+  # tags (C5, C9). It moves with .opm-docs-version in one PR.
+  publish-docs:
+    name: Publish the portal docs bundle
+    needs: [release-please, binaries, image-release]
+    if: needs.release-please.outputs.releases_created == 'true'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: open-platform-model/docs-kit/.github/workflows/publish.yml@v0.7.0
+    with:
+      project: opm-portal
+      mode: release
+      tag: ${{ needs.release-please.outputs.tag_name }}
 
   publish-release:
     name: Publish the draft release
