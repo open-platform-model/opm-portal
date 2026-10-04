@@ -121,14 +121,17 @@ asked for `limitBytes`; 0030:D10 is the contract and wins. Bounds in the reader 
 | --- | --- | --- |
 | `TailLines` | 200, capped at 2000 | initial tail requested |
 | `MaxLineBytes` | 16 KiB | longer line cut, `marker: "truncated"`, `cut: <bytes>` |
-| `MaxTailBytes` | 1 MiB | tail lines (timestamp before the stream started) past it skipped; `skipped` marker with count before the first live line |
+| `MaxTailBytes` | 1 MiB | tail lines (at most `TailLines`, stamped before the stream opened, ending at the first line that is not) past it skipped; `skipped` marker with count |
 | `LinesPerSecond` / `LineBurst` | 200 / 500 | token bucket; dropped lines counted |
 | `BytesPerSecond` / `ByteBurst` | 256 KiB / 1 MiB | token bucket; dropped lines counted |
-| `Buffer` | 500 messages | recent messages a late subscriber's snapshot carries |
+| `Buffer` / `BufferBytes` | 500 messages / 1 MiB | recent messages a late subscriber's snapshot carries |
+| `MarkerDelay` | 250 ms | longest a pending marker waits when no line follows |
 
 A line longer than the cap is read in bounded chunks and the rest discarded, so a newline-free
-writer cannot grow memory. The `rate-limited` marker is emitted before the next admitted line,
-and at the end of the stream when lines were still pending.
+writer cannot grow memory. The `rate-limited` and `skipped` markers are emitted before the next
+admitted line, at the end of the stream, or after `MarkerDelay` when no line follows, so a burst
+followed by silence is still marked. The broker's resume ring is bounded by `RingBytes` (2 MiB)
+as well as `RingSize`, so a log topic cannot hold 1000 lines of 16 KiB.
 
 Wire shape (the payload of `log` and `logend` items; the read API's types will mirror it):
 
@@ -141,9 +144,11 @@ Wire shape (the payload of `log` and `logend` items; the read API's types will m
 ```
 
 End reasons: `container_stopped`, `completed` (previous output read), `upstream_closed` (EOF
-while the container still runs), `container_not_found`, `pod_not_found`, `unavailable` (the
-reader may not read, or the upstream failed). `seq` increases per activation; a snapshot and a
-later message may repeat a line, and clients drop a `seq` they have.
+while the container still runs), `container_waiting` (the container has not started),
+`container_not_found`, `pod_not_found`, `unavailable` (the reader may not read, or the upstream
+failed). `seq` increases along the producer, across reads and activations; a snapshot and a later
+message may repeat a line, and clients drop a `seq` they have. A `logend` ends one read: an
+admitted attach to an ended topic starts a new read, whose messages every subscriber receives.
 
 ### Authorization: verbs and grants
 
@@ -151,13 +156,15 @@ later message may repeat a line, and clients drop a `seq` they have.
 | --- | --- | --- |
 | `get pods/log` ns/pod | caller | topic attach, every delivery after expiry, reconnect (broker) |
 | `get pods/log` ns/pod (grant) | caller | `ReachPod` covers it before any lookup |
+| `get` the candidate ModuleInstance or ModulePackage | caller | inside `ReachPod`, before its inventory is read |
 | `get` inventory objects, `list` pods, replicasets, jobs in ns | caller | inside `ReachPod` (view rules) |
 | `get pods/log`, `get pods` ns/pod | reader | before the upstream `Pod` and `Logs` calls |
 
 ### Activation and close
 
-`Activate` starts one goroutine per topic with its own context; the release cancels it, which
-closes the upstream body, and waits for the goroutine to finish. The goroutine updates its buffer
+`Activate` starts one read goroutine per topic with the activation's context; the release cancels
+it, which closes the upstream body, and waits for the reads to finish. A new activation of the
+same topic supersedes one whose release has not run yet, so the old one publishes nothing more. The goroutine updates its buffer
 before `Publish` (producer contract). It publishes through a `Publisher` interface set after the
 broker exists (`SetPublisher`), so tests can also capture items. Portal logs carry the topic and
 an error class, never line text.
@@ -175,8 +182,9 @@ topic cap, before any review, and refused with `ErrTooManyTopics`.
   inventory is replaced or deleted, which ends the upstream stream.
 - [`ReachPod` evaluates every candidate inventory] → one evaluation per attach, from held state;
   label candidates are usually one.
-- [Tail/live split uses timestamps] → a node clock skewed ahead classifies tail lines as live;
-  the cost is that the skip cap is not applied, never lost data beyond the rate bound.
+- [Tail/live split uses timestamps] → a node clock skewed ahead classifies tail lines as live
+  (rate-bounded, marked `rate-limited`); one behind classifies early live lines as tail, at most
+  `TailLines` of them (tail-bounded, marked `skipped`). Every line stays bounded and counted.
 - [Mux and Admitter touch `internal/stream`, which P7 also consumes] → both are additive; a
   producer that implements neither behaves as before.
 

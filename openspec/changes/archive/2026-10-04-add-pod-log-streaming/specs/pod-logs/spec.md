@@ -64,10 +64,14 @@ Source: 0030:D10:R2.
 The portal SHALL follow a container's log with timestamps and a capped initial tail, and SHALL
 NOT use the API server's byte limit. A line longer than the line cap SHALL be cut and marked
 `truncated` with the number of bytes cut. Lines beyond the per-topic line rate or byte rate SHALL
-be dropped, and the next delivered message SHALL be a `rate-limited` marker carrying how many
-lines were dropped. An initial tail larger than the tail byte cap SHALL skip ahead to live output,
-announced by a `skipped` marker carrying how many lines were skipped. A stream SHALL never end
-because of a byte limit. Log lines SHALL NOT appear in the portal's own logs. Source:
+be dropped, and a `rate-limited` marker carrying how many lines were dropped SHALL precede the next
+delivered line, or SHALL be sent within a short delay when no line follows. The initial tail SHALL
+be at most the requested tail lines, ending at the first line stamped after the stream opened. An
+initial tail larger than the tail byte cap SHALL skip ahead to live output, announced the same way
+by a `skipped` marker carrying how many lines were skipped. A stream SHALL never end because of a
+byte limit. The stamps are the node's clock and the stream's opening is the portal's, so clock skew
+can count a tail line as live or an early live line as tail; either way the line SHALL stay bounded
+and, when dropped, counted. Log lines SHALL NOT appear in the portal's own logs. Source:
 0030:D10:R3.
 
 #### Scenario: An oversize line
@@ -82,6 +86,11 @@ because of a byte limit. Log lines SHALL NOT appear in the portal's own logs. So
 - **THEN** the excess lines are dropped
 - **AND** a `rate-limited` marker with the number dropped precedes the next delivered line
 
+#### Scenario: A burst followed by silence
+
+- **WHEN** a container writes lines faster than the per-topic rate and then writes nothing
+- **THEN** a `rate-limited` marker with the number dropped is delivered within the marker delay
+
 #### Scenario: A large initial tail
 
 - **WHEN** the initial tail holds more bytes than the tail cap
@@ -95,7 +104,8 @@ containers or ephemeral containers; a container the Pod does not have SHALL end 
 `logend` message whose reason says so. The `previous` form SHALL read the last terminated
 instance of the container once, without following, so a crash-looping container's last output
 can be read. When the followed container stops, or the previous output has been read, the topic
-SHALL deliver a `logend` message with its reason. Source: 0030:D10:R4.
+SHALL deliver a `logend` message with its reason. A live topic for a container that has not started
+yet SHALL end with a `logend` whose reason says it is waiting, distinct from a read failure. Source: 0030:D10:R4.
 
 #### Scenario: A container that stops
 
@@ -112,13 +122,21 @@ SHALL deliver a `logend` message with its reason. Source: 0030:D10:R4.
 - **WHEN** a caller follows a log topic naming a container the Pod does not have
 - **THEN** the topic delivers a `logend` message whose reason is that the container was not found
 
+#### Scenario: A container that has not started
+
+- **WHEN** a caller follows a log topic for a container still waiting to start
+- **THEN** the topic delivers a `logend` message whose reason is `container_waiting`
+
 ### Requirement: One upstream stream per log topic, closed with its last subscriber
 
 All subscribers of one log topic SHALL share one upstream log stream. The upstream stream SHALL be
 closed when the topic's last subscriber leaves, whether by detaching the topic, a denial, or the
 stream ending. A subscriber that joins a topic already streaming SHALL receive the recent lines in
-its snapshot; each log message SHALL carry a sequence number so a client can discard a line it
-received both in a snapshot and as a later message.
+its snapshot, bounded by count and by bytes; each log message SHALL carry a sequence number,
+increasing along the topic, so a client can discard a line it received both in a snapshot and as a
+later message. A subscriber that attaches to a topic whose read has ended, while others still hold
+it, SHALL start a new read with a fresh tail, which every subscriber of the topic receives after
+the earlier `logend`.
 
 #### Scenario: Two tabs, one upstream
 
@@ -129,3 +147,9 @@ received both in a snapshot and as a later message.
 
 - **WHEN** the only subscriber detaches a log topic
 - **THEN** the upstream log stream is closed
+
+#### Scenario: Following again after the end
+
+- **WHEN** two sessions follow a log topic, its read ends with a `logend`, and one of them detaches
+  and follows the topic again
+- **THEN** a new upstream log stream opens and both sessions receive its lines
