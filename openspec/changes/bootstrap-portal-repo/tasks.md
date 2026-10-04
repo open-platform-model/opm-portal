@@ -1,10 +1,10 @@
 ## 1. Go module, version binary and task gates
 
-- [ ] 1.1 Add `go.mod` (`module github.com/open-platform-model/opm-portal`, `go 1.26.0`, no requirements) and verify `go mod tidy` leaves it unchanged
-- [ ] 1.2 Add `internal/version` (`Version` constant annotated `x-release-please-version`, `Full()`) with tests for the semver shape, the annotation line and the `+g` suffix; verify `go test ./internal/version` passes
-- [ ] 1.3 Add `cmd/opm-portal` (no args, `version`, `--version` print `opm-portal v<version>`, exit 0; anything else prints usage to stderr, exit 2) with a table test; verify `go run ./cmd/opm-portal` prints the line
-- [ ] 1.4 Add `Taskfile.yml` (`build`, `run`, `fmt`, `vet`, `lint`, `lint:fix`, `test`, `tidy`, `clean`, `openspec:install`, `openspec:check`, `deps:release-check`, `check`), `.golangci.yml` (cli rules), `.gitignore` (with `.claude/worktrees/`, `/bin`, `/dist`); verify `task build` writes `bin/opm-portal`
-- [ ] 1.5 `task check` green, then commit `chore(build): add the Go module, version binary and task gates`
+- [x] 1.1 Add `go.mod` (`module github.com/open-platform-model/opm-portal`, `go 1.26.0`, no requirements) and verify `go mod tidy` leaves it unchanged
+- [x] 1.2 Add `internal/version` (`Version` constant annotated `x-release-please-version`, `Full()`) with tests for the semver shape, the annotation line and the `+g` suffix; verify `go test ./internal/version` passes
+- [x] 1.3 Add `cmd/opm-portal` (no args, `version`, `--version` print `opm-portal v<version>`, exit 0; anything else prints usage to stderr, exit 2) with a table test; verify `go run ./cmd/opm-portal` prints the line
+- [x] 1.4 Add `Taskfile.yml` (`build`, `run`, `fmt`, `vet`, `lint`, `lint:fix`, `test`, `tidy`, `clean`, `openspec:install`, `openspec:check`, `check`), `.golangci.yml` (cli rules), `.gitignore` (with `.claude/worktrees/`, `/bin`, `/dist`); verify `task build` writes `bin/opm-portal`
+- [x] 1.5 `task check` green, then commit `chore(build): add the Go module, version binary and task gates`
 
 ## 2. Repository guides
 
@@ -16,7 +16,7 @@
 
 ## 3. Pull request checks
 
-- [ ] 3.1 Add `hack/release-pin-check.sh` (G1 without the operator's `cue.mod` clauses) behind `task deps:release-check`; verify it prints `release-pin-check: ok` on this tree and fails on a scratch copy whose `go.mod` has a `replace`
+- [ ] 3.1 Add `hack/release-pin-check.sh` (G1 without the operator's `cue.mod` clauses) behind a new `task deps:release-check`; verify it prints `release-pin-check: ok` on this tree and fails on a scratch copy whose `go.mod` has a `replace`
 - [ ] 3.2 Add `.github/workflows/lint.yml` (job `name: Lint`: G1 on `release-please--*` heads, `task openspec:check`, golangci-lint v2.11.3) and `.github/workflows/test.yml` (job `name: Test`, `task test`); verify no other job is named `Lint`
 - [ ] 3.3 Add `.github/workflows/pr-title.yml` copied from the cli and `.github/dependabot.yml` from opm-operator (ignoring `github.com/open-platform-model/*` and docs-kit)
 - [ ] 3.4 `actionlint` and `task check` green, then commit `ci: add the Lint, Test and PR-title checks`
