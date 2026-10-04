@@ -8,7 +8,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/authz"
 )
 
-var instancesGVR = InstancesResource
+var instancesGVR = InstancesResource()
 
 func TestItemValidate(t *testing.T) {
 	read := authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: "apps", Name: "blog"}

@@ -325,7 +325,7 @@ func isListRead(t Topic, attrs []authz.Attributes) bool {
 		return false
 	}
 	a := attrs[0]
-	return a.Verb == verbList && a.Resource == InstancesResource &&
+	return a.Verb == verbList && a.Resource == InstancesResource() &&
 		a.Subresource == "" && a.Name == "" && a.Namespace == t.Namespace()
 }
 

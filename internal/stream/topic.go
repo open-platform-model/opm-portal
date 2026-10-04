@@ -33,9 +33,13 @@ const (
 	KindLog Kind = "log"
 )
 
-// InstancesResource is the resource a list topic lists: a producer names
-// list on it, and nothing else, for "instances" and "instances:<ns>".
-var InstancesResource = schema.GroupVersionResource{Group: "opmodel.dev", Version: "v1alpha1", Resource: "moduleinstances"}
+// InstancesResource returns the resource a list topic lists: a producer
+// names list on it, and nothing else, for "instances" and "instances:<ns>".
+// It is a function so no importer can change what the broker serves a list
+// topic under.
+func InstancesResource() schema.GroupVersionResource {
+	return schema.GroupVersionResource{Group: "opmodel.dev", Version: "v1alpha1", Resource: "moduleinstances"}
+}
 
 // maxTopicLen bounds a topic name, well above the longest valid one an
 // object reference can produce.
