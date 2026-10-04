@@ -261,16 +261,25 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 // payload gates one item for the stream's identity and renders it. It
 // returns nil data for an item the reader may not see, or a closing code
 // when the decision or the render failed.
+//
+// An item the topic's grants cover needs no review. On a list topic nothing
+// else is delivered and nothing is reviewed: a list carries only the items
+// within the scope of its list grant, as a GET list does (0030:D7:R2), so
+// no review per item is sent and none can fail. On an object topic an item
+// that reveals another read is reviewed on its own.
 func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data json.RawMessage, code string) {
 	b, who := s.b, s.st.who
 	if !s.coveredByTopic(sub, it.Attrs) {
-		switch code := s.itemCode(ctx, it.Attrs); code {
-		case "":
-		case CodeForbidden:
+		if sub.topic.Kind() == KindInstances {
+			b.log.Warn("dropping a list item outside the topic's list read", "topic", sub.topic.String())
+			return nil, ""
+		}
+		if _, err := b.az.Check(ctx, who, it.Attrs); err != nil {
+			if code := closeCode(err); code != CodeForbidden {
+				return nil, code
+			}
 			// Forbidden items are left out without a trace (0030:D7:R2).
 			return nil, ""
-		default:
-			return nil, code
 		}
 	}
 	if it.Render == nil {
@@ -282,30 +291,6 @@ func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data
 		return nil, CodeUpstreamUnavailable
 	}
 	return data, ""
-}
-
-// itemCode decides one item's read for the stream's identity the way the
-// read model decides a read inside a view: for the whole namespace first,
-// which one cached decision answers for every item there, then for the
-// exact name, because RBAC may grant single names. It returns "" when the
-// read is allowed, or the closing code of the denial.
-func (s *Stream) itemCode(ctx context.Context, req authz.Attributes) string {
-	b, who := s.b, s.st.who
-	if req.Name != "" {
-		wide := req
-		wide.Name = ""
-		_, err := b.az.Check(ctx, who, wide)
-		if err == nil {
-			return ""
-		}
-		if code := closeCode(err); code != CodeForbidden {
-			return code
-		}
-	}
-	if _, err := b.az.Check(ctx, who, req); err != nil {
-		return closeCode(err)
-	}
-	return ""
 }
 
 func (s *Stream) coveredByTopic(sub *subscription, req authz.Attributes) bool {

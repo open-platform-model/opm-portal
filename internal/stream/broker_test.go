@@ -12,6 +12,8 @@ import (
 	"time"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
+
+	"github.com/open-platform-model/opm-portal/internal/authz"
 )
 
 // seqOf returns the sequence an event id carries.
@@ -195,55 +197,75 @@ func TestActivateAndReleaseAreRefcounted(t *testing.T) {
 	})
 }
 
-func TestSubscriberReceivesOnlyWhatItMayRead(t *testing.T) {
+// A list topic follows the read model's list rule: it needs the list grant a
+// GET list needs, cluster-wide for "instances" and on the namespace for
+// "instances:<ns>", and carries only the items within that grant's scope,
+// with no review per item (0030:D7:R2).
+func TestAListTopicFollowsTheListGrant(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice", "bob")
-		// alice may read instances in team-a only, and holds no
-		// cluster-wide list: the cluster-wide topic still attaches for her,
-		// filtered per item (0030:D7:R2, 0030:D5:R5).
-		var askedWide bool
+		// alice may list instances in team-a only.
 		e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
-			if a.Namespace == "" {
-				askedWide = true
-			}
-			return a.Namespace == "team-a" && a.Verb == "get", nil
+			return a.Namespace == "team-a" && a.Verb == "list", nil
 		})
 		e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
 		all := mustTopic(t, "instances")
-		e.prod.upsert(t, all, instItem("team-a", "one", 1))
-		e.prod.upsert(t, all, instItem("team-b", "two", 1))
+		teamA := mustTopic(t, "instances:team-a")
+		for _, tp := range []Topic{all, teamA} {
+			e.prod.upsert(t, tp, listItem("team-a", "one", 1))
+		}
+		e.prod.upsert(t, all, listItem("team-b", "two", 1))
 
-		a := e.open(session("alice"), "instances")
+		a := e.open(session("alice"), "instances", "instances:team-a")
+		if n := e.policy.count(); n != 2 {
+			t.Errorf("%d reviews for alice's two topics, want 2", n)
+		}
 		b := e.open(session("bob"), "instances")
-		e.prod.upsert(t, all, instItem("team-b", "two", 2))
-		e.prod.upsert(t, all, instItem("team-a", "one", 2))
-		e.prod.upsert(t, all, instItem("team-b", "three", 1))
+		for i := 2; i <= 50; i++ {
+			e.prod.upsert(t, all, listItem("team-b", "two", i))
+			e.prod.upsert(t, all, listItem("team-a", "one", i))
+			e.prod.upsert(t, teamA, listItem("team-a", "one", i))
+		}
+		// A producer that strays outside the topic's namespace is not
+		// trusted: the item is left out, and still nothing is reviewed.
+		e.prod.upsert(t, teamA, listItem("team-b", "two", 51))
 		synctest.Wait()
 
-		var aliceSaw, bobSaw []string
-		for _, ev := range a.rec.take() {
-			switch ev.Event {
-			case EventSnapshot, EventUpsert:
-				aliceSaw = append(aliceSaw, ev.names(t)...)
-			case EventClosed:
-				t.Errorf("alice's topic closed: %s", ev.Data)
-			}
+		// Only the topic decisions (alice's two, bob's one) were asked,
+		// however many items went out.
+		if n := e.policy.count(); n != 3 {
+			t.Errorf("%d reviews sent, want 3 (one per topic, none per item)", n)
 		}
-		if askedWide {
-			t.Error("alice was asked for a cluster-wide read")
+		aliceSaw, closed := delivered(t, a.rec.take())
+		// The same denial a GET list of every namespace gives her.
+		if want := []string{"instances " + string(authz.CodeForbidden)}; !slices.Equal(closed, want) {
+			t.Errorf("alice's closings = %v, want %v", closed, want)
 		}
-		for _, ev := range b.rec.take() {
-			if ev.Event == EventSnapshot || ev.Event == EventUpsert {
-				bobSaw = append(bobSaw, ev.names(t)...)
-			}
+		if want := slices.Repeat([]string{"instances:team-a team-a/one"}, 50); !slices.Equal(aliceSaw, want) {
+			t.Errorf("alice saw %v, want team-a/one 50 times on instances:team-a", aliceSaw)
 		}
-		if want := []string{"team-a/one", "team-a/one"}; !slices.Equal(aliceSaw, want) {
-			t.Errorf("alice saw %v, want %v", aliceSaw, want)
-		}
-		if want := []string{"team-a/one", "team-b/two", "team-b/two", "team-a/one", "team-b/three"}; !slices.Equal(bobSaw, want) {
-			t.Errorf("bob saw %v, want %v", bobSaw, want)
+		bobSaw, _ := delivered(t, b.rec.take())
+		if want := 2 + 2*49; len(bobSaw) != want {
+			t.Errorf("bob saw %d items, want %d", len(bobSaw), want)
 		}
 	})
+}
+
+// delivered splits evs into the items delivered, as "topic ns/name", and the
+// closings, as "topic code".
+func delivered(t *testing.T, evs []sse) (items, closed []string) {
+	t.Helper()
+	for _, ev := range evs {
+		switch ev.Event {
+		case EventSnapshot, EventUpsert:
+			for _, n := range ev.names(t) {
+				items = append(items, ev.topic()+" "+n)
+			}
+		case EventClosed:
+			closed = append(closed, ev.topic()+" "+ev.code())
+		}
+	}
+	return items, closed
 }
 
 func TestAForbiddenTopicIsClosedNotServed(t *testing.T) {
@@ -345,19 +367,23 @@ func TestAnAuthorizationErrorDeliversNothing(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			e := newEnv(t, Options{}, "alice")
 			e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
-				if a.Namespace == "team-b" {
+				if a.Resource == "pods" {
 					return false, errors.New("webhook timed out")
 				}
 				return true, nil
 			})
-			all := mustTopic(t, "instances")
-			sv := e.open(session("alice"), "instances")
+			one := mustTopic(t, "instance:team-a/one")
+			sv := e.open(session("alice"), "instance:team-a/one")
 			sv.rec.take()
-			e.prod.upsert(t, all, instItem("team-b", "two", 1))
-			e.prod.upsert(t, all, instItem("team-a", "one", 1))
+			// An item on an object topic that reveals another read is
+			// reviewed on its own.
+			pod := instItem("team-a", "one", 1)
+			pod.Attrs = authz.Attributes{Verb: "get", Resource: podsGVR, Namespace: "team-a", Name: "one-0"}
+			e.prod.upsert(t, one, pod)
+			e.prod.upsert(t, one, instItem("team-a", "one", 2))
 			synctest.Wait()
 			evs := sv.rec.take()
-			if got := eventNames(evs); !slices.Equal(got, []string{"closed(instances)"}) || evs[0].code() != CodeUpstreamUnavailable {
+			if got := eventNames(evs); !slices.Equal(got, []string{"closed(instance:team-a/one)"}) || evs[0].code() != CodeUpstreamUnavailable {
 				t.Errorf("events = %v", got)
 			}
 		})
@@ -431,17 +457,19 @@ func TestEventIDsRevealNothingPublishedElsewhere(t *testing.T) {
 		e.policy.set("alice", allowNamespaces("team-a"))
 		e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
 		all := mustTopic(t, "instances")
+		teamA := mustTopic(t, "instances:team-a")
 		other := mustTopic(t, "instance:team-b/two")
-		e.prod.upsert(t, all, instItem("team-b", "two", 1))
+		e.prod.upsert(t, all, listItem("team-b", "two", 1))
 
-		a := e.open(session("alice"), "instances")
+		a := e.open(session("alice"), "instances:team-a")
 		e.open(session("bob"), "instances", "instance:team-b/two")
 		e.open(session("bob"), "platform")
-		e.prod.upsert(t, all, instItem("team-b", "two", 2))
+		e.prod.upsert(t, all, listItem("team-b", "two", 2))
 		e.prod.upsert(t, other, instItem("team-b", "two", 2))
-		e.prod.upsert(t, all, instItem("team-a", "one", 1))
-		e.prod.upsert(t, all, instItem("team-b", "two", 3))
-		e.prod.upsert(t, all, instItem("team-a", "one", 2))
+		e.prod.upsert(t, teamA, listItem("team-a", "one", 1))
+		e.prod.upsert(t, teamA, listItem("team-b", "two", 3)) // left out
+		e.prod.upsert(t, all, listItem("team-b", "two", 3))
+		e.prod.upsert(t, teamA, listItem("team-a", "one", 2))
 		synctest.Wait()
 
 		var ids []uint64
@@ -485,47 +513,47 @@ func TestTheCapIsCheckedBeforeTheProducerIsAsked(t *testing.T) {
 		if _, err := e.b.Open(context.Background(), session("alice"), three, ""); !errors.Is(err, ErrTooManyTopics) {
 			t.Fatalf("three topics: %v", err)
 		}
-		if e.prod.accessCalls != 0 {
-			t.Errorf("Access called %d times for a refused request", e.prod.accessCalls)
+		if e.prod.attributeCalls != 0 {
+			t.Errorf("Attributes called %d times for a refused request", e.prod.attributeCalls)
 		}
 	})
 }
 
-// A reader allowed single instances by name, and not their namespace, sees
-// exactly those on a list topic: the namespace is asked first, then the
-// name, as the read model does.
-func TestAListTopicHonoursGrantsByName(t *testing.T) {
+// A reader allowed single instances by name, and not the list of their
+// namespace, is refused the list topic as a GET list refuses it: names are
+// not asked one by one (0030:D7:R2).
+func TestAListTopicIsRefusedWithoutTheListGrant(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice")
 		e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
 			return a.Namespace == "team-b" && a.Name == "two", nil
 		})
 		ns := mustTopic(t, "instances:team-b")
-		e.prod.upsert(t, ns, instItem("team-b", "one", 1))
-		e.prod.upsert(t, ns, instItem("team-b", "two", 1))
+		e.prod.upsert(t, ns, listItem("team-b", "one", 1))
+		e.prod.upsert(t, ns, listItem("team-b", "two", 1))
 		sv := e.open(session("alice"), "instances:team-b")
-		e.prod.upsert(t, ns, instItem("team-b", "one", 2))
-		e.prod.upsert(t, ns, instItem("team-b", "two", 2))
+		e.prod.upsert(t, ns, listItem("team-b", "two", 2))
 		synctest.Wait()
-		var saw []string
-		for _, ev := range sv.rec.take() {
-			if ev.Event == EventSnapshot || ev.Event == EventUpsert {
-				saw = append(saw, ev.names(t)...)
-			}
+		evs := sv.rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "closed(instances:team-b)"}) || evs[1].code() != CodeForbidden {
+			t.Errorf("events = %v %+v", got, evs)
 		}
-		if want := []string{"team-b/two", "team-b/two"}; !slices.Equal(saw, want) {
-			t.Errorf("alice saw %v, want %v", saw, want)
+		if n := e.policy.count(); n != 1 {
+			t.Errorf("%d reviews sent, want 1 (the topic's list read)", n)
+		}
+		if act, _ := e.prod.counts(ns); act != 0 {
+			t.Errorf("the refused topic was activated %d times", act)
 		}
 	})
 }
 
-// A list topic needs no topic-wide read, so an identity the authorizer does
-// not serve is told on its first item, not left with an empty list.
+// An identity the authorizer does not serve is refused a list topic when it
+// asks for it, as it is refused a GET list.
 func TestAListTopicClosesForAnIdentityTheAuthorizerDoesNotServe(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice")
 		all := mustTopic(t, "instances")
-		e.prod.upsert(t, all, instItem("apps", "blog", 1))
+		e.prod.upsert(t, all, listItem("apps", "blog", 1))
 		evs := e.open(session("carol"), "instances").rec.take()
 		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "closed(instances)"}) || evs[1].code() != CodeUnauthenticated {
 			t.Errorf("events = %v %+v", got, evs)

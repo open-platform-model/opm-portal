@@ -51,29 +51,15 @@ const (
 	CodeUpstreamUnavailable = "upstream_unavailable"
 )
 
-// TopicAccess is what a subscriber must be allowed to follow a topic.
-// Exactly one of its fields is set; anything else is treated as a topic the
-// producer does not serve, so a topic is never attached unchecked.
-type TopicAccess struct {
-	// Reads are the reads a subscriber must be allowed before the topic
-	// attaches, such as get on the one instance an instance topic shows.
-	Reads []authz.Attributes
-	// PerItem marks a list topic that attaches without a topic-wide read:
-	// every item is authorized for the subscriber on its own, so a reader
-	// allowed only part of the list follows the topic and receives only
-	// that part, with no count of the rest, as a GET list serves it
-	// (0030:D7:R2, 0030:D5:R5).
-	PerItem bool
-}
-
-func (a TopicAccess) valid() bool { return (len(a.Reads) > 0) != a.PerItem }
-
 // Producer is the read model's side of the broker. See the package
 // documentation for the contract it must keep.
 type Producer interface {
-	// Access returns what a subscriber must be allowed to follow t. ok is
-	// false when the producer does not serve t.
-	Access(t Topic) (access TopicAccess, ok bool)
+	// Attributes returns the reads a subscriber must be allowed before t
+	// attaches, such as get on the one instance an instance topic shows, or
+	// list in the topic's scope for a list topic. ok is false when the
+	// producer does not serve t; an empty slice is treated the same way, so
+	// a topic is never attached unchecked.
+	Attributes(t Topic) (attrs []authz.Attributes, ok bool)
 	// Snapshot returns t's current items. The broker gates each one per
 	// subscriber.
 	Snapshot(ctx context.Context, t Topic) ([]Item, error)
@@ -293,7 +279,7 @@ func (b *Broker) enqueueLocked(st *streamState, e entry) []func() {
 }
 
 // checkTopics refuses what can never attach and returns each topic's
-// topic-wide reads, deduplicated in request order. The cap is checked before the
+// attributes, deduplicated in request order. The cap is checked before the
 // producer is asked about any topic.
 func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attributes, error) {
 	out := make([]Topic, 0, len(topics))
@@ -313,13 +299,11 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 		if t.Kind() == KindLog {
 			return nil, nil, fmt.Errorf("%w: %s (log topics are not served yet)", ErrTopicNotServed, t)
 		}
-		a, ok := b.producer.Access(t)
-		if !ok || !a.valid() {
+		a, ok := b.producer.Attributes(t)
+		if !ok || len(a) == 0 {
 			return nil, nil, fmt.Errorf("%w: %s", ErrTopicNotServed, t)
 		}
-		// A per-item topic has no topic-wide read: it attaches unconditionally
-		// and every item is authorized on delivery.
-		attrs[t] = a.Reads
+		attrs[t] = a
 	}
 	return out, attrs, nil
 }
@@ -657,8 +641,6 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 	return activate
 }
 
-// activate asks the producer to start each topic and records its release.
-// A topic dropped before its activation is recorded is released at once.
 // pendLocked records that st's client must be told topic closed with code,
 // replacing an older closing of the same topic, and returns the entry to
 // queue.
@@ -686,6 +668,8 @@ func heldLocked(st *streamState, asked []Topic) int {
 	return n
 }
 
+// activate asks the producer to start each topic and records its release.
+// A topic dropped before its activation is recorded is released at once.
 func (b *Broker) activate(topics []Topic) {
 	for _, t := range topics {
 		release := b.producer.Activate(t)

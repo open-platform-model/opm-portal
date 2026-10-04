@@ -23,7 +23,8 @@ const (
 // Item is one change on a topic, or one entry of a snapshot.
 //
 // Attrs is the read the item reveals, such as get on the ModuleInstance it
-// describes. The broker delivers the item only to a subscriber allowed that
+// describes on an instance topic, or list of the instance's namespace on a
+// list topic. The broker delivers the item only to a subscriber allowed that
 // read. The payload is Data when it reads the same for every allowed
 // subscriber, or Render when it depends on the reader (for example a health
 // roll-up that is partial for a reader who cannot see every object). Exactly

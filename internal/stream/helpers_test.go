@@ -27,6 +27,7 @@ var (
 	packagesGVR  = schema.GroupVersionResource{Group: "opmodel.dev", Version: "v1alpha1", Resource: "modulepackages"}
 	regsGVR      = schema.GroupVersionResource{Group: "opmodel.dev", Version: "v1alpha1", Resource: "transformerregistrations"}
 	eventsGVR    = schema.GroupVersionResource{Group: "events.k8s.io", Version: "v1", Resource: "events"}
+	podsGVR      = schema.GroupVersionResource{Version: "v1", Resource: "pods"}
 )
 
 func user(name string) authz.Identity {
@@ -136,8 +137,8 @@ type fakeProducer struct {
 	// snapshotWait runs inside Snapshot with its context, before the state
 	// is read.
 	snapshotWait func(ctx context.Context)
-	// accessCalls counts Access calls.
-	accessCalls int
+	// attributeCalls counts Attributes calls.
+	attributeCalls int
 }
 
 func newFakeProducer() *fakeProducer {
@@ -148,22 +149,21 @@ func newFakeProducer() *fakeProducer {
 	}
 }
 
-func (p *fakeProducer) Access(t Topic) (TopicAccess, bool) {
+func (p *fakeProducer) Attributes(t Topic) ([]authz.Attributes, bool) {
 	p.mu.Lock()
-	p.accessCalls++
+	p.attributeCalls++
 	p.mu.Unlock()
-	if t.Kind() == KindInstances {
-		// Instance lists are authorized per item, as GET lists are.
-		return TopicAccess{PerItem: true}, true
-	}
-	reads, ok := p.reads(t)
-	return TopicAccess{Reads: reads}, ok
+	return p.reads(t)
 }
 
 func (p *fakeProducer) reads(t Topic) ([]authz.Attributes, bool) {
 	switch t.Kind() {
 	case KindPlatform:
 		return []authz.Attributes{{Verb: "get", Resource: platformsGVR, Name: "cluster"}}, true
+	case KindInstances:
+		// A list topic needs the list grant a GET list needs: cluster-wide
+		// for "instances", on the namespace for "instances:<ns>".
+		return []authz.Attributes{{Verb: "list", Resource: instancesGVR, Namespace: t.Namespace()}}, true
 	case KindInstance:
 		return []authz.Attributes{{Verb: "get", Resource: instancesGVR, Namespace: t.Namespace(), Name: t.Name()}}, true
 	case KindPackage:
@@ -174,8 +174,8 @@ func (p *fakeProducer) reads(t Topic) ([]authz.Attributes, bool) {
 		ref, _ := t.Ref()
 		attrs, _ := p.reads(ref)
 		return append(attrs, authz.Attributes{Verb: "list", Resource: eventsGVR, Namespace: ref.Namespace()}), true
-	case KindInstances, KindLog:
-		// Lists are per item (Access); logs are not served.
+	case KindLog:
+		// Logs are not served.
 	}
 	return nil, false
 }
@@ -231,7 +231,7 @@ func (p *fakeProducer) upsert(t *testing.T, topic Topic, it Item) {
 	if p.state[topic] == nil {
 		p.state[topic] = map[string]Item{}
 	}
-	p.state[topic][it.Attrs.Namespace+"/"+it.Attrs.Name] = it
+	p.state[topic][itemKey(it)] = it
 	b := p.b
 	p.mu.Unlock()
 	if b != nil {
@@ -239,6 +239,16 @@ func (p *fakeProducer) upsert(t *testing.T, topic Topic, it Item) {
 			t.Fatal(err)
 		}
 	}
+}
+
+// itemKey names the object an item describes: from its payload when it
+// carries one (a list item's read names no object), else from its read.
+func itemKey(it Item) string {
+	var obj struct{ Name, Namespace string }
+	if it.Data != nil && json.Unmarshal(it.Data, &obj) == nil && obj.Name != "" {
+		return obj.Namespace + "/" + obj.Name
+	}
+	return it.Attrs.Namespace + "/" + it.Attrs.Name
 }
 
 func sortedKeys(m map[string]Item) []string { return slices.Sorted(maps.Keys(m)) }
@@ -250,6 +260,15 @@ func instItem(ns, name string, v int) Item {
 		Attrs: authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: ns, Name: name},
 		Data:  json.RawMessage(fmt.Sprintf(`{"name": %q, "namespace": %q, "v": %d}`, name, ns, v)),
 	}
+}
+
+// listItem is an upsert of instance ns/name at version v on a list topic:
+// the read it reveals is the list of its namespace, which the topic's list
+// grant covers.
+func listItem(ns, name string, v int) Item {
+	it := instItem(ns, name, v)
+	it.Attrs = authz.Attributes{Verb: "list", Resource: instancesGVR, Namespace: ns}
+	return it
 }
 
 func mustTopic(t *testing.T, s string) Topic {
