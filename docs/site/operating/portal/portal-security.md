@@ -22,7 +22,7 @@ Local mode listens on the loopback address only and refuses to start on any othe
 
 ### Other web pages cannot use it
 
-A web page you visit in the same browser can send requests to a loopback address. Two checks stop it from reading the cluster through the portal. The portal refuses every request whose `Host` header names anything other than its own loopback address and port, which defeats DNS rebinding, where an attacker's domain is made to resolve to `127.0.0.1`. And the portal answers only `GET`, never sets a permissive cross-origin header, and serves its pages under a strict Content-Security-Policy with no inline script, so another site's page can neither read its responses nor run script in its pages.
+A web page you visit in the same browser can send requests to a loopback address. Two defences stop it from reading the cluster through the portal. The portal refuses every request whose `Host` header names anything other than its own loopback address and port, which defeats DNS rebinding, where an attacker's domain is made to resolve to `127.0.0.1`. And the portal answers only `GET`, never sets a permissive cross-origin header, and serves its pages under a strict Content-Security-Policy with no inline script, so another site's page can neither read its responses nor run script in its pages.
 
 ### Every read is checked before it is made
 
