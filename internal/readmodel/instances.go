@@ -55,6 +55,18 @@ func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant,
 	}, nil
 }
 
+// InstanceExists reports whether the Model holds ModuleInstance
+// namespace/name, without evaluating it. g must cover get moduleinstances
+// namespace/name; a missing instance is the same not-found error Instance
+// returns.
+func (m *Model) InstanceExists(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string) error {
+	if err := covers(who, g, "get", moduleInstances, namespace, name); err != nil {
+		return err
+	}
+	_, err := m.getHeld(ctx, moduleInstances, namespace, name)
+	return err
+}
+
 func instanceItem(u *unstructured.Unstructured) InstanceItem {
 	return InstanceItem{
 		Ref:            refOf(u),

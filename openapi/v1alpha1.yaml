@@ -1,0 +1,1138 @@
+openapi: 3.1.0
+info:
+  title: OPM Portal read API
+  version: v1alpha1
+  description: |
+    The read API of the OPM Portal: what an OPM cluster runs, from the Platform down to Pods,
+    as JSON documents and a server-sent-events change stream. Read-only; every method is GET.
+
+    Every request is authorized for the caller before anything is looked up. A caller who may
+    not make a read receives the same forbidden problem whether or not the object exists. A
+    list the caller may not read is empty and says so in its access field, with no count.
+
+    Contract within v1alpha1: fields and enumerated values are only ever added. Clients ignore
+    fields they do not know and treat every enumerated string (x-extensible-enum) as open,
+    showing an unknown value as unknown.
+
+    Never served: an instance's or package's spec.values, Secret data, and the
+    kubectl.kubernetes.io/last-applied-configuration annotation. Values rendered into
+    non-Secret objects, such as a ConfigMap or a container's environment, stay readable to
+    anyone who may read those objects, here as in kubectl.
+
+    Messages are verbatim: condition and history messages and event notes are served exactly
+    as the operator and the API server wrote them. Whether the operator redacts secret values
+    from them is not yet settled. In local mode the portal shows nothing the caller's own
+    kubeconfig could not read with kubectl.
+
+    Errors are RFC 9457 problem documents (application/problem+json) with a code.
+servers:
+  - url: /api/v1alpha1
+paths:
+  /clusters/{cluster}/instances:
+    get:
+      operationId: listInstances
+      summary: The ModuleInstances the caller may list
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespaceScope'
+      responses:
+        '200':
+          description: The instances, each with its reconcile state and health.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/instances/{namespace}/{name}:
+    get:
+      operationId: getInstance
+      summary: One ModuleInstance with its inventory
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+      responses:
+        '200':
+          description: The instance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instance'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/instances/{namespace}/{name}/graph:
+    get:
+      operationId: getInstanceGraph
+      summary: The relationship graph of one ModuleInstance
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/expand'
+        - $ref: '#/components/parameters/showScaledDown'
+      responses:
+        '200':
+          description: The graph.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/instances/{namespace}/{name}/events:
+    get:
+      operationId: getInstanceEvents
+      summary: Recent events about a ModuleInstance or an object it reaches
+      description: |
+        Without object parameters, the events about the instance. With them, the events about
+        that object, which must be in the instance's inventory or a ReplicaSet, Pod or Job below
+        an inventory object; any other object is refused with the forbidden problem.
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/objectGroup'
+        - $ref: '#/components/parameters/objectKind'
+        - $ref: '#/components/parameters/objectNamespace'
+        - $ref: '#/components/parameters/objectName'
+      responses:
+        '200':
+          description: The folded events, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/packages:
+    get:
+      operationId: listPackages
+      summary: The ModulePackages the caller may list
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespaceScope'
+      responses:
+        '200':
+          description: The packages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackageList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/packages/{namespace}/{name}:
+    get:
+      operationId: getPackage
+      summary: One ModulePackage with its inventory
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+      responses:
+        '200':
+          description: The package.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Package'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/packages/{namespace}/{name}/graph:
+    get:
+      operationId: getPackageGraph
+      summary: The relationship graph of one ModulePackage
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/expand'
+        - $ref: '#/components/parameters/showScaledDown'
+      responses:
+        '200':
+          description: The graph.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/packages/{namespace}/{name}/events:
+    get:
+      operationId: getPackageEvents
+      summary: Recent events about a ModulePackage or an object it reaches
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/objectGroup'
+        - $ref: '#/components/parameters/objectKind'
+        - $ref: '#/components/parameters/objectNamespace'
+        - $ref: '#/components/parameters/objectName'
+      responses:
+        '200':
+          description: The folded events, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/platform:
+    get:
+      operationId: getPlatform
+      summary: The Platform, its catalogs and registrations
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+      responses:
+        '200':
+          description: The Platform.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Platform'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/platform/graph:
+    get:
+      operationId: getPlatformGraph
+      summary: The Platform graph of catalogs, registrations and providers
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/expand'
+      responses:
+        '200':
+          description: The graph.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/platform/events:
+    get:
+      operationId: getPlatformEvents
+      summary: Recent events about the Platform
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+      responses:
+        '200':
+          description: The folded events, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/platform/registrations/{name}/events:
+    get:
+      operationId: getRegistrationEvents
+      summary: Recent events about one TransformerRegistration
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/name'
+      responses:
+        '200':
+          description: The folded events, newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/stream:
+    get:
+      operationId: stream
+      summary: A server-sent-events stream of the named topics
+      description: |
+        Topics: platform, instances, instances:<namespace>, instance:<namespace>/<name>,
+        package:<namespace>/<name>, and events:<platform | instance:... | package:... |
+        registration:<name>>. Each topic carries one document, the one its GET returns:
+        Platform, InstanceList, Instance, Package or EventList, rendered for the caller. A
+        snapshot event carries {topic, items: [document]}; upsert, delete and k8sevent events
+        carry {topic, item: document}. A delete, and a snapshot of an object that does not
+        exist, carry a Removed document. A topic the caller may not follow is closed with a
+        closed event naming a problem code. Reconnect with Last-Event-ID to resume.
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - name: topics
+          in: query
+          required: true
+          description: Comma-separated topic names.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The event stream.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        default:
+          $ref: '#/components/responses/Problem'
+components:
+  parameters:
+    cluster:
+      name: cluster
+      in: path
+      required: true
+      description: The cluster. Only default is served.
+      schema:
+        type: string
+    namespace:
+      name: namespace
+      in: path
+      required: true
+      description: A DNS-1123 label.
+      schema:
+        type: string
+    name:
+      name: name
+      in: path
+      required: true
+      description: A DNS-1123 subdomain.
+      schema:
+        type: string
+    namespaceScope:
+      name: namespace
+      in: query
+      required: false
+      description: List one namespace only. Without it the list is cluster-wide.
+      schema:
+        type: string
+    expand:
+      name: expand
+      in: query
+      required: false
+      description: The id of a group node to show expanded. Repeatable.
+      schema:
+        type: array
+        items:
+          type: string
+      style: form
+      explode: true
+    showScaledDown:
+      name: showScaledDown
+      in: query
+      required: false
+      description: Show ReplicaSets scaled to zero instead of a count on their parent.
+      schema:
+        type: boolean
+    objectGroup:
+      name: group
+      in: query
+      required: false
+      description: The API group of the object whose events to read; empty for the core group.
+      schema:
+        type: string
+    objectKind:
+      name: kind
+      in: query
+      required: false
+      description: The kind of the object whose events to read. Names an object together with name.
+      schema:
+        type: string
+    objectNamespace:
+      name: namespace
+      in: query
+      required: false
+      description: The namespace of the object whose events to read; empty for a cluster-scoped object.
+      schema:
+        type: string
+    objectName:
+      name: name
+      in: query
+      required: false
+      description: The name of the object whose events to read.
+      schema:
+        type: string
+  responses:
+    Problem:
+      description: |
+        An error: 400 bad_request, 401 unauthenticated, 403 forbidden (also for an object that
+        does not exist when the caller may not read it, and for an object the portal does not
+        serve), 404 not_found, 405 method_not_allowed, 429 too_many_streams, 503
+        not_readable_by_portal or upstream_unavailable.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    ObjectRef:
+      type: object
+      required: [kind, name]
+      properties:
+        group:
+          type: string
+        version:
+          type: string
+        kind:
+          type: string
+        namespace:
+          type: string
+        name:
+          type: string
+    Module:
+      type: object
+      required: [path]
+      properties:
+        path:
+          type: string
+        version:
+          type: string
+    Condition:
+      type: object
+      required: [type, status]
+      properties:
+        type:
+          type: string
+        status:
+          type: string
+        reason:
+          type: string
+        message:
+          description: "The operator's text, served unchanged."
+          type: string
+        lastTransitionTime:
+          type: string
+          format: date-time
+        observedGeneration:
+          type: integer
+    Reconcile:
+      type: object
+      required: [state]
+      properties:
+        state:
+          description: "The operator's applied state. Applied means every apply succeeded, never that the workload is healthy."
+          x-extensible-enum: [Applied, Reconciling, Failed, Stalled, Suspended, ManagedExternally, Unknown]
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+        since:
+          type: string
+          format: date-time
+        retrying:
+          type: boolean
+        notes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+    HealthCounts:
+      type: object
+      required: [healthy, progressing, degraded, missing, unknown, forbidden, notReadable, withheld]
+      properties:
+        healthy:
+          type: integer
+        progressing:
+          type: integer
+        degraded:
+          type: integer
+        missing:
+          type: integer
+        unknown:
+          type: integer
+        forbidden:
+          type: integer
+        notReadable:
+          type: integer
+        withheld:
+          type: integer
+    Health:
+      type: object
+      required: [state, counts, partial, live]
+      properties:
+        state:
+          description: "The portal's workload health, computed from live objects."
+          x-extensible-enum: [Healthy, Progressing, Degraded, Missing, Unknown]
+          type: string
+        counts:
+          $ref: '#/components/schemas/HealthCounts'
+        partial:
+          description: "An object could not be read and was left out of the counts."
+          type: boolean
+        evaluatedAt:
+          type: string
+          format: date-time
+        live:
+          description: "False when a counted object is refreshed by polling rather than watched."
+          type: boolean
+    ObjectHealth:
+      type: object
+      required: [state]
+      properties:
+        state:
+          x-extensible-enum: [Healthy, Progressing, Degraded, Missing, Unknown]
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+    Digests:
+      type: object
+      properties:
+        source:
+          type: string
+        config:
+          type: string
+        render:
+          type: string
+    HistoryEntry:
+      type: object
+      required: [action, sequence, inventoryCount, digests]
+      properties:
+        action:
+          type: string
+        phase:
+          type: string
+        sequence:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type: string
+          format: date-time
+        message:
+          description: "The operator's text, served unchanged."
+          type: string
+        inventoryCount:
+          type: integer
+        inventoryDigest:
+          type: string
+        digests:
+          $ref: '#/components/schemas/Digests'
+    Component:
+      type: object
+      required: [name, health, objects]
+      properties:
+        name:
+          type: string
+        health:
+          $ref: '#/components/schemas/Health'
+        objects:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryObject'
+    InventoryObject:
+      type: object
+      required: [ref, access, live]
+      properties:
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        access:
+          description: "How reading the object went for the caller."
+          x-extensible-enum: [ok, forbidden, notReadable, withheld]
+          type: string
+        health:
+          $ref: '#/components/schemas/ObjectHealth'
+        childrenUnread:
+          type: boolean
+        evaluatedAt:
+          type: string
+          format: date-time
+        live:
+          type: boolean
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuntimeChild'
+    RuntimeChild:
+      type: object
+      required: [ref, owner, health]
+      properties:
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        owner:
+          $ref: '#/components/schemas/ObjectRef'
+        health:
+          $ref: '#/components/schemas/ObjectHealth'
+        replicas:
+          type: integer
+    InstanceSummary:
+      type: object
+      required: [ref, module, owner, reconcile, health, inventoryCount]
+      properties:
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        uid:
+          type: string
+        module:
+          $ref: '#/components/schemas/Module'
+        owner:
+          description: "Who applies the instance. A cli instance is read-only to the operator and its reconcile state is ManagedExternally."
+          x-extensible-enum: [operator, cli]
+          type: string
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+        health:
+          $ref: '#/components/schemas/Health'
+        inventoryCount:
+          type: integer
+        lastAppliedAt:
+          type: string
+          format: date-time
+    InstanceList:
+      type: object
+      required: [apiVersion, kind, access, items]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        access:
+          description: "forbidden, with no items, when the caller may not list instances in the scope asked."
+          x-extensible-enum: [ok, forbidden, notReadable, withheld]
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstanceSummary'
+    Instance:
+      type: object
+      description: "One ModuleInstance. reconcile is what the operator applied; health is the portal's computation from live objects. The two are never merged. spec.values is never served."
+      required: [apiVersion, kind, ref, module, owner, reconcile, health, inventoryCount, conditions, history, lastApplied, renderContracts, components]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        uid:
+          type: string
+        module:
+          $ref: '#/components/schemas/Module'
+        owner:
+          type: string
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+        health:
+          $ref: '#/components/schemas/Health'
+        inventoryCount:
+          type: integer
+        lastAppliedAt:
+          type: string
+          format: date-time
+        serviceAccountName:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryEntry'
+        lastApplied:
+          $ref: '#/components/schemas/Digests'
+        renderContracts:
+          description: "Every contract the instance's render used, most fulfilled by the catalog itself. Not the provider contracts the instance demands."
+          type: array
+          items:
+            type: string
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/Component'
+    SourceRef:
+      type: object
+      required: [kind, name]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        namespace:
+          type: string
+        name:
+          type: string
+    PackageSummary:
+      type: object
+      required: [ref, source, reconcile, health, inventoryCount]
+      properties:
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        uid:
+          type: string
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        dependsOn:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectRef'
+        path:
+          type: string
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+        health:
+          $ref: '#/components/schemas/Health'
+        inventoryCount:
+          type: integer
+        lastAppliedAt:
+          type: string
+          format: date-time
+    PackageList:
+      type: object
+      required: [apiVersion, kind, access, items]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        access:
+          description: "forbidden, with no items, when the caller may not list packages in the scope asked."
+          x-extensible-enum: [ok, forbidden, notReadable, withheld]
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageSummary'
+    Package:
+      type: object
+      description: "One ModulePackage. spec.values is never served."
+      required: [apiVersion, kind, ref, source, reconcile, health, inventoryCount, conditions, history, lastApplied, components]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        uid:
+          type: string
+        source:
+          $ref: '#/components/schemas/SourceRef'
+        dependsOn:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectRef'
+        path:
+          type: string
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+        health:
+          $ref: '#/components/schemas/Health'
+        inventoryCount:
+          type: integer
+        lastAppliedAt:
+          type: string
+          format: date-time
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryEntry'
+        lastApplied:
+          $ref: '#/components/schemas/Digests'
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/Component'
+    Subscription:
+      type: object
+      required: [catalog]
+      properties:
+        catalog:
+          type: string
+        version:
+          type: string
+        enable:
+          type: boolean
+    Catalog:
+      type: object
+      required: [catalog, enabled, claimants]
+      properties:
+        catalog:
+          type: string
+        version:
+          type: string
+        enabled:
+          type: boolean
+        source:
+          x-extensible-enum: [Subscription, Registration]
+          type: string
+        claimants:
+          description: "The readable registrations that claim this catalog, whatever their verdict."
+          type: array
+          items:
+            type: string
+        contributedBy:
+          description: "The accepted, active registration the registry's contribution is joined to."
+          type: string
+    Registration:
+      type: object
+      required: [name, catalog, accepted, active, verdict, reconcile]
+      properties:
+        name:
+          type: string
+        catalog:
+          type: string
+        version:
+          type: string
+        provides:
+          type: array
+          items:
+            type: string
+        provider:
+          $ref: '#/components/schemas/ObjectRef'
+        accepted:
+          type: boolean
+        active:
+          type: boolean
+        verdict:
+          x-extensible-enum: [Accepted, Refused, Pending, RemovalBlocked, Unknown]
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+        activeReason:
+          type: string
+        activeMessage:
+          type: string
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+    Platform:
+      type: object
+      required: [apiVersion, kind, name, reconcile, conditions, subscriptions, catalogs, registrations, registrationsAccess]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        name:
+          type: string
+        uid:
+          type: string
+        type:
+          type: string
+        operatorVersion:
+          type: string
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+        catalogs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Catalog'
+        registrations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Registration'
+        registrationsAccess:
+          description: "Whether registrations holds every registration."
+          x-extensible-enum: [ok, forbidden, notReadable, withheld]
+          type: string
+    Event:
+      type: object
+      required: [type, reason, regarding, count]
+      properties:
+        type:
+          type: string
+        reason:
+          type: string
+        note:
+          description: "The reporting controller's text, served unchanged."
+          type: string
+        reportingController:
+          type: string
+        regarding:
+          $ref: '#/components/schemas/ObjectRef'
+        fieldPath:
+          type: string
+        count:
+          type: integer
+        lastSeen:
+          type: string
+          format: date-time
+    EventList:
+      type: object
+      description: "Recent activity about one object, newest first. Kubernetes keeps events for about an hour; this is a feed that expires, not a history, and no state is read from it."
+      required: [apiVersion, kind, regarding, items]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        regarding:
+          $ref: '#/components/schemas/ObjectRef'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+    Graph:
+      type: object
+      required: [apiVersion, kind, scope, root, layout, nodes, edges]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        scope:
+          x-extensible-enum: [instance, package, platform]
+          type: string
+        root:
+          type: string
+        layout:
+          $ref: '#/components/schemas/GraphLayout'
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+    GraphLayout:
+      type: object
+      required: [width, height, nodeWidth, nodeHeight, columns]
+      properties:
+        width:
+          type: integer
+        height:
+          type: integer
+        nodeWidth:
+          type: integer
+        nodeHeight:
+          type: integer
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphColumn'
+    GraphColumn:
+      type: object
+      required: [title, x]
+      properties:
+        title:
+          type: string
+        x:
+          type: integer
+    GraphHealth:
+      type: object
+      required: [state]
+      properties:
+        state:
+          x-extensible-enum: [Healthy, Progressing, Degraded, Missing, Unknown]
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+        partial:
+          type: boolean
+        notLive:
+          type: boolean
+        counts:
+          $ref: '#/components/schemas/HealthCounts'
+    GraphRegistration:
+      type: object
+      required: [catalog, accepted, active, verdict]
+      properties:
+        catalog:
+          type: string
+        version:
+          type: string
+        provides:
+          type: array
+          items:
+            type: string
+        accepted:
+          type: boolean
+        active:
+          type: boolean
+        verdict:
+          x-extensible-enum: [Accepted, Refused, Pending, RemovalBlocked, Unknown]
+          type: string
+        reason:
+          type: string
+        message:
+          type: string
+        activeReason:
+          type: string
+        activeMessage:
+          type: string
+    GraphCatalog:
+      type: object
+      required: [enabled]
+      properties:
+        version:
+          type: string
+        enabled:
+          type: boolean
+        source:
+          x-extensible-enum: [Subscription, Registration]
+          type: string
+    GraphPlatform:
+      type: object
+      required: [registrationsAccess]
+      properties:
+        type:
+          type: string
+        operatorVersion:
+          type: string
+        registrationsAccess:
+          x-extensible-enum: [ok, forbidden, notReadable, withheld]
+          type: string
+    GraphKindCount:
+      type: object
+      required: [kind, count]
+      properties:
+        kind:
+          type: string
+        count:
+          type: integer
+    GraphGroup:
+      type: object
+      required: [kind]
+      properties:
+        kind:
+          x-extensible-enum: [configuration, pods, more]
+          type: string
+        members:
+          type: array
+          items:
+            type: string
+        hidden:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphKindCount'
+    GraphNode:
+      type: object
+      required: [id, kind, label, column, row, x, "y"]
+      properties:
+        id:
+          description: "Stable across restarts and a delete and recreate; never holds a UID."
+          type: string
+        kind:
+          x-extensible-enum: [platform, catalog, registration, instance, package, module, source, component, object, runtime, group]
+          type: string
+        label:
+          type: string
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        access:
+          x-extensible-enum: [ok, forbidden, notReadable]
+          type: string
+        missing:
+          type: boolean
+        health:
+          $ref: '#/components/schemas/GraphHealth'
+        reconcile:
+          $ref: '#/components/schemas/Reconcile'
+        owner:
+          type: string
+        renderContracts:
+          type: array
+          items:
+            type: string
+        version:
+          type: string
+        path:
+          type: string
+        registration:
+          $ref: '#/components/schemas/GraphRegistration'
+        catalog:
+          $ref: '#/components/schemas/GraphCatalog'
+        platform:
+          $ref: '#/components/schemas/GraphPlatform'
+        group:
+          $ref: '#/components/schemas/GraphGroup'
+        memberOf:
+          type: string
+        replicas:
+          type: integer
+        childrenUnread:
+          type: boolean
+        hiddenScaledDown:
+          type: integer
+        column:
+          type: integer
+        row:
+          type: integer
+        x:
+          type: integer
+        "y":
+          type: integer
+    GraphPoint:
+      type: object
+      required: [x, "y"]
+      properties:
+        x:
+          type: integer
+        "y":
+          type: integer
+    GraphEdge:
+      type: object
+      required: [id, kind, from, to, source, route]
+      properties:
+        id:
+          type: string
+        kind:
+          x-extensible-enum: [resolves, contributes, providedBy, instantiates, sourcedFrom, dependsOn, hasComponent, owns, controls]
+          type: string
+        from:
+          type: string
+        to:
+          type: string
+        source:
+          description: "The field of a Kubernetes object the edge was drawn from."
+          type: string
+        verified:
+          type: boolean
+        reason:
+          type: string
+        route:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphPoint'
+    Removed:
+      type: object
+      description: "A followed object does not exist: it was deleted, or was not there when the stream's snapshot was taken."
+      required: [apiVersion, kind, ref]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+    Problem:
+      type: object
+      description: "An RFC 9457 problem document."
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          description: "Machine-readable error code."
+          x-extensible-enum: [unauthenticated, forbidden, not_found, bad_request, method_not_allowed, too_many_streams, not_readable_by_portal, upstream_unavailable]
+          type: string

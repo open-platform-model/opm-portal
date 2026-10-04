@@ -263,3 +263,23 @@ func (b ByIdentity) Check(ctx context.Context, who authz.Identity, req authz.Att
 	}
 	return c.Check(ctx, who, req)
 }
+
+// Actions returns the get, list and watch actions c served, as
+// "verb resource namespace/name" lines.
+func Actions(c *dynfake.FakeDynamicClient) []string {
+	actions := c.Actions()
+	out := make([]string, 0, len(actions))
+	for _, a := range actions {
+		switch a.GetVerb() {
+		case "get", "list", "watch":
+		default:
+			continue
+		}
+		name := ""
+		if g, ok := a.(k8stesting.GetAction); ok {
+			name = g.GetName()
+		}
+		out = append(out, a.GetVerb()+" "+a.GetResource().Resource+" "+a.GetNamespace()+"/"+name)
+	}
+	return out
+}

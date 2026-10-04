@@ -1,0 +1,28 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "apps",
+    "version": "v1",
+    "kind": "Deployment",
+    "namespace": "default",
+    "name": "podinfo-podinfo"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "note": "Scaled up replica set podinfo-podinfo-d9585d794 from 0 to 2",
+      "reportingController": "deployment-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "default",
+        "name": "podinfo-podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:06Z"
+    }
+  ]
+}

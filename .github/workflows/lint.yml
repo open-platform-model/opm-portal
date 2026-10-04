@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+    # edited: the API gate reads the title, so a title fixed to carry "!"
+    # runs the check again.
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
@@ -50,6 +53,20 @@ jobs:
 
       - name: OpenSpec (strict)
         run: task openspec:check
+
+      # The read API changes only additively within v1alpha1: a breaking change
+      # to the OpenAPI document fails here unless the PR title marks it with
+      # "!". The title reaches the script through the environment, never the
+      # shell text. The version moves with OASDIFF_VERSION in Taskfile.yml.
+      - name: API breaking-change gate (pull requests only)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          go install github.com/oasdiff/oasdiff@v1.33.0
+          git fetch --no-tags --depth=1 origin "$BASE_REF"
+          hack/api-breaking.sh FETCH_HEAD
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0

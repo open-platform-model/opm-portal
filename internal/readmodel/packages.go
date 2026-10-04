@@ -52,6 +52,18 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 	}, nil
 }
 
+// PackageExists reports whether the Model holds ModulePackage
+// namespace/name, without evaluating it. g must cover get modulepackages
+// namespace/name; a missing package is the same not-found error Package
+// returns.
+func (m *Model) PackageExists(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string) error {
+	if err := covers(who, g, "get", modulePackages, namespace, name); err != nil {
+		return err
+	}
+	_, err := m.getHeld(ctx, modulePackages, namespace, name)
+	return err
+}
+
 func packageItem(u *unstructured.Unstructured) PackageItem {
 	return PackageItem{
 		Ref: refOf(u),

@@ -1,0 +1,1332 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Instance",
+  "ref": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "cert-manager",
+    "name": "cert-manager"
+  },
+  "uid": "5744c33f-e06a-4f6b-b78d-652ec49c10d6",
+  "module": {
+    "path": "opmodel.dev/modules/cert_manager@v2",
+    "version": "v2.0.5"
+  },
+  "owner": "operator",
+  "reconcile": {
+    "state": "Applied",
+    "reason": "ReconciliationSucceeded",
+    "message": "Reconciliation succeeded",
+    "since": "2026-10-04T18:04:05Z"
+  },
+  "health": {
+    "state": "Healthy",
+    "counts": {
+      "healthy": 42,
+      "progressing": 0,
+      "degraded": 0,
+      "missing": 0,
+      "unknown": 0,
+      "forbidden": 0,
+      "notReadable": 0,
+      "withheld": 0
+    },
+    "partial": false,
+    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "live": true
+  },
+  "inventoryCount": 42,
+  "lastAppliedAt": "2026-10-04T18:04:05Z",
+  "serviceAccountName": "cert-manager-applier",
+  "conditions": [
+    {
+      "type": "Ready",
+      "status": "True",
+      "reason": "ReconciliationSucceeded",
+      "message": "Reconciliation succeeded",
+      "lastTransitionTime": "2026-10-04T18:04:05Z",
+      "observedGeneration": 1
+    },
+    {
+      "type": "ModuleResolved",
+      "status": "True",
+      "reason": "ModuleResolved",
+      "message": "module resolved: opmodel.dev/modules/cert_manager@v2@v2.0.5",
+      "lastTransitionTime": "2026-10-04T18:04:03Z",
+      "observedGeneration": 1
+    }
+  ],
+  "history": [
+    {
+      "action": "reconcile",
+      "phase": "complete",
+      "sequence": 1,
+      "startedAt": "2026-10-04T18:04:05Z",
+      "finishedAt": "2026-10-04T18:04:05Z",
+      "inventoryCount": 42,
+      "inventoryDigest": "sha256:92152ea359e8efddb5951d60176267ffb914a5796c50b2eca3115b87e8344b1e",
+      "digests": {
+        "source": "sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7",
+        "config": "sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4",
+        "render": "sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c"
+      }
+    }
+  ],
+  "lastApplied": {
+    "source": "sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7",
+    "config": "sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4",
+    "render": "sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c"
+  },
+  "renderContracts": [
+    "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1",
+    "opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1",
+    "opmodel.dev/catalogs/opm/resources/role@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/service-account@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1",
+    "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/security-context@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"
+  ],
+  "components": [
+    {
+      "name": "namespace",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "Namespace",
+            "name": "cert-manager"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "crds",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 6,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "certificaterequests.cert-manager.io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "CRD is established"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "certificates.cert-manager.io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "CRD is established"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "clusterissuers.cert-manager.io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "CRD is established"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "issuers.cert-manager.io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "CRD is established"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "orders.acme.cert-manager.io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "CRD is established"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apiextensions.k8s.io",
+            "version": "v1",
+            "kind": "CustomResourceDefinition",
+            "name": "challenges.acme.cert-manager.io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "CRD is established"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "cert-manager",
+            "name": "cert-manager"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "cert-manager",
+            "name": "cert-manager-controller"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Deployment is available. Replicas: 1"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true,
+          "children": [
+            {
+              "ref": {
+                "version": "v1",
+                "kind": "Pod",
+                "namespace": "cert-manager",
+                "name": "cert-manager-controller-7c9bddd644-cr5qm"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "cert-manager",
+                "name": "cert-manager-controller-7c9bddd644"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "Pod is Ready"
+              }
+            },
+            {
+              "ref": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "cert-manager",
+                "name": "cert-manager-controller-7c9bddd644"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "Deployment",
+                "namespace": "cert-manager",
+                "name": "cert-manager-controller"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "ReplicaSet is available. Replicas: 1"
+              },
+              "replicas": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "webhook",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 3,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "cert-manager",
+            "name": "cert-manager-webhook"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "cert-manager",
+            "name": "cert-manager-webhook"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Deployment is available. Replicas: 1"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true,
+          "children": [
+            {
+              "ref": {
+                "version": "v1",
+                "kind": "Pod",
+                "namespace": "cert-manager",
+                "name": "cert-manager-webhook-6c5bb576f5-slp22"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "cert-manager",
+                "name": "cert-manager-webhook-6c5bb576f5"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "Pod is Ready"
+              }
+            },
+            {
+              "ref": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "cert-manager",
+                "name": "cert-manager-webhook-6c5bb576f5"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "Deployment",
+                "namespace": "cert-manager",
+                "name": "cert-manager-webhook"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "ReplicaSet is available. Replicas: 1"
+              },
+              "replicas": 1
+            }
+          ]
+        },
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "cert-manager",
+            "name": "cert-manager-webhook"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Service is ready"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "cainjector",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "ServiceAccount",
+            "namespace": "cert-manager",
+            "name": "cert-manager-cainjector"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "cert-manager",
+            "name": "cert-manager-cainjector"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Deployment is available. Replicas: 1"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true,
+          "children": [
+            {
+              "ref": {
+                "version": "v1",
+                "kind": "Pod",
+                "namespace": "cert-manager",
+                "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "cert-manager",
+                "name": "cert-manager-cainjector-5d69c59bd"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "Pod is Ready"
+              }
+            },
+            {
+              "ref": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "cert-manager",
+                "name": "cert-manager-cainjector-5d69c59bd"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "Deployment",
+                "namespace": "cert-manager",
+                "name": "cert-manager-cainjector"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "ReplicaSet is available. Replicas: 1"
+              },
+              "replicas": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "webhook-validating",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "admissionregistration.k8s.io",
+            "version": "v1",
+            "kind": "ValidatingWebhookConfiguration",
+            "name": "cert-manager-webhook"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "webhook-mutating",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "admissionregistration.k8s.io",
+            "version": "v1",
+            "kind": "MutatingWebhookConfiguration",
+            "name": "cert-manager-webhook"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "cainjector-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-cainjector"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-cainjector"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-issuers-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-issuers"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-issuers"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-clusterissuers-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-clusterissuers"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-clusterissuers"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-certificates-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-certificates"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-certificates"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-orders-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-orders"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-orders"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-challenges-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-challenges"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-challenges"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-ingress-shim-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-ingress-shim"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-ingress-shim"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-approve-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-approve:cert-manager-io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-approve:cert-manager-io"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-csr-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-controller-certificatesigningrequests"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-controller-certificatesigningrequests"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "webhook-sar-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRole",
+            "name": "cert-manager-webhook:subjectaccessreviews"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "ClusterRoleBinding",
+            "name": "cert-manager-webhook:subjectaccessreviews"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "cainjector-leaderelection-role",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "cert-manager",
+            "name": "cert-manager-cainjector:leaderelection"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "cert-manager",
+            "name": "cert-manager-cainjector:leaderelection"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "controller-leaderelection-role",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "cert-manager",
+            "name": "cert-manager:leaderelection"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "cert-manager",
+            "name": "cert-manager:leaderelection"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    },
+    {
+      "name": "webhook-dynamic-serving-role",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "Role",
+            "namespace": "cert-manager",
+            "name": "cert-manager-webhook:dynamic-serving"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        },
+        {
+          "ref": {
+            "group": "rbac.authorization.k8s.io",
+            "version": "v1",
+            "kind": "RoleBinding",
+            "namespace": "cert-manager",
+            "name": "cert-manager-webhook:dynamic-serving"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Resource is current"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    }
+  ]
+}

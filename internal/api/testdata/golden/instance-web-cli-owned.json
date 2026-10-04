@@ -1,0 +1,158 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Instance",
+  "ref": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "web",
+    "name": "web"
+  },
+  "uid": "1aa1e148-0f18-444d-aa45-b3bd17c7a61a",
+  "module": {
+    "path": "opmodel.dev/modules/web_app@v1",
+    "version": "v1.0.5"
+  },
+  "owner": "cli",
+  "reconcile": {
+    "state": "ManagedExternally",
+    "reason": "ManagedExternally",
+    "message": "ModuleInstance is managed externally by the CLI",
+    "since": "2026-10-04T18:04:31Z"
+  },
+  "health": {
+    "state": "Healthy",
+    "counts": {
+      "healthy": 2,
+      "progressing": 0,
+      "degraded": 0,
+      "missing": 0,
+      "unknown": 0,
+      "forbidden": 0,
+      "notReadable": 0,
+      "withheld": 0
+    },
+    "partial": false,
+    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "live": true
+  },
+  "inventoryCount": 2,
+  "lastAppliedAt": "2026-10-04T18:04:30Z",
+  "conditions": [
+    {
+      "type": "Ready",
+      "status": "Unknown",
+      "reason": "ManagedExternally",
+      "message": "ModuleInstance is managed externally by the CLI",
+      "lastTransitionTime": "2026-10-04T18:04:31Z",
+      "observedGeneration": 1
+    }
+  ],
+  "history": [],
+  "lastApplied": {
+    "source": "sha256:34cb9c71ca077a29625f5dacd40215087293f796d8be706167c7f18ac563fc87",
+    "config": "sha256:301645fcda027e2b01d0504e7cdfe049b86bc27922b72974145eac9f24d020e4",
+    "render": "sha256:e39ebdab50eecc8751f3b87d9f2a53b5aa5701d3b4413d094c1350e5105a17a3"
+  },
+  "renderContracts": [],
+  "components": [
+    {
+      "name": "web",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "live": true
+      },
+      "objects": [
+        {
+          "ref": {
+            "group": "apps",
+            "version": "v1",
+            "kind": "Deployment",
+            "namespace": "web",
+            "name": "web-web"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Deployment is available. Replicas: 1"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true,
+          "children": [
+            {
+              "ref": {
+                "version": "v1",
+                "kind": "Pod",
+                "namespace": "web",
+                "name": "web-web-6f7fbf94f9-v6hw2"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "web",
+                "name": "web-web-6f7fbf94f9"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "Pod is Ready"
+              }
+            },
+            {
+              "ref": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "ReplicaSet",
+                "namespace": "web",
+                "name": "web-web-6f7fbf94f9"
+              },
+              "owner": {
+                "group": "apps",
+                "version": "v1",
+                "kind": "Deployment",
+                "namespace": "web",
+                "name": "web-web"
+              },
+              "health": {
+                "state": "Healthy",
+                "reason": "Current",
+                "message": "ReplicaSet is available. Replicas: 1"
+              },
+              "replicas": 1
+            }
+          ]
+        },
+        {
+          "ref": {
+            "version": "v1",
+            "kind": "Service",
+            "namespace": "web",
+            "name": "web-web"
+          },
+          "access": "ok",
+          "health": {
+            "state": "Healthy",
+            "reason": "Current",
+            "message": "Service is ready"
+          },
+          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "live": true
+        }
+      ]
+    }
+  ]
+}
