@@ -31,6 +31,10 @@ const (
 	// instanceNameLabel is on the ReplicaSets and Pods below inventory
 	// workloads, which do not carry the uuid label (capture, observation 8).
 	instanceNameLabel = "module-instance.opmodel.dev/name"
+
+	// kindReplicaSet is the apps ReplicaSet kind, read for its replicas and
+	// stripped of its template.
+	kindReplicaSet = "ReplicaSet"
 )
 
 // isSecret reports whether resource is core Secrets, which the read model

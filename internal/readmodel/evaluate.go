@@ -160,7 +160,7 @@ func controllerOf(obj *unstructured.Unstructured) (metav1.OwnerReference, bool) 
 
 // replicasOf returns a ReplicaSet's spec.replicas.
 func replicasOf(u *unstructured.Unstructured) *int64 {
-	if u.GetKind() != "ReplicaSet" {
+	if u.GetKind() != kindReplicaSet {
 		return nil
 	}
 	n, ok := i64(u.Object, "spec", "replicas")

@@ -18,12 +18,12 @@ func TestInventoryObjectsCarryTheirChildren(t *testing.T) {
 		t.Fatalf("Deployment children = %+v, want a ReplicaSet and two Pods", dep.Children)
 	}
 	pods, rs := dep.Children[:2], dep.Children[2]
-	if rs.Ref.Kind != "ReplicaSet" || rs.Owner.Kind != "Deployment" || rs.Owner.Group != "apps" ||
+	if rs.Ref.Kind != kindReplicaSet || rs.Owner.Kind != "Deployment" || rs.Owner.Group != "apps" ||
 		rs.Owner.Name != "podinfo-podinfo" || rs.Replicas == nil || *rs.Replicas != 2 {
 		t.Errorf("ReplicaSet = %+v, want owned by the Deployment with 2 replicas", rs)
 	}
 	for _, p := range pods {
-		if p.Ref.Kind != "Pod" || p.Owner.Kind != "ReplicaSet" || p.Owner.Name != rs.Ref.Name ||
+		if p.Ref.Kind != "Pod" || p.Owner.Kind != kindReplicaSet || p.Owner.Name != rs.Ref.Name ||
 			p.Health.State != health.Healthy || p.Replicas != nil {
 			t.Errorf("Pod = %+v, want a Healthy Pod owned by %s", p, rs.Ref.Name)
 		}

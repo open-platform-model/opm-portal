@@ -20,13 +20,13 @@ var valuesKinds = map[schema.GroupKind]bool{
 // memory inventory objects take. A test runs health on every captured object
 // before and after and requires the same answer.
 var droppedFields = map[schema.GroupKind][][]string{
-	{Group: "apps", Kind: "Deployment"}:  {{"spec", "template"}},
-	{Group: "apps", Kind: "StatefulSet"}: {{"spec", "template"}},
-	{Group: "apps", Kind: "DaemonSet"}:   {{"spec", "template"}},
-	{Group: "apps", Kind: "ReplicaSet"}:  {{"spec", "template"}},
-	{Group: "batch", Kind: "Job"}:        {{"spec", "template"}},
-	{Group: "batch", Kind: "CronJob"}:    {{"spec", "jobTemplate"}},
-	{Kind: "ConfigMap"}:                  {{"data"}, {"binaryData"}},
+	{Group: "apps", Kind: "Deployment"}:   {{"spec", "template"}},
+	{Group: "apps", Kind: "StatefulSet"}:  {{"spec", "template"}},
+	{Group: "apps", Kind: "DaemonSet"}:    {{"spec", "template"}},
+	{Group: "apps", Kind: kindReplicaSet}: {{"spec", "template"}},
+	{Group: "batch", Kind: "Job"}:         {{"spec", "template"}},
+	{Group: "batch", Kind: "CronJob"}:     {{"spec", "jobTemplate"}},
+	{Kind: "ConfigMap"}:                   {{"data"}, {"binaryData"}},
 }
 
 var crdKind = schema.GroupKind{Group: "apiextensions.k8s.io", Kind: "CustomResourceDefinition"}
