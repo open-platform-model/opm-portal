@@ -1,0 +1,329 @@
+# web_app instance applied by the CLI (spec.owner: cli).
+# Captured live from a throwaway kind cluster (Kubernetes v1.36.1, opm-operator v1.0.0-beta.5),
+# enhancement 0030 experiment 01. managedFields and annotations removed; no Secrets.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    creationTimestamp: '2026-10-04T14:07:19Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: web
+      app.kubernetes.io/managed-by: opm-cli
+      app.kubernetes.io/name: web
+      component.opmodel.dev/name: web
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: web
+      module-instance.opmodel.dev/uuid: 980766c7-ef2b-52b7-aa6f-ed768aa517b1
+      module.opmodel.dev/name: web_app
+      module.opmodel.dev/uuid: 720355ca-132c-52c7-b435-39aa45cf38b4
+      module.opmodel.dev/version: 1.0.5
+    name: web-web
+    namespace: web
+    resourceVersion: '4714'
+    uid: f1b946df-651e-4964-814d-e1f4783694e6
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: web
+        component.opmodel.dev/name: web
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: web
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: web
+          component.opmodel.dev/name: web
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: web
+      spec:
+        containers:
+        - image: nginx:1.27
+          imagePullPolicy: IfNotPresent
+          name: web
+          ports:
+          - containerPort: 80
+            name: http
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: '2026-10-04T14:07:23Z'
+      lastUpdateTime: '2026-10-04T14:07:23Z'
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: 'True'
+      type: Available
+    - lastTransitionTime: '2026-10-04T14:07:19Z'
+      lastUpdateTime: '2026-10-04T14:07:23Z'
+      message: ReplicaSet "web-web-5db8d596f9" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: 'True'
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+    updatedReplicas: 1
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: '2026-10-04T14:07:19Z'
+    labels:
+      app.kubernetes.io/instance: web
+      app.kubernetes.io/managed-by: opm-cli
+      app.kubernetes.io/name: web
+      component.opmodel.dev/name: web
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: web
+      module-instance.opmodel.dev/uuid: 980766c7-ef2b-52b7-aa6f-ed768aa517b1
+      module.opmodel.dev/name: web_app
+      module.opmodel.dev/uuid: 720355ca-132c-52c7-b435-39aa45cf38b4
+      module.opmodel.dev/version: 1.0.5
+    name: web-web
+    namespace: web
+    resourceVersion: '4674'
+    uid: e7093c72-1809-408e-bf92-5919bdcc7974
+  spec:
+    clusterIP: 10.96.153.140
+    clusterIPs:
+    - 10.96.153.140
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    selector:
+      app.kubernetes.io/name: web
+      component.opmodel.dev/name: web
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: web
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    creationTimestamp: '2026-10-04T14:07:19Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/name: web
+      component.opmodel.dev/name: web
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: web
+      pod-template-hash: 5db8d596f9
+    name: web-web-5db8d596f9
+    namespace: web
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: web-web
+      uid: f1b946df-651e-4964-814d-e1f4783694e6
+    resourceVersion: '4713'
+    uid: ba3b11d5-b21f-48f3-aa5e-6260e6372a17
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: web
+        component.opmodel.dev/name: web
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: web
+        pod-template-hash: 5db8d596f9
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: web
+          component.opmodel.dev/name: web
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: web
+          pod-template-hash: 5db8d596f9
+      spec:
+        containers:
+        - image: nginx:1.27
+          imagePullPolicy: IfNotPresent
+          name: web
+          ports:
+          - containerPort: 80
+            name: http
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: '2026-10-04T14:07:19Z'
+    generateName: web-web-5db8d596f9-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: web
+      component.opmodel.dev/name: web
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: web
+      pod-template-hash: 5db8d596f9
+    name: web-web-5db8d596f9-78vm9
+    namespace: web
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: web-web-5db8d596f9
+      uid: ba3b11d5-b21f-48f3-aa5e-6260e6372a17
+    resourceVersion: '4710'
+    uid: b58536e2-2634-4e8f-b28c-f6d70d9411e9
+  spec:
+    containers:
+    - image: nginx:1.27
+      imagePullPolicy: IfNotPresent
+      name: web
+      ports:
+      - containerPort: 80
+        name: http
+        protocol: TCP
+      resources: {}
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-6wk28
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: opm-portal-probe-control-plane
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext: {}
+    serviceAccount: default
+    serviceAccountName: default
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-6wk28
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T14:07:19Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T14:07:19Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T14:07:23Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T14:07:23Z'
+      observedGeneration: 1
+      status: 'True'
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T14:07:19Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodScheduled
+    containerStatuses:
+    - containerID: containerd://f58d6e2b1fc8fddfec936fd40ac846ad6c1b8259812c0f37ec266adf438a2f6b
+      image: docker.io/library/nginx:1.27
+      imageID: docker.io/library/nginx@sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7d
+      lastState: {}
+      name: web
+      ready: true
+      resources: {}
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: '2026-10-04T14:07:23Z'
+      user:
+        linux:
+          gid: 0
+          supplementalGroups:
+          - 0
+          uid: 0
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-6wk28
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.89.0.2
+    hostIPs:
+    - ip: 10.89.0.2
+    observedGeneration: 1
+    phase: Running
+    podIP: 10.244.0.13
+    podIPs:
+    - ip: 10.244.0.13
+    qosClass: BestEffort
+    resources: {}
+    startTime: '2026-10-04T14:07:19Z'

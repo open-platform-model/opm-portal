@@ -80,6 +80,39 @@ tasks:
       - go tool cover -html=coverage.out -o coverage.html
 
   #########################
+  ## e2e fixture cluster (test/e2e)
+  #########################
+  e2e:up:
+    desc: 'Create the throwaway kind cluster opm-portal-e2e with the released operator and fixture set F1 (E2E_PROVIDER=podman|docker)'
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/up.sh
+
+  e2e:down:
+    desc: Delete the kind cluster opm-portal-e2e (with the provider e2e:up recorded, unless E2E_PROVIDER is set)
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/down.sh
+
+  e2e:capture:
+    desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/capture.sh
+
+  e2e:capture:check:
+    desc: Refuse any file under testdata/clusters that holds a Secret, managedFields, the last-applied annotation or spec.values, or does not parse
+    cmds:
+      - test/e2e/check-capture_test.sh
+      - test/e2e/check-capture.sh
+
+  #########################
   ## OpenSpec tasks
   #########################
   openspec:install:
@@ -104,10 +137,11 @@ tasks:
       - hack/release-pin-check.sh
 
   check:
-    desc: Run all checks (fmt, vet, lint, openspec, test)
+    desc: Run all checks (fmt, vet, lint, openspec, test, committed captures)
     cmds:
       - task: fmt
       - task: vet
       - task: lint
       - task: openspec:check
       - task: test
+      - task: e2e:capture:check

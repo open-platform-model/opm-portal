@@ -1,0 +1,20 @@
+# A ModulePackage on a cluster without Flux: its source kind is not installed, so it stays
+# Ready=False with reason SourceNotReady and is retried every interval.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pkg
+---
+apiVersion: opmodel.dev/v1alpha1
+kind: ModulePackage
+metadata:
+  name: podinfo
+  namespace: pkg
+spec:
+  sourceRef:
+    apiVersion: source.toolkit.fluxcd.io/v1
+    kind: OCIRepository
+    name: podinfo-release
+  path: "."
+  interval: 1m
+  prune: true

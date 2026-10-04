@@ -1,0 +1,97 @@
+name: E2E
+
+# Builds the e2e fixture cluster from released artifacts on GHCR and GitHub releases and
+# captures it. Never on pull requests: it depends on registries outside this repo, so it must
+# not gate a merge. A capture that differs from testdata/clusters/f1 is uploaded for review,
+# not committed; one whose verdicts or versions differ fails the run.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      E2E_PROVIDER: docker
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
+        with:
+          version: 3.x
+
+      - name: Install kind at the pinned version
+        run: |
+          kind_version=$(sed -n 's/^KIND_VERSION=//p' test/e2e/versions.env)
+          go install "sigs.k8s.io/kind@${kind_version}"
+          kind version
+
+      - name: Create the fixture cluster
+        run: task e2e:up
+
+      - name: Capture the fixture cluster
+        run: task e2e:capture
+
+      - name: Summarize the capture
+        if: always()
+        run: |
+          {
+            echo '### F1 capture'
+            echo '```yaml'
+            cat testdata/clusters/f1/meta.yaml
+            echo '```'
+            echo 'Changed against the committed capture:'
+            echo '```'
+            git diff --stat -- testdata/clusters/f1
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+
+      # A recapture always differs in timestamps, uids and pod names, so the diff above is for
+      # reading. The verdicts and versions in meta.yaml do not (the capture time, the provider and
+      # the cluster name, which E2E_CLUSTER may change, are left out): a change there (an instance's
+      # Ready reason, a claim's acceptance, the operator or catalog version) fails the run, and
+      # a failed scheduled run notifies the workflow's owner.
+      - name: Compare the verdicts with the committed capture
+        run: |
+          strip='del(.capturedAt) | del(.cluster.provider) | del(.cluster.name)'
+          git show HEAD:testdata/clusters/f1/meta.yaml | yq "$strip" >"$RUNNER_TEMP/committed.yaml"
+          yq "$strip" testdata/clusters/f1/meta.yaml >"$RUNNER_TEMP/captured.yaml"
+          if ! diff -u "$RUNNER_TEMP/committed.yaml" "$RUNNER_TEMP/captured.yaml" >"$RUNNER_TEMP/verdicts.diff"; then
+            {
+              echo 'Verdicts or versions differ from the committed capture; recapture and review:'
+              echo '```diff'
+              cat "$RUNNER_TEMP/verdicts.diff"
+              echo '```'
+            } >>"$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/verdicts.diff"
+            exit 1
+          fi
+
+      - name: Upload the capture
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: f1-capture
+          path: testdata/clusters/f1/
+          if-no-files-found: warn
+
+      - name: Delete the fixture cluster
+        if: always()
+        run: task e2e:down

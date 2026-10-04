@@ -1,0 +1,46 @@
+# Copied from opm-operator test/fixtures/modules/backup_consumer/moduleinstance.yaml at 8d34b6b.
+# The module demands opm's backup trait, which only the backup provider's claim fulfils.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-consumer-applier
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-consumer-applier
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-consumer-applier
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: backup-consumer-applier
+    namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: backup-consumer-applier
+---
+apiVersion: opmodel.dev/v1alpha1
+kind: ModuleInstance
+metadata:
+  name: backup-consumer
+  namespace: default
+spec:
+  module:
+    path: testing.opmodel.dev/modules/operator/backup_consumer@v0
+    version: v0.1.0
+  serviceAccountName: backup-consumer-applier
+  values:
+    schedule: "15 4 * * *"
+  prune: true

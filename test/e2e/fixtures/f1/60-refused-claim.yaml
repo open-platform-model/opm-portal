@@ -1,0 +1,20 @@
+# DELIBERATE REFUSAL FIXTURE. This claim is meant to be refused; it is not a broken fixture.
+#
+# It is applied by hand (no module renders it), the way enhancements/0030 experiment 01 applied
+# its tregs.yaml, so golden suites keep a refused registration now that the operator accepts the
+# backup provider's claim. Its catalog path is published nowhere, so the operator cannot resolve
+# it and refuses it (expected: Stalled=True plus Ready=False, reason CatalogUnresolved, no
+# status.accepted or status.active). up.sh fails if it is ever accepted, and capture.sh marks it
+# deliberateRefusal: true in meta.yaml by the label below. It provides no contract, so no
+# instance's resolution depends on it.
+apiVersion: opmodel.dev/v1alpha1
+kind: TransformerRegistration
+metadata:
+  name: default.refused-claim-fixture
+  labels:
+    e2e.opmodel.dev/fixture: deliberate-refusal
+spec:
+  catalog: testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0
+  version: 0.1.0
+  provides: []
+  providerRef: {namespace: default, name: refused-claim-fixture}

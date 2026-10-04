@@ -1,0 +1,2910 @@
+# cert-manager healthy, applied by a cluster-admin applier ServiceAccount.
+# CRD schemas and conversion removed (kstatus reads only status).
+# Captured live from a throwaway kind cluster (Kubernetes v1.36.1, opm-operator v1.0.0-beta.5),
+# enhancement 0030 experiment 01. managedFields and annotations removed; no Secrets.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: cainjector-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: cainjector-rbac
+      component.opmodel.dev/name: cainjector-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-cainjector
+    resourceVersion: '1354'
+    uid: 2f6d03b8-0028-4330-99f3-86e6af0a9f5f
+  rules:
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - get
+    - create
+    - update
+    - patch
+  - apiGroups:
+    - admissionregistration.k8s.io
+    resources:
+    - validatingwebhookconfigurations
+    - mutatingwebhookconfigurations
+    verbs:
+    - get
+    - list
+    - watch
+    - update
+    - patch
+  - apiGroups:
+    - apiregistration.k8s.io
+    resources:
+    - apiservices
+    verbs:
+    - get
+    - list
+    - watch
+    - update
+    - patch
+  - apiGroups:
+    - apiextensions.k8s.io
+    resources:
+    - customresourcedefinitions
+    verbs:
+    - get
+    - list
+    - watch
+    - update
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-approve-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-approve-rbac
+      component.opmodel.dev/name: controller-approve-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-approve:cert-manager-io
+    resourceVersion: '1355'
+    uid: 12987ac2-8767-4e11-a7ce-da3f8e86c301
+  rules:
+  - apiGroups:
+    - cert-manager.io
+    resourceNames:
+    - issuers.cert-manager.io/*
+    - clusterissuers.cert-manager.io/*
+    resources:
+    - signers
+    verbs:
+    - approve
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-certificates-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-certificates-rbac
+      component.opmodel.dev/name: controller-certificates-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-certificates
+    resourceVersion: '1357'
+    uid: 6cfe61e5-7db4-4c88-8131-6cd64d890bcf
+  rules:
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates
+    - certificates/status
+    - certificaterequests
+    - certificaterequests/status
+    verbs:
+    - update
+    - patch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates
+    - certificaterequests
+    - clusterissuers
+    - issuers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates/finalizers
+    - certificaterequests/finalizers
+    verbs:
+    - update
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - orders
+    verbs:
+    - create
+    - delete
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - delete
+    - patch
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-csr-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-csr-rbac
+      component.opmodel.dev/name: controller-csr-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-certificatesigningrequests
+    resourceVersion: '1358'
+    uid: ec9d29be-1fca-4c6d-a808-630e78b688cd
+  rules:
+  - apiGroups:
+    - certificates.k8s.io
+    resources:
+    - certificatesigningrequests
+    verbs:
+    - get
+    - list
+    - watch
+    - update
+  - apiGroups:
+    - certificates.k8s.io
+    resources:
+    - certificatesigningrequests/status
+    verbs:
+    - update
+    - patch
+  - apiGroups:
+    - certificates.k8s.io
+    resourceNames:
+    - issuers.cert-manager.io/*
+    - clusterissuers.cert-manager.io/*
+    resources:
+    - signers
+    verbs:
+    - sign
+  - apiGroups:
+    - authorization.k8s.io
+    resources:
+    - subjectaccessreviews
+    verbs:
+    - create
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-challenges-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-challenges-rbac
+      component.opmodel.dev/name: controller-challenges-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-challenges
+    resourceVersion: '1360'
+    uid: 25aaa4c3-ff3b-4bc1-a6e0-a01bfe533d30
+  rules:
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - challenges
+    - challenges/status
+    verbs:
+    - update
+    - patch
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - challenges
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - issuers
+    - clusterissuers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+  - apiGroups:
+    - ''
+    resources:
+    - pods
+    - services
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+  - apiGroups:
+    - networking.k8s.io
+    resources:
+    - ingresses
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+  - apiGroups:
+    - gateway.networking.k8s.io
+    resources:
+    - httproutes
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - delete
+    - update
+  - apiGroups:
+    - route.openshift.io
+    resources:
+    - routes/custom-host
+    verbs:
+    - create
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - challenges/finalizers
+    verbs:
+    - update
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-clusterissuers-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-clusterissuers-rbac
+      component.opmodel.dev/name: controller-clusterissuers-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-clusterissuers
+    resourceVersion: '1361'
+    uid: 898ad923-17b7-4316-b827-f4bcd2057413
+  rules:
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - clusterissuers
+    - clusterissuers/status
+    verbs:
+    - update
+    - patch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - clusterissuers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - delete
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-ingress-shim-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-ingress-shim-rbac
+      component.opmodel.dev/name: controller-ingress-shim-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-ingress-shim
+    resourceVersion: '1362'
+    uid: 8efd574c-32ce-46d8-8676-91be94aa2a72
+  rules:
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates
+    - certificaterequests
+    verbs:
+    - create
+    - update
+    - delete
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates
+    - certificaterequests
+    - issuers
+    - clusterissuers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - networking.k8s.io
+    resources:
+    - ingresses
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - networking.k8s.io
+    resources:
+    - ingresses/finalizers
+    verbs:
+    - update
+  - apiGroups:
+    - gateway.networking.k8s.io
+    resources:
+    - gateways
+    - httproutes
+    - listenersets
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - gateway.networking.k8s.io
+    resources:
+    - gateways/finalizers
+    - httproutes/finalizers
+    - listenersets/finalizers
+    verbs:
+    - update
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-issuers-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-issuers-rbac
+      component.opmodel.dev/name: controller-issuers-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-issuers
+    resourceVersion: '1363'
+    uid: 829c445e-90d5-4a3c-8ebe-d115d15d384b
+  rules:
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - issuers
+    - issuers/status
+    verbs:
+    - update
+    - patch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - issuers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - delete
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: controller-orders-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-orders-rbac
+      component.opmodel.dev/name: controller-orders-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-orders
+    resourceVersion: '1364'
+    uid: 437f8b95-a936-42c3-99bc-51efc62ae3ee
+  rules:
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - orders
+    - orders/status
+    verbs:
+    - update
+    - patch
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - orders
+    - challenges
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - clusterissuers
+    - issuers
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - challenges
+    verbs:
+    - create
+    - delete
+  - apiGroups:
+    - acme.cert-manager.io
+    resources:
+    - orders/finalizers
+    verbs:
+    - update
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - clusterissuers/finalizers
+    - issuers/finalizers
+    verbs:
+    - update
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+  - apiGroups:
+    - ''
+    resources:
+    - events
+    verbs:
+    - create
+    - patch
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    labels:
+      app.kubernetes.io/instance: webhook-sar-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook-sar-rbac
+      component.opmodel.dev/name: webhook-sar-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook:subjectaccessreviews
+    resourceVersion: '1365'
+    uid: 7b24dc27-48f2-41f4-acf4-b3ccd93c35fd
+  rules:
+  - apiGroups:
+    - authorization.k8s.io
+    resources:
+    - subjectaccessreviews
+    verbs:
+    - create
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: cainjector-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: cainjector-rbac
+      component.opmodel.dev/name: cainjector-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-cainjector
+    resourceVersion: '1371'
+    uid: 3307e72a-ab14-4824-8057-4a5703180772
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-cainjector
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager-cainjector
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-approve-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-approve-rbac
+      component.opmodel.dev/name: controller-approve-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-approve:cert-manager-io
+    resourceVersion: '1372'
+    uid: 368b5fc2-33e9-41bc-833f-8e4243233b52
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-approve:cert-manager-io
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-certificates-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-certificates-rbac
+      component.opmodel.dev/name: controller-certificates-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-certificates
+    resourceVersion: '1373'
+    uid: e6df7a13-48ff-4709-8e5d-3883d5f1dec1
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-certificates
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-csr-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-csr-rbac
+      component.opmodel.dev/name: controller-csr-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-certificatesigningrequests
+    resourceVersion: '1374'
+    uid: 4ab7097e-13e8-462a-8c53-df11507b3005
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-certificatesigningrequests
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-challenges-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-challenges-rbac
+      component.opmodel.dev/name: controller-challenges-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-challenges
+    resourceVersion: '1375'
+    uid: 40af2d5d-6607-431f-b8b9-1afc5eee0bdf
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-challenges
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-clusterissuers-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-clusterissuers-rbac
+      component.opmodel.dev/name: controller-clusterissuers-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-clusterissuers
+    resourceVersion: '1376'
+    uid: 3cd9a0c2-c393-4d33-9e78-a18aaa4a5ce2
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-clusterissuers
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-ingress-shim-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-ingress-shim-rbac
+      component.opmodel.dev/name: controller-ingress-shim-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-ingress-shim
+    resourceVersion: '1377'
+    uid: 7ef17630-fda1-44b4-86d6-0e389e07811f
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-ingress-shim
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-issuers-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-issuers-rbac
+      component.opmodel.dev/name: controller-issuers-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-issuers
+    resourceVersion: '1378'
+    uid: 347c90a9-720b-4ce1-b7e2-d7adbf609b04
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-issuers
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-orders-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-orders-rbac
+      component.opmodel.dev/name: controller-orders-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller-orders
+    resourceVersion: '1379'
+    uid: 9fb11c5b-607e-4776-be48-d0ce7bd0e881
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-controller-orders
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: webhook-sar-rbac
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook-sar-rbac
+      component.opmodel.dev/name: webhook-sar-rbac
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook:subjectaccessreviews
+    resourceVersion: '1380'
+    uid: 921a47ad-d587-4953-a3c5-6f2a0c874ddc
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cert-manager-webhook:subjectaccessreviews
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager-webhook
+    namespace: cert-manager
+- apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: crds
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: crds
+      component.opmodel.dev/name: crds
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: certificaterequests.cert-manager.io
+    resourceVersion: '1340'
+    uid: 07dc4b9f-80b7-4776-a09e-786d4e763d60
+  spec:
+    group: cert-manager.io
+    names:
+      categories:
+      - cert-manager
+      kind: CertificateRequest
+      listKind: CertificateRequestList
+      plural: certificaterequests
+      shortNames:
+      - cr
+      - crs
+      singular: certificaterequest
+    scope: Namespaced
+    versions:
+    - name: v1
+      selectableFields:
+      - jsonPath: .spec.issuerRef.group
+      - jsonPath: .spec.issuerRef.kind
+      - jsonPath: .spec.issuerRef.name
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  status:
+    acceptedNames:
+      categories:
+      - cert-manager
+      kind: CertificateRequest
+      listKind: CertificateRequestList
+      plural: certificaterequests
+      shortNames:
+      - cr
+      - crs
+      singular: certificaterequest
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: no conflicts found
+      reason: NoConflicts
+      status: 'True'
+      type: NamesAccepted
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: the initial names have been accepted
+      reason: InitialNamesAccepted
+      status: 'True'
+      type: Established
+    storedVersions:
+    - v1
+- apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: crds
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: crds
+      component.opmodel.dev/name: crds
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: certificates.cert-manager.io
+    resourceVersion: '1343'
+    uid: 89824db8-5772-401d-ab1d-24bffa987ce7
+  spec:
+    group: cert-manager.io
+    names:
+      categories:
+      - cert-manager
+      kind: Certificate
+      listKind: CertificateList
+      plural: certificates
+      shortNames:
+      - cert
+      - certs
+      singular: certificate
+    scope: Namespaced
+    versions:
+    - name: v1
+      selectableFields:
+      - jsonPath: .spec.issuerRef.group
+      - jsonPath: .spec.issuerRef.kind
+      - jsonPath: .spec.issuerRef.name
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  status:
+    acceptedNames:
+      categories:
+      - cert-manager
+      kind: Certificate
+      listKind: CertificateList
+      plural: certificates
+      shortNames:
+      - cert
+      - certs
+      singular: certificate
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: no conflicts found
+      reason: NoConflicts
+      status: 'True'
+      type: NamesAccepted
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: the initial names have been accepted
+      reason: InitialNamesAccepted
+      status: 'True'
+      type: Established
+    storedVersions:
+    - v1
+- apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: crds
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: crds
+      component.opmodel.dev/name: crds
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: challenges.acme.cert-manager.io
+    resourceVersion: '1348'
+    uid: 3c0ae432-2ef5-4f1f-ae97-65ae7ba5b167
+  spec:
+    group: acme.cert-manager.io
+    names:
+      categories:
+      - cert-manager
+      - cert-manager-acme
+      kind: Challenge
+      listKind: ChallengeList
+      plural: challenges
+      singular: challenge
+    scope: Namespaced
+    versions:
+    - name: v1
+      selectableFields:
+      - jsonPath: .spec.issuerRef.group
+      - jsonPath: .spec.issuerRef.kind
+      - jsonPath: .spec.issuerRef.name
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  status:
+    acceptedNames:
+      categories:
+      - cert-manager
+      - cert-manager-acme
+      kind: Challenge
+      listKind: ChallengeList
+      plural: challenges
+      singular: challenge
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: no conflicts found
+      reason: NoConflicts
+      status: 'True'
+      type: NamesAccepted
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: the initial names have been accepted
+      reason: InitialNamesAccepted
+      status: 'True'
+      type: Established
+    storedVersions:
+    - v1
+- apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: crds
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: crds
+      component.opmodel.dev/name: crds
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: clusterissuers.cert-manager.io
+    resourceVersion: '1353'
+    uid: 73284401-f84a-4354-9a9a-e497b68bda60
+  spec:
+    group: cert-manager.io
+    names:
+      categories:
+      - cert-manager
+      kind: ClusterIssuer
+      listKind: ClusterIssuerList
+      plural: clusterissuers
+      shortNames:
+      - ciss
+      singular: clusterissuer
+    scope: Cluster
+    versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  status:
+    acceptedNames:
+      categories:
+      - cert-manager
+      kind: ClusterIssuer
+      listKind: ClusterIssuerList
+      plural: clusterissuers
+      shortNames:
+      - ciss
+      singular: clusterissuer
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: no conflicts found
+      reason: NoConflicts
+      status: 'True'
+      type: NamesAccepted
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: the initial names have been accepted
+      reason: InitialNamesAccepted
+      status: 'True'
+      type: Established
+    storedVersions:
+    - v1
+- apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: crds
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: crds
+      component.opmodel.dev/name: crds
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: issuers.cert-manager.io
+    resourceVersion: '1366'
+    uid: 2f8d3087-5ad8-48e8-93cd-ad9d7b769d70
+  spec:
+    group: cert-manager.io
+    names:
+      categories:
+      - cert-manager
+      kind: Issuer
+      listKind: IssuerList
+      plural: issuers
+      shortNames:
+      - iss
+      singular: issuer
+    scope: Namespaced
+    versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  status:
+    acceptedNames:
+      categories:
+      - cert-manager
+      kind: Issuer
+      listKind: IssuerList
+      plural: issuers
+      shortNames:
+      - iss
+      singular: issuer
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: no conflicts found
+      reason: NoConflicts
+      status: 'True'
+      type: NamesAccepted
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: the initial names have been accepted
+      reason: InitialNamesAccepted
+      status: 'True'
+      type: Established
+    storedVersions:
+    - v1
+- apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:34Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: crds
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: crds
+      component.opmodel.dev/name: crds
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: orders.acme.cert-manager.io
+    resourceVersion: '1367'
+    uid: 86aa1b3a-c07d-4ddf-8262-880c5bc30da3
+  spec:
+    group: acme.cert-manager.io
+    names:
+      categories:
+      - cert-manager
+      - cert-manager-acme
+      kind: Order
+      listKind: OrderList
+      plural: orders
+      singular: order
+    scope: Namespaced
+    versions:
+    - name: v1
+      selectableFields:
+      - jsonPath: .spec.issuerRef.group
+      - jsonPath: .spec.issuerRef.kind
+      - jsonPath: .spec.issuerRef.name
+      served: true
+      storage: true
+      subresources:
+        status: {}
+  status:
+    acceptedNames:
+      categories:
+      - cert-manager
+      - cert-manager-acme
+      kind: Order
+      listKind: OrderList
+      plural: orders
+      singular: order
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: no conflicts found
+      reason: NoConflicts
+      status: 'True'
+      type: NamesAccepted
+    - lastTransitionTime: '2026-10-04T13:42:34Z'
+      message: the initial names have been accepted
+      reason: InitialNamesAccepted
+      status: 'True'
+      type: Established
+    storedVersions:
+    - v1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: cainjector
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: cainjector
+      component.opmodel.dev/name: cainjector
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-cainjector
+    namespace: cert-manager
+    resourceVersion: '1472'
+    uid: b5c5e1eb-1d18-49fd-b05b-8531a0f6168c
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: cainjector
+        component.opmodel.dev/name: cainjector
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: cert-manager
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: cainjector
+          component.opmodel.dev/name: cainjector
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: cert-manager
+      spec:
+        containers:
+        - args:
+          - --v=2
+          - --leader-election-namespace=cert-manager
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: quay.io/jetstack/cert-manager-cainjector:v1.21.0
+          imagePullPolicy: IfNotPresent
+          name: cert-manager-cainjector
+          ports:
+          - containerPort: 9402
+            name: http-metrics
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          runAsNonRoot: true
+        serviceAccount: cert-manager-cainjector
+        serviceAccountName: cert-manager-cainjector
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:42Z'
+      lastUpdateTime: '2026-10-04T13:42:42Z'
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: 'True'
+      type: Available
+    - lastTransitionTime: '2026-10-04T13:42:36Z'
+      lastUpdateTime: '2026-10-04T13:42:42Z'
+      message: ReplicaSet "cert-manager-cainjector-5d69c59bd" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: 'True'
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: controller
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller
+      component.opmodel.dev/name: controller
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-controller
+    namespace: cert-manager
+    resourceVersion: '1457'
+    uid: d89a701f-24b0-4701-91d3-fb38feaad19a
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: controller
+        component.opmodel.dev/name: controller
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: cert-manager
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: controller
+          component.opmodel.dev/name: controller
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: cert-manager
+      spec:
+        containers:
+        - args:
+          - --v=2
+          - --cluster-resource-namespace=$(POD_NAMESPACE)
+          - --leader-election-namespace=cert-manager
+          - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.21.0
+          - --max-concurrent-challenges=60
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: quay.io/jetstack/cert-manager-controller:v1.21.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 8
+            httpGet:
+              path: /livez
+              port: 9403
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 15
+          name: cert-manager-controller
+          ports:
+          - containerPort: 9402
+            name: http-metrics
+            protocol: TCP
+          - containerPort: 9403
+            name: http-healthz
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          runAsNonRoot: true
+        serviceAccount: cert-manager
+        serviceAccountName: cert-manager
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:40Z'
+      lastUpdateTime: '2026-10-04T13:42:40Z'
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: 'True'
+      type: Available
+    - lastTransitionTime: '2026-10-04T13:42:36Z'
+      lastUpdateTime: '2026-10-04T13:42:40Z'
+      message: ReplicaSet "cert-manager-controller-7c9bddd644" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: 'True'
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: webhook
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook
+      component.opmodel.dev/name: webhook
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook
+    namespace: cert-manager
+    resourceVersion: '1503'
+    uid: 111c91b3-68bc-4151-84d5-f5001cd99c0f
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: webhook
+        component.opmodel.dev/name: webhook
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: cert-manager
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: webhook
+          component.opmodel.dev/name: webhook
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: cert-manager
+      spec:
+        containers:
+        - args:
+          - --v=2
+          - --secure-port=10250
+          - --dynamic-serving-ca-secret-namespace=$(POD_NAMESPACE)
+          - --dynamic-serving-ca-secret-name=cert-manager-webhook-ca
+          - --dynamic-serving-dns-names=cert-manager-webhook
+          - --dynamic-serving-dns-names=cert-manager-webhook.$(POD_NAMESPACE)
+          - --dynamic-serving-dns-names=cert-manager-webhook.$(POD_NAMESPACE).svc
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: quay.io/jetstack/cert-manager-webhook:v1.21.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /livez
+              port: 6080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: cert-manager-webhook
+          ports:
+          - containerPort: 10250
+            name: https
+            protocol: TCP
+          - containerPort: 6080
+            name: healthcheck
+            protocol: TCP
+          - containerPort: 9402
+            name: http-metrics
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 6080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          runAsNonRoot: true
+        serviceAccount: cert-manager-webhook
+        serviceAccountName: cert-manager-webhook
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: '2026-10-04T13:42:49Z'
+      lastUpdateTime: '2026-10-04T13:42:49Z'
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: 'True'
+      type: Available
+    - lastTransitionTime: '2026-10-04T13:42:36Z'
+      lastUpdateTime: '2026-10-04T13:42:49Z'
+      message: ReplicaSet "cert-manager-webhook-6c5bb576f5" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: 'True'
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+    updatedReplicas: 1
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: MutatingWebhookConfiguration
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 2
+    labels:
+      app: webhook
+      app.kubernetes.io/component: webhook
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook
+      app.kubernetes.io/version: v1.21.0
+      component.opmodel.dev/name: webhook-mutating
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook
+    resourceVersion: '1486'
+    uid: 8fd1a1e7-cb8e-4d24-846c-d19d60d31ebe
+  webhooks:
+  - admissionReviewVersions:
+    - v1
+    clientConfig:
+      service:
+        name: cert-manager-webhook
+        namespace: cert-manager
+        path: /mutate
+        port: 443
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    name: webhook.cert-manager.io
+    namespaceSelector: {}
+    objectSelector: {}
+    reinvocationPolicy: Never
+    rules:
+    - apiGroups:
+      - cert-manager.io
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      resources:
+      - certificaterequests
+      scope: '*'
+    sideEffects: None
+    timeoutSeconds: 30
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    creationTimestamp: '2026-10-04T13:41:01Z'
+    labels:
+      app.kubernetes.io/instance: namespace
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: namespace
+      component.opmodel.dev/name: namespace
+      kubernetes.io/metadata.name: cert-manager
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager
+    resourceVersion: '1352'
+    uid: 0201832d-6c4c-4551-b83b-6db97944ea13
+  spec:
+    finalizers:
+    - kubernetes
+  status:
+    phase: Active
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generateName: cert-manager-cainjector-5d69c59bd-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: cainjector
+      component.opmodel.dev/name: cainjector
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      pod-template-hash: 5d69c59bd
+    name: cert-manager-cainjector-5d69c59bd-kz9p2
+    namespace: cert-manager
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: cert-manager-cainjector-5d69c59bd
+      uid: 55dacb50-b075-43d7-a5a7-6bca417784d7
+    resourceVersion: '1663'
+    uid: 26c67eaf-7eee-42e6-b6d1-ec00effa8c0d
+  spec:
+    containers:
+    - args:
+      - --v=2
+      - --leader-election-namespace=cert-manager
+      env:
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      image: quay.io/jetstack/cert-manager-cainjector:v1.21.0
+      imagePullPolicy: IfNotPresent
+      name: cert-manager-cainjector
+      ports:
+      - containerPort: 9402
+        name: http-metrics
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-6mgjf
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: opm-portal-probe-control-plane
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      runAsNonRoot: true
+    serviceAccount: cert-manager-cainjector
+    serviceAccountName: cert-manager-cainjector
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-6mgjf
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    allocatedResources:
+      cpu: 10m
+      memory: 32Mi
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:37Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:42Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:42Z'
+      observedGeneration: 1
+      status: 'True'
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 10m
+        memory: 32Mi
+      containerID: containerd://bfa601e279f4c5623d0dad2c3794243426c24c35cfc13de9aed083e565036f6e
+      image: quay.io/jetstack/cert-manager-cainjector:v1.21.0
+      imageID: quay.io/jetstack/cert-manager-cainjector@sha256:ad1dcc5b2fccc420f9b3fbee7ce8a869450c540fd4f2f41de2d95b1ca0c4d701
+      lastState: {}
+      name: cert-manager-cainjector
+      ready: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: '2026-10-04T13:42:42Z'
+      user:
+        linux:
+          gid: 65532
+          supplementalGroups:
+          - 65532
+          uid: 65532
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-6mgjf
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.89.0.2
+    hostIPs:
+    - ip: 10.89.0.2
+    observedGeneration: 1
+    phase: Running
+    podIP: 10.244.0.9
+    podIPs:
+    - ip: 10.244.0.9
+    qosClass: Burstable
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        memory: 32Mi
+    startTime: '2026-10-04T13:42:36Z'
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generateName: cert-manager-controller-7c9bddd644-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: controller
+      component.opmodel.dev/name: controller
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      pod-template-hash: 7c9bddd644
+    name: cert-manager-controller-7c9bddd644-b45nt
+    namespace: cert-manager
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: cert-manager-controller-7c9bddd644
+      uid: 89a3bfa1-f3c2-4a47-a197-21ec6107fbce
+    resourceVersion: '1615'
+    uid: 921ab6f2-796d-4e52-97ec-358f0777c09e
+  spec:
+    containers:
+    - args:
+      - --v=2
+      - --cluster-resource-namespace=$(POD_NAMESPACE)
+      - --leader-election-namespace=cert-manager
+      - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.21.0
+      - --max-concurrent-challenges=60
+      env:
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      image: quay.io/jetstack/cert-manager-controller:v1.21.0
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 8
+        httpGet:
+          path: /livez
+          port: 9403
+          scheme: HTTP
+        initialDelaySeconds: 10
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 15
+      name: cert-manager-controller
+      ports:
+      - containerPort: 9402
+        name: http-metrics
+        protocol: TCP
+      - containerPort: 9403
+        name: http-healthz
+        protocol: TCP
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-qmgf9
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: opm-portal-probe-control-plane
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      runAsNonRoot: true
+    serviceAccount: cert-manager
+    serviceAccountName: cert-manager
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-qmgf9
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    allocatedResources:
+      cpu: 10m
+      memory: 32Mi
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:40Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:40Z'
+      observedGeneration: 1
+      status: 'True'
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 10m
+        memory: 32Mi
+      containerID: containerd://64185be05d1ba7a759c1ab33065c19e37ebcf49a1543adac22b967dbd3baa297
+      image: quay.io/jetstack/cert-manager-controller:v1.21.0
+      imageID: quay.io/jetstack/cert-manager-controller@sha256:e370f7800a53078e9d74324287a7d52b553864e55f5b4e521f911c3f6c7da203
+      lastState: {}
+      name: cert-manager-controller
+      ready: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: '2026-10-04T13:42:40Z'
+      user:
+        linux:
+          gid: 65532
+          supplementalGroups:
+          - 65532
+          uid: 65532
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-qmgf9
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.89.0.2
+    hostIPs:
+    - ip: 10.89.0.2
+    observedGeneration: 1
+    phase: Running
+    podIP: 10.244.0.10
+    podIPs:
+    - ip: 10.244.0.10
+    qosClass: Burstable
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        memory: 32Mi
+    startTime: '2026-10-04T13:42:36Z'
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generateName: cert-manager-webhook-6c5bb576f5-
+    generation: 1
+    labels:
+      app.kubernetes.io/name: webhook
+      component.opmodel.dev/name: webhook
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      pod-template-hash: 6c5bb576f5
+    name: cert-manager-webhook-6c5bb576f5-pwh5b
+    namespace: cert-manager
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: ReplicaSet
+      name: cert-manager-webhook-6c5bb576f5
+      uid: 1040bfaf-8192-44b1-bf64-b9c889eca353
+    resourceVersion: '1502'
+    uid: 01c9e659-1266-4a8e-8076-4014535bbbb0
+  spec:
+    containers:
+    - args:
+      - --v=2
+      - --secure-port=10250
+      - --dynamic-serving-ca-secret-namespace=$(POD_NAMESPACE)
+      - --dynamic-serving-ca-secret-name=cert-manager-webhook-ca
+      - --dynamic-serving-dns-names=cert-manager-webhook
+      - --dynamic-serving-dns-names=cert-manager-webhook.$(POD_NAMESPACE)
+      - --dynamic-serving-dns-names=cert-manager-webhook.$(POD_NAMESPACE).svc
+      env:
+      - name: POD_NAMESPACE
+        valueFrom:
+          fieldRef:
+            apiVersion: v1
+            fieldPath: metadata.namespace
+      image: quay.io/jetstack/cert-manager-webhook:v1.21.0
+      imagePullPolicy: IfNotPresent
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /livez
+          port: 6080
+          scheme: HTTP
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        successThreshold: 1
+        timeoutSeconds: 1
+      name: cert-manager-webhook
+      ports:
+      - containerPort: 10250
+        name: https
+        protocol: TCP
+      - containerPort: 6080
+        name: healthcheck
+        protocol: TCP
+      - containerPort: 9402
+        name: http-metrics
+        protocol: TCP
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /healthz
+          port: 6080
+          scheme: HTTP
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        timeoutSeconds: 1
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        readOnlyRootFilesystem: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-kdngp
+        readOnly: true
+    dnsPolicy: ClusterFirst
+    enableServiceLinks: true
+    nodeName: opm-portal-probe-control-plane
+    preemptionPolicy: PreemptLowerPriority
+    priority: 0
+    restartPolicy: Always
+    schedulerName: default-scheduler
+    securityContext:
+      runAsNonRoot: true
+    serviceAccount: cert-manager-webhook
+    serviceAccountName: cert-manager-webhook
+    terminationGracePeriodSeconds: 30
+    tolerations:
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 300
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 300
+    volumes:
+    - name: kube-api-access-kdngp
+      projected:
+        defaultMode: 420
+        sources:
+        - serviceAccountToken:
+            expirationSeconds: 3607
+            path: token
+        - configMap:
+            items:
+            - key: ca.crt
+              path: ca.crt
+            name: kube-root-ca.crt
+        - downwardAPI:
+            items:
+            - fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+              path: namespace
+  status:
+    allocatedResources:
+      cpu: 10m
+      memory: 32Mi
+    conditions:
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:37Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodReadyToStartContainers
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Initialized
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:49Z'
+      observedGeneration: 1
+      status: 'True'
+      type: Ready
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:49Z'
+      observedGeneration: 1
+      status: 'True'
+      type: ContainersReady
+    - lastProbeTime: null
+      lastTransitionTime: '2026-10-04T13:42:36Z'
+      observedGeneration: 1
+      status: 'True'
+      type: PodScheduled
+    containerStatuses:
+    - allocatedResources:
+        cpu: 10m
+        memory: 32Mi
+      containerID: containerd://5194f4b109be60559de6b401ca48e00d65099f1afeb932ff11813e4eaa6ff539
+      image: quay.io/jetstack/cert-manager-webhook:v1.21.0
+      imageID: quay.io/jetstack/cert-manager-webhook@sha256:c33cca307541e2d58861a55b1af5f390b7e19c8741e48b433693b73a7cce88b3
+      lastState: {}
+      name: cert-manager-webhook
+      ready: true
+      resources:
+        limits:
+          cpu: 100m
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
+      restartCount: 0
+      started: true
+      state:
+        running:
+          startedAt: '2026-10-04T13:42:44Z'
+      user:
+        linux:
+          gid: 65532
+          supplementalGroups:
+          - 65532
+          uid: 65532
+      volumeMounts:
+      - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        name: kube-api-access-kdngp
+        readOnly: true
+        recursiveReadOnly: Disabled
+    hostIP: 10.89.0.2
+    hostIPs:
+    - ip: 10.89.0.2
+    observedGeneration: 1
+    phase: Running
+    podIP: 10.244.0.11
+    podIPs:
+    - ip: 10.244.0.11
+    qosClass: Burstable
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        memory: 32Mi
+    startTime: '2026-10-04T13:42:36Z'
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/name: cainjector
+      component.opmodel.dev/name: cainjector
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      pod-template-hash: 5d69c59bd
+    name: cert-manager-cainjector-5d69c59bd
+    namespace: cert-manager
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: cert-manager-cainjector
+      uid: b5c5e1eb-1d18-49fd-b05b-8531a0f6168c
+    resourceVersion: '1471'
+    uid: 55dacb50-b075-43d7-a5a7-6bca417784d7
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: cainjector
+        component.opmodel.dev/name: cainjector
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: cert-manager
+        pod-template-hash: 5d69c59bd
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: cainjector
+          component.opmodel.dev/name: cainjector
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: cert-manager
+          pod-template-hash: 5d69c59bd
+      spec:
+        containers:
+        - args:
+          - --v=2
+          - --leader-election-namespace=cert-manager
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: quay.io/jetstack/cert-manager-cainjector:v1.21.0
+          imagePullPolicy: IfNotPresent
+          name: cert-manager-cainjector
+          ports:
+          - containerPort: 9402
+            name: http-metrics
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          runAsNonRoot: true
+        serviceAccount: cert-manager-cainjector
+        serviceAccountName: cert-manager-cainjector
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/name: controller
+      component.opmodel.dev/name: controller
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      pod-template-hash: 7c9bddd644
+    name: cert-manager-controller-7c9bddd644
+    namespace: cert-manager
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: cert-manager-controller
+      uid: d89a701f-24b0-4701-91d3-fb38feaad19a
+    resourceVersion: '1456'
+    uid: 89a3bfa1-f3c2-4a47-a197-21ec6107fbce
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: controller
+        component.opmodel.dev/name: controller
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: cert-manager
+        pod-template-hash: 7c9bddd644
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: controller
+          component.opmodel.dev/name: controller
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: cert-manager
+          pod-template-hash: 7c9bddd644
+      spec:
+        containers:
+        - args:
+          - --v=2
+          - --cluster-resource-namespace=$(POD_NAMESPACE)
+          - --leader-election-namespace=cert-manager
+          - --acme-http01-solver-image=quay.io/jetstack/cert-manager-acmesolver:v1.21.0
+          - --max-concurrent-challenges=60
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: quay.io/jetstack/cert-manager-controller:v1.21.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 8
+            httpGet:
+              path: /livez
+              port: 9403
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 15
+          name: cert-manager-controller
+          ports:
+          - containerPort: 9402
+            name: http-metrics
+            protocol: TCP
+          - containerPort: 9403
+            name: http-healthz
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          runAsNonRoot: true
+        serviceAccount: cert-manager
+        serviceAccountName: cert-manager
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+- apiVersion: apps/v1
+  kind: ReplicaSet
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 1
+    labels:
+      app.kubernetes.io/name: webhook
+      component.opmodel.dev/name: webhook
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      pod-template-hash: 6c5bb576f5
+    name: cert-manager-webhook-6c5bb576f5
+    namespace: cert-manager
+    ownerReferences:
+    - apiVersion: apps/v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Deployment
+      name: cert-manager-webhook
+      uid: 111c91b3-68bc-4151-84d5-f5001cd99c0f
+    resourceVersion: '1500'
+    uid: 1040bfaf-8192-44b1-bf64-b9c889eca353
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app.kubernetes.io/name: webhook
+        component.opmodel.dev/name: webhook
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: cert-manager
+        pod-template-hash: 6c5bb576f5
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/name: webhook
+          component.opmodel.dev/name: webhook
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: cert-manager
+          pod-template-hash: 6c5bb576f5
+      spec:
+        containers:
+        - args:
+          - --v=2
+          - --secure-port=10250
+          - --dynamic-serving-ca-secret-namespace=$(POD_NAMESPACE)
+          - --dynamic-serving-ca-secret-name=cert-manager-webhook-ca
+          - --dynamic-serving-dns-names=cert-manager-webhook
+          - --dynamic-serving-dns-names=cert-manager-webhook.$(POD_NAMESPACE)
+          - --dynamic-serving-dns-names=cert-manager-webhook.$(POD_NAMESPACE).svc
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          image: quay.io/jetstack/cert-manager-webhook:v1.21.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /livez
+              port: 6080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: cert-manager-webhook
+          ports:
+          - containerPort: 10250
+            name: https
+            protocol: TCP
+          - containerPort: 6080
+            name: healthcheck
+            protocol: TCP
+          - containerPort: 9402
+            name: http-metrics
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 6080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+          runAsNonRoot: true
+        serviceAccount: cert-manager-webhook
+        serviceAccountName: cert-manager-webhook
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    fullyLabeledReplicas: 1
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    terminatingReplicas: 0
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: cainjector-leaderelection-role
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: cainjector-leaderelection-role
+      component.opmodel.dev/name: cainjector-leaderelection-role
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-cainjector:leaderelection
+    namespace: cert-manager
+    resourceVersion: '1384'
+    uid: c796bf5a-44c8-4f19-b396-ba0f636106c3
+  rules:
+  - apiGroups:
+    - coordination.k8s.io
+    resourceNames:
+    - cert-manager-cainjector-leader-election
+    - cert-manager-cainjector-leader-election-core
+    resources:
+    - leases
+    verbs:
+    - get
+    - update
+    - patch
+  - apiGroups:
+    - coordination.k8s.io
+    resources:
+    - leases
+    verbs:
+    - create
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: webhook-dynamic-serving-role
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook-dynamic-serving-role
+      component.opmodel.dev/name: webhook-dynamic-serving-role
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook:dynamic-serving
+    namespace: cert-manager
+    resourceVersion: '1385'
+    uid: 81efead1-06d7-43b1-a339-df3c3b85dc65
+  rules:
+  - apiGroups:
+    - ''
+    resourceNames:
+    - cert-manager-webhook-ca
+    resources:
+    - secrets
+    verbs:
+    - get
+    - list
+    - watch
+    - update
+  - apiGroups:
+    - ''
+    resources:
+    - secrets
+    verbs:
+    - create
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-leaderelection-role
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-leaderelection-role
+      component.opmodel.dev/name: controller-leaderelection-role
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager:leaderelection
+    namespace: cert-manager
+    resourceVersion: '1386'
+    uid: b8ff5513-2ebb-4db7-8ab7-5c4f159a1c61
+  rules:
+  - apiGroups:
+    - coordination.k8s.io
+    resourceNames:
+    - cert-manager-controller
+    resources:
+    - leases
+    verbs:
+    - get
+    - update
+    - patch
+  - apiGroups:
+    - coordination.k8s.io
+    resources:
+    - leases
+    verbs:
+    - create
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: cainjector-leaderelection-role
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: cainjector-leaderelection-role
+      component.opmodel.dev/name: cainjector-leaderelection-role
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-cainjector:leaderelection
+    namespace: cert-manager
+    resourceVersion: '1387'
+    uid: 77451807-71aa-4391-8aa0-4fdbdac03daa
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: cert-manager-cainjector:leaderelection
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager-cainjector
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: webhook-dynamic-serving-role
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook-dynamic-serving-role
+      component.opmodel.dev/name: webhook-dynamic-serving-role
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook:dynamic-serving
+    namespace: cert-manager
+    resourceVersion: '1388'
+    uid: 57a887a7-1cf0-4522-aaec-05f553d80ae2
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: cert-manager-webhook:dynamic-serving
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager-webhook
+    namespace: cert-manager
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller-leaderelection-role
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller-leaderelection-role
+      component.opmodel.dev/name: controller-leaderelection-role
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager:leaderelection
+    namespace: cert-manager
+    resourceVersion: '1389'
+    uid: 4026b1ff-91e1-4256-86af-338f9aa354ec
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: cert-manager:leaderelection
+  subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: webhook
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook
+      component.opmodel.dev/name: webhook
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook
+    namespace: cert-manager
+    resourceVersion: '1391'
+    uid: 1cba565b-7d81-47ad-aa78-bcde62a187e2
+  spec:
+    clusterIP: 10.96.178.193
+    clusterIPs:
+    - 10.96.178.193
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 10250
+    - name: metrics
+      port: 9402
+      protocol: TCP
+      targetPort: 9402
+    selector:
+      app.kubernetes.io/name: webhook
+      component.opmodel.dev/name: webhook
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  automountServiceAccountToken: true
+  kind: ServiceAccount
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: controller
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: controller
+      component.opmodel.dev/name: controller
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager
+    namespace: cert-manager
+    resourceVersion: '1381'
+    uid: ffd3a925-8a8b-46f5-8c71-948ab54ce312
+- apiVersion: v1
+  automountServiceAccountToken: true
+  kind: ServiceAccount
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: cainjector
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: cainjector
+      component.opmodel.dev/name: cainjector
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-cainjector
+    namespace: cert-manager
+    resourceVersion: '1382'
+    uid: 829bc15c-1c6f-43e0-8adb-1a6dac11051c
+- apiVersion: v1
+  automountServiceAccountToken: true
+  kind: ServiceAccount
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    labels:
+      app.kubernetes.io/instance: webhook
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook
+      component.opmodel.dev/name: webhook
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook
+    namespace: cert-manager
+    resourceVersion: '1383'
+    uid: 18b4b28c-2d52-4b19-abf9-4a12d556076b
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: ValidatingWebhookConfiguration
+  metadata:
+    creationTimestamp: '2026-10-04T13:42:36Z'
+    generation: 2
+    labels:
+      app: webhook
+      app.kubernetes.io/component: webhook
+      app.kubernetes.io/instance: cert-manager
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: webhook
+      app.kubernetes.io/version: v1.21.0
+      component.opmodel.dev/name: webhook-validating
+      module-instance.opmodel.dev/name: cert-manager
+      module-instance.opmodel.dev/uuid: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      module.opmodel.dev/name: cert_manager
+      module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
+      module.opmodel.dev/version: 2.0.5
+    name: cert-manager-webhook
+    resourceVersion: '1487'
+    uid: 0ccb575c-ebcc-4029-8ba4-5b7ad6a08a0a
+  webhooks:
+  - admissionReviewVersions:
+    - v1
+    clientConfig:
+      service:
+        name: cert-manager-webhook
+        namespace: cert-manager
+        path: /validate
+        port: 443
+    failurePolicy: Fail
+    matchPolicy: Equivalent
+    name: webhook.cert-manager.io
+    namespaceSelector:
+      matchExpressions:
+      - key: cert-manager.io/disable-validation
+        operator: NotIn
+        values:
+        - 'true'
+    objectSelector: {}
+    rules:
+    - apiGroups:
+      - cert-manager.io
+      - acme.cert-manager.io
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - '*/*'
+      scope: '*'
+    sideEffects: None
+    timeoutSeconds: 30

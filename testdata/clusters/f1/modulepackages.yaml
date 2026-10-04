@@ -1,0 +1,59 @@
+apiVersion: v1
+items:
+  - apiVersion: opmodel.dev/v1alpha1
+    kind: ModulePackage
+    metadata:
+      creationTimestamp: "2026-10-04T18:03:53Z"
+      finalizers:
+        - opmodel.dev/cleanup
+      generation: 1
+      name: podinfo
+      namespace: pkg
+      resourceVersion: "931"
+      uid: 5ae341c6-7de4-41d8-8799-817d4cb56ead
+    spec:
+      interval: 1m
+      path: .
+      prune: true
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1
+        kind: OCIRepository
+        name: podinfo-release
+    status:
+      conditions:
+        - lastTransitionTime: "2026-10-04T18:03:54Z"
+          message: Reconciliation in progress
+          observedGeneration: 1
+          reason: Progressing
+          status: "True"
+          type: Reconciling
+        - lastTransitionTime: "2026-10-04T18:03:54Z"
+          message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+          observedGeneration: 1
+          reason: SourceNotReady
+          status: "False"
+          type: Ready
+      failureCounters:
+        reconcile: 3
+      history:
+        - action: reconcile
+          finishedAt: "2026-10-04T18:04:23Z"
+          message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+          sequence: 3
+          startedAt: "2026-10-04T18:04:23Z"
+        - action: reconcile
+          finishedAt: "2026-10-04T18:04:23Z"
+          message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+          sequence: 2
+          startedAt: "2026-10-04T18:04:23Z"
+        - action: reconcile
+          finishedAt: "2026-10-04T18:03:54Z"
+          message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
+          sequence: 1
+          startedAt: "2026-10-04T18:03:54Z"
+      lastAttemptedAction: reconcile
+      lastAttemptedAt: "2026-10-04T18:04:23Z"
+      lastAttemptedDuration: 669.809µs
+      nextRetryAt: "2026-10-04T18:05:23Z"
+      observedGeneration: 1
+kind: List
