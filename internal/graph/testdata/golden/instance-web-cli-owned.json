@@ -1,0 +1,331 @@
+{
+  "scope": "instance",
+  "root": "mi:web/web",
+  "layout": {
+    "width": 1552,
+    "height": 160,
+    "nodeWidth": 200,
+    "nodeHeight": 44,
+    "columns": [
+      {
+        "title": "Module",
+        "x": 16
+      },
+      {
+        "title": "Instance",
+        "x": 280
+      },
+      {
+        "title": "Components",
+        "x": 544
+      },
+      {
+        "title": "Objects",
+        "x": 808
+      },
+      {
+        "title": "Runtime",
+        "x": 1072
+      },
+      {
+        "title": "Runtime",
+        "x": 1336
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5",
+      "kind": "module",
+      "label": "opmodel.dev/modules/web_app@v1",
+      "version": "v1.0.5",
+      "column": 0,
+      "row": 0,
+      "x": 16,
+      "y": 72
+    },
+    {
+      "id": "mi:web/web",
+      "kind": "instance",
+      "label": "web/web",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "web",
+        "name": "web"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2
+        }
+      },
+      "applied": {
+        "state": "ManagedExternally",
+        "reason": "ManagedExternally",
+        "message": "ModuleInstance is managed externally by the CLI"
+      },
+      "owner": "cli",
+      "column": 1,
+      "row": 0,
+      "x": 280,
+      "y": 72
+    },
+    {
+      "id": "comp:mi/web/web/web",
+      "kind": "component",
+      "label": "web",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2
+        }
+      },
+      "column": 2,
+      "row": 0,
+      "x": 544,
+      "y": 72
+    },
+    {
+      "id": "obj:_/Service/web/web-web",
+      "kind": "object",
+      "label": "web-web",
+      "ref": {
+        "version": "v1",
+        "kind": "Service",
+        "namespace": "web",
+        "name": "web-web"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Service is ready"
+      },
+      "column": 3,
+      "row": 0,
+      "x": 808,
+      "y": 44
+    },
+    {
+      "id": "obj:apps/Deployment/web/web-web",
+      "kind": "object",
+      "label": "web-web",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "web",
+        "name": "web-web"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 1,
+      "x": 808,
+      "y": 100
+    },
+    {
+      "id": "obj:apps/ReplicaSet/web/web-web-6f7fbf94f9",
+      "kind": "runtime",
+      "label": "web-web-6f7fbf94f9",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "web",
+        "name": "web-web-6f7fbf94f9"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 0,
+      "x": 1072,
+      "y": 72
+    },
+    {
+      "id": "obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2",
+      "kind": "runtime",
+      "label": "web-web-6f7fbf94f9-v6hw2",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "web",
+        "name": "web-web-6f7fbf94f9-v6hw2"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 0,
+      "x": 1336,
+      "y": 72
+    }
+  ],
+  "edges": [
+    {
+      "id": "controls|obj:apps/Deployment/web/web-web|obj:apps/ReplicaSet/web/web-web-6f7fbf94f9",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/web/web-web",
+      "to": "obj:apps/ReplicaSet/web/web-web-6f7fbf94f9",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1008,
+          "y": 122
+        },
+        {
+          "x": 1040,
+          "y": 122
+        },
+        {
+          "x": 1040,
+          "y": 94
+        },
+        {
+          "x": 1072,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/web/web-web-6f7fbf94f9|obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/web/web-web-6f7fbf94f9",
+      "to": "obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1272,
+          "y": 94
+        },
+        {
+          "x": 1304,
+          "y": 94
+        },
+        {
+          "x": 1304,
+          "y": 94
+        },
+        {
+          "x": 1336,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:web/web|comp:mi/web/web/web",
+      "kind": "hasComponent",
+      "from": "mi:web/web",
+      "to": "comp:mi/web/web/web",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 94
+        },
+        {
+          "x": 512,
+          "y": 94
+        },
+        {
+          "x": 512,
+          "y": 94
+        },
+        {
+          "x": 544,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "instantiates|mi:web/web|mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5",
+      "kind": "instantiates",
+      "from": "mi:web/web",
+      "to": "mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5",
+      "source": "ModuleInstance spec.module",
+      "route": [
+        {
+          "x": 280,
+          "y": 94
+        },
+        {
+          "x": 248,
+          "y": 94
+        },
+        {
+          "x": 248,
+          "y": 94
+        },
+        {
+          "x": 216,
+          "y": 94
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/web/web/web|obj:_/Service/web/web-web",
+      "kind": "owns",
+      "from": "comp:mi/web/web/web",
+      "to": "obj:_/Service/web/web-web",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 66
+        },
+        {
+          "x": 808,
+          "y": 66
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/web/web/web|obj:apps/Deployment/web/web-web",
+      "kind": "owns",
+      "from": "comp:mi/web/web/web",
+      "to": "obj:apps/Deployment/web/web-web",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 94
+        },
+        {
+          "x": 776,
+          "y": 122
+        },
+        {
+          "x": 808,
+          "y": 122
+        }
+      ]
+    }
+  ]
+}

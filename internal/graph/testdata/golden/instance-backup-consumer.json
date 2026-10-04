@@ -1,0 +1,186 @@
+{
+  "scope": "instance",
+  "root": "mi:default/backup-consumer",
+  "layout": {
+    "width": 1024,
+    "height": 104,
+    "nodeWidth": 200,
+    "nodeHeight": 44,
+    "columns": [
+      {
+        "title": "Module",
+        "x": 16
+      },
+      {
+        "title": "Instance",
+        "x": 280
+      },
+      {
+        "title": "Components",
+        "x": 544
+      },
+      {
+        "title": "Objects",
+        "x": 808
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_consumer%40v0/v0.1.0",
+      "kind": "module",
+      "label": "testing.opmodel.dev/modules/operator/backup_consumer@v0",
+      "version": "v0.1.0",
+      "column": 0,
+      "row": 0,
+      "x": 16,
+      "y": 44
+    },
+    {
+      "id": "mi:default/backup-consumer",
+      "kind": "instance",
+      "label": "default/backup-consumer",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "backup-consumer"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1
+        }
+      },
+      "applied": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded"
+      },
+      "owner": "operator",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/volumes@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
+      ],
+      "column": 1,
+      "row": 0,
+      "x": 280,
+      "y": 44
+    },
+    {
+      "id": "comp:mi/default/backup-consumer/data",
+      "kind": "component",
+      "label": "data",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1
+        }
+      },
+      "column": 2,
+      "row": 0,
+      "x": 544,
+      "y": 44
+    },
+    {
+      "id": "obj:_/ConfigMap/default/backup-consumer-data-backup",
+      "kind": "object",
+      "label": "backup-consumer-data-backup",
+      "ref": {
+        "version": "v1",
+        "kind": "ConfigMap",
+        "namespace": "default",
+        "name": "backup-consumer-data-backup"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is always ready"
+      },
+      "column": 3,
+      "row": 0,
+      "x": 808,
+      "y": 44
+    }
+  ],
+  "edges": [
+    {
+      "id": "hasComponent|mi:default/backup-consumer|comp:mi/default/backup-consumer/data",
+      "kind": "hasComponent",
+      "from": "mi:default/backup-consumer",
+      "to": "comp:mi/default/backup-consumer/data",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 480,
+          "y": 66
+        },
+        {
+          "x": 512,
+          "y": 66
+        },
+        {
+          "x": 512,
+          "y": 66
+        },
+        {
+          "x": 544,
+          "y": 66
+        }
+      ]
+    },
+    {
+      "id": "instantiates|mi:default/backup-consumer|mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_consumer%40v0/v0.1.0",
+      "kind": "instantiates",
+      "from": "mi:default/backup-consumer",
+      "to": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_consumer%40v0/v0.1.0",
+      "source": "ModuleInstance spec.module",
+      "route": [
+        {
+          "x": 280,
+          "y": 66
+        },
+        {
+          "x": 248,
+          "y": 66
+        },
+        {
+          "x": 248,
+          "y": 66
+        },
+        {
+          "x": 216,
+          "y": 66
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/default/backup-consumer/data|obj:_/ConfigMap/default/backup-consumer-data-backup",
+      "kind": "owns",
+      "from": "comp:mi/default/backup-consumer/data",
+      "to": "obj:_/ConfigMap/default/backup-consumer-data-backup",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 744,
+          "y": 66
+        },
+        {
+          "x": 776,
+          "y": 66
+        },
+        {
+          "x": 776,
+          "y": 66
+        },
+        {
+          "x": 808,
+          "y": 66
+        }
+      ]
+    }
+  ]
+}

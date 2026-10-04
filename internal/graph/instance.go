@@ -27,6 +27,11 @@ var (
 // podGroupThreshold is the most Pods under one parent shown one by one.
 const podGroupThreshold = 5
 
+const (
+	kindPod        = "Pod"
+	kindReplicaSet = "ReplicaSet"
+)
+
 // workloadKinds are the inventory kinds that make a component a workload
 // component; every other component is configuration (0030:D4:R5).
 var workloadKinds = map[string]bool{
@@ -230,7 +235,7 @@ func (b *builder) children(children []readmodel.RuntimeChild) int {
 	shown, hiddenScaledDown := tree.visible(b.opts.ShowScaledDown)
 	podsUnder := map[string][]*readmodel.RuntimeChild{}
 	for _, c := range shown {
-		if c.Ref.Kind == "Pod" {
+		if c.Ref.Kind == kindPod {
 			owner := objectID(c.Owner)
 			podsUnder[owner] = append(podsUnder[owner], c)
 		}
@@ -250,7 +255,7 @@ func (b *builder) children(children []readmodel.RuntimeChild) int {
 			Health:   objectHealth(c.Health),
 			Replicas: c.Replicas,
 		}
-		if owner := objectID(c.Owner); c.Ref.Kind == "Pod" && len(podsUnder[owner]) > podGroupThreshold {
+		if owner := objectID(c.Owner); c.Ref.Kind == kindPod && len(podsUnder[owner]) > podGroupThreshold {
 			n.MemberOf = groupID(GroupPods, owner)
 		}
 		b.add(n, colObject+tree.depth(c))
@@ -342,7 +347,7 @@ func (t childTree) belowScaledDown(c *readmodel.RuntimeChild) bool {
 }
 
 func scaledDown(c *readmodel.RuntimeChild) bool {
-	return c.Ref.Kind == "ReplicaSet" && c.Replicas != nil && *c.Replicas == 0
+	return c.Ref.Kind == kindReplicaSet && c.Replicas != nil && *c.Replicas == 0
 }
 
 // splitAPIVersion splits group/version; a core apiVersion has no group.

@@ -17,7 +17,7 @@
 ## 3. Layout, goldens and measurement (internal/graph, design.md)
 
 - [x] 3.1 (moved to 2.5)
-- [ ] 3.2 Add the test-only SVG writer and the golden suite (`-update` rewrites): instance graphs of cert-manager (collapsed and expanded), podinfo broken (experiment 01 samples), web, backup-provider and backup-consumer, package `pkg/podinfo`, and the F1 platform graph, each as JSON and SVG
-- [ ] 3.3 Add `TestMeasureCertManager`: build time and node and edge counts for cert-manager collapsed and expanded; record them in design.md, Measurements on F1
-- [ ] 3.4 Add the package documentation (`doc.go`); verify `go doc ./internal/graph` prints it
-- [ ] 3.5 `task check` green, then commit `chore(graph): lay out graphs deterministically and add F1 goldens`
+- [x] 3.2 Add the test-only SVG writer and the golden suite (`-update` rewrites): instance graphs of cert-manager (collapsed and expanded), podinfo broken (experiment 01 samples), web, backup-provider and backup-consumer, package `pkg/podinfo`, and the F1 platform graph, each as JSON and SVG
+- [x] 3.3 Add `TestMeasureCertManager`: build time and node and edge counts for cert-manager collapsed and expanded; record them in design.md, Measurements on F1
+- [x] 3.4 Add the package documentation (`doc.go`); verify `go doc ./internal/graph` prints it
+- [x] 3.5 `task check` green, then commit `chore(graph): lay out graphs deterministically and add F1 goldens`

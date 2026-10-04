@@ -213,4 +213,18 @@ the rule-answered local checker) to `internal/readmodel/readmodeltest`, which do
 
 ## Measurements on F1
 
-Recorded by `TestMeasureCertManager` (section 3).
+Recorded by `TestMeasureCertManager` (`go test ./internal/graph -run TestMeasureCertManager -v`)
+on 2026-10-04, AMD Ryzen AI 7 350, Go 1.26.5, means of 200 builds over the F1 fake cluster:
+
+| Graph | Nodes | Edges | Columns | Size (user units) | Build |
+| --- | --- | --- | --- | --- | --- |
+| cert-manager, default (configuration grouped) | 19 | 18 | 6 | 1552 x 440 | 56-58 µs |
+| cert-manager, configuration group expanded | 70 | 69 | 6 | 1552 x 2400 | 158-160 µs |
+| warm `Model.Instance` plus the default graph, per request | 19 | 18 | | | 419-446 µs |
+
+The 19 default nodes are the module, the instance, the three workload components, one group of
+17 configuration components, their 7 objects, 3 ReplicaSets and 3 Pods. Expanded, the 20
+components and 42 inventory objects are all nodes; that is 70 against the spike's 86, which also
+drew contract and platform nodes. The graph build is a small part of a request: the read model's
+own view dominates, and both are four orders of magnitude below the spike's 7.4 to 9.4 s
+per-request graph (0030:D3:R9).
