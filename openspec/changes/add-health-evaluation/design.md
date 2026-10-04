@@ -156,7 +156,8 @@ The operator's reason constants live in its `internal/status` package and cannot
 **Decision**: `reasons.go` holds `map[string]Explanation{Meaning, NextStep}`, keyed by the
 reason string. A test fails when a copied operator reason has no row or a row names a reason
 not in the copy. Event-only reasons (`Applied`, `Pruned`, `Resumed`, `NoOp`, `RenderWarning`)
-are excluded: they are never a condition reason. Two reasons the operator writes as literals
+are excluded: they are never a condition reason. So is `OrphanedOnDeletion`, declared among
+the condition reasons but only ever emitted as an event when a deletion orphans its objects. Two reasons the operator writes as literals
 (`Progressing` in `MarkReconciling` calls, `ModuleResolved`) are in the copy with a comment.
 Success reasons carry a meaning and no next step. User-facing text cites no enhancement.
 

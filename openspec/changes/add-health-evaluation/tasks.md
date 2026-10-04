@@ -20,6 +20,6 @@
 
 ## 4. Reason explanations
 
-- [ ] 4.1 Add `Explanation` and `Explain(reason)` with a row for every condition reason the operator writes (meaning, and a next step where a person can act); no row cites an enhancement
-- [ ] 4.2 Add the copied operator reason list with a comment pointing at opm-operator `internal/status/conditions.go`, and a test that fails on a reason without a row or a row without a reason; add a test, skipped unless `OPM_OPERATOR_SRC` names an operator checkout, that parses the `*Reason` constants from that file and compares them with the copy; verify both pass, the second with `OPM_OPERATOR_SRC` pointing at the local opm-operator checkout
-- [ ] 4.3 `task check` green, then commit `chore(health): explain every operator condition reason`
+- [x] 4.1 Add `Explanation` and `Explain(reason)` with a row for every condition reason the operator writes (meaning, and a next step where a person can act); no row cites an enhancement
+- [x] 4.2 Add the copied operator reason list with a comment pointing at opm-operator `internal/status/conditions.go`, and a test that fails on a reason without a row or a row without a reason; add a test, skipped unless `OPM_OPERATOR_SRC` names an operator checkout, that parses the `*Reason` constants from that file and compares them with the copy; verify both pass, the second with `OPM_OPERATOR_SRC` pointing at the local opm-operator checkout
+- [x] 4.3 `task check` green, then commit `chore(health): explain every operator condition reason`
