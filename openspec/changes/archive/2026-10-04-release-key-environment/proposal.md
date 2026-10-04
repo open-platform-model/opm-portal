@@ -4,9 +4,10 @@
 
 ## What Changes
 
-- **`.github/workflows/release.yml`**: the `release-please` job, the only reader of the key, runs in `environment: release` and declares `permissions: {}` (it acts only through the App token). `binaries` sets `cache: false` on `actions/setup-go`; `image-release` drops `cache-from`/`cache-to: type=gha`, so release images build from scratch.
-- **`.github/CODEOWNERS`**: the owners review `.github/`, `Taskfile.yml`, `release-please-config.json` and `.release-please-manifest.json`.
-- Every other workflow already declares its permissions, and none of them publishes, so they keep their caches. `.github/dependabot.yml` already covers GitHub Actions.
+- **`.github/workflows/release.yml`**: the `release-please` job, the only reader of the key, runs in `environment: release` and declares `permissions: {}` (it acts only through the App token, minted with only `contents`, `pull-requests` and `issues` write). `binaries` sets `cache: false` on `actions/setup-go`; `image-release` drops `cache-from`/`cache-to: type=gha`, so release images build from scratch. The `binaries`, `image-release` and `publish-release` checkouts set `persist-credentials: false`.
+- **`.github/CODEOWNERS`**: the owners review `.github/`, `Taskfile.yml`, `release-please-config.json`, `.release-please-manifest.json`, `.goreleaser.yml`, `Dockerfile` and `.dockerignore`. Review is required only once the main ruleset turns on code-owner review; the file's header says so.
+- **`.github/dependabot.yml`**: already covers GitHub Actions; it now also ignores `open-platform-model/.github*`, which moves by the pin procedure only.
+- Every other workflow already declares its permissions, and none of them publishes, so they keep their caches.
 
 Release class: none. Commits are `ci` and `chore`.
 
@@ -18,6 +19,6 @@ Release class: none. Commits are `ci` and `chore`.
 
 ## Impact
 
-- Files: `.github/workflows/release.yml`, `.github/CODEOWNERS`.
+- Files: `.github/workflows/release.yml`, `.github/CODEOWNERS`, `.github/dependabot.yml`.
 - Release image builds lose the BuildKit cache; both platforms cross-compile in the builder stage, so a release run takes a few minutes longer.
 - Risk: until the owner stores the key in the environment, the job reads the org secret as before, so this merges safely first. A wrong `permissions: {}` would show on the next push to `main` as a failed release-please step.

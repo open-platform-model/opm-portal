@@ -5,7 +5,9 @@
 The release workflow SHALL read `RELEASE_APP_PRIVATE_KEY` in exactly one job, `release-please`,
 and that job SHALL run in the `release` environment, whose deployment branch policy admits `main`
 only. The `release-please` job acts only through the App token and SHALL declare no
-`GITHUB_TOKEN` permissions. Every workflow SHALL declare its token permissions explicitly. No job
+`GITHUB_TOKEN` permissions; it SHALL mint that token with only `contents`, `pull-requests` and
+`issues` write. Every workflow SHALL declare its token permissions explicitly. A release job
+that holds a write token SHALL check out without persisting it. No job
 that builds or publishes a release artifact (`binaries`, `image-release`) SHALL restore an
 Actions cache: `actions/setup-go` runs with `cache: false` and the image build uses no `type=gha`
 cache.
