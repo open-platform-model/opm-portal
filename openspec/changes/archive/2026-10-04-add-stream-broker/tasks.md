@@ -39,3 +39,10 @@
 - [x] 7.2 Serve a list topic only when the producer names exactly one read for it, `list` with no subresource and no name in the topic's namespace; verify with a table test that every other shape is `ErrTopicNotServed` with no review sent
 - [x] 7.3 Reword the "Identifiers reveal nothing left out" scenario to an object topic with partly forbidden per-item reads, and extend the id test with that case asserting consecutive ids
 - [x] 7.4 `task check` green (new tests run 10 times under `-race`), then commit `chore(stream): gate list items by scope and re-check expired grants`
+
+## 8. Re-validate every grant a message used, in one place (internal/stream)
+
+- [x] 8.1 Carry with every message the grants it was built under (the topic's and each item's own) and re-validate them all in `send`, the only writer of topic data, right before the event id and the write: an expired grant is asked again, a per-item `forbidden` drops the item (a snapshot is written without it), and a topic denial or any other code closes the topic; verify with `synctest` tests of an object topic whose item's own decision expires during a later render (snapshot) and during its own render (live item), each allowed, revoked and failing, with four reviews sent
+- [x] 8.2 Add a guard test that enumerates every write call in the package (`eventID`, `event`, the response `Write`) so topic data is written only through `send`, which re-validates before the event id and the write
+- [x] 8.3 Make `InstancesResource` a function so no importer can change what a list topic is served under
+- [x] 8.4 `task check` green (new tests run 10 times under `-race`), then commit `chore(stream): re-validate every grant a message used before the write`

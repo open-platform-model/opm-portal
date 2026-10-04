@@ -47,18 +47,24 @@
 //     message.
 //   - Only the session and identity that opened a stream can change its
 //     topics or resume it.
-//   - Before each delivery, again right before it is written, and on each
-//     heartbeat, the topic's grants are checked with Grant.Covers; an
-//     expired grant is checked again, and a denial closes the topic.
+//   - Before each delivery and on each heartbeat, the topic's grants are
+//     checked with Grant.Covers; an expired grant is checked again, and a
+//     denial closes the topic.
 //   - Each item is delivered only when the subscriber may read Item.Attrs.
 //     An item within the scope of the topic's reads is delivered under the
-//     topic's grants; one that expired during a slow snapshot or render is
-//     checked again, and a denial closes the topic rather than cut a
-//     snapshot short. On a list topic an item outside the list grant's scope
+//     topic's grants. On a list topic an item outside the list grant's scope
 //     is a producer fault and is left out without a review, so a list
 //     carries only items within its grant's scope and costs no review per
 //     item. On an object topic an item outside the topic's reads is reviewed
 //     on its own. A forbidden item is left out without a trace.
+//   - All grants a message used are re-validated in one place before the
+//     write: every snapshot and item carries the topic's grants and each
+//     item's own, and the single writer of topic data checks them all with
+//     Grant.Covers right before the event id and the write, asking again for
+//     any that expired during a slow snapshot or render. An item that is now
+//     forbidden is left out (a snapshot is written without it, an item event
+//     not at all); a topic denial or any other error closes the topic, so a
+//     snapshot never arrives cut short by the topic's own grants.
 //   - An authorization error is never a delivery: it closes the topic with
 //     the code upstream_unavailable.
 //

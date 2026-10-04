@@ -140,20 +140,28 @@ events` in `apps`) and for each item's `Attrs`.
   whose topic was detached or attached again in the meantime is not written. Unwritten closings
   count once each towards `MaxTopicsPerStream`, excluding topics asked for again, so the record
   stays bounded.
-- **Before each delivery**, and again right before it is written, the writer checks the topic's
-  held grants with `Grant.Covers`; an expired grant is re-checked with `Check`, so nothing is
-  written under a decision that expired during a slow snapshot or render. A denial or error
-  closes the topic. The same check runs on each heartbeat, so a revocation closes a quiet topic
-  within one decision TTL plus one heartbeat.
+- **Before each delivery** the writer checks the topic's held grants with `Grant.Covers`; an
+  expired grant is re-checked with `Check`, and a denial or error closes the topic. The same
+  check runs on each heartbeat, so a revocation closes a quiet topic within one decision TTL plus
+  one heartbeat.
+- **All grants a message used are re-validated in one place before the write.** Every message (a
+  snapshot or an item) carries the set of grants it was built under: the topic's grants and the
+  grant of every item reviewed on its own. One function, `send`, is the only writer of topic data;
+  right before the event id and the write it checks that whole set with `Grant.Covers` and
+  re-`Check`s any grant that expired during a slow snapshot or render. A per-item `forbidden`
+  drops that item from the message (a snapshot is rebuilt without it, an item event is not
+  written), without a trace; a denial of the topic's grants, or any other code, closes the topic.
+  Nothing is therefore written under a decision that has expired, and a guard test enumerates
+  every write call in the package so a new path cannot bypass `send`.
 - **Per item**: inclusion is decided by scope. An item whose `Item.Attrs` falls within one of the
   topic's reads (by `authz.Attributes.Covers`, the scope rule `Grant.Covers` applies: same verb,
   resource and subresource; the read's namespace and name empty or equal) is delivered under the
-  topic's grants, which are gated again first: a grant that expired during a slow snapshot or
-  render is re-checked with `Check`, and a denial closes the topic instead of leaving the item
-  out, so a snapshot never arrives silently cut short. On a list topic nothing else is delivered
+  topic's grants, which are gated again before each item, so a denial stops a slow snapshot
+  before the next render and closes the topic instead of leaving the item out: a snapshot never
+  arrives silently cut short. On a list topic nothing else is delivered
   or reviewed: a list item names the list of its namespace, within the topic's list read, and an
   item outside that scope is left out and logged as a producer fault. `checkTopics` serves a list
-  topic only when the producer names exactly one read for it: `list` of `InstancesResource`
+  topic only when the producer names exactly one read for it: `list` of `InstancesResource()`
   (`moduleinstances`) with no subresource and no name, in the topic's namespace (cluster-wide for
   `instances`). On an object topic an item revealing another read gets its own `Check` (cached by
   `authz`). Forbidden or invalid: the item is skipped. Unavailable: the topic is closed with

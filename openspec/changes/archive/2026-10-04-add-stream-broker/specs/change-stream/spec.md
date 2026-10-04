@@ -111,6 +111,16 @@ one. Source: 0030:D7:R2, 0030:D5:R5, 0030:D6:R4.
 - **WHEN** a reader follows a list topic its `list` grant covers and the topic carries many items
 - **THEN** the only authorization review sent is the topic's own `list` read
 
+#### Scenario: A decision that expires while a message is built is asked again before the write
+
+- **WHEN** a subscriber follows `instance:apps/blog`, whose snapshot carries an item revealing a
+  package that is reviewed on its own
+- **AND** the subscriber's access to that package is revoked and the item's decision expires
+  before the snapshot is written
+- **THEN** the snapshot is written without that item and with no trace of it
+- **AND** had the item's review failed with an error instead, the topic would be closed with code
+  `upstream_unavailable` and no snapshot written
+
 #### Scenario: A reader allowed single names is refused the list topic
 
 - **WHEN** subscriber A may read instance `team-b/two` by name but may not list namespace `team-b`

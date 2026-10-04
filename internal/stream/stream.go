@@ -162,6 +162,28 @@ func (s *Stream) deliver(ctx context.Context, wr *writer, e *entry) error {
 	return nil
 }
 
+// part is one item of a message: its rendered document, the read it reveals
+// and, when it was reviewed on its own, the grant that review gave it. An
+// item within the scope of the topic's reads has no grant of its own: it
+// rides the topic's grants.
+type part struct {
+	data  json.RawMessage
+	attrs authz.Attributes
+	own   bool
+	grant authz.Grant
+}
+
+// message is one snapshot or item event of sub's topic, together with every
+// grant it was built under: the topic's (sub.grants) and each part's own.
+// send re-validates all of them right before the write.
+type message struct {
+	sub      *subscription
+	seq      uint64
+	snapshot bool
+	event    string // the item's event; EventSnapshot for a snapshot
+	parts    []part
+}
+
 func (s *Stream) deliverSnapshot(ctx context.Context, wr *writer, e *entry) error {
 	if !s.current(e.sub) {
 		return nil
@@ -177,39 +199,22 @@ func (s *Stream) deliverSnapshot(ctx context.Context, wr *writer, e *entry) erro
 		s.b.log.Warn("snapshot failed", "topic", e.topic.String(), "error", err)
 		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
 	}
-	payloads := make([]json.RawMessage, 0, len(items))
+	m := &message{sub: e.sub, seq: e.seq, snapshot: true, event: EventSnapshot, parts: make([]part, 0, len(items))}
 	for i := range items {
 		it := &items[i]
 		if err := it.validate(); err != nil {
 			s.b.log.Warn("dropping an invalid snapshot item", "topic", e.topic.String(), "error", err)
 			continue
 		}
-		data, code := s.payload(ctx, e.sub, it)
+		p, ok, code := s.payload(ctx, e.sub, it)
 		if code != "" {
 			return s.closeTopic(ctx, wr, e.sub, code)
 		}
-		if data != nil {
-			payloads = append(payloads, data)
+		if ok {
+			m.parts = append(m.parts, p)
 		}
 	}
-	body, err := json.Marshal(struct {
-		Topic string            `json:"topic"`
-		Items []json.RawMessage `json:"items"`
-	}{e.topic.String(), payloads})
-	if err != nil {
-		s.b.log.Warn("snapshot payload is not JSON", "topic", e.topic.String(), "error", err)
-		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
-	}
-	// Snapshot or the last render may have outlived a grant: gate again
-	// before writing, which asks again only for a grant that has expired.
-	if code := s.gateTopic(ctx, e.sub); code != "" {
-		return s.closeTopic(ctx, wr, e.sub, code)
-	}
-	id, ok := s.eventID(e.sub, e.seq)
-	if !ok {
-		return nil
-	}
-	return wr.event("", id, EventSnapshot, body)
+	return s.send(ctx, wr, m)
 }
 
 func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
@@ -219,30 +224,88 @@ func (s *Stream) deliverItem(ctx context.Context, wr *writer, e *entry) error {
 	if code := s.gateTopic(ctx, e.sub); code != "" {
 		return s.closeTopic(ctx, wr, e.sub, code)
 	}
-	data, code := s.payload(ctx, e.sub, &e.item)
+	p, ok, code := s.payload(ctx, e.sub, &e.item)
 	if code != "" {
 		return s.closeTopic(ctx, wr, e.sub, code)
 	}
-	if data == nil {
-		return nil
-	}
-	body, err := json.Marshal(struct {
-		Topic string          `json:"topic"`
-		Item  json.RawMessage `json:"item"`
-	}{e.topic.String(), data})
-	if err != nil {
-		s.b.log.Warn("item payload is not JSON", "topic", e.topic.String(), "error", err)
-		return s.closeTopic(ctx, wr, e.sub, CodeUpstreamUnavailable)
-	}
-	// The render may have outlived a grant: gate again before writing.
-	if code := s.gateTopic(ctx, e.sub); code != "" {
-		return s.closeTopic(ctx, wr, e.sub, code)
-	}
-	id, ok := s.eventID(e.sub, e.seq)
 	if !ok {
 		return nil
 	}
-	return wr.event("", id, e.item.Event, body)
+	return s.send(ctx, wr, &message{sub: e.sub, seq: e.seq, event: e.item.Event, parts: []part{p}})
+}
+
+// send writes a snapshot or an item event. It is the only path by which
+// either reaches the client (TestOnlySendWritesTopicData holds it to that).
+// Right before the event id and the write it re-validates, in this one
+// place, every grant the message was built under (revalidate), so nothing is
+// written under a decision that expired while the message was built: a
+// slow Snapshot or render cannot outlive a grant unnoticed.
+func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
+	if code := s.revalidate(ctx, m); code != "" {
+		return s.closeTopic(ctx, wr, m.sub, code)
+	}
+	topic := m.sub.topic.String()
+	var body []byte
+	var err error
+	if m.snapshot {
+		items := make([]json.RawMessage, len(m.parts))
+		for i := range m.parts {
+			items[i] = m.parts[i].data
+		}
+		body, err = json.Marshal(struct {
+			Topic string            `json:"topic"`
+			Items []json.RawMessage `json:"items"`
+		}{topic, items})
+	} else {
+		if len(m.parts) != 1 {
+			// The item was left out: it is not written, and leaves no trace.
+			return nil
+		}
+		body, err = json.Marshal(struct {
+			Topic string          `json:"topic"`
+			Item  json.RawMessage `json:"item"`
+		}{topic, m.parts[0].data})
+	}
+	if err != nil {
+		s.b.log.Warn("message payload is not JSON", "topic", topic, "error", err)
+		return s.closeTopic(ctx, wr, m.sub, CodeUpstreamUnavailable)
+	}
+	id, ok := s.eventID(m.sub, m.seq)
+	if !ok {
+		return nil
+	}
+	return wr.event("", id, m.event, body)
+}
+
+// revalidate makes sure every grant m was built under still covers its read
+// now, asking again for any that does not (an expired one). The topic's
+// grants come first: any denial or error there returns its closing code. A
+// part reviewed on its own that is now forbidden is dropped from m, so a
+// snapshot is written without it and an item event not at all, without a
+// trace (0030:D7:R2); any other code for it closes the topic. It returns a
+// closing code, or "".
+func (s *Stream) revalidate(ctx context.Context, m *message) string {
+	if code := s.gateTopic(ctx, m.sub); code != "" {
+		return code
+	}
+	b, who := s.b, s.st.who
+	kept := m.parts[:0]
+	for i := range m.parts {
+		p := &m.parts[i]
+		if p.own && p.grant.Covers(who, p.attrs) != nil {
+			g, err := b.az.Check(ctx, who, p.attrs)
+			if err != nil {
+				if code := closeCode(err); code != CodeForbidden {
+					return code
+				}
+				continue
+			}
+			p.grant = g
+		}
+		kept = append(kept, *p)
+	}
+	m.parts = kept
+	return ""
 }
 
 // gateTopic makes sure every grant of sub still covers its read, asking
@@ -267,50 +330,55 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 	return ""
 }
 
-// payload gates one item for the stream's identity and renders it. It
-// returns nil data for an item the reader may not see, or a closing code
-// when the decision or the render failed.
+// payload gates one item for the stream's identity and renders it, returning
+// it as a part of a message with the grant it was read under. ok is false
+// for an item the reader may not see; code is a closing code when the
+// decision or the render failed.
 //
 // An item within the scope of the topic's own reads needs no review of its
-// own: it is delivered under the topic's grants. Those were proven valid
-// before the snapshot or delivery began, but one can expire during a slow
-// snapshot or render; the topic is then gated again before each item and
-// before the write, and a denial closes it, so a snapshot is never silently
-// cut short and nothing is written under an expired decision. On a list
-// topic nothing else is delivered and nothing is reviewed: a list carries
-// only the items within the scope of its list grant, as a GET list does
-// (0030:D7:R2), so no review per item is sent and none can fail. On an
-// object topic an item that reveals another read is reviewed on its own.
-func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data json.RawMessage, code string) {
+// own: it rides the topic's grants, which are gated again here so a denial
+// stops a slow snapshot before the next render. On a list topic nothing else
+// is delivered and nothing is reviewed: a list carries only the items within
+// the scope of its list grant, as a GET list does (0030:D7:R2), so no review
+// per item is sent and none can fail. On an object topic an item that
+// reveals another read is reviewed on its own, and the part keeps that
+// grant. Whatever is checked here, send re-validates every grant before the
+// write.
+func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (p part, ok bool, code string) {
 	b, who := s.b, s.st.who
+	p.attrs = it.Attrs
 	switch {
 	case withinTopic(sub.attrs, it.Attrs):
 		// gateTopic asks again only for a grant that has expired.
 		if code := s.gateTopic(ctx, sub); code != "" {
-			return nil, code
+			return part{}, false, code
 		}
 	case sub.topic.Kind() == KindInstances:
 		// A producer fault: the item lies outside the topic's list read.
 		b.log.Warn("dropping a list item outside the topic's list read", "topic", sub.topic.String())
-		return nil, ""
+		return part{}, false, ""
 	default:
-		if _, err := b.az.Check(ctx, who, it.Attrs); err != nil {
+		g, err := b.az.Check(ctx, who, it.Attrs)
+		if err != nil {
 			if code := closeCode(err); code != CodeForbidden {
-				return nil, code
+				return part{}, false, code
 			}
 			// Forbidden items are left out without a trace (0030:D7:R2).
-			return nil, ""
+			return part{}, false, ""
 		}
+		p.own, p.grant = true, g
 	}
 	if it.Render == nil {
-		return it.Data, ""
+		p.data = it.Data
+		return p, true, ""
 	}
 	data, err := it.Render(ctx, who)
 	if err != nil {
 		b.log.Warn("rendering an item failed", "topic", sub.topic.String(), "error", err)
-		return nil, CodeUpstreamUnavailable
+		return part{}, false, CodeUpstreamUnavailable
 	}
-	return data, ""
+	p.data = data
+	return p, true, ""
 }
 
 // withinTopic reports whether one of the topic's reads covers req by scope
