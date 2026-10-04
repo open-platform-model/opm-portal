@@ -413,3 +413,19 @@ func TestClientSourceStreamsAFakeClientsetLog(t *testing.T) {
 		t.Errorf("messages = %+v, %+v; want the body, then upstream_closed for a running container", line, end)
 	}
 }
+
+func TestInitAndEphemeralContainersCanBeFollowed(t *testing.T) {
+	pod := f1PodObject(t)
+	pod.Spec.InitContainers = []corev1.Container{{Name: "migrate"}}
+	pod.Spec.EphemeralContainers = []corev1.EphemeralContainer{{EphemeralContainerCommon: corev1.EphemeralContainerCommon{Name: "debugger"}}}
+	for _, c := range []string{"migrate", "debugger"} {
+		t.Run(c, func(t *testing.T) {
+			u := newUnit(t, newFakeSource(pod), readmodeltest.AllowAll, Options{})
+			u.activate(t, "log:default/"+f1Pod+"/"+c)
+			u.src.open(t)
+			if got := u.src.opts[0].Container; got != c {
+				t.Errorf("container = %q, want %q", got, c)
+			}
+		})
+	}
+}
