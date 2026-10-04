@@ -18,7 +18,7 @@ func (m *Model) Platform(ctx context.Context, who authz.Identity, g authz.Grant)
 	if err := covers(who, g, "get", platforms, "", platformName); err != nil {
 		return PlatformView{}, err
 	}
-	u, err := m.getHeld(platforms, "", platformName)
+	u, err := m.getHeld(ctx, platforms, "", platformName)
 	if err != nil {
 		return PlatformView{}, err
 	}
@@ -42,7 +42,7 @@ func (m *Model) readableRegistrations(ctx context.Context, who authz.Identity) (
 	if access := m.callerAccess(ctx, who, "list", registrations, "", ""); access != health.AccessOK {
 		return nil, access
 	}
-	objs, err := m.listHeld(registrations, "")
+	objs, err := m.listHeld(ctx, registrations, "")
 	if err != nil {
 		return nil, health.AccessNotReadable
 	}

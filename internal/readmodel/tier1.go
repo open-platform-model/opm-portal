@@ -3,22 +3,31 @@ package readmodel
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/open-platform-model/opm-portal/internal/health"
 )
 
 // opmKind is one OPM kind held for the process: one informer per scope.
 type opmKind struct {
 	resource   schema.GroupVersionResource
 	namespaced bool
-	scopes     []opmScope
+
+	mu      sync.Mutex
+	stopped bool // set by Stop; nothing starts afterwards
+	scopes  []*opmScope
 }
 
 // opmScope is one namespace ("" for all) of an OPM kind. A nil watch means
-// the reader may not list and watch the kind there.
+// the reader may not list and watch the kind there, or that its review
+// could not be made, which leaves the scope undecided: a later read asks
+// again.
 type opmScope struct {
 	namespace string
+	decided   bool
 	watch     *watch
 }
 
@@ -38,8 +47,9 @@ var opmKinds = []struct {
 // (0030:D5:R5). Each starts only after the reader's list and watch grants
 // for its scope; a scope that is denied, or has not synced within
 // SyncTimeout, leaves its kind unavailable there, and reads of it return
-// ErrUnavailable until it syncs. Start returns an error only when called
-// twice or after Stop.
+// ErrUnavailable until it syncs. A scope whose review could not be made is
+// reviewed again by the next read that needs it. Start returns an error
+// only when called twice or after Stop.
 func (m *Model) Start(ctx context.Context) error {
 	m.mu.Lock()
 	if m.started || m.stopped {
@@ -53,10 +63,15 @@ func (m *Model) Start(ctx context.Context) error {
 	for _, k := range opmKinds {
 		kind := &opmKind{resource: k.resource, namespaced: k.namespaced}
 		for _, ns := range m.scopesFor(k.namespaced) {
-			scope := opmScope{namespace: ns}
-			if m.readerMayWatch(ctx, k.resource, ns) {
+			scope := &opmScope{namespace: ns}
+			switch m.readerWatchAccess(ctx, k.resource, ns) {
+			case health.AccessOK:
+				scope.decided = true
 				scope.watch = m.startWatch(k.resource, ns, "")
 				started = append(started, scope.watch)
+			case health.AccessForbidden, health.AccessWithheld:
+				scope.decided = true
+			case health.AccessNotReadable:
 			}
 			kind.scopes = append(kind.scopes, scope)
 		}
@@ -79,9 +94,12 @@ func (m *Model) Stop() {
 	m.stopped = true
 	close(m.done)
 	for _, k := range m.opm {
+		k.mu.Lock()
+		k.stopped = true
 		for _, s := range k.scopes {
 			s.watch.close()
 		}
+		k.mu.Unlock()
 	}
 	kinds := make([]*inventoryKind, 0, len(m.inventory))
 	for _, k := range m.inventory {
@@ -112,8 +130,10 @@ func (m *Model) scopesFor(namespaced bool) []string {
 
 // heldIn returns the watches that hold kind in namespace ("" for every
 // namespace the Model covers), or ErrUnavailable when any scope the read
-// needs is denied to the reader, not synced, or not configured.
-func (m *Model) heldIn(resource schema.GroupVersionResource, namespace string) ([]*watch, error) {
+// needs is denied to the reader, not synced, or not configured. A scope
+// whose reader review could not be made at Start is reviewed again here,
+// and its informer started and waited for when the reader is allowed.
+func (m *Model) heldIn(ctx context.Context, resource schema.GroupVersionResource, namespace string) ([]*watch, error) {
 	m.mu.Lock()
 	kind := m.opm[resource]
 	stopped := m.stopped
@@ -121,15 +141,14 @@ func (m *Model) heldIn(resource schema.GroupVersionResource, namespace string) (
 	if kind == nil || stopped {
 		return nil, ErrUnavailable
 	}
+	scopes, fresh := m.decideScopes(ctx, kind, namespace)
+	waitSynced(ctx, m.cfg.SyncTimeout, fresh...)
 	var out []*watch
-	for _, s := range kind.scopes {
-		if s.namespace != "" && namespace != "" && s.namespace != namespace {
-			continue
-		}
-		if !s.watch.synced() {
+	for _, w := range scopes {
+		if !w.synced() {
 			return nil, ErrUnavailable
 		}
-		out = append(out, s.watch)
+		out = append(out, w)
 	}
 	if len(out) == 0 {
 		return nil, ErrUnavailable
@@ -137,9 +156,53 @@ func (m *Model) heldIn(resource schema.GroupVersionResource, namespace string) (
 	return out, nil
 }
 
+// decideScopes returns the watch of every scope of kind a read in namespace
+// needs (nil where the reader may not watch), after reviewing again each
+// undecided one. The reviews run without holding the kind's lock. It also
+// returns the informers it started.
+func (m *Model) decideScopes(ctx context.Context, kind *opmKind, namespace string) (scopes, fresh []*watch) {
+	needed := func(s *opmScope) bool {
+		return s.namespace == "" || namespace == "" || s.namespace == namespace
+	}
+	kind.mu.Lock()
+	var undecided []string
+	for _, s := range kind.scopes {
+		if needed(s) && !s.decided {
+			undecided = append(undecided, s.namespace)
+		}
+	}
+	kind.mu.Unlock()
+
+	access := make(map[string]health.Access, len(undecided))
+	for _, ns := range undecided {
+		access[ns] = m.readerWatchAccess(ctx, kind.resource, ns)
+	}
+
+	kind.mu.Lock()
+	defer kind.mu.Unlock()
+	for _, s := range kind.scopes {
+		if !needed(s) {
+			continue
+		}
+		if a, asked := access[s.namespace]; asked && !s.decided && !kind.stopped {
+			switch a {
+			case health.AccessOK:
+				s.decided = true
+				s.watch = m.startWatch(kind.resource, s.namespace, "")
+				fresh = append(fresh, s.watch)
+			case health.AccessForbidden, health.AccessWithheld:
+				s.decided = true
+			case health.AccessNotReadable:
+			}
+		}
+		scopes = append(scopes, s.watch)
+	}
+	return scopes, fresh
+}
+
 // listHeld returns the held objects of kind in namespace, sorted.
-func (m *Model) listHeld(resource schema.GroupVersionResource, namespace string) ([]*unstructured.Unstructured, error) {
-	ws, err := m.heldIn(resource, namespace)
+func (m *Model) listHeld(ctx context.Context, resource schema.GroupVersionResource, namespace string) ([]*unstructured.Unstructured, error) {
+	ws, err := m.heldIn(ctx, resource, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +215,8 @@ func (m *Model) listHeld(resource schema.GroupVersionResource, namespace string)
 }
 
 // getHeld returns one held object of kind, or ErrNotFound.
-func (m *Model) getHeld(resource schema.GroupVersionResource, namespace, name string) (*unstructured.Unstructured, error) {
-	ws, err := m.heldIn(resource, namespace)
+func (m *Model) getHeld(ctx context.Context, resource schema.GroupVersionResource, namespace, name string) (*unstructured.Unstructured, error) {
+	ws, err := m.heldIn(ctx, resource, namespace)
 	if err != nil {
 		return nil, err
 	}

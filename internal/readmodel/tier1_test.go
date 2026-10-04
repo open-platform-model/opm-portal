@@ -317,7 +317,7 @@ func TestHeldInstancesCarryNoValues(t *testing.T) {
 	podinfo.SetManagedFields([]metav1.ManagedFieldsEntry{{Manager: "kubectl"}})
 	e := newEnv(t, []*unstructured.Unstructured{podinfo}, allowAll, allowAll)
 
-	held, err := e.m.getHeld(moduleInstances, "default", "podinfo")
+	held, err := e.m.getHeld(t.Context(), moduleInstances, "default", "podinfo")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -335,5 +335,28 @@ func TestHeldInstancesCarryNoValues(t *testing.T) {
 				t.Errorf("%s holds %q", name, leak)
 			}
 		}
+	}
+}
+
+// TestFailedReaderReviewAtStartIsAskedAgain: a reader review that could
+// not be made at Start leaves ModuleInstances unavailable, and the first
+// read once reviews work starts the informer and is answered.
+func TestFailedReaderReviewAtStartIsAskedAgain(t *testing.T) {
+	e := newUnstartedEnv(t, loadF1(t), allowAll, allowAll)
+	e.readerR.setFail(true)
+	if err := e.m.Start(t.Context()); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	g := e.grant(t, "list", moduleInstances, "", "")
+	if _, err := e.m.ListInstances(t.Context(), alice, g, ""); !errors.Is(err, ErrUnavailable) {
+		t.Fatalf("ListInstances while reviews fail = %v, want ErrUnavailable", err)
+	}
+	e.readerR.setFail(false)
+	items, err := e.m.ListInstances(t.Context(), alice, g, "")
+	if err != nil {
+		t.Fatalf("ListInstances after reviews recover = %v", err)
+	}
+	if len(items) == 0 {
+		t.Fatal("ListInstances after reviews recover is empty")
 	}
 }

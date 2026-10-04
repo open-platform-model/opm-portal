@@ -248,6 +248,17 @@ type env struct {
 // readerRule the reader's; mutate adjusts the config before New.
 func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule rule, mutate ...func(*Config)) *env {
 	t.Helper()
+	e := newUnstartedEnv(t, objs, callerRule, readerRule, mutate...)
+	if err := e.m.Start(t.Context()); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	return e
+}
+
+// newUnstartedEnv is newEnv without Start, for tests that change the fake
+// cluster before the Model starts.
+func newUnstartedEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule rule, mutate ...func(*Config)) *env {
+	t.Helper()
 	caller, callerReviews := newChecker(t, alice, callerRule, authz.Options{})
 	readerChecker, readerReviews := newChecker(t, reader, readerRule, authz.Options{})
 	client := newDynamic(objs...)
@@ -264,9 +275,6 @@ func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerR
 	m, err := New(cfg)
 	if err != nil {
 		t.Fatalf("New: %v", err)
-	}
-	if err := m.Start(t.Context()); err != nil {
-		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
 	return &env{m: m, client: client, caller: caller, reviews: callerReviews, readerR: readerReviews}

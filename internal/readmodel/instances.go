@@ -17,7 +17,7 @@ func (m *Model) ListInstances(ctx context.Context, who authz.Identity, g authz.G
 	if err := covers(who, g, "list", moduleInstances, namespace, ""); err != nil {
 		return nil, err
 	}
-	objs, err := m.listHeld(moduleInstances, namespace)
+	objs, err := m.listHeld(ctx, moduleInstances, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant,
 	if err := covers(who, g, "get", moduleInstances, namespace, name); err != nil {
 		return InstanceDetail{}, err
 	}
-	u, err := m.getHeld(moduleInstances, namespace, name)
+	u, err := m.getHeld(ctx, moduleInstances, namespace, name)
 	if err != nil {
 		return InstanceDetail{}, err
 	}

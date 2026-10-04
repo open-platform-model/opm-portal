@@ -16,7 +16,7 @@ func (m *Model) ListPackages(ctx context.Context, who authz.Identity, g authz.Gr
 	if err := covers(who, g, "list", modulePackages, namespace, ""); err != nil {
 		return nil, err
 	}
-	objs, err := m.listHeld(modulePackages, namespace)
+	objs, err := m.listHeld(ctx, modulePackages, namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 	if err := covers(who, g, "get", modulePackages, namespace, name); err != nil {
 		return PackageDetail{}, err
 	}
-	u, err := m.getHeld(modulePackages, namespace, name)
+	u, err := m.getHeld(ctx, modulePackages, namespace, name)
 	if err != nil {
 		return PackageDetail{}, err
 	}
