@@ -51,13 +51,29 @@ const (
 	CodeUpstreamUnavailable = "upstream_unavailable"
 )
 
+// TopicAccess is what a subscriber must be allowed to follow a topic.
+// Exactly one of its fields is set; anything else is treated as a topic the
+// producer does not serve, so a topic is never attached unchecked.
+type TopicAccess struct {
+	// Reads are the reads a subscriber must be allowed before the topic
+	// attaches, such as get on the one instance an instance topic shows.
+	Reads []authz.Attributes
+	// PerItem marks a list topic that attaches without a topic-wide read:
+	// every item is authorized for the subscriber on its own, so a reader
+	// allowed only part of the list follows the topic and receives only
+	// that part, with no count of the rest, as a GET list serves it
+	// (0030:D7:R2, 0030:D5:R5).
+	PerItem bool
+}
+
+func (a TopicAccess) valid() bool { return (len(a.Reads) > 0) != a.PerItem }
+
 // Producer is the read model's side of the broker. See the package
 // documentation for the contract it must keep.
 type Producer interface {
-	// Attributes returns the reads a subscriber must be allowed before t
-	// attaches. ok is false when the producer does not serve t; an empty
-	// slice is treated the same way, so a topic is never attached unchecked.
-	Attributes(t Topic) (attrs []authz.Attributes, ok bool)
+	// Access returns what a subscriber must be allowed to follow t. ok is
+	// false when the producer does not serve t.
+	Access(t Topic) (access TopicAccess, ok bool)
 	// Snapshot returns t's current items. The broker gates each one per
 	// subscriber.
 	Snapshot(ctx context.Context, t Topic) ([]Item, error)
@@ -180,8 +196,11 @@ type streamState struct {
 	// marks maps the stream's most recent event ids to the broker sequence
 	// each one delivered, oldest first, so a resume finds where it stopped.
 	marks []idMark
-	// pending holds the closed messages for topics denied while the stream
-	// was detached; the next connection sends them first.
+	// pending holds a closed message, one per topic, for every topic denied
+	// or closed on the stream that its client has not been sent yet. An
+	// entry leaves only once a connection wrote it (or the client removed or
+	// regained the topic), so a denial queued on a connection that then ends
+	// reaches the next connection first.
 	pending []entry
 }
 
@@ -274,7 +293,7 @@ func (b *Broker) enqueueLocked(st *streamState, e entry) []func() {
 }
 
 // checkTopics refuses what can never attach and returns each topic's
-// attributes, deduplicated in request order. The cap is checked before the
+// topic-wide reads, deduplicated in request order. The cap is checked before the
 // producer is asked about any topic.
 func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attributes, error) {
 	out := make([]Topic, 0, len(topics))
@@ -294,11 +313,13 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 		if t.Kind() == KindLog {
 			return nil, nil, fmt.Errorf("%w: %s (log topics are not served yet)", ErrTopicNotServed, t)
 		}
-		a, ok := b.producer.Attributes(t)
-		if !ok || len(a) == 0 {
+		a, ok := b.producer.Access(t)
+		if !ok || !a.valid() {
 			return nil, nil, fmt.Errorf("%w: %s", ErrTopicNotServed, t)
 		}
-		attrs[t] = a
+		// A per-item topic has no topic-wide read: it attaches unconditionally
+		// and every item is authorized on delivery.
+		attrs[t] = a.Reads
 	}
 	return out, attrs, nil
 }
@@ -564,7 +585,7 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*
 	c := b.newConn()
 	st.conn = c
 
-	var closed, replay, snapshots []entry
+	var replay, snapshots []entry
 	var release []func()
 	decided := make(map[Topic]*authorized, len(decisions))
 	for i := range decisions {
@@ -575,7 +596,7 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*
 		if d := decided[t]; d != nil {
 			if d.code != "" {
 				release = append(release, b.dropSubLocked(st, sub)...)
-				closed = append(closed, entry{kind: entClosed, topic: t, code: d.code})
+				pendLocked(st, t, d.code)
 				continue
 			}
 			sub.grants = d.grants
@@ -587,8 +608,8 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*
 		}
 	}
 	slices.SortFunc(replay, func(x, y entry) int { return cmp.Compare(x.seq, y.seq) })
-	c.backlog = slices.Concat(st.pending, closed, replay, snapshots)
-	st.pending = nil
+	// Pending closings stay pending until this connection writes them.
+	c.backlog = slices.Concat(st.pending, replay, snapshots)
 	if len(st.subs) == 0 && st.emptySince.IsZero() {
 		st.emptySince = time.Now()
 	}
@@ -602,20 +623,20 @@ func (b *Broker) newConn() *conn {
 }
 
 // attachLocked registers the allowed topics on st, hands put a snapshot
-// marker for each and a closed entry for each denied one, and returns the
-// topics that need activating.
+// marker for each and a closed entry for each denied one, which is also kept
+// pending until written, and returns the topics that need activating.
 func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(entry)) []Topic {
 	var activate []Topic
 	for i := range decisions {
 		d := &decisions[i]
 		if d.code != "" {
-			put(entry{kind: entClosed, topic: d.topic, code: d.code})
+			put(pendLocked(st, d.topic, d.code))
 			continue
 		}
 		if _, held := st.subs[d.topic]; held {
 			continue
 		}
-		st.pending = slices.DeleteFunc(st.pending, func(e entry) bool { return e.topic == d.topic })
+		unpendLocked(st, d.topic)
 		tp := b.topics[d.topic]
 		if tp == nil {
 			tp = &topicState{ring: newRing(b.opts.RingSize, b.seq), subs: map[*streamState]*subscription{}}
@@ -638,6 +659,33 @@ func (b *Broker) attachLocked(st *streamState, decisions []authorized, put func(
 
 // activate asks the producer to start each topic and records its release.
 // A topic dropped before its activation is recorded is released at once.
+// pendLocked records that st's client must be told topic closed with code,
+// replacing an older closing of the same topic, and returns the entry to
+// queue.
+func pendLocked(st *streamState, topic Topic, code string) entry {
+	e := entry{kind: entClosed, topic: topic, code: code}
+	st.pending = append(slices.DeleteFunc(st.pending, func(p entry) bool { return p.topic == topic }), e)
+	return e
+}
+
+// unpendLocked forgets the closing of topic st has not sent yet.
+func unpendLocked(st *streamState, topic Topic) {
+	st.pending = slices.DeleteFunc(st.pending, func(p entry) bool { return p.topic == topic })
+}
+
+// heldLocked counts what st holds towards its topic cap: its topics, and its
+// unsent closings except those of topics about to be asked for again, which
+// an allow removes and a denial replaces.
+func heldLocked(st *streamState, asked []Topic) int {
+	n := len(st.subs)
+	for i := range st.pending {
+		if !slices.Contains(asked, st.pending[i].topic) {
+			n++
+		}
+	}
+	return n
+}
+
 func (b *Broker) activate(topics []Topic) {
 	for _, t := range topics {
 		release := b.producer.Activate(t)
@@ -669,10 +717,10 @@ func (b *Broker) lookupLocked(s Session, id string) (*streamState, error) {
 
 // Subscribe attaches topics to an open stream of s. Topics are authorized for
 // the identity the stream was opened with, which s must match; a denied topic
-// is closed on the stream, at once or, while the stream is detached, first
-// thing on its next connection. Topics the stream already carries are left
-// as they are. Topics denied while detached count towards the cap until they
-// are sent.
+// is closed on the stream, at once or, when the connection is gone before
+// the closing is written, first thing on the next connection. Topics the
+// stream already carries are left as they are. A closing not yet written
+// counts towards the cap.
 func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topics ...Topic) error {
 	topics, attrs, err := b.checkTopics(topics)
 	if err != nil {
@@ -691,7 +739,7 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 			fresh = append(fresh, t)
 		}
 	}
-	held := len(st.subs) + len(st.pending)
+	held := heldLocked(st, fresh)
 	b.mu.Unlock()
 	if held+len(fresh) > b.opts.MaxTopicsPerStream {
 		// Refused before any review is sent.
@@ -704,19 +752,17 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 		b.mu.Unlock()
 		return ErrNoStream
 	}
-	if len(st.subs)+len(st.pending)+len(fresh) > b.opts.MaxTopicsPerStream {
+	if heldLocked(st, fresh)+len(fresh) > b.opts.MaxTopicsPerStream {
 		b.mu.Unlock()
 		return ErrTooManyTopics
 	}
 	var release []func()
 	activate := b.attachLocked(st, decisions, func(e entry) {
-		switch {
-		case st.conn != nil:
+		// While detached nothing is queued: a closing is pending already,
+		// and reattach snapshots a topic whose marker the client missed.
+		// An eviction here loses neither, for the same reasons.
+		if st.conn != nil {
 			release = append(release, b.enqueueLocked(st, e)...)
-		case e.kind == entClosed:
-			// The next connection sends it; a snapshot needs no keeping,
-			// as reattach snapshots a topic whose marker the client missed.
-			st.pending = append(slices.DeleteFunc(st.pending, func(p entry) bool { return p.topic == e.topic }), e)
 		}
 	})
 	b.mu.Unlock()
@@ -725,8 +771,9 @@ func (b *Broker) Subscribe(ctx context.Context, s Session, streamID string, topi
 	return nil
 }
 
-// Unsubscribe detaches topics from a stream of s. A topic the stream does not
-// carry is ignored.
+// Unsubscribe detaches topics from a stream of s, and forgets any closing of
+// them the client has not been sent. A topic the stream does not carry is
+// ignored.
 func (b *Broker) Unsubscribe(s Session, streamID string, topics ...Topic) error {
 	b.mu.Lock()
 	st, err := b.lookupLocked(s, streamID)
@@ -739,6 +786,7 @@ func (b *Broker) Unsubscribe(s Session, streamID string, topics ...Topic) error 
 		if sub := st.subs[t]; sub != nil {
 			release = append(release, b.dropSubLocked(st, sub)...)
 		}
+		unpendLocked(st, t)
 	}
 	b.mu.Unlock()
 	runAll(release)

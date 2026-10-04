@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -152,7 +153,7 @@ func (s *Stream) current(sub *subscription) bool {
 func (s *Stream) deliver(ctx context.Context, wr *writer, e *entry) error {
 	switch e.kind {
 	case entClosed:
-		return wr.closed(e.topic, e.code)
+		return s.writeClosed(wr, e.topic)
 	case entSnapshot:
 		return s.deliverSnapshot(ctx, wr, e)
 	case entItem:
@@ -263,12 +264,13 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data json.RawMessage, code string) {
 	b, who := s.b, s.st.who
 	if !s.coveredByTopic(sub, it.Attrs) {
-		if _, err := b.az.Check(ctx, who, it.Attrs); err != nil {
-			if code := closeCode(err); code == CodeUpstreamUnavailable {
-				return nil, code
-			}
+		switch code := s.itemCode(ctx, it.Attrs); code {
+		case "":
+		case CodeForbidden:
 			// Forbidden items are left out without a trace (0030:D7:R2).
 			return nil, ""
+		default:
+			return nil, code
 		}
 	}
 	if it.Render == nil {
@@ -280,6 +282,30 @@ func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (data
 		return nil, CodeUpstreamUnavailable
 	}
 	return data, ""
+}
+
+// itemCode decides one item's read for the stream's identity the way the
+// read model decides a read inside a view: for the whole namespace first,
+// which one cached decision answers for every item there, then for the
+// exact name, because RBAC may grant single names. It returns "" when the
+// read is allowed, or the closing code of the denial.
+func (s *Stream) itemCode(ctx context.Context, req authz.Attributes) string {
+	b, who := s.b, s.st.who
+	if req.Name != "" {
+		wide := req
+		wide.Name = ""
+		_, err := b.az.Check(ctx, who, wide)
+		if err == nil {
+			return ""
+		}
+		if code := closeCode(err); code != CodeForbidden {
+			return code
+		}
+	}
+	if _, err := b.az.Check(ctx, who, req); err != nil {
+		return closeCode(err)
+	}
+	return ""
 }
 
 func (s *Stream) coveredByTopic(sub *subscription, req authz.Attributes) bool {
@@ -294,11 +320,12 @@ func (s *Stream) coveredByTopic(sub *subscription, req authz.Attributes) bool {
 	return false
 }
 
-// closeTopic drops sub from the stream and tells the client. It does
-// neither when the connection ended, since a failed review or snapshot is
-// then the connection's end and not the topic's, or when sub is no longer
-// the stream's subscription to its topic: the client is not told a topic it
-// holds again has closed.
+// closeTopic drops sub from the stream and tells the client, keeping the
+// closing pending until it is written so a connection that ends first
+// passes it to the next one. It does neither when the connection ended,
+// since a failed review or snapshot is then the connection's end and not the
+// topic's, or when sub is no longer the stream's subscription to its topic:
+// the client is not told a topic it holds again has closed.
 func (s *Stream) closeTopic(ctx context.Context, wr *writer, sub *subscription, code string) error {
 	if ctx.Err() != nil {
 		return s.ended(ctx)
@@ -309,9 +336,33 @@ func (s *Stream) closeTopic(ctx context.Context, wr *writer, sub *subscription, 
 		return nil
 	}
 	release := s.b.dropSubLocked(s.st, sub)
+	pendLocked(s.st, sub.topic, code)
 	s.b.mu.Unlock()
 	runAll(release)
-	return wr.closed(sub.topic, code)
+	return s.writeClosed(wr, sub.topic)
+}
+
+// writeClosed writes topic's pending closing and then forgets it. Nothing is
+// written when no closing of topic is pending any more (the client removed
+// or regained the topic, or another write already sent it) or when this
+// connection no longer serves the stream.
+func (s *Stream) writeClosed(wr *writer, topic Topic) error {
+	b := s.b
+	b.mu.Lock()
+	i := slices.IndexFunc(s.st.pending, func(p entry) bool { return p.topic == topic })
+	if i < 0 || s.st.conn != s.conn {
+		b.mu.Unlock()
+		return nil
+	}
+	code := s.st.pending[i].code
+	b.mu.Unlock()
+	if err := wr.closed(topic, code); err != nil {
+		return err
+	}
+	b.mu.Lock()
+	s.st.pending = slices.DeleteFunc(s.st.pending, func(p entry) bool { return p.topic == topic && p.code == code })
+	b.mu.Unlock()
+	return nil
 }
 
 // eventID hands out the stream's next event id for an event of sub carrying

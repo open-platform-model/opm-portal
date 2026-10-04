@@ -136,8 +136,8 @@ type fakeProducer struct {
 	// snapshotWait runs inside Snapshot with its context, before the state
 	// is read.
 	snapshotWait func(ctx context.Context)
-	// attributeCalls counts Attributes calls.
-	attributeCalls int
+	// accessCalls counts Access calls.
+	accessCalls int
 }
 
 func newFakeProducer() *fakeProducer {
@@ -148,19 +148,22 @@ func newFakeProducer() *fakeProducer {
 	}
 }
 
-func (p *fakeProducer) Attributes(t Topic) ([]authz.Attributes, bool) {
+func (p *fakeProducer) Access(t Topic) (TopicAccess, bool) {
 	p.mu.Lock()
-	p.attributeCalls++
+	p.accessCalls++
 	p.mu.Unlock()
-	return p.attributes(t)
+	if t.Kind() == KindInstances {
+		// Instance lists are authorized per item, as GET lists are.
+		return TopicAccess{PerItem: true}, true
+	}
+	reads, ok := p.reads(t)
+	return TopicAccess{Reads: reads}, ok
 }
 
-func (p *fakeProducer) attributes(t Topic) ([]authz.Attributes, bool) {
+func (p *fakeProducer) reads(t Topic) ([]authz.Attributes, bool) {
 	switch t.Kind() {
 	case KindPlatform:
 		return []authz.Attributes{{Verb: "get", Resource: platformsGVR, Name: "cluster"}}, true
-	case KindInstances:
-		return []authz.Attributes{{Verb: "list", Resource: instancesGVR, Namespace: t.Namespace()}}, true
 	case KindInstance:
 		return []authz.Attributes{{Verb: "get", Resource: instancesGVR, Namespace: t.Namespace(), Name: t.Name()}}, true
 	case KindPackage:
@@ -169,10 +172,10 @@ func (p *fakeProducer) attributes(t Topic) ([]authz.Attributes, bool) {
 		return []authz.Attributes{{Verb: "get", Resource: regsGVR, Name: t.Name()}}, true
 	case KindEvents:
 		ref, _ := t.Ref()
-		attrs, _ := p.attributes(ref)
+		attrs, _ := p.reads(ref)
 		return append(attrs, authz.Attributes{Verb: "list", Resource: eventsGVR, Namespace: ref.Namespace()}), true
-	case KindLog:
-		return nil, false
+	case KindInstances, KindLog:
+		// Lists are per item (Access); logs are not served.
 	}
 	return nil, false
 }

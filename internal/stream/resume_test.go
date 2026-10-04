@@ -446,3 +446,87 @@ func TestADisconnectDuringASnapshotKeepsTheTopic(t *testing.T) {
 		}
 	})
 }
+
+// A denial queued on a connection that then ends is not lost: it stays
+// pending until a connection writes it, so the next one sends it first.
+func TestADenialQueuedOnAnEndingConnectionReachesTheNext(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{QueueSize: 2}, "alice")
+		sv, blog := openBlog(t, e)
+		sv.rec.block()
+		e.prod.upsert(t, blog, instItem("apps", "blog", 2))
+		synctest.Wait()
+		e.prod.upsert(t, blog, instItem("apps", "blog", 3))
+		// The writer is stuck on version 2; version 3 and the closing fill
+		// the queue, and the next change evicts the connection.
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), mustTopic(t, "instance:secret/db")); err != nil {
+			t.Fatal(err)
+		}
+		e.prod.upsert(t, blog, instItem("apps", "blog", 4))
+		sv.rec.unblock()
+		synctest.Wait()
+		if err := sv.ended(); !errors.Is(err, ErrSlowConsumer) {
+			t.Fatalf("Serve = %v, want ErrSlowConsumer", err)
+		}
+		for _, ev := range sv.rec.take() {
+			if ev.Event == EventClosed {
+				t.Fatalf("the evicted connection wrote %s", ev.Data)
+			}
+		}
+		evs := e.resume(session("alice"), sv.rec.lastID(), "instance:apps/blog").rec.take()
+		if len(evs) < 2 || evs[1].Event != EventClosed || evs[1].topic() != "instance:secret/db" || evs[1].code() != CodeForbidden {
+			t.Fatalf("events after the resume = %v, want the closing first", eventNames(evs))
+		}
+		if got := versionsOf(t, evs, EventUpsert); !slices.Equal(got, []int{3, 4}) {
+			t.Errorf("replayed %v, want [3 4]", got)
+		}
+	})
+}
+
+// Asking again for a topic whose closing is still pending counts it once
+// against the cap, and an allow replaces the closing.
+func TestARetriedDenialCountsOnceAgainstTheCap(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{MaxTopicsPerStream: 2}, "alice")
+		sv, _ := openBlog(t, e)
+		last := sv.rec.lastID()
+		_ = sv.disconnect()
+		secret := mustTopic(t, "instance:secret/db")
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), secret); err != nil {
+			t.Fatal(err)
+		}
+		e.policy.set("alice", allowNamespaces("apps", "secret"))
+		time.Sleep(31 * time.Second) // the cached denial expires
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), secret); err != nil {
+			t.Fatalf("subscribing again to a pending denied topic: %v", err)
+		}
+		evs := e.resume(session("alice"), last, "instance:apps/blog").rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "snapshot(instance:secret/db)"}) {
+			t.Errorf("events = %v", got)
+		}
+	})
+}
+
+// Removing a topic forgets its pending closing and frees its place.
+func TestUnsubscribeForgetsAPendingClosing(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{MaxTopicsPerStream: 2}, "alice")
+		sv, _ := openBlog(t, e)
+		last := sv.rec.lastID()
+		_ = sv.disconnect()
+		secret := mustTopic(t, "instance:secret/db")
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), secret); err != nil {
+			t.Fatal(err)
+		}
+		if err := e.b.Unsubscribe(session("alice"), sv.ID(), secret); err != nil {
+			t.Fatal(err)
+		}
+		if err := e.b.Subscribe(context.Background(), session("alice"), sv.ID(), mustTopic(t, "instance:apps/web")); err != nil {
+			t.Fatalf("the removed closing still counts against the cap: %v", err)
+		}
+		evs := e.resume(session("alice"), last, "instance:apps/blog").rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "snapshot(instance:apps/web)"}) {
+			t.Errorf("events = %v", got)
+		}
+	})
+}

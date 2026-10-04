@@ -3,6 +3,7 @@ package stream
 import (
 	"context"
 	"errors"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -197,9 +198,15 @@ func TestActivateAndReleaseAreRefcounted(t *testing.T) {
 func TestSubscriberReceivesOnlyWhatItMayRead(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice", "bob")
-		// alice may list instances everywhere but get them only in team-a.
+		// alice may read instances in team-a only, and holds no
+		// cluster-wide list: the cluster-wide topic still attaches for her,
+		// filtered per item (0030:D7:R2, 0030:D5:R5).
+		var askedWide bool
 		e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
-			return a.Verb == "list" || a.Namespace == "team-a", nil
+			if a.Namespace == "" {
+				askedWide = true
+			}
+			return a.Namespace == "team-a" && a.Verb == "get", nil
 		})
 		e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
 		all := mustTopic(t, "instances")
@@ -215,9 +222,15 @@ func TestSubscriberReceivesOnlyWhatItMayRead(t *testing.T) {
 
 		var aliceSaw, bobSaw []string
 		for _, ev := range a.rec.take() {
-			if ev.Event == EventSnapshot || ev.Event == EventUpsert {
+			switch ev.Event {
+			case EventSnapshot, EventUpsert:
 				aliceSaw = append(aliceSaw, ev.names(t)...)
+			case EventClosed:
+				t.Errorf("alice's topic closed: %s", ev.Data)
 			}
+		}
+		if askedWide {
+			t.Error("alice was asked for a cluster-wide read")
 		}
 		for _, ev := range b.rec.take() {
 			if ev.Event == EventSnapshot || ev.Event == EventUpsert {
@@ -415,9 +428,7 @@ func TestTopicsThatCannotAttach(t *testing.T) {
 func TestEventIDsRevealNothingPublishedElsewhere(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice", "bob")
-		e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
-			return a.Verb == "list" || a.Namespace == "team-a", nil
-		})
+		e.policy.set("alice", allowNamespaces("team-a"))
 		e.policy.set("bob", func(authorizationv1.ResourceAttributes) (bool, error) { return true, nil })
 		all := mustTopic(t, "instances")
 		other := mustTopic(t, "instance:team-b/two")
@@ -474,8 +485,87 @@ func TestTheCapIsCheckedBeforeTheProducerIsAsked(t *testing.T) {
 		if _, err := e.b.Open(context.Background(), session("alice"), three, ""); !errors.Is(err, ErrTooManyTopics) {
 			t.Fatalf("three topics: %v", err)
 		}
-		if e.prod.attributeCalls != 0 {
-			t.Errorf("Attributes called %d times for a refused request", e.prod.attributeCalls)
+		if e.prod.accessCalls != 0 {
+			t.Errorf("Access called %d times for a refused request", e.prod.accessCalls)
+		}
+	})
+}
+
+// A reader allowed single instances by name, and not their namespace, sees
+// exactly those on a list topic: the namespace is asked first, then the
+// name, as the read model does.
+func TestAListTopicHonoursGrantsByName(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", func(a authorizationv1.ResourceAttributes) (bool, error) {
+			return a.Namespace == "team-b" && a.Name == "two", nil
+		})
+		ns := mustTopic(t, "instances:team-b")
+		e.prod.upsert(t, ns, instItem("team-b", "one", 1))
+		e.prod.upsert(t, ns, instItem("team-b", "two", 1))
+		sv := e.open(session("alice"), "instances:team-b")
+		e.prod.upsert(t, ns, instItem("team-b", "one", 2))
+		e.prod.upsert(t, ns, instItem("team-b", "two", 2))
+		synctest.Wait()
+		var saw []string
+		for _, ev := range sv.rec.take() {
+			if ev.Event == EventSnapshot || ev.Event == EventUpsert {
+				saw = append(saw, ev.names(t)...)
+			}
+		}
+		if want := []string{"team-b/two", "team-b/two"}; !slices.Equal(saw, want) {
+			t.Errorf("alice saw %v, want %v", saw, want)
+		}
+	})
+}
+
+// A list topic needs no topic-wide read, so an identity the authorizer does
+// not serve is told on its first item, not left with an empty list.
+func TestAListTopicClosesForAnIdentityTheAuthorizerDoesNotServe(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		all := mustTopic(t, "instances")
+		e.prod.upsert(t, all, instItem("apps", "blog", 1))
+		evs := e.open(session("carol"), "instances").rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"open()", "closed(instances)"}) || evs[1].code() != CodeUnauthenticated {
+			t.Errorf("events = %v %+v", got, evs)
+		}
+	})
+}
+
+// closeTopic for a subscription the stream no longer holds (the topic was
+// removed and added again meanwhile) writes nothing and keeps the new one.
+func TestClosingAReplacedSubscriptionChangesNothing(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		s, err := e.b.Open(context.Background(), session("alice"), []Topic{blog}, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		e.b.mu.Lock()
+		stale := s.st.subs[blog]
+		fresh := &subscription{topic: blog, attrs: stale.attrs, grants: stale.grants, snapshotSeq: stale.snapshotSeq}
+		s.st.subs[blog] = fresh
+		e.b.topics[blog].subs[s.st] = fresh
+		e.b.mu.Unlock()
+
+		rec := newRecorder()
+		wr := &writer{w: rec, rc: http.NewResponseController(rec), timeout: time.Second}
+		if err := s.closeTopic(context.Background(), wr, stale, CodeForbidden); err != nil {
+			t.Fatal(err)
+		}
+		if got := rec.take(); len(got) != 0 {
+			t.Errorf("wrote %v for a replaced subscription", eventNames(got))
+		}
+		e.b.mu.Lock()
+		defer e.b.mu.Unlock()
+		if s.st.subs[blog] != fresh || len(s.st.pending) != 0 {
+			t.Errorf("the replacing subscription was dropped or a closing kept: subs=%v pending=%v", s.st.subs, s.st.pending)
+		}
+		if _, rel := e.prod.counts(blog); rel != 0 {
+			t.Errorf("the topic was released %d times", rel)
 		}
 	})
 }

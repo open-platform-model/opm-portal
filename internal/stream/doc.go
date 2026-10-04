@@ -18,8 +18,8 @@
 //
 // # The producer contract
 //
-// The read model implements Producer and calls Broker.Publish. It names the
-// reads a topic stands for (Producer.Attributes), returns a topic's current
+// The read model implements Producer and calls Broker.Publish. It says what
+// following a topic takes (Producer.Access), returns a topic's current
 // items (Producer.Snapshot), and starts and stops watching a topic when the
 // broker activates and releases it. A producer MUST update the state Snapshot
 // reads before it publishes the change: the broker registers a subscriber
@@ -37,15 +37,21 @@
 //     is sent for one.
 //   - A topic attaches only after every read the producer names for it is
 //     allowed. A denied topic is not registered, so it starts no watch, and
-//     the stream gets a closed message for it, on its next connection when
-//     it is detached.
+//     the stream gets a closed message for it. A list topic the producer
+//     marks TopicAccess.PerItem names no topic read: like a GET list, it
+//     attaches for any authenticated identity and carries only the items
+//     that identity may read (0030:D7:R2, 0030:D5:R5).
+//   - A closed message stays pending until a connection writes it, so one
+//     queued on a connection that ends is the next connection's first
+//     message.
 //   - Only the session and identity that opened a stream can change its
 //     topics or resume it.
 //   - Before each delivery, and on each heartbeat, the topic's grants are
 //     checked with Grant.Covers; an expired grant is checked again.
 //   - Each item is delivered only when the subscriber may read Item.Attrs,
-//     so a list topic carries only the items its reader may see. A forbidden
-//     item is left out without a trace.
+//     asked for the item's whole namespace first and its exact name when
+//     that is denied, so a list topic carries only the items its reader may
+//     see. A forbidden item is left out without a trace.
 //   - An authorization error is never a delivery: it closes the topic with
 //     the code upstream_unavailable.
 //
