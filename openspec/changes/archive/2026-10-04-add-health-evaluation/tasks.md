@@ -32,3 +32,4 @@
 - [x] 5.4 Read a `Ready=True` whose `observedGeneration` is older than the object's generation as Reconciling; verify with the podinfo capture one generation ahead and a condition without `observedGeneration`
 - [x] 5.5 Pin the applied state of the refused and removal-blocked registrations (both Stalled) and state that the verdict decides how a registration is shown; verify with both captures
 - [x] 5.6 `task check` green, then commit `chore(health): read a stale ready as reconciling`
+- [x] 5.7 Name the test-only `sigs.k8s.io/yaml` dependency in the proposal, then commit `docs(openspec): justify the yaml test dependency`

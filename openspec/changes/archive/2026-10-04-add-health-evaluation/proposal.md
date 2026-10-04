@@ -34,7 +34,9 @@ functions tested against the objects the live capture recorded.
   after the image break; cert-manager healthy with 42 inventory objects; a CLI-owned instance;
   every operator sample of experiment 01), trimmed of managed fields, annotations and values.
 - New dependencies: `github.com/fluxcd/cli-utils` (kstatus) at the version opm-operator
-  links, and `k8s.io/apimachinery` for the unstructured object type kstatus takes.
+  links, `k8s.io/apimachinery` for the unstructured object type kstatus takes, and, in tests
+  only, `sigs.k8s.io/yaml` to turn the captured YAML into JSON so integers decode as `int64`
+  the way client-go decodes them (already in the module graph through apimachinery).
 
 Out of scope: reading anything from a cluster (the read model), any API field or page that
 shows the axes, and liveness of the input (watches versus polling are the read model's;
