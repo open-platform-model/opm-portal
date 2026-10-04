@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -51,6 +52,12 @@ type Options struct {
 	ByteBurst      int
 	// Buffer is how many recent messages a snapshot carries. Default 500.
 	Buffer int
+	// BufferBytes caps the encoded size of the messages a snapshot
+	// carries; the oldest leave first. Default 1 MiB.
+	BufferBytes int
+	// MarkerDelay is how long a dropped or skipped line may wait for its
+	// marker when no delivered line follows. Default 250ms.
+	MarkerDelay time.Duration
 	// Logger receives operational logs, never log content. Default:
 	// discarded.
 	Logger *slog.Logger
@@ -76,6 +83,10 @@ func (o Options) withDefaults() Options {
 	setInt(&o.LineBurst, 500)
 	setInt(&o.ByteBurst, 1<<20)
 	setInt(&o.Buffer, 500)
+	setInt(&o.BufferBytes, 1<<20)
+	if o.MarkerDelay <= 0 {
+		o.MarkerDelay = 250 * time.Millisecond
+	}
 	if o.LinesPerSecond <= 0 {
 		o.LinesPerSecond = 200
 	}
@@ -112,6 +123,11 @@ type Producer struct {
 	opts Options
 	log  *slog.Logger
 
+	// seq numbers every message the producer emits, across reads and
+	// activations, so a later read's messages always sort after an earlier
+	// one's.
+	seq atomic.Uint64
+
 	mu    sync.Mutex
 	pub   Publisher
 	tails map[stream.Topic]*tail
@@ -147,6 +163,19 @@ func (p *Producer) SetPublisher(pub Publisher) {
 	p.pub = pub
 }
 
+func (p *Producer) publisher() Publisher {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.pub
+}
+
+// active returns t's current activation, or nil.
+func (p *Producer) active(t stream.Topic) *tail {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.tails[t]
+}
+
 // podLogRead is a log topic's one read: get on the Pod's log.
 func podLogRead(t stream.Topic) authz.Attributes {
 	return authz.Attributes{Verb: "get", Resource: pods, Subresource: "log", Namespace: t.Namespace(), Name: t.Name()}
@@ -165,6 +194,11 @@ func (p *Producer) Attributes(t stream.Topic) ([]authz.Attributes, bool) {
 // inventory who may read reaches the Pod (0030:D10:R1). It runs after the
 // broker allowed the topic's read, so nothing is looked up for a caller
 // without it, and every refusal is the same one.
+//
+// An admitted attach to a topic whose read has ended starts a new read, so
+// following again after a logend tails the container afresh even while
+// other subscribers still hold the topic. They receive the new read's
+// messages after their logend, with higher seq numbers.
 func (p *Producer) Admit(ctx context.Context, who authz.Identity, t stream.Topic, grants []authz.Grant) error {
 	if t.Kind() != stream.KindLog || len(grants) != 1 {
 		return stream.ErrNotAdmitted
@@ -172,6 +206,9 @@ func (p *Producer) Admit(ctx context.Context, who authz.Identity, t stream.Topic
 	_, err := p.cfg.Reach.ReachPod(ctx, who, grants[0], t.Namespace(), t.Name())
 	switch {
 	case err == nil:
+		if tl := p.active(t); tl != nil {
+			tl.start()
+		}
 		return nil
 	case errors.Is(err, readmodel.ErrNotReachable), errors.Is(err, readmodel.ErrNotCovered):
 		return stream.ErrNotAdmitted
@@ -183,9 +220,7 @@ func (p *Producer) Admit(ctx context.Context, who authz.Identity, t stream.Topic
 // message in the snapshot may arrive again as a later item, with the same
 // seq.
 func (p *Producer) Snapshot(_ context.Context, t stream.Topic) ([]stream.Item, error) {
-	p.mu.Lock()
-	tl := p.tails[t]
-	p.mu.Unlock()
+	tl := p.active(t)
 	if tl == nil {
 		return []stream.Item{}, nil
 	}
@@ -194,21 +229,27 @@ func (p *Producer) Snapshot(_ context.Context, t stream.Topic) ([]stream.Item, e
 
 // Activate implements stream.Producer: it opens the topic's one upstream
 // stream. The release closes it and returns once its reader has stopped.
+//
+// The broker calls a release after it dropped the topic, so a new
+// subscriber can activate the topic again before the old activation's
+// release ran. The new activation supersedes the old one at once: nothing
+// the old one reads afterwards is published.
 func (p *Producer) Activate(t stream.Topic) func() {
 	ctx, cancel := context.WithCancel(context.Background())
-	tl := &tail{p: p, topic: t, read: podLogRead(t), done: make(chan struct{})}
+	tl := &tail{p: p, topic: t, read: podLogRead(t), ctx: ctx, cancel: cancel}
 	p.mu.Lock()
+	old := p.tails[t]
 	p.tails[t] = tl
 	p.mu.Unlock()
-	go func() {
-		defer close(tl.done)
-		tl.run(ctx)
-	}()
+	if old != nil {
+		old.close()
+	}
+	tl.start()
 	var once sync.Once
 	return func() {
 		once.Do(func() {
-			cancel()
-			<-tl.done
+			tl.close()
+			tl.runs.Wait()
 			p.mu.Lock()
 			if p.tails[t] == tl {
 				delete(p.tails, t)
@@ -218,16 +259,49 @@ func (p *Producer) Activate(t stream.Topic) func() {
 	}
 }
 
-// tail is one activation of a log topic: one upstream stream.
+// tail is one activation of a log topic. It reads the container's log
+// through one upstream stream at a time; an attach after a read ended
+// starts the next read.
 type tail struct {
-	p     *Producer
-	topic stream.Topic
-	read  authz.Attributes
-	done  chan struct{}
+	p      *Producer
+	topic  stream.Topic
+	read   authz.Attributes
+	ctx    context.Context
+	cancel context.CancelFunc
+	runs   sync.WaitGroup
 
-	mu  sync.Mutex
-	seq uint64
-	buf []stream.Item
+	mu       sync.Mutex
+	closed   bool // released or superseded: nothing more is read or emitted
+	running  bool // a read is in progress and has not emitted its logend
+	buf      []stream.Item
+	bufBytes int
+}
+
+// start begins a read unless one is in progress or the activation is
+// closed. A new read starts with an empty snapshot.
+func (tl *tail) start() {
+	tl.mu.Lock()
+	defer tl.mu.Unlock()
+	if tl.closed || tl.running {
+		return
+	}
+	tl.running = true
+	tl.buf, tl.bufBytes = nil, 0
+	tl.runs.Add(1)
+	go func() {
+		defer tl.runs.Done()
+		tl.run(tl.ctx)
+	}()
+}
+
+// close stops the activation's read and refuses any later emit or start.
+// The runs Add under mu before closed is set, so a Wait after close sees
+// every read.
+func (tl *tail) close() {
+	tl.cancel()
+	tl.mu.Lock()
+	tl.closed = true
+	tl.mu.Unlock()
 }
 
 func (tl *tail) recent() []stream.Item {
@@ -239,38 +313,56 @@ func (tl *tail) recent() []stream.Item {
 }
 
 // emit records m in the buffer, then publishes it, as the producer
-// contract requires.
+// contract requires. Both happen under the tail's lock, so messages are
+// published in seq order, and none once the activation is closed. A logend
+// ends the read: the next admitted attach starts a new one.
 func (tl *tail) emit(m Message) {
 	event := stream.EventLog
 	if m.Type == TypeEnd {
 		event = stream.EventLogEnd
 	}
 	m.Container = tl.topic.Container()
+	pub := tl.p.publisher()
 	tl.mu.Lock()
-	tl.seq++
-	m.Seq = tl.seq
+	defer tl.mu.Unlock()
+	if tl.closed {
+		return
+	}
+	m.Seq = tl.p.seq.Add(1)
 	data, err := json.Marshal(m)
 	if err != nil {
-		tl.mu.Unlock()
 		tl.p.log.Warn("encoding a log message failed", "topic", tl.topic.String(), "error", err)
 		return
 	}
 	it := stream.Item{Event: event, Attrs: tl.read, Data: data}
-	if keep := tl.p.opts.Buffer; len(tl.buf) >= keep {
-		tl.buf = append(tl.buf[:0], tl.buf[len(tl.buf)-keep+1:]...)
+	tl.keep(it)
+	if m.Type == TypeEnd {
+		tl.running = false
 	}
-	tl.buf = append(tl.buf, it)
-	tl.mu.Unlock()
-
-	tl.p.mu.Lock()
-	pub := tl.p.pub
-	tl.p.mu.Unlock()
 	if pub == nil {
 		return
 	}
 	if err := pub.Publish(tl.topic, it); err != nil {
 		tl.p.log.Warn("publishing a log message failed", "topic", tl.topic.String(), "error", err)
 	}
+}
+
+// keep adds it to the snapshot buffer, evicting the oldest messages past
+// the buffer's count and byte bounds. The newest message is always kept.
+func (tl *tail) keep(it stream.Item) {
+	o := tl.p.opts
+	drop := 0
+	bytes := tl.bufBytes + len(it.Data)
+	for drop < len(tl.buf) && (len(tl.buf)-drop >= o.Buffer || bytes > o.BufferBytes) {
+		bytes -= len(tl.buf[drop].Data)
+		drop++
+	}
+	if drop > 0 {
+		clear(tl.buf[:drop])
+		tl.buf = append(tl.buf[:0], tl.buf[drop:]...)
+	}
+	tl.buf = append(tl.buf, it)
+	tl.bufBytes = bytes
 }
 
 func (tl *tail) end(reason string) { tl.emit(Message{Type: TypeEnd, Reason: reason}) }
@@ -293,7 +385,6 @@ func (tl *tail) run(ctx context.Context) {
 		tl.end(ReasonContainerNotFound)
 		return
 	}
-	start := p.opts.Now()
 	tailLines := p.opts.TailLines
 	// LimitBytes is never set: the API server would end a followed stream
 	// after that many bytes (0030:D10). The reader bounds the output.
@@ -305,8 +396,14 @@ func (tl *tail) run(ctx context.Context) {
 		TailLines:  &tailLines,
 	})
 	if err != nil {
-		if t.Previous() && apierrors.IsBadRequest(err) {
-			tl.end(ReasonNoPrevious)
+		// The API server answers bad request for a container with no
+		// previous instance, and for one that has not started yet.
+		if apierrors.IsBadRequest(err) && ctx.Err() == nil {
+			if t.Previous() {
+				tl.end(ReasonNoPrevious)
+			} else {
+				tl.end(ReasonContainerWaiting)
+			}
 			return
 		}
 		tl.failed(ctx, "opening the log stream failed", err, ReasonPodNotFound)
@@ -317,7 +414,7 @@ func (tl *tail) run(ctx context.Context) {
 		stop()
 		_ = rc.Close()
 	}()
-	err = tl.copy(ctx, rc, start)
+	err = tl.copy(ctx, rc, p.opts.Now())
 	if ctx.Err() != nil {
 		return
 	}
@@ -382,47 +479,48 @@ func (tl *tail) whyEnded(ctx context.Context) string {
 }
 
 // copy reads lines from r and emits them within the topic's bounds until r
-// ends. Lines stamped before start are the initial tail, bounded by
-// MaxTailBytes; the rest are live, bounded by the rate. The previous
+// ends. The initial tail is the lines stamped before start, at most
+// TailLines of them, ending at the first line that is not: it is bounded by
+// MaxTailBytes. The rest are live, bounded by the rate. The previous
 // container's output is all tail.
+//
+// start is the portal's clock and the stamps are the node's, so a node
+// clock ahead of the portal's counts tail lines as live (bounded by the
+// rate, marked rate-limited when dropped), and one behind counts up to
+// TailLines early live lines as tail (bounded by the tail cap, marked
+// skipped). Either way every line is bounded and every dropped line is
+// counted.
 func (tl *tail) copy(ctx context.Context, r io.Reader, start time.Time) error {
 	o := tl.p.opts
 	lr := newLineReader(r, o.MaxLineBytes)
 	lim := &limiter{lines: newBucket(o.LinesPerSecond, o.LineBurst, start), bytes: newBucket(o.BytesPerSecond, o.ByteBurst, start)}
+	mk := &marks{tl: tl, delay: o.MarkerDelay}
+	defer mk.stop()
 	var tailBytes int
-	var tailFull bool
-	var skipped, dropped int64
-	flush := func() {
-		if skipped > 0 {
-			tl.emit(Message{Type: TypeMarker, Marker: MarkerSkipped, Dropped: skipped})
-			skipped = 0
-		}
-		if dropped > 0 {
-			tl.emit(Message{Type: TypeMarker, Marker: MarkerRateLimited, Dropped: dropped})
-			dropped = 0
-		}
-	}
+	var tailLines int64
+	inTail, tailFull := true, false
 	for ctx.Err() == nil {
 		line, err := lr.next()
 		if err != nil {
-			flush()
+			mk.flush()
 			return err
 		}
 		size := len(line.text)
-		if tl.topic.Previous() || (!line.time.IsZero() && line.time.Before(start)) {
+		inTail = tl.topic.Previous() || (inTail && tailLines < o.TailLines && !line.time.IsZero() && line.time.Before(start))
+		if inTail {
+			tailLines++
 			// Once the tail cap is reached the rest of the tail is skipped,
 			// so the stream skips ahead to live output.
 			if tailFull || tailBytes+size > o.MaxTailBytes {
 				tailFull = true
-				skipped++
+				mk.count(&mk.skipped)
 				continue
 			}
 			tailBytes += size
 		} else if !lim.allow(o.Now(), size) {
-			dropped++
+			mk.count(&mk.dropped)
 			continue
 		}
-		flush()
 		m := Message{Type: TypeLine, Text: line.text}
 		if !line.time.IsZero() {
 			m.Time = &line.time
@@ -430,9 +528,79 @@ func (tl *tail) copy(ctx context.Context, r io.Reader, start time.Time) error {
 		if line.cut > 0 {
 			m.Marker, m.Cut = MarkerTruncated, line.cut
 		}
-		tl.emit(m)
+		mk.flushThen(m)
 	}
 	return ctx.Err()
+}
+
+// marks counts the lines one read skipped or dropped and sends their
+// markers before the next delivered line, or after the marker delay when no
+// line follows, so a burst followed by silence is still marked
+// (0030:D10:R3).
+type marks struct {
+	tl    *tail
+	delay time.Duration
+
+	mu      sync.Mutex
+	skipped int64
+	dropped int64
+	timer   *time.Timer
+	stopped bool
+}
+
+// count adds one to *n and arms the marker timer.
+func (mk *marks) count(n *int64) {
+	mk.mu.Lock()
+	defer mk.mu.Unlock()
+	*n++
+	if mk.timer == nil && !mk.stopped {
+		mk.timer = time.AfterFunc(mk.delay, mk.flush)
+	}
+}
+
+// flush sends the pending markers.
+func (mk *marks) flush() {
+	mk.mu.Lock()
+	defer mk.mu.Unlock()
+	mk.flushLocked()
+}
+
+// flushThen sends the pending markers, then m, with no marker between.
+func (mk *marks) flushThen(m Message) {
+	mk.mu.Lock()
+	defer mk.mu.Unlock()
+	mk.flushLocked()
+	mk.tl.emit(m)
+}
+
+func (mk *marks) flushLocked() {
+	if mk.timer != nil {
+		mk.timer.Stop()
+		mk.timer = nil
+	}
+	if mk.stopped {
+		return
+	}
+	if mk.skipped > 0 {
+		mk.tl.emit(Message{Type: TypeMarker, Marker: MarkerSkipped, Dropped: mk.skipped})
+		mk.skipped = 0
+	}
+	if mk.dropped > 0 {
+		mk.tl.emit(Message{Type: TypeMarker, Marker: MarkerRateLimited, Dropped: mk.dropped})
+		mk.dropped = 0
+	}
+}
+
+// stop disarms the timer once the read is over; its markers were flushed
+// or the activation is closed.
+func (mk *marks) stop() {
+	mk.mu.Lock()
+	defer mk.mu.Unlock()
+	if mk.timer != nil {
+		mk.timer.Stop()
+		mk.timer = nil
+	}
+	mk.stopped = true
 }
 
 // hasContainer reports whether pod has a container, init container or

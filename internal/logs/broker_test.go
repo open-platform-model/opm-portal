@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -276,5 +277,41 @@ func TestSubscribersShareOneUpstreamUntilTheLastLeaves(t *testing.T) {
 	}
 	if !fs.isClosed() {
 		t.Error("the upstream is open after the last subscriber left")
+	}
+}
+
+func TestFollowingAgainAfterTheEndRestartsASharedTopic(t *testing.T) {
+	s := newSystem(t)
+	a := s.open(t, "alice", liveTopic)
+	first := s.src.open(t)
+	b := s.open(t, "bob", liveTopic)
+	first.write(t, liveTS(time.Now().Add(time.Second), "before"))
+	_ = first.w.Close()
+	ended := func(r *sseRecorder) bool {
+		for _, e := range r.events(t) {
+			if e.name == stream.EventLogEnd {
+				return true
+			}
+		}
+		return false
+	}
+	eventually(t, "the end on both streams", func() bool { return ended(a.rec) && ended(b.rec) })
+
+	// Bob follows again while alice still holds the topic.
+	topic := mustTopic(t, liveTopic)
+	bobSession := stream.Session{Key: "session-bob", Identity: bob}
+	if err := s.b.Unsubscribe(bobSession, b.ID(), topic); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.b.Subscribe(t.Context(), bobSession, b.ID(), topic); err != nil {
+		t.Fatal(err)
+	}
+	second := s.src.open(t)
+	second.write(t, liveTS(time.Now().Add(time.Second), "after"))
+	eventually(t, "the new tail on both streams", func() bool {
+		return slices.Contains(a.rec.texts(t), "after") && slices.Contains(b.rec.texts(t), "after")
+	})
+	if _, logs := s.src.calls(); logs != 2 {
+		t.Errorf("%d upstream streams, want 2: one per read", logs)
 	}
 }

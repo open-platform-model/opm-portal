@@ -234,6 +234,7 @@ func TestEndReasonsBeforeAnyLine(t *testing.T) {
 		{"unknown container", "log:default/" + f1Pod + "/sidecar", f1PodObject(t), nil, readmodeltest.AllowAll, ReasonContainerNotFound, 0},
 		{"pod gone", liveTopic, nil, nil, readmodeltest.AllowAll, ReasonPodNotFound, 0},
 		{"no previous", liveTopic + "/previous", f1PodObject(t), apierrors.NewBadRequest("previous terminated container not found"), readmodeltest.AllowAll, ReasonNoPrevious, 1},
+		{"container waiting", liveTopic, f1PodObject(t), apierrors.NewBadRequest("container is waiting to start: ContainerCreating"), readmodeltest.AllowAll, ReasonContainerWaiting, 1},
 		{"upstream error", liveTopic, f1PodObject(t), errBoom, readmodeltest.AllowAll, ReasonUnavailable, 1},
 		{"reader denied the log", liveTopic, f1PodObject(t), nil, denySubresource("log"), ReasonUnavailable, 0},
 	}
@@ -427,5 +428,130 @@ func TestInitAndEphemeralContainersCanBeFollowed(t *testing.T) {
 				t.Errorf("container = %q, want %q", got, c)
 			}
 		})
+	}
+}
+
+func TestAnEndedReadRestartsOnTheNextAdmit(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{})
+	u.activate(t, liveTopic)
+	first := u.src.open(t)
+	first.write(t, liveTS(u.clock.Now().Add(time.Second), "one"))
+	_ = first.w.Close()
+	if got := types([]Message{u.pub.next(t), u.pub.next(t)}); !slices.Equal(got, []string{"line", "end:" + ReasonUpstreamClosed}) {
+		t.Fatalf("first read = %v", got)
+	}
+	topic := mustTopic(t, liveTopic)
+	attrs, _ := u.p.Attributes(topic)
+	g, err := u.p.cfg.Authorizer.Check(context.Background(), alice, attrs[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := u.p.Admit(context.Background(), alice, topic, []authz.Grant{g}); err != nil {
+		t.Fatal(err)
+	}
+	second := u.src.open(t)
+	second.write(t, liveTS(u.clock.Now().Add(time.Second), "two"))
+	m := u.pub.next(t)
+	if m.Text != "two" || m.Seq != 3 {
+		t.Errorf("first message of the new read = %+v, want line two with seq 3", m)
+	}
+	items, err := u.p.Snapshot(context.Background(), topic)
+	if err != nil || len(items) != 1 || decode(t, items[0].Data).Text != "two" {
+		t.Errorf("snapshot after the restart = %d items, %v; want only the new read", len(items), err)
+	}
+	// A read in progress is not restarted.
+	if err := u.p.Admit(context.Background(), alice, topic, []authz.Grant{g}); err != nil {
+		t.Fatal(err)
+	}
+	if _, logs := u.src.calls(); logs != 2 {
+		t.Errorf("%d log streams opened, want 2", logs)
+	}
+}
+
+func TestASupersededActivationPublishesNothing(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{})
+	u.activate(t, liveTopic)
+	old := u.src.open(t)
+	u.activate(t, liveTopic)
+	current := u.src.open(t)
+	if !old.isClosed() {
+		eventually(t, "the old upstream to close", old.isClosed)
+	}
+	current.write(t, liveTS(u.clock.Now().Add(time.Second), "current"))
+	if m := u.pub.next(t); m.Text != "current" {
+		t.Errorf("message = %+v, want the current activation's line", m)
+	}
+	u.pub.none(t)
+}
+
+func TestMarkersArriveWhenNoLineFollows(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{LinesPerSecond: 1, LineBurst: 1, MarkerDelay: 20 * time.Millisecond})
+	u.activate(t, liveTopic)
+	fs := u.src.open(t)
+	at := u.clock.Now().Add(time.Second)
+	fs.write(t, liveTS(at, "a"), liveTS(at, "b"), liveTS(at, "c"))
+	if m := u.pub.next(t); m.Text != "a" {
+		t.Fatalf("first = %+v", m)
+	}
+	if m := u.pub.next(t); m.Type != TypeMarker || m.Marker != MarkerRateLimited || m.Dropped != 2 {
+		t.Errorf("after silence = %+v, want rate-limited with 2 dropped", m)
+	}
+	u.pub.none(t)
+}
+
+func TestTheTailEndsAtTheFirstLiveLineOrTailLines(t *testing.T) {
+	tests := []struct {
+		name  string
+		lines []time.Duration // offsets from the portal's clock
+		want  []string
+	}{
+		// A node clock behind the portal's: live lines look old, but the
+		// tail never holds more than TailLines lines.
+		{"node clock behind", []time.Duration{-time.Hour, -time.Hour, -time.Second, -time.Second}, []string{"line", "marker:skipped", "line", "line"}},
+		// A line stamped after the stream opened ends the tail, and an
+		// older-looking line after it is live, not skipped.
+		{"first live line", []time.Duration{-time.Hour, time.Second, -time.Hour, -time.Hour}, []string{"line", "line", "line", "line"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{TailLines: 2, MaxTailBytes: 6})
+			u.activate(t, liveTopic)
+			fs := u.src.open(t)
+			now := u.clock.Now()
+			for i, d := range tc.lines {
+				fs.write(t, liveTS(now.Add(d), "line"+string(rune('a'+i))))
+			}
+			got := make([]Message, 0, len(tc.want))
+			for range tc.want {
+				got = append(got, u.pub.next(t))
+			}
+			if ts := types(got); !slices.Equal(ts, tc.want) {
+				t.Errorf("messages = %v, want %v", ts, tc.want)
+			}
+		})
+	}
+}
+
+func TestTheSnapshotIsBoundedByBytes(t *testing.T) {
+	u := newUnit(t, newFakeSource(f1PodObject(t)), readmodeltest.AllowAll, Options{BufferBytes: 300})
+	u.activate(t, liveTopic)
+	fs := u.src.open(t)
+	at := u.clock.Now().Add(time.Second)
+	for i := range 10 {
+		fs.write(t, liveTS(at, strings.Repeat(string(rune('a'+i)), 40)))
+	}
+	for range 10 {
+		u.pub.next(t)
+	}
+	items, err := u.p.Snapshot(context.Background(), mustTopic(t, liveTopic))
+	if err != nil {
+		t.Fatal(err)
+	}
+	total := 0
+	for _, it := range items {
+		total += len(it.Data)
+	}
+	if total > 300 || len(items) == 0 || decode(t, items[len(items)-1].Data).Text != strings.Repeat("j", 40) {
+		t.Errorf("snapshot = %d items, %d bytes; want the newest within 300 bytes", len(items), total)
 	}
 }

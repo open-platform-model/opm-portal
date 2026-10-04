@@ -18,11 +18,12 @@ const (
 	// MarkerTruncated is set on a line cut at the line cap; Cut says how
 	// many bytes were cut.
 	MarkerTruncated = "truncated"
-	// MarkerRateLimited reports, before the next delivered line or at the
-	// end, how many lines were dropped over the rate.
+	// MarkerRateLimited reports how many lines were dropped over the rate.
+	// It comes before the next delivered line, at the end, or after the
+	// marker delay when no line follows, whichever is first.
 	MarkerRateLimited = "rate-limited"
 	// MarkerSkipped reports how many initial-tail lines past the tail cap
-	// were skipped.
+	// were skipped, at the same moments.
 	MarkerSkipped = "skipped"
 
 	// ReasonContainerStopped: the followed container stopped.
@@ -30,8 +31,12 @@ const (
 	// ReasonCompleted: the previous container's output was read to its end.
 	ReasonCompleted = "completed"
 	// ReasonUpstreamClosed: the API server ended the stream while the
-	// container still runs; following again starts a new tail.
+	// container still runs. Following the topic again starts a new tail,
+	// whether or not others still hold it.
 	ReasonUpstreamClosed = "upstream_closed"
+	// ReasonContainerWaiting: the container has not started yet, or is
+	// waiting to restart.
+	ReasonContainerWaiting = "container_waiting"
 	// ReasonContainerNotFound: the Pod has no container of that name.
 	ReasonContainerNotFound = "container_not_found"
 	// ReasonNoPrevious: the container has no previous, terminated instance.
@@ -43,8 +48,10 @@ const (
 )
 
 // Message is the document a log or logend stream item carries. Seq
-// increases along one upstream stream; a line a subscriber receives both in
-// its snapshot and as a later message has the same Seq. A line with empty
+// increases along a topic, across its reads; a line a subscriber receives
+// both in its snapshot and as a later message has the same Seq. A logend
+// ends one read: when another attach to the topic starts a new read, its
+// messages follow on the same topic, a new tail first. A line with empty
 // text carries no text field.
 type Message struct {
 	Seq       uint64     `json:"seq"`
