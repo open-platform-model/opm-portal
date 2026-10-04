@@ -38,3 +38,5 @@
 - [x] 5.2 Tests for states F1 lacks: an accepted, inactive claim and a removal-blocked claim on the Platform page; a Secret row without a YAML link; a page that replaces only the Content-Security-Policy behind the front door
 - [x] 5.3 Browser run: one stream across boosted navigation, topics moved by POST, keyboard activation of a graph node; the scripted image break on the live cluster again
 - [x] 5.4 `task check` green, then commit `fix(ui): refresh live regions from the page script`
+- [x] 5.5 A polled object shows when it was read, and a health that is not live when it was evaluated (0030:D3:R5); test
+- [x] 5.6 `task check` green, then commit `fix(ui): show when a polled object was read`
