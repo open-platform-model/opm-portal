@@ -5,12 +5,10 @@ import (
 	"encoding/json"
 	"testing"
 
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
 	"github.com/open-platform-model/opm-portal/internal/authz"
 )
 
-var instancesGVR = schema.GroupVersionResource{Group: "opmodel.dev", Version: "v1alpha1", Resource: "moduleinstances"}
+var instancesGVR = InstancesResource
 
 func TestItemValidate(t *testing.T) {
 	read := authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: "apps", Name: "blog"}

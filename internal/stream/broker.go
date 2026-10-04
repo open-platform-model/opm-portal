@@ -318,14 +318,15 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 const verbList = "list"
 
 // isListRead reports whether attrs is exactly the read a list topic t
-// needs: one list of the whole resource in t's namespace (cluster-wide for
+// needs: one list of InstancesResource in t's namespace (cluster-wide for
 // "instances"), naming no subresource and no object.
 func isListRead(t Topic, attrs []authz.Attributes) bool {
 	if len(attrs) != 1 {
 		return false
 	}
 	a := attrs[0]
-	return a.Verb == verbList && a.Subresource == "" && a.Name == "" && a.Namespace == t.Namespace()
+	return a.Verb == verbList && a.Resource == InstancesResource &&
+		a.Subresource == "" && a.Name == "" && a.Namespace == t.Namespace()
 }
 
 // authorized is one topic's subscription decision.

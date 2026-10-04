@@ -145,19 +145,20 @@ events` in `apps`) and for each item's `Attrs`.
   written under a decision that expired during a slow snapshot or render. A denial or error
   closes the topic. The same check runs on each heartbeat, so a revocation closes a quiet topic
   within one decision TTL plus one heartbeat.
-- **Per item**: inclusion is decided by scope. An item whose `Item.Attrs` falls within one of
-  the topic's reads (same verb, resource and subresource; the read's namespace and name empty
-  or equal) is delivered under the topic's grants, which are gated again first: a grant that
-  expired during a slow snapshot or render is re-checked with `Check`, and a denial closes the
-  topic instead of leaving the item out, so a snapshot never arrives silently cut short. On a
-  list topic nothing else is delivered or reviewed: a list item names the list of its
-  namespace, within the topic's list read, and an item outside that scope is left out and
-  logged as a producer fault. `checkTopics` serves a list topic only when the producer names
-  exactly one read for it: `list` of the resource with no subresource and no name, in the
-  topic's namespace (cluster-wide for `instances`). On an object topic an item revealing
-  another read gets its own `Check` (cached by `authz`). Forbidden or invalid: the item is skipped. Unavailable: the topic is
-  closed with `upstream_unavailable`, because a silently skipped update would leave the client
-  stale (Principle IV). Unauthenticated: the topic is closed with `unauthenticated`.
+- **Per item**: inclusion is decided by scope. An item whose `Item.Attrs` falls within one of the
+  topic's reads (by `authz.Attributes.Covers`, the scope rule `Grant.Covers` applies: same verb,
+  resource and subresource; the read's namespace and name empty or equal) is delivered under the
+  topic's grants, which are gated again first: a grant that expired during a slow snapshot or
+  render is re-checked with `Check`, and a denial closes the topic instead of leaving the item
+  out, so a snapshot never arrives silently cut short. On a list topic nothing else is delivered
+  or reviewed: a list item names the list of its namespace, within the topic's list read, and an
+  item outside that scope is left out and logged as a producer fault. `checkTopics` serves a list
+  topic only when the producer names exactly one read for it: `list` of `InstancesResource`
+  (`moduleinstances`) with no subresource and no name, in the topic's namespace (cluster-wide for
+  `instances`). On an object topic an item revealing another read gets its own `Check` (cached by
+  `authz`). Forbidden or invalid: the item is skipped. Unavailable: the topic is closed with
+  `upstream_unavailable`, because a silently skipped update would leave the client stale
+  (Principle IV). Unauthenticated: the topic is closed with `unauthenticated`.
 - An unauthenticated `Session.Identity` is refused at `Open` with no `Check` made.
 
 ### Ordering, snapshot and resume

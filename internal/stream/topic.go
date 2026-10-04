@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
@@ -31,6 +32,10 @@ const (
 	// it until log topics are served.
 	KindLog Kind = "log"
 )
+
+// InstancesResource is the resource a list topic lists: a producer names
+// list on it, and nothing else, for "instances" and "instances:<ns>".
+var InstancesResource = schema.GroupVersionResource{Group: "opmodel.dev", Version: "v1alpha1", Resource: "moduleinstances"}
 
 // maxTopicLen bounds a topic name, well above the longest valid one an
 // object reference can produce.

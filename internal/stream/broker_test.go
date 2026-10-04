@@ -872,6 +872,7 @@ func TestAListTopicNeedsExactlyItsListRead(t *testing.T) {
 		{"a subresource", "instances:team-a", []authz.Attributes{with(list("team-a"), func(a *authz.Attributes) { a.Subresource = "status" })}, false},
 		{"a name", "instances:team-a", []authz.Attributes{with(list("team-a"), func(a *authz.Attributes) { a.Name = "one" })}, false},
 		{"two reads", "instances:team-a", []authz.Attributes{list("team-a"), list("team-a")}, false},
+		{"wrong resource", "instances:team-a", []authz.Attributes{with(list("team-a"), func(a *authz.Attributes) { a.Resource = packagesGVR })}, false},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
