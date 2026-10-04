@@ -13,7 +13,8 @@ A graph SHALL be built only from read-model views; no graph SHALL be produced by
 module or by a read of its own. Every edge SHALL belong to one edge kind, and every edge of a kind
 SHALL be drawn from that kind's one source, which the edge names: Platform `status.registry` for
 platform to catalog; the `status.registry` entries with source `Registration`, joined on the
-registration's `spec.catalog`, for registration to catalog; the registration's
+`spec.catalog` and `spec.version` of a registration that is accepted and active, for registration
+to catalog; the registration's
 `spec.providerRef` for registration to provider instance; `spec.module` for instance to module;
 `spec.sourceRef` and `spec.dependsOn` for package to source and to package; `status.inventory`
 for owner to component and component to object; controller `metadata.ownerReferences` for object
@@ -32,6 +33,12 @@ to runtime child. Source: 0030:D4:R1.
   `spec.catalog` is in no registry entry, and its node still names that catalog as text
 - **AND** registration `default.backup-provider` contributes to
   `testing.opmodel.dev/catalogs/operator/backup@v0`
+
+#### Scenario: Duplicate claim on a contributed catalog
+
+- **WHEN** a second registration claims `testing.opmodel.dev/catalogs/operator/backup@v0` and is
+  refused as a duplicate, accepted but not active, or claims another version
+- **THEN** it has no `contributes` edge, and `default.backup-provider` still contributes
 
 ### Requirement: No edge from an instance to a contract
 
@@ -137,13 +144,26 @@ expand it.
 
 When a graph would hold more nodes than its cap, nodes SHALL be dropped from the last column
 backwards, never the graph's root, until one fewer than the cap remain, and one summary node
-SHALL count the dropped nodes by kind. No edge SHALL point at a dropped node.
+SHALL count the dropped nodes by kind. The summary SHALL carry the worst health state of the
+dropped nodes and count them by health state and by access, so a Degraded node is never hidden
+behind a count. A cap below two SHALL be two: the root and the summary. No edge SHALL point at a
+dropped node.
 
 #### Scenario: Small cap
 
 - **WHEN** the expanded cert-manager graph is built with a cap of 30
 - **THEN** it holds 30 nodes, one of them the summary, and the summary's counts add up to the
   nodes dropped
+
+#### Scenario: Cap of one
+
+- **WHEN** the cert-manager graph is built with a cap of 1
+- **THEN** it holds the root and the summary
+
+#### Scenario: Capped broken rollout
+
+- **WHEN** the image-break podinfo graph is built with a cap that drops every Pod
+- **THEN** the summary is Degraded and counts one Degraded Pod
 
 ### Requirement: Layout is deterministic
 

@@ -23,8 +23,11 @@ type builder struct {
 }
 
 func newBuilder(scope Scope, titles []string, opts Options) *builder {
-	if opts.NodeCap <= 0 {
+	switch {
+	case opts.NodeCap <= 0:
 		opts.NodeCap = DefaultNodeCap
+	case opts.NodeCap < MinNodeCap:
+		opts.NodeCap = MinNodeCap
 	}
 	return &builder{scope: scope, titles: titles, opts: opts, byID: map[string]int{}, edgeIDs: map[string]int{}}
 }
@@ -94,11 +97,13 @@ func (b *builder) capNodes() {
 	})
 	drop := map[string]bool{}
 	counts := map[string]int{}
+	var dropped droppedHealth
 	col := 0
 	for _, i := range order[:len(b.nodes)-(b.opts.NodeCap-1)] {
 		n := &b.nodes[i]
 		drop[n.ID] = true
 		counts[hiddenKind(n)]++
+		dropped.add(n)
 		col = n.Column
 	}
 	kept := make([]Node, 0, b.opts.NodeCap)
@@ -124,6 +129,7 @@ func (b *builder) capNodes() {
 		ID:     groupID(GroupMore, b.root),
 		Kind:   KindGroup,
 		Label:  plural(total, "more node", "more nodes"),
+		Health: dropped.health(),
 		Group:  &Group{Kind: GroupMore, Hidden: hidden},
 		Column: col,
 	})
@@ -132,6 +138,55 @@ func (b *builder) capNodes() {
 	for i := range b.nodes {
 		b.byID[b.nodes[i].ID] = i
 	}
+}
+
+// droppedHealth rolls up the nodes the cap drops the way internal/health
+// rolls up a summary, so a Degraded node is not hidden behind a healthy
+// count: the worst state of those with health, counted by state, and the
+// unreadable ones counted by access (constitution principle IV).
+type droppedHealth struct {
+	h       Health
+	counts  Counts
+	counted int
+	seen    bool
+}
+
+func (d *droppedHealth) add(n *Node) {
+	switch {
+	case n.Health != nil:
+		if d.counted == 0 {
+			d.h.State = n.Health.State
+		}
+		d.counted++
+		d.seen = true
+		d.h.State = health.Worst(d.h.State, n.Health.State)
+		d.h.Partial = d.h.Partial || n.Health.Partial
+		d.h.NotLive = d.h.NotLive || n.Health.NotLive
+		d.counts.addState(n.Health.State)
+	case n.Access == health.AccessForbidden:
+		d.seen, d.h.Partial = true, true
+		d.counts.Forbidden++
+	case n.Access == health.AccessNotReadable:
+		d.seen, d.h.Partial = true, true
+		d.counts.NotReadable++
+	case n.Access == health.AccessWithheld:
+		d.seen = true
+		d.counts.Withheld++
+	}
+}
+
+// health is nil when no dropped node had health or an access to count.
+func (d *droppedHealth) health() *Health {
+	if !d.seen {
+		return nil
+	}
+	h := d.h
+	if d.counted == 0 {
+		h.State = health.Unknown
+	}
+	counts := d.counts
+	h.Counts = &counts
+	return &h
 }
 
 // hiddenKind names a dropped node in the summary: its object kind when it

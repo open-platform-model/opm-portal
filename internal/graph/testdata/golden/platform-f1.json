@@ -199,7 +199,7 @@
       "kind": "contributes",
       "from": "treg:default.backup-provider",
       "to": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
-      "source": "Platform status.registry entries with source Registration, joined on TransformerRegistration spec.catalog",
+      "source": "Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration",
       "route": [
         {
           "x": 544,

@@ -62,7 +62,9 @@ func Platform(in PlatformInput, opts Options) Graph {
 	b.root = plat.ID
 	b.add(plat, colPlatform)
 
-	contributed := map[string]bool{}
+	// contributed maps each catalog the registry says a registration
+	// contributed to the version it resolved.
+	contributed := map[string]string{}
 	for _, c := range p.Catalogs {
 		n := Node{
 			ID:      catalogID(c.Catalog),
@@ -73,7 +75,7 @@ func Platform(in PlatformInput, opts Options) Graph {
 		b.add(n, colCatalog)
 		b.edge(EdgeResolves, plat.ID, n.ID)
 		if c.Source == sourceRegistry {
-			contributed[c.Catalog] = true
+			contributed[c.Catalog] = c.Version
 		}
 	}
 
@@ -105,9 +107,7 @@ func Platform(in PlatformInput, opts Options) Graph {
 			},
 		}
 		b.add(n, colRegistration)
-		// Only the registry says a registration's catalog was contributed;
-		// a refused claim names a catalog no registry entry holds.
-		if contributed[r.Catalog] {
+		if contributes(r, contributed) {
 			b.edge(EdgeContributes, n.ID, catalogID(r.Catalog))
 		}
 		if r.Provider.Name != "" {
@@ -115,6 +115,20 @@ func Platform(in PlatformInput, opts Options) Graph {
 		}
 	}
 	return b.finish()
+}
+
+// contributes reports whether the registry records r's catalog as
+// contributed by r. The registry entry does not name its registration, so
+// the claim must also be one the operator folds into the registry: accepted
+// and active (opm-operator platform_controller.go:335), at the version the
+// entry resolved. A refused, duplicate or pending claim on a contributed
+// catalog gets no edge (0030:D4).
+func contributes(r *readmodel.RegistrationView, contributed map[string]string) bool {
+	version, ok := contributed[r.Catalog]
+	if !ok || !r.Standing.Accepted || !r.Standing.Active {
+		return false
+	}
+	return version == "" || r.Version == "" || version == r.Version
 }
 
 // provider adds the instance a registration names and the edge to it,

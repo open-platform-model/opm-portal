@@ -107,7 +107,7 @@ changes on upgrade.
 | Edge | From -> To | Source |
 | --- | --- | --- |
 | `resolves` | platform -> catalog | Platform `status.registry` |
-| `contributes` | registration -> catalog | Platform `status.registry` entry with source `Registration`, joined on the registration's `spec.catalog` |
+| `contributes` | registration -> catalog | Platform `status.registry` entry with source `Registration`, joined on the `spec.catalog` and `spec.version` of an accepted, active registration |
 | `providedBy` | registration -> instance | registration `spec.providerRef`, verified against the provider's `status.inventory` |
 | `instantiates` | instance -> module | ModuleInstance `spec.module` |
 | `sourcedFrom` | package -> source | ModulePackage `spec.sourceRef` |
@@ -131,7 +131,9 @@ Each edge carries its source string, so the API can show where an edge came from
    `Options.Expand` holding the group's id shows them.
 4. With more than `NodeCap` nodes after rules 1 to 3, nodes are dropped from the last column
    back, within a column from the end of the id order, never the root, until `NodeCap - 1`
-   remain; one summary node, in the column of the last node dropped, counts them by kind. Edges to dropped nodes are dropped.
+   remain; one summary node, in the column of the last node dropped, counts them by kind and
+   carries their worst health state with counts by state and access, so a Degraded Pod beyond
+   the cap still shows. A cap below two is two. Edges to dropped nodes are dropped.
 
 ### Layout
 
@@ -162,7 +164,12 @@ no registry.
    exist on the platform, implying a contribution the operator refused.
 2. Draw only where `status.registry` holds an entry with source `Registration` for that catalog -
    the platform's resolved record decides, `spec.catalog` is the join key.
-**Decision**: Option 2; the registration node keeps `spec.catalog` as text either way.
+**Decision**: Option 2, narrowed after review: the registry entry does not name the registration
+that contributed it, so a duplicate claim on a contributed catalog (refused with
+`DuplicateClaim`, opm-operator `transformerregistration_controller.go:200-209`) would match it.
+The edge is drawn only for a registration that is accepted and active, the set the operator folds
+into the registry (`platform_controller.go:335`), at the version the entry resolved. The
+registration node keeps `spec.catalog` as text either way.
 **Rationale**: 0030 wins over the brief, and an edge the record does not support is worse than
 none (0030:D4 rationale).
 
@@ -207,7 +214,7 @@ the rule-answered local checker) to `internal/readmodel/readmodeltest`, which do
 - [Barycenter sweeps leave crossings] → acceptable at the sizes collapse leaves; the graph JSON
   is there for a client-side layout later.
 - [The cap drops runtime children first] → the deepest, most numerous nodes go first; the
-  summary node says how many of each kind are hidden.
+  summary node says how many of each kind are hidden and the worst state among them.
 - [Default cap of 150] → about half the size at which the spike's SVG stopped being readable;
   revisit with the UI.
 

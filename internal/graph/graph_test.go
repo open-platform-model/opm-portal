@@ -297,8 +297,38 @@ func TestNodeCap(t *testing.T) {
 	if !hasNode(g, "mi:cert-manager/cert-manager") {
 		t.Error("the cap dropped the root")
 	}
-	if tiny := Instance(d, Options{NodeCap: 2}); len(tiny.Nodes) != 2 || !hasNode(tiny, "mi:cert-manager/cert-manager") {
-		t.Errorf("cap 2 kept %d nodes, root kept %v; want the root and the summary", len(tiny.Nodes), hasNode(tiny, "mi:cert-manager/cert-manager"))
+	for _, c := range []int{1, 2} {
+		if tiny := Instance(d, Options{NodeCap: c}); len(tiny.Nodes) != 2 || !hasNode(tiny, "mi:cert-manager/cert-manager") {
+			t.Errorf("cap %d kept %d nodes, root kept %v; want the root and the summary", c, len(tiny.Nodes), hasNode(tiny, "mi:cert-manager/cert-manager"))
+		}
+	}
+}
+
+// TestNodeCapKeepsHealth: a cap that drops the broken rollout's Pods shows
+// their worst state on the summary, so the graph still says where the
+// instance is Degraded (constitution principle IV).
+func TestNodeCapKeepsHealth(t *testing.T) {
+	d := newCluster(t, f1Broken(t), readmodeltest.AllowAll).instance(t, "default", "podinfo")
+	full := Instance(d, Options{})
+	last, pods := 0, 0
+	for i := range full.Nodes {
+		last = max(last, full.Nodes[i].Column)
+	}
+	for i := range full.Nodes {
+		if full.Nodes[i].Column == last {
+			if full.Nodes[i].Ref == nil || full.Nodes[i].Ref.Kind != kindPod {
+				t.Fatalf("last column holds %s, want only Pods", full.Nodes[i].ID)
+			}
+			pods++
+		}
+	}
+	g := Instance(d, Options{NodeCap: len(full.Nodes) - pods + 1})
+	more := nodeByID(t, g, "grp:more/mi/default/podinfo")
+	if hasNode(g, "obj:_/Pod/default/podinfo-podinfo-794bd8c7fb-cc5ql") {
+		t.Fatal("the cap kept the broken Pod")
+	}
+	if h := more.Health; h == nil || h.State != health.Degraded || h.Counts.Degraded != 1 || h.Counts.Healthy != pods-1 {
+		t.Errorf("summary health = %+v, want Degraded with 1 Degraded and %d Healthy", h, pods-1)
 	}
 }
 
@@ -336,6 +366,49 @@ func TestPlatformGraph(t *testing.T) {
 	}
 	if len(g.Nodes) != 7 {
 		t.Errorf("%d nodes, want 7", len(g.Nodes))
+	}
+}
+
+// TestContributesNeedsTheContributingClaim: the registry entry does not
+// name its registration, so a claim on an already contributed catalog that
+// is refused as a duplicate, accepted but not active, or at another version
+// gets no contributes edge (0030:D4).
+func TestContributesNeedsTheContributingClaim(t *testing.T) {
+	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"
+	for _, tt := range []struct {
+		name             string
+		accepted, active bool
+		version          string
+	}{
+		{name: "duplicate", version: "0.1.0"},
+		{name: "pending", accepted: true, version: "0.1.0"},
+		{name: "other-version", accepted: true, active: true, version: "0.2.0"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			objs := f1(t)
+			claim := readmodeltest.Find(t, objs, "TransformerRegistration", "default.backup-provider").DeepCopy()
+			claim.SetName("default." + tt.name)
+			claim.SetUID(types.UID(tt.name))
+			for _, set := range []struct {
+				v    any
+				path []string
+			}{
+				{tt.accepted, []string{"status", "accepted"}},
+				{tt.active, []string{"status", "active"}},
+				{tt.version, []string{"spec", "version"}},
+			} {
+				if err := unstructured.SetNestedField(claim.Object, set.v, set.path...); err != nil {
+					t.Fatal(err)
+				}
+			}
+			g := Platform(newCluster(t, append(objs, claim), readmodeltest.AllowAll).platform(t), Options{})
+			if e, ok := edgeBetween(g, EdgeContributes, "treg:default."+tt.name, backup); ok {
+				t.Errorf("%s claim contributes: %s", tt.name, e.ID)
+			}
+			if _, ok := edgeBetween(g, EdgeContributes, "treg:default.backup-provider", backup); !ok {
+				t.Error("the contributing claim lost its edge")
+			}
+		})
 	}
 }
 

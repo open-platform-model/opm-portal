@@ -5,7 +5,7 @@
 <text x="280" y="28" fill="#667085" font-size="11" font-weight="bold">CATALOGS</text>
 <text x="544" y="28" fill="#667085" font-size="11" font-weight="bold">REGISTRATIONS</text>
 <text x="808" y="28" fill="#667085" font-size="11" font-weight="bold">PROVIDERS</text>
-<path d="M544 66 C512 66 512 122 480 122" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)"><title>contributes: Platform status.registry entries with source Registration, joined on TransformerRegistration spec.catalog</title></path>
+<path d="M544 66 C512 66 512 122 480 122" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)"><title>contributes: Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration</title></path>
 <path d="M744 66 C776 66 776 66 808 66" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)"><title>providedBy: TransformerRegistration spec.providerRef, checked against the provider&#39;s status.inventory</title></path>
 <path d="M744 122 C776 122 776 122 808 122" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)" stroke-dasharray="5 4"><title>providedBy: TransformerRegistration spec.providerRef, checked against the provider&#39;s status.inventory (unverified: ProviderNotFound)</title></path>
 <path d="M216 94 C248 94 248 66 280 66" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)"><title>resolves: Platform status.registry</title></path>

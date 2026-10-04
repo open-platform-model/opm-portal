@@ -69,7 +69,7 @@ const (
 // Sources names the one field each edge kind is drawn from.
 var Sources = map[EdgeKind]string{
 	EdgeResolves:     "Platform status.registry",
-	EdgeContributes:  "Platform status.registry entries with source Registration, joined on TransformerRegistration spec.catalog",
+	EdgeContributes:  "Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration",
 	EdgeProvidedBy:   "TransformerRegistration spec.providerRef, checked against the provider's status.inventory",
 	EdgeInstantiates: "ModuleInstance spec.module",
 	EdgeSourcedFrom:  "ModulePackage spec.sourceRef",
@@ -192,6 +192,7 @@ type Group struct {
 	// Members are the labels of what the group holds, in order.
 	Members []string `json:"members,omitempty"`
 	// Hidden counts, for the node-cap summary, the dropped nodes by kind.
+	// The summary's Health counts them by state.
 	Hidden []KindCount `json:"hidden,omitempty"`
 }
 
@@ -278,9 +279,14 @@ type Options struct {
 	// ShowScaledDown shows ReplicaSets scaled to zero instead of hiding
 	// them behind a count.
 	ShowScaledDown bool
-	// NodeCap is the most nodes a graph holds; 0 means DefaultNodeCap.
+	// NodeCap is the most nodes a graph holds; 0 means DefaultNodeCap,
+	// and a cap below MinNodeCap is MinNodeCap, room for the root and the
+	// summary.
 	NodeCap int
 }
 
 // DefaultNodeCap is the node cap when Options leaves it at zero.
 const DefaultNodeCap = 150
+
+// MinNodeCap is the smallest node cap: the root and the summary node.
+const MinNodeCap = 2
