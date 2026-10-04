@@ -203,22 +203,9 @@ func (s *grantScan) isGrant(e ast.Expr) bool {
 func (s *grantScan) visit(n ast.Node, fnName string) {
 	switch n := n.(type) {
 	case *ast.CompositeLit:
-		// Inside authz the zero Grant{} is how a denial returns "no grant";
-		// a literal with fields is construction, allowed in issue alone.
-		// Outside authz every literal is refused.
-		allowed := s.inAuthz && (fnName == "issue" || len(n.Elts) == 0)
-		if !allowed && s.isGrant(n.Type) {
-			s.report(n, "Grant composite literal outside issue")
-		}
-		if s.inAuthz && fnName != "issue" && isIdent(n.Type, "grantData") {
-			s.report(n, "grantData composite literal outside issue")
-		}
+		s.visitLiteral(n, fnName)
 	case *ast.AssignStmt:
-		for _, lhs := range n.Lhs {
-			if sel, ok := unparen(lhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "sealed" {
-				s.report(n, "assignment to a Grant's sealed field")
-			}
-		}
+		s.visitAssign(n)
 	case *ast.CallExpr:
 		if isIdent(n.Fun, "new") && len(n.Args) == 1 && s.isGrant(n.Args[0]) {
 			s.report(n, "new(Grant)")
@@ -232,6 +219,27 @@ func (s *grantScan) visit(n ast.Node, fnName string) {
 	case *ast.TypeSpec:
 		if !s.inAuthz && s.isGrant(n.Type) {
 			s.report(n, "type declared from Grant")
+		}
+	}
+}
+
+// visitLiteral: inside authz the zero Grant{} is how a denial returns "no
+// grant"; a literal with fields, or any grantData literal, is construction,
+// allowed in issue alone. Outside authz every Grant literal is refused.
+func (s *grantScan) visitLiteral(n *ast.CompositeLit, fnName string) {
+	allowed := s.inAuthz && (fnName == "issue" || len(n.Elts) == 0)
+	if !allowed && s.isGrant(n.Type) {
+		s.report(n, "Grant composite literal outside issue")
+	}
+	if s.inAuthz && fnName != "issue" && isIdent(n.Type, "grantData") {
+		s.report(n, "grantData composite literal outside issue")
+	}
+}
+
+func (s *grantScan) visitAssign(n *ast.AssignStmt) {
+	for _, lhs := range n.Lhs {
+		if sel, ok := unparen(lhs).(*ast.SelectorExpr); ok && sel.Sel.Name == "sealed" {
+			s.report(n, "assignment to a Grant's sealed field")
 		}
 	}
 }
