@@ -80,7 +80,7 @@ func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant,
 			case health.AccessNotReadable:
 				unavailable = true
 				continue
-			default:
+			case health.AccessForbidden, health.AccessWithheld:
 				continue
 			}
 			if via, ok := reachedVia(ev.inventoryHealth(ctx, u), namespace, pod); ok {

@@ -116,9 +116,9 @@ func TestReachPodSaysWhenItCannotRead(t *testing.T) {
 // check to next.
 type ownerCheckOutage struct{ next authz.Authorizer }
 
-func (o ownerCheckOutage) Check(ctx context.Context, who authz.Identity, req authz.Attributes) (authz.Grant, error) {
+func (o ownerCheckOutage) Check(ctx context.Context, who authz.Identity, req authz.Attributes) (g authz.Grant, err error) {
 	if who.Username == alice.Username && (req.Resource == moduleInstances || req.Resource == modulePackages) {
-		return authz.Grant{}, &authz.DenialError{Code: authz.CodeUnavailable, Attributes: req}
+		return g, &authz.DenialError{Code: authz.CodeUnavailable, Attributes: req}
 	}
 	return o.next.Check(ctx, who, req)
 }
