@@ -45,8 +45,12 @@ context: |
   - A degraded read (missing permission, unreachable API) is shown as such, never as empty.
 
   ### V. Read-Only and Least Privilege
-  - V1 MUST NOT create, update, patch or delete any Kubernetes object.
-  - The portal MUST NOT read Secret data, and MUST NOT echo a value a module marks secret.
+  - V1 MUST NOT create, update, patch or delete any Kubernetes object. The one exception is
+    `create` on `authorization.k8s.io` `subjectaccessreviews` (M2 access checks; a review is
+    never stored), per 0030:D11.
+  - The portal MUST NOT read Secret data. In V1 it MUST NOT serve any instance's or package's
+    `spec.values`, and MUST strip the `kubectl.kubernetes.io/last-applied-configuration`
+    annotation from every object it serves (0030:D8).
   - The portal acts as the user: in M1 with the user's kubeconfig, in M2 through
     SubjectAccessReview for the authenticated user. An empty or unmapped identity MUST fail
     closed (deny), never fall through to the portal's own ServiceAccount.

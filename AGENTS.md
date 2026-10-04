@@ -131,9 +131,16 @@ A portal renders cluster data to people and, from milestone 2, authenticates the
 hold in every change; a change that bends one needs an enhancement decision first.
 
 - **Read-only in V1.** No create, update, patch or delete on any Kubernetes object, and no
-  ClusterRole or Role that grants a write verb. Writes start in V2, through the 0027 kinds.
-- **Never read Secret data.** No `get`, `list` or `watch` on `secrets`, and never echo a value a
-  module marks secret. Show that a value exists, never what it is.
+  ClusterRole or Role that grants a write verb. The one exception is `create` on
+  `authorization.k8s.io` `subjectaccessreviews`, which milestone 2 needs to check access as the
+  user (0030:D11); a review is answered in the response and never stored. Writes start in V2,
+  through the 0027 kinds.
+- **Never read Secret data, and show no values in V1.** No `get`, `list` or `watch` on
+  `secrets`. No API document, YAML view or page shows an instance's or package's `spec.values`,
+  and the `kubectl.kubernetes.io/last-applied-configuration` annotation is stripped from every
+  object the portal serves, because a client-side apply copies the full values into it. Secret
+  markers live in the module's schema, not in the stored values, so there is nothing to mask
+  on (0030:D8).
 - **Act as the user.** Milestone 1 uses the user's kubeconfig, so the user's RBAC is the
   boundary. Milestone 2 authorizes every read through a SubjectAccessReview for the signed-in
   user before the lookup, and returns the same denial for a missing object as for a forbidden
@@ -249,4 +256,5 @@ Default is none: a comment says what the code does and why, in its own words.
 - `task check` after Go changes.
 - `actionlint` after workflow changes.
 - `openspec validate --all --strict` green before committing an OpenSpec artifact.
-- No Secret reads, no write verbs, no credential in a log (Security Rules).
+- No Secret reads, no `spec.values` served, no write verb beyond the SubjectAccessReview
+  exception, no credential in a log (Security Rules).

@@ -14,7 +14,7 @@ design, implementation, validation and change management. The normative source i
 | **II** | [Separation of Concerns](#ii-separation-of-concerns) | Authorization, read model, derived views, API and UI stay in separate packages |
 | **III** | [The Read API Is the Contract](#iii-the-read-api-is-the-contract) | `/api/v1alpha1` is the durable interface; it changes only additively within a version |
 | **IV** | [Status Is Read, Never Inferred](#iv-status-is-read-never-inferred) | The portal shows what the cluster says, and shows unknown as unknown |
-| **V** | [Read-Only and Least Privilege](#v-read-only-and-least-privilege) | No writes, no Secret data, act as the user, fail closed on an empty identity |
+| **V** | [Read-Only and Least Privilege](#v-read-only-and-least-privilege) | No writes (SubjectAccessReviews aside), no Secret data or values, act as the user, fail closed on an empty identity |
 | **VI** | [Semantic Versioning and Commit Discipline](#vi-semantic-versioning-and-commit-discipline) | SemVer on the 0.x line; Conventional Commits decide what releases |
 | **VII** | [Simplicity & YAGNI](#vii-simplicity--yagni) | Standard library first; complexity must be justified |
 | **VIII** | [Mergeable Sections](#viii-mergeable-sections) | Every section ends green and commits; every merge leaves `main` releasable |
@@ -79,8 +79,13 @@ The portal reports what the cluster says, with its source.
 
 ### V. Read-Only and Least Privilege
 
-- V1 MUST NOT create, update, patch or delete any Kubernetes object
-- The portal MUST NOT read Secret data, and MUST NOT echo a value a module marks secret
+- V1 MUST NOT create, update, patch or delete any Kubernetes object, except `create` on
+  `authorization.k8s.io` `subjectaccessreviews`, which milestone 2 needs and which is never
+  stored (0030:D11)
+- The portal MUST NOT read Secret data
+- In V1 the portal MUST NOT serve any instance's or package's `spec.values`, and MUST strip the
+  `kubectl.kubernetes.io/last-applied-configuration` annotation from every object it serves
+  (0030:D8)
 - The portal acts as the user: in milestone 1 with the user's kubeconfig, in milestone 2 through
   a SubjectAccessReview for the signed-in user
 - An empty or unmapped identity MUST fail closed; the portal never falls back to its own
