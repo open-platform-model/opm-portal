@@ -86,6 +86,7 @@ tasks:
     desc: 'Create the throwaway kind cluster opm-portal-e2e with the released operator and fixture set F1 (E2E_PROVIDER=podman|docker)'
     env:
       E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
     cmds:
       - test/e2e/up.sh
 
@@ -93,6 +94,7 @@ tasks:
     desc: Delete the kind cluster opm-portal-e2e (with the provider e2e:up recorded, unless E2E_PROVIDER is set)
     env:
       E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
     cmds:
       - test/e2e/down.sh
 
@@ -100,6 +102,7 @@ tasks:
     desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)
     env:
       E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
     cmds:
       - test/e2e/capture.sh
 

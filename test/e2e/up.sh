@@ -2,8 +2,10 @@
 # shellcheck source-path=SCRIPTDIR
 # up.sh: create the throwaway kind cluster opm-portal-e2e, install the released opm-operator
 # with the pinned, checksum-verified opm CLI, apply the fixture set F1 and wait for it to settle.
+# F1 includes one claim that is refused on purpose (fixtures/f1/60-refused-claim.yaml).
 #
 #   E2E_PROVIDER=podman (default) | docker; recorded in .e2e/provider for capture and down
+#   E2E_CLUSTER=opm-portal-e2e-<suffix>  a second cluster, its state under .e2e/clusters/<name>/
 #   OPM_OPERATOR_VERSION=<release tag>  install that operator instead of the versions.env pin
 # shellcheck source=lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
@@ -132,6 +134,20 @@ apply_fixtures() {
     ready_at_generation moduleinstances.opmodel.dev default backup-consumer ||
     log "warning: ModuleInstance default/backup-consumer has no Ready condition; recorded as is"
 
+  # A deliberate refusal fixture: the claim names a catalog published nowhere, so it must be
+  # refused. Accepted means the fixture no longer exercises a refusal, so that fails the run.
+  log "applying the deliberately refused claim default.refused-claim-fixture"
+  k apply -f "$FIXTURES/60-refused-claim.yaml"
+  wait_until 180 "claim default.refused-claim-fixture has a verdict" \
+    ready_at_generation transformerregistrations.opmodel.dev - default.refused-claim-fixture || {
+    show_conditions transformerregistrations.opmodel.dev default.refused-claim-fixture
+    die "claim default.refused-claim-fixture got no Ready condition"
+  }
+  if cond_is transformerregistrations.opmodel.dev - default.refused-claim-fixture Ready status True; then
+    show_conditions transformerregistrations.opmodel.dev default.refused-claim-fixture
+    die "claim default.refused-claim-fixture was accepted; it is a deliberate refusal fixture"
+  fi
+
   log "applying the CLI-owned web_app instance"
   (cd "$FIXTURES/web" && opm_k instance apply instance.cue --create-namespace --wait --timeout 5m)
 }
@@ -147,9 +163,10 @@ summary() {
   if [ "$accepted" != true ] || [ "$active" != true ]; then
     log "note: the backup claim is not accepted and active; an operator built on library v1.0.0-beta.2 or later is needed for that"
   fi
+  log "note: default.refused-claim-fixture is refused on purpose (a deliberate refusal fixture)"
 }
 
-mkdir -p "$STATE_DIR"
+mkdir -p "$STATE_DIR" "$CLUSTER_STATE"
 fetch_cli
 "$OPM_BIN" version >&2
 create_cluster

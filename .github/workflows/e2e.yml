@@ -64,12 +64,13 @@ jobs:
           } >>"$GITHUB_STEP_SUMMARY"
 
       # A recapture always differs in timestamps, uids and pod names, so the diff above is for
-      # reading. The verdicts and versions in meta.yaml do not: a change there (an instance's
+      # reading. The verdicts and versions in meta.yaml do not (the capture time, the provider and
+      # the cluster name, which E2E_CLUSTER may change, are left out): a change there (an instance's
       # Ready reason, a claim's acceptance, the operator or catalog version) fails the run, and
       # a failed scheduled run notifies the workflow's owner.
       - name: Compare the verdicts with the committed capture
         run: |
-          strip='del(.capturedAt) | del(.cluster.provider)'
+          strip='del(.capturedAt) | del(.cluster.provider) | del(.cluster.name)'
           git show HEAD:testdata/clusters/f1/meta.yaml | yq "$strip" >"$RUNNER_TEMP/committed.yaml"
           yq "$strip" testdata/clusters/f1/meta.yaml >"$RUNNER_TEMP/captured.yaml"
           if ! diff -u "$RUNNER_TEMP/committed.yaml" "$RUNNER_TEMP/captured.yaml" >"$RUNNER_TEMP/verdicts.diff"; then

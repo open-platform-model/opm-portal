@@ -16,16 +16,28 @@ if [ -n "$_operator_override" ]; then
   OPM_OPERATOR_VERSION=$_operator_override
 fi
 
-CLUSTER=opm-portal-e2e
+# E2E_CLUSTER names a second fixture cluster beside the default one; it must start with
+# opm-portal-e2e, so no script ever creates, reads or deletes a cluster outside that family.
+CLUSTER=${E2E_CLUSTER:-opm-portal-e2e}
+case "$CLUSTER" in
+  opm-portal-e2e | opm-portal-e2e-[a-z0-9]*) ;;
+  *) printf 'e2e: error: E2E_CLUSTER must be opm-portal-e2e or start with opm-portal-e2e-, got %s\n' "$CLUSTER" >&2; exit 1 ;;
+esac
+[[ $CLUSTER =~ ^[a-z0-9-]+$ ]] || { printf 'e2e: error: E2E_CLUSTER %s holds characters other than a-z, 0-9 and -\n' "$CLUSTER" >&2; exit 1; }
 CTX=kind-$CLUSTER
 STATE_DIR=$REPO_ROOT/.e2e
-KC=$STATE_DIR/kubeconfig
+# The default cluster keeps its kubeconfig and provider in .e2e/; any other keeps them in
+# .e2e/clusters/<name>/, so deleting one never removes the other's kubeconfig. The CLI download
+# and the CUE cache stay shared.
+CLUSTER_STATE=$STATE_DIR
+[ "$CLUSTER" = opm-portal-e2e ] || CLUSTER_STATE=$STATE_DIR/clusters/$CLUSTER
+KC=$CLUSTER_STATE/kubeconfig
 OPM_BIN=$STATE_DIR/bin/opm-$OPM_CLI_VERSION
 # shellcheck disable=SC2034 # read by the scripts that source this file
 FIXTURES=$E2E_DIR/fixtures/f1
 # up.sh records the provider it created the cluster with, so capture and down find that cluster
 # without being told again. An explicit E2E_PROVIDER wins; podman is the default.
-PROVIDER_FILE=$STATE_DIR/provider
+PROVIDER_FILE=$CLUSTER_STATE/provider
 if [ -z "${E2E_PROVIDER:-}" ] && [ -f "$PROVIDER_FILE" ]; then
   E2E_PROVIDER=$(cat "$PROVIDER_FILE")
 fi
