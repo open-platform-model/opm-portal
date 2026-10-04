@@ -48,7 +48,7 @@ type Attributes struct {
 }
 
 type Authorizer interface {
-    Check(ctx context.Context, who Identity, req Attributes) (Grant, error) // error is *Denial
+    Check(ctx context.Context, who Identity, req Attributes) (Grant, error) // error is *DenialError
 }
 
 type Grant struct{ sealed *grantData }      // unexported field; zero value is invalid
@@ -58,7 +58,7 @@ func (Grant) Identity() Identity            // deep copy
 func (Grant) Attributes() Attributes
 
 type Code string // unauthenticated | forbidden | invalid | unavailable
-type Denial struct { Code Code; Attributes Attributes; cause error }
+type DenialError struct { Code Code; Attributes Attributes; cause error }
 
 type Options struct{ Timeout, TTL time.Duration; MaxEntries int }
 type Checker struct{ ... }                  // the one Authorizer implementation
@@ -140,7 +140,7 @@ allowed is a deny".
 
 #### What a denial says
 
-**Decision**: `Denial.Error()` is `authorization <code>: <verb> <group/resource[/sub]>[ in
+**Decision**: `DenialError.Error()` is `authorization <code>: <verb> <group/resource[/sub]>[ in
 namespace <ns>]` plus the cause for `unavailable`. It never names the object or the identity.
 **Rationale**: 0030:D7:R1 (identical for existing and missing objects) and the security rule that
 no principal or credential appears in an error.

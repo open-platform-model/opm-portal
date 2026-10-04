@@ -1,10 +1,10 @@
 ## 1. Grant seam and fail-closed guards (internal/authz)
 
-- [ ] 1.1 Add `k8s.io/apimachinery` at v0.36.4 (the pin the cli and opm-operator use) and `Identity` (with `Authenticated` and a canonical key), `Attributes` (with validation and a name-free `String`), `Denial` and its codes, and `Grant` (one unexported field, `issue`, `Valid`, `Covers`, copying accessors); verify `go build ./...`
-- [ ] 1.2 Add `Authorizer`, the unexported `decider` and `Checker.Check` (identity guard, attribute guard, backend under a timeout, errors become denials); verify with a table test over a fake decider that empty, blank, groups-only and anonymous identities, write verbs, Secrets and wildcard attributes reach no backend, that a backend error or timeout is `unavailable`, and that a nil or zero `Checker` denies
-- [ ] 1.3 Add the seal tests: every `Grant` field unexported (reflection), `testdata/forge` fails to compile naming `sealed` and `issue`, and the module AST scan (with its own forgery cases); verify `go test ./internal/authz` passes and fails when a forgery is added outside the package
-- [ ] 1.4 Add the package documentation (`doc.go`); verify `go doc ./internal/authz` prints it
-- [ ] 1.5 `task check` green, then commit `chore(authz): add the grant seam with fail-closed guards`
+- [x] 1.1 Add `k8s.io/apimachinery` at v0.36.4 (the pin the cli and opm-operator use) and `Identity` (with `Authenticated` and a canonical key), `Attributes` (with validation and a name-free `String`), `Denial` and its codes, and `Grant` (one unexported field, `issue`, `Valid`, `Covers`, copying accessors); verify `go build ./...`
+- [x] 1.2 Add `Authorizer`, the unexported `decider` and `Checker.Check` (identity guard, attribute guard, backend under a timeout, errors become denials); verify with a table test over a fake decider that empty, blank, groups-only and anonymous identities, write verbs, Secrets and wildcard attributes reach no backend, that a backend error or timeout is `unavailable`, and that a nil or zero `Checker` denies
+- [x] 1.3 Add the seal tests: every `Grant` field unexported (reflection), `testdata/forge` fails to compile naming `sealed` and `issue`, and the module AST scan (with its own forgery cases); verify `go test ./internal/authz` passes and fails when a forgery is added outside the package
+- [x] 1.4 Add the package documentation (`doc.go`); verify `go doc ./internal/authz` prints it
+- [x] 1.5 `task check` green, then commit `chore(authz): add the grant seam with fail-closed guards`
 
 ## 2. Local SelfSubjectAccessReview backend (internal/authz)
 

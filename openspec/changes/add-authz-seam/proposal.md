@@ -10,7 +10,7 @@ that skips it does not compile. This change lands the seam before any code reads
 
 - New package `internal/authz`: an `Identity`, the read `Attributes` (verb, group, version,
   resource, subresource, namespace, name), a `Grant` that only `Checker.Check` can construct, a
-  typed `*Denial` with a closed set of codes, and the `Authorizer` interface.
+  typed `*DenialError` with a closed set of codes, and the `Authorizer` interface.
 - Fail-closed guards that run before any backend call: an empty, blank or anonymous identity is
   refused with no Kubernetes call (the 0030:D6:R2 rule, applied in both milestones), any verb other
   than `get`, `list` or `watch` is refused, core `secrets` are refused whatever the caller's RBAC
