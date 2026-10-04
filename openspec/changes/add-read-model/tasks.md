@@ -7,10 +7,10 @@
 
 ## 2. Tier 1 and the OPM-kind views (internal/readmodel)
 
-- [ ] 2.1 Add `Start` and `Stop`: one informer per OPM kind and scope (cluster-wide, or per configured namespace for the namespaced kinds), each started only after the reader's `list` and `watch` grants, a kind denied or failing recorded unavailable; verify a denied ModulePackage grant makes `ListPackages` return `ErrUnavailable`
-- [ ] 2.2 Add `Platform`, `ListPackages`, `Package`, and the instance item and detail fields that come from the custom resource (module, owner, applied state, conditions, history, digests, render contracts); every method calls `Grant.Covers` first; registrations authorized per caller and marked forbidden when denied; verify with F1 (accepted and refused claims, both catalogs, the CLI-owned instance managed externally, the package `SourceNotReady`, the ApplyFailed sample Failed and retrying with no inventory) and with zero, foreign, expired and mismatched grants
-- [ ] 2.3 Add namespace-scoped listing (a list grant for one namespace returns only that namespace) and identical refusals for existing and missing objects; verify against F1
-- [ ] 2.4 `task check` green, then commit `chore(readmodel): hold the OPM kinds and build their views`
+- [x] 2.1 Add `Start` and `Stop`: one informer per OPM kind and scope (cluster-wide, or per configured namespace for the namespaced kinds), each started only after the reader's `list` and `watch` grants, a kind denied or failing recorded unavailable; verify a denied ModulePackage grant makes `ListPackages` return `ErrUnavailable`
+- [x] 2.2 Add `Platform`, `ListPackages`, `Package`, and the instance item and detail fields that come from the custom resource (module, owner, applied state, conditions, history, digests, render contracts); every method calls `Grant.Covers` first; registrations authorized per caller and marked forbidden when denied; verify with F1 (accepted and refused claims, both catalogs, the CLI-owned instance managed externally, the package `SourceNotReady`, the ApplyFailed sample Failed and retrying with no inventory) and with zero, foreign, expired and mismatched grants
+- [x] 2.3 Add namespace-scoped listing (a list grant for one namespace returns only that namespace) and identical refusals for existing and missing objects; verify against F1
+- [x] 2.4 `task check` green, then commit `chore(readmodel): hold the OPM kinds and build their views`
 
 ## 3. Inventory, polling, runtime children and health (internal/readmodel)
 

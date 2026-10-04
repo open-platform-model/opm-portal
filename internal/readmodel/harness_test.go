@@ -1,10 +1,14 @@
 package readmodel
 
 import (
+	"context"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -200,4 +204,97 @@ func newChecker(t testing.TB, self authz.Identity, fn rule, opts authz.Options) 
 		t.Fatalf("NewLocal: %v", err)
 	}
 	return c, r
+}
+
+// reader is the identity the fake cluster's informers read as. Tests keep
+// it apart from the caller so each side's permissions can differ; in local
+// mode both are the kubeconfig's identity.
+var reader = authz.Identity{Username: "portal-reader", Groups: []string{"system:authenticated"}}
+
+// byIdentity routes each check to the local Checker serving that identity,
+// so every grant a test uses is issued by a real Checker.
+type byIdentity map[string]*authz.Checker
+
+func (b byIdentity) Check(ctx context.Context, who authz.Identity, req authz.Attributes) (authz.Grant, error) {
+	c, ok := b[who.Username]
+	if !ok {
+		var none authz.Grant
+		return none, &authz.DenialError{Code: authz.CodeUnauthenticated, Attributes: req}
+	}
+	return c.Check(ctx, who, req)
+}
+
+// env is a Model over a fake cluster, with the checkers behind it.
+type env struct {
+	m       *Model
+	client  *dynfake.FakeDynamicClient
+	caller  *authz.Checker
+	reviews *reviews // the caller's
+	readerR *reviews // the reader's
+}
+
+// newEnv starts a Model over objs. callerRule answers alice's reviews and
+// readerRule the reader's; mutate adjusts the config before New.
+func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule rule, mutate ...func(*Config)) *env {
+	t.Helper()
+	caller, callerReviews := newChecker(t, alice, callerRule, authz.Options{})
+	readerChecker, readerReviews := newChecker(t, reader, readerRule, authz.Options{})
+	client := newDynamic(objs...)
+	cfg := Config{
+		Dynamic:     client,
+		Discovery:   newDiscovery(clusterKinds...),
+		Authorizer:  byIdentity{alice.Username: caller, reader.Username: readerChecker},
+		Reader:      reader,
+		SyncTimeout: 5 * time.Second,
+	}
+	for _, fn := range mutate {
+		fn(&cfg)
+	}
+	m, err := New(cfg)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if err := m.Start(t.Context()); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	t.Cleanup(m.Stop)
+	return &env{m: m, client: client, caller: caller, reviews: callerReviews, readerR: readerReviews}
+}
+
+// grant asks alice's checker for a read and fails the test if it is denied.
+func (e *env) grant(t testing.TB, verb string, resource schema.GroupVersionResource, namespace, name string) authz.Grant {
+	t.Helper()
+	g, err := e.caller.Check(t.Context(), alice, authz.Attributes{Verb: verb, Resource: resource, Namespace: namespace, Name: name})
+	if err != nil {
+		t.Fatalf("grant %s %s %s/%s: %v", verb, resource.Resource, namespace, name, err)
+	}
+	return g
+}
+
+// denyResources returns a rule that denies every read of the named
+// resources and allows the rest.
+func denyResources(resources ...string) rule {
+	return func(_ string, ra authorizationv1.ResourceAttributes) bool {
+		return !slices.Contains(resources, ra.Resource)
+	}
+}
+
+// clusterReads returns the dynamic client's get, list and watch actions, as
+// "verb resource namespace/name" lines.
+func clusterReads(c *dynfake.FakeDynamicClient) []string {
+	actions := c.Actions()
+	out := make([]string, 0, len(actions))
+	for _, a := range actions {
+		switch a.GetVerb() {
+		case "get", "list", "watch":
+		default:
+			continue
+		}
+		name := ""
+		if g, ok := a.(k8stesting.GetAction); ok {
+			name = g.GetName()
+		}
+		out = append(out, strings.Join([]string{a.GetVerb(), a.GetResource().Resource, a.GetNamespace() + "/" + name}, " "))
+	}
+	return out
 }

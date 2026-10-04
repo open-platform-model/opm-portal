@@ -2,8 +2,10 @@ package readmodel
 
 import (
 	"errors"
+	"sync"
 	"time"
 
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -121,6 +123,12 @@ func (c Config) validate() error {
 type Model struct {
 	cfg   Config
 	kinds *kindResolver
+
+	mu      sync.Mutex
+	started bool
+	stopped bool
+	opm     map[schema.GroupVersionResource]*opmKind
+	done    chan struct{}
 }
 
 // New returns a Model for cfg. It reads nothing until Start.
@@ -132,6 +140,8 @@ func New(cfg Config) (*Model, error) {
 	return &Model{
 		cfg:   cfg,
 		kinds: newKindResolver(cfg.Discovery),
+		opm:   map[schema.GroupVersionResource]*opmKind{},
+		done:  make(chan struct{}),
 	}, nil
 }
 

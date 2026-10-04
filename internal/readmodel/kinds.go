@@ -10,7 +10,27 @@ import (
 	"k8s.io/client-go/restmapper"
 )
 
-const opmGroup = "opmodel.dev"
+// The four OPM kinds the read model holds for the process (tier 1).
+var (
+	moduleInstances = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "moduleinstances"}
+	modulePackages  = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "modulepackages"}
+	platforms       = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "platforms"}
+	registrations   = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "transformerregistrations"}
+)
+
+const (
+	opmGroup   = "opmodel.dev"
+	opmVersion = "v1alpha1"
+
+	// platformName is the only name the Platform CRD admits.
+	platformName = "cluster"
+)
+
+// isSecret reports whether resource is core Secrets, which the read model
+// never reads (0030:D8:R1).
+func isSecret(resource schema.GroupVersionResource) bool {
+	return resource.Group == "" && resource.Resource == "secrets"
+}
 
 // resolvedKind is an inventory kind resolved to the resource it is served
 // as.
