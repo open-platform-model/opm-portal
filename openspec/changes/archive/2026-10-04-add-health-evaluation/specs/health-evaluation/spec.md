@@ -41,7 +41,8 @@ A Pod with a container or init container waiting with reason `ErrImagePull`,
 `ImagePullBackOff`, `CrashLoopBackOff`, `CreateContainerConfigError` or `InvalidImageName` SHALL
 be Degraded, and the inventory object that owns it through its chain of controller owner
 references SHALL be Degraded with the Pod's reason, even while that object's own status reports
-it available. Source: 0030:D3:R2/R3.
+it available. An owner reference not marked controller SHALL NOT be followed.
+Source: 0030:D3:R2/R3.
 
 #### Scenario: Image break one minute in
 
@@ -56,6 +57,12 @@ it available. Source: 0030:D3:R2/R3.
 - **WHEN** a Pod in `CrashLoopBackOff` has no owner chain that reaches an inventory object
 - **THEN** no inventory object's health changes
 
+#### Scenario: Plain owner reference
+
+- **WHEN** a Pod in `CrashLoopBackOff` names an inventory Deployment in an owner reference that
+  is not marked controller
+- **THEN** the Deployment's health does not change
+
 #### Scenario: Children are not counted twice
 
 - **WHEN** the healthy podinfo instance is evaluated with its ReplicaSet and Pods as children
@@ -66,7 +73,9 @@ it available. Source: 0030:D3:R2/R3.
 The portal SHALL roll object health up to each component and to the instance as the worst
 state by the order Degraded, Missing, Progressing, Unknown, Healthy. An object the reader may
 not read, or could not read, SHALL be excluded from the roll-up and SHALL mark the result
-partial. A Secret SHALL never be evaluated, SHALL be excluded, and SHALL NOT mark the result
+partial. When the runtime children below the inventory workloads could not be read, each
+readable workload that can own Pods SHALL be marked as having unread children, and its
+component and the instance SHALL be partial. A Secret SHALL never be evaluated, SHALL be excluded, and SHALL NOT mark the result
 partial. A result with nothing counted SHALL be Unknown. Each result SHALL carry the oldest
 evaluation time among the objects it counts, and SHALL say it is not live when any counted
 object was refreshed by polling. Source: 0030:D3:R4/R5.
@@ -75,6 +84,13 @@ object was refreshed by polling. Source: 0030:D3:R4/R5.
 
 - **WHEN** one of an instance's objects is forbidden to the reader and the rest are Healthy
 - **THEN** the instance is Healthy and partial, and the forbidden object is counted as forbidden
+
+#### Scenario: Pods not readable
+
+- **WHEN** the podinfo objects captured one minute after the image break are evaluated and the
+  reader may read the Deployment but not the Pods below it
+- **THEN** the Deployment is Progressing and marked as having unread children, and its
+  component and the instance are partial
 
 #### Scenario: Secret in the inventory
 

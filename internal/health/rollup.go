@@ -59,6 +59,11 @@ type Input struct {
 	// Children are runtime objects read below inventory workloads
 	// (ReplicaSets, Pods, Jobs). They feed health only through the Pod rule.
 	Children []*unstructured.Unstructured
+	// ChildrenAccess says how reading the children went. Anything but
+	// AccessOK, the zero value included, means the Pod rule could not run:
+	// every readable workload that can own Pods is marked ChildrenUnread and
+	// its component and the instance are partial (0030:D3:R4).
+	ChildrenAccess Access
 }
 
 // ObjectResult is one inventory entry's evaluated health.
@@ -68,6 +73,10 @@ type ObjectResult struct {
 	Health      ObjectHealth
 	EvaluatedAt time.Time
 	Live        bool
+	// ChildrenUnread is set on a readable workload that can own Pods when
+	// the children below it could not be read, so the Pod rule could not
+	// run: its health is kstatus alone and may be better than the truth.
+	ChildrenUnread bool
 }
 
 // Counts tallies a summary's entries by health state and by access.
@@ -86,8 +95,9 @@ type Counts struct {
 type Summary struct {
 	State  State
 	Counts Counts
-	// Partial is true when an entry the reader could not read was left out.
-	// A withheld Secret never makes a summary partial.
+	// Partial is true when an entry the reader could not read was left out,
+	// or when a counted workload's children could not be read. A withheld
+	// Secret never makes a summary partial.
 	Partial bool
 	// EvaluatedAt is the oldest evaluation among the counted entries; zero
 	// when nothing was counted.
@@ -126,7 +136,11 @@ func Evaluate(in Input) Result {
 			byUID[obj.GetUID()] = i
 		}
 	}
-	propagatePodRule(objects, byUID, in)
+	if in.ChildrenAccess == AccessOK {
+		propagatePodRule(objects, byUID, in)
+	} else {
+		markChildrenUnread(objects, in.Entries)
+	}
 
 	return Result{
 		Objects:    objects,
@@ -170,6 +184,31 @@ func propagatePodRule(objects []ObjectResult, inventoryByUID map[types.UID]int, 
 	}
 }
 
+// podOwnerKinds are the inventory kinds whose health the Pod rule can
+// change: the built-in workloads that own Pods, directly or through a
+// ReplicaSet or Job.
+var podOwnerKinds = map[string]bool{
+	"apps/Deployment":  true,
+	"apps/ReplicaSet":  true,
+	"apps/StatefulSet": true,
+	"apps/DaemonSet":   true,
+	"batch/Job":        true,
+	"batch/CronJob":    true,
+}
+
+// markChildrenUnread flags every readable, present workload that can own
+// Pods, because the Pod rule could not look below it.
+func markChildrenUnread(objects []ObjectResult, entries []Entry) {
+	for i := range objects {
+		if objects[i].Access != AccessOK || entries[i].Object == nil {
+			continue
+		}
+		if podOwnerKinds[objects[i].Ref.Group+"/"+objects[i].Ref.Kind] {
+			objects[i].ChildrenUnread = true
+		}
+	}
+}
+
 // owningInventoryObject follows controller owner references by UID from obj
 // until it reaches an inventory object.
 func owningInventoryObject(obj *unstructured.Unstructured, children map[types.UID]*unstructured.Unstructured, inventory map[types.UID]int) (int, bool) {
@@ -191,19 +230,16 @@ func owningInventoryObject(obj *unstructured.Unstructured, children map[types.UI
 	return 0, false
 }
 
-// controllerOwner returns the UID of the owner reference marked controller,
-// or of the first owner reference when none is.
+// controllerOwner returns the UID of the owner reference marked controller.
+// An object with no controller reference has no owner the walk follows: a
+// plain owner reference does not make its holder responsible for the Pod.
 func controllerOwner(obj *unstructured.Unstructured) (types.UID, bool) {
-	refs := obj.GetOwnerReferences()
-	if len(refs) == 0 {
-		return "", false
-	}
-	for _, r := range refs {
+	for _, r := range obj.GetOwnerReferences() {
 		if r.Controller != nil && *r.Controller {
 			return r.UID, true
 		}
 	}
-	return refs[0].UID, true
+	return "", false
 }
 
 func components(objects []ObjectResult) []ComponentResult {
@@ -247,6 +283,9 @@ func summarize(objects []ObjectResult) Summary {
 			continue
 		}
 		counted++
+		if o.ChildrenUnread {
+			s.Partial = true
+		}
 		s.Counts.add(o.Health.State)
 		if o.Health.State.worse(s.State) {
 			s.State = o.Health.State

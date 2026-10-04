@@ -93,11 +93,16 @@ capture).
 The Pod rule: a Pod with any container or init container whose `state.waiting.reason` is one of
 `ErrImagePull`, `ImagePullBackOff`, `CrashLoopBackOff`, `CreateContainerConfigError`,
 `InvalidImageName` is Degraded, with the reason and the container's message. `Evaluate` walks
-each degraded Pod's controller owner reference (the first owner reference when none is marked
-controller) by UID through the children and the inventory objects, at most eight hops, until it
+each degraded Pod's controller owner reference (a reference not marked controller is never
+followed) by UID through the children and the inventory objects, at most eight hops, until it
 reaches an inventory object, and marks that object Degraded unless it already is. A Pod whose
 chain reaches no inventory object changes nothing. Children are otherwise not counted: a
 Deployment's own status already reflects its Pods, so counting both would double-count.
+`Input.ChildrenAccess` says whether the children were read; anything but `ok` (the zero value
+included) skips the Pod rule, marks every readable Deployment, ReplicaSet, StatefulSet,
+DaemonSet, Job and CronJob `ChildrenUnread`, and makes its component and the instance partial:
+a reader who may see the Deployment but not its Pods would otherwise see a broken rollout as
+merely progressing (0030:D3:R4).
 
 ### Roll-up
 

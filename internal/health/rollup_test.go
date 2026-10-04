@@ -21,7 +21,7 @@ func inputFromCapture(t *testing.T, instanceFile, objectsFile string) Input {
 	if err != nil || !found {
 		t.Fatalf("%s has no inventory: %v", instanceFile, err)
 	}
-	var in Input
+	in := Input{ChildrenAccess: AccessOK}
 	used := map[*unstructured.Unstructured]bool{}
 	for _, r := range raw {
 		e, ok := r.(map[string]any)
@@ -107,11 +107,57 @@ func TestEvaluate_ImageBreakDegradesComponent(t *testing.T) {
 	if len(got.Components) != 1 || got.Components[0].Name != "podinfo" || got.Components[0].State != Degraded {
 		t.Fatalf("components %+v", got.Components)
 	}
-	// Without the Pod children, kstatus alone says the Deployment progresses.
+	// Children read and none found: kstatus alone says the Deployment
+	// progresses, and the result is complete.
 	in := inputFromCapture(t, "mi-podinfo-image-broken.yaml", "objects-podinfo-phase4-broken-1min.yaml")
 	in.Children = nil
-	if s := Evaluate(in).Instance.State; s != Progressing {
-		t.Fatalf("without children got %s, want Progressing", s)
+	if got := Evaluate(in).Instance; got.State != Progressing || got.Partial {
+		t.Fatalf("without children got %+v, want Progressing and complete", got)
+	}
+}
+
+// When the reader may read the Deployment but not the Pods below it, the
+// broken rollout cannot be seen; the result must say it is partial instead
+// of looking merely in progress.
+func TestEvaluate_ChildrenUnreadable(t *testing.T) {
+	for _, access := range []Access{AccessForbidden, AccessNotReadable, ""} {
+		t.Run(string(access), func(t *testing.T) {
+			in := inputFromCapture(t, "mi-podinfo-image-broken.yaml", "objects-podinfo-phase4-broken-1min.yaml")
+			in.Children, in.ChildrenAccess = nil, access
+			got := Evaluate(in)
+			if got.Instance.State != Progressing || !got.Instance.Partial {
+				t.Fatalf("instance %+v, want Progressing and partial", got.Instance)
+			}
+			if len(got.Components) != 1 || !got.Components[0].Partial {
+				t.Fatalf("components %+v, want the podinfo component partial", got.Components)
+			}
+			for _, o := range got.Objects {
+				if want := o.Ref.Kind == "Deployment"; o.ChildrenUnread != want {
+					t.Errorf("%s %s childrenUnread=%v, want %v", o.Ref.Kind, o.Ref.Name, o.ChildrenUnread, want)
+				}
+			}
+		})
+	}
+	// Children handed in but marked unreadable are not trusted either.
+	in := inputFromCapture(t, "mi-podinfo-image-broken.yaml", "objects-podinfo-phase4-broken-1min.yaml")
+	in.ChildrenAccess = AccessForbidden
+	if got := Evaluate(in).Instance; got.State != Progressing || !got.Partial {
+		t.Fatalf("instance %+v, want Progressing and partial", got)
+	}
+}
+
+// An instance with no workload is complete whatever happened to the children.
+func TestEvaluate_ChildrenUnreadableWithoutWorkloads(t *testing.T) {
+	in := inputFromCapture(t, "mi-podinfo-healthy.yaml", "objects-podinfo-phase3-healthy.yaml")
+	var kept []Entry
+	for _, e := range in.Entries {
+		if e.Ref.Kind != "Deployment" {
+			kept = append(kept, e)
+		}
+	}
+	in.Entries, in.ChildrenAccess = kept, AccessForbidden
+	if got := Evaluate(in).Instance; got.State != Healthy || got.Partial {
+		t.Fatalf("instance %+v, want Healthy and complete", got)
 	}
 }
 
@@ -139,13 +185,37 @@ func TestEvaluate_OwnerWalkIsBounded(t *testing.T) {
 	// Two ReplicaSets owning each other: the walk must stop.
 	a := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "apps/v1", "kind": "ReplicaSet", "metadata": map[string]any{"name": "a", "uid": "a"}}}
 	b := &unstructured.Unstructured{Object: map[string]any{"apiVersion": "apps/v1", "kind": "ReplicaSet", "metadata": map[string]any{"name": "b", "uid": "b"}}}
-	a.SetOwnerReferences([]metav1.OwnerReference{{Kind: "ReplicaSet", Name: "b", UID: "b"}})
-	b.SetOwnerReferences([]metav1.OwnerReference{{Kind: "ReplicaSet", Name: "a", UID: "a"}})
+	isController := true
+	a.SetOwnerReferences([]metav1.OwnerReference{{Kind: "ReplicaSet", Name: "b", UID: "b", Controller: &isController}})
+	b.SetOwnerReferences([]metav1.OwnerReference{{Kind: "ReplicaSet", Name: "a", UID: "a", Controller: &isController}})
 	pod := waitingPod("containerStatuses", "CrashLoopBackOff")
-	pod.SetOwnerReferences([]metav1.OwnerReference{{Kind: "ReplicaSet", Name: "a", UID: "a"}})
+	pod.SetOwnerReferences([]metav1.OwnerReference{{Kind: "ReplicaSet", Name: "a", UID: "a", Controller: &isController}})
 	in.Children = append(in.Children, a, b, pod)
 	if s := Evaluate(in).Instance.State; s != Healthy {
 		t.Fatalf("got %s, want Healthy", s)
+	}
+}
+
+// Only controller references are followed: a broken Pod that merely names an
+// inventory object as a plain owner does not degrade it.
+func TestEvaluate_NonControllerOwnerIsNotFollowed(t *testing.T) {
+	in := inputFromCapture(t, "mi-podinfo-healthy.yaml", "objects-podinfo-phase3-healthy.yaml")
+	var deployment *unstructured.Unstructured
+	for _, e := range in.Entries {
+		if e.Ref.Kind == "Deployment" {
+			deployment = e.Object
+		}
+	}
+	pod := waitingPod("containerStatuses", "CrashLoopBackOff")
+	pod.SetOwnerReferences([]metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "Deployment", Name: deployment.GetName(), UID: deployment.GetUID()}})
+	in.Children = append(in.Children, pod)
+	if s := Evaluate(in).Instance.State; s != Healthy {
+		t.Fatalf("got %s, want Healthy", s)
+	}
+	isController := true
+	pod.SetOwnerReferences([]metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "Deployment", Name: deployment.GetName(), UID: deployment.GetUID(), Controller: &isController}})
+	if s := Evaluate(in).Instance.State; s != Degraded {
+		t.Fatalf("with a controller reference got %s, want Degraded", s)
 	}
 }
 
