@@ -50,11 +50,10 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
 4. **Initialize verification report structure**
 
-   Create a report structure with four dimensions:
+   Create a report structure with three dimensions:
    1. **Completeness** — tasks and spec coverage
    2. **Correctness** — requirement implementation and scenario coverage
    3. **Coherence** — design adherence and pattern consistency
-   4. **Cleanliness** — dead code left behind by the change
 
    Each dimension can have CRITICAL, WARNING, or SUGGESTION issues.
 
@@ -121,19 +120,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
      - Add SUGGESTION: "Code pattern deviation: <details>"
      - Recommendation: "Consider following project pattern: <example>"
 
-8. **Verify Cleanliness**
-
-   Load the **openspec-cleanup-change** skill in change-aware mode (pass the change name) and incorporate its report as the Cleanliness dimension.
-
-   Map cleanup findings to verification issues:
-   - High-confidence candidates → WARNING: "Dead code candidate: `<symbol>` in `<file>:<line>` — <reason>"
-   - Medium/low-confidence candidates → SUGGESTION with the same format
-
-   If cleanup reports no candidates: note "No dead code detected" in Summary.
-
-   **Skip condition**: If no code changes have been implemented yet (all tasks incomplete), skip this check and note in Summary: "Cleanliness check skipped — no implementation to analyze."
-
-9. **Generate Verification Report**
+8. **Generate Verification Report**
 
    **Summary Scorecard**:
    ```markdown
