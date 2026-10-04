@@ -21,3 +21,9 @@
 
 - [x] 4.1 Add `NewHandler` and `HandlerOptions` (GET only, session lookup failing closed, `topics` query parsing, `Last-Event-ID` header, SSE headers, error mapping); verify with `httptest.Server` tests for the headers and first messages, 400 on a bad or reserved topic, 401 on an empty identity, 429 on the third stream, and a reconnect with `Last-Event-ID` that resumes over real HTTP
 - [x] 4.2 `task check` green, then commit `chore(stream): serve a stream through an internal handler`
+
+## 5. Review follow-ups (internal/stream)
+
+- [x] 5.1 Number event ids per stream, check the identity on `Subscribe`/`Unsubscribe`, keep a topic denied while detached for the next connection, cancel a connection's work when it ends, check the topic cap before asking the producer, and resume before checking the URL's topics; verify with a test per fix
+- [x] 5.2 Replace `Producer.Attributes` with `Producer.Access` and per-item list topics (the supervisor ruling in `design.md`), asking an item's namespace before its name; verify that a reader allowed one namespace, with no cluster-wide `list`, follows `instances` filtered, that a grant by name is honoured, and that an unserved identity closes the topic as `unauthenticated`
+- [x] 5.3 Keep every closing pending until a connection writes it, count a re-requested pending topic once against the cap, and drop a pending closing on `Unsubscribe`; verify with tests for a closing lost to an eviction, the cap, `Unsubscribe`, and `closeTopic` on a replaced subscription

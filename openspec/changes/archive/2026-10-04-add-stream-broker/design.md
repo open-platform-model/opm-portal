@@ -51,10 +51,15 @@ type Item struct {
     Render func(ctx context.Context, who authz.Identity) (json.RawMessage, error) // or per reader
 }
 
+type TopicAccess struct {
+    Reads   []authz.Attributes // reads a subscriber must be allowed before the topic attaches
+    PerItem bool               // a list topic: no topic-wide read, every item gated per reader
+}
+
 type Producer interface {
-    // Attributes are the reads a subscriber must be allowed before t attaches; ok=false
-    // means the producer does not serve t. An empty slice is refused (fail closed).
-    Attributes(t Topic) (attrs []authz.Attributes, ok bool)
+    // Access says what following t takes; ok=false means the producer does not serve t.
+    // Exactly one of Reads and PerItem must be set; anything else is refused (fail closed).
+    Access(t Topic) (access TopicAccess, ok bool)
     // Snapshot returns t's current items. Called after t is registered, so a change the
     // producer publishes after updating its state is never missed.
     Snapshot(ctx context.Context, t Topic) ([]Item, error)
@@ -122,23 +127,35 @@ Data is compacted JSON, so a payload never spans lines. `open`, `closed` and `he
 
 ### Authorization
 
-Verbs and resources: the broker reads nothing. It calls `Authorizer.Check` for the attributes the
+Verbs and resources: the broker reads nothing. It calls `Authorizer.Check` for the reads the
 producer names for a topic (for example `get moduleinstances` in `apps` named `blog`, or `list
 events` in `apps`) and for each item's `Attrs`.
 
-- **Subscribe** (`Open`, `Subscribe`, reattach): every topic attribute is checked synchronously,
+- **Subscribe** (`Open`, `Subscribe`, reattach): every topic read is checked synchronously,
   before the topic is registered and before `Activate`, so a caller cannot make the read model
-  start watches for topics it may not read. A denied topic is not registered; the stream gets a
-  `closed` message for it, held for the next connection while the stream is detached. `Subscribe`
-  and `Unsubscribe` find the stream only for the session key and identity that opened it.
+  start watches for topics it may not read. A per-item topic (`TopicAccess.PerItem`, the
+  instance lists) names no topic read and attaches for any authenticated identity; see the
+  decision below. A denied topic is not registered; the stream gets a `closed` message for it.
+  `Subscribe` and `Unsubscribe` find the stream only for the session key and identity that
+  opened it.
+- **Closings are durable until written**: every `closed` message (a denial at subscribe or
+  reattach, or a topic closed by the writer) is recorded on the stream, one per topic, and
+  leaves that record only after a connection has written it. A closing queued on a connection
+  that is evicted or disconnects is therefore the next connection's first message; a closing
+  whose topic was detached or attached again in the meantime is not written. Unwritten closings
+  count once each towards `MaxTopicsPerStream`, excluding topics asked for again, so the record
+  stays bounded.
 - **Before each delivery** the writer checks the topic's held grants with `Grant.Covers`; an
   expired grant is re-checked with `Check`. A denial or error closes the topic. The same check
   runs on each heartbeat, so a revocation closes a quiet topic within one decision TTL plus one
   heartbeat.
 - **Per item**: the item is delivered when a topic grant covers `Item.Attrs`, otherwise after its
-  own `Check` (cached by `authz`). Forbidden, unauthenticated or invalid: the item is skipped.
-  Unavailable: the topic is closed with `upstream_unavailable`, because a silently skipped update
-  would leave the client stale (Principle IV).
+  own `Check` (cached by `authz`), asked for the item's whole namespace first and for its exact
+  name only when that is denied, as the read model decides reads inside a view. Forbidden or
+  invalid: the item is skipped. Unavailable: the topic is closed with `upstream_unavailable`,
+  because a silently skipped update would leave the client stale (Principle IV).
+  Unauthenticated: the topic is closed with `unauthenticated`, since a per-item topic has no
+  topic read that would otherwise tell the client.
 - An unauthenticated `Session.Identity` is refused at `Open` with no `Check` made.
 
 ### Ordering, snapshot and resume
@@ -173,6 +190,26 @@ replayed. Anything else opens a fresh stream with the URL's topics.
 - A topic is dropped, and its `release` called, when no stream (attached or detached) holds it.
 
 ## Research & Decisions
+
+### Stream topics follow the GET-list rule (supervisor ruling)
+
+**Context**: a reader may read instances in only some namespaces. Should that reader follow the
+cluster-wide `instances` topic, or must a cluster-wide topic require a cluster-wide `list`? And
+may event ids number every published change broker-wide? This is a design ruling by the swarm
+supervisor within 0030:D7:R2 and 0030:D5:R5, not an owner decision.
+**Options considered**:
+1. (a) The topic attaches with no cluster-wide grant; the snapshot and every change are
+   filtered per item to what the reader may read, with no count of hidden items.
+2. (b) A cluster-wide topic needs cluster-wide `list`; such readers follow `instances:<ns>`
+   per namespace, which leaves the UI to discover which namespaces it can see.
+**Decision**: option (a), for `instances` and `instances:<ns>` alike. Event ids are numbered per
+stream (per subscriber connection), never broker-wide, and `Last-Event-ID` resumes
+within that stream's own numbering.
+**Rationale**: consistency with the read model, which authorizes a view per caller (whole
+namespace first, then the exact name) and leaves out what the caller may not read
+(0030:D7:R2, 0030:D5:R5); stream topics follow the same rule as `GET` lists. It also gives the
+UI one topic instead of discovering namespaces. Per-stream ids keep a subscriber from counting
+hidden or other-tenant activity from gaps in the ids.
 
 ### How a reconnect learns it missed too much
 
@@ -220,10 +257,12 @@ production code, deterministic under `-race`.
   30 s; items covered by a topic grant skip the call.
 - [Takeover by id within a session] → bounded to the same session key and identity; another
   session's id opens a fresh stream.
-- [A topic denied by `Subscribe` while its stream is detached is closed without a message, since
-  the closing has no sequence number to replay] → the topic is simply absent after the reconnect;
-  the read API's topic-change request returns before the stream reconnects, so a client that
-  needs certainty re-subscribes.
+- [A closing is written once and is not replayable by id, so a connection that dies after
+  writing it but before the client reads it loses it] → the same holds for any message whose
+  bytes the kernel accepted; every closing not yet written survives the connection.
+- [A per-item topic has no topic grant, so a revoked permission sends no `closed` for it] →
+  later items the reader may no longer read are left out, as a `GET` list would leave them out;
+  items already delivered stay with the client until its next snapshot.
 - [Per-reader `Render` runs in the writer] → it runs outside the broker lock, so a slow render
   delays only that stream; its error closes the topic.
 

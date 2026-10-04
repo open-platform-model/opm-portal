@@ -37,7 +37,9 @@ bad request before the stream opens.
 A stream SHALL carry every topic attached to it, multiplexed, with each message naming its topic.
 A client SHALL be able to attach and detach topics while the stream stays open. The first message
 on a stream SHALL name the stream's identifier, which only the session that opened it, under the
-identity that opened it, can use to change its topics. A stream SHALL carry at most a configured number of topics.
+identity that opened it, can use to change its topics. A stream SHALL carry at most a configured
+number of topics; a topic whose closed message has not been sent yet counts once towards it, and
+detaching such a topic SHALL drop its unsent closed message.
 
 #### Scenario: Adding a topic to an open stream
 
@@ -63,26 +65,50 @@ identity that opened it, can use to change its topics. A stream SHALL carry at m
 - **THEN** the request is refused exactly as for a stream that does not exist
 - **AND** no authorization review is sent
 
+#### Scenario: Asking again for a denied topic counts it once
+
+- **WHEN** a stream at one topic below its cap has a closed message for topic T not yet sent
+- **AND** the client attaches T again
+- **THEN** the request is not refused as too many topics
+
+#### Scenario: A detached topic's unsent closing is dropped
+
+- **WHEN** a client detaches a topic whose closed message its stream has not sent yet
+- **THEN** the stream never sends that closed message
+
 ### Requirement: Every subscription and every delivery is authorized for the subscriber
 
 The portal SHALL authorize a topic for the stream's identity, on the reads the topic stands for,
 before attaching it, and SHALL re-check that authorization before delivering each message once
-the decision behind it has expired. Each change SHALL be delivered only to subscribers allowed to
-read the object it reveals; items a subscriber may not read SHALL be left out without a trace,
-and a snapshot SHALL contain only items the subscriber may read. A denied topic SHALL be closed on
-the stream with a `forbidden` code (or `unauthenticated` when the authorizer does not serve the
-stream's identity) and SHALL deliver nothing; a topic denied while the stream is disconnected
-SHALL be closed first thing on its next connection; an authorization error SHALL close the topic with an
-`upstream_unavailable` code and SHALL deliver nothing. A stream SHALL NOT open
-for an unauthenticated identity, and no authorization review SHALL be sent for one. Source:
-0030:D7:R2, 0030:D6:R4.
+the decision behind it has expired. The list topics `instances` and `instances:<namespace>`
+SHALL follow the rule of a `GET` list instead: they SHALL attach without any topic-wide read, so
+a reader who may read instances in only some namespaces, or only some names, follows them, and
+their snapshot and every change SHALL be filtered per item to what that reader may read. Each
+change SHALL be delivered only to subscribers allowed to read the object it reveals, decided for
+the object's whole namespace first and for its exact name when that is denied; items a
+subscriber may not read SHALL be left out without a trace or a count, and a snapshot SHALL
+contain only items the subscriber may read. A denied topic SHALL be closed on the stream with a
+`forbidden` code (or `unauthenticated` when the authorizer does not serve the stream's identity,
+including on an item's review) and SHALL deliver nothing; a closed message not written before
+its connection ends, including one for a topic denied while the stream is disconnected, SHALL be
+sent first thing on the stream's next connection; an authorization error SHALL close the topic
+with an `upstream_unavailable` code and SHALL deliver nothing. A stream SHALL NOT open for an
+unauthenticated identity, and no authorization review SHALL be sent for one. Source: 0030:D7:R2,
+0030:D5:R5, 0030:D6:R4.
 
 #### Scenario: A subscriber receives only what it may read
 
 - **WHEN** topic `instances` publishes changes for instances in namespaces `team-a` and `team-b`
-- **AND** subscriber A may read instances in `team-a` only, and subscriber B in both
-- **THEN** A receives the `team-a` changes and nothing about `team-b`
+- **AND** subscriber A may read instances in `team-a` only, with no cluster-wide `list`, and
+  subscriber B in both
+- **THEN** A's topic attaches and A receives the `team-a` changes and nothing about `team-b`
 - **AND** B receives both
+
+#### Scenario: A reader allowed single names sees exactly those
+
+- **WHEN** subscriber A may read instance `team-b/two` by name but not namespace `team-b`
+- **AND** A follows `instances:team-b`, which holds `team-b/one` and `team-b/two`
+- **THEN** A's snapshot and changes carry `team-b/two` only
 
 #### Scenario: A forbidden topic is closed, not served
 
@@ -98,6 +124,13 @@ for an unauthenticated identity, and no authorization review SHALL be sent for o
 - **AND** the stream reconnects within the resume window
 - **THEN** the reconnected stream delivers a closed message for that topic with code `forbidden`
   before anything else
+
+#### Scenario: A closing lost with its connection is sent on the next
+
+- **WHEN** a closed message for a topic is queued on a stream whose connection ends, by eviction
+  or disconnect, before it is written
+- **AND** the stream reconnects within the resume window
+- **THEN** the reconnected stream delivers that closed message before anything else
 
 #### Scenario: A revoked permission stops delivery
 
