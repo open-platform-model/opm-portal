@@ -3,7 +3,7 @@ name: E2E
 # Builds the e2e fixture cluster from released artifacts on GHCR and GitHub releases and
 # captures it. Never on pull requests: it depends on registries outside this repo, so it must
 # not gate a merge. A capture that differs from testdata/clusters/f1 is uploaded for review,
-# not committed.
+# not committed; one whose verdicts or versions differ fails the run.
 on:
   workflow_dispatch:
   schedule:
@@ -62,6 +62,26 @@ jobs:
             git diff --stat -- testdata/clusters/f1
             echo '```'
           } >>"$GITHUB_STEP_SUMMARY"
+
+      # A recapture always differs in timestamps, uids and pod names, so the diff above is for
+      # reading. The verdicts and versions in meta.yaml do not: a change there (an instance's
+      # Ready reason, a claim's acceptance, the operator or catalog version) fails the run, and
+      # a failed scheduled run notifies the workflow's owner.
+      - name: Compare the verdicts with the committed capture
+        run: |
+          strip='del(.capturedAt) | del(.cluster.provider)'
+          git show HEAD:testdata/clusters/f1/meta.yaml | yq "$strip" >"$RUNNER_TEMP/committed.yaml"
+          yq "$strip" testdata/clusters/f1/meta.yaml >"$RUNNER_TEMP/captured.yaml"
+          if ! diff -u "$RUNNER_TEMP/committed.yaml" "$RUNNER_TEMP/captured.yaml" >"$RUNNER_TEMP/verdicts.diff"; then
+            {
+              echo 'Verdicts or versions differ from the committed capture; recapture and review:'
+              echo '```diff'
+              cat "$RUNNER_TEMP/verdicts.diff"
+              echo '```'
+            } >>"$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/verdicts.diff"
+            exit 1
+          fi
 
       - name: Upload the capture
         if: always()
