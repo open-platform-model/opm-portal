@@ -96,8 +96,9 @@ can reword them.
 - V1 is read-only: status as the operator reports it, events, pod logs and a relationship graph,
   from the Platform down to Pods. Milestone 1 runs locally with the user's kubeconfig;
   milestone 2 runs in-cluster with OIDC and SubjectAccessReview-as-user.
-- Design: enhancement 0030 in the sibling `enhancements/` repo. `internal/api` serves the read
-  API as an `http.Handler`; no mode wires it into the binary yet, which only prints its version.
+- Design: enhancement 0030 in the sibling `enhancements/` repo. `opm-portal serve` runs local
+  mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`,
+  reading as the kubeconfig's user. `opm-portal version` only prints the version.
 
 ## Entrypoint
 
@@ -112,9 +113,9 @@ Read these first, in order:
 
 ```
 .
-├── cmd/opm-portal/   # main: today it prints the version; later flag parsing, mode select, wiring
+├── cmd/opm-portal/   # main: version, and serve (local mode's flags and wiring)
 ├── api/v1alpha1/     # wire types of the read API (no logic)
-├── internal/         # authz, readmodel, health, graph, stream, api (the /api/v1alpha1 handlers), version
+├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), version
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
 ├── hack/             # helper scripts (release-pin gate, API breaking-change gate)
 ├── test/e2e/         # throwaway kind fixture cluster: pins, scripts, fixture set F1
@@ -196,7 +197,8 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 
 - `task` (default): list available tasks.
 - `task build`: build `bin/opm-portal`.
-- `task run -- <args>`: run from source.
+- `task run -- <args>`: run from source; `task run -- serve --open` runs local mode against the
+  current kubeconfig context.
 - `task fmt`: `go fmt` plus golangci-lint's gofmt and goimports formatters.
 - `task vet`: `go vet ./...`.
 - `task lint` / `task lint:fix`: golangci-lint.
@@ -216,12 +218,22 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   kind release `test/e2e/versions.env` pins). Its kubeconfig is `.e2e/kubeconfig`; the scripts
   never use another context. `E2E_CLUSTER=opm-portal-e2e-<suffix>` runs a second cluster with its
   state in `.e2e/clusters/<name>/`. F1's `60-refused-claim.yaml` is refused on purpose.
+- `task e2e:local`: build the binary and run `TestLocalMode` (build tag `e2e`) against the
+  fixture cluster: launch, reads with and without the session, a foreign `Host`, a cross-site
+  `POST`, a pod log on the stream, and a clean `SIGINT`.
+- `task test:browser`: launch a local session in Chromium, Firefox and WebKit from the
+  `--open` page (file://) and from the printed link, through `TestBrowserLaunch` (build tag
+  `browser`) and the Playwright image (podman by default, `OPM_PORTAL_CONTAINER_ENGINE=docker`
+  otherwise; pulls the image and installs the pinned Playwright package, so it needs the
+  network). A Go client ignores SameSite, so only this test catches a launch whose cookie a
+  browser withholds. Run it after any change to `internal/auth` or `openLaunch`.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,
   `managedFields`, the last-applied annotation or `spec.values`, or that does not parse. Moving
   a pin in `test/e2e/versions.env` means recapturing.
 - Single test: `go test ./cmd/opm-portal -run TestRun`.
+- Lint the tagged tests too: `golangci-lint run --build-tags e2e,browser ./cmd/...`.
 
 ## Working Style for Agents
 

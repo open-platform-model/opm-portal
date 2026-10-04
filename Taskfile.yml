@@ -31,7 +31,7 @@ tasks:
       - "{{.BUILD_DIR}}/{{.BINARY_NAME}}"
 
   run:
-    desc: Run the portal from source (today it prints its version)
+    desc: 'Run the portal from source (task run -- serve --open runs local mode)'
     cmds:
       - go run ./cmd/opm-portal {{.CLI_ARGS}}
 
@@ -81,6 +81,13 @@ tasks:
       - go test -coverprofile=coverage.out ./...
       - go tool cover -html=coverage.out -o coverage.html
 
+  test:browser:
+    desc: 'Launch a local session from the --open page and from the printed link in Chromium, Firefox and WebKit (Playwright image; OPM_PORTAL_CONTAINER_ENGINE=podman|docker)'
+    env:
+      OPM_PORTAL_CONTAINER_ENGINE: '{{.OPM_PORTAL_CONTAINER_ENGINE}}'
+    cmds:
+      - go test -tags browser -count=1 -run '^TestBrowserLaunch' -v ./cmd/opm-portal
+
   #########################
   ## e2e fixture cluster (test/e2e)
   #########################
@@ -99,6 +106,14 @@ tasks:
       E2E_CLUSTER: '{{.E2E_CLUSTER}}'
     cmds:
       - test/e2e/down.sh
+
+  e2e:local:
+    desc: Run the opm-portal binary in local mode against the fixture cluster and read through it (needs e2e:up)
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/local.sh
 
   e2e:capture:
     desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)

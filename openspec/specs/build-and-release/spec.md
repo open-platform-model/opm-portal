@@ -11,9 +11,9 @@ request, and what a release of the repository produces and in which order.
 The `opm-portal` binary SHALL print `opm-portal v<version>` on standard output and exit 0 when it
 is run with no arguments, with `version`, or with `--version`. `<version>` SHALL be the version of
 the release the source was tagged with, optionally followed by `+g<short-revision>` (and
-`.dirty` for a modified tree) when the build carries VCS information. Any other argument SHALL
-print a usage line on standard error and exit 2. The binary SHALL NOT open a network listener or
-contact a cluster.
+`.dirty` for a modified tree) when the build carries VCS information. `serve` SHALL run local
+mode (the `local-mode` capability). Any other argument SHALL print a usage line on standard error
+and exit 2. Reporting the version SHALL NOT open a network listener or contact a cluster.
 
 #### Scenario: Version with no arguments
 
@@ -29,7 +29,7 @@ contact a cluster.
 
 #### Scenario: Unknown argument
 
-- **WHEN** a user runs `opm-portal serve`
+- **WHEN** a user runs `opm-portal start`
 - **THEN** standard error names the accepted arguments
 - **AND** standard output is empty
 - **AND** the exit code is 2
