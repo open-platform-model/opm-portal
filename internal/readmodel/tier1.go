@@ -65,14 +65,15 @@ func (m *Model) Start(ctx context.Context) error {
 		m.mu.Unlock()
 	}
 	waitSynced(ctx, m.cfg.SyncTimeout, started...)
+	go m.janitor()
 	return nil
 }
 
 // Stop stops every informer and poller. The Model serves nothing afterwards.
 func (m *Model) Stop() {
 	m.mu.Lock()
-	defer m.mu.Unlock()
 	if m.stopped {
+		m.mu.Unlock()
 		return
 	}
 	m.stopped = true
@@ -80,6 +81,24 @@ func (m *Model) Stop() {
 	for _, k := range m.opm {
 		for _, s := range k.scopes {
 			s.watch.close()
+		}
+	}
+	kinds := make([]*inventoryKind, 0, len(m.inventory))
+	for _, k := range m.inventory {
+		kinds = append(kinds, k)
+	}
+	held := make([]*childWatch, 0, len(m.children))
+	for _, cw := range m.children {
+		held = append(held, cw)
+	}
+	m.mu.Unlock()
+	for _, k := range kinds {
+		k.stop()
+	}
+	for _, cw := range held {
+		<-cw.ready
+		for _, w := range cw.watches {
+			w.close()
 		}
 	}
 }

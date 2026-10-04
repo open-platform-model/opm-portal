@@ -14,11 +14,11 @@
 
 ## 3. Inventory, polling, runtime children and health (internal/readmodel)
 
-- [ ] 3.1 Add tier 2: `acquire` per resolved kind with the scope order (cluster-wide, per namespace, poller, not readable), label-selected on the uuid label, sync bounded by `SyncTimeout`, Secrets refused before any informer, and the idle janitor; verify start on first use, stop after `IdleTimeout` with a fake clock, restart on the next use, and that no Secret request reaches the fake cluster
-- [ ] 3.2 Add the poller (`PollInterval`, `PollWorkers`, synchronous first read, `EvaluatedAt`, not live); verify with a reader that may get but not list Services in `default/podinfo`
-- [ ] 3.3 Add tier 3: `HoldChildren` with a refcount and release, on-demand lists cached for `ChildrenTTL` without interest, per-caller list checks setting `ChildrenAccess`; verify the watches stop on the last release and that unreadable children mark the workloads `ChildrenUnread`
-- [ ] 3.4 Join inventory and children into `health.Evaluate` for the instance detail (components in inventory order) and the list item; per-entry caller checks (namespace-wide `get`, then the exact name) mark forbidden and not-readable entries; verify cert-manager with ClusterRoles forbidden is partial, the CLI-owned instance's two objects are Healthy, podinfo's Pods reach the Pod rule, and a second read makes no list, get or watch request
-- [ ] 3.5 `task check` green, then commit `chore(readmodel): watch inventory kinds on demand and evaluate instance health`
+- [x] 3.1 Add tier 2: `acquire` per resolved kind with the scope order (cluster-wide, per namespace, poller, not readable), label-selected on the uuid label, sync bounded by `SyncTimeout`, Secrets refused before any informer, and the idle janitor; verify start on first use, stop after `IdleTimeout` with a fake clock, restart on the next use, and that no Secret request reaches the fake cluster
+- [x] 3.2 Add the poller (`PollInterval`, `PollWorkers`, synchronous first read, `EvaluatedAt`, not live); verify with a reader that may get but not list Services in `default/podinfo`
+- [x] 3.3 Add tier 3: `HoldChildren` with a refcount and release, on-demand lists cached for `ChildrenTTL` without interest, per-caller list checks setting `ChildrenAccess`; verify the watches stop on the last release and that unreadable children mark the workloads `ChildrenUnread`
+- [x] 3.4 Join inventory and children into `health.Evaluate` for the instance detail (components in inventory order) and the list item; per-entry caller checks (namespace-wide `get`, then the exact name) mark forbidden and not-readable entries; verify cert-manager with ClusterRoles forbidden is partial, the CLI-owned instance's two objects are Healthy, podinfo's Pods reach the Pod rule, and a second read makes no list, get or watch request
+- [x] 3.5 `task check` green, then commit `chore(readmodel): watch inventory kinds on demand and evaluate instance health`
 
 ## 4. Tier 4: events (internal/readmodel)
 

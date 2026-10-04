@@ -24,6 +24,13 @@ const (
 
 	// platformName is the only name the Platform CRD admits.
 	platformName = "cluster"
+
+	// instanceUUIDLabel is on every object an instance's inventory names;
+	// tier 2 selects on it, so only OPM-rendered objects are held.
+	instanceUUIDLabel = "module-instance.opmodel.dev/uuid"
+	// instanceNameLabel is on the ReplicaSets and Pods below inventory
+	// workloads, which do not carry the uuid label (capture, observation 8).
+	instanceNameLabel = "module-instance.opmodel.dev/name"
 )
 
 // isSecret reports whether resource is core Secrets, which the read model

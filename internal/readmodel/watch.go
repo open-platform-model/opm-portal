@@ -83,18 +83,37 @@ func (w *watch) list(namespace string) []*unstructured.Unstructured {
 	return out
 }
 
+// syncPoll is how often waitSynced looks at the informers. client-go's own
+// wait polls every 100 ms, which a cold view would pay once per kind.
+const syncPoll = 5 * time.Millisecond
+
 // waitSynced waits until every watch has synced, for at most timeout or
-// until ctx ends, and reports whether they all did.
-func waitSynced(ctx context.Context, timeout time.Duration, ws ...*watch) bool {
+// until ctx ends. A watch still syncing afterwards reads as unavailable or
+// not readable, never as empty.
+func waitSynced(ctx context.Context, timeout time.Duration, ws ...*watch) {
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	fns := make([]cache.InformerSynced, 0, len(ws))
-	for _, w := range ws {
-		if w != nil {
-			fns = append(fns, w.informer.HasSynced)
+	t := time.NewTicker(syncPoll)
+	defer t.Stop()
+	for {
+		if allSynced(ws) {
+			return
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
 		}
 	}
-	return cache.WaitForCacheSync(ctx.Done(), fns...)
+}
+
+func allSynced(ws []*watch) bool {
+	for _, w := range ws {
+		if w != nil && !w.synced() {
+			return false
+		}
+	}
+	return true
 }
 
 // sortObjects orders objects by namespace, then name.

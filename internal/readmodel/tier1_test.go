@@ -309,7 +309,7 @@ func TestConfiguredNamespacesBoundTheModel(t *testing.T) {
 // is held (0030:D8:R2/R3).
 func TestHeldInstancesCarryNoValues(t *testing.T) {
 	const secret = "s3cr3t-value"
-	podinfo := find(t, loadF1(t), "ModuleInstance", "default", "podinfo").DeepCopy()
+	podinfo := find(t, loadF1(t), "ModuleInstance", "podinfo").DeepCopy()
 	if err := unstructured.SetNestedField(podinfo.Object, map[string]any{"password": secret}, "spec", "values"); err != nil {
 		t.Fatal(err)
 	}

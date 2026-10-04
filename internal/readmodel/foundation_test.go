@@ -177,7 +177,7 @@ func TestKindResolverResolvesAndRefreshes(t *testing.T) {
 // transform runs before the object is stored.
 func TestFakeInformerAssumptions(t *testing.T) {
 	objs := loadF1(t)
-	podinfo := find(t, objs, "Deployment", "default", "podinfo-podinfo")
+	podinfo := find(t, objs, "Deployment", "podinfo-podinfo")
 	unlabeled := podinfo.DeepCopy()
 	unlabeled.SetName("unlabeled")
 	unlabeled.SetLabels(nil)

@@ -20,9 +20,12 @@ func (m *Model) ListPackages(ctx context.Context, who authz.Identity, g authz.Gr
 	if err != nil {
 		return nil, err
 	}
+	ev := m.newEvaluator(who)
 	out := make([]PackageItem, 0, len(objs))
 	for _, u := range objs {
-		out = append(out, packageItem(u))
+		item := packageItem(u)
+		item.Health = ev.inventoryHealth(ctx, u).Instance
+		out = append(out, item)
 	}
 	return out, nil
 }
@@ -37,11 +40,15 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 	if err != nil {
 		return PackageDetail{}, err
 	}
+	res := m.newEvaluator(who).inventoryHealth(ctx, u)
+	item := packageItem(u)
+	item.Health = res.Instance
 	return PackageDetail{
-		PackageItem: packageItem(u),
+		PackageItem: item,
 		Conditions:  conditions(u),
 		History:     history(u),
 		LastApplied: lastApplied(u),
+		Components:  componentsOf(res),
 	}, nil
 }
 

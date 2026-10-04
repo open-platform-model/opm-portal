@@ -21,9 +21,12 @@ func (m *Model) ListInstances(ctx context.Context, who authz.Identity, g authz.G
 	if err != nil {
 		return nil, err
 	}
+	ev := m.newEvaluator(who)
 	out := make([]InstanceItem, 0, len(objs))
 	for _, u := range objs {
-		out = append(out, instanceItem(u))
+		item := instanceItem(u)
+		item.Health = ev.inventoryHealth(ctx, u).Instance
+		out = append(out, item)
 	}
 	return out, nil
 }
@@ -38,13 +41,17 @@ func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant,
 	if err != nil {
 		return InstanceDetail{}, err
 	}
+	res := m.newEvaluator(who).inventoryHealth(ctx, u)
+	item := instanceItem(u)
+	item.Health = res.Instance
 	return InstanceDetail{
-		InstanceItem:       instanceItem(u),
+		InstanceItem:       item,
 		ServiceAccountName: str(u.Object, "spec", "serviceAccountName"),
 		Conditions:         conditions(u),
 		History:            history(u),
 		LastApplied:        lastApplied(u),
 		RenderContracts:    strs(u.Object, "status", "requiredContracts"),
+		Components:         componentsOf(res),
 	}, nil
 }
 

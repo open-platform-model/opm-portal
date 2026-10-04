@@ -129,6 +129,10 @@ type Model struct {
 	stopped bool
 	opm     map[schema.GroupVersionResource]*opmKind
 	done    chan struct{}
+
+	inventory map[schema.GroupVersionResource]*inventoryKind
+	children  map[string]*childWatch
+	childList map[string]childListing
 }
 
 // New returns a Model for cfg. It reads nothing until Start.
@@ -142,6 +146,10 @@ func New(cfg Config) (*Model, error) {
 		kinds: newKindResolver(cfg.Discovery),
 		opm:   map[schema.GroupVersionResource]*opmKind{},
 		done:  make(chan struct{}),
+
+		inventory: map[schema.GroupVersionResource]*inventoryKind{},
+		children:  map[string]*childWatch{},
+		childList: map[string]childListing{},
 	}, nil
 }
 

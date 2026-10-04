@@ -117,15 +117,15 @@ func loadF1(t testing.TB) []*unstructured.Unstructured {
 	return out
 }
 
-// find returns the object with the given kind, namespace and name.
-func find(t testing.TB, objs []*unstructured.Unstructured, kind, namespace, name string) *unstructured.Unstructured {
+// find returns the object with the given kind and name.
+func find(t testing.TB, objs []*unstructured.Unstructured, kind, name string) *unstructured.Unstructured {
 	t.Helper()
 	for _, o := range objs {
-		if o.GetKind() == kind && o.GetNamespace() == namespace && o.GetName() == name {
+		if o.GetKind() == kind && o.GetName() == name {
 			return o
 		}
 	}
-	t.Fatalf("no %s %s/%s", kind, namespace, name)
+	t.Fatalf("no %s %s", kind, name)
 	return nil
 }
 
@@ -297,4 +297,11 @@ func clusterReads(c *dynfake.FakeDynamicClient) []string {
 		out = append(out, strings.Join([]string{a.GetVerb(), a.GetResource().Resource, a.GetNamespace() + "/" + name}, " "))
 	}
 	return out
+}
+
+// count returns how many reviews were asked.
+func (r *reviews) count() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return len(r.asked)
 }
