@@ -68,6 +68,8 @@ func (m *Model) Events(ctx context.Context, who authz.Identity, g authz.Grant, a
 		"regarding.name":      about.Name,
 		"regarding.namespace": about.Namespace,
 	}.AsSelector().String()
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
 	list, err := m.cfg.Dynamic.Resource(events).Namespace(namespace).List(ctx, metav1.ListOptions{FieldSelector: selector})
 	if err != nil {
 		return nil, fmt.Errorf("%w: listing events: %w", ErrUnavailable, err)

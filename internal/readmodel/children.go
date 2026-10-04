@@ -40,9 +40,12 @@ type childListing struct {
 
 // HoldChildren watches the runtime children (ReplicaSets, Pods, Jobs) in
 // namespace until the returned release is called; a stream subscriber holds
-// it while an instance page is open. g must cover watch pods in namespace.
-// Interest is counted: the watches stop when the last holder releases.
-// Release is safe to call more than once.
+// it while an instance page is open. g must cover watch pods in namespace,
+// which is the gate for the whole hold: the reader also watches
+// ReplicaSets and Jobs there, but no view shows a child kind the caller may
+// not list, because childrenIn authorizes each kind for the caller on every
+// read. Interest is counted: the watches stop when the last holder
+// releases. Release is safe to call more than once.
 func (m *Model) HoldChildren(ctx context.Context, who authz.Identity, g authz.Grant, namespace string) (release func(), err error) {
 	if err := covers(who, g, "watch", pods, namespace, ""); err != nil {
 		return nil, err
@@ -62,9 +65,12 @@ func (m *Model) HoldChildren(ctx context.Context, who authz.Identity, g authz.Gr
 	m.mu.Unlock()
 
 	if first {
+		// The watches serve every holder, so the first holder going away
+		// must not leave them unreviewed; the authorizer bounds each review.
+		review := context.WithoutCancel(ctx)
 		watches := make([]*watch, len(childResources))
 		for i, r := range childResources {
-			if m.readerMayWatch(ctx, r, namespace) {
+			if m.readerMayWatch(review, r, namespace) {
 				watches[i] = m.startWatch(r, namespace, instanceNameLabel)
 			}
 		}
@@ -143,6 +149,8 @@ func (m *Model) listedChildren(ctx context.Context, namespace string) ([]*unstru
 	if ok && now.Before(cached.at.Add(m.cfg.ChildrenTTL)) {
 		return cached.objects, cached.access
 	}
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
 	listing := childListing{at: now, access: health.AccessOK}
 	for _, r := range childResources {
 		if !m.readerMay(ctx, "list", r, namespace, "") {
