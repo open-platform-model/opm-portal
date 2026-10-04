@@ -1,9 +1,9 @@
 ## 1. Foundation: clients, kinds, stripping and the F1 harness (internal/readmodel)
 
-- [ ] 1.1 Add `Config`, `New`, `TuneConfig` (QPS 50, burst 100 over client-go's zero defaults), the cached RESTMapper (deferred discovery over the memory cache, one reset and retry on a no-match) and the errors `ErrNotCovered`, `ErrNotFound`, `ErrUnavailable`; verify `go build ./...`
-- [ ] 1.2 Add the strip transform (managedFields, the last-applied annotation, `spec.values` on ModuleInstance and ModulePackage, the T2 per-kind drop list); verify with a test that runs `health.Object` on every F1 object before and after and requires identical results, and that an instance carrying values, managed fields and the annotation leaves none of them
-- [ ] 1.3 Add the test harness: an F1 loader into a fake dynamic client with list kinds, a fake discovery client for the F1 kinds, and a local `authz.Checker` over a fake clientset whose review answers come from a rule table; verify the spike's findings as tests (label-selected list, transform before store, mapper resolution and reset)
-- [ ] 1.4 `task check` green, then commit `chore(readmodel): add the read model foundation and the F1 test harness`
+- [x] 1.1 Add `Config`, `New`, `TuneConfig` (QPS 50, burst 100 over client-go's zero defaults), the cached RESTMapper (deferred discovery over the memory cache, one reset and retry on a no-match) and the errors `ErrNotCovered`, `ErrNotFound`, `ErrUnavailable`; verify `go build ./...`
+- [x] 1.2 Add the strip transform (managedFields, the last-applied annotation, `spec.values` on ModuleInstance and ModulePackage, the T2 per-kind drop list); verify with a test that runs `health.Object` on every F1 object before and after and requires identical results, and that an instance carrying values, managed fields and the annotation leaves none of them
+- [x] 1.3 Add the test harness: an F1 loader into a fake dynamic client with list kinds, a fake discovery client for the F1 kinds, and a local `authz.Checker` over a fake clientset whose review answers come from a rule table; verify the spike's findings as tests (label-selected list, transform before store, mapper resolution and reset)
+- [x] 1.4 `task check` green, then commit `chore(readmodel): add the read model foundation and the F1 test harness`
 
 ## 2. Tier 1 and the OPM-kind views (internal/readmodel)
 
