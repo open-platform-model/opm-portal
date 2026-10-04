@@ -25,5 +25,10 @@
 ## 5. Review follow-ups (internal/stream)
 
 - [x] 5.1 Number event ids per stream, check the identity on `Subscribe`/`Unsubscribe`, keep a topic denied while detached for the next connection, cancel a connection's work when it ends, check the topic cap before asking the producer, and resume before checking the URL's topics; verify with a test per fix
-- [x] 5.2 Replace `Producer.Attributes` with `Producer.Access` and per-item list topics (the supervisor ruling in `design.md`), asking an item's namespace before its name; verify that a reader allowed one namespace, with no cluster-wide `list`, follows `instances` filtered, that a grant by name is honoured, and that an unserved identity closes the topic as `unauthenticated`
+- [x] 5.2 (superseded by 6.1) Replace `Producer.Attributes` with `Producer.Access` and per-item list topics (the earlier, rejected ruling in `design.md`), asking an item's namespace before its name; verify that a reader allowed one namespace, with no cluster-wide `list`, follows `instances` filtered, that a grant by name is honoured, and that an unserved identity closes the topic as `unauthenticated`
 - [x] 5.3 Keep every closing pending until a connection writes it, count a re-requested pending topic once against the cap, and drop a pending closing on `Unsubscribe`; verify with tests for a closing lost to an eviction, the cap, `Unsubscribe`, and `closeTopic` on a replaced subscription
+
+## 6. Corrected list-topic ruling (internal/stream)
+
+- [x] 6.1 Remove `TopicAccess` and the per-item list mode, restore `Producer.Attributes`, and make `instances` require a cluster-wide `list` grant and `instances:<ns>` a `list` grant on that namespace, carrying only items that grant covers with no review per item (the corrected ruling in `design.md`); verify that a reader limited to `team-a` is refused `instances` as `forbidden` and served `instances:team-a`, that only the topic reviews are sent however many items go out, that a stray item outside the grant is left out, and that a reader allowed single names is refused the list topic
+- [x] 6.2 `task check` green, then commit `fix(stream): require the list grant for list topics`

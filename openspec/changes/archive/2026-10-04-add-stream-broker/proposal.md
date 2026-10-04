@@ -20,7 +20,8 @@ built next to and after this change; both need the broker's contract fixed first
 - Per-principal filtering: a topic is authorized through `internal/authz` before it is attached,
   the topic's grants are re-checked before each delivery, and every item is delivered only when
   the subscriber may read the object it reveals. The instance list topics follow the `GET` list
-  rule: they attach without a topic-wide read and are filtered per item. A denial or an
+  rule: `instances` needs a cluster-wide `list` grant and `instances:<ns>` a `list` grant on that
+  namespace, and each carries only items within its grant's scope. A denial or an
   authorization error is never a delivery.
 - A per-topic ring buffer and `Last-Event-ID` resume: a stream that reconnects within the resume
   window continues where it stopped; when the buffer no longer covers the gap the topic is sent a
@@ -28,7 +29,7 @@ built next to and after this change; both need the broker's contract fixed first
 - Heartbeats, a bounded per-stream queue that evicts a slow consumer, an idle timeout, and caps on
   streams per session (two by default, for the six-connection limit), streams per process and
   topics per stream.
-- A `Producer` interface the read model implements (topic access, snapshots, activation for
+- A `Producer` interface the read model implements (topic attributes, snapshots, activation for
   refcounted watches) and `Broker.Publish` for changes; a fake producer for tests.
 - An internal `http.Handler` constructor that serves one stream, tested through `httptest`. No
   route is mounted: `/api/v1alpha1/watch` and the topic-change request arrive with the read API.
