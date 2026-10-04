@@ -1,0 +1,43 @@
+// Package readmodel holds what the portal knows about one cluster and builds
+// every view from it: the cache, the watches, the on-demand reads and the
+// joins of the portal's read path.
+//
+// # Tiers
+//
+//   - Tier 1: the four OPM kinds (ModuleInstance, ModulePackage, Platform,
+//     TransformerRegistration), watched from Start to Stop, cluster-wide or
+//     per configured namespace.
+//   - Tier 2: the kinds inventories name, watched on the first view that
+//     needs them, limited to objects carrying the module-instance uuid
+//     label, and stopped once no view has used them for IdleTimeout. A kind
+//     the reader may get but not list and watch is polled every
+//     PollInterval instead, and its objects say they are not live.
+//   - Tier 3: ReplicaSets, Pods and Jobs, watched in a namespace only while
+//     someone holds interest (HoldChildren), otherwise listed on demand and
+//     reused for ChildrenTTL.
+//   - Tier 4: events about one object, listed when asked, folded so a repeat
+//     shows once with a count.
+//
+// Kinds are resolved through discovery, cached for the process. TuneConfig
+// raises the reading client's request rate.
+//
+// # Authorization
+//
+// Every exported read takes the caller's authz.Identity and an authz.Grant,
+// and calls Grant.Covers for its own read before it looks anything up, so a
+// caller without access gets the same refusal for an object that exists and
+// one that does not. Reads inside a view (each inventory object, the
+// registrations, the runtime children) are authorized for the caller one by
+// one through the Authorizer; what the caller may not read is marked
+// forbidden, never omitted and never a failed view. The informers, polls
+// and on-demand lists read as Config.Reader, each after the reader's own
+// grant.
+//
+// # What is never held
+//
+// No Secret is read at any tier: an inventory entry naming one is withheld.
+// Every object loses its managed fields and the last-applied annotation
+// before it is stored, and ModuleInstances and ModulePackages lose
+// spec.values. Views are portal-shaped values: none carries a raw custom
+// resource, its status or an annotation map.
+package readmodel

@@ -1,0 +1,70 @@
+package readmodel
+
+import (
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/discovery/cached/memory"
+	"k8s.io/client-go/restmapper"
+)
+
+// The four OPM kinds the read model holds for the process (tier 1).
+var (
+	moduleInstances = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "moduleinstances"}
+	modulePackages  = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "modulepackages"}
+	platforms       = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "platforms"}
+	registrations   = schema.GroupVersionResource{Group: opmGroup, Version: opmVersion, Resource: "transformerregistrations"}
+)
+
+const (
+	opmGroup   = "opmodel.dev"
+	opmVersion = "v1alpha1"
+
+	// platformName is the only name the Platform CRD admits.
+	platformName = "cluster"
+
+	// instanceUUIDLabel is on every object an instance's inventory names;
+	// tier 2 selects on it, so only OPM-rendered objects are held.
+	instanceUUIDLabel = "module-instance.opmodel.dev/uuid"
+	// instanceNameLabel is on the ReplicaSets and Pods below inventory
+	// workloads, which do not carry the uuid label (capture, observation 8).
+	instanceNameLabel = "module-instance.opmodel.dev/name"
+)
+
+// isSecret reports whether resource is core Secrets, which the read model
+// never reads (0030:D8:R1).
+func isSecret(resource schema.GroupVersionResource) bool {
+	return resource.Group == "" && resource.Resource == "secrets"
+}
+
+// resolvedKind is an inventory kind resolved to the resource it is served
+// as.
+type resolvedKind struct {
+	Resource   schema.GroupVersionResource
+	Namespaced bool
+}
+
+// kindResolver maps kinds to resources through discovery, fetched once and
+// kept for the process. A kind discovery did not know is looked up once more
+// after a refresh, so a CRD installed later resolves.
+type kindResolver struct {
+	mapper *restmapper.DeferredDiscoveryRESTMapper
+}
+
+func newKindResolver(d discovery.DiscoveryInterface) *kindResolver {
+	return &kindResolver{mapper: restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(d))}
+}
+
+func (k *kindResolver) resolve(gvk schema.GroupVersionKind) (resolvedKind, error) {
+	m, err := k.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	if meta.IsNoMatchError(err) {
+		k.mapper.Reset()
+		m, err = k.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	}
+	if err != nil {
+		return resolvedKind{}, fmt.Errorf("resolving kind %s: %w", gvk, err)
+	}
+	return resolvedKind{Resource: m.Resource, Namespaced: m.Scope.Name() == meta.RESTScopeNameNamespace}, nil
+}
