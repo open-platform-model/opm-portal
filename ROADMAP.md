@@ -74,9 +74,12 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    read API).
 2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, planned): Platform and Installed views,
    a theme choice and remembered filters, summary cards and tabs on instance and package pages,
-   the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18). Controller
-   follow-ups it uncovered: package providers (portal:OQ23) and package render contracts
-   (portal:OQ24).
+   the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); local mode
+   moves to a fixed default port. Left as future work: a Platform health (portal:OQ22) and catalog
+   contents, definitions and transformers (portal:OQ25). Controller follow-ups it uncovered:
+   package providers (portal:OQ23,
+   [opm-operator#254](https://github.com/open-platform-model/opm-operator/issues/254)) and package
+   render contracts (portal:OQ24).
 3. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
    graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
    item 4 (the loopback cookie risk, accepted and documented).

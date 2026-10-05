@@ -5,13 +5,11 @@
 `GET /api/v1alpha1/clusters/{cluster}` SHALL serve a `Cluster` document: the path cluster's
 `name`, the server's `mode`, its `source` (`kubeconfig` or `in-cluster`), the kubeconfig
 `context` and the name of its `clusterEntry` when the source is `kubeconfig`, `readingAs` with the
-requesting caller's own username, and the API server's `kubernetesVersion` with
-`kubernetesVersionAccess`. It SHALL carry no server URL, kubeconfig user entry or credential, and
-no other identity than the caller's. The version SHALL be served only after an allowed review of
-`get` on the non-resource path `/version` for the caller, and only when the portal holds one;
-otherwise `kubernetesVersionAccess` SHALL be `forbidden` (review denied) or `notReadable` (review
-failed, or the portal could not read the version) and the version SHALL be absent. A request
-without a principal SHALL be answered `401` with code `unauthenticated`. Source:
+requesting caller's own username, and the API server's `kubernetesVersion` as the read model
+holds it, absent when the read model holds none. It SHALL carry no server URL, kubeconfig user
+entry or credential, and no other identity than the caller's, and SHALL make no cluster read per
+request. A request without a principal SHALL be answered `401` with code `unauthenticated`. In
+`in-cluster` mode the document SHALL be served unchanged: it carries no operator text. Source:
 portal:D18:R1/R2/R3.
 
 #### Scenario: Local mode on the fixture cluster
@@ -21,16 +19,20 @@ portal:D18:R1/R2/R3.
 - **THEN** the document has `source: kubeconfig`, `context: kind-opm-portal-e2e`, `readingAs`
   with the kubeconfig's username and the API server's `kubernetesVersion`
 
-#### Scenario: Version review denied
+#### Scenario: Version not read
 
-- **WHEN** the review of `get /version` is denied for the caller
-- **THEN** the document has `kubernetesVersionAccess: forbidden` and no `kubernetesVersion`, and
-  the response is still `200`
+- **WHEN** the read model could not read `/version` at start
+- **THEN** the document has no `kubernetesVersion`, and the response is still `200`
 
 #### Scenario: Nothing else about the kubeconfig
 
 - **WHEN** any client reads the `Cluster` document
 - **THEN** it contains no server URL, certificate, token or user entry
+
+#### Scenario: In-cluster
+
+- **WHEN** a client of an in-cluster server reads the `Cluster` document
+- **THEN** it is served, not refused as a document type the omission does not know
 
 ### Requirement: Packages carry their interval and source artifact
 
@@ -49,8 +51,8 @@ guess. The source artifact's fetch URL SHALL not be served. Source: portal:D2:R4
 Each registration in the platform document SHALL carry its `conditions` with `tone`, `meaning`
 and `nextStep` as every condition does, and `heldBy`: the ModuleInstances and ModulePackages the
 caller may read whose inventory holds a TransformerRegistration of that name, whatever their
-kind. When the caller could not list instances or packages in every namespace, `heldByPartial`
-SHALL be true. `provider` SHALL keep naming the ModuleInstance `spec.providerRef` names. Source:
+kind. `heldByPartial` SHALL be true whenever the caller lacks a cluster-wide list of
+ModuleInstances or of ModulePackages, whether or not `heldBy` is empty. `provider` SHALL keep naming the ModuleInstance `spec.providerRef` names. Source:
 portal:D15:R1/R2, portal:D4:R2.
 
 #### Scenario: The accepted claim's holder
@@ -80,9 +82,11 @@ portal:D15:R1/R2, portal:D4:R2.
 
 An instance or package, in its document and its list item, SHALL carry `providerOf`: one entry
 per TransformerRegistration its inventory holds, with the registration's name, the caller's
-`access` to it, and, when readable, its `accepted`, `active`, `verdict` and `reason`, plus
-`providerRefMatches` saying whether the registration's `spec.providerRef` names this owner. A
-registration the caller may not read SHALL carry its name and `access: forbidden` only. Source:
+`access` to it, and, when readable, its `accepted`, `active`, `verdict` and `reason`, and
+`providerRefMatches`: true only when the owner is a ModuleInstance whose namespace and name the
+registration's `spec.providerRef` names, false otherwise (always false for a ModulePackage, since
+the reference names a ModuleInstance). A registration the caller may not read SHALL carry its name
+and `access: forbidden` only, with no `providerRefMatches`. Source:
 portal:D15:R1/R2/R4.
 
 #### Scenario: The F1 provider
@@ -94,7 +98,14 @@ portal:D15:R1/R2/R4.
 #### Scenario: Registrations forbidden
 
 - **WHEN** a caller who may not list TransformerRegistrations reads the same instance
-- **THEN** `providerOf` holds `default.backup-provider` with `access: forbidden` and no standing
+- **THEN** `providerOf` holds `default.backup-provider` with `access: forbidden`, no standing and
+  no `providerRefMatches`
+
+#### Scenario: A package holder
+
+- **WHEN** a package `pkg/provider` holds TransformerRegistration `pkg.provider`, whose
+  `spec.providerRef` names `pkg/provider`
+- **THEN** its `providerOf` entry has `providerRefMatches: false`
 
 ### Requirement: Instance list items carry their render contracts
 
@@ -131,6 +142,28 @@ as open. Source: portal:D9:R1.
 
 - **WHEN** a client of an in-cluster server reads package `pkg/podinfo`
 - **THEN** each entry's `outcome` is `Failed` and carries no `message`
+
+### Requirement: Joined fields follow changes on both sides
+
+A change to a TransformerRegistration SHALL reach the `instance:` or `package:` topic of every
+owner whose inventory holds it, and the `instances` and `instances:<namespace>` topics for instance
+holders, so `providerOf` refreshes. A change to a ModuleInstance or ModulePackage whose inventory
+holds a TransformerRegistration, before or after the change, SHALL reach the `platform` topic, so
+`heldBy` refreshes. Each subscriber is still written only a change to its own document. Source:
+portal:D2:R5/R7, portal:D15.
+
+#### Scenario: A claim becomes active
+
+- **WHEN** a client follows `instance:default/backup-provider` and `default.backup-provider` turns
+  active
+- **THEN** the stream delivers an upsert whose `providerOf` entry is active
+
+#### Scenario: A holder drops its claim
+
+- **WHEN** a client follows `platform` and backup-provider's inventory stops holding
+  `default.backup-provider`
+- **THEN** the stream delivers a `Platform` whose registration `default.backup-provider` has no
+  `heldBy`
 
 ## MODIFIED Requirements
 

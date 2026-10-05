@@ -4,22 +4,29 @@
 
 Every page SHALL carry a sticky header with the main navigation (Platform, Installed), the
 cluster the portal reads (the kubeconfig context, or "in cluster"), "reading as" with the
-caller's username, the live mark and the theme menu, all read from the read API's `Cluster`
-document. The Kubernetes version SHALL show where the document carries it and SHALL be marked
-locked where the document says the caller may not read it. The header SHALL slim after the page
-scrolls 48 px and SHALL not animate under `prefers-reduced-motion`. Source: portal:D18,
-portal:D17:R1.
+caller's username, the Kubernetes version, the live mark and the theme menu, the facts read from
+the read API's `Cluster` document. The header SHALL be the one place these facts show. A version
+the document does not carry SHALL read "unknown". When the `Cluster` document cannot be fetched,
+the header SHALL still render its navigation, live mark and theme menu, with the cluster, reader
+and version reading "unknown" in the degraded style. The header SHALL slim after the page scrolls
+48 px and SHALL not animate under `prefers-reduced-motion`. Source: portal:D18, portal:D17:R1.
 
 #### Scenario: The F1 header
 
 - **WHEN** a signed-in browser opens any page on the F1 capture in local mode
 - **THEN** the header shows Platform and Installed, the context name, "reading as" with the
-  kubeconfig's username, and the live mark
+  kubeconfig's username, the Kubernetes version and the live mark
 
-#### Scenario: Version not readable
+#### Scenario: Version not read
 
-- **WHEN** the `Cluster` document carries `kubernetesVersionAccess: forbidden`
-- **THEN** the Platform identity card shows the Kubernetes version as locked, not as empty
+- **WHEN** the `Cluster` document carries no `kubernetesVersion`
+- **THEN** the header's version reads "unknown", not empty
+
+#### Scenario: The cluster document fails
+
+- **WHEN** the in-process fetch of the `Cluster` document fails
+- **THEN** the page renders with its navigation and theme menu, and the header's cluster, reader
+  and version read "unknown" in the degraded style
 
 #### Scenario: In a Pod
 
@@ -76,17 +83,23 @@ SHALL redirect with `308` to `/installed` with `kind=instance` or `kind=package`
 
 ### Requirement: List filters live in the URL and are remembered per browser
 
-The Installed list, the Platform page's Providers and Catalogs tabs and events, and the Events tab
-of instance and package pages SHALL filter from their URL query, server-side, so a filtered view
-is a plain link that works without script. Installed SHALL offer search, kind, provider, uses,
-namespace, health, applied, owner and module; each active filter SHALL show as a chip whose link
-removes it. When the URL carries any of a view's filter parameters, the view SHALL show exactly
-those. When it carries none and the browser holds filters for that view, the view SHALL open with
-them and the URL SHALL show them, without painting the unfiltered view first, on a full load and
-on a navigation inside the page alike. After rendering, a view SHALL store the filters it shows
-and nothing else. The `uses` filter SHALL match an instance's render contracts, SHALL leave
-packages out and SHALL say that packages do not record what they use. Source: portal:D14:R1/R2/R3,
-portal:D16:R2.
+The Installed list, the Platform page's Providers and Catalogs tabs and its events, and the Events
+and Resources tabs of instance and package pages SHALL filter from their URL query, server-side,
+so a filtered view is a plain link that works without script. Installed SHALL offer search, kind,
+provider, uses, namespace, health, applied, owner and module; each active filter SHALL show as a
+chip whose link removes it. An enumerated filter value the view does not know SHALL be ignored
+with a note naming it, and never stored. Only the list views SHALL remember their filters:
+Installed and the Providers and Catalogs tabs, each on its own; the Platform events and instance
+and package pages SHALL not. `tab` and `focus` are not filters: they SHALL never be stored and
+SHALL not count as a filter in the URL. When the URL carries any of a remembered view's filter
+parameters, the view SHALL show exactly those. When it carries none and the browser holds valid
+filters for that view, the view SHALL open with them and the URL SHALL show them, without painting
+the unfiltered view first, on a full load and on a boosted navigation alike; no other request
+SHALL be rewritten. A stored query SHALL be checked against the view's parameters and values, and
+what does not fit SHALL be dropped. After rendering, a remembered view SHALL store the filters it
+shows and nothing else. The `uses` filter SHALL match an instance's render contracts, SHALL leave
+packages out and SHALL say that packages do not record what they use. Source:
+portal:D14:R1/R2/R3, portal:D16:R2.
 
 #### Scenario: A link wins over the remembered filters
 
@@ -113,6 +126,23 @@ portal:D16:R2.
 - **WHEN** a browser with script disabled opens `/installed?kind=package`
 - **THEN** the list holds only packages
 
+#### Scenario: An unknown filter value
+
+- **WHEN** a browser opens `/installed?health=Bogus`
+- **THEN** the list is unfiltered by health, a note says the filter `health=Bogus` was ignored,
+  and nothing about it is stored
+
+#### Scenario: A stale stored query
+
+- **WHEN** the stored Installed query holds `health=Bogus&namespace=default` and the browser opens
+  `/installed`
+- **THEN** the page shows `/installed?namespace=default`
+
+#### Scenario: A tab is not a filter
+
+- **WHEN** a browser that remembered `pstatus=refused` for the Providers tab opens `/?tab=providers`
+- **THEN** the page shows `/?tab=providers&pstatus=refused`
+
 ### Requirement: Instance and package pages summarize Applied, Health and Provider standing
 
 The page of an instance or package SHALL show an identity card (kind, name, namespace, module path
@@ -120,12 +150,12 @@ and version, or source, path, interval and source revision, owner, applier Servi
 Applied card and a Health card, and a Provider card when it holds a TransformerRegistration. The
 Applied card SHALL show the applied badge with its reason and meaning, the counts of Warning
 events in the current feed by reason, each linking to the Events tab filtered by that reason and
-labelled as the last hour of events, and one dot per `status.history` entry, oldest first,
-coloured by the entry's outcome; a running dot SHALL be shown only while the `Reconciling`
-condition is `True`, and the card SHALL say that at most ten attempts are kept and that
-reconciles that change nothing are not recorded. The Health card SHALL show the health badge, its
-partial and live marks, and the counts of objects and runtime children by health reason, each
-linking to the Resources tab filtered to them. The Provider card SHALL show, per held
+labelled as the last hour of events, a `Reconciling` mark with its reason and since time while
+that condition is `True`, and one dot per `status.history` entry, oldest first, coloured by the
+entry's outcome; it SHALL show no dot for an attempt the history does not record, and SHALL say
+that at most ten attempts are kept and that reconciles that change nothing are not recorded. The
+Health card SHALL show the health badge, its partial and live marks, and the counts of objects and
+runtime children by health reason, each linking to the Resources tab with `reason` set to it. The Provider card SHALL show, per held
 registration, Active, Accepted and not active, Refused, Removal blocked or Pending with its
 reason, or a locked standing when the caller may not read registrations. An interval the package
 does not set SHALL read "not set"; a revision the package has not recorded SHALL read "not
@@ -135,7 +165,7 @@ recorded". Source: portal:D3:R1, portal:D9:R1/R2, portal:D15:R2/R4.
 
 - **WHEN** the page of the image-break podinfo sample is rendered
 - **THEN** the Applied card reads Applied and the Health card reads Degraded with one count for
-  the Pod's waiting reason, linking to the Resources tab filtered to that Pod
+  the Pod's waiting reason, linking to `tab=resources&reason=<that reason>`, which lists that Pod
 
 #### Scenario: A failed attempt in the history
 
@@ -146,8 +176,8 @@ recorded". Source: portal:D3:R1, portal:D9:R1/R2, portal:D15:R2/R4.
 
 - **WHEN** a browser opens `/packages/pkg/podinfo` on the F1 capture
 - **THEN** the identity card shows source `OCIRepository` `podinfo-release`, interval `1m` and
-  revision "not recorded", and the Applied card reads Failed with reason `SourceNotReady`, three
-  failed dots and a running dot, because its `Reconciling` condition is `True`
+  revision "not recorded", and the Applied card reads Failed with reason `SourceNotReady`, a
+  `Reconciling` mark with reason `Progressing`, and three failed dots and no other dot
 
 ### Requirement: Instance and package pages are organised in tabs
 
@@ -155,8 +185,10 @@ Below the cards the page SHALL offer the tabs Graph, Resources, Events, Logs and
 Provider when the item holds a registration, each a link carrying `tab=` that the server renders.
 The details panel SHALL show only on Graph and Resources. Resources SHALL list each inventory
 object and runtime child with kind, name, origin (in the inventory, or made by the cluster below an
-inventory object), health and reason, with configuration components grouped as in the graph, and
-each row SHALL link to the Graph tab focused on its node. Events SHALL filter by resource (grouped
+inventory object), health and reason, filtered by a `reason` parameter, with configuration
+components grouped as in the graph, and each row SHALL link to the Graph tab focused on its node.
+The details panel SHALL keep its Open, Expand, YAML and Events links, and SHALL add a Logs link for
+a Pod. Events SHALL filter by resource (grouped
 by kind), type and reason. Logs SHALL pick a Pod and container and follow its log as the logs
 panel does today. YAML SHALL pick an object grouped by kind and show no Secret and no values.
 Source: portal:D8:R2, portal:D9:R3, portal:D10.
@@ -232,7 +264,10 @@ contributed by this registration, its conditions (type, status, reason, meaning,
 local mode the message), and per provided contract the readable instances whose render contracts
 contain it: the first three, the count of the rest, and a link to Installed filtered by that
 contract. When the caller could not list instances everywhere, the list SHALL say it may be
-incomplete. Source: portal:D16:R3, portal:D4:R4.
+incomplete. The registration's conditions, catalog and registry state come from the Platform
+document; when the caller may not read the Platform, those parts SHALL render locked and the tab
+SHALL keep the registration's name and standing. Source: portal:D16:R3, portal:D4:R4,
+portal:D7:R3.
 
 #### Scenario: Who uses the backup trait
 
@@ -240,6 +275,13 @@ incomplete. Source: portal:D16:R3, portal:D4:R4.
 - **THEN** contract `opmodel.dev/catalogs/opm/traits/backup@v1alpha1` lists
   `default/backup-consumer` and links to
   `/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1`
+
+#### Scenario: Platform forbidden
+
+- **WHEN** the caller may read `default/backup-provider` and list TransformerRegistrations but may
+  not get the Platform, and opens its Provider tab
+- **THEN** the tab names `default.backup-provider` with its standing, and its conditions and
+  catalog render locked; the page is not an error
 
 ### Requirement: The Catalog page shows one catalog as the cluster records it
 
@@ -250,8 +292,10 @@ holder), enablement, whether it is resolved (with the Platform's `Ready` reason,
 registration's refusal reason), the Platform's `ContractsFulfilled` labelled as platform-wide, the
 registrations that claim it with their holders and standing, and the recent events of the Platform
 and its claimants. It SHALL show no definition, description, documentation link or transformer,
-and SHALL say these are not recorded. A path no Platform field or readable registration names
-SHALL render not found with status `404`. Source: portal:D17:R3, portal:D3:R8.
+and SHALL say these are not recorded. When the caller may not read the Platform, the page SHALL
+render locked with status `403`, saying nothing about whether the catalog exists. A path that a
+readable Platform and the readable registrations do not name SHALL render not found with status
+`404`. Source: portal:D17:R3, portal:D3:R8, portal:D7:R1.
 
 #### Scenario: The contributed backup catalog
 
@@ -271,11 +315,21 @@ SHALL render not found with status `404`. Source: portal:D17:R3, portal:D3:R8.
 - **WHEN** a browser opens `/catalog?path=example.com/nothing@v0`
 - **THEN** the response is `404` with the not-found page
 
+#### Scenario: Platform forbidden
+
+- **WHEN** a caller who may not get the Platform opens
+  `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` and
+  `/catalog?path=example.com/nothing@v0`
+- **THEN** both render the same locked page with status `403`
+
 ### Requirement: Pages use the words a platform team uses
 
-Page text SHALL say "controller" for the opm-operator, "Providers" for TransformerRegistrations
-and their holders, and "Installed" for ModuleInstances and ModulePackages. Read API field and
-enum names SHALL be shown only where a page shows raw data (the YAML view). Source: portal:D17:R2.
+Page text SHALL name kinds in the words a platform team uses: "Providers" for
+TransformerRegistrations and the instances and packages that hold them, "Installed" for
+ModuleInstances and ModulePackages, and "controller" for the opm-operator. The read API's
+`operatorVersion` SHALL be labelled "Controller version", and its owner value `operator` SHALL
+read "controller". The YAML view shows objects as the cluster serves them and is exempt. Source:
+portal:D17:R2.
 
 #### Scenario: The owner column
 
@@ -304,12 +358,18 @@ portal:D7:R3.
 - **WHEN** the caller may not list ModuleInstances and opens `/installed`
 - **THEN** the instances show as a locked group with no count
 
+#### Scenario: A dependency the caller may not read
+
+- **WHEN** a package's graph holds a `dependsOn` edge to a package the caller may not read
+- **THEN** the far node renders locked and the edge is drawn in the locked style, not as broken
+  and not as confirmed
+
 ## MODIFIED Requirements
 
 ### Requirement: The Platform page is the landing page
 
-`/` SHALL show the Platform: an identity card (cluster, type, controller version, Kubernetes
-version, context); a status card with the applied state of `Ready` and its reason (`Generated`,
+`/` SHALL show the Platform: an identity card (name, type, controller version; the context,
+reader and Kubernetes version are in the header); a status card with the applied state of `Ready` and its reason (`Generated`,
 or `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts`,
 `ComparablePredicates`), each reason linking to its condition with the meaning, next step and
 message, and `ContractsFulfilled` beside it as information; an Installed card with the counts per
@@ -466,6 +526,30 @@ supervisor ruling recorded under portal:D8.
 - **WHEN** backup-provider's page is rendered over an in-cluster read API
 - **THEN** its attempt dots keep their outcomes, its registration conditions show type, status,
   reason and meaning, and no message text the operator wrote appears
+
+### Requirement: Pages update live over one stream per tab
+
+A tab SHALL hold one `EventSource` on the read API's stream across navigation, and each page
+SHALL add the topics it needs and remove the ones it no longer needs through the topic-change
+request. A change on a followed topic SHALL re-render every region of the open page tab that shows
+it, and the summary cards, from one fetch of the page, so the regions of one refresh come from the
+same moment. A refresh SHALL keep the open page tab, the `focus` parameter, the selected node, the
+zoom, an open hover card and open groups; a page tab not shown SHALL be rendered fresh when opened.
+
+#### Scenario: Navigating keeps the stream
+
+- **WHEN** the user moves from `/` to `/instances/default/podinfo`
+- **THEN** the same stream drops `platform` and adds `instance:default/podinfo` and
+  `events:instance:default/podinfo`
+
+#### Scenario: An image break on the open page
+
+- **WHEN** podinfo's image is changed to a tag that does not exist while its page is open on the
+  Graph tab
+- **THEN** without a reload the graph shows the new ReplicaSet and the Pod waiting on the image,
+  the Health card reads Degraded with a count for the waiting reason and the Applied card still
+  reads Applied, and the Graph tab stays open with its zoom
+- **AND** opening the Resources tab then lists the new ReplicaSet and the waiting Pod
 
 ## REMOVED Requirements
 
