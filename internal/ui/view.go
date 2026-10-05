@@ -11,6 +11,9 @@ import (
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
+// unknownWord stands in wherever a value is missing or not one the portal knows.
+const unknownWord = "unknown"
+
 // badge is one rendered status value: its CSS class, its words and, for a
 // value the UI does not know, the raw value as a tooltip.
 type badge struct {
@@ -69,7 +72,7 @@ func known(prefix string, table map[string]string, value string) badge {
 	if text, ok := table[value]; ok {
 		return badge{Class: prefix + " " + prefix + "-" + slug(value), Text: text}
 	}
-	b := badge{Class: prefix + " " + prefix + "-unknown", Text: "unknown"}
+	b := badge{Class: prefix + " " + prefix + "-" + unknownWord, Text: unknownWord}
 	if value != "" {
 		b.Title = "The portal does not know the value " + value
 	}

@@ -222,7 +222,7 @@ func (h *Handler) header(r *http.Request) header {
 		hd.Cluster, hd.Context = "in cluster", v1.SourceInCluster
 	case c.Context == "":
 		// No context to key remembered filters by: the browser keeps none.
-		hd.Cluster = "unknown"
+		hd.Cluster = unknownWord
 	}
 	return hd
 }

@@ -333,7 +333,7 @@ func slugOrUnknown(v string, table map[string]string) string {
 	if _, ok := table[v]; ok {
 		return slug(v)
 	}
-	return "unknown"
+	return unknownWord
 }
 
 // nodeAria is a node's accessible name: kind, name and state.
