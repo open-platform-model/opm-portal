@@ -17,14 +17,17 @@ cluster, so it must follow before its first release (0.1.0, held until this merg
   `enum_contract_test`.
 - Pages, health explanations, API descriptions, comments and test names call the product "the
   controller" (labels such as "Controller says", "the controller's record"). Reason keys are
-  unchanged.
+  unchanged. The Platform page's "Controller version" reads `controllerVersion`, and the
+  Installed list shows the owner as the read API serves it, with no mapping from the old value.
 - e2e: `versions.env`, `lib.sh`, `up.sh`, `capture.sh` and `dump.sh` install and read the
   controller under its new names. `OPM_CONTROLLER_VERSION` is the `opm_controller` module version
   `opm controller install --version` takes, fixing the old pin, which named an image tag where the
   flag takes a module version. The F1 fixtures name `testing.opmodel.dev/*/controller/*`.
-- Captured data: only the schema keys the code reads move (`controllerVersion` in Platform
-  captures, the `controller:` key and `owner: controller` in `meta.yaml`); everything else a
-  live cluster wrote stays as captured until the F1 recapture at cutover.
+- Captured data stays verbatim: the F1 capture, `internal/health/testdata`, the design
+  evidence and the test literals of captured fixture paths keep every name, key and provenance
+  line as captured, until the F1 recapture at
+  cutover. The F1 Platform wrote `status.operatorVersion`, so it shows no controller version
+  until then; a test sets `status.controllerVersion` to pin the read.
 - Docs: README, ROADMAP, AGENTS, CONSTITUTION, `openspec/config.yaml`, `docs/DESIGN.md`, the
   design evidence prose and `docs/site` pages.
 

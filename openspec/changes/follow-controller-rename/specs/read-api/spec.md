@@ -82,21 +82,21 @@ registry's contribution is joined to, by the same rule the platform graph draws 
 ### Requirement: In-cluster mode serves no controller text
 
 In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carry
-text the controller wrote: a condition's `message`, a reconcile `message`, a history entry's
-`message`, a registration's `message` or `activeMessage`, the `note` of an event the controller
-reported (its `reportingController` is `opm-controller`, or it names none and regards an
-`opmodel.dev` object), the health `message` of an inventory object or graph node of an
-`opmodel.dev` kind, or, in an `Object` of an `opmodel.dev` kind, `status.conditions[].message`
-and `status.history[].message`. Every reason, state, `tone`, `meaning` and `nextStep` SHALL stay.
-Text other writers wrote SHALL be served as written: the notes of events the kubelet or another
-controller reported, and the health `message` of an object outside `opmodel.dev`. Events the
-controller reported that are left alike once their notes are dropped (same type, reason, reporting
-controller, regarded object and field path) SHALL be served as one line, their counts summed and
-its time the latest, so the number of lines does not tell how many distinct notes were dropped. A
-document type the omission does not know SHALL fail with `upstream_unavailable` rather than be
-served. The OpenAPI document SHALL say, on each of those fields, that it is absent in-cluster.
-Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the supervisor ruling recorded
-under portal:D8.
+text the controller wrote: a condition's `message` (a registration's `conditions` included), a
+reconcile `message`, a history entry's `message`, a registration's `message` or `activeMessage`,
+the `note` of an event the controller reported (its `reportingController` is `opm-controller`, or it
+names none and regards an `opmodel.dev` object), the health `message` of an inventory object or
+graph node of an `opmodel.dev` kind, or, in an `Object` of an `opmodel.dev` kind,
+`status.conditions[].message` and `status.history[].message`. Every reason, state, `tone`,
+`meaning`, `nextStep`, history `outcome` and `providerOf` standing SHALL stay. Text other writers
+wrote SHALL be served as written: the notes of events the kubelet or another controller reported,
+and the health `message` of an object outside `opmodel.dev`. Events the controller reported that are
+left alike once their notes are dropped (same type, reason, reporting controller, regarded object
+and field path) SHALL be served as one line, their counts summed and its time the latest, so the
+number of lines does not tell how many distinct notes were dropped. A document type the omission
+does not know SHALL fail with `upstream_unavailable` rather than be served. The OpenAPI document
+SHALL say, on each of those fields, that it is absent in-cluster. Source: owner answer to
+portal:OQ8 (portal:D8:R5); its scope is the supervisor ruling recorded under portal:D8.
 
 #### Scenario: A failed instance in-cluster
 
@@ -133,6 +133,46 @@ under portal:D8.
 
 - **WHEN** a client of a local server reads the same documents
 - **THEN** every message and note is served as the controller and the API server wrote it
+
+#### Scenario: Registration conditions in-cluster
+
+- **WHEN** a client of an in-cluster server reads the platform document
+- **THEN** each registration's `conditions` carry type, status, reason, tone and meaning, and no
+  `message`
+
+### Requirement: The cluster document names the connection
+
+`GET /api/v1alpha1/clusters/{cluster}` SHALL serve a `Cluster` document: the path cluster's
+`name`, the server's `mode`, its `source` (`kubeconfig` or `in-cluster`), the kubeconfig
+`context` and the name of its `clusterEntry` when the source is `kubeconfig`, `readingAs` with the
+requesting caller's own username, and the API server's `kubernetesVersion` as the read model
+holds it, absent when the read model holds none. It SHALL carry no server URL, kubeconfig user
+entry or credential, and no other identity than the caller's, and SHALL make no cluster read per
+request. A request without a principal SHALL be answered `401` with code `unauthenticated`. In
+`in-cluster` mode the document SHALL be served unchanged: it carries no controller text. Source:
+portal:D18:R1/R2/R3.
+
+#### Scenario: Local mode on the fixture cluster
+
+- **WHEN** a local-mode client reads `/api/v1alpha1/clusters/default` against a kubeconfig whose
+  context is `kind-opm-portal-e2e`
+- **THEN** the document has `source: kubeconfig`, `context: kind-opm-portal-e2e`, `readingAs`
+  with the kubeconfig's username and the API server's `kubernetesVersion`
+
+#### Scenario: Version not read
+
+- **WHEN** the read model could not read `/version` at start
+- **THEN** the document has no `kubernetesVersion`, and the response is still `200`
+
+#### Scenario: Nothing else about the kubeconfig
+
+- **WHEN** any client reads the `Cluster` document
+- **THEN** it contains no server URL, certificate, token or user entry
+
+#### Scenario: In-cluster
+
+- **WHEN** a client of an in-cluster server reads the `Cluster` document
+- **THEN** it is served, not refused as a document type the omission does not know
 
 ## RENAMED Requirements
 
