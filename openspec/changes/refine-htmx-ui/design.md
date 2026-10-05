@@ -104,4 +104,4 @@ badge, the component rows, the graph's runtime nodes and the read API's instance
 - [A full page per refresh] → one per change instead of one per region; the API answers from held
   state (0030:D3:R9).
 - [A fetched page whose session ended] → the response is the sign-in page; it has no matching
-  regions, so nothing is swapped and the live indicator says offline.
+  regions, so nothing is swapped and the live indicator says signed out.

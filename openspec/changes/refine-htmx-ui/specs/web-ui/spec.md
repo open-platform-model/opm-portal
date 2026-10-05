@@ -42,7 +42,7 @@ different shapes. `Ready=True` SHALL be shown as "Applied" and never as healthy.
 SHALL say partial and be marked visually apart from a full health; a health with an object
 refreshed by polling SHALL say it is not live and show when it was evaluated. An enum value the
 UI does not know SHALL render as "unknown", never as an error. The red family SHALL be used only
-for degraded, failed, stalled and refused states and broken edges; reasons, versions, kinds and
+for degraded, failed, stalled and refused states, broken edges, Warning events and a lost stream; reasons, versions, kinds and
 other decoration SHALL not use it. A condition SHALL be coloured by its `tone`, never by its
 status alone. Source: 0030:D3:R1/R5/R6/R8, 0030:D2:R3.
 
