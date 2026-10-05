@@ -160,15 +160,31 @@ func loadKubeconfig(o serveOptions) (*rest.Config, slog.Attr, error) {
 	if err != nil {
 		return nil, slog.Attr{}, fmt.Errorf("loading the kubeconfig: %w", err)
 	}
-	return cfg, configSource(raw, o.context), nil
+	return cfg, configSource(raw, o.context, inClusterPossible()), nil
 }
 
-// configSource names where a loaded client configuration came from: the
-// kubeconfig context (the one asked for, else the current one), or, when
-// no kubeconfig holds a context, the in-cluster configuration client-go
-// falls back to inside a Pod. It only labels client-go's choice.
-func configSource(raw clientcmdapi.Config, contextName string) slog.Attr {
-	if len(raw.Contexts) == 0 {
+// serviceAccountTokenFile is where a Pod's ServiceAccount token is mounted,
+// the file client-go's in-cluster configuration reads.
+const serviceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token" //nolint:gosec // a path, not a credential
+
+// inClusterPossible reports what client-go's in-cluster fallback checks:
+// the API server's environment variables and the mounted token.
+func inClusterPossible() bool {
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" || os.Getenv("KUBERNETES_SERVICE_PORT") == "" {
+		return false
+	}
+	_, err := os.Stat(serviceAccountTokenFile)
+	return err == nil
+}
+
+// configSource names where a loaded client configuration came from. It
+// repeats client-go's own decision: when the kubeconfig yields an empty
+// configuration (no file, no context, or no current context) and the
+// in-cluster configuration is possible, client-go falls back to it inside
+// a Pod; otherwise the kubeconfig context was used.
+func configSource(raw clientcmdapi.Config, contextName string, inCluster bool) slog.Attr {
+	_, err := clientcmd.NewDefaultClientConfig(raw, &clientcmd.ConfigOverrides{CurrentContext: contextName}).ClientConfig()
+	if inCluster && clientcmd.IsEmptyConfig(err) {
 		return slog.String("source", "in-cluster")
 	}
 	if contextName == "" {
@@ -297,7 +313,7 @@ func connect(ctx context.Context, o serveOptions, log *slog.Logger) (cluster, er
 	if err != nil {
 		return cluster{}, err
 	}
-	log.Info("reading as the kubeconfig's user", "user", self.Username, source)
+	log.Info("reading the cluster as this identity", "user", self.Username, source)
 	checker, err := authz.NewLocal(cs.AuthorizationV1().SelfSubjectAccessReviews(), self, authz.Options{})
 	if err != nil {
 		return cluster{}, err

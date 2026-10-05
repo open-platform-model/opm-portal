@@ -27,24 +27,35 @@ import (
 )
 
 func TestConfigSource(t *testing.T) {
-	withContexts := clientcmdapi.Config{
-		CurrentContext: "kind-dev",
-		Contexts:       map[string]*clientcmdapi.Context{"kind-dev": {}, "prod": {}},
+	complete := func(current string) clientcmdapi.Config {
+		return clientcmdapi.Config{
+			CurrentContext: current,
+			Clusters:       map[string]*clientcmdapi.Cluster{"c": {Server: "https://127.0.0.1:6443"}},
+			AuthInfos:      map[string]*clientcmdapi.AuthInfo{"u": {Token: "t"}},
+			Contexts: map[string]*clientcmdapi.Context{
+				"kind-dev": {Cluster: "c", AuthInfo: "u"},
+				"prod":     {Cluster: "c", AuthInfo: "u"},
+			},
+		}
 	}
 	tests := []struct {
 		name      string
 		raw       clientcmdapi.Config
 		asked     string
+		inCluster bool
 		wantKey   string
 		wantValue string
 	}{
-		{"no kubeconfig, client-go fell back in-cluster", clientcmdapi.Config{}, "", "source", "in-cluster"},
-		{"the current context", withContexts, "", "context", "kind-dev"},
-		{"the context asked for", withContexts, "prod", "context", "prod"},
+		{"no kubeconfig in a Pod", clientcmdapi.Config{}, "", true, "source", "in-cluster"},
+		{"contexts but no current context, in a Pod", complete(""), "", true, "source", "in-cluster"},
+		{"the current context, in a Pod", complete("kind-dev"), "", true, "context", "kind-dev"},
+		{"the current context", complete("kind-dev"), "", false, "context", "kind-dev"},
+		{"the context asked for", complete("kind-dev"), "prod", false, "context", "prod"},
+		{"the context asked for, in a Pod", complete(""), "prod", true, "context", "prod"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := configSource(tt.raw, tt.asked)
+			got := configSource(tt.raw, tt.asked, tt.inCluster)
 			if got.Key != tt.wantKey || got.Value.String() != tt.wantValue {
 				t.Fatalf("configSource() = %s=%s; want %s=%s", got.Key, got.Value, tt.wantKey, tt.wantValue)
 			}
