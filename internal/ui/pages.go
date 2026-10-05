@@ -253,8 +253,9 @@ type objectView struct {
 	EventsURL string
 	Children  []childView
 	// Old are the ReplicaSets scaled to zero, folded apart from the live
-	// children.
-	Old []childView
+	// children; OldID is the fold's id, so a refresh keeps it open.
+	Old   []childView
+	OldID string
 }
 
 type childView struct {
@@ -381,7 +382,7 @@ func objectsOf(c *v1.Component) []*v1.InventoryObject {
 }
 
 func objectViewOf(base string, obj *v1.InventoryObject) objectView {
-	o := objectView{InventoryObject: *obj, Text: refText(obj.Ref)}
+	o := objectView{InventoryObject: *obj, Text: refText(obj.Ref), OldID: domID("old", obj.Ref.Group, obj.Ref.Kind, obj.Ref.Namespace, obj.Ref.Name)}
 	if o.Access == v1.AccessOK && !isSecret(o.Ref) {
 		q := refQuery(o.Ref).Encode()
 		o.YAML, o.EventsURL = base+"/object?"+q, base+"/events?"+q
@@ -424,9 +425,16 @@ func logPanes(cs []componentView) []logPane {
 
 func isPod(r v1.ObjectRef) bool { return r.Kind == "Pod" && r.Group == "" }
 
-// logID is the id of a container's log pane. Pod and container names are
-// DNS labels, so the id needs no escaping.
-func logID(pod, container string) string { return "log-" + pod + "-" + container }
+// logID is the id of a container's log pane.
+func logID(pod, container string) string { return domID("log", pod, container) }
+
+// domID joins parts into an element id. Kubernetes names, namespaces,
+// groups and kinds hold no underscore or whitespace, so joining them with
+// an underscore keeps ids of different parts apart: Pod a-b's container c
+// and Pod a's container b-c differ.
+func domID(prefix string, parts ...string) string {
+	return prefix + "_" + strings.Join(parts, "_")
+}
 
 func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

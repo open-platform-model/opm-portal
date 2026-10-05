@@ -75,7 +75,7 @@
   {{template "events-list" .Events}}
 </section>
 
-<section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h">
+<section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
   <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   {{if .Logs}}
   <div class="logs">

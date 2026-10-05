@@ -304,7 +304,7 @@ h2::before { content: ""; width: 10px; height: 10px; background: var(--accent); 
 
 /* ---- Info (contracts) ---- */
 
-.info { margin-top: 16px; border-left: 3px solid var(--progressing); background: var(--progressing-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; max-width: 100%; }
+.info { margin-top: 16px; border-left: 3px dashed var(--neutral); background: var(--neutral-bg); padding: 10px 14px; border-radius: 0 8px 8px 0; max-width: 100%; }
 .info-head { margin: 0; }
 .info-body { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.8rem; color: var(--ink-2); }
 
@@ -492,6 +492,8 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .log[open] summary::before, .component-group > details[open] > summary::before, .old-revs[open] > summary::before { transform: rotate(90deg); }
 .log[open] summary { border-bottom: 1px solid var(--line); }
 .log-container { font-weight: 700; }
+.log-gone summary { color: var(--muted); }
+.log-gone summary::after { content: "Pod gone"; margin-left: auto; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .log-tools { display: flex; gap: 14px; align-items: center; padding: 8px 12px; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; }
 .log-pane { margin: 0 12px 12px; min-height: 80px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .log-pane .mark { color: var(--accent); }

@@ -8,8 +8,13 @@ import (
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
-// maxLabel is how many characters of a label fit a node's width.
-const maxLabel = 24
+// maxLabel is how many characters of a label fit a node's width;
+// stampedLabel is how many fit beside the applied stamp, which takes the
+// node's top-right corner.
+const (
+	maxLabel     = 24
+	stampedLabel = maxLabel - 3
+)
 
 // svgGraph is a laid-out graph ready for the SVG template.
 type svgGraph struct {
@@ -122,6 +127,11 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		kind = "Unknown kind"
 	}
 	label, sub := displayLabel(n, kind, locked)
+	applied := n.Reconcile != nil && !locked
+	fit := maxLabel
+	if applied {
+		fit = stampedLabel
+	}
 	return svgNode{
 		ID:      n.ID,
 		X:       n.X,
@@ -129,7 +139,7 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		W:       w,
 		H:       hgt,
 		Class:   strings.Join(classes, " "),
-		Label:   clipMiddle(label, maxLabel),
+		Label:   clipMiddle(label, fit),
 		Full:    n.Label,
 		Kind:    kind,
 		Sub:     clipMiddle(sub, maxLabel+4),
@@ -137,7 +147,7 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		Href:    page + "?" + url.Values{"node": {n.ID}}.Encode(),
 		Panel:   panel + "?" + url.Values{"id": {n.ID}}.Encode(),
 		Locked:  locked,
-		Applied: n.Reconcile != nil && !locked,
+		Applied: applied,
 		StampX:  n.X + w - 16,
 		StampY:  n.Y + 6,
 		TextX:   n.X + 12,
@@ -147,9 +157,10 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 }
 
 // displayLabel is what a node's two lines say. A catalog or module shows
-// its last path segment and version on the first line and the rest of the
-// path on the second, because the head of the path is what they share; a
-// configuration group says what it stands for in short.
+// its last path segment and version on the first line and its path's host
+// on the second, because the host is what tells opmodel.dev from
+// testing.opmodel.dev; a configuration group says what it stands for in
+// short.
 func displayLabel(n *v1.GraphNode, kind string, locked bool) (label, sub string) {
 	label, sub = n.Label, subLine(n, kind, locked)
 	switch {
@@ -159,7 +170,7 @@ func displayLabel(n *v1.GraphNode, kind string, locked bool) (label, sub string)
 			version = n.Catalog.Version
 		}
 		if head, last, ok := cutLast(n.Label); ok {
-			label, sub = last, kind+" · "+clipStart(head, maxLabel-len(kind)-1)
+			label, sub = last, kind+" · "+hostOf(head, maxLabel+4-len(kind)-3)
 		}
 		if version != "" {
 			label += " " + version
@@ -260,13 +271,18 @@ func clipMiddle(s string, n int) string {
 	return string(r[:head]) + "…" + string(r[len(r)-tail:])
 }
 
-// clipStart shortens s to n characters from its start, keeping its end.
-func clipStart(s string, n int) string {
-	r := []rune(s)
-	if len(r) <= n || n < 2 {
-		return s
+// hostOf is the first segment of a path head, marked "/…" when more
+// follows, shortened to n characters at its end.
+func hostOf(head string, n int) string {
+	host, rest, more := strings.Cut(head, "/")
+	if more && rest != "" {
+		host += "/…"
 	}
-	return "…" + string(r[len(r)-n+1:])
+	r := []rune(host)
+	if len(r) <= n || n < 2 {
+		return host
+	}
+	return string(r[:n-1]) + "…"
 }
 
 // findNode returns the node with id, or nil.

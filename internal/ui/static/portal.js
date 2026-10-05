@@ -108,13 +108,20 @@
   // changed marks topic dirty. 400 ms after the first mark the page is
   // fetched once and every region following a dirty topic is replaced by
   // the region of the same id from that one document, so the regions of a
-  // refresh come from one render. Regions carry no htmx attributes, so
-  // links inside them inherit nothing from them.
+  // refresh come from one render. One fetch runs at a time: marks that
+  // arrive meanwhile wait for it to settle, so an older render never lands
+  // over a newer one. Regions carry no htmx attributes, so links inside
+  // them inherit nothing from them.
   var dirty = new Set();
   var refreshTimer = null;
+  var inflight = false;
   function changed(topic) {
     dirty.add(topic);
-    if (!refreshTimer) {
+    schedule();
+  }
+
+  function schedule() {
+    if (!refreshTimer && !inflight && dirty.size > 0) {
       refreshTimer = window.setTimeout(refresh, 400);
     }
   }
@@ -134,6 +141,7 @@
     if (regions.length === 0) {
       return;
     }
+    inflight = true;
     var url = location.pathname + location.search;
     fetch(url, { credentials: "same-origin", headers: { "Accept": "text/html" } }).then(function (res) {
       if (res.status === 401) {
@@ -146,13 +154,16 @@
         return;
       }
       var doc = new DOMParser().parseFromString(text, "text/html");
+      var views = [];
       regions.forEach(function (el) {
         var next = el.id && doc.getElementById(el.id);
         if (!next || !el.isConnected) {
           return;
         }
         keepOpen(el, next);
+        keepViews(el, views);
         var fresh = document.importNode(next, true);
+        mergeLogs(el, fresh);
         el.replaceWith(fresh);
         if (typeof htmx !== "undefined") {
           htmx.process(fresh);
@@ -161,7 +172,13 @@
         window.setTimeout(function () { fresh.classList.remove("refreshed"); }, 900);
       });
       restoreGraphs();
-    }).catch(function () { setLive(false, "offline"); });
+      restoreViews(views);
+    }).catch(function () {
+      setLive(false, "offline");
+    }).then(function () {
+      inflight = false;
+      schedule();
+    });
   }
 
   // keepOpen carries the open state of details groups with an id from the
@@ -171,6 +188,56 @@
       var twin = to.querySelector("#" + CSS.escape(d.id));
       if (twin) {
         twin.open = d.open;
+      }
+    });
+  }
+
+  // keepViews records where each graph frame in a region is scrolled to,
+  // and restoreViews scrolls the replacement frames back there, after
+  // restoreGraphs has sized them.
+  function keepViews(from, out) {
+    from.querySelectorAll(".graph[data-graph]").forEach(function (g) {
+      var f = frameOf(g);
+      if (f) {
+        out.push({ id: g.getAttribute("data-graph"), left: f.scrollLeft, top: f.scrollTop });
+      }
+    });
+  }
+
+  function restoreViews(views) {
+    views.forEach(function (v) {
+      var g = document.querySelector('.graph[data-graph="' + CSS.escape(v.id) + '"]');
+      var f = g && frameOf(g);
+      if (f) {
+        f.scrollLeft = v.left;
+        f.scrollTop = v.top;
+      }
+    });
+  }
+
+  // mergeLogs keeps the log panes on the page in the fresh logs region:
+  // a pane whose container the fresh region still lists is moved over with
+  // its text, its open state and its stream; a Pod new since the page
+  // loaded gets the fresh, closed pane. An open pane whose Pod is gone stays,
+  // marked gone, so its last lines can still be read; a closed one is
+  // dropped and stops following.
+  function mergeLogs(from, to) {
+    var list = to.querySelector(".logs");
+    from.querySelectorAll("details.log").forEach(function (d) {
+      var twin = d.id ? to.querySelector("#" + CSS.escape(d.id)) : null;
+      if (twin) {
+        twin.replaceWith(d);
+        return;
+      }
+      if (d.open && list) {
+        d.classList.add("log-gone");
+        list.appendChild(d);
+        return;
+      }
+      var f = d.getAttribute("data-following");
+      if (f) {
+        logTopics.delete(f);
+        sync();
       }
     });
   }
@@ -444,7 +511,12 @@
   // policy exception); dragging the background scrolls the frame.
   var zooms = new Map(); // graph id -> scale the user chose
   var moved = false;
-  var minFit = 0.5;
+
+  // minFit is the smallest scale a fitted graph is drawn at: on a narrow
+  // screen larger, so the text stays legible and the frame scrolls.
+  function minFit() {
+    return window.matchMedia && window.matchMedia("(max-width: 640px)").matches ? 0.75 : 0.5;
+  }
 
   function frameOf(g) { return g.querySelector(".graph-frame"); }
 
@@ -459,15 +531,15 @@
     svg.setAttribute("height", String(Math.round(vb.height * s)));
   }
 
-  // fitScale fits the graph's width to its frame, never above 1:1 and,
-  // on a narrow screen, never below minFit: there the frame scrolls.
+  // fitScale fits the graph's width to its frame, never above 1:1 and
+  // never below minFit: past that the frame scrolls.
   function fitScale(g) {
     var svg = g.querySelector("svg");
     var frame = frameOf(g);
     if (!svg || !frame || !frame.clientWidth) {
       return 1;
     }
-    return Math.max(minFit, Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
+    return Math.max(minFit(), Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
   }
 
   // restoreGraphs sizes every graph (fitted until the user zooms) and puts
