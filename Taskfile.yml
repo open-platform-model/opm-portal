@@ -130,7 +130,7 @@ tasks:
       E2E_PROVIDER: '{{.E2E_PROVIDER}}'
       E2E_CLUSTER: '{{.E2E_CLUSTER}}'
     cmds:
-      - test/e2e/dump.sh {{.DIR}}
+      - test/e2e/dump.sh {{if .DIR}}"{{.DIR}}"{{end}}
 
   e2e:capture:
     desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)
