@@ -863,7 +863,10 @@ a signed-in user, no per-user access.
 - R2: The shipped manifest holds no Service, Ingress or probe, so a port-forward to the bound port
   is the only way to reach the portal.
 - R3: The shipped role grants only `get`, `list` and `watch`, with no write verb, no impersonate,
-  no Secrets and no wildcard, and a test fails on any of them.
+  no Secrets and no wildcard, and a test fails on any of them. Its kind list is maintained by hand
+  against the pinned catalog's transformers (4.6.0 when it shipped); a kind it misses shows as
+  not readable, and the automated catalog-coverage check of D11:R2 stays with the in-cluster
+  plan.
 - R4: The portal's documentation states the trust model plainly: everyone who holds the token sees
   what the ServiceAccount sees; getting the token needs `pods/log` and reaching the portal needs
   `pods/portforward` in the portal's namespace, `view` includes `pods/log`, log shippers and the

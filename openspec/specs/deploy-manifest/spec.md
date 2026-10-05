@@ -16,9 +16,13 @@ ClusterRoleBinding of that role to that ServiceAccount, and a Deployment of one 
 Ingress, no Gateway route and no probe, so `kubectl port-forward` is the only way to reach the
 portal. The Pod SHALL run as non-root with the `RuntimeDefault` seccomp profile, and the container
 SHALL have a read-only root filesystem, no privilege escalation, every capability dropped, and
-memory requests and limits. A Go test SHALL parse every file under `deploy/` and SHALL fail on a
-Service or Ingress object, a probe, a bind address other than `127.0.0.1`, or a missing or
-loosened security setting. Comments in the files SHALL carry no design citation. Source:
+memory requests and limits; the Pod SHALL share no host namespace, mount no volume and override
+no command, and the Namespace SHALL enforce the `restricted` Pod Security Standard. A Go test
+SHALL parse every `*.yaml` and `*.yml` file under `deploy/` and SHALL fail on a Service or
+Ingress object, a probe, a bind address other than `127.0.0.1`, container arguments other than
+the shipped ones, or a missing or loosened security setting; it SHALL also fail when the
+kustomization carries a field other than `apiVersion`, `kind` and `resources`, lists a resource
+that is not a file in `deploy/`, or leaves a manifest file unlisted. Comments in the files SHALL carry no design citation. Source:
 portal:D13:R2.
 
 #### Scenario: Apply the manifest
@@ -42,13 +46,16 @@ portal:D13:R2.
 The ClusterRole `opm-portal-reader` SHALL list every rule explicitly and SHALL grant only the
 verbs `get`, `list` and `watch`: on the four OPM kinds of `opmodel.dev`; on `events.k8s.io`
 `events` only the verb the portal uses, `list`; on `pods` and `get` on `pods/log`; on `apps`
-`replicasets` and `batch` `jobs`; and on every non-Secret kind the pinned OPM catalog's
-transformers render. It SHALL NOT grant any other verb, `secrets`, `impersonate`, a `*` in any
-group, resource or verb, a non-resource URL, or an aggregation rule, and no manifest SHALL bind
-the ServiceAccount to `view` or another built-in role. A Go test SHALL fail on any of these, and
-SHALL show it does by refusing a table of denied roles. An inventory object of a kind the role
-does not grant SHALL show as not readable, never omitted. Source: portal:D13:R3,
-portal:D11:R1/R3.
+`replicasets` and `batch` `jobs`; and on the non-Secret kinds the OPM catalog's transformers
+render, a list maintained by hand against catalog 4.6.0's transformers. It SHALL NOT grant any
+other verb, `secrets`, `impersonate`, a `*` in any group, resource or verb, any subresource but
+`pods/log` (no `exec`, `attach`, `portforward` or `proxy`), a non-resource URL, or an aggregation
+rule, and its one binding SHALL name only the ServiceAccount `opm-portal/opm-portal`, never a
+group or a built-in role such as `view`. A Go test SHALL fail on any of these, and SHALL show it
+does by refusing a table of denied roles and bindings. An inventory object of a kind the role
+does not grant SHALL show as not readable, never omitted. An automated check that the role
+covers every kind the pinned catalog renders stays with the in-cluster plan. Source:
+portal:D13:R3.
 
 #### Scenario: The shipped role
 
