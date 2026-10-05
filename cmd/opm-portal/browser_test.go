@@ -21,11 +21,12 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/ui"
 )
 
-// playwrightImage pins the browsers by the image index's digest; the
-// Python package installed in it must match its tag's version.
+// playwrightImage pins the browsers by the image index's digest. The
+// Python packages installed in it are hash-locked in playwrightRequirements,
+// whose playwright version must match the image tag's.
 const (
-	playwrightImage   = "mcr.microsoft.com/playwright/python:v1.63.0-noble@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0"
-	playwrightPackage = "playwright==1.63.0"
+	playwrightImage        = "mcr.microsoft.com/playwright/python:v1.63.0-noble@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0"
+	playwrightRequirements = "../../test/browser/requirements.txt"
 )
 
 // TestBrowserLaunch opens the launch page openLaunch writes, as a file://
@@ -82,7 +83,11 @@ func playwright(ctx context.Context, t *testing.T, script []byte, mounts []strin
 		engine = "podman"
 	}
 	cargs := make([]string, 0, 16+2*len(mounts)+len(args))
-	cargs = append(cargs, "run", "--rm", "-i", "--network", "host")
+	requirements, err := filepath.Abs(playwrightRequirements)
+	if err != nil {
+		return err
+	}
+	cargs = append(cargs, "run", "--rm", "-i", "--network", "host", "-v", requirements+":/requirements.txt:ro,Z")
 	for _, dir := range mounts {
 		cargs = append(cargs, "-v", dir+":"+dir+":ro,Z")
 	}
@@ -98,8 +103,8 @@ func playwright(ctx context.Context, t *testing.T, script []byte, mounts []strin
 		cargs = append(cargs, "-v", dir+":/shots:Z", "-e", "OPM_PORTAL_BROWSER_SHOTS=/shots", "-e", "OPM_PORTAL_BROWSER_SHOT="+name)
 	}
 	cargs = append(cargs, playwrightImage, "bash", "-c",
-		`pip install -q --root-user-action=ignore "$0" >/dev/null && python3 - "$@"`,
-		playwrightPackage)
+		`pip install -q --root-user-action=ignore --require-hashes -r /requirements.txt >/dev/null && python3 - "$@"`,
+		"playwright")
 	cargs = append(cargs, args...)
 	cmd := exec.CommandContext(ctx, engine, cargs...)
 	cmd.Stdin = bytes.NewReader(script)
