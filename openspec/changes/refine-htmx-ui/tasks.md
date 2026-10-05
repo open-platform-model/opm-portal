@@ -7,8 +7,8 @@
 
 ## 2. Live refresh from one fetch (internal/ui/static)
 
-- [ ] 2.1 `portal.js`: per-topic debounce, one page fetch, swap every following region from it, keep open groups, selection and zoom
-- [ ] 2.2 `task check` green, then commit `fix(ui): refresh every followed region from one fetch`
+- [x] 2.1 `portal.js`: per-topic debounce, one page fetch, swap every following region from it, keep open groups, selection and zoom
+- [x] 2.2 `task check` green, then commit `fix(ui): refresh every followed region from one fetch`
 
 ## 3. Visual fixes (internal/ui)
 

@@ -476,7 +476,7 @@ li.object.locked { margin: 4px 0 4px 4px; }
   main > .reveal:nth-child(6) { animation-delay: 300ms; }
   main > .reveal:nth-child(n+7) { animation-delay: 360ms; }
   body.loaded .reveal { animation: none; }
-  body.loaded .htmx-settling.panel, body.loaded .htmx-settling.page-head { animation: settle 900ms ease-out; }
+  body.loaded .refreshed.panel, body.loaded .refreshed.page-head { animation: settle 900ms ease-out; }
 }
 
 @keyframes rise {

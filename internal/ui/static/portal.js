@@ -105,24 +105,73 @@
     return out;
   }
 
-  // changed re-renders every region that follows topic: the page is
-  // fetched again and only the region swapped, at most once per 400 ms per
-  // region. Regions carry no htmx attributes, so links inside them inherit
-  // nothing from them.
-  var refreshing = new Map();
+  // changed marks topic dirty. 400 ms after the first mark the page is
+  // fetched once and every region following a dirty topic is replaced by
+  // the region of the same id from that one document, so the regions of a
+  // refresh come from one render. Regions carry no htmx attributes, so
+  // links inside them inherit nothing from them.
+  var dirty = new Set();
+  var refreshTimer = null;
   function changed(topic) {
-    following(topic).forEach(function (el) {
-      var id = el.id;
-      if (!id || refreshing.has(id)) {
+    dirty.add(topic);
+    if (!refreshTimer) {
+      refreshTimer = window.setTimeout(refresh, 400);
+    }
+  }
+
+  function refresh() {
+    refreshTimer = null;
+    var topics = dirty;
+    dirty = new Set();
+    var regions = [];
+    topics.forEach(function (t) {
+      following(t).forEach(function (el) {
+        if (el.id && regions.indexOf(el) < 0) {
+          regions.push(el);
+        }
+      });
+    });
+    if (regions.length === 0) {
+      return;
+    }
+    var url = location.pathname + location.search;
+    fetch(url, { credentials: "same-origin", headers: { "Accept": "text/html" } }).then(function (res) {
+      if (res.status === 401) {
+        setLive(false, "signed out");
+        return null;
+      }
+      return res.text();
+    }).then(function (text) {
+      if (text === null || url !== location.pathname + location.search) {
         return;
       }
-      refreshing.set(id, window.setTimeout(function () {
-        refreshing.delete(id);
-        if (!document.getElementById(id)) {
+      var doc = new DOMParser().parseFromString(text, "text/html");
+      regions.forEach(function (el) {
+        var next = el.id && doc.getElementById(el.id);
+        if (!next || !el.isConnected) {
           return;
         }
-        htmx.ajax("GET", location.pathname + location.search, { target: "#" + id, select: "#" + id, swap: "outerHTML" });
-      }, 400));
+        keepOpen(el, next);
+        var fresh = document.importNode(next, true);
+        el.replaceWith(fresh);
+        if (typeof htmx !== "undefined") {
+          htmx.process(fresh);
+        }
+        fresh.classList.add("refreshed");
+        window.setTimeout(function () { fresh.classList.remove("refreshed"); }, 900);
+      });
+      restoreGraphs();
+    }).catch(function () { setLive(false, "offline"); });
+  }
+
+  // keepOpen carries the open state of details groups with an id from the
+  // region on the page to its replacement.
+  function keepOpen(from, to) {
+    from.querySelectorAll("details[id]").forEach(function (d) {
+      var twin = to.querySelector("#" + CSS.escape(d.id));
+      if (twin) {
+        twin.open = d.open;
+      }
     });
   }
 
