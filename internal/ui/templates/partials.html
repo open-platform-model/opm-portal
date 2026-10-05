@@ -142,10 +142,10 @@
       {{with .Health}}{{with .Message}}<p class="object-why">{{.}}</p>{{end}}{{end}}
       {{if .ChildrenUnread}}<p class="object-why muted">Its Pods could not be read, so its health is its own status alone.</p>{{end}}
       {{with .Children}}<ul class="children">{{range .}}{{template "child" .}}{{end}}</ul>{{end}}
-      {{with .Old}}
+      {{if .Old}}
       <details class="old-revs" id="{{.OldID}}">
-        <summary>{{len .}} old {{if eq (len .) 1}}revision{{else}}revisions{{end}} <span class="muted">scaled to zero</span></summary>
-        <ul class="children">{{range .}}{{template "child" .}}{{end}}</ul>
+        <summary>{{len .Old}} old {{if eq (len .Old) 1}}revision{{else}}revisions{{end}} <span class="muted">scaled to zero</span></summary>
+        <ul class="children">{{range .Old}}{{template "child" .}}{{end}}</ul>
       </details>
       {{end}}
     </li>

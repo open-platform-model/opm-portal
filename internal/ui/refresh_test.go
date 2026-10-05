@@ -1,11 +1,14 @@
 package ui
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
@@ -117,11 +120,39 @@ func TestPaneIDsKeepNamesApart(t *testing.T) {
 }
 
 // TestOldRevisionsFoldHasAnID: the fold of scaled-down ReplicaSets carries
-// an id, so a refresh keeps it open.
+// an id, so a refresh keeps it open. F1 holds no scaled-down ReplicaSet, so
+// the test adds a copy of podinfo's, scaled to zero.
 func TestOldRevisionsFoldHasAnID(t *testing.T) {
-	main := mainOf(newSite(t, apitest.F1Broken(t), apitest.AllowAll).get(t, "/instances/default/podinfo").body)
-	if strings.Contains(main, `<details class="old-revs">`) {
-		t.Error("an old-revisions fold has no id")
+	objs := apitest.F1(t)
+	var rs *unstructured.Unstructured
+	for _, o := range objs {
+		if o.GetKind() == "ReplicaSet" && o.GetNamespace() == "default" && strings.HasPrefix(o.GetName(), "podinfo-podinfo-") {
+			rs = o
+			break
+		}
+	}
+	if rs == nil {
+		t.Fatal("F1 holds no podinfo ReplicaSet")
+	}
+	old := rs.DeepCopy()
+	old.SetName("podinfo-podinfo-0ld0ld0ld")
+	old.SetUID("old-revision")
+	for _, f := range [][]string{{"spec", "replicas"}, {"status", "replicas"}, {"status", "readyReplicas"}, {"status", "availableReplicas"}} {
+		if err := unstructured.SetNestedField(old.Object, int64(0), f...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	objs = append(objs, old)
+	res := newSite(t, objs, apitest.AllowAll).get(t, "/instances/default/podinfo")
+	if res.status != http.StatusOK {
+		t.Fatalf("GET = %d\n%s", res.status, res.body)
+	}
+	fold := regexp.MustCompile(`<details class="old-revs" id="([^"]+)">`).FindStringSubmatch(res.body)
+	if fold == nil {
+		t.Fatalf("no old-revisions fold with an id:\n%s", between(mainOf(res.body), `id="components"`, "</section>"))
+	}
+	if want := domID("old", "apps", "Deployment", "default", "podinfo-podinfo"); fold[1] != want {
+		t.Errorf("fold id %q, want %q", fold[1], want)
 	}
 }
 
