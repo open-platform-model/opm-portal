@@ -650,7 +650,7 @@ kind) and over F1:
 - **Image break on an open page**: the cluster reported the broken Pod 2.008 s after the patch,
   and the stream delivered Degraded 104 ms later, with Applied unchanged.
 - **Screenshots**: twelve pages in light and dark at 1440 px and light at 360 px, over F1 with
-  Chromium; [evidence 04](../../../docs/design/evidence/04-ui-redesign-screenshots/) keeps twelve
+  Chromium; [evidence 04](../../../../docs/design/evidence/04-ui-redesign-screenshots/) keeps twelve
   of the 38 shots. No page scrolls horizontally at either width (`scrollWidth` equals the
   viewport on all 36 page shots). The Platform page, the instance graph, the Provider tab and the
   phone-width Installed list match the canvas closely.
