@@ -244,11 +244,11 @@ viewport. Source: portal:D14:R1/R4.
 - **THEN** browser storage holds only the theme key and one filter query per list view, and no
   document field, username or token
 
-### Requirement: In-cluster pages show no operator text
+### Requirement: In-cluster pages show no controller text
 
 Pages served over an `in-cluster` read API SHALL show no condition message (the conditions of a
 registration included), reconcile message, history message, registration message or note of an
-event the operator reported, because the read API does not serve them; they SHALL still show every
+event the controller reported, because the read API does not serve them; they SHALL still show every
 reason, state, history outcome, provider standing and the portal's meaning and next step, and
 SHALL show the kubelet's and other controllers' event notes and the health messages of rendered
 workloads as local mode does. Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the
@@ -258,7 +258,7 @@ supervisor ruling recorded under portal:D8.
 
 - **WHEN** the instance page of the image-break sample is rendered over an in-cluster read API
 - **THEN** it shows the applied and health badges, each condition's reason, meaning and next
-  step, and no message text the operator wrote
+  step, and no message text the controller wrote
 
 #### Scenario: A Pod's events in-cluster
 
@@ -269,7 +269,7 @@ supervisor ruling recorded under portal:D8.
 
 - **WHEN** backup-provider's page is rendered over an in-cluster read API
 - **THEN** its attempt dots keep their outcomes, its registration conditions show type, status,
-  reason and meaning, and no message text the operator wrote appears
+  reason and meaning, and no message text the controller wrote appears
 
 ### Requirement: An expired session stops the page's stream
 
@@ -589,7 +589,7 @@ readable Platform and the readable registrations do not name SHALL render not fo
 
 #### Scenario: The contributed backup catalog
 
-- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` on the
+- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0` on the
   F1 capture
 - **THEN** it shows version `0.1.0`, origin from a provider, contributed by
   `default.backup-provider` held by `default/backup-provider`, and resolved
@@ -608,7 +608,7 @@ readable Platform and the readable registrations do not name SHALL render not fo
 #### Scenario: Platform forbidden
 
 - **WHEN** a caller who may not get the Platform opens
-  `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` and
+  `/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0` and
   `/catalog?path=example.com/nothing@v0`
 - **THEN** both render the same locked page with status `403`
 
@@ -616,14 +616,14 @@ readable Platform and the readable registrations do not name SHALL render not fo
 
 Page text SHALL name kinds in the words a platform team uses: "Providers" for
 TransformerRegistrations and the instances and packages that hold them, "Installed" for
-ModuleInstances and ModulePackages, and "controller" for the opm-operator. The read API's
-`operatorVersion` SHALL be labelled "Controller version", and its owner value `operator` SHALL
-read "controller". The YAML view shows objects as the cluster serves them and is exempt. Source:
+ModuleInstances and ModulePackages, and "controller" for opm-controller. The read API's
+`controllerVersion` SHALL be labelled "Controller version", and its owner values `controller` and
+`cli` SHALL read as they are. The YAML view shows objects as the cluster serves them and is exempt. Source:
 portal:D17:R2.
 
 #### Scenario: The owner column
 
-- **WHEN** the Installed list shows an instance whose owner is `operator` in the read API
+- **WHEN** the Installed list shows an instance whose owner is `controller` in the read API
 - **THEN** its owner cell reads "controller"
 
 ### Requirement: Locked things render locked on every page

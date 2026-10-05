@@ -7,7 +7,6 @@ as two axes that never merge.
 
 ## Requirements
 
-
 ### Requirement: Object health follows the Kubernetes status rules
 
 The portal SHALL compute each readable object's health from the standard Kubernetes status
@@ -110,7 +109,43 @@ object was refreshed by polling. Source: portal:D3:R4/R5.
 - **THEN** the instance's result is not live and carries that object's evaluation time if it
   is the oldest
 
-### Requirement: Applied state is read from the operator's conditions
+### Requirement: Registration verdicts come from the status fields
+
+The portal SHALL read a TransformerRegistration's acceptance and activation from
+`status.accepted` and `status.active`, an absent field meaning false, and SHALL report a verdict
+of Accepted, Refused, Pending, RemovalBlocked or Unknown. A registration whose `Ready` reason is
+`DependentsRemain` SHALL be RemovalBlocked and keep its accepted and active values, never
+Refused. For a TransformerRegistration the verdict, not the applied state, SHALL decide how it
+is shown: a refusal and a blocked removal are both Stalled on the applied axis.
+Source: portal:D4:R4/R7.
+
+#### Scenario: Refused claim
+
+- **WHEN** a captured refused claim (`Stalled=True` and `Ready=False/ProvidesMismatch`, no
+  `accepted` or `active` field) is read
+- **THEN** it is not accepted, not active, and its verdict is Refused with reason
+  `ProvidesMismatch`
+
+#### Scenario: Accepted and active claim
+
+- **WHEN** the captured claim with `accepted: true`, `active: true`, `Ready=True/Accepted` and
+  `Active=True/ProviderReady` is read
+- **THEN** it is accepted and active and its verdict is Accepted
+
+#### Scenario: Removal blocked
+
+- **WHEN** the captured claim deleted while a consumer demands its contract
+  (`Stalled=True` and `Ready=False/DependentsRemain`, `accepted: true`, `active: true`) is read
+- **THEN** its verdict is RemovalBlocked with the controller's message, and it stays accepted and
+  active
+
+#### Scenario: Applied state does not separate refusal from removal
+
+- **WHEN** the captured refused claim and the captured removal-blocked claim are read on both
+  axes
+- **THEN** both applied states are Stalled, and the verdicts are Refused and RemovalBlocked
+
+### Requirement: Applied state is read from the controller's conditions
 
 The portal SHALL read a ModuleInstance's, ModulePackage's, Platform's or
 TransformerRegistration's applied state from its conditions and spec as exactly one of Applied,
@@ -155,7 +190,7 @@ that never change the state. Source: portal:D3:R1/R6/R7/R8.
 - **WHEN** the captured ModulePackage with `Ready=False/SourceNotReady` is read
 - **THEN** its applied state is Failed with reason `SourceNotReady`
 
-#### Scenario: Spec edited, operator not caught up
+#### Scenario: Spec edited, controller not caught up
 
 - **WHEN** the captured podinfo ModuleInstance is read with its generation one past the
   `observedGeneration` of its `Ready=True` condition
@@ -163,48 +198,12 @@ that never change the state. Source: portal:D3:R1/R6/R7/R8.
 
 #### Scenario: Unknown kind
 
-- **WHEN** an object of a kind other than the four operator kinds is read
+- **WHEN** an object of a kind other than the four controller kinds is read
 - **THEN** its applied state is Unknown
 
-### Requirement: Registration verdicts come from the status fields
+### Requirement: Every controller condition reason has an explanation
 
-The portal SHALL read a TransformerRegistration's acceptance and activation from
-`status.accepted` and `status.active`, an absent field meaning false, and SHALL report a verdict
-of Accepted, Refused, Pending, RemovalBlocked or Unknown. A registration whose `Ready` reason is
-`DependentsRemain` SHALL be RemovalBlocked and keep its accepted and active values, never
-Refused. For a TransformerRegistration the verdict, not the applied state, SHALL decide how it
-is shown: a refusal and a blocked removal are both Stalled on the applied axis.
-Source: portal:D4:R4/R7.
-
-#### Scenario: Refused claim
-
-- **WHEN** a captured refused claim (`Stalled=True` and `Ready=False/ProvidesMismatch`, no
-  `accepted` or `active` field) is read
-- **THEN** it is not accepted, not active, and its verdict is Refused with reason
-  `ProvidesMismatch`
-
-#### Scenario: Accepted and active claim
-
-- **WHEN** the captured claim with `accepted: true`, `active: true`, `Ready=True/Accepted` and
-  `Active=True/ProviderReady` is read
-- **THEN** it is accepted and active and its verdict is Accepted
-
-#### Scenario: Removal blocked
-
-- **WHEN** the captured claim deleted while a consumer demands its contract
-  (`Stalled=True` and `Ready=False/DependentsRemain`, `accepted: true`, `active: true`) is read
-- **THEN** its verdict is RemovalBlocked with the operator's message, and it stays accepted and
-  active
-
-#### Scenario: Applied state does not separate refusal from removal
-
-- **WHEN** the captured refused claim and the captured removal-blocked claim are read on both
-  axes
-- **THEN** both applied states are Stalled, and the verdicts are Refused and RemovalBlocked
-
-### Requirement: Every operator condition reason has an explanation
-
-The portal SHALL hold, for every reason the operator writes into a condition, a short meaning
+The portal SHALL hold, for every reason the controller writes into a condition, a short meaning
 and, where a person can act, a next step. A reason the portal does not know SHALL be shown
 raw, with no explanation and no error. Explanations SHALL NOT cite enhancement decisions.
 
@@ -215,10 +214,10 @@ raw, with no explanation and no error. Explanations SHALL NOT cite enhancement d
 
 #### Scenario: Unknown reason
 
-- **WHEN** the explanation for a reason the operator does not write is requested
+- **WHEN** the explanation for a reason the controller does not write is requested
 - **THEN** no explanation is returned
 
-#### Scenario: Operator adds a reason
+#### Scenario: Controller adds a reason
 
-- **WHEN** the copied list of operator reasons gains a reason the table has no row for
+- **WHEN** the copied list of controller reasons gains a reason the table has no row for
 - **THEN** the test suite fails, naming the reason

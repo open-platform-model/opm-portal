@@ -18,7 +18,7 @@ to catalog; the registration's
 `spec.providerRef` for registration to provider instance; `spec.module` for instance to module;
 `spec.sourceRef` and `spec.dependsOn` for package to source and to package; `status.inventory`
 for owner to component and component to object; controller `metadata.ownerReferences` for object
-to runtime child. A `spec.dependsOn` entry naming another namespace, which the operator refuses,
+to runtime child. A `spec.dependsOn` entry naming another namespace, which the controller refuses,
 SHALL be drawn unverified with reason `ForeignNamespace`. Source: portal:D4:R1.
 
 #### Scenario: cert-manager's edges
@@ -33,7 +33,7 @@ SHALL be drawn unverified with reason `ForeignNamespace`. Source: portal:D4:R1.
 - **THEN** registration `default.refused-claim-fixture` has no `contributes` edge, because its
   `spec.catalog` is in no registry entry, and its node still names that catalog as text
 - **AND** registration `default.backup-provider` contributes to
-  `testing.opmodel.dev/catalogs/operator/backup@v0`
+  `testing.opmodel.dev/catalogs/controller/backup@v0`
 
 #### Scenario: Dependency in another namespace
 
@@ -42,7 +42,7 @@ SHALL be drawn unverified with reason `ForeignNamespace`. Source: portal:D4:R1.
 
 #### Scenario: Duplicate claim on a contributed catalog
 
-- **WHEN** a second registration claims `testing.opmodel.dev/catalogs/operator/backup@v0` and is
+- **WHEN** a second registration claims `testing.opmodel.dev/catalogs/controller/backup@v0` and is
   refused as a duplicate, accepted but not active, or claims another version
 - **THEN** it has no `contributes` edge, and `default.backup-provider` still contributes
 
@@ -103,7 +103,7 @@ Source: portal:D4:R4/R7.
 
 - **WHEN** the platform graph is built from the F1 capture
 - **THEN** node `treg:default.refused-claim-fixture` is neither accepted nor active, its verdict
-  is `Refused` with reason `CatalogUnresolved` and the operator's message
+  is `Refused` with reason `CatalogUnresolved` and the controller's message
 - **AND** node `treg:default.backup-provider` is accepted and active with verdict `Accepted`
 
 ### Requirement: Configuration components are grouped by default

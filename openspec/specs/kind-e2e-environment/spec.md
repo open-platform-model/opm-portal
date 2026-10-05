@@ -17,8 +17,9 @@ and SHALL record the provider so `task e2e:capture` and `task e2e:down` use it w
 release. It SHALL download the `opm` CLI release pinned in `versions.env`, SHALL compare the
 archive's sha256 with the pinned value for the host's platform before every extraction, including
 from a cached archive, and SHALL stop with a non-zero exit on a mismatch. It SHALL install the
-opm-operator release `OPM_OPERATOR_VERSION` names (the CLI's embedded version when it is empty)
-without the CLI's Platform, and SHALL apply a cluster Platform subscribed to the catalog version
+`opm_controller` module version `OPM_CONTROLLER_VERSION` names, with
+`opm controller install --version` (the version the CLI pins when it is empty), without the CLI's
+Platform, and SHALL apply a cluster Platform subscribed to the catalog version
 `versions.env` pins. Container images a fixture module chooses itself (cert-manager's three
 images share one digest field, podinfo's is set by its test module) are pinned by tag only; the
 CLI-owned instance's image is pinned by digest.
@@ -26,7 +27,7 @@ CLI-owned instance's image is pinned by digest.
 #### Scenario: Fresh environment
 
 - **WHEN** a developer runs `task e2e:up` with no cluster named `opm-portal-e2e`
-- **THEN** the cluster exists, the operator Deployment is available, the cluster Platform is
+- **THEN** the cluster exists, the controller Deployment is available, the cluster Platform is
   `Ready=True`, and the kubeconfig is written to `.e2e/kubeconfig`
 
 #### Scenario: Tampered download
@@ -78,49 +79,6 @@ fixture cluster it names.
 
 - **WHEN** `.e2e/kubeconfig` names a server that is not on a loopback address
 - **THEN** `task e2e:capture` exits non-zero without reading any object
-
-### Requirement: The F1 fixture set covers the states the portal renders
-
-`task e2e:up` SHALL apply the fixture set F1 and wait until it settles: cert-manager
-(`opmodel.dev/modules/cert_manager@v2`) under an applier ServiceAccount allowed to write
-cluster-scoped kinds, the operator's podinfo test module, a ModulePackage on a cluster without
-Flux, the backup provider and backup consumer test modules (`testing.opmodel.dev/...`), and a
-CLI-owned `web_app` instance applied with `opm instance apply`, and a deliberate refusal
-fixture: a TransformerRegistration applied by hand, labelled
-`e2e.opmodel.dev/fixture: deliberate-refusal`, naming a catalog published nowhere and providing
-no contract, so golden suites keep a refused registration whichever operator is installed. It
-SHALL fail when cert-manager, podinfo, backup-provider or the CLI-owned instance does not become
-ready, or when the deliberate refusal fixture gets no verdict or is accepted, and SHALL record,
-without failing, the state of the ModulePackage, the backup claim and the backup consumer.
-
-#### Scenario: Released operator refuses the backup claim
-
-- **WHEN** the installed operator is built on a library older than v1.0.0-beta.2
-- **THEN** `task e2e:up` succeeds, prints the claim's `Ready` reason, and the capture's
-  `meta.yaml` marks the claim as not accepted and active
-
-#### Scenario: Operator accepts the backup claim
-
-- **WHEN** the installed operator accepts the claim
-- **THEN** the capture's `meta.yaml` records `accepted: true` and `active: true` for it with no
-  note
-
-#### Scenario: Deliberate refusal fixture
-
-- **WHEN** `task e2e:up` applies the claim `default.refused-claim-fixture`
-- **THEN** the operator refuses it (`Ready=False`, no `status.accepted` or `status.active`), and
-  the capture's `meta.yaml` records it with `deliberateRefusal: true` and a note saying it is
-  refused on purpose
-
-#### Scenario: Deliberate refusal fixture accepted
-
-- **WHEN** the installed operator accepts `default.refused-claim-fixture`
-- **THEN** `task e2e:up` exits non-zero and prints the claim's conditions
-
-#### Scenario: A required fixture never becomes ready
-
-- **WHEN** the podinfo ModuleInstance is not `Ready=True` within its timeout
-- **THEN** `task e2e:up` exits non-zero and prints that instance's conditions
 
 ### Requirement: A capture holds only what the portal may serve
 
@@ -174,7 +132,7 @@ the `Test` check run it on every pull request. Source: portal:D8.
 fail unless, through the read API and its stream: the Platform shows `default.backup-provider`
 accepted and active and contributing the backup catalog, and `default.refused-claim-fixture`
 refused with its reason and message; the instance list shows each F1 instance's applied state
-and health as two values (the operator's instances Applied and Healthy, the CLI-owned `web/web`
+and health as two values (the controller's instances Applied and Healthy, the CLI-owned `web/web`
 ManagedExternally and Healthy); the `web/web` page reads "Managed externally"; and a
 ServiceAccount that may read the OPM kinds only in `default`, run with `--namespaces default`,
 lists `default`'s instances only, gets forbidden for every other list, object and the Platform,
@@ -229,7 +187,7 @@ secrets. No pull request check SHALL depend on this workflow.
 
 #### Scenario: Verdict drift
 
-- **WHEN** a nightly capture records a different `Ready` reason, claim verdict, operator or
+- **WHEN** a nightly capture records a different `Ready` reason, claim verdict, controller or
   catalog version than the committed `meta.yaml`
 - **THEN** the workflow run fails and its summary shows the difference
 
@@ -272,3 +230,46 @@ and context the other e2e tasks use. Source: portal:D13:R1/R2.
 
 - **WHEN** a change makes the Pod fail to start or the role lose `list` on `moduleinstances`
 - **THEN** `task e2e:pod` fails, at the rollout wait or in `TestPod`'s instance list
+
+### Requirement: The F1 fixture set covers every state the portal renders
+
+`task e2e:up` SHALL apply the fixture set F1 and wait until it settles: cert-manager
+(`opmodel.dev/modules/cert_manager@v2`) under an applier ServiceAccount allowed to write
+cluster-scoped kinds, the controller's podinfo test module, a ModulePackage on a cluster without
+Flux, the backup provider and backup consumer test modules (`testing.opmodel.dev/...`), and a
+CLI-owned `web_app` instance applied with `opm instance apply`, and a deliberate refusal
+fixture: a TransformerRegistration applied by hand, labelled
+`e2e.opmodel.dev/fixture: deliberate-refusal`, naming a catalog published nowhere and providing
+no contract, so golden suites keep a refused registration whichever controller is installed. It
+SHALL fail when cert-manager, podinfo, backup-provider or the CLI-owned instance does not become
+ready, or when the deliberate refusal fixture gets no verdict or is accepted, and SHALL record,
+without failing, the state of the ModulePackage, the backup claim and the backup consumer.
+
+#### Scenario: Released controller refuses the backup claim
+
+- **WHEN** the installed controller is built on a library older than v1.0.0-beta.2
+- **THEN** `task e2e:up` succeeds, prints the claim's `Ready` reason, and the capture's
+  `meta.yaml` marks the claim as not accepted and active
+
+#### Scenario: Controller accepts the backup claim
+
+- **WHEN** the installed controller accepts the claim
+- **THEN** the capture's `meta.yaml` records `accepted: true` and `active: true` for it with no
+  note
+
+#### Scenario: Deliberate refusal fixture
+
+- **WHEN** `task e2e:up` applies the claim `default.refused-claim-fixture`
+- **THEN** the controller refuses it (`Ready=False`, no `status.accepted` or `status.active`), and
+  the capture's `meta.yaml` records it with `deliberateRefusal: true` and a note saying it is
+  refused on purpose
+
+#### Scenario: Deliberate refusal fixture accepted
+
+- **WHEN** the installed controller accepts `default.refused-claim-fixture`
+- **THEN** `task e2e:up` exits non-zero and prints the claim's conditions
+
+#### Scenario: A required fixture never becomes ready
+
+- **WHEN** the podinfo ModuleInstance is not `Ready=True` within its timeout
+- **THEN** `task e2e:up` exits non-zero and prints that instance's conditions
