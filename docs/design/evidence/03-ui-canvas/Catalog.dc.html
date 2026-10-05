@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OPM Portal: catalog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+.opm-hdr{transition:padding .2s ease,box-shadow .2s ease}
+.opm-hdr > a{transition:font-size .2s ease}
+.opm-hdr.is-compact{padding-top:5px!important;padding-bottom:5px!important;box-shadow:0 8px 20px -12px rgb(0 0 0 / 55%)}
+.opm-hdr.is-compact > a{font-size:15px!important}
+.opm-hdr.is-compact > a svg{width:18px;height:18px}
+.opm-hdr.is-compact nav a{padding-top:4px!important;padding-bottom:4px!important}
+.opm-hdr.is-compact button[aria-haspopup]{width:30px!important;height:30px!important}
+@media (prefers-reduced-motion: reduce){.opm-hdr,.opm-hdr > a{transition:none}}
+.opm-tip{position:relative;display:inline-flex;outline-offset:2px}
+.opm-tip .opm-tipbox{display:none;position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:300px;padding:10px 12px;border-radius:8px;background:#1d2430;color:#ebe6da;font-size:13px;line-height:1.45;font-weight:400;letter-spacing:normal;text-transform:none;z-index:50;box-shadow:0 10px 24px -10px rgb(0 0 0 / 55%)}
+.opm-tip:hover .opm-tipbox,.opm-tip:focus .opm-tipbox,.opm-tip:focus-within .opm-tipbox{display:block}
+.opm-menu button:hover{background:#2a3240}
+:root{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-1d4796: #1d4796; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-8f96a3: #8f96a3; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-ffffff: #ffffff; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-2458b8: #2458b8; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #6a6f7a; --pt-8a5a00: #8a5a00; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dde6f7: #dde6f7; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eaf5ee: #eaf5ee; --pt-edf2fb: #edf2fb; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf3e2: #fbf3e2; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; color-scheme: light;}
+@media (prefers-color-scheme: dark){:root{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-1d4796: #9dbcf7; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-8f96a3: #8f96a3; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-ffffff: #0c0f14; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-2458b8: #7ea6f2; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #8f96a3; --pt-8a5a00: #e3b45c; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dde6f7: #17233d; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eaf5ee: #102019; --pt-edf2fb: #121b2e; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf3e2: #261d0b; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; color-scheme: dark;}}
+[data-theme="light"]{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-1d4796: #1d4796; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-8f96a3: #8f96a3; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-ffffff: #ffffff; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-2458b8: #2458b8; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #6a6f7a; --pt-8a5a00: #8a5a00; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dde6f7: #dde6f7; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eaf5ee: #eaf5ee; --pt-edf2fb: #edf2fb; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf3e2: #fbf3e2; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; color-scheme: light;}
+[data-theme="dark"]{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-1d4796: #9dbcf7; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-8f96a3: #8f96a3; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-ffffff: #0c0f14; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-2458b8: #7ea6f2; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #8f96a3; --pt-8a5a00: #e3b45c; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dde6f7: #17233d; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eaf5ee: #102019; --pt-edf2fb: #121b2e; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf3e2: #261d0b; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; color-scheme: dark;}
+body{margin:0;background:var(--pt-efe9dc);color:var(--fg-141820);font-family:"Space Grotesk","Avenir Next",sans-serif}
+a{color:var(--fg-8a5a00)}a:hover{color:var(--fg-5e3d00)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px}
+.opm-pop{position:relative;display:inline-flex}
+.opm-pop .opm-popbox{display:none;position:absolute;left:0;top:100%;padding-top:8px;z-index:60}
+.opm-pop:hover .opm-popbox,.opm-pop:focus-within .opm-popbox{display:block}
+</style>
+</helmet>
+<div data-theme="{{themeAttr}}" style="min-height: 100vh; color: var(--fg-141820); background: var(--pt-efe9dc);">
+  <header class="opm-hdr {{hdrCompact}}" style="position: sticky; top: 0; z-index: 800; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 14px 40px; background: var(--hdr); color: var(--fg-efe9dc);">
+    <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; color: var(--fg-efe9dc); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: 0.02em;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e3b45c" stroke-width="2"><path d="M12 2 21 7v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg>
+      OPM Portal
+    </a>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" aria-current="page" style="padding: 8px 14px; border-radius: 8px; background: var(--rgb5); color: var(--fg-e3b45c); text-decoration: none; font-weight: 600;">Platform</a>
+      <a href="Instances.dc.html" style="padding: 8px 14px; border-radius: 8px; color: var(--fg-c4c0b5); text-decoration: none;">Installed</a>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--fg-c4c0b5); flex-wrap: wrap;">
+      <span class="mono" style="padding: 4px 10px; border: 1px solid var(--pt-3a4352); border-radius: 999px;">kind-opm-portal-e2e</span>
+      <span>reading as <span class="mono" style="color: var(--fg-ebe6da);">kubernetes-admin</span></span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--pt-3fbf86);"></span>Live</span>
+      <span style="position: relative; display: inline-flex;">
+        <button type="button" onClick="{{toggleThemeMenu}}" aria-haspopup="menu" aria-expanded="{{themeMenuOpenAttr}}" aria-label="{{themeLabel}}" title="{{themeLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #ebe6da; cursor: pointer;">
+          <sc-if value="{{themeIsSystem}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"></path></svg></sc-if>
+          <sc-if value="{{themeIsDark}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></sc-if>
+          <sc-if value="{{themeIsLight}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+        </button>
+        <sc-if value="{{themeMenuOpen}}" hint-placeholder-val="{{false}}">
+          <div class="opm-menu" role="menu" aria-label="Theme" style="position: absolute; right: 0; top: 44px; z-index: 1100; min-width: 160px; display: flex; flex-direction: column; padding: 6px; border-radius: 10px; border: 1px solid #3a4352; background: #1d2430; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+            <sc-for list="{{themeOptions}}" as="t" hint-placeholder-count="3">
+              <button type="button" role="menuitemradio" aria-checked="{{t.checkedAttr}}" onClick="{{t.pick}}" style="{{t.style}}"><span>{{t.label}}</span><sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </span>
+    </div>
+  </header>
+
+  <main style="max-width: 1840px; margin: 0 auto; padding: 24px 40px 56px; display: flex; flex-direction: column; gap: 20px;">
+    <nav aria-label="Breadcrumb" style="font-size: 14px; color: var(--fg-6a6f7a); display: flex; gap: 8px;">
+      <a href="Main.dc.html">Platform</a><span>/</span><a href="Main.dc.html" onClick="{{toCatalogList}}">Catalogs</a><span>/</span><span class="mono" style="color: var(--fg-141820);">{{c.short}}</span>
+    </nav>
+
+    <section aria-label="Summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; align-items: stretch;">
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 12px;">
+        <span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;"><span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">Catalog</span><span style="{{c.originPill}}">{{c.origin}}</span></span>
+        <h1 style="margin: 0; font-size: 40px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; overflow-wrap: anywhere;">{{c.short}}</h1>
+        <span class="mono" style="color: var(--fg-3a4150); overflow-wrap: anywhere;">{{c.path}} · {{c.version}}</span>
+        <span style="font-size: 14px; color: var(--fg-3a4150); line-height: 1.5;">{{c.desc}}</span>
+        <dl style="margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+          <sc-for list="{{c.facts}}" as="f" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px;">
+              <dt style="color: var(--fg-6a6f7a);">{{f.k}}</dt>
+              <dd style="margin: 0; overflow-wrap: anywhere;">
+                <sc-if value="{{f.isLink}}" hint-placeholder-val="{{false}}"><a class="mono" href="{{f.href}}">{{f.v}}</a></sc-if>
+                <sc-if value="{{f.isText}}" hint-placeholder-val="{{true}}"><span style="{{f.style}}">{{f.v}}</span></sc-if>
+              </dd>
+            </div>
+          </sc-for>
+        </dl>
+      </div>
+      <sc-for list="{{blocks}}" as="b" hint-placeholder-count="2">
+        <section aria-label="{{b.aria}}" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; border: 2px solid {{b.border}}; border-radius: 12px; background: {{b.tint}};">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">{{b.eyebrow}}</span>
+            <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{b.when}}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: {{b.border}}; color: var(--fg-ffffff); flex: none;">
+              <sc-if value="{{b.isGood}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if>
+              <sc-if value="{{b.isBad}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 6v8M12 18v.5"></path></svg></sc-if>
+              <sc-if value="{{b.isWait}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4.5l3 2"></path></svg></sc-if>
+            </span>
+            <span style="font-size: 26px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: {{b.ink}};">{{b.state}}</span>
+          </div>
+          <span style="font-size: 15px; color: var(--fg-3a4150);">{{b.summary}}</span>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 28px;">
+            <sc-for list="{{b.reasons}}" as="r" hint-placeholder-count="1">
+              <button type="button" onClick="{{r.go}}" style="display: inline-flex; align-items: baseline; gap: 6px; min-height: 28px; padding: 2px 0; border: none; background: none; font: inherit; cursor: pointer; color: {{b.ink}}; text-decoration: underline; text-underline-offset: 3px;"><strong style="font-size: 16px;">{{r.count}}</strong><span class="mono" style="font-size: 14px;">{{r.type}}</span></button>
+            </sc-for>
+            <sc-if value="{{b.noReasons}}" hint-placeholder-val="{{false}}"><span style="font-size: 14px; color: var(--fg-6a6f7a);">{{b.noReasonText}}</span></sc-if>
+          </div>
+        </section>
+      </sc-for>
+    </section>
+
+    <div role="tablist" aria-label="Views" style="display: flex; gap: 4px; border-bottom: 1px solid var(--pt-d6ccb8); flex-wrap: wrap;">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="6">
+        <button type="button" role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{showDefs}}" hint-placeholder-val="{{true}}">
+      <section aria-label="Definitions" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb);">
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 260px; max-width: 420px;"><label for="def-q" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Search</label><input id="def-q" type="search" value="{{defQ}}" onChange="{{onDefQ}}" placeholder="Name or description" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); cursor: text;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 200px;"><label for="def-kind" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Kind</label><select id="def-kind" value="{{defKind}}" onChange="{{onDefKind}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{defKindOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 220px;"><label for="def-fulfil" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Rendered by</label><select id="def-fulfil" value="{{defFulfil}}" onChange="{{onDefFulfil}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{defFulfilOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <span style="margin-left: auto; align-self: center; font-size: 14px; color: var(--fg-3a4150);">Showing <strong>{{defShown}}</strong> of {{defTotal}}</span>
+          <sc-if value="{{anyDefFilter}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{clearDefFilters}}" style="min-height: 40px; padding: 4px 10px; border: none; background: none; color: var(--fg-8a5a00); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; align-self: center;">Clear filters</button></sc-if>
+        </div>
+        <div style="display: grid; grid-template-columns: 190px 100px 90px minmax(0, 1.4fr) minmax(0, 1fr) 90px; gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);"><span>Definition</span><span>Kind</span><span>Version</span><span>Rendered by</span><span>Description</span><span style="text-align: right;">Used by</span></div>
+        <sc-for list="{{defs}}" as="d" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: 190px 100px 90px minmax(0, 1.4fr) minmax(0, 1fr) 90px; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+            <span class="opm-pop" style="justify-self: start;">
+                  <a href="{{d.href}}" target="_blank" rel="noopener" aria-describedby="{{d.tipId}}" style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font-size: 13px; font-weight: 600; text-decoration: none;">#{{d.name}}</a>
+                  <span class="opm-popbox">
+                    <span id="{{d.tipId}}" role="tooltip" style="display: flex; flex-direction: column; gap: 8px; width: 340px; padding: 14px 16px; border-radius: 10px; background: #1d2430; color: var(--fg-ebe6da); font-size: 13px; line-height: 1.5; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+                      <span style="display: flex; align-items: center; gap: 8px;"><span style="padding: 2px 8px; border-radius: 5px; border: 1px solid #5f6a7c; color: var(--fg-c4c0b5); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">{{d.kind}}</span><strong style="font-size: 15px; color: var(--fg-ebe6da);">{{d.name}}</strong></span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-8f96a3); overflow-wrap: anywhere;">{{d.path}}</span>
+                      <span style="color: var(--fg-c4c0b5);">{{d.desc}}</span>
+                      <a href="{{d.href}}" target="_blank" rel="noopener" style="align-self: flex-start; color: var(--fg-e3b45c); font-weight: 600;">Open the {{d.kindLower}} documentation ↗</a>
+                    </span>
+                  </span>
+                </span>
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3a4150); padding-top: 4px;">{{d.kind}}</span>
+            <span class="mono" style="padding-top: 3px;">{{d.version}}</span>
+            <span style="display: flex; flex-direction: column; gap: 4px; padding-top: 2px;">
+              <sc-if value="{{d.byCatalog}}" hint-placeholder-val="{{true}}"><span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{d.renderedBy}}</span></sc-if>
+              <sc-if value="{{d.byProvider}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px;">Provider <a class="mono" href="{{d.providerHref}}">{{d.provider}}</a></span></sc-if>
+              <sc-if value="{{d.noProvider}}" hint-placeholder-val="{{false}}"><span style="{{d.waitBadge}}">No provider yet</span></sc-if>
+            </span>
+            <span style="font-size: 13px; color: var(--fg-3a4150); line-height: 1.5;">{{d.desc}}</span>
+            <span style="text-align: right; color: var(--fg-3a4150); padding-top: 2px;">{{d.usedBy}}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{noDefs}}" hint-placeholder-val="{{false}}"><div style="padding: 24px 0; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">{{noDefsText}}</div></sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showContracts}}" hint-placeholder-val="{{false}}">
+      <section aria-label="Provider contracts" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <p style="margin: 12px 0 4px; max-width: 980px; font-size: 14px; line-height: 1.55; color: var(--fg-3a4150);">{{contractIntro}}</p>
+        <div style="display: grid; grid-template-columns: 170px minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 1.3fr); gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);"><span>Contract</span><span>Provider</span><span>Status</span><span>Used by</span></div>
+        <sc-for list="{{contracts}}" as="k" hint-placeholder-count="2">
+          <div style="display: grid; grid-template-columns: 170px minmax(0, 0.9fr) minmax(0, 1.3fr) minmax(0, 1.3fr); gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+            <span class="opm-pop" style="justify-self: start;">
+                  <a href="{{k.href}}" target="_blank" rel="noopener" aria-describedby="{{k.tipId}}" style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font-size: 13px; font-weight: 600; text-decoration: none;">#{{k.name}}</a>
+                  <span class="opm-popbox">
+                    <span id="{{k.tipId}}" role="tooltip" style="display: flex; flex-direction: column; gap: 8px; width: 340px; padding: 14px 16px; border-radius: 10px; background: #1d2430; color: var(--fg-ebe6da); font-size: 13px; line-height: 1.5; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+                      <span style="display: flex; align-items: center; gap: 8px;"><span style="padding: 2px 8px; border-radius: 5px; border: 1px solid #5f6a7c; color: var(--fg-c4c0b5); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">{{k.kind}}</span><strong style="font-size: 15px; color: var(--fg-ebe6da);">{{k.name}}</strong></span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-8f96a3); overflow-wrap: anywhere;">{{k.path}}</span>
+                      <span style="color: var(--fg-c4c0b5);">{{k.desc}}</span>
+                      <a href="{{k.href}}" target="_blank" rel="noopener" style="align-self: flex-start; color: var(--fg-e3b45c); font-weight: 600;">Open the {{k.kindLower}} documentation ↗</a>
+                    </span>
+                  </span>
+                </span>
+            <span style="display: flex; flex-direction: column; gap: 2px; padding-top: 3px;">
+              <sc-if value="{{k.hasProvider}}" hint-placeholder-val="{{true}}"><a class="mono" href="{{k.providerHref}}">{{k.provider}}</a><span style="font-size: 12px; color: var(--fg-6a6f7a);">{{k.providerKind}}</span></sc-if>
+              <sc-if value="{{k.noProvider}}" hint-placeholder-val="{{false}}"><span style="color: var(--fg-6a6f7a);">none registered</span></sc-if>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 6px;"><span style="{{k.badge}}">{{k.state}}</span><span style="font-size: 13px; color: var(--fg-3a4150); line-height: 1.5;">{{k.note}}</span></span>
+            <span style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0;">
+                    <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                      <sc-for list="{{k.usedBy}}" as="u" hint-placeholder-count="3"><a class="mono" href="{{u.href}}">{{u.label}}</a></sc-for>
+                      <sc-if value="{{k.hasMore}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: var(--fg-6a6f7a);">{{k.moreText}}</span></sc-if>
+                      <sc-if value="{{k.unused}}" hint-placeholder-val="{{false}}"><span style="color: var(--fg-6a6f7a);">No installed module demands it</span></sc-if>
+                    </span>
+                    <sc-if value="{{k.hasAny}}" hint-placeholder-val="{{true}}"><a href="Instances.dc.html" onClick="{{k.showAll}}" title="{{k.showAllTitle}}" style="flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-5e3d00); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">{{k.showAllText}} →</a></sc-if>
+                  </span>
+          </div>
+        </sc-for>
+        <sc-if value="{{noContracts}}" hint-placeholder-val="{{false}}"><div style="padding: 24px 0; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">{{noContractsText}}</div></sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showTransformers}}" hint-placeholder-val="{{false}}">
+      <section aria-label="Transformers" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <p style="margin: 12px 0 4px; max-width: 980px; font-size: 14px; line-height: 1.55; color: var(--fg-3a4150);">A transformer turns a component that carries the definitions it needs into Kubernetes objects. The controller picks the transformers whose required definitions a component has.</p>
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);"><span>Transformer</span><span>Needs</span><span>Produces</span></div>
+        <sc-for list="{{transformers}}" as="x" hint-placeholder-count="5">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+            <span class="mono" style="overflow-wrap: anywhere; padding-top: 2px;">{{x.name}}</span>
+            <span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;"><sc-for list="{{x.needs}}" as="n" hint-placeholder-count="1"><span style="padding: 2px 9px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font-size: 12px; font-weight: 600;">#{{n.label}}</span></sc-for><span style="font-size: 13px; color: var(--fg-6a6f7a);">{{x.optional}}</span></span>
+            <span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere; padding-top: 3px;">{{x.produces}}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{noTransformers}}" hint-placeholder-val="{{false}}"><div style="padding: 24px 0; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">{{noTransformersText}}</div></sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showUsers}}" hint-placeholder-val="{{false}}">
+      <section aria-label="Used by" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 120px 140px minmax(0, 1.6fr); gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);"><span>Installed</span><span>Kind</span><span>Namespace</span><span>Uses from this catalog</span></div>
+        <sc-for list="{{users}}" as="u" hint-placeholder-count="4">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 120px 140px minmax(0, 1.6fr); gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+            <a class="mono" href="{{u.href}}" style="font-weight: 500; padding-top: 2px;">{{u.name}}</a>
+            <span style="display: flex; flex-wrap: wrap; gap: 6px;"><span style="{{u.kindStyle}}">{{u.kind}}</span></span>
+            <span class="mono" style="padding-top: 3px;">{{u.ns}}</span>
+            <span style="font-size: 13px; color: var(--fg-3a4150); padding-top: 3px; overflow-wrap: anywhere;">{{u.uses}}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{noUsers}}" hint-placeholder-val="{{false}}"><div style="padding: 24px 0; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">{{noUsersText}}</div></sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showEvents}}" hint-placeholder-val="{{false}}">
+      <section aria-label="Events" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb);">
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 240px;"><label for="ev-type" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Type</label><select id="ev-type" value="{{evObj}}" onChange="{{onEvObj}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{evOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <span style="margin-left: auto; font-size: 14px; color: var(--fg-3a4150); align-self: center;">Showing <strong>{{evShown}}</strong> of {{evTotal}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 88px 190px minmax(0, 1fr) 56px; gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);"><span>Type</span><span>Reason</span><span>Message</span><span style="text-align: right;">Age</span></div>
+        <sc-for list="{{events}}" as="e" hint-placeholder-count="3">
+          <div style="display: grid; grid-template-columns: 88px 190px minmax(0, 1fr) 56px; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+            <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: {{e.typeColor}}; padding-top: 2px;">{{e.type}}</span>
+            <span class="mono" style="overflow-wrap: anywhere;">{{e.reason}}</span>
+            <span style="color: var(--fg-3a4150);">{{e.note}}</span>
+            <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{e.age}}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{noEvents}}" hint-placeholder-val="{{false}}"><div style="padding: 24px 0; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">No events match this filter.</div></sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{showYaml}}" hint-placeholder-val="{{false}}">
+      <section aria-label="YAML" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow-x: auto;">
+        <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{yamlNote}}</span>
+        <pre class="mono" style="margin: 0; line-height: 1.6; white-space: pre;">{{yaml}}</pre>
+      </section>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["System", "Light", "Dark"], "default": "System", "section": "Theme"}, "catalog": {"editor": "enum", "options": ["opm@v4 (core)", "backup@v0 (from a provider)", "refused-claim-fixture-absent (not in the registry)"], "default": "opm@v4 (core)", "section": "Mock state"}, "$preview": {"width": 1920, "height": 1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Filters survive tab switches and visits: kept per device and browser in localStorage.
+    const FILTER_KEYS = ['ctab', 'defQ', 'defKind', 'defFulfil', 'evObj'], FILTER_STORE = 'opm-portal:filters:Catalog';
+    if (!this.__filtersLoaded) {
+      this.__filtersLoaded = true;
+      if (!this.__handoff) {
+        try { const saved = JSON.parse(window.localStorage.getItem(FILTER_STORE) || 'null'); if (saved) FILTER_KEYS.forEach((k) => { if (saved[k] !== undefined) this.state[k] = saved[k]; }); } catch (e) { /* no storage: start with no filters */ }
+      }
+    }
+    // Slim, sticky top bar once the page scrolls past it.
+    if (!this.__scrollHooked && typeof window !== 'undefined' && window.addEventListener) {
+      this.__scrollHooked = true;
+      const onScroll = () => { const c = (window.scrollY || 0) > 48; if (c !== !!this.state.__compact) this.setState({ __compact: c }); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    const v = this.__renderVals();
+    try {
+      const snap = {}; FILTER_KEYS.forEach((k) => { snap[k] = this.state[k]; });
+      const text = JSON.stringify(snap);
+      if (text !== this.__filtersSaved) { window.localStorage.setItem(FILTER_STORE, text); this.__filtersSaved = text; }
+    } catch (e) { /* storage blocked: filters last for this visit only */ }
+    let stored = '';
+    try { stored = window.localStorage.getItem('opm-portal-theme') || ''; } catch (e) { stored = ''; }
+    const choice = (this.state && this.state.themeChoice) || stored || this.props.theme || 'System';
+    const menu = !!(this.state && this.state.themeMenu);
+    const pick = (c) => () => { try { window.localStorage.setItem('opm-portal-theme', c); } catch (e) { /* storage blocked: keep it for this view */ } this.setState({ themeChoice: c, themeMenu: false }); };
+    v.hdrCompact = this.state && this.state.__compact ? 'is-compact' : '';
+    v.themeAttr = ({ Light: 'light', Dark: 'dark' })[choice] || 'auto';
+    v.themeIsSystem = choice === 'System'; v.themeIsDark = choice === 'Dark'; v.themeIsLight = choice === 'Light';
+    v.themeMenuOpen = menu; v.themeMenuOpenAttr = menu ? 'true' : 'false';
+    v.themeLabel = 'Theme: ' + choice;
+    v.toggleThemeMenu = () => this.setState({ themeMenu: !menu });
+    v.themeOptions = ['Light', 'Dark', 'System'].map((c) => ({ label: c, checked: c === choice, checkedAttr: c === choice ? 'true' : 'false', pick: pick(c),
+      style: 'display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; padding: 6px 12px; border: none; border-radius: 6px; background: ' + (c === choice ? '#2a3240' : 'transparent') + '; color: #ebe6da; font: inherit; font-size: 15px; text-align: left; cursor: pointer;' }));
+    return v;
+  }
+  constructor(props) {
+    super(props);
+    this.state = { ctab: 'defs', defQ: '', defKind: '', defFulfil: '', evObj: '' };
+    // The Platform and provider views say which catalog to open.
+    try { const p = window.localStorage.getItem('opm-catalog-pick'); if (p) { window.localStorage.removeItem('opm-catalog-pick'); this.state.pick = p; this.__pickProp = props.catalog; } } catch (e) { /* storage blocked: open the tweak's catalog */ }
+  }
+  __renderVals() {
+    const TONE = {
+      navy:  { border: 'var(--pt-1b2a44)', ink: 'var(--fg-1b2a44)', bg: 'var(--pt-dfe5ef)', tint: 'var(--pt-eef1f7)' },
+      green: { border: 'var(--pt-157a52)', ink: 'var(--fg-0f5c3d)', bg: 'var(--pt-dcefe5)', tint: 'var(--pt-eaf5ee)' },
+      red:   { border: 'var(--pt-c3311b)', ink: 'var(--fg-a3260f)', bg: 'var(--pt-f8e0da)', tint: 'var(--pt-fcefeb)' },
+      blue:  { border: 'var(--pt-2458b8)', ink: 'var(--fg-1d4796)', bg: 'var(--pt-dde6f7)', tint: 'var(--pt-edf2fb)' },
+      amber: { border: 'var(--pt-b07814)', ink: 'var(--fg-6e4700)', bg: 'var(--pt-f6ead0)', tint: 'var(--pt-fbf3e2)' },
+      plain: { border: 'var(--pt-b9ad94)', ink: 'var(--fg-3a4150)', bg: 'var(--pt-e7e3da)', tint: 'var(--pt-fffdf8)' }
+    };
+    const ICON = { navy: 'good', green: 'good', red: 'bad', blue: 'wait', amber: 'wait', plain: 'good' };
+    const badge = (t) => 'justify-self: start; align-self: flex-start; padding: 3px 9px; border: 1.5px solid ' + TONE[t].border + '; border-radius: 5px; color: ' + TONE[t].ink + '; background: ' + TONE[t].bg + '; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;';
+    const chip = (pkg) => 'padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; ' + (pkg ? 'border: 1.5px dashed var(--pt-8a5a00); color: var(--fg-6b4500); background: var(--pt-fff6e3);' : 'border: 1.5px solid var(--pt-141820); color: var(--fg-efe9dc); background: var(--pt-141820);');
+    const mono = "font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px;";
+    const st = this.state;
+    const PICK = { 'opm@v4 (core)': 'opm', 'backup@v0 (from a provider)': 'backup', 'refused-claim-fixture-absent (not in the registry)': 'absent' };
+    if (st.pick && this.props.catalog !== this.__pickProp) this.state.pick = '';
+    const which = this.state.pick || PICK[this.props.catalog] || 'opm';
+
+    // The core catalog's listing (catalog_opm 4.6.0): name, kind, version, description, rendered by.
+    const DESC = {
+      'config-maps': 'ConfigMaps of non-sensitive key-value configuration, keyed by name', container: 'The main container of a workload: image, ports, environment, probes and resources',
+      crds: 'CustomResourceDefinitions to install in the cluster, keyed by name', role: 'An RBAC role with its rules and any subjects it binds, at namespace or cluster scope',
+      secrets: 'Secrets of sensitive key-value data, keyed by name', 'service-account': 'A ServiceAccount rendered on its own, apart from any workload',
+      volumes: 'Volumes a workload mounts, from scratch space to persistent claims, keyed by name', 'validating-admission-policies': 'CEL ValidatingAdmissionPolicies with their bindings, rendered with exact names',
+      'mutating-webhooks': 'MutatingWebhookConfigurations rendered with exact names', namespaces: 'Cluster namespaces owned by this module, rendered with exact names', objects: 'Kubernetes objects rendered as written, one output object per map entry',
+      'transformer-registration': "A provider module's claim that its catalog implements platform contracts", 'validating-webhooks': 'ValidatingWebhookConfigurations rendered with exact names',
+      backup: "Scheduled backup policy for a component's persistent state", 'backup-command': 'A backup taken by running a command whose standard output is the backup artefact',
+      'cron-job-config': 'CronJob settings for a scheduled task: schedule, concurrency and job history', 'disruption-budget': "How many of a workload's pods must stay available during voluntary disruptions",
+      encryption: 'Declares whether a workload requires encryption at rest and in transit', expose: "Exposes a workload's ports through a Kubernetes Service",
+      'graceful-shutdown': "The termination grace period a workload's pods get to shut down", 'grpc-route': 'Gateway API gRPC routing rules for a workload',
+      'host-ipc': "Shares the node's IPC namespace with the workload's pods (hostIPC)", 'host-network': "Shares the node's network namespace with the workload's pods (hostNetwork)",
+      'host-pid': "Shares the node's PID namespace with the workload's pods (hostPID)", 'http-route': 'Gateway API HTTP routing rules for a workload',
+      'image-pull-secrets': 'Existing Secrets the kubelet uses to pull images from private registries', 'init-containers': "Containers that run to completion before a workload's main container starts",
+      'job-config': 'Job settings for a task: completions, parallelism, retries and deadlines', 'network-policy': "Ingress and egress network policy for a workload's pods",
+      'pod-metadata': 'Labels and annotations applied to the pod template, not to the workload object', 'pod-scheduling': "Node selection, tolerations and priority class for a workload's pods",
+      'restart-policy': "The restart policy of a workload's pods: Always, OnFailure or Never", 'runtime-class': "Selects the container runtime that runs the workload's pods (runtimeClassName)",
+      scaling: 'The replica count of a workload, with optional autoscaling', 'security-context': 'Pod-level security settings for a workload: user, groups and seccomp profile',
+      'sidecar-containers': "Additional containers that run beside a workload's main container", sizing: 'Vertical sizing for a workload: resource requests and limits',
+      'tcp-route': 'Gateway API TCP routing rules for a workload', 'tls-route': 'Gateway API TLS routing rules for a workload',
+      'update-strategy': 'How a workload replaces its pods on update: RollingUpdate, Recreate or OnDelete', 'workload-identity': "The ServiceAccount identity a workload's pods run as",
+      'daemon-workload': 'A workload that runs one pod on every node, or on selected nodes (DaemonSet)', 'scheduled-task-workload': 'A task workload that runs on a cron schedule (CronJob)',
+      'stateful-workload': 'A workload whose pods keep a stable identity and their own storage (StatefulSet)', 'stateless-workload': 'A workload of interchangeable pods with no stable identity (Deployment)',
+      'task-workload': 'A task that runs to completion once (Job)'
+    };
+    const R = (n, v, by) => [n, 'Resource', v, by], T = (n, v, by) => [n, 'Trait', v, by], B = (n, by) => [n, 'Blueprint', 'v1beta1', by];
+    const CORE = [
+      R('config-maps', 'v1beta1', 'configmap-transformer'), R('container', 'v1beta1', 'deployment, statefulset, daemonset, job, cronjob, service, hpa, pdb transformers'),
+      R('crds', 'v1beta1', 'crd-transformer'), R('role', 'v1beta1', 'role-transformer'), R('secrets', 'v1beta1', 'secret-transformer'),
+      R('service-account', 'v1beta1', 'serviceaccount-resource-transformer'), R('volumes', 'v1beta1', 'pvc-transformer and the workload transformers'),
+      R('mutating-webhooks', 'v1alpha1', 'mutating-webhook-transformer'), R('namespaces', 'v1alpha1', 'namespace-transformer'), R('objects', 'v1alpha1', 'objects-transformer'),
+      R('transformer-registration', 'v1alpha1', 'transformer-registration-transformer'), R('validating-admission-policies', 'v1alpha1', 'admission-policy-transformer'),
+      R('validating-webhooks', 'v1alpha1', 'validating-webhook-transformer'),
+      T('cron-job-config', 'v1beta1', 'cronjob-transformer'), T('disruption-budget', 'v1beta1', 'pdb-transformer'), T('encryption', 'v1beta1', 'read by the platform, renders nothing'),
+      T('expose', 'v1beta1', 'service-transformer and the route transformers'), T('graceful-shutdown', 'v1beta1', 'the workload transformers'), T('grpc-route', 'v1beta1', 'grpc-route-transformer'),
+      T('host-ipc', 'v1beta1', 'the workload transformers'), T('host-network', 'v1beta1', 'daemonset and statefulset transformers'), T('host-pid', 'v1beta1', 'the workload transformers'),
+      T('http-route', 'v1beta1', 'http-route-transformer'), T('image-pull-secrets', 'v1beta1', 'the workload transformers'), T('init-containers', 'v1beta1', 'the workload transformers'),
+      T('job-config', 'v1beta1', 'job-transformer'), T('network-policy', 'v1beta1', 'network-policy-transformer'), T('pod-metadata', 'v1beta1', 'the workload transformers'),
+      T('pod-scheduling', 'v1beta1', 'the workload transformers'), T('restart-policy', 'v1beta1', 'the workload transformers'), T('runtime-class', 'v1beta1', 'the workload transformers'),
+      T('scaling', 'v1beta1', 'deployment, statefulset and hpa transformers'), T('security-context', 'v1beta1', 'the workload transformers'), T('sidecar-containers', 'v1beta1', 'the workload transformers'),
+      T('sizing', 'v1beta1', 'the workload transformers'), T('tcp-route', 'v1beta1', 'tcp-route-transformer'), T('tls-route', 'v1beta1', 'tls-route-transformer'),
+      T('update-strategy', 'v1beta1', 'deployment, statefulset and daemonset transformers'), T('workload-identity', 'v1beta1', 'the workload transformers'),
+      T('backup', 'v1alpha1', { provider: 'default.backup-provider', href: 'Provider.dc.html' }), T('backup-command', 'v1alpha1', { provider: '' }),
+      B('daemon-workload', 'daemonset-transformer'), B('scheduled-task-workload', 'cronjob-transformer'), B('stateful-workload', 'statefulset-transformer'),
+      B('stateless-workload', 'deployment-transformer'), B('task-workload', 'job-transformer')
+    ];
+    const USED = { container: 8, expose: 6, 'stateless-workload': 6, scaling: 3, 'config-maps': 2, secrets: 2, volumes: 2, crds: 1, role: 2, 'validating-webhooks': 1, 'mutating-webhooks': 1, 'service-account': 2, 'http-route': 2, backup: 5, 'transformer-registration': 2, 'workload-identity': 3, 'security-context': 4, sizing: 5 };
+    const TRANSFORMERS = [
+      ['deployment-transformer', ['Container'], '+ Volumes and 16 optional traits', 'Deployment (apps/v1)'],
+      ['statefulset-transformer', ['Container'], '+ Volumes and 17 optional traits', 'StatefulSet (apps/v1)'],
+      ['daemonset-transformer', ['Container'], '+ Volumes and 16 optional traits', 'DaemonSet (apps/v1)'],
+      ['job-transformer', ['Container'], '+ Volumes and 14 optional traits', 'Job (batch/v1)'],
+      ['cronjob-transformer', ['Container'], '+ Volumes and 14 optional traits', 'CronJob (batch/v1)'],
+      ['service-transformer', ['Container', 'Expose'], '', 'Service (v1)'],
+      ['hpa-transformer', ['Container', 'Scaling'], '', 'HorizontalPodAutoscaler (autoscaling/v2)'],
+      ['pdb-transformer', ['Container', 'DisruptionBudget'], '', 'PodDisruptionBudget (policy/v1)'],
+      ['http-route-transformer', ['Expose', 'HttpRoute'], '', 'HTTPRoute (gateway.networking.k8s.io)'],
+      ['grpc-route-transformer', ['Expose', 'GrpcRoute'], '', 'GRPCRoute (gateway.networking.k8s.io)'],
+      ['tcp-route-transformer', ['Expose', 'TcpRoute'], '', 'TCPRoute (gateway.networking.k8s.io)'],
+      ['tls-route-transformer', ['Expose', 'TlsRoute'], '', 'TLSRoute (gateway.networking.k8s.io)'],
+      ['network-policy-transformer', ['NetworkPolicy'], '', 'NetworkPolicy (networking.k8s.io/v1)'],
+      ['configmap-transformer', ['ConfigMaps'], '', 'ConfigMap (v1)'],
+      ['secret-transformer', ['Secrets'], '', 'Secret (v1)'],
+      ['pvc-transformer', ['Volumes'], '', 'PersistentVolumeClaim (v1)'],
+      ['role-transformer', ['Role'], '', 'Role or ClusterRole, their bindings, ServiceAccount'],
+      ['serviceaccount-resource-transformer', ['ServiceAccount'], '', 'ServiceAccount (v1)'],
+      ['crd-transformer', ['Crds'], '', 'CustomResourceDefinition (apiextensions.k8s.io/v1)'],
+      ['namespace-transformer', ['Namespaces'], '', 'Namespace (v1)'],
+      ['objects-transformer', ['Objects'], '', 'any object, as written'],
+      ['mutating-webhook-transformer', ['MutatingWebhooks'], '', 'MutatingWebhookConfiguration'],
+      ['validating-webhook-transformer', ['ValidatingWebhooks'], '', 'ValidatingWebhookConfiguration'],
+      ['admission-policy-transformer', ['ValidatingAdmissionPolicies'], '', 'ValidatingAdmissionPolicy and its binding'],
+      ['transformer-registration-transformer', ['TransformerRegistration'], '', 'TransformerRegistration (opmodel.dev/v1alpha1)']
+    ];
+    const nice = (n) => n.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+    const DOCS = 'https://open-platform-model.github.io/opmodel.dev/catalogs/opm/4.6/';
+    const defOf = (n, kind, version) => ({ name: nice(n), kind, kindLower: kind.toLowerCase(), path: 'opmodel.dev/catalogs/opm/' + kind.toLowerCase() + 's/' + n + '@' + version,
+      desc: DESC[n] || '', href: DOCS + kind.toLowerCase() + 's/' + n + '/', tipId: 'def-' + n });
+    const INSTALLED = [
+      ['podinfo', 'default', 'Instance', 'Instance.dc.html', 'StatelessWorkload, Container, Expose, Scaling'],
+      ['podinfo', 'pkg', 'Package', 'Package.dc.html', 'StatelessWorkload, Container, Expose'],
+      ['cert-manager', 'cert-manager', 'Instance', 'CertManager.dc.html', 'Crds, Role, ServiceAccount, ValidatingWebhooks, MutatingWebhooks, StatelessWorkload, Container'],
+      ['backup-provider', 'default', 'Instance', 'Provider.dc.html', 'TransformerRegistration, StatelessWorkload, Container, Expose'],
+      ['refused-claim-fixture', 'default', 'Package', 'ProviderPackage.dc.html', 'TransformerRegistration, StatelessWorkload, Container'],
+      ['backup-consumer', 'default', 'Instance', 'Instance.dc.html', 'StatefulWorkload, Container, Volumes, Backup'],
+      ['web', 'web', 'Instance', 'Instance.dc.html', 'StatelessWorkload, Container, Expose, HttpRoute, Backup'],
+      ['storefront', 'shop', 'Instance', 'Instance.dc.html', 'StatelessWorkload, Container, Expose, HttpRoute, Scaling, Backup'],
+      ['blog', 'blog', 'Instance', 'Instance.dc.html', 'StatelessWorkload, Container, Expose, Scaling, Backup'],
+      ['podinfo', 'staging', 'Instance', 'Instance.dc.html', 'StatelessWorkload, Container, Expose, Backup']
+    ];
+    const user = ([name, ns, kind, href, uses]) => ({ name, ns, kind, href, uses, kindStyle: chip(kind === 'Package') });
+    const block = (x, eyebrow, aria, none) => ({ ...TONE[x.t], eyebrow, aria, state: x.state, summary: x.summary, when: x.when,
+      isGood: ICON[x.t] === 'good', isBad: ICON[x.t] === 'bad', isWait: ICON[x.t] === 'wait',
+      reasons: (x.reasons || []).map(([type, count, tab]) => ({ type, count, go: () => this.setState({ ctab: tab }) })), noReasons: !(x.reasons || []).length, noReasonText: none });
+    const ev = (type, reason, note, age) => ({ type, reason, note, age, typeColor: type === 'Warning' ? 'var(--fg-a3260f)' : 'var(--pt-3a4150)' });
+
+    const C = {
+      opm: {
+        short: 'opm', path: 'opmodel.dev/catalogs/opm@v4', version: '4.6.0', origin: 'Subscribed', originTone: 'navy',
+        desc: 'OPM core catalog: its resources, traits and blueprints, and the transformers that render them to Kubernetes',
+        facts: [['Source', 'Platform subscription'], ['Registry', 'ghcr.io/open-platform-model', true], ['Digest', 'sha256:7d2e41c0', true], ['Enabled', 'yes']],
+        resolved: { t: 'navy', state: 'Resolved', summary: 'Pulled 4.6.0 from the registry', when: 'resolved 9 min ago' },
+        promise: { t: 'amber', state: 'Partly fulfilled', summary: '2 contracts need a provider: 1 has one, 1 waits', when: 'checked live', reasons: [['UnfulfilledContracts', 1, 'contracts']] },
+        defs: CORE, transformers: TRANSFORMERS,
+        contractIntro: 'Some definitions in this catalog are contracts: the catalog defines them, and a provider installed on the platform renders them. A contract without a provider is information, not a failure: a module that needs it waits until a provider registers.',
+        contracts: [
+          ['backup', 'Trait', 'v1alpha1', 'default.backup-provider', 'Provider.dc.html', 'ModuleInstance default/backup-provider', 'green', 'Active', 'Rendered by backup-transformer from catalog testing.opmodel.dev/catalogs/controller/backup@v0.', 'CONSUMERS'],
+          ['backup-command', 'Trait', 'v1alpha1', '', '', '', 'amber', 'Waiting for a provider', 'A module that attaches #BackupCommand waits until a provider registers.', []]
+        ],
+        users: INSTALLED,
+        events: [ev('Normal', 'CatalogsResolved', '2 catalogs resolved from 2 subscriptions.', '9m'), ev('Normal', 'UnfulfilledContracts', 'Contract backup-command@v1alpha1 has no provider.', '9m')],
+        yaml: '# Platform cluster: status.catalogs[0]\npath: opmodel.dev/catalogs/opm@v4\nversion: 4.6.0\ndigest: sha256:7d2e41c0\nsource: subscription\nenabled: true\ncontracts:\n  definitions: 50\n  providerFulfilled:\n  - path: opmodel.dev/catalogs/opm/traits/backup@v1alpha1\n    provider: default.backup-provider\n  - path: opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1\n    provider: null'
+      },
+      backup: {
+        short: 'backup', path: 'testing.opmodel.dev/catalogs/controller/backup@v0', version: '0.1.0', origin: 'From a provider', originTone: 'amber',
+        desc: "Renders opm's backup trait. It defines nothing of its own: it ships a transformer for a contract in the core catalog.",
+        facts: [['Source', 'default.backup-provider', true, 'Provider.dc.html'], ['Registry', 'ghcr.io/open-platform-model', true], ['Digest', 'sha256:c41a9e72', true], ['Enabled', 'yes']],
+        resolved: { t: 'navy', state: 'Resolved', summary: 'Pulled 0.1.0 when its provider registered', when: 'resolved 6 min ago' },
+        promise: { t: 'green', state: 'Serving', summary: 'Renders #Backup for the platform through default.backup-provider', when: 'active for 6 min' },
+        defs: [], noDefsText: 'This catalog defines nothing of its own. It ships transformers for contracts that opmodel.dev/catalogs/opm@v4 defines.',
+        transformers: [['backup-transformer', ['Backup'], '', 'ConfigMap <component>-backup (v1), one per component, holding the policy']],
+        contractIntro: 'The contracts this catalog renders. They are defined in another catalog; this one ships the transformers.',
+        contracts: [['backup', 'Trait', 'v1alpha1', 'default.backup-provider', 'Provider.dc.html', 'ModuleInstance default/backup-provider', 'green', 'Active', 'Defined in opmodel.dev/catalogs/opm@v4, rendered here by backup-transformer.', 'CONSUMERS']],
+        users: INSTALLED.filter((r) => ['backup-consumer', 'storefront', 'blog', 'web'].includes(r[0]) || (r[0] === 'podinfo' && r[1] === 'staging')).map((r) => [r[0], r[1], r[2], r[3], 'Backup']),
+        events: [ev('Normal', 'Activated', 'Active for contract backup.', '6m'), ev('Normal', 'Accepted', 'Claimed by default.backup-provider at 0.1.0.', '6m')],
+        yaml: '# Platform cluster: status.catalogs[1]\npath: testing.opmodel.dev/catalogs/controller/backup@v0\nversion: 0.1.0\ndigest: sha256:c41a9e72\nsource: subscription\nenabled: true\nclaimedBy: default.backup-provider\nprovides:\n- opmodel.dev/catalogs/opm/traits/backup@v1alpha1'
+      },
+      absent: {
+        short: 'refused-claim-fixture-absent', path: 'testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0', version: '0.1.0', origin: 'From a provider', originTone: 'amber',
+        desc: 'A provider claims this catalog, but it is not in the registry, so nothing about it can be read.',
+        facts: [['Source', 'default.refused-claim-fixture', true, 'ProviderPackage.dc.html'], ['Registry', 'ghcr.io/open-platform-model', true], ['Digest', 'none: not found', true], ['Enabled', 'no: unresolved']],
+        resolved: { t: 'red', state: 'Unresolved', summary: 'Not in the registry', when: 'last try 2 min ago', reasons: [['CatalogUnresolved', 1, 'events']] },
+        promise: { t: 'amber', state: 'Unknown', summary: 'Cannot read what it would provide', when: 'checked live' },
+        defs: [], noDefsText: 'Nothing to show: the catalog is not in the registry, so its listing cannot be read.',
+        transformers: [], noTransformersText: 'Nothing to show: the catalog is not in the registry.',
+        contractIntro: 'Nothing to show: the catalog is not in the registry.', contracts: [], noContractsText: 'Its provider default.refused-claim-fixture is refused until the catalog is published.',
+        users: [], noUsersText: 'Nothing uses it: the catalog was never resolved.',
+        events: [ev('Warning', 'CatalogUnresolved', 'Catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0 0.1.0 is not in the registry.', '2m'), ev('Warning', 'Refused', 'Claim default.refused-claim-fixture refused: CatalogUnresolved.', '2m')],
+        yaml: '# Not in Platform status.catalogs: the catalog never resolved.\n# The claim that names it, TransformerRegistration default.refused-claim-fixture:\nspec:\n  catalog: testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0\n  version: 0.1.0\nstatus:\n  conditions:\n  - type: Ready\n    status: "False"\n    reason: CatalogUnresolved'
+      }
+    };
+    const cat = C[which];
+    const c = {
+      ...cat,
+      originPill: 'display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; border: 1.5px solid ' + TONE[cat.originTone].border + '; color: ' + TONE[cat.originTone].ink + '; background: ' + TONE[cat.originTone].bg + '; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;',
+      facts: cat.facts.map(([k, v, m, href]) => ({ k, v, isLink: !!href, href: href || '', isText: !href, style: 'margin: 0;' + (m ? ' ' + mono : '') }))
+    };
+    const blocks = [
+      block(cat.resolved, 'Resolved · the controller', 'Resolution status', 'No resolution errors'),
+      block(cat.promise, 'Contracts · what it promises', 'Contract status', 'Nothing waiting')
+    ];
+
+    const allDefs = cat.defs.map(([n, kind, version, by]) => {
+      const p = typeof by === 'object';
+      return { ...defOf(n, kind, version), version, usedBy: USED[n] ? USED[n] + (USED[n] === 1 ? ' module' : ' modules') : '—',
+        byCatalog: !p, renderedBy: p ? '' : by, byProvider: p && !!by.provider, provider: p ? by.provider : '', providerHref: p ? by.href || '' : '',
+        noProvider: p && !by.provider, waitBadge: badge('amber'), fulfil: p ? 'provider' : 'catalog' };
+    });
+    const q = (st.defQ || '').trim().toLowerCase();
+    const defs = allDefs.filter((d) => (!q || (d.name + ' ' + d.desc + ' ' + d.path).toLowerCase().includes(q)) && (!st.defKind || d.kind === st.defKind) && (!st.defFulfil || d.fulfil === st.defFulfil));
+    const count = (f) => allDefs.filter(f).length;
+    const defKindOptions = [{ value: '', label: 'Any kind' }].concat(['Resource', 'Trait', 'Blueprint'].map((k) => ({ value: k, label: k + ' (' + count((d) => d.kind === k) + ')' })));
+    const defFulfilOptions = [{ value: '', label: 'Anything' }, { value: 'catalog', label: 'This catalog (' + count((d) => d.fulfil === 'catalog') + ')' }, { value: 'provider', label: 'A provider (' + count((d) => d.fulfil === 'provider') + ')' }];
+
+
+    // Consumers: name a few, and send the rest to Installed filtered by what they use.
+    const CONSUMERS = [['default/backup-consumer', 'Instance.dc.html'], ['shop/storefront', 'Instance.dc.html'], ['blog/blog', 'Instance.dc.html'], ['web/web', 'Instance.dc.html'], ['staging/podinfo', 'Instance.dc.html']];
+    const usedList = (list, defName, onGo) => {
+      const SHOW = 3;
+      return { usedBy: list.slice(0, SHOW).map(([label, href]) => ({ label, href })), hasMore: list.length > SHOW, moreText: 'and ' + (list.length - SHOW) + ' more',
+        unused: list.length === 0, hasAny: list.length > 0, showAllText: list.length > SHOW ? 'All ' + list.length + ' in Installed' : 'Show in Installed',
+        showAllTitle: 'Open Installed filtered to everything that uses #' + defName,
+        showAll: () => { try { window.localStorage.setItem('opm-installed-filter', JSON.stringify({ uses: defName })); } catch (e) { /* storage blocked: Installed opens unfiltered */ } if (onGo) onGo(); } };
+    };
+    const contracts = cat.contracts.map(([n, kind, version, provider, href, providerKind, t, state, note, demanded]) => ({
+      ...defOf(n, kind, version), provider, providerHref: href, providerKind, hasProvider: !!provider, noProvider: !provider,
+      badge: badge(t), state, note, ...usedList(demanded === 'CONSUMERS' ? CONSUMERS : demanded, nice(n)) }));
+    const transformers = cat.transformers.map(([name, needs, optional, produces]) => ({ name, needs: needs.map((label) => ({ label })), optional, produces }));
+    const users = cat.users.map(user);
+    const evTypes = ['Warning', 'Normal'];
+    const events = cat.events.filter((e) => !st.evObj || e.type === st.evObj);
+    const evOptions = [{ value: '', label: 'Any type (' + cat.events.length + ')' }].concat(evTypes.map((t) => ({ value: t, label: t + ' (' + cat.events.filter((e) => e.type === t).length + ')' })));
+
+    const tab = st.ctab || 'defs';
+    const defsTab = [['defs', 'Definitions ' + allDefs.length], ['contracts', 'Contracts ' + contracts.length], ['transformers', 'Transformers ' + transformers.length], ['users', 'Used by ' + users.length], ['events', 'Events ' + cat.events.length], ['yaml', 'YAML']];
+    const tabs = defsTab.map(([id, label]) => {
+      const on = id === tab;
+      return { label, selected: on ? 'true' : 'false', pick: () => this.setState({ ctab: id }),
+        style: 'min-height: 44px; padding: 10px 18px; font: inherit; font-size: 15px; cursor: pointer; background: none; border: none; border-bottom: 3px solid ' + (on ? 'var(--pt-8a5a00)' : 'transparent') + '; color: ' + (on ? 'var(--fg-141820)' : 'var(--pt-6a6f7a)') + '; font-weight: ' + (on ? '600' : '400') + '; margin-bottom: -1px;' };
+    });
+    return {
+      c, blocks, tabs,
+      // Back to the Platform view with its Catalogs tab open.
+      toCatalogList: () => { try { const k = 'opm-portal:filters:Main'; const s = JSON.parse(window.localStorage.getItem(k) || '{}') || {}; s.ptab = 'cats'; window.localStorage.setItem(k, JSON.stringify(s)); } catch (e) { /* storage blocked: Platform opens on its default tab */ } },
+      showDefs: tab === 'defs', showContracts: tab === 'contracts', showTransformers: tab === 'transformers', showUsers: tab === 'users', showEvents: tab === 'events', showYaml: tab === 'yaml',
+      defs, defShown: defs.length, defTotal: allDefs.length, noDefs: defs.length === 0, noDefsText: allDefs.length ? 'No definition matches these filters.' : cat.noDefsText,
+      defQ: st.defQ, defKind: st.defKind, defFulfil: st.defFulfil, defKindOptions, defFulfilOptions, anyDefFilter: !!(st.defQ || st.defKind || st.defFulfil),
+      onDefQ: (e) => this.setState({ defQ: e.target.value }), onDefKind: (e) => this.setState({ defKind: e.target.value }), onDefFulfil: (e) => this.setState({ defFulfil: e.target.value }),
+      clearDefFilters: () => this.setState({ defQ: '', defKind: '', defFulfil: '' }),
+      contracts, contractIntro: cat.contractIntro, noContracts: contracts.length === 0, noContractsText: cat.noContractsText || 'No contracts.',
+      transformers, noTransformers: transformers.length === 0, noTransformersText: cat.noTransformersText || 'No transformers.',
+      users, noUsers: users.length === 0, noUsersText: cat.noUsersText || 'Nothing installed uses it.',
+      events, evShown: events.length, evTotal: cat.events.length, noEvents: events.length === 0, evObj: st.evObj, evOptions, onEvObj: (e) => this.setState({ evObj: e.target.value }),
+      yaml: cat.yaml, yamlNote: 'What the controller recorded about this catalog. Read-only.'
+    };
+  }
+}
+</script>
+</body>
+</html>

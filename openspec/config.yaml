@@ -83,7 +83,10 @@ context: |
   ### VII. Simplicity & YAGNI
   Start simple. Complexity MUST be justified.
   - Standard library first (`net/http`, `html/template`); a dependency earns its place.
-  - No JavaScript build step and no client-side component state in V1.
+  - No JavaScript build step. In V1 the browser keeps only per-browser display preferences in
+    `localStorage`, a theme choice and each list view's last filters, with filters in the URL
+    query winning whenever present (portal:D14); no document, identity, session or
+    authorization result is kept client-side.
 
   ### VIII. Mergeable Sections (Iterative & Incremental Delivery)
   A change is delivered as the sections of its `tasks.md` (`## N. Title` headings with `N.M`

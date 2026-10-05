@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OPM Portal: Platform</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+.opm-hdr{transition:padding .2s ease,box-shadow .2s ease}
+.opm-hdr > a{transition:font-size .2s ease}
+.opm-hdr.is-compact{padding-top:5px!important;padding-bottom:5px!important;box-shadow:0 8px 20px -12px rgb(0 0 0 / 55%)}
+.opm-hdr.is-compact > a{font-size:15px!important}
+.opm-hdr.is-compact > a svg{width:18px;height:18px}
+.opm-hdr.is-compact nav a{padding-top:4px!important;padding-bottom:4px!important}
+.opm-hdr.is-compact button[aria-haspopup]{width:30px!important;height:30px!important}
+@media (prefers-reduced-motion: reduce){.opm-hdr,.opm-hdr > a{transition:none}}
+.opm-pop{position:relative;display:inline-flex}
+.opm-pop .opm-popbox{display:none;position:absolute;left:0;top:100%;padding-top:8px;z-index:60}
+.opm-pop:hover .opm-popbox,.opm-pop:focus-within .opm-popbox{display:block}
+.opm-tip{position:relative;display:inline-flex;outline-offset:2px}
+.opm-tip .opm-tipbox{display:none;position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:300px;padding:10px 12px;border-radius:8px;background:#1d2430;color:#ebe6da;font-size:13px;line-height:1.45;font-weight:400;letter-spacing:normal;text-transform:none;z-index:50;box-shadow:0 10px 24px -10px rgb(0 0 0 / 55%)}
+.opm-tip:hover .opm-tipbox,.opm-tip:focus .opm-tipbox,.opm-tip:focus-within .opm-tipbox{display:block}
+.opm-menu button:hover{background:#2a3240}
+:root{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-ffffff: #ffffff; --pt-0f5c3d: #0f5c3d; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #5f6672; --pt-6e4700: #6e4700; --pt-8a5a00: #8a5a00; --pt-a3260f: #a3260f; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f4efe4: #f4efe4; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; --pt-eaf5ee: #eaf5ee; --pt-2458b8: #2458b8; --fg-1d4796: #1d4796; --pt-dde6f7: #dde6f7; color-scheme: light;}
+@media (prefers-color-scheme: dark){:root{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-ffffff: #0c0f14; --pt-0f5c3d: #6fd3a2; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #8f96a3; --pt-6e4700: #f0c879; --pt-8a5a00: #e3b45c; --pt-a3260f: #ff9d88; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f4efe4: #181e28; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; --pt-eaf5ee: #102019; --pt-2458b8: #7ea6f2; --fg-1d4796: #9dbcf7; --pt-dde6f7: #17233d; color-scheme: dark;}}
+[data-theme="light"]{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-ffffff: #ffffff; --pt-0f5c3d: #0f5c3d; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #5f6672; --pt-6e4700: #6e4700; --pt-8a5a00: #8a5a00; --pt-a3260f: #a3260f; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f4efe4: #f4efe4; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; --pt-eaf5ee: #eaf5ee; --pt-2458b8: #2458b8; --fg-1d4796: #1d4796; --pt-dde6f7: #dde6f7; color-scheme: light;}
+[data-theme="dark"]{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-ffffff: #0c0f14; --pt-0f5c3d: #6fd3a2; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #8f96a3; --pt-6e4700: #f0c879; --pt-8a5a00: #e3b45c; --pt-a3260f: #ff9d88; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f4efe4: #181e28; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; --pt-eaf5ee: #102019; --pt-2458b8: #7ea6f2; --fg-1d4796: #9dbcf7; --pt-dde6f7: #17233d; color-scheme: dark;}
+body{margin:0;background:var(--pt-efe9dc);color:var(--fg-141820);font-family:"Space Grotesk","Avenir Next",sans-serif}
+a{color:var(--fg-8a5a00)}a:hover{color:var(--fg-5e3d00)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px}
+</style>
+</helmet>
+<div data-theme="{{themeAttr}}" style="min-height: 100vh; color: var(--fg-141820); background: var(--pt-efe9dc);">
+  <header class="opm-hdr {{hdrCompact}}" style="position: sticky; top: 0; z-index: 800; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 14px 40px; background: var(--hdr); color: var(--fg-efe9dc);">
+    <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; color: var(--fg-efe9dc); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: 0.02em;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e3b45c" stroke-width="2"><path d="M12 2 21 7v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg>
+      OPM Portal
+    </a>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" aria-current="page" style="padding: 8px 14px; border-radius: 8px; background: var(--rgb5); color: var(--fg-e3b45c); text-decoration: none; font-weight: 600;">Platform</a>
+      <a href="Instances.dc.html" style="padding: 8px 14px; border-radius: 8px; color: var(--fg-c4c0b5); text-decoration: none;">Installed</a>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--fg-c4c0b5); flex-wrap: wrap;">
+      <span class="mono" style="padding: 4px 10px; border: 1px solid var(--pt-3a4352); border-radius: 999px;">kind-opm-portal-e2e</span>
+      <span>reading as <span class="mono" style="color: var(--fg-ebe6da);">kubernetes-admin</span></span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--pt-3fbf86);"></span>Live</span>
+      <span style="position: relative; display: inline-flex;">
+        <button type="button" onClick="{{toggleThemeMenu}}" aria-haspopup="menu" aria-expanded="{{themeMenuOpenAttr}}" aria-label="{{themeLabel}}" title="{{themeLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #ebe6da; cursor: pointer;">
+          <sc-if value="{{themeIsSystem}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"></path></svg></sc-if>
+          <sc-if value="{{themeIsDark}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></sc-if>
+          <sc-if value="{{themeIsLight}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+        </button>
+        <sc-if value="{{themeMenuOpen}}" hint-placeholder-val="{{false}}">
+          <div class="opm-menu" role="menu" aria-label="Theme" style="position: absolute; right: 0; top: 44px; z-index: 1100; min-width: 160px; display: flex; flex-direction: column; padding: 6px; border-radius: 10px; border: 1px solid #3a4352; background: #1d2430; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+            <sc-for list="{{themeOptions}}" as="t" hint-placeholder-count="3">
+              <button type="button" role="menuitemradio" aria-checked="{{t.checkedAttr}}" onClick="{{t.pick}}" style="{{t.style}}"><span>{{t.label}}</span><sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </span>
+    </div>
+  </header>
+
+  <main style="max-width: 1840px; margin: 0 auto; padding: 28px 40px 56px; display: flex; flex-direction: column; gap: 20px;">
+    <section aria-label="Summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; align-items: stretch;">
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 12px;">
+        <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">Platform</span>
+        <h1 style="margin: 0; font-size: 40px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em;">cluster</h1>
+        <dl style="margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+          <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a);">Type</dt><dd style="margin: 0;">kubernetes</dd></div>
+          <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a);">Controller</dt><dd class="mono" style="margin: 0;">v1.0.0-beta.6</dd></div>
+          <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a);">Kubernetes</dt><dd class="mono" style="margin: 0;">v1.36.1</dd></div>
+          <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a);">Context</dt><dd class="mono" style="margin: 0;">kind-opm-portal-e2e</dd></div>
+        </dl>
+      </div>
+
+      <section aria-label="Platform status" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; border: 2px solid var(--pt-1b2a44); border-radius: 12px; background: var(--pt-eef1f7);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">Platform · the controller</span>
+          <span style="font-size: 13px; color: var(--fg-6a6f7a);">reconciled 2 min ago</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pt-1b2a44); color: var(--fg-ffffff); flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+          <span style="font-size: 26px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--fg-1b2a44);">Ready</span>
+        </div>
+        <span style="font-size: 15px; color: var(--fg-3a4150);">2 catalogs resolved from 2 subscriptions · 1 claim active</span>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 28px;">
+          <a href="#registrations" style="display: inline-flex; align-items: baseline; gap: 6px; color: var(--fg-a3260f); text-underline-offset: 3px;"><strong style="font-size: 16px;">1</strong><span class="mono" style="font-size: 14px;">CatalogUnresolved</span></a>
+          <a href="#contracts" style="display: inline-flex; align-items: baseline; gap: 6px; color: var(--fg-6e4700); text-underline-offset: 3px;"><strong style="font-size: 16px;">1</strong><span class="mono" style="font-size: 14px;">UnfulfilledContracts</span></a>
+        </div>
+      </section>
+
+      <section aria-label="Platform health" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; border: 2px solid var(--pt-157a52); border-radius: 12px; background: var(--pt-eaf5ee);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">Health · the platform itself</span>
+          <span style="font-size: 13px; color: var(--fg-6a6f7a);">checked live</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--pt-157a52); color: var(--fg-ffffff); flex: none;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></span>
+          <span style="font-size: 26px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: var(--fg-0f5c3d);">Healthy</span>
+        </div>
+        <span style="font-size: 15px; color: var(--fg-3a4150);">Controller 1/1 running · 2 of 2 catalogs reachable · 1 provider active</span>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 28px;">
+          <span style="font-size: 14px; color: var(--fg-6a6f7a);">No unhealthy platform parts</span>
+        </div>
+      </section>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr)); gap: 20px; align-items: start;">
+      <section aria-labelledby="inst-h" style="display: flex; flex-direction: column; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow: hidden;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 16px 20px 12px; border-bottom: 1px solid var(--pt-d6ccb8);">
+          <h2 id="inst-h" style="margin: 0; font-size: 20px;">Installed</h2>
+          <a href="Instances.dc.html" style="font-size: 14px;">Open the full list</a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0;">
+          <sc-for list="{{statusGroups}}" as="g" hint-placeholder-count="2">
+            <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 20px 16px; border-right: 1px solid var(--pt-e5dccb);">
+              <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6a6f7a); margin-bottom: 4px;">{{g.title}}</span>
+              <sc-for list="{{g.items}}" as="i" hint-placeholder-count="3">
+                <a href="Instances.dc.html" onClick="{{i.go}}" title="{{i.title}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 4px 0; border-bottom: 1px solid var(--pt-e5dccb); color: var(--fg-141820); text-decoration: none;">
+                  <span style="{{i.badge}}">{{i.label}}</span>
+                  <span style="font-size: 22px; font-weight: 700; color: {{i.ink}};">{{i.count}}</span>
+                </a>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding: 10px 20px 14px; font-size: 14px; color: var(--fg-3a4150);">{{kindLine}}</div>
+      </section>
+
+
+    </div>
+
+    <section id="registrations" aria-label="Providers and catalogs" style="display: flex; flex-direction: column; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+      <div role="tablist" aria-label="Platform parts" style="display: flex; gap: 4px; padding: 6px 16px 0; border-bottom: 1px solid var(--pt-d6ccb8);">
+        <sc-for list="{{ptabs}}" as="t" hint-placeholder-count="2">
+          <button type="button" role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{showRegs}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--pt-e5dccb);">
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 260px;"><label for="reg-q" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Search</label><input id="reg-q" type="search" value="{{regQ}}" onChange="{{onRegQ}}" placeholder="Name, catalog or what it provides" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); cursor: text;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; max-width: 260px;"><label for="reg-status" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Status</label><select id="reg-status" value="{{regStatus}}" onChange="{{onRegStatus}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{regStatusOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; max-width: 260px;"><label for="reg-provides" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Provides</label><select id="reg-provides" value="{{regProvides}}" onChange="{{onRegProvides}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{regProvidesOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <span style="margin-left: auto; align-self: center; font-size: 14px; color: var(--fg-3a4150);">Showing <strong>{{regShown}}</strong> of {{regTotal}}</span>
+        </div>
+        <div style="min-width: 1000px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 16px; padding: 10px 24px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+            <span>Provider</span><span>Catalog</span><span>Provides</span><span>Installed as</span><span>Status</span>
+          </div>
+          <sc-for list="{{registrations}}" as="g" hint-placeholder-count="2">
+            <div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 16px; align-items: start; padding: 14px 24px; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+              <a class="mono" href="{{g.href}}" style="font-weight: 500; overflow-wrap: anywhere;">{{g.name}}</a>
+              <span style="font-size: 12px; overflow-wrap: anywhere;"><a class="mono" href="Catalog.dc.html" onClick="{{g.openCatalog}}" style="font-size: 12px;">{{g.catalog}}</a> <span class="mono" style="font-size: 12px; color: var(--fg-6a6f7a);">{{g.version}}</span></span>
+              <span style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <sc-for list="{{g.provides}}" as="p" hint-placeholder-count="1">
+                  <span class="opm-pop">
+                    <a href="{{p.href}}" target="_blank" rel="noopener" aria-describedby="{{p.tipId}}" style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font-size: 13px; font-weight: 600; text-decoration: none;">#{{p.name}}</a>
+                    <span class="opm-popbox">
+                      <span id="{{p.tipId}}" role="tooltip" style="display: flex; flex-direction: column; gap: 8px; width: 340px; padding: 14px 16px; border-radius: 10px; background: #1d2430; color: #ebe6da; font-size: 13px; line-height: 1.5; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+                        <span style="display: flex; align-items: center; gap: 8px;">
+                          <span style="padding: 2px 8px; border-radius: 5px; border: 1px solid #5f6a7c; color: #c4c0b5; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">{{p.kind}}</span>
+                          <strong style="font-size: 15px; color: #ebe6da;">{{p.name}}</strong>
+                        </span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8f96a3; overflow-wrap: anywhere;">{{p.path}}</span>
+                        <span style="color: #c4c0b5;">{{p.desc}}</span>
+                        <a href="{{p.href}}" target="_blank" rel="noopener" style="align-self: flex-start; color: #e3b45c; font-weight: 600;">Open the {{p.kindLower}} documentation ↗</a>
+                      </span>
+                    </span>
+                  </span>
+                </sc-for>
+                <sc-if value="{{g.providesNothing}}" hint-placeholder-val="{{false}}"><span style="color: var(--fg-6a6f7a);">nothing</span></sc-if>
+              </span>
+              <sc-if value="{{g.providerLink}}" hint-placeholder-val="{{true}}"><span style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;"><span style="{{g.kindStyle}}">{{g.kind}}</span><a class="mono" href="{{g.href}}" style="font-size: 13px; overflow-wrap: anywhere;">{{g.provider}}</a></span></sc-if>
+              <sc-if value="{{g.providerPlain}}" hint-placeholder-val="{{false}}"><span class="mono" style="font-size: 13px; color: var(--fg-6a6f7a); overflow-wrap: anywhere;">{{g.provider}}</span></sc-if>
+              <span style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="display: flex; gap: 6px; flex-wrap: wrap;"><sc-for list="{{g.badges}}" as="b" hint-placeholder-count="2"><span style="{{b.style}}">{{b.label}}</span></sc-for></span>
+                <sc-if value="{{g.hasReason}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: var(--fg-a3260f);"><span class="mono">{{g.reason}}</span>: {{g.reasonText}}</span></sc-if>
+              </span>
+            </div>
+          </sc-for>
+          <sc-if value="{{noRegs}}" hint-placeholder-val="{{false}}"><div style="padding: 24px; text-align: center; color: var(--fg-6a6f7a);">No provider matches these filters.</div></sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showCats}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--pt-e5dccb);">
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 2 1 260px;"><label for="cat-q" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Search</label><input id="cat-q" type="search" value="{{catQ}}" onChange="{{onCatQ}}" placeholder="Catalog path or claimant" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); cursor: text;"></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; max-width: 260px;"><label for="cat-source" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Source</label><select id="cat-source" value="{{catSource}}" onChange="{{onCatSource}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{catSourceOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; max-width: 260px;"><label for="cat-claim" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Claimed</label><select id="cat-claim" value="{{catClaim}}" onChange="{{onCatClaim}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{catClaimOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+          <span style="margin-left: auto; align-self: center; font-size: 14px; color: var(--fg-3a4150);">Showing <strong>{{catShown}}</strong> of {{catTotal}}</span>
+        </div>
+        <div style="min-width: 1000px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 2fr) 110px 150px minmax(0, 1.2fr) 120px; gap: 16px; padding: 10px 24px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+            <span>Catalog</span><span>Version</span><span>Source</span><span>Claimed by</span><span>Enabled</span>
+          </div>
+          <sc-for list="{{catalogs}}" as="c" hint-placeholder-count="2">
+            <div style="display: grid; grid-template-columns: minmax(0, 2fr) 110px 150px minmax(0, 1.2fr) 120px; gap: 16px; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+              <a class="mono" href="Catalog.dc.html" onClick="{{c.openCatalog}}" style="font-weight: 500; overflow-wrap: anywhere;">{{c.path}}</a>
+              <span class="mono">{{c.version}}</span>
+              <span>{{c.source}}</span>
+              <sc-if value="{{c.hasClaim}}" hint-placeholder-val="{{false}}"><a class="mono" href="{{c.claimHref}}" style="font-size: 13px; overflow-wrap: anywhere;">{{c.claimedBy}}</a></sc-if>
+              <sc-if value="{{c.noClaim}}" hint-placeholder-val="{{true}}"><span class="mono" style="font-size: 13px; color: var(--fg-6a6f7a); overflow-wrap: anywhere;">{{c.claimedBy}}</span></sc-if>
+              <span style="{{c.enabledBadge}}">{{c.enabled}}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{noCats}}" hint-placeholder-val="{{false}}"><div style="padding: 24px; text-align: center; color: var(--fg-6a6f7a);">No catalog matches these filters.</div></sc-if>
+          <div id="contracts" style="display: flex; flex-direction: column; gap: 6px; padding: 14px 24px;">
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6e4700);">Contracts</span>
+            <span style="font-size: 14px; color: var(--fg-3a4150); line-height: 1.5;">Some provider-fulfilled contracts have no provider yet. This is information, not a failure: a module that demands one waits until a provider registers.</span>
+          </div>
+        </div>
+      </sc-if>
+    </section>
+
+
+    <section aria-labelledby="ev-h" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+      <div style="display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb);">
+        <h2 id="ev-h" style="margin: 0; font-size: 20px; align-self: center;">Recent events</h2>
+        <div style="display: flex; flex-direction: column; gap: 4px; min-width: 260px;">
+          <label for="ev-obj" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Resource</label>
+          <select id="ev-obj" value="{{evObj}}" onChange="{{onEvObj}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);">
+            <optgroup label="Everything"><option value="">{{evAllLabel}}</option></optgroup><sc-for list="{{evOptions}}" as="g" hint-placeholder-count="2"><optgroup label="{{g.label}}"><sc-for list="{{g.options}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for></optgroup></sc-for>
+          </select>
+        </div>
+        <span style="margin-left: auto; align-self: center; font-size: 14px; color: var(--fg-3a4150);">Showing <strong>{{evShown}}</strong> of {{evTotal}}, newest first, repeats folded</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 88px 180px 280px minmax(0, 1fr) 56px; gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+        <span>Type</span><span>Reason</span><span>Resource</span><span>Message</span><span style="text-align: right;">Age</span>
+      </div>
+      <sc-for list="{{events}}" as="e" hint-placeholder-count="5">
+        <div style="display: grid; grid-template-columns: 88px 180px 280px minmax(0, 1fr) 56px; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+          <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: {{e.typeColor}}; padding-top: 2px;">{{e.type}}</span>
+          <span class="mono" style="overflow-wrap: anywhere;">{{e.reason}}</span>
+          <button type="button" onClick="{{e.pick}}" title="Show only this resource's events" style="display: flex; flex-direction: column; gap: 2px; padding: 0; border: none; background: none; text-align: left; font: inherit; cursor: pointer; min-width: 0;">
+            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-6a6f7a);">{{e.kind}}</span>
+            <span class="mono" style="font-size: 13px; color: var(--fg-8a5a00); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere;">{{e.name}}</span>
+          </button>
+          <span style="color: var(--fg-3a4150);">{{e.note}}</span>
+          <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{e.age}}</span>
+        </div>
+      </sc-for>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["System", "Light", "Dark"], "default": "System", "section": "Theme"}, "$preview": {"width": 1920, "height": 1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Filters survive tab switches and visits: kept per device and browser in localStorage.
+    const FILTER_KEYS = ['ptab', 'evObj', 'regQ', 'regStatus', 'regProvides', 'catQ', 'catSource', 'catClaim'], FILTER_STORE = 'opm-portal:filters:Main';
+    if (!this.__filtersLoaded) {
+      this.__filtersLoaded = true;
+      if (!this.__handoff) {
+        try { const saved = JSON.parse(window.localStorage.getItem(FILTER_STORE) || 'null'); if (saved) FILTER_KEYS.forEach((k) => { if (saved[k] !== undefined) this.state[k] = saved[k]; }); } catch (e) { /* no storage: start with no filters */ }
+      }
+    }
+    // Slim, sticky top bar once the page scrolls past it.
+    if (!this.__scrollHooked && typeof window !== 'undefined' && window.addEventListener) {
+      this.__scrollHooked = true;
+      const onScroll = () => { const c = (window.scrollY || 0) > 48; if (c !== !!this.state.__compact) this.setState({ __compact: c }); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    const v = this.__renderVals();
+    try {
+      const snap = {}; FILTER_KEYS.forEach((k) => { snap[k] = this.state[k]; });
+      const text = JSON.stringify(snap);
+      if (text !== this.__filtersSaved) { window.localStorage.setItem(FILTER_STORE, text); this.__filtersSaved = text; }
+    } catch (e) { /* storage blocked: filters last for this visit only */ }
+    let stored = '';
+    try { stored = window.localStorage.getItem('opm-portal-theme') || ''; } catch (e) { stored = ''; }
+    const choice = (this.state && this.state.themeChoice) || stored || this.props.theme || 'System';
+    const menu = !!(this.state && this.state.themeMenu);
+    const pick = (c) => () => { try { window.localStorage.setItem('opm-portal-theme', c); } catch (e) { /* storage blocked: keep it for this view */ } this.setState({ themeChoice: c, themeMenu: false }); };
+    v.hdrCompact = this.state && this.state.__compact ? 'is-compact' : '';
+    v.themeAttr = ({ Light: 'light', Dark: 'dark' })[choice] || 'auto';
+    v.themeIsSystem = choice === 'System'; v.themeIsDark = choice === 'Dark'; v.themeIsLight = choice === 'Light';
+    v.themeMenuOpen = menu; v.themeMenuOpenAttr = menu ? 'true' : 'false';
+    v.themeLabel = 'Theme: ' + choice;
+    v.toggleThemeMenu = () => this.setState({ themeMenu: !menu });
+    v.themeOptions = ['Light', 'Dark', 'System'].map((c) => ({ label: c, checked: c === choice, checkedAttr: c === choice ? 'true' : 'false', pick: pick(c),
+      style: 'display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; padding: 6px 12px; border: none; border-radius: 6px; background: ' + (c === choice ? '#2a3240' : 'transparent') + '; color: #ebe6da; font: inherit; font-size: 15px; text-align: left; cursor: pointer;' }));
+    return v;
+  }
+  constructor(props) { super(props); this.state = { evObj: '', ptab: 'regs', regQ: '', regStatus: '', regProvides: '', catQ: '', catSource: '', catClaim: '' }; }
+  __renderVals() {
+    const T = {
+      navy:  ['var(--pt-1b2a44)', 'var(--pt-1b2a44)', 'var(--pt-dfe5ef)'], green: ['var(--pt-157a52)', 'var(--pt-0f5c3d)', 'var(--pt-dcefe5)'], blue: ['var(--pt-2458b8)', 'var(--fg-1d4796)', 'var(--pt-dde6f7)'],
+      red:   ['var(--pt-c3311b)', 'var(--pt-a3260f)', 'var(--pt-f8e0da)'], amber: ['var(--pt-b07814)', 'var(--pt-6e4700)', 'var(--pt-f6ead0)'], gray: ['var(--pt-5f6672)', 'var(--pt-3a4150)', 'var(--pt-e7e3da)']
+    };
+    const badge = (t) => 'justify-self: start; padding: 3px 9px; border: 1.5px solid ' + T[t][0] + '; border-radius: 5px; color: ' + T[t][1] + '; background: ' + T[t][2] + '; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;';
+    const chip = (pkg) => 'justify-self: start; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; ' + (pkg ? 'border: 1.5px dashed var(--pt-8a5a00); color: var(--fg-6b4500); background: var(--pt-fff6e3);' : 'border: 1.5px solid var(--pt-141820); color: var(--fg-efe9dc); background: var(--pt-141820);');
+    const rows = [
+      ['podinfo', 'default', 'Instance', 'navy', 'Ready', 'red', 'Degraded', 'Instance.dc.html'],
+      ['podinfo', 'pkg', 'Package', 'red', 'Not ready', 'amber', 'Unknown', 'Package.dc.html'],
+      ['cert-manager', 'cert-manager', 'Instance', 'navy', 'Ready', 'green', 'Healthy', 'CertManager.dc.html'],
+      ['backup-provider', 'default', 'Instance', 'navy', 'Ready', 'green', 'Healthy', 'Provider.dc.html'],
+      ['refused-claim-fixture', 'default', 'Package', 'navy', 'Ready', 'green', 'Healthy', 'ProviderPackage.dc.html'],
+      ['backup-consumer', 'default', 'Instance', 'navy', 'Ready', 'green', 'Healthy', 'Instance.dc.html'],
+      ['web', 'web', 'Instance', 'gray', 'Managed externally', 'green', 'Healthy', 'Instance.dc.html'],
+      ['storefront', 'shop', 'Instance', 'navy', 'Ready', 'green', 'Healthy', 'Instance.dc.html'],
+      ['blog', 'blog', 'Instance', 'navy', 'Ready', 'blue', 'Progressing', 'Instance.dc.html'],
+      ['podinfo', 'staging', 'Instance', 'navy', 'Ready', 'green', 'Healthy', 'Instance.dc.html']
+    ];
+    const installed = rows.map(([name, ns, kind, at, applied, ht, health, href]) => ({
+      name, ns, kind, applied, health, href,
+      kindStyle: chip(kind === 'Package'), appliedBadge: badge(at), healthBadge: badge(ht),
+      rowBg: ht === 'red' ? 'var(--pt-fdf3f0)' : 'transparent'
+    }));
+    const tally = (idx, labelIdx) => {
+      const out = [];
+      rows.forEach((r) => { const k = r[labelIdx]; const f = out.find((x) => x.label === k); if (f) f.count += 1; else out.push({ label: k, t: r[idx], count: 1 }); });
+      return out.map((x) => ({ label: x.label, count: x.count, badge: badge(x.t), ink: T[x.t][1] }));
+    };
+    const linked = (key, items) => items.map((x) => ({ ...x, title: 'Show the ' + x.count + ' installed with ' + key + ' ' + x.label,
+      go: () => { try { window.localStorage.setItem('opm-installed-filter', JSON.stringify({ [key]: x.label })); } catch (e) { /* storage blocked: the list opens unfiltered */ } } }));
+    const statusGroups = [{ title: 'Health', items: linked('health', tally(5, 6)) }, { title: 'Applied', items: linked('applied', tally(3, 4)) }];
+    const kinds = rows.reduce((acc, r) => { acc[r[2]] = (acc[r[2]] || 0) + 1; return acc; }, {});
+    const kindLine = rows.length + ' installed: ' + Object.keys(kinds).map((k) => kinds[k] + ' ' + (k === 'Instance' ? 'instance' : 'package') + (kinds[k] === 1 ? '' : 's')).join(', ') + ' · 2 of them are providers';
+    // Docs live per catalog minor version: <site>/catalogs/<catalog>/<major.minor>/<traits|resources>/<name>/
+    const DOCS = 'https://open-platform-model.github.io/opmodel.dev/catalogs/';
+    const CATALOG_VERSION = { opm: '4.6.0' };
+    const docHref = (path) => {
+      const m = path.match(/^opmodel\.dev\/catalogs\/([^/]+)\/(traits|resources)\/([^@/]+)/);
+      if (!m) return DOCS;
+      const v = (CATALOG_VERSION[m[1]] || '').split('.').slice(0, 2).join('.');
+      return DOCS + m[1] + '/' + v + '/' + m[2] + '/' + m[3] + '/';
+    };
+    const trait = (path) => {
+      const name = path.split('/').pop().split('@')[0];
+      const nice = name.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+      const kind = /\/traits\//.test(path) ? 'Trait' : (/\/resources\//.test(path) ? 'Resource' : 'Definition');
+      return { name: nice, path, kind, kindLower: kind.toLowerCase(), tipId: 'def-' + nice.toLowerCase(),
+        desc: ({ backup: "Scheduled backup policy for a component's persistent state", 'backup-command': 'A backup taken by running a command whose standard output is the backup artefact' })[name] || '',
+        href: docHref(path) };
+    };
+    // Catalog links tell the catalog view which catalog to open.
+    const toCatalog = (pick) => () => { try { window.localStorage.setItem('opm-catalog-pick', pick); } catch (e) { /* storage blocked: the catalog view opens on its default */ } };
+    const registrations = [
+      { name: 'default.backup-provider', catalog: 'testing.opmodel.dev/catalogs/controller/backup@v0', version: '0.1.0', provides: ['opmodel.dev/catalogs/opm/traits/backup@v1alpha1'], provider: 'default/backup-provider', kind: 'Instance', href: 'Provider.dc.html', pick: 'backup', exists: true, badges: [['green', 'Accepted'], ['green', 'Active']] },
+      { name: 'default.refused-claim-fixture', catalog: 'testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0', version: '0.1.0', provides: [], provider: 'default/refused-claim-fixture', kind: 'Package', href: 'ProviderPackage.dc.html', pick: 'absent', exists: true, badges: [['red', 'Refused'], ['gray', 'Inactive']], reason: 'CatalogUnresolved', reasonText: 'the catalog is not in the registry' }
+    ].map((r) => ({ ...r, provides: r.provides.map(trait), providesNothing: r.provides.length === 0, providerLink: r.exists, providerPlain: !r.exists,
+      kindStyle: chip(r.kind === 'Package'), openCatalog: toCatalog(r.pick),
+      badges: r.badges.map(([t, label]) => ({ label, style: badge(t) })), hasReason: !!r.reason }));
+    const st = this.state;
+    const opt = (any, vals, count) => [{ value: '', label: any }].concat(vals.map((v) => ({ value: v, label: v + ' (' + count(v) + ')' })));
+    const statusOf = (r) => r.badges.map((b) => b.label);
+    const rq = (st.regQ || '').trim().toLowerCase();
+    const regsShown = registrations.filter((r) => (!rq || (r.name + ' ' + r.catalog + ' ' + r.provides.map((p) => p.name).join(' ')).toLowerCase().includes(rq))
+      && (!st.regStatus || statusOf(r).includes(st.regStatus)) && (!st.regProvides || r.provides.some((p) => p.name === st.regProvides)));
+    const allStatus = ['Accepted', 'Active', 'Refused', 'Inactive'];
+    const allProvides = Array.from(new Set([].concat(...registrations.map((r) => r.provides.map((p) => p.name)))));
+    const catalogsAll = [
+      { path: 'opmodel.dev/catalogs/opm@v4', version: '4.6.0', source: 'subscription', claimedBy: 'no registration', enabled: 'Enabled', pick: 'opm' },
+      { path: 'testing.opmodel.dev/catalogs/controller/backup@v0', version: '0.1.0', source: 'subscription', claimedBy: 'default.backup-provider', claimHref: 'Provider.dc.html', enabled: 'Enabled', pick: 'backup' }
+    ].map((c) => ({ ...c, openCatalog: toCatalog(c.pick), hasClaim: !!c.claimHref, noClaim: !c.claimHref, enabledBadge: badge(c.enabled === 'Enabled' ? 'green' : 'gray'), claimed: c.claimedBy === 'no registration' ? 'Unclaimed' : 'Claimed' }));
+    const cq = (st.catQ || '').trim().toLowerCase();
+    const catsShown = catalogsAll.filter((c) => (!cq || (c.path + ' ' + c.claimedBy).toLowerCase().includes(cq)) && (!st.catSource || c.source === st.catSource) && (!st.catClaim || c.claimed === st.catClaim));
+    const ptabs = [['regs', 'Providers ' + registrations.length], ['cats', 'Catalogs ' + catalogsAll.length]].map(([id, label]) => {
+      const on = (st.ptab || 'regs') === id;
+      return { label, selected: on ? 'true' : 'false', pick: () => this.setState({ ptab: id }),
+        style: 'min-height: 48px; padding: 12px 18px; font: inherit; font-size: 18px; cursor: pointer; background: none; border: none; border-bottom: 3px solid ' + (on ? 'var(--pt-8a5a00)' : 'transparent') + '; color: ' + (on ? 'var(--fg-141820)' : 'var(--fg-6a6f7a)') + '; font-weight: ' + (on ? '700' : '500') + '; margin-bottom: -1px;' };
+    });
+    const RES = {
+      platform: ['Platform', 'cluster'],
+      refused: ['TransformerRegistration', 'default.refused-claim-fixture'],
+      backup: ['TransformerRegistration', 'default.backup-provider']
+    };
+    const all = [
+      ['Warning', 'Refused', 'refused', 'Catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0 is not in the registry.', '2m'],
+      ['Normal', 'Activated', 'backup', 'Active for contract backup.', '6m'],
+      ['Normal', 'Accepted', 'backup', 'Claims testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0.', '6m'],
+      ['Normal', 'CatalogsResolved', 'platform', '2 catalogs resolved from 2 subscriptions.', '9m']
+    ].map(([type, reason, obj, note, age]) => ({ type, reason, obj, note, age, kind: RES[obj][0], name: RES[obj][1], typeColor: type === 'Warning' ? 'var(--fg-a3260f)' : 'var(--pt-3a4150)', pick: () => this.setState({ evObj: obj }) }));
+    const evObj = this.state.evObj;
+    const events = evObj ? all.filter((e) => e.obj === evObj) : all;
+    const groupBy = (ids, kindOf, labelOf) => { const out = []; ids.forEach((id) => { const k = kindOf(id); let g = out.find((x) => x.label === k); if (!g) { g = { label: k, options: [] }; out.push(g); } g.options.push({ value: id, label: labelOf(id) }); }); return out; };
+    const KIND_LABEL = { Platform: 'Platform', TransformerRegistration: 'Providers (TransformerRegistration)' };
+    const evAllLabel = 'All resources (' + all.length + ')';
+    const evOptions = groupBy(Object.keys(RES), (k) => KIND_LABEL[RES[k][0]] || RES[k][0], (k) => RES[k][1] + ' (' + all.filter((e) => e.obj === k).length + ')');
+    return {
+      statusGroups, kindLine, events, ptabs,
+      showRegs: (st.ptab || 'regs') === 'regs', showCats: st.ptab === 'cats',
+      registrations: regsShown, regShown: regsShown.length, regTotal: registrations.length, noRegs: regsShown.length === 0,
+      regQ: st.regQ, regStatus: st.regStatus, regProvides: st.regProvides,
+      onRegQ: (e) => this.setState({ regQ: e.target.value }), onRegStatus: (e) => this.setState({ regStatus: e.target.value }), onRegProvides: (e) => this.setState({ regProvides: e.target.value }),
+      regStatusOptions: opt('Any status', allStatus, (v) => registrations.filter((r) => statusOf(r).includes(v)).length),
+      regProvidesOptions: opt('Anything', allProvides, (v) => registrations.filter((r) => r.provides.some((p) => p.name === v)).length),
+      catalogs: catsShown, catShown: catsShown.length, catTotal: catalogsAll.length, noCats: catsShown.length === 0,
+      catQ: st.catQ, catSource: st.catSource, catClaim: st.catClaim,
+      onCatQ: (e) => this.setState({ catQ: e.target.value }), onCatSource: (e) => this.setState({ catSource: e.target.value }), onCatClaim: (e) => this.setState({ catClaim: e.target.value }),
+      catSourceOptions: opt('Any source', ['subscription', 'contributed'], (v) => catalogsAll.filter((c) => c.source === v).length),
+      catClaimOptions: opt('Either', ['Claimed', 'Unclaimed'], (v) => catalogsAll.filter((c) => c.claimed === v).length), evOptions, evAllLabel, evObj, evShown: events.length, evTotal: all.length,
+      onEvObj: (e) => this.setState({ evObj: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>

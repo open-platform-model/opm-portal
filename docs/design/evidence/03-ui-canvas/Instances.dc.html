@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OPM Portal: Installed</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+.opm-hdr{transition:padding .2s ease,box-shadow .2s ease}
+.opm-hdr > a{transition:font-size .2s ease}
+.opm-hdr.is-compact{padding-top:5px!important;padding-bottom:5px!important;box-shadow:0 8px 20px -12px rgb(0 0 0 / 55%)}
+.opm-hdr.is-compact > a{font-size:15px!important}
+.opm-hdr.is-compact > a svg{width:18px;height:18px}
+.opm-hdr.is-compact nav a{padding-top:4px!important;padding-bottom:4px!important}
+.opm-hdr.is-compact button[aria-haspopup]{width:30px!important;height:30px!important}
+@media (prefers-reduced-motion: reduce){.opm-hdr,.opm-hdr > a{transition:none}}
+.opm-tip{position:relative;display:inline-flex;outline-offset:2px}
+.opm-tip .opm-tipbox{display:none;position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:300px;padding:10px 12px;border-radius:8px;background:#1d2430;color:#ebe6da;font-size:13px;line-height:1.45;font-weight:400;letter-spacing:normal;text-transform:none;z-index:50;box-shadow:0 10px 24px -10px rgb(0 0 0 / 55%)}
+.opm-tip:hover .opm-tipbox,.opm-tip:focus .opm-tipbox,.opm-tip:focus-within .opm-tipbox{display:block}
+.opm-menu button:hover{background:#2a3240}
+:root{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #5f6672; --pt-8a5a00: #8a5a00; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-efe9dc: #efe9dc; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf8f1: #fbf8f1; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb0: rgb(176 120 20 / 13%); --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; --pt-2458b8: #2458b8; --fg-1d4796: #1d4796; --pt-dde6f7: #dde6f7; color-scheme: light;}
+@media (prefers-color-scheme: dark){:root{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #8f96a3; --pt-8a5a00: #e3b45c; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-efe9dc: #0c0f14; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf8f1: #131820; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb0: rgb(227 180 92 / 16%); --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; --pt-2458b8: #7ea6f2; --fg-1d4796: #9dbcf7; --pt-dde6f7: #17233d; color-scheme: dark;}}
+[data-theme="light"]{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #5f6672; --pt-8a5a00: #8a5a00; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-efe9dc: #efe9dc; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf8f1: #fbf8f1; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb0: rgb(176 120 20 / 13%); --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; --pt-2458b8: #2458b8; --fg-1d4796: #1d4796; --pt-dde6f7: #dde6f7; color-scheme: light;}
+[data-theme="dark"]{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-5f6672: #8f96a3; --pt-8a5a00: #e3b45c; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-efe9dc: #0c0f14; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf8f1: #131820; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb0: rgb(227 180 92 / 16%); --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; --pt-2458b8: #7ea6f2; --fg-1d4796: #9dbcf7; --pt-dde6f7: #17233d; color-scheme: dark;}
+body{margin:0;background:var(--pt-efe9dc);color:var(--fg-141820);font-family:"Space Grotesk","Avenir Next",sans-serif}
+a{color:var(--fg-8a5a00)}a:hover{color:var(--fg-5e3d00)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px}
+</style>
+</helmet>
+<div data-theme="{{themeAttr}}" style="min-height: 100vh; color: var(--fg-141820); background: var(--pt-efe9dc);">
+  <header class="opm-hdr {{hdrCompact}}" style="position: sticky; top: 0; z-index: 800; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 14px 40px; background: var(--hdr); color: var(--fg-efe9dc);">
+    <a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; color: var(--fg-efe9dc); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: 0.02em;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e3b45c" stroke-width="2"><path d="M12 2 21 7v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg>
+      OPM Portal
+    </a>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" style="padding: 8px 14px; border-radius: 8px; color: var(--fg-c4c0b5); text-decoration: none;">Platform</a>
+      <a href="Instances.dc.html" aria-current="page" style="padding: 8px 14px; border-radius: 8px; background: var(--rgb5); color: var(--fg-e3b45c); text-decoration: none; font-weight: 600;">Installed</a>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--fg-c4c0b5); flex-wrap: wrap;">
+      <span class="mono" style="padding: 4px 10px; border: 1px solid var(--pt-3a4352); border-radius: 999px;">kind-opm-portal-e2e</span>
+      <span>reading as <span class="mono" style="color: var(--fg-ebe6da);">kubernetes-admin</span></span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--pt-3fbf86);"></span>Live</span>
+      <span style="position: relative; display: inline-flex;">
+        <button type="button" onClick="{{toggleThemeMenu}}" aria-haspopup="menu" aria-expanded="{{themeMenuOpenAttr}}" aria-label="{{themeLabel}}" title="{{themeLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #ebe6da; cursor: pointer;">
+          <sc-if value="{{themeIsSystem}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"></path></svg></sc-if>
+          <sc-if value="{{themeIsDark}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></sc-if>
+          <sc-if value="{{themeIsLight}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+        </button>
+        <sc-if value="{{themeMenuOpen}}" hint-placeholder-val="{{false}}">
+          <div class="opm-menu" role="menu" aria-label="Theme" style="position: absolute; right: 0; top: 44px; z-index: 1100; min-width: 160px; display: flex; flex-direction: column; padding: 6px; border-radius: 10px; border: 1px solid #3a4352; background: #1d2430; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+            <sc-for list="{{themeOptions}}" as="t" hint-placeholder-count="3">
+              <button type="button" role="menuitemradio" aria-checked="{{t.checkedAttr}}" onClick="{{t.pick}}" style="{{t.style}}"><span>{{t.label}}</span><sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </span>
+    </div>
+  </header>
+
+  <main style="max-width: 1840px; margin: 0 auto; padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <h1 style="margin: 0; font-size: 40px; font-weight: 700; letter-spacing: -0.02em;">Installed</h1>
+      <p style="margin: 0; font-size: 15px; color: var(--fg-3a4150);">Every module running in this cluster, as a ModuleInstance or a ModulePackage.</p>
+    </div>
+
+    <section aria-label="Filters" style="display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+        <div style="flex: 2 1 260px; display: flex; flex-direction: column; gap: 4px;">
+          <label for="q" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Search</label>
+          <div style="display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 12px; border: 1px solid var(--pt-b9ad94); border-radius: 8px; background: var(--pt-fffdf8);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a6f7a" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+            <input id="q" type="search" value="{{query}}" onChange="{{onQuery}}" placeholder="Name, namespace, module or source" style="flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: inherit; font-size: 15px; color: var(--fg-141820);">
+          </div>
+        </div>
+        <sc-for list="{{selects}}" as="s" hint-placeholder-count="5">
+          <div style="flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px;">
+            <label for="{{s.id}}" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">{{s.label}}</label>
+            <select id="{{s.id}}" value="{{s.value}}" onChange="{{s.onChange}}" style="{{s.style}}">
+              <sc-for list="{{s.options}}" as="o" hint-placeholder-count="3">
+                <option value="{{o.value}}">{{o.label}}</option>
+              </sc-for>
+            </select>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 32px;">
+        <span style="font-size: 14px; color: var(--fg-3a4150); margin-right: 6px;">Showing <strong>{{shown}}</strong> of {{total}}</span>
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="0">
+          <button type="button" onClick="{{c.clear}}" aria-label="{{c.aria}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 10px 4px 12px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--rgb0); color: var(--fg-5e3d00); font: inherit; font-size: 13px; cursor: pointer;">{{c.text}}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+        </sc-for>
+        <sc-if value="{{anyFilter}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{clearAll}}" style="min-height: 32px; padding: 4px 10px; border: none; background: none; color: var(--fg-8a5a00); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer;">Clear all</button>
+        </sc-if>
+      </div>
+    </section>
+
+    <section aria-label="Installed" style="background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow-x: auto;">
+      <div style="min-width: 940px;">
+        <div style="display: grid; grid-template-columns: minmax(0, 1.2fr) 130px minmax(0, 2fr) 150px 150px 80px 90px; gap: 16px; padding: 12px 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+          <span>Name</span><span>Kind</span><span>Module or source</span><span>Applied</span><span>Health</span><span>Objects</span><span>Owner</span>
+        </div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+          <a href="{{r.href}}" style="display: grid; grid-template-columns: minmax(0, 1.2fr) 130px minmax(0, 2fr) 150px 150px 80px 90px; gap: 16px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--pt-e5dccb); color: var(--fg-141820); text-decoration: none; background: {{r.rowBg}};">
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+              <span style="font-weight: 600; font-size: 15px;">{{r.name}}</span>
+              <span class="mono" style="color: var(--fg-6a6f7a); font-size: 12px;">{{r.ns}}</span>
+            </span>
+            <span style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px;">
+            <span style="{{r.kindStyle}}">
+              <sc-if value="{{r.isPackage}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 8l9-5 9 5-9 5z"></path><path d="M3 8v8l9 5 9-5V8"></path><path d="M12 13v8"></path><path d="M7.5 5.5l9 5"></path></svg></sc-if>
+              <sc-if value="{{r.isInstance}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg></sc-if>
+              {{r.kind}}
+            </span>
+            <sc-if value="{{r.isProvider}}" hint-placeholder-val="{{false}}">
+              <span class="opm-tip" tabindex="0" aria-label="{{r.providerTip}}" style="cursor: help;"><span style="{{r.providerStyle}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"></path></svg>Provider</span><span class="opm-tipbox" role="tooltip">{{r.providerTip}}</span></span>
+            </sc-if>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+              <span class="mono" style="font-size: 12px; overflow-wrap: anywhere;">{{r.module}}</span>
+              <span class="mono" style="color: var(--fg-6a6f7a); font-size: 12px;">{{r.version}}</span>
+            </span>
+            <span style="justify-self: start; padding: 4px 9px; border: 1.5px solid {{r.appliedBorder}}; border-radius: 5px; color: {{r.appliedInk}}; background: {{r.appliedBg}}; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">{{r.applied}}</span>
+            <span style="justify-self: start; padding: 4px 9px; border: 1.5px solid {{r.healthBorder}}; border-radius: 5px; color: {{r.healthInk}}; background: {{r.healthBg}}; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">{{r.health}}</span>
+            <span class="mono">{{r.objects}}</span>
+            <span style="font-size: 13px; color: var(--fg-3a4150);">{{r.owner}}</span>
+          </a>
+        </sc-for>
+        <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 20px; text-align: center;">
+            <span style="font-size: 17px; font-weight: 600;">Nothing matches these filters</span>
+            <button type="button" onClick="{{clearAll}}" style="min-height: 40px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--pt-141820); background: var(--pt-141820); color: var(--fg-efe9dc); font: inherit; font-size: 14px; cursor: pointer;">Clear filters</button>
+          </div>
+        </sc-if>
+      </div>
+    </section>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["System", "Light", "Dark"], "default": "System", "section": "Theme"}, "$preview": {"width": 1920, "height": 1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Filters survive tab switches and visits: kept per device and browser in localStorage.
+    const FILTER_KEYS = ['query', 'kind', 'role', 'uses', 'ns', 'health', 'applied', 'owner', 'module'], FILTER_STORE = 'opm-portal:filters:Instances';
+    if (!this.__filtersLoaded) {
+      this.__filtersLoaded = true;
+      if (!this.__handoff) {
+        try { const saved = JSON.parse(window.localStorage.getItem(FILTER_STORE) || 'null'); if (saved) FILTER_KEYS.forEach((k) => { if (saved[k] !== undefined) this.state[k] = saved[k]; }); } catch (e) { /* no storage: start with no filters */ }
+      }
+    }
+    // A hand-off can arrive while this view is already open (the canvas keeps boards mounted), so keep checking for one.
+    if (!this.__handoffPoll && typeof window !== 'undefined' && window.setInterval) {
+      this.__handoffPoll = window.setInterval(() => {
+        try {
+          const f = JSON.parse(window.localStorage.getItem('opm-installed-filter') || 'null');
+          if (f) { window.localStorage.removeItem('opm-installed-filter'); this.setState(Object.assign({ query: '', kind: '', role: '', uses: '', ns: '', health: '', applied: '', owner: '', module: '' }, f)); }
+        } catch (e) { /* no storage: nothing to hand off */ }
+      }, 300);
+    }
+    // Slim, sticky top bar once the page scrolls past it.
+    if (!this.__scrollHooked && typeof window !== 'undefined' && window.addEventListener) {
+      this.__scrollHooked = true;
+      const onScroll = () => { const c = (window.scrollY || 0) > 48; if (c !== !!this.state.__compact) this.setState({ __compact: c }); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    const v = this.__renderVals();
+    try {
+      const snap = {}; FILTER_KEYS.forEach((k) => { snap[k] = this.state[k]; });
+      const text = JSON.stringify(snap);
+      if (text !== this.__filtersSaved) { window.localStorage.setItem(FILTER_STORE, text); this.__filtersSaved = text; }
+    } catch (e) { /* storage blocked: filters last for this visit only */ }
+    let stored = '';
+    try { stored = window.localStorage.getItem('opm-portal-theme') || ''; } catch (e) { stored = ''; }
+    const choice = (this.state && this.state.themeChoice) || stored || this.props.theme || 'System';
+    const menu = !!(this.state && this.state.themeMenu);
+    const pick = (c) => () => { try { window.localStorage.setItem('opm-portal-theme', c); } catch (e) { /* storage blocked: keep it for this view */ } this.setState({ themeChoice: c, themeMenu: false }); };
+    v.hdrCompact = this.state && this.state.__compact ? 'is-compact' : '';
+    v.themeAttr = ({ Light: 'light', Dark: 'dark' })[choice] || 'auto';
+    v.themeIsSystem = choice === 'System'; v.themeIsDark = choice === 'Dark'; v.themeIsLight = choice === 'Light';
+    v.themeMenuOpen = menu; v.themeMenuOpenAttr = menu ? 'true' : 'false';
+    v.themeLabel = 'Theme: ' + choice;
+    v.toggleThemeMenu = () => this.setState({ themeMenu: !menu });
+    v.themeOptions = ['Light', 'Dark', 'System'].map((c) => ({ label: c, checked: c === choice, checkedAttr: c === choice ? 'true' : 'false', pick: pick(c),
+      style: 'display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; padding: 6px 12px; border: none; border-radius: 6px; background: ' + (c === choice ? '#2a3240' : 'transparent') + '; color: #ebe6da; font: inherit; font-size: 15px; text-align: left; cursor: pointer;' }));
+    return v;
+  }
+  constructor(props) {
+    super(props);
+    this.state = { query: '', kind: '', role: '', uses: '', ns: '', health: '', applied: '', owner: '', module: '' };
+    // A count on the Platform page hands over its filter (the real portal puts it in the URL).
+    try {
+      const f = JSON.parse(window.localStorage.getItem('opm-installed-filter') || 'null');
+      if (f) { window.localStorage.removeItem('opm-installed-filter'); Object.assign(this.state, { query: '', kind: '', role: '', uses: '', ns: '', health: '', applied: '', owner: '', module: '' }, f); this.__handoff = true; }
+    } catch (e) { /* no storage: start unfiltered */ }
+  }
+  __renderVals() {
+    const ready = { applied: 'Ready', appliedBorder: 'var(--pt-1b2a44)', appliedInk: 'var(--fg-1b2a44)', appliedBg: 'var(--pt-dfe5ef)' };
+    const ext = { applied: 'Managed externally', appliedBorder: 'var(--pt-5f6672)', appliedInk: 'var(--fg-3a4150)', appliedBg: 'var(--pt-e7e3da)' };
+    const progressing = { health: 'Progressing', healthBorder: 'var(--pt-2458b8)', healthInk: 'var(--fg-1d4796)', healthBg: 'var(--pt-dde6f7)' };
+    const healthy = { health: 'Healthy', healthBorder: 'var(--pt-157a52)', healthInk: 'var(--fg-0f5c3d)', healthBg: 'var(--pt-dcefe5)' };
+    const notReady = { applied: 'Not ready', appliedBorder: 'var(--pt-c3311b)', appliedInk: 'var(--fg-a3260f)', appliedBg: 'var(--pt-f8e0da)' };
+    const unknown = { health: 'Unknown', healthBorder: 'var(--pt-b07814)', healthInk: 'var(--fg-6e4700)', healthBg: 'var(--pt-f6ead0)' };
+    const degraded = { health: 'Degraded', healthBorder: 'var(--pt-c3311b)', healthInk: 'var(--fg-a3260f)', healthBg: 'var(--pt-f8e0da)' };
+    const all = [
+      { uses: ['Crds', 'Role', 'ValidatingWebhooks', 'MutatingWebhooks', 'StatelessWorkload'], name: 'cert-manager', ns: 'cert-manager', module: 'opmodel.dev/modules/cert_manager@v2', version: 'v2.0.5', objects: '42', owner: 'controller', ...ready, ...healthy },
+      { uses: ['StatelessWorkload', 'Expose', 'Scaling'], name: 'podinfo', ns: 'default', module: 'testing.opmodel.dev/modules/controller/podinfo@v0', version: 'v0.1.11', objects: '2', owner: 'controller', ...ready, ...degraded },
+      { uses: ['TransformerRegistration', 'StatelessWorkload', 'Expose'], name: 'backup-provider', ns: 'default', module: 'testing.opmodel.dev/modules/controller/backup_provider@v0', version: 'v0.1.0', objects: '3', owner: 'controller', ...ready, ...healthy, provider: ['green', 'Provides #Backup. Registration default.backup-provider is accepted and active.'], href: 'Provider.dc.html' },
+      { uses: ['TransformerRegistration', 'StatelessWorkload'], name: 'refused-claim-fixture', ns: 'default', kind: 'Package', module: 'OCIRepository default/refused-claim-fixture', version: 'sha256:91be03d7', objects: '3', owner: 'controller', ...ready, ...healthy, provider: ['red', 'Registration default.refused-claim-fixture is refused: its catalog is not in the registry. It provides nothing.'], href: 'ProviderPackage.dc.html' },
+      { uses: ['StatefulWorkload', 'Volumes', 'Backup'], name: 'backup-consumer', ns: 'default', module: 'testing.opmodel.dev/modules/controller/backup_consumer@v0', version: 'v0.1.0', objects: '1', owner: 'controller', ...ready, ...healthy },
+      { uses: ['StatelessWorkload', 'Expose', 'HttpRoute', 'Backup'], name: 'web', ns: 'web', module: 'opmodel.dev/modules/web_app@v1', version: 'v1.0.5', objects: '2', owner: 'cli', ...ext, ...healthy },
+      { uses: ['StatelessWorkload', 'Expose', 'HttpRoute', 'Scaling', 'Backup'], name: 'storefront', ns: 'shop', module: 'opmodel.dev/modules/web_app@v1', version: 'v1.0.5', objects: '2', owner: 'controller', ...ready, ...healthy },
+      { uses: ['StatelessWorkload', 'Expose', 'Scaling', 'Backup'], name: 'blog', ns: 'blog', module: 'opmodel.dev/modules/web_app@v1', version: 'v1.0.3', objects: '2', owner: 'controller', ...ready, ...progressing },
+      { uses: ['StatelessWorkload', 'Expose', 'Backup'], name: 'podinfo', ns: 'staging', module: 'testing.opmodel.dev/modules/controller/podinfo@v0', version: 'v0.1.11', objects: '2', owner: 'controller', ...ready, ...healthy },
+      { uses: [], name: 'podinfo', ns: 'pkg', kind: 'Package', module: 'OCIRepository pkg/podinfo-release', version: 'no revision fetched', objects: '0', owner: 'controller', ...notReady, ...unknown }
+    ].map((r) => ({ kind: 'Instance', ...r })).map((r) => {
+      const pkg = r.kind === 'Package';
+      const PT = { green: ['var(--pt-157a52)', 'var(--fg-0f5c3d)', 'var(--pt-dcefe5)'], red: ['var(--pt-c3311b)', 'var(--fg-a3260f)', 'var(--pt-f8e0da)'] };
+      const pt = r.provider ? PT[r.provider[0]] : null;
+      return { ...r, isPackage: pkg, isInstance: !pkg, href: r.href || (pkg ? 'Package.dc.html' : (r.name === 'cert-manager' ? 'CertManager.dc.html' : 'Instance.dc.html')),
+        isProvider: !!r.provider, role: r.provider ? 'Provider' : 'Not a provider', providerTip: r.provider ? r.provider[1] : '',
+        providerStyle: pt ? 'display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 5px; border: 1.5px solid ' + pt[0] + '; color: ' + pt[1] + '; background: ' + pt[2] + '; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;' : '',
+        kindStyle: 'justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; ' + (pkg ? 'border: 1.5px dashed var(--pt-8a5a00); color: var(--fg-6b4500); background: var(--pt-fff6e3);' : 'border: 1.5px solid var(--pt-141820); color: var(--fg-efe9dc); background: var(--pt-141820);') };
+    });
+    const s = this.state;
+    const q = s.query.trim().toLowerCase();
+    const rows = all.filter((r) =>
+      (!q || (r.name + ' ' + r.ns + ' ' + r.module + ' ' + r.kind).toLowerCase().includes(q)) &&
+      (!s.kind || r.kind === s.kind) &&
+      (!s.role || r.role === s.role) &&
+      (!s.uses || r.uses.includes(s.uses)) &&
+      (!s.ns || r.ns === s.ns) &&
+      (!s.health || r.health === s.health) &&
+      (!s.applied || r.applied === s.applied) &&
+      (!s.owner || r.owner === s.owner) &&
+      (!s.module || r.module === s.module)
+    ).map((r) => ({ ...r, rowBg: r.health === 'Degraded' ? 'var(--pt-fdf3f0)' : 'transparent' }));
+
+    const count = (key, v) => all.filter((r) => (key === 'uses' ? r.uses.includes(v) : r[key] === v)).length;
+    const opts = (key, anyLabel, values) => [{ value: '', label: anyLabel }].concat(values.map((v) => ({ value: v, label: v + ' (' + count(key, v) + ')' })));
+    const uniq = (key) => Array.from(new Set(all.map((r) => r[key])));
+    const selectStyle = (on) => 'min-height: 42px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid ' + (on ? 'var(--pt-8a5a00)' : 'var(--pt-b9ad94)') + '; background: ' + (on ? 'var(--pt-fff6e3)' : 'var(--pt-fffdf8)') + ';';
+    const defs = [
+      { id: 'kind', label: 'Kind', any: 'Any kind', values: ['Instance', 'Package'] },
+      { id: 'role', label: 'Provider', any: 'Anything', values: ['Provider', 'Not a provider'] },
+      { id: 'uses', label: 'Uses', any: 'Anything', values: Array.from(new Set([].concat(...all.map((r) => r.uses)))).sort(), prefix: '#' },
+      { id: 'ns', label: 'Namespace', any: 'All namespaces', values: uniq('ns') },
+      { id: 'health', label: 'Health', any: 'Any health', values: ['Healthy', 'Degraded', 'Progressing', 'Unknown'] },
+      { id: 'applied', label: 'Applied', any: 'Any state', values: ['Ready', 'Not ready', 'Managed externally'] },
+      { id: 'owner', label: 'Owner', any: 'Anyone', values: uniq('owner') },
+      { id: 'module', label: 'Module', any: 'Any module', values: uniq('module') }
+    ];
+    const selects = defs.map((d) => ({
+      id: d.id,
+      label: d.label,
+      value: s[d.id],
+      style: selectStyle(!!s[d.id]),
+      options: opts(d.id, d.any, d.values),
+      onChange: (e) => this.setState({ [d.id]: e.target.value })
+    }));
+    const chips = [];
+    if (q) chips.push({ text: 'Search: ' + s.query.trim(), aria: 'Remove search filter', clear: () => this.setState({ query: '' }) });
+    defs.forEach((d) => {
+      if (s[d.id]) {
+        const short = d.id === 'module' ? s[d.id].split('/').pop() : (d.prefix || '') + s[d.id];
+        chips.push({ text: d.label + ': ' + short, aria: 'Remove ' + d.label + ' filter', clear: () => this.setState({ [d.id]: '' }) });
+      }
+    });
+    const clearAll = () => this.setState({ query: '', kind: '', role: '', uses: '', ns: '', health: '', applied: '', owner: '', module: '' });
+    return {
+      rows,
+      selects,
+      chips,
+      clearAll,
+      anyFilter: chips.length > 0,
+      empty: rows.length === 0,
+      shown: rows.length,
+      total: all.length,
+      query: s.query,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      scopeLabel: s.ns ? 'Namespace ' + s.ns : 'All namespaces'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OPM Portal: provider backup-provider</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+.opm-hdr{transition:padding .2s ease,box-shadow .2s ease}
+.opm-hdr > a{transition:font-size .2s ease}
+.opm-hdr.is-compact{padding-top:5px!important;padding-bottom:5px!important;box-shadow:0 8px 20px -12px rgb(0 0 0 / 55%)}
+.opm-hdr.is-compact > a{font-size:15px!important}
+.opm-hdr.is-compact > a svg{width:18px;height:18px}
+.opm-hdr.is-compact nav a{padding-top:4px!important;padding-bottom:4px!important}
+.opm-hdr.is-compact button[aria-haspopup]{width:30px!important;height:30px!important}
+@media (prefers-reduced-motion: reduce){.opm-hdr,.opm-hdr > a{transition:none}}
+.opm-tip{position:relative;display:inline-flex;outline-offset:2px}
+.opm-tip .opm-tipbox{display:none;position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:300px;padding:10px 12px;border-radius:8px;background:#1d2430;color:#ebe6da;font-size:13px;line-height:1.45;font-weight:400;letter-spacing:normal;text-transform:none;z-index:50;box-shadow:0 10px 24px -10px rgb(0 0 0 / 55%)}
+.opm-tip:hover .opm-tipbox,.opm-tip:focus .opm-tipbox,.opm-tip:focus-within .opm-tipbox{display:block}
+.opm-menu button:hover{background:#2a3240}
+:root{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-1d4796: #1d4796; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-8f96a3: #8f96a3; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-f0a08f: #f0a08f; --fg-ffffff: #ffffff; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-2458b8: #2458b8; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #6a6f7a; --pt-8a5a00: #8a5a00; --pt-a3967c: #a3967c; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dde6f7: #dde6f7; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eaf5ee: #eaf5ee; --pt-edf2fb: #edf2fb; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f1f8f3: #f1f8f3; --pt-f2f6fc: #f2f6fc; --pt-f4efe4: #f4efe4; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf3e2: #fbf3e2; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fcf6e9: #fcf6e9; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb0: rgb(176 120 20 / 13%); --rgb1: rgb(176 120 20 / 18%); --rgb3: rgb(20 24 32 / 55%); --rgb4: rgb(20 24 32 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; color-scheme: light;}
+@media (prefers-color-scheme: dark){:root{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-1d4796: #9dbcf7; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-8f96a3: #8f96a3; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-f0a08f: #f0a08f; --fg-ffffff: #0c0f14; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-2458b8: #7ea6f2; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #8f96a3; --pt-8a5a00: #e3b45c; --pt-a3967c: #5f6a7c; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dde6f7: #17233d; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eaf5ee: #102019; --pt-edf2fb: #121b2e; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f1f8f3: #0f1d17; --pt-f2f6fc: #101828; --pt-f4efe4: #181e28; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf3e2: #261d0b; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fcf6e9: #211a0b; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb0: rgb(227 180 92 / 16%); --rgb1: rgb(227 180 92 / 28%); --rgb3: rgb(0 0 0 / 60%); --rgb4: rgb(235 230 218 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; color-scheme: dark;}}
+[data-theme="light"]{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-1d4796: #1d4796; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-6e4700: #6e4700; --fg-8a5a00: #8a5a00; --fg-8f96a3: #8f96a3; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-f0a08f: #f0a08f; --fg-ffffff: #ffffff; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-2458b8: #2458b8; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #6a6f7a; --pt-8a5a00: #8a5a00; --pt-a3967c: #a3967c; --pt-b07814: #b07814; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dde6f7: #dde6f7; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eaf5ee: #eaf5ee; --pt-edf2fb: #edf2fb; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f1f8f3: #f1f8f3; --pt-f2f6fc: #f2f6fc; --pt-f4efe4: #f4efe4; --pt-f6ead0: #f6ead0; --pt-f8e0da: #f8e0da; --pt-fbf3e2: #fbf3e2; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fcf6e9: #fcf6e9; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb0: rgb(176 120 20 / 13%); --rgb1: rgb(176 120 20 / 18%); --rgb3: rgb(20 24 32 / 55%); --rgb4: rgb(20 24 32 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; color-scheme: light;}
+[data-theme="dark"]{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-1d4796: #9dbcf7; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-6e4700: #f0c879; --fg-8a5a00: #e3b45c; --fg-8f96a3: #8f96a3; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-f0a08f: #f0a08f; --fg-ffffff: #0c0f14; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-2458b8: #7ea6f2; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #8f96a3; --pt-8a5a00: #e3b45c; --pt-a3967c: #5f6a7c; --pt-b07814: #e3b45c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dde6f7: #17233d; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eaf5ee: #102019; --pt-edf2fb: #121b2e; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f1f8f3: #0f1d17; --pt-f2f6fc: #101828; --pt-f4efe4: #181e28; --pt-f6ead0: #33270f; --pt-f8e0da: #3a1712; --pt-fbf3e2: #261d0b; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fcf6e9: #211a0b; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb0: rgb(227 180 92 / 16%); --rgb1: rgb(227 180 92 / 28%); --rgb3: rgb(0 0 0 / 60%); --rgb4: rgb(235 230 218 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; color-scheme: dark;}
+body{margin:0;background:var(--pt-efe9dc);color:var(--fg-141820);font-family:"Space Grotesk","Avenir Next",sans-serif}
+a{color:var(--fg-8a5a00)}a:hover{color:var(--fg-5e3d00)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px}
+.opm-pop{position:relative;display:inline-flex}
+.opm-pop .opm-popbox{display:none;position:absolute;left:0;top:100%;padding-top:8px;z-index:60}
+.opm-pop:hover .opm-popbox,.opm-pop:focus-within .opm-popbox{display:block}
+</style>
+</helmet>
+<div data-theme="{{themeAttr}}" style="min-height: 100vh; color: var(--fg-141820); background: var(--pt-efe9dc);">
+  <header class="opm-hdr {{hdrCompact}}" style="position: sticky; top: 0; z-index: 800; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 14px 40px; background: var(--hdr); color: var(--fg-efe9dc);">
+    <a href="Main.dc.html" onClick="{{leaveView}}" style="display: flex; align-items: center; gap: 10px; color: var(--fg-efe9dc); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: 0.02em;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e3b45c" stroke-width="2"><path d="M12 2 21 7v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg>
+      OPM Portal
+    </a>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" onClick="{{leaveView}}" style="padding: 8px 14px; border-radius: 8px; color: var(--fg-c4c0b5); text-decoration: none;">Platform</a>
+      <a href="Instances.dc.html" onClick="{{leaveView}}" aria-current="page" style="padding: 8px 14px; border-radius: 8px; background: var(--rgb5); color: var(--fg-e3b45c); text-decoration: none; font-weight: 600;">Installed</a>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--fg-c4c0b5); flex-wrap: wrap;">
+      <span class="mono" style="padding: 4px 10px; border: 1px solid var(--pt-3a4352); border-radius: 999px;">kind-opm-portal-e2e</span>
+      <span>reading as <span class="mono" style="color: var(--fg-ebe6da);">kubernetes-admin</span></span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--pt-3fbf86);"></span>Live</span>
+      <span style="position: relative; display: inline-flex;">
+        <button type="button" onClick="{{toggleThemeMenu}}" aria-haspopup="menu" aria-expanded="{{themeMenuOpenAttr}}" aria-label="{{themeLabel}}" title="{{themeLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #ebe6da; cursor: pointer;">
+          <sc-if value="{{themeIsSystem}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"></path></svg></sc-if>
+          <sc-if value="{{themeIsDark}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></sc-if>
+          <sc-if value="{{themeIsLight}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+        </button>
+        <sc-if value="{{themeMenuOpen}}" hint-placeholder-val="{{false}}">
+          <div class="opm-menu" role="menu" aria-label="Theme" style="position: absolute; right: 0; top: 44px; z-index: 1100; min-width: 160px; display: flex; flex-direction: column; padding: 6px; border-radius: 10px; border: 1px solid #3a4352; background: #1d2430; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+            <sc-for list="{{themeOptions}}" as="t" hint-placeholder-count="3">
+              <button type="button" role="menuitemradio" aria-checked="{{t.checkedAttr}}" onClick="{{t.pick}}" style="{{t.style}}"><span>{{t.label}}</span><sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </span>
+    </div>
+  </header>
+
+  <main style="max-width: 1840px; margin: 0 auto; padding: 24px 40px 56px; display: flex; flex-direction: column; gap: 20px;">
+    <nav aria-label="Breadcrumb" style="font-size: 14px; color: var(--fg-6a6f7a); display: flex; gap: 8px;">
+      <a href="Instances.dc.html" onClick="{{leaveView}}">Installed</a><span>/</span><span class="mono">default</span><span>/</span><span style="color: var(--fg-141820);">backup-provider</span>
+    </nav>
+
+    <section aria-label="Summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; align-items: stretch;">
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 12px;">
+        <span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;"><span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">{{kindLabel}}</span><sc-if value="{{isProvider}}" hint-placeholder-val="{{false}}"><span style="{{providerPill}}">{{providerPillText}}</span></sc-if></span>
+        <h1 style="margin: 0; font-size: 40px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em;">backup-provider</h1>
+        <span class="mono" style="color: var(--fg-3a4150); overflow-wrap: anywhere;">{{subtitle}}</span>
+        <dl style="margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+          <sc-for list="{{idFacts}}" as="f" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px;">
+              <dt style="color: var(--fg-6a6f7a); display: flex; align-items: center; gap: 5px;">{{f.k}}<sc-if value="{{f.hasTip}}" hint-placeholder-val="{{false}}"><span class="opm-tip" tabindex="0" aria-label="{{f.tip}}" style="color: var(--fg-8a5a00); cursor: help;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg><span class="opm-tipbox" role="tooltip">{{f.tip}}</span></span></sc-if></dt>
+              <dd style="{{f.style}}">{{f.v}}</dd>
+            </div>
+          </sc-for>
+        </dl>
+      </div>
+      <sc-for list="{{blocks}}" as="b" hint-placeholder-count="2">
+        <section aria-label="{{b.aria}}" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; border: 2px solid {{b.border}}; border-radius: 12px; background: {{b.tint}};">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">{{b.eyebrow}}</span>
+            <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{b.when}}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: {{b.border}}; color: var(--fg-ffffff); flex: none;">
+              <sc-if value="{{b.isGood}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if>
+              <sc-if value="{{b.isBad}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 6v8M12 18v.5"></path></svg></sc-if>
+              <sc-if value="{{b.isBusy}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg></sc-if>
+              <sc-if value="{{b.isWait}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4.5l3 2"></path></svg></sc-if>
+            </span>
+            <span style="font-size: 26px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: {{b.ink}};">{{b.state}}</span>
+          </div>
+          <span style="font-size: 15px; color: var(--fg-3a4150);">{{b.summary}}</span>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 28px;">
+            <sc-for list="{{b.reasons}}" as="r" hint-placeholder-count="1">
+              <button type="button" onClick="{{r.go}}" style="display: inline-flex; align-items: baseline; gap: 6px; min-height: 28px; padding: 2px 0; border: none; background: none; font: inherit; cursor: pointer; color: {{b.ink}}; text-decoration: underline; text-underline-offset: 3px;"><strong style="font-size: 16px;">{{r.count}}</strong><span class="mono" style="font-size: 14px;">{{r.type}}</span></button>
+            </sc-for>
+            <sc-if value="{{b.noReasons}}" hint-placeholder-val="{{false}}">
+              <span style="font-size: 14px; color: var(--fg-6a6f7a);">{{b.noReasonText}}</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{b.hasHistory}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--pt-d6ccb8);">
+              <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6a6f7a);">History</span>
+              <span style="display: inline-flex; align-items: center; gap: 5px;">
+                <sc-for list="{{b.dots}}" as="t" hint-placeholder-count="3">
+                  <span class="opm-tip" tabindex="0" aria-label="{{t.title}}" style="cursor: help;"><span style="{{t.style}}">{{t.mark}}</span><span class="opm-tipbox" role="tooltip">{{t.title}}</span></span>
+                </sc-for>
+              </span>
+              <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{b.historyCount}}</span>
+              <button type="button" onClick="{{b.toggleHistory}}" aria-expanded="{{b.historyOpenAttr}}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-3a4150); font: inherit; font-size: 13px; cursor: pointer;">{{b.historyLabel}}</button>
+            </div>
+            <sc-if value="{{b.historyOpen}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-direction: column; border-top: 1px solid var(--pt-e5dccb);">
+                <sc-for list="{{b.rows}}" as="a" hint-placeholder-count="3">
+                  <div style="display: grid; grid-template-columns: 34px 92px minmax(0, 1fr) 76px; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 13px;">
+                    <span class="mono" style="color: var(--fg-6a6f7a);">#{{a.seq}}</span>
+                    <span style="{{a.badge}}">{{a.result}}</span>
+                    <span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{a.message}}</span>
+                    <span style="color: var(--fg-6a6f7a); font-size: 12px; text-align: right;">{{a.age}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </sc-if>
+        </section>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+      <div style="flex: 999 1 900px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+        <div role="tablist" aria-label="Views" style="display: flex; gap: 4px; border-bottom: 1px solid var(--pt-d6ccb8); flex-wrap: wrap;">
+          <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+            <button type="button" role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{showGraph}}" hint-placeholder-val="{{true}}">
+          <section aria-label="Graph" style="{{graphSectionStyle}}">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <span style="font-size: 13px; color: var(--fg-6a6f7a);">Select a box to see its details on the right.</span>
+              <div role="group" aria-label="Graph zoom" style="display: flex; align-items: center; gap: 10px; flex: none;">
+                <button type="button" onClick="{{fitZoom}}" aria-pressed="{{isFit}}" style="{{fitStyle}}">Fit</button>
+                <label for="zoom" title="Or hold Ctrl and scroll over the graph" style="font-size: 13px; color: var(--fg-6a6f7a);">Zoom</label>
+                <input id="zoom" type="range" min="40" max="200" step="5" value="{{zoomPct}}" onChange="{{onZoom}}" style="width: 180px; accent-color: var(--pt-8a5a00); cursor: pointer;">
+                <span class="mono" style="min-width: 44px; text-align: right; color: var(--fg-3a4150);">{{zoomPct}}%</span>
+                <button type="button" onClick="{{toggleFull}}" aria-pressed="{{fullPressed}}" aria-label="{{fullLabel}}" title="{{fullLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 32px; border-radius: 6px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-141820); cursor: pointer;">
+                  <sc-if value="{{notFull}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg></sc-if>
+                  <sc-if value="{{isFull}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"></path></svg></sc-if>
+                </button>
+              </div>
+            </div>
+            <div ref="{{setPane}}" onKeyDown="{{onPaneKey}}" onClick="{{onPaneClick}}" style="overflow: auto; height: {{paneHeight}}px; border: 1px solid var(--pt-e5dccb); border-radius: 8px; background-color: var(--pt-fbf8f1); background-image: linear-gradient(to right, var(--rgb4) 1px, transparent 1px), linear-gradient(to bottom, var(--rgb4) 1px, transparent 1px); background-size: {{gridPx}}px {{gridPx}}px; background-position: {{offX}}px {{offY}}px; background-attachment: local;">
+              <div style="position: relative; width: {{sizeW}}px; height: {{sizeH}}px; margin-left: {{offX}}px; margin-top: {{offY}}px;">
+              <div style="position: absolute; left: 0; top: 0; width: {{canvasW}}px; height: {{canvasH}}px; transform: scale({{zoom}}); transform-origin: 0 0;">
+                <sc-for list="{{edges}}" as="e" hint-placeholder-count="0">
+                  <div aria-hidden="true" style="{{e.style}}"></div>
+                </sc-for>
+                <sc-for list="{{nodeList}}" as="g" hint-placeholder-count="4">
+                  <button type="button" onClick="{{g.pick}}" onMouseEnter="{{g.enter}}" onMouseLeave="{{g.leave}}" onFocus="{{g.enter}}" onBlur="{{g.leave}}" aria-pressed="{{g.pressed}}" aria-describedby="{{g.tipId}}" style="{{g.style}}">
+                    <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: {{g.kindInk}}; overflow-wrap: anywhere;">{{g.kind}}</span>
+                    <span style="{{g.nameStyle}}">{{g.name}}</span>
+                    <span style="font-size: 12px; color: {{g.statusInk}}; overflow-wrap: anywhere;">● {{g.status}}</span>
+                  </button>
+                </sc-for>
+                <sc-if value="{{notApplied}}" hint-placeholder-val="{{false}}">
+                  <div style="{{ghostStyle}}">{{ghostText}}</div>
+                </sc-if>
+              </div>
+              </div>
+            </div>
+            <sc-if value="{{hasHover}}" hint-placeholder-val="{{false}}">
+                  <div id="{{h.id}}" role="tooltip" style="{{h.style}}">
+                    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-8f96a3);">{{h.kind}}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-efe9dc); overflow-wrap: anywhere;">{{h.name}}</span>
+                    <span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;"><span style="{{h.badge}}">{{h.state}}</span><span style="font-size: 13px; color: var(--fg-ebe6da); overflow-wrap: anywhere;">{{h.reason}}</span></span>
+                    <span style="font-size: 13px; color: var(--fg-c4c0b5); overflow-wrap: anywhere;">{{h.key}}</span>
+                    <span style="font-size: 12px; color: var(--fg-8f96a3);">{{h.origin}}</span>
+                    <sc-if value="{{h.hasWarn}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; font-weight: 600; color: var(--fg-f0a08f);">{{h.warn}}</span></sc-if>
+                    <span style="font-size: 12px; color: var(--fg-e3b45c);">Click for details</span>
+                  </div>
+            </sc-if>
+            <div aria-label="Legend" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; font-size: 13px; color: var(--fg-3a4150);">
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><span aria-hidden="true" style="display: inline-block; width: 26px; height: 16px; border-radius: 4px; flex: none; border: 1.5px solid var(--pt-157a52); background: var(--pt-f1f8f3);"></span>Applied by the controller</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><span aria-hidden="true" style="display: inline-block; width: 26px; height: 16px; border-radius: 4px; flex: none; border: 1.5px dashed var(--pt-b9ad94); background: var(--pt-f4efe4);"></span>Made by the cluster</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><kbd style="display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--pt-b9ad94); border-bottom-width: 2px; border-radius: 4px; background: var(--pt-fffdf8); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-141820); text-align: center;">Ctrl</kbd> + scroll to zoom</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><kbd style="display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--pt-b9ad94); border-bottom-width: 2px; border-radius: 4px; background: var(--pt-fffdf8); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-141820); text-align: center;">Esc</kbd> to step back</span>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showProvider}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Provider" style="display: flex; flex-direction: column; gap: 22px; padding: 18px 24px 22px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+            <p style="margin: 0; max-width: 980px; font-size: 15px; line-height: 1.55; color: var(--fg-3a4150);">{{pv.intro}}</p>
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 28px;">
+              <sc-for list="{{pv.facts}}" as="f" hint-placeholder-count="4">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                  <dt style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">{{f.k}}</dt>
+                  <dd style="margin: 0; overflow-wrap: anywhere;">
+                    <sc-if value="{{f.isLink}}" hint-placeholder-val="{{false}}"><a class="mono" href="{{f.href}}" onClick="{{f.go}}" style="overflow-wrap: anywhere;">{{f.v}}</a> <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{f.after}}</span></sc-if>
+                    <sc-if value="{{f.isText}}" hint-placeholder-val="{{true}}"><span style="{{f.style}}">{{f.v}}</span></sc-if>
+                  </dd>
+                </div>
+              </sc-for>
+            </dl>
+
+            <div style="display: flex; flex-direction: column;">
+              <h3 style="margin: 0 0 4px; font-size: 16px;">Registration conditions</h3>
+              <div style="display: grid; grid-template-columns: 110px 100px 190px minmax(0, 1fr) 64px; gap: 14px; padding: 10px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+                <span>Condition</span><span>Status</span><span>Reason</span><span>Message</span><span style="text-align: right;">Since</span>
+              </div>
+              <sc-for list="{{pv.conditions}}" as="c" hint-placeholder-count="2">
+                <div style="display: grid; grid-template-columns: 110px 100px 190px minmax(0, 1fr) 64px; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                  <span style="font-weight: 600;">{{c.type}}</span>
+                  <span style="{{c.badge}}">{{c.status}}</span>
+                  <span class="mono" style="overflow-wrap: anywhere;">{{c.reason}}</span>
+                  <span style="color: var(--fg-3a4150);">{{c.message}}</span>
+                  <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{c.age}}</span>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; flex-direction: column;">
+              <h3 style="margin: 0 0 4px; font-size: 16px;">What it provides</h3>
+              <div style="display: grid; grid-template-columns: 170px 100px minmax(0, 1.3fr) minmax(0, 1.3fr); gap: 14px; padding: 10px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+                <span>Definition</span><span>Kind</span><span>Contract</span><span>Used by</span>
+              </div>
+              <sc-for list="{{pv.provides}}" as="p" hint-placeholder-count="1">
+                <div style="display: grid; grid-template-columns: 170px 100px minmax(0, 1.3fr) minmax(0, 1.3fr); gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                  <span class="opm-pop" style="justify-self: start;">
+                    <a href="{{p.href}}" target="_blank" rel="noopener" aria-describedby="{{p.tipId}}" style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font-size: 13px; font-weight: 600; text-decoration: none;">#{{p.name}}</a>
+                    <span class="opm-popbox">
+                      <span id="{{p.tipId}}" role="tooltip" style="display: flex; flex-direction: column; gap: 8px; width: 340px; padding: 14px 16px; border-radius: 10px; background: #1d2430; color: var(--fg-ebe6da); font-size: 13px; line-height: 1.5; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+                        <span style="display: flex; align-items: center; gap: 8px;"><span style="padding: 2px 8px; border-radius: 5px; border: 1px solid #5f6a7c; color: var(--fg-c4c0b5); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;">{{p.kind}}</span><strong style="font-size: 15px; color: var(--fg-ebe6da);">{{p.name}}</strong></span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--fg-8f96a3); overflow-wrap: anywhere;">{{p.path}}</span>
+                        <span style="color: var(--fg-c4c0b5);">{{p.desc}}</span>
+                        <a href="{{p.href}}" target="_blank" rel="noopener" style="align-self: flex-start; color: var(--fg-e3b45c); font-weight: 600;">Open the {{p.kindLower}} documentation ↗</a>
+                      </span>
+                    </span>
+                  </span>
+                  <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3a4150); padding-top: 4px;">{{p.kind}}</span>
+                  <span style="display: flex; flex-direction: column; gap: 6px;"><span style="{{p.badge}}">{{p.state}}</span><span style="color: var(--fg-3a4150); font-size: 13px; line-height: 1.5;">{{p.note}}</span></span>
+                  <span style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0;">
+                    <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                      <sc-for list="{{p.usedBy}}" as="u" hint-placeholder-count="3"><a class="mono" href="{{u.href}}" onClick="{{leaveView}}">{{u.label}}</a></sc-for>
+                      <sc-if value="{{p.hasMore}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: var(--fg-6a6f7a);">{{p.moreText}}</span></sc-if>
+                      <sc-if value="{{p.unused}}" hint-placeholder-val="{{false}}"><span style="color: var(--fg-6a6f7a);">No installed module uses it yet</span></sc-if>
+                    </span>
+                    <sc-if value="{{p.hasAny}}" hint-placeholder-val="{{true}}"><a href="Instances.dc.html" onClick="{{p.showAll}}" title="{{p.showAllTitle}}" style="flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-5e3d00); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;">{{p.showAllText}} →</a></sc-if>
+                  </span>
+                </div>
+              </sc-for>
+              <sc-if value="{{pv.providesNothing}}" hint-placeholder-val="{{false}}"><div style="padding: 18px 0; color: var(--fg-6a6f7a); font-size: 14px;">{{pv.providesNothingText}}</div></sc-if>
+            </div>
+
+            <div style="display: flex; flex-direction: column;">
+              <h3 style="margin: 0 0 4px; font-size: 16px;">Transformers it ships</h3>
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 170px minmax(0, 1.3fr); gap: 14px; padding: 10px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+                <span>Transformer</span><span>Renders</span><span>Produces</span>
+              </div>
+              <sc-for list="{{pv.transformers}}" as="x" hint-placeholder-count="1">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) 170px minmax(0, 1.3fr); gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                  <span class="mono" style="overflow-wrap: anywhere;">{{x.name}}</span>
+                  <span style="color: var(--fg-6b4500); font-weight: 600;">{{x.renders}}</span>
+                  <span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{x.produces}}</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{pv.noTransformers}}" hint-placeholder-val="{{false}}"><div style="padding: 18px 0; color: var(--fg-6a6f7a); font-size: 14px;">{{pv.noTransformersText}}</div></sc-if>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showResources}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Resources" style="background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow-x: auto;">
+            <div style="min-width: 860px;">
+              <div style="display: grid; grid-template-columns: 130px minmax(0, 1.4fr) 110px 130px minmax(0, 1.6fr) 80px; gap: 14px; padding: 12px 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+                <span>Kind</span><span>Name</span><span>Origin</span><span>Health</span><span>Details</span><span>Age</span>
+              </div>
+              <sc-for list="{{resources}}" as="r" hint-placeholder-count="4">
+                <button type="button" onClick="{{r.pick}}" style="{{r.rowStyle}}">
+                  <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-3a4150);">{{r.kind}}</span>
+                  <span class="mono" style="overflow-wrap: anywhere;">{{r.name}}</span>
+                  <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{r.origin}}</span>
+                  <span style="{{r.badge}}">{{r.state}}</span>
+                  <span style="font-size: 13px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{r.detail}}</span>
+                  <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{r.age}}</span>
+                </button>
+              </sc-for>
+              <sc-if value="{{noResources}}" hint-placeholder-val="{{false}}">
+                <div style="padding: 32px 20px; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">{{ghostText}}</div>
+              </sc-if>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showAttempts}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Attempts" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+            <sc-for list="{{attempts}}" as="a" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 44px 120px minmax(0, 1fr) 90px; gap: 14px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                <span class="mono" style="color: var(--fg-6a6f7a);">#{{a.seq}}</span>
+                <span style="{{a.badge}}">{{a.result}}</span>
+                <span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{a.message}}</span>
+                <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{a.age}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showEvents}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Events" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+            <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb);">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
+                  <label for="ev-obj" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Resource</label>
+                  <select id="ev-obj" value="{{evObj}}" onChange="{{onEvObj}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);">
+                    <optgroup label="Everything"><option value="">{{evAllLabel}}</option></optgroup><sc-for list="{{evObjOptions}}" as="g" hint-placeholder-count="2"><optgroup label="{{g.label}}"><sc-for list="{{g.options}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for></optgroup></sc-for>
+                  </select>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
+                  <label for="ev-type" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Type</label>
+                  <select id="ev-type" value="{{evType}}" onChange="{{onEvType}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);">
+                    <sc-for list="{{evTypeOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for>
+                  </select>
+                </div>
+              <sc-if value="{{hasFilter}}" hint-placeholder-val="{{false}}">
+                <button type="button" onClick="{{clearFilter}}" aria-label="Remove reason filter" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 10px 4px 12px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--rgb0); color: var(--fg-5e3d00); font: inherit; font-size: 13px; cursor: pointer;">Reason: <span class="mono">{{filterLabel}}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+              </sc-if>
+              <span style="margin-left: auto; font-size: 14px; color: var(--fg-3a4150); align-self: center;">Showing <strong>{{evShown}}</strong> of {{evTotal}}</span>
+              <sc-if value="{{anyEvFilter}}" hint-placeholder-val="{{false}}">
+                <button type="button" onClick="{{clearEvFilters}}" style="min-height: 40px; padding: 4px 10px; border: none; background: none; color: var(--fg-8a5a00); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; align-self: center;">Clear filters</button>
+              </sc-if>
+            </div>
+            <sc-if value="{{noEvents}}" hint-placeholder-val="{{false}}">
+              <div style="padding: 24px 0; text-align: center; color: var(--fg-6a6f7a); font-size: 15px;">No events match these filters.</div>
+            </sc-if>
+            <div style="display: grid; grid-template-columns: 88px 200px 240px minmax(0, 1fr) 56px; gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+              <span>Type</span><span>Reason</span><span>Resource</span><span>Message</span><span style="text-align: right;">Age</span>
+            </div>
+            <sc-for list="{{events}}" as="e" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 88px 200px 240px minmax(0, 1fr) 56px; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: {{e.typeColor}}; padding-top: 2px;">{{e.type}}</span>
+                <span class="mono" style="overflow-wrap: anywhere;">{{e.reason}}</span>
+                <button type="button" onClick="{{e.pickObj}}" title="Show only this resource's events" style="display: flex; flex-direction: column; gap: 2px; padding: 0; border: none; background: none; text-align: left; font: inherit; cursor: pointer; min-width: 0;">
+                  <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-6a6f7a);">{{e.objKind}}</span>
+                  <span class="mono" style="font-size: 13px; color: var(--fg-8a5a00); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere;">{{e.objName}}</span>
+                </button>
+                <span style="color: var(--fg-3a4150);">{{e.note}}</span>
+                <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{e.age}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showLogs}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Logs" style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <label for="pod" style="font-size: 14px; color: var(--fg-3a4150);">Pod</label>
+              <select id="pod" style="min-height: 40px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fbf8f1); font-family: 'JetBrains Mono', monospace; font-size: 13px;"><option>backup-agent-7c9d-x2k4q / backup-agent</option></select>
+              <span style="font-size: 13px; color: var(--fg-6a6f7a);">last 200 lines, following</span>
+            </div>
+            <div style="padding: 18px 20px; background: var(--logbg); color: var(--fg-c4c0b5); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto;">
+              <sc-for list="{{logLines}}" as="l" hint-placeholder-count="3">
+                <div style="color: {{l.color}}; white-space: pre;">{{l.text}}</div>
+              </sc-for>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showYaml}}" hint-placeholder-val="{{false}}">
+          <section aria-label="YAML" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow-x: auto;">
+            <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--pt-e5dccb);">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 220px;">
+                  <label for="yaml-obj" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Resource</label>
+                  <select id="yaml-obj" value="{{yamlSel}}" onChange="{{onYamlObj}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);">
+                    <sc-for list="{{yamlOptions}}" as="g" hint-placeholder-count="2"><optgroup label="{{g.label}}"><sc-for list="{{g.options}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for></optgroup></sc-for>
+                  </select>
+                </div>
+              <span style="font-size: 13px; color: var(--fg-6a6f7a); align-self: center;">Secrets and values are never shown.</span>
+            </div>
+            <pre class="mono" style="margin: 0; line-height: 1.6; white-space: pre;">{{yaml}}</pre>
+          </section>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{showPanel}}" hint-placeholder-val="{{true}}">
+      <aside aria-label="Selected object" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <sc-if value="{{hasSel}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{clearSel}}" title="Or click an empty part of the graph, or press Esc" style="align-self: flex-end; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin: -8px -8px -4px 0; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-3a4150); font: inherit; font-size: 13px; cursor: pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>Clear selection</button>
+        </sc-if>
+        <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6a6f7a);">{{d.kind}}</span>
+        <span class="mono" style="font-size: 16px; font-weight: 500; overflow-wrap: anywhere;">{{d.name}}</span>
+        <span style="{{d.badgeStyle}}">{{d.state}}</span>
+        <sc-if value="{{d.hasMsg}}" hint-placeholder-val="{{true}}">
+          <div style="{{d.msgStyle}}">{{d.msg}}</div>
+        </sc-if>
+        <dl style="margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+          <sc-for list="{{d.facts}}" as="f" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px;">
+              <dt style="color: var(--fg-6a6f7a);">{{f.k}}</dt>
+              <dd style="{{f.style}}">{{f.v}}</dd>
+            </div>
+          </sc-for>
+        </dl>
+        <sc-if value="{{d.isObject}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <sc-if value="{{d.isPod}}" hint-placeholder-val="{{false}}">
+            <button type="button" onClick="{{goLogs}}" style="min-height: 40px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--pt-141820); background: var(--pt-141820); color: var(--fg-efe9dc); font: inherit; font-size: 14px; cursor: pointer;">Logs</button>
+          </sc-if>
+          <button type="button" onClick="{{goEvents}}" style="min-height: 40px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fbf8f1); color: var(--fg-141820); font: inherit; font-size: 14px; cursor: pointer;">Events</button>
+          <button type="button" onClick="{{goYaml}}" style="min-height: 40px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fbf8f1); color: var(--fg-141820); font: inherit; font-size: 14px; cursor: pointer;">YAML</button>
+        </div>
+        </sc-if>
+      </aside>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["System", "Light", "Dark"], "default": "System", "section": "Theme"}, "scenario": {"editor": "enum", "options": ["Active", "Waiting for its instance", "Refused: provides mismatch"], "default": "Active", "section": "Mock state"}, "$preview": {"width": 1920, "height": 1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Filters survive tab switches and visits: kept per device and browser in localStorage.
+    const FILTER_KEYS = ['evObj', 'evType', 'cause'], FILTER_STORE = 'opm-portal:filters:Provider';
+    if (!this.__filtersLoaded) {
+      this.__filtersLoaded = true;
+      if (!this.__handoff) {
+        try { const saved = JSON.parse(window.localStorage.getItem(FILTER_STORE) || 'null'); if (saved) FILTER_KEYS.forEach((k) => { if (saved[k] !== undefined) this.state[k] = saved[k]; }); } catch (e) { /* no storage: start with no filters */ }
+      }
+    }
+    // Slim, sticky top bar once the page scrolls past it.
+    if (!this.__scrollHooked && typeof window !== 'undefined' && window.addEventListener) {
+      this.__scrollHooked = true;
+      const onScroll = () => { const c = (window.scrollY || 0) > 48; if (c !== !!this.state.__compact) this.setState({ __compact: c }); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    const v = this.__renderVals();
+    try {
+      const snap = {}; FILTER_KEYS.forEach((k) => { snap[k] = this.state[k]; });
+      const text = JSON.stringify(snap);
+      if (text !== this.__filtersSaved) { window.localStorage.setItem(FILTER_STORE, text); this.__filtersSaved = text; }
+    } catch (e) { /* storage blocked: filters last for this visit only */ }
+    let stored = '';
+    try { stored = window.localStorage.getItem('opm-portal-theme') || ''; } catch (e) { stored = ''; }
+    const choice = (this.state && this.state.themeChoice) || stored || this.props.theme || 'System';
+    const menu = !!(this.state && this.state.themeMenu);
+    const pick = (c) => () => { try { window.localStorage.setItem('opm-portal-theme', c); } catch (e) { /* storage blocked: keep it for this view */ } this.setState({ themeChoice: c, themeMenu: false }); };
+    v.hdrCompact = this.state && this.state.__compact ? 'is-compact' : '';
+    v.themeAttr = ({ Light: 'light', Dark: 'dark' })[choice] || 'auto';
+    v.themeIsSystem = choice === 'System'; v.themeIsDark = choice === 'Dark'; v.themeIsLight = choice === 'Light';
+    v.themeMenuOpen = menu; v.themeMenuOpenAttr = menu ? 'true' : 'false';
+    v.themeLabel = 'Theme: ' + choice;
+    v.toggleThemeMenu = () => this.setState({ themeMenu: !menu });
+    v.themeOptions = ['Light', 'Dark', 'System'].map((c) => ({ label: c, checked: c === choice, checkedAttr: c === choice ? 'true' : 'false', pick: pick(c),
+      style: 'display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; padding: 6px 12px; border: none; border-radius: 6px; background: ' + (c === choice ? '#2a3240' : 'transparent') + '; color: #ebe6da; font: inherit; font-size: 15px; text-align: left; cursor: pointer;' }));
+    return v;
+  }
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'graph', zoom: 'fit', cause: '', sel: '', evObj: '', evType: '', paneW: 0, paneH: 0 };
+    this.onWheel = (ev) => {
+      // Plain scrolling scrolls; Ctrl (or Cmd, or a trackpad pinch) + scroll zooms.
+      if (!this._zoom || !this.pane || !(ev.ctrlKey || ev.metaKey)) return;
+      ev.preventDefault();
+      const el = this.pane, r = el.getBoundingClientRect();
+      const mx = ev.clientX - r.left, my = ev.clientY - r.top;
+      const oz = this._zoom, nz = Math.max(0.3, Math.min(2, oz * Math.exp(-ev.deltaY * 0.0015)));
+      if (Math.abs(nz - oz) < 0.001) return;
+      this._anchor = { cx: (el.scrollLeft + mx - this._offX) / oz, cy: (el.scrollTop + my - this._offY) / oz, mx, my };
+      this.setState({ zoom: nz, wheel: true });
+    };
+    this.setPane = (el) => {
+      if (this._wheelEl && this._wheelEl !== el) { this._wheelEl.removeEventListener('wheel', this.onWheel); this._wheelEl = null; }
+      this.pane = el;
+      if (el && this._wheelEl !== el) { el.addEventListener('wheel', this.onWheel, { passive: false }); this._wheelEl = el; }
+      if (el && this.ro) this.ro.observe(el);
+      // Leaving the page (the graph goes out of view) drops full screen, so it never comes back on its own.
+      if (el && this._ioEl !== el && typeof IntersectionObserver !== 'undefined') {
+        if (this.io) this.io.disconnect();
+        this.io = new IntersectionObserver((entries) => { if (!entries[0].isIntersecting && this.state.full) this.setState({ full: false, zoom: 'fit' }); });
+        this.io.observe(el);
+        this._ioEl = el;
+      }
+      if (el) this.measure();
+    };
+  }
+  measure() {
+    const el = this.pane;
+    if (!el) return;
+    const w = el.clientWidth, h = el.clientHeight;
+    if (w && (w !== this.state.paneW || h !== this.state.paneH)) this.setState({ paneW: w, paneH: h });
+  }
+  componentDidMount() {
+    if (typeof ResizeObserver !== 'undefined') { this.ro = new ResizeObserver(() => this.measure()); if (this.pane) this.ro.observe(this.pane); }
+    this.measure();
+  }
+  componentDidUpdate() {
+    if (this._anchor && this.pane) {
+      const a = this._anchor;
+      this._anchor = null;
+      this.pane.scrollLeft = a.cx * this._zoom + this._offX - a.mx;
+      this.pane.scrollTop = a.cy * this._zoom + this._offY - a.my;
+    }
+  }
+  componentWillUnmount() { if (this.ro) this.ro.disconnect(); if (this.io) this.io.disconnect(); }
+  __renderVals() {
+    const scenario = this.props.scenario ?? 'Active';
+    const DEFAULT = 'Active';
+    const KIND_LABEL = 'ModuleInstance';
+    const SUBTITLE = 'testing.opmodel.dev/modules/controller/backup_provider@v0 · v0.1.0';
+    const GHOST = 'Nothing applied yet. The graph fills in once an apply succeeds.';
+    const RES_ROOTS = [];
+    const LAYOUT = { mi: [0, 1], comp: [1, 1], dep: [2, 0], rs: [3, 0], pod: [4, 0], svc: [2, 1], treg: [2, 2] };
+    const EDGES = [['mi', 'comp'], ['comp', 'dep'], ['comp', 'svc'], ['comp', 'treg'], ['dep', 'rs'], ['rs', 'pod']];
+    const ROOT_NODES = { mi: { kind: 'ModuleInstance', name: 'backup-provider', t: 'navy', status: 'Ready' } };
+    const ROOT_DETAILS = { mi: { full: 'default/backup-provider', state: 'Ready', msg: 'Applied 3 objects 6 min ago. Nothing pending.', facts: [['Module', 'testing.opmodel.dev/modules/controller/backup_provider@v0', true], ['Version', 'v0.1.0', true], ['Owner', 'controller'], ['Applier', "controller's own ServiceAccount (none set)"]] } };
+
+    const PROV = {
+      reg: 'default.backup-provider', catalog: 'testing.opmodel.dev/catalogs/controller/backup@v0', catalogVersion: '0.1.0', catalogPick: 'backup',
+      intro: 'This instance is also a provider. Besides running its own workload, it registers a catalog with the platform: modules that attach the definitions below render through the transformers that catalog ships.',
+      provides: [{ path: 'opmodel.dev/catalogs/opm/traits/backup@v1alpha1', desc: "Scheduled backup policy for a component's persistent state", usedBy: 'CONSUMERS' }],
+      transformers: [['backup-transformer', '#Backup', 'ConfigMap <component>-backup (v1), one per component, holding the policy']]
+    };
+    const EXTRA_IDS = ['treg'];
+    const EXTRA_NODES = {
+      comp: { kind: 'Component', name: 'backup-provider', t: 'plain', status: '3 objects' },
+      treg: { kind: 'TransformerRegistration', name: 'default.backup-provider', t: 'green', mono: true, status: 'Accepted · Active' }
+    };
+    const EXTRA_DETAILS = {
+      comp: { state: 'Rendered', msg: 'A Component is not a Kubernetes object. It is the part of the module that rendered the objects to its right, so it has no events or YAML of its own.', facts: [['Renders', 'Deployment, Service, TransformerRegistration'], ['Catalog', 'opmodel.dev/catalogs/opm@v4 4.6.0', true]] },
+      treg: { full: 'default.backup-provider', state: 'Active', msg: 'The claim that makes this instance a provider. The controller checks it against the catalog it names, then activates it once this instance is Ready.', facts: [['Catalog', 'testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0', true], ['Provider', 'default/backup-provider', true]] }
+    };
+    const EXTRA_ORIGIN = { treg: 'Applied by the controller · 6 min ago' };
+    const EXTRA_YAML = { treg: (sc) => 'apiVersion: opmodel.dev/v1alpha1\nkind: TransformerRegistration\nmetadata:\n  name: default.backup-provider\nspec:\n  catalog: testing.opmodel.dev/catalogs/controller/backup@v0\n  version: 0.1.0\n  provides:\n' + (PROV.provides.length ? PROV.provides.map((p) => '  - ' + p.path).join('\n') : '  []') + '\n  providerRef:\n    name: backup-provider\n    namespace: default\nstatus:\n  conditions:\n' + sc.prov.conditions.map(([type, status, t, reason, message]) => '  - type: ' + type + '\n    status: "' + status + '"\n    reason: ' + reason + '\n    message: ' + message).join('\n') };
+
+    const NS = 'default';
+    const BASE_NODES = Object.assign({}, ROOT_NODES, {
+      comp: { kind: 'Component', name: 'backup-agent', t: 'plain', status: '2 objects' },
+      dep:  { kind: 'Deployment', name: 'backup-agent', t: 'green', status: '1/1 ready' },
+      rs:   { kind: 'ReplicaSet', name: 'backup-agent-7c9d', t: 'plain', dashed: true, mono: true, status: '1/1 ready' },
+      pod:  { kind: 'Pod', name: 'backup-agent-7c9d-x2k4q', t: 'green', dashed: true, mono: true, status: 'Running' },
+      svc:  { kind: 'Service', name: 'backup-agent', t: 'green', status: 'Healthy' }
+    }, EXTRA_NODES);
+    const BASE_DETAILS = Object.assign({}, ROOT_DETAILS, {
+      comp: { state: 'Rendered', msg: 'A Component is not a Kubernetes object. It is the part of the module that rendered the objects to its right, so it has no events or YAML of its own.', facts: [['Renders', 'Deployment, Service'], ['Catalog', 'opmodel.dev/catalogs/opm@v4 4.6.0', true]] },
+      dep:  { full: NS + '/backup-agent', state: 'Healthy', facts: [['Replicas', '1 of 1 available'], ['Image', 'ghcr.io/opmodel/backup-agent:6.7.1', true], ['Strategy', 'RollingUpdate']] },
+      rs:   { full: NS + '/backup-agent-7c9d', state: 'Ready', t: 'green', facts: [['Owner', 'Deployment backup-agent'], ['Replicas', '1 of 1 ready']] },
+      pod:  { full: NS + '/backup-agent-7c9d-x2k4q', state: 'Running', facts: [['Node', 'opm-portal-e2e-control-plane', true], ['Restarts', '0'], ['Started', '4 min ago']] },
+      svc:  { full: NS + '/backup-agent', state: 'Healthy', facts: [['Type', 'ClusterIP'], ['Ports', '9898/TCP'], ['Endpoints', '1 ready']] }
+    }, EXTRA_DETAILS);
+    const APPLIED_ONLY = ['comp', 'dep', 'rs', 'pod', 'svc'].concat(EXTRA_IDS);
+    const BROKEN_IMAGE = {
+      nodes: { dep: { t: 'red', status: '0/1 ready' }, rs: { status: '0/1 ready' }, pod: { t: 'red', status: 'ImagePullBackOff' } },
+      details: {
+        dep: { state: 'Degraded', msg: '0 of 1 replicas available: its Pod cannot pull the image.', facts: [['Replicas', '0 of 1 available'], ['Image', 'ghcr.io/opmodel/backup-agent:does-not-exist', true], ['Strategy', 'RollingUpdate']] },
+        rs: { state: 'Not ready', t: 'red', facts: [['Owner', 'Deployment backup-agent'], ['Replicas', '0 of 1 ready']] },
+        pod: { state: 'Degraded', msg: 'Container backup-agent is waiting: ImagePullBackOff. Back-off pulling image ghcr.io/opmodel/backup-agent:does-not-exist.' },
+        svc: { facts: [['Type', 'ClusterIP'], ['Ports', '9898/TCP'], ['Endpoints', '0 ready: its Pod is not ready']] }
+      }
+    };
+    const LOGS = [
+      '{"level":"info","ts":"10:31:02","msg":"Starting backup-agent","version":"6.7.1"}',
+      '{"level":"info","ts":"10:31:02","msg":"Starting HTTP Server.","addr":":9898"}',
+      '{"level":"info","ts":"10:35:40","msg":"GET /healthz 200","duration":"0.2ms"}',
+      '{"level":"info","ts":"10:35:50","msg":"GET /readyz 200","duration":"0.1ms"}'
+    ];
+    const ev = (type, reason, obj, note, age, cause) => ({ type, reason, obj, note, age, cause: cause || '' });
+    const kubeOk = [
+      ev('Normal', 'Started', 'pod', 'Started container backup-agent.', '4m'),
+      ev('Normal', 'Pulled', 'pod', 'Container image "ghcr.io/opmodel/backup-agent:6.7.1" already present on machine.', '4m'),
+      ev('Normal', 'Scheduled', 'pod', 'Successfully assigned ' + NS + '/backup-agent-7c9d-x2k4q to opm-portal-e2e-control-plane.', '4m'),
+      ev('Normal', 'SuccessfulCreate', 'rs', 'Created pod: backup-agent-7c9d-x2k4q.', '4m'),
+      ev('Normal', 'ScalingReplicaSet', 'dep', 'Scaled up replica set backup-agent-7c9d to 1.', '4m')
+    ];
+    const imageEvents = [
+      ev('Warning', 'Failed', 'pod', 'Failed to pull image "ghcr.io/opmodel/backup-agent:does-not-exist": not found. Seen 9 times.', '30s', 'ImagePullBackOff'),
+      ev('Normal', 'BackOff', 'pod', 'Back-off pulling image "ghcr.io/opmodel/backup-agent:does-not-exist".', '45s', 'ImagePullBackOff'),
+      ev('Normal', 'Scheduled', 'pod', 'Successfully assigned ' + NS + '/backup-agent-7c9d-x2k4q to opm-portal-e2e-control-plane.', '4m'),
+      ev('Normal', 'SuccessfulCreate', 'rs', 'Created pod: backup-agent-7c9d-x2k4q.', '4m'),
+      ev('Normal', 'ScalingReplicaSet', 'dep', 'Scaled up replica set backup-agent-7c9d to 1.', '4m')
+    ];
+
+    const ROOT_ID = 'mi';
+    const okEvents = [
+      ev('Normal', 'Activated', 'treg', 'Active: provider default/backup-provider is Ready.', '6m'),
+      ev('Normal', 'Accepted', 'treg', 'Claim matches testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0.', '6m'),
+      ev('Normal', 'ReconciliationSucceeded', 'mi', 'Applied 3 objects.', '6m')
+    ];
+    const attemptsOk = [
+      { seq: 3, t: 'navy', result: 'Applied', message: 'applied 3 objects, nothing pruned', age: '6 min ago' },
+      { seq: 2, t: 'navy', result: 'Applied', message: 'nothing changed', age: '1 h ago' }
+    ];
+    const idFacts = [['Namespace', 'default', true], ['Owner', 'controller'], ['Applier', "controller's own ServiceAccount (none set)"]];
+    const yamlFor = (ready, reason) => 'apiVersion: opmodel.dev/v1alpha1\nkind: ModuleInstance\nmetadata:\n  name: backup-provider\n  namespace: default\nspec:\n  module:\n    path: testing.opmodel.dev/modules/controller/backup_provider@v0\n    version: v0.1.0\n  values: (hidden: values can hold secrets)\nstatus:\n  conditions:\n  - type: Ready\n    status: "' + ready + '"\n    reason: ' + reason + '\n  inventory:\n    count: 3';
+    const accepted = ['Ready', 'True', 'green', 'Accepted', 'The claim matches catalog testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0.', '6m'];
+    const S = {
+      'Active': {
+        a: { t: 'navy', state: 'Ready', summary: '3 objects applied, nothing pending', when: 'reconciled 6 min ago', reasons: [] },
+        h: { t: 'green', state: 'Healthy', summary: '5 of 5 resources healthy', when: 'checked live', reasons: [] },
+        prov: { t: 'green', state: 'Active', summary: 'Fulfils #Backup for the platform', when: 'active for 6 min', reasons: [],
+          catalogState: 'Resolved from the registry', contracts: '1 provided, 1 in use',
+          contract: ['Active', 'green', 'Modules that attach #Backup render through this provider.'],
+          conditions: [accepted, ['Active', 'True', 'green', 'ProviderReady', 'Provider default/backup-provider reports Ready.', '6m']] },
+        applied: true, focus: 'mi', idFacts, events: okEvents.concat(kubeOk), attempts: attemptsOk, yaml: yamlFor('True', 'ReconciliationSucceeded')
+      },
+      'Waiting for its instance': {
+        a: { t: 'blue', state: 'Reconciling', summary: 'Applying v0.1.0 for the first time', when: 'started 40 s ago', reasons: [] },
+        h: { t: 'blue', state: 'Progressing', summary: '1 of 5 resources starting', when: 'checked live', reasons: [['RollingOut', 1]] },
+        prov: { t: 'blue', state: 'Accepted', summary: 'Not active yet: waits for this instance to be Ready', when: 'accepted 30 s ago', reasons: [['ProviderNotReady', 1]],
+          catalogState: 'Resolved from the registry', contracts: '1 provided, none served yet',
+          contract: ['Waiting', 'blue', 'Accepted. Modules that attach #Backup wait until this provider is active.'],
+          conditions: [accepted, ['Active', 'False', 'blue', 'ProviderNotReady', 'Provider default/backup-provider has not reported Ready yet.', '30s']] },
+        applied: true, focus: 'treg', idFacts,
+        nodes: { mi: { t: 'blue', status: 'Reconciling' }, dep: { t: 'blue', status: 'starting 0/1' }, pod: { t: 'blue', status: 'ContainerCreating' }, treg: { t: 'blue', status: 'Accepted · not active' } },
+        details: {
+          mi: { state: 'Reconciling', msg: 'Applying v0.1.0 for the first time.' },
+          dep: { state: 'Progressing', msg: 'Waiting for its first Pod to become ready.' },
+          pod: { state: 'Progressing', msg: 'Container backup-agent is being created.' },
+          treg: { state: 'Accepted', msg: 'The claim passed every check. It becomes active once this instance reports Ready; until then modules that need #Backup wait.' }
+        },
+        events: [
+          ev('Normal', 'Accepted', 'treg', 'Claim matches testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0.', '30s'),
+          ev('Normal', 'NotActive', 'treg', 'Waiting for provider default/backup-provider to report Ready.', '30s', 'ProviderNotReady'),
+          ev('Normal', 'Pulling', 'pod', 'Pulling image "ghcr.io/opmodel/backup-agent:6.7.1".', '20s', 'RollingOut')
+        ],
+        attempts: [{ seq: 1, t: 'blue', result: 'Running', message: 'applying v0.1.0', age: '40 s ago' }], yaml: yamlFor('Unknown', 'Progressing')
+      },
+      'Refused: provides mismatch': {
+        a: { t: 'navy', state: 'Ready', summary: '3 objects applied, nothing pending', when: 'reconciled 6 min ago', reasons: [] },
+        h: { t: 'green', state: 'Healthy', summary: '5 of 5 resources healthy', when: 'checked live', reasons: [] },
+        prov: { t: 'red', state: 'Refused', summary: 'Its claim lists contracts the catalog does not provide', when: 'refused 6 min ago', reasons: [['ProvidesMismatch', 1]],
+          catalogState: 'Resolved from the registry', contracts: 'none: the claim is refused',
+          contract: ['Refused', 'red', 'The catalog provides #Backup, but the claim also lists #BackupCommand. Fix the claim in the module and release a new version.'],
+          conditions: [['Ready', 'False', 'red', 'ProvidesMismatch', 'Catalog testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0 provides backup@v1alpha1; the claim lists backup@v1alpha1 and backup-command@v1alpha1.', '6m'],
+            ['Active', 'False', 'plain', 'ProviderNotReady', 'Not active: the claim is refused.', '6m']] },
+        applied: true, focus: 'treg', idFacts,
+        nodes: { treg: { t: 'red', status: 'ProvidesMismatch' } },
+        details: { treg: { state: 'Refused', msg: 'The claim lists backup and backup-command, but catalog testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0 provides only backup. The controller re-derives what a catalog provides and refuses any difference.' } },
+        events: [
+          ev('Warning', 'Refused', 'treg', 'ProvidesMismatch: the claim lists backup-command@v1alpha1, which the catalog does not provide.', '6m', 'ProvidesMismatch'),
+          ev('Normal', 'ReconciliationSucceeded', 'mi', 'Applied 3 objects.', '6m')
+        ].concat(kubeOk),
+        attempts: attemptsOk, yaml: yamlFor('True', 'ReconciliationSucceeded')
+      }
+    };
+
+    const TONE = {
+      navy:  { border: 'var(--pt-1b2a44)', ink: 'var(--fg-1b2a44)', bg: 'var(--pt-dfe5ef)', tint: 'var(--pt-eef1f7)', soft: 'var(--pt-eef1f7)' },
+      green: { border: 'var(--pt-157a52)', ink: 'var(--fg-0f5c3d)', bg: 'var(--pt-dcefe5)', tint: 'var(--pt-eaf5ee)', soft: 'var(--pt-f1f8f3)' },
+      red:   { border: 'var(--pt-c3311b)', ink: 'var(--fg-a3260f)', bg: 'var(--pt-f8e0da)', tint: 'var(--pt-fcefeb)', soft: 'var(--pt-fdf3f0)' },
+      blue:  { border: 'var(--pt-2458b8)', ink: 'var(--fg-1d4796)', bg: 'var(--pt-dde6f7)', tint: 'var(--pt-edf2fb)', soft: 'var(--pt-f2f6fc)' },
+      amber: { border: 'var(--pt-b07814)', ink: 'var(--fg-6e4700)', bg: 'var(--pt-f6ead0)', tint: 'var(--pt-fbf3e2)', soft: 'var(--pt-fcf6e9)' },
+      plain: { border: 'var(--pt-b9ad94)', ink: 'var(--fg-3a4150)', bg: 'var(--pt-e7e3da)', tint: 'var(--pt-fffdf8)', soft: 'var(--pt-fffdf8)' }
+    };
+    const ICON = { navy: 'good', green: 'good', red: 'bad', blue: 'busy', amber: 'wait', plain: 'good' };
+    const badge = (t, size) => 'padding: 4px 10px; border: 1.5px solid ' + TONE[t].border + '; border-radius: 5px; color: ' + TONE[t].ink + '; background: ' + TONE[t].bg + '; font-size: ' + (size || 12) + 'px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; align-self: flex-start; justify-self: start;';
+    const mono = "margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; overflow-wrap: anywhere;";
+    const plainDd = 'margin: 0; overflow-wrap: anywhere;';
+    const TIPS = {
+      Owner: 'Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.',
+      Applier: "The ServiceAccount the controller acts as when it creates and updates this module's objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount."
+    };
+    const fact = ([k, v, m]) => ({ k, v, style: m ? mono : plainDd, hasTip: !!TIPS[k], tip: TIPS[k] || '' });
+    const over = (base, o) => { const r = {}; Object.keys(base).forEach((k) => { r[k] = { ...base[k], ...((o || {})[k] || {}) }; }); return r; };
+
+    const tab = this.state.tab;
+    const zoom = this.state.zoom;
+    const cause = this.state.cause;
+    const sc = S[scenario] || S[DEFAULT];
+    const nodes = over(BASE_NODES, sc.nodes);
+    const details = over(BASE_DETAILS, sc.details);
+    const selected = this.state.sel && details[this.state.sel] && (sc.applied || !APPLIED_ONLY.includes(this.state.sel)) ? this.state.sel : sc.focus;
+
+    const C = 24, NW = 8 * C, NH = 4 * C;
+    const px = (col) => (1 + col * 10) * C, py = (row) => (1 + row * 6) * C;
+    const nodeStyle = (t, dashed, sel, col, row) => 'position: absolute; left: ' + px(col) + 'px; top: ' + py(row) + 'px; width: ' + NW + 'px; height: ' + NH + 'px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 8px; text-align: left; font: inherit; color: var(--fg-141820); cursor: pointer; border: ' + (t === 'plain' ? '1px' : '1.5px') + (dashed ? ' dashed ' : ' solid ') + TONE[t].border + '; background: ' + (dashed && t === 'plain' ? 'var(--pt-f4efe4)' : TONE[t].soft) + ';' + (sel ? ' box-shadow: 0 0 0 3px var(--pt-fbf8f1), 0 0 0 5px var(--pt-8a5a00);' : '');
+    const n = {};
+    Object.keys(nodes).forEach((id) => {
+      const d = nodes[id];
+      const on = id === selected;
+      n[id] = {
+        kind: d.kind, name: d.name, status: d.status,
+        pick: () => this.setState({ sel: id, focus: '' }),
+        pressed: on ? 'true' : 'false',
+        style: LAYOUT[id] ? nodeStyle(d.t, d.dashed, on, LAYOUT[id][0], LAYOUT[id][1]) : '',
+        kindInk: d.t === 'plain' ? 'var(--fg-6a6f7a)' : TONE[d.t].ink,
+        statusInk: d.t === 'plain' ? 'var(--fg-3a4150)' : TONE[d.t].ink,
+        nameStyle: 'font-weight: 600; overflow-wrap: anywhere;' + (d.mono ? " font-family: 'JetBrains Mono', monospace; font-size: 12px;" : '')
+      };
+    });
+    const visible = Object.keys(LAYOUT).filter((id) => sc.applied || !APPLIED_ONLY.includes(id));
+    const hover = this.state.hover && visible.includes(this.state.hover) ? this.state.hover : '';
+    const focus = this.state.focus && visible.includes(this.state.focus) ? this.state.focus : '';
+    const base = hover || focus;
+    const chain = new Set();
+    if (base) {
+      const walk = (id, dir) => { chain.add(id); EDGES.forEach(([a, b]) => { if (dir > 0 && a === id) walk(b, 1); if (dir < 0 && b === id) walk(a, -1); }); };
+      walk(base, 1); walk(base, -1);
+    }
+    const clearSel = () => this.setState({ sel: ROOT_ID, focus: '' });
+    visible.forEach((id) => {
+      n[id].enter = (ev) => this.setState({ hover: id, hoverRect: ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect ? ev.currentTarget.getBoundingClientRect() : null });
+      n[id].leave = () => this.setState({ hover: '' });
+      n[id].tipId = hover === id ? 'tip-' + id : undefined;
+      if (base && !chain.has(id)) n[id].style += ' opacity: 0.35;';
+      if (id === focus) n[id].style += ' outline: 3px solid var(--pt-8a5a00); outline-offset: 4px; box-shadow: 0 0 0 10px var(--rgb1);';
+    });
+    const nodeList = visible.map((id) => n[id]);
+    const seg = (x, y, w, h, dashed) => ({ style: 'position: absolute; left: ' + x + 'px; top: ' + y + 'px; width: ' + w + 'px; height: ' + h + 'px; background: ' + (dashed ? 'repeating-linear-gradient(90deg, var(--pt-a3967c) 0 6px, transparent 6px 10px)' : 'var(--pt-a3967c)') + ';' });
+    const edgeSegs = (a, b, dashed) => {
+      const x1 = px(a[0]) + NW, y1 = py(a[1]) + NH / 2, x2 = px(b[0]), y2 = py(b[1]) + NH / 2, xm = x1 + C;
+      const out = [seg(x1, y1 - 1, xm - x1, 2, dashed), seg(xm, y2 - 1, x2 - xm, 2, dashed)];
+      if (y1 !== y2) out.push(seg(xm - 1, Math.min(y1, y2) - 1, 2, Math.abs(y2 - y1) + 2));
+      return out;
+    };
+    const ghostAt = [LAYOUT[ROOT_ID][0] + RES_ROOTS.length + 1, LAYOUT[ROOT_ID][1]];
+    const lastRoot = RES_ROOTS.length ? RES_ROOTS[RES_ROOTS.length - 1] : ROOT_ID;
+    const edges = [].concat(...EDGES.filter(([a, b]) => visible.includes(a) && visible.includes(b)).map(([a, b]) => edgeSegs(LAYOUT[a], LAYOUT[b])),
+      sc.applied ? [] : edgeSegs(LAYOUT[lastRoot], ghostAt, true));
+    const ghostStyle = 'position: absolute; left: ' + px(ghostAt[0]) + 'px; top: ' + py(ghostAt[1]) + 'px; width: ' + (NW + 4 * C) + 'px; height: ' + NH + 'px; box-sizing: border-box; padding: 12px 14px; border: 1.5px dashed var(--pt-b9ad94); border-radius: 8px; background: var(--pt-fffdf8); color: var(--fg-6a6f7a); font-size: 14px; line-height: 1.45;';
+    const maxCol = Math.max(...Object.values(LAYOUT).map((l) => l[0])), maxRow = Math.max(...Object.values(LAYOUT).map((l) => l[1]));
+    const canvasW = px(maxCol) + NW + 2 * C, canvasH = py(maxRow) + NH + C;
+    const paneW = this.state.paneW || 1240;
+    const paneHeightNormal = Math.min(560, Math.max(280, Math.round(canvasH * Math.min(2, (paneW - 4) / canvasW)) + 6));
+    const full = !!this.state.full;
+    const paneHeight = full ? Math.max(320, (typeof window !== 'undefined' ? window.innerHeight : 1080) - 110) : paneHeightNormal;
+    const paneH = paneHeight - 2;
+    const fit = Math.max(0.4, Math.min(2, Math.min((paneW - 4) / canvasW, (paneH - 4) / canvasH)));
+    const zoomNow = this.state.zoom === 'fit' || this.state.zoom === undefined ? fit : this.state.zoom;
+    this._zoom = zoomNow;
+    const ORIGIN = {
+      comp: 'Part of the module, not a Kubernetes object',
+      dep: 'Applied by the controller · 4 min ago', svc: 'Applied by the controller · 4 min ago',
+      rs: 'Created by the cluster from Deployment backup-agent · 4 min ago',
+      pod: 'Created by the cluster from ReplicaSet backup-agent-7c9d · 4 min ago',
+      src: 'Read by the controller, owned by Flux',
+      mi: 'Reconciled by the controller', pkg: 'Reconciled by the controller', ...EXTRA_ORIGIN
+    };
+    let h = {};
+    if (hover) {
+      const hd = details[hover], hn = nodes[hover], ht = hd.t || hn.t;
+      const warns = sc.events.filter((e) => e.obj === hover && e.type === 'Warning').length;
+      const raw = hover === ROOT_ID ? sc.a.summary : (hd.msg || hn.status);
+      const reason = raw.length > 120 ? raw.slice(0, 117) + '…' : raw;
+      const key = hover === ROOT_ID ? sc.a.when : (hd.facts || []).slice(0, 2).map(([k, v]) => k + ': ' + v).join(' · ');
+      const [col, row] = LAYOUT[hover];
+      const W = 300, H = 190;
+      const right = px(col) + NW + 12 + W <= canvasW;
+      h = {
+        id: 'tip-' + hover, kind: hn.kind, name: hd.full || hn.name, state: hd.state, reason, key, origin: ORIGIN[hover] || '',
+        badge: badge(ht === 'plain' ? 'green' : ht, 11), hasWarn: warns > 0, warn: warns + ' warning event' + (warns === 1 ? '' : 's') + ' in the last hour',
+        style: (() => {
+        const r = this.state.hoverRect, W = 300, H = 190;
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 1920, vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+        const left = !r ? 0 : (r.right + 12 + W <= vw ? r.right + 12 : Math.max(8, r.left - W - 12));
+        const top = !r ? 0 : Math.max(8, Math.min(r.top, vh - H - 8));
+        return 'position: fixed; z-index: 1000; pointer-events: none; left: ' + left + 'px; top: ' + top + 'px; width: ' + W + 'px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px; background: var(--tipbg); box-shadow: 0 12px 28px -10px var(--rgb3);';
+      })()
+      };
+    }
+    const dd = details[selected];
+    const dt = dd.t || nodes[selected].t;
+    const d = {
+      kind: nodes[selected].kind, name: dd.full || nodes[selected].name, state: dd.state,
+      badgeStyle: badge(dt),
+      hasMsg: !!dd.msg, msg: dd.msg || '',
+      msgStyle: 'padding: 12px 14px; border-radius: 8px; border: 1px solid ' + TONE[dt].border + '; background: ' + TONE[dt].tint + '; color: var(--fg-3a4150); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere;',
+      facts: (dd.facts || []).map(fact),
+      isPod: selected === 'pod',
+      isObject: selected !== 'comp'
+    };
+
+    const go = (c) => () => this.setState({ tab: 'events', cause: c, evObj: '', evType: '' });
+    const block = (x, eyebrow, aria, none) => ({
+      ...TONE[x.t], eyebrow, aria, state: x.state, summary: x.summary, when: x.when,
+      isGood: ICON[x.t] === 'good', isBad: ICON[x.t] === 'bad', isBusy: ICON[x.t] === 'busy', isWait: ICON[x.t] === 'wait',
+      reasons: x.reasons.map(([type, count]) => ({ type, count, go: go(type) })),
+      noReasons: x.reasons.length === 0, noReasonText: none
+    });
+    const blocks = [
+      block(sc.a, 'Applied · the controller', 'Applied status', 'No reconcile errors'),
+      block(sc.h, 'Health · everything it runs', 'Health status', 'No unhealthy resources')
+    ];
+    const evObj = this.state.evObj || '';
+    const evType = this.state.evType || '';
+    const refOf = (id) => nodes[id].kind + ' ' + (details[id].full || nodes[id].name);
+    const allEvents = sc.events.map((e) => ({ ...e, objKind: nodes[e.obj].kind, objName: details[e.obj].full || nodes[e.obj].name, pickObj: () => this.setState({ evObj: e.obj }), typeColor: e.type === 'Warning' ? 'var(--fg-a3260f)' : 'var(--pt-3a4150)' }));
+    const events = allEvents.filter((e) => (!cause || e.cause === cause) && (!evObj || e.obj === evObj) && (!evType || e.type === evType));
+    const objIds = Object.keys(nodes).filter((id) => allEvents.some((e) => e.obj === id));
+    const groupBy = (ids, kindOf, labelOf) => { const out = []; ids.forEach((id) => { const k = kindOf(id); let g = out.find((x) => x.label === k); if (!g) { g = { label: k, options: [] }; out.push(g); } g.options.push({ value: id, label: labelOf(id) }); }); return out; };
+    const evAllLabel = 'All resources (' + allEvents.length + ')';
+    const evObjOptions = groupBy(objIds, (id) => nodes[id].kind, (id) => (details[id].full || nodes[id].name) + ' (' + allEvents.filter((e) => e.obj === id).length + ')');
+    const evTypeOptions = [{ value: '', label: 'Any type' }].concat(['Warning', 'Normal'].map((t) => ({ value: t, label: t + ' (' + allEvents.filter((e) => e.type === t).length + ')' })));
+    const yamlIds = Object.keys(nodes).filter((id) => id !== 'comp' && (sc.applied || !APPLIED_ONLY.includes(id)));
+    const yamlOptions = groupBy(yamlIds, (id) => nodes[id].kind, (id) => details[id].full || nodes[id].name);
+    const API = { Deployment: 'apps/v1', ReplicaSet: 'apps/v1', Pod: 'v1', Service: 'v1', OCIRepository: 'source.toolkit.fluxcd.io/v1' };
+    const image = 'ghcr.io/opmodel/backup-agent:' + (nodes.pod.t === 'red' ? 'does-not-exist' : '6.7.1');
+    const nsOf = (id) => (details[id].full || '').split('/')[0];
+    const labels = '  labels:\n    module-instance.opmodel.dev/name: backup-provider\n    component.opmodel.dev/name: backup-provider\n';
+    const yamlOf = (id) => {
+      if (id === ROOT_ID) return sc.yaml;
+      if (EXTRA_YAML[id]) return EXTRA_YAML[id](sc);
+      if (id === 'comp') return '# A Component is not a Kubernetes object: it is the part of the\n# module that rendered these objects.\n#   Deployment backup-agent\n#   Service backup-agent';
+      if (id === 'src' && nodes.src.t === 'red') return '# OCIRepository pkg/backup-agent-release cannot be read:\n# the kind is not installed in this cluster.';
+      const k = nodes[id].kind;
+      const head = 'apiVersion: ' + API[k] + '\nkind: ' + k + '\nmetadata:\n  name: ' + (details[id].full || '').split('/')[1] + '\n  namespace: ' + nsOf(id) + '\n' + (id === 'src' ? '' : labels);
+      const body = {
+        dep: 'spec:\n  replicas: 1\n  template:\n    spec:\n      containers:\n      - name: backup-agent\n        image: ' + image + '\nstatus:\n  replicas: 1\n  availableReplicas: ' + (nodes.dep.t === 'red' ? 0 : 1),
+        rs: '  ownerReferences:\n  - kind: Deployment\n    name: backup-agent\nspec:\n  replicas: 1\nstatus:\n  readyReplicas: ' + (nodes.pod.t === 'green' ? 1 : 0),
+        pod: '  ownerReferences:\n  - kind: ReplicaSet\n    name: backup-agent-7c9d\nspec:\n  nodeName: opm-portal-e2e-control-plane\n  containers:\n  - name: backup-agent\n    image: ' + image + '\nstatus:\n  phase: ' + (nodes.pod.t === 'green' ? 'Running' : 'Pending') + '\n  containerStatuses:\n  - name: backup-agent\n    ready: ' + (nodes.pod.t === 'green') + '\n    state:\n' + (nodes.pod.t === 'green' ? '      running: {}' : '      waiting:\n        reason: ' + nodes.pod.status),
+        svc: 'spec:\n  type: ClusterIP\n  ports:\n  - port: 9898\n    protocol: TCP\n  selector:\n    app: backup-agent',
+        src: 'spec:\n  url: oci://ghcr.io/stefanprodan/manifests/backup-agent\n  interval: 5m\nstatus:\n  artifact:\n    revision: sha256:4f1c9a2e'
+      }[id];
+      return head + body;
+    };
+    const attempts = sc.attempts.map((a) => ({ ...a, badge: badge(a.t, 11) }));
+
+    // The controller's attempt history lives in the Applied block: a dot per run, oldest on the left.
+    {
+      const TONE_OF = { Applied: 'navy', Failed: 'red', Running: 'blue' };
+      const MARK = { Applied: '✓', Failed: '✕', Running: '…' };
+      const hist = attempts.slice(0, 10);
+      const open = !!this.state.historyOpen;
+      const col = { navy: ['var(--pt-1b2a44)', 'var(--pt-dfe5ef)'], red: ['var(--pt-c3311b)', 'var(--pt-f8e0da)'], blue: ['var(--pt-2458b8)', 'var(--pt-dde6f7)'] };
+      blocks[0] = { ...blocks[0], hasHistory: true, historyOpen: open, historyOpenAttr: open ? 'true' : 'false',
+        historyLabel: open ? 'Hide history ▴' : 'Show history ▾', toggleHistory: () => this.setState({ historyOpen: !open }),
+        historyCount: hist.length === 1 ? '1 attempt' : 'last ' + hist.length + ' attempts',
+        rows: hist,
+        dots: hist.slice().reverse().map((a) => { const t = col[TONE_OF[a.result] || 'navy']; return {
+          mark: MARK[a.result] || '✓', title: '#' + a.seq + ' ' + a.result + ' · ' + a.age + ' · ' + a.message,
+          style: 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid ' + t[0] + '; background: ' + t[1] + '; color: ' + t[0] + '; font-size: 11px; font-weight: 700; line-height: 1;' }; }) };
+      blocks[1] = { ...blocks[1], hasHistory: false };
+    }
+    const RES_AGE = { src: '2 h', dep: '4 min', rs: '4 min', pod: '4 min', svc: '4 min' };
+    const resIds = RES_ROOTS.concat(sc.applied ? ['dep', 'rs', 'pod', 'svc'].concat(EXTRA_IDS) : []);
+    const resources = resIds.map((id) => {
+      const nd = nodes[id], dd2 = details[id];
+      const t = dd2.t || nd.t;
+      const on = id === selected;
+      return {
+        kind: nd.kind, name: dd2.full || nd.name,
+        origin: id === 'src' ? 'source' : (nd.dashed ? 'child' : 'applied'),
+        state: dd2.state, badge: badge(t === 'plain' ? 'green' : t, 11),
+        detail: nd.status, age: RES_AGE[id] || '4 min',
+        pick: () => this.setState({ sel: id, focus: id, tab: 'graph' }),
+        rowStyle: 'width: 100%; display: grid; grid-template-columns: 130px minmax(0, 1.4fr) 110px 130px minmax(0, 1.6fr) 80px; gap: 14px; align-items: center; padding: 12px 20px; border: none; border-bottom: 1px solid var(--pt-e5dccb); text-align: left; font: inherit; color: var(--fg-141820); cursor: pointer; background: ' + (on ? 'var(--pt-fff6e3)' : 'transparent') + ';'
+      };
+    });
+    // A provider is an instance or package with a registration: its extra block and tab.
+    let pv = {};
+    if (PROV) {
+      const P = sc.prov;
+      const pb = block(P, 'Provider · its registration', 'Provider status', P.none || 'No registration problems');
+      blocks.push({ ...pb, hasHistory: false });
+      const DOCS = 'https://open-platform-model.github.io/opmodel.dev/catalogs/';
+      const docHref = (path) => { const m = path.match(/^opmodel\.dev\/catalogs\/([^/]+)\/(traits|resources|blueprints)\/([^@/]+)/); return m ? DOCS + m[1] + '/4.6/' + m[2] + '/' + m[3] + '/' : DOCS; };
+      const toCatalog = (pick) => () => { try { window.localStorage.setItem('opm-catalog-pick', pick); } catch (e) { /* storage blocked: the catalog view opens on its default */ } this.setState({ full: false, zoom: 'fit', focus: '' }); };
+
+    // Consumers: name a few, and send the rest to Installed filtered by what they use.
+    const CONSUMERS = [['default/backup-consumer', 'Instance.dc.html'], ['shop/storefront', 'Instance.dc.html'], ['blog/blog', 'Instance.dc.html'], ['web/web', 'Instance.dc.html'], ['staging/backup-agent', 'Instance.dc.html']];
+    const usedList = (list, defName, onGo) => {
+      const SHOW = 3;
+      return { usedBy: list.slice(0, SHOW).map(([label, href]) => ({ label, href })), hasMore: list.length > SHOW, moreText: 'and ' + (list.length - SHOW) + ' more',
+        unused: list.length === 0, hasAny: list.length > 0, showAllText: list.length > SHOW ? 'All ' + list.length + ' in Installed' : 'Show in Installed',
+        showAllTitle: 'Open Installed filtered to everything that uses #' + defName,
+        showAll: () => { try { window.localStorage.setItem('opm-installed-filter', JSON.stringify({ uses: defName })); } catch (e) { /* storage blocked: Installed opens unfiltered */ } if (onGo) onGo(); } };
+    };
+      const provides = (P.provides || PROV.provides).map((x) => {
+        const name = x.path.split('/').pop().split('@')[0].split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+        const kind = /\/traits\//.test(x.path) ? 'Trait' : 'Resource';
+        return { name, kind, kindLower: kind.toLowerCase(), path: x.path, desc: x.desc, href: docHref(x.path), tipId: 'pv-' + name.toLowerCase(),
+          state: P.contract[0], badge: badge(P.contract[1], 11), note: P.contract[2],
+          ...usedList(x.usedBy === 'CONSUMERS' ? CONSUMERS : x.usedBy, name, () => this.setState({ full: false, zoom: 'fit', focus: '' })) };
+      });
+      pv = {
+        intro: PROV.intro,
+        facts: [
+          { k: 'Registration', v: 'TransformerRegistration ' + PROV.reg, isText: true, style: mono },
+          { k: 'Claims catalog', v: PROV.catalog, after: PROV.catalogVersion, isLink: true, href: 'Catalog.dc.html', go: toCatalog(PROV.catalogPick) },
+          { k: 'Catalog', v: P.catalogState, isText: true, style: plainDd },
+          { k: 'Contracts', v: P.contracts, isText: true, style: plainDd }
+        ],
+        conditions: P.conditions.map(([type, status, t, reason, message, age]) => ({ type, status, badge: badge(t, 11), reason, message, age })),
+        provides, providesNothing: provides.length === 0, providesNothingText: P.providesNothing || '',
+        transformers: (P.transformers || PROV.transformers).map(([name, renders, produces]) => ({ name, renders, produces })),
+        noTransformers: (P.transformers || PROV.transformers).length === 0, noTransformersText: P.noTransformers || ''
+      };
+    }
+    const defs = [
+      { id: 'graph', label: 'Graph' },
+      ...(PROV ? [{ id: 'provider', label: 'Provider' }] : []),
+      { id: 'resources', label: 'Resources ' + resources.length },
+      { id: 'events', label: 'Events ' + allEvents.length },
+      { id: 'logs', label: 'Logs' },
+      { id: 'yaml', label: 'YAML' }
+    ];
+    const tabs = defs.map((x) => {
+      const on = x.id === tab;
+      return {
+        label: x.label,
+        selected: on ? 'true' : 'false',
+        pick: () => this.setState({ tab: x.id }),
+        style: 'min-height: 44px; padding: 10px 18px; font: inherit; font-size: 15px; cursor: pointer; background: none; border: none; border-bottom: 3px solid ' + (on ? 'var(--pt-8a5a00)' : 'transparent') + '; color: ' + (on ? 'var(--fg-141820)' : 'var(--pt-6a6f7a)') + '; font-weight: ' + (on ? '600' : '400') + '; margin-bottom: -1px;'
+      };
+    });
+    const podBroken = nodes.pod.t === 'red' || !sc.applied;
+    const logLines = podBroken
+      ? [{ text: 'The container has not started, so there are no logs yet.', color: 'var(--fg-e3b45c)' }, { text: 'See Events for why.', color: 'var(--fg-8f96a3)' }]
+      : LOGS.map((text) => ({ text, color: 'var(--fg-c4c0b5)' }));
+    return {
+      kindLabel: KIND_LABEL, subtitle: SUBTITLE,
+      isProvider: !!PROV, providerPillText: PROV ? 'Provider' : '', pv, showProvider: !!PROV && tab === 'provider',
+      providerPill: PROV ? 'display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; border: 1.5px solid ' + TONE[sc.prov.t].border + '; color: ' + TONE[sc.prov.t].ink + '; background: ' + TONE[sc.prov.t].bg + '; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;' : '',
+      idFacts: sc.idFacts.map(fact),
+      blocks, n, d, tabs, events, nodeList, edges, ghostStyle, canvasW, canvasH,
+      onPaneKey: (ev) => { if (ev.key !== 'Escape') return; ev.preventDefault(); if (focus || selected !== ROOT_ID) clearSel(); else if (this.state.full) this.setState({ full: false, zoom: 'fit' }); },
+      onPaneClick: (ev) => { if (ev.target && ev.target.closest && ev.target.closest('button')) return; if (focus || selected !== ROOT_ID) clearSel(); },
+      hasSel: !!focus || selected !== ROOT_ID, clearSel,
+      graphSectionStyle: 'display: flex; flex-direction: column; gap: 14px; padding: 14px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); ' + (full ? 'position: fixed; inset: 0; z-index: 900; border-radius: 0;' : 'border-radius: 10px;'),
+      isFull: full, notFull: !full, fullPressed: full ? 'true' : 'false', fullLabel: full ? 'Exit full screen (Esc)' : 'Show the graph full screen',
+      toggleFull: () => this.setState({ full: !full, zoom: 'fit' }),
+      leaveView: () => this.setState({ full: false, zoom: 'fit', focus: '' }),
+      // The details panel belongs to the views where you pick a box or a row; the other tabs use the full width.
+      showPanel: ['graph', 'resources'].includes(tab || 'graph'),
+      setPane: this.setPane, paneHeight, hasHover: !!hover, h,
+      sizeW: Math.round(canvasW * zoomNow), sizeH: Math.round(canvasH * zoomNow),
+      offX: (this._offX = Math.max(0, Math.floor((paneW - canvasW * zoomNow) / 2))), offY: (this._offY = Math.max(0, Math.floor((paneH - canvasH * zoomNow) / 2))),
+      gridPx: 24 * zoomNow, zoom: zoomNow, zoomPct: Math.round(zoomNow * 100), isFit: this.state.zoom === 'fit' ? 'true' : 'false',
+      fitZoom: () => this.setState({ zoom: 'fit' }), onZoom: (e) => this.setState({ zoom: Number(e.target.value) / 100 }),
+      fitStyle: 'min-height: 32px; min-width: 52px; padding: 4px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid ' + (this.state.zoom === 'fit' ? 'var(--pt-141820)' : 'var(--pt-b9ad94)') + '; background: ' + (this.state.zoom === 'fit' ? 'var(--pt-141820)' : 'var(--pt-fffdf8)') + '; color: ' + (this.state.zoom === 'fit' ? 'var(--fg-efe9dc)' : 'var(--pt-141820)') + ';',
+      events, attempts, logLines,
+      applied: sc.applied, notApplied: !sc.applied, ghostText: GHOST,
+      showGraph: tab === 'graph', showResources: tab === 'resources', resources, noResources: resources.length === 0, showAttempts: tab === 'attempts', showEvents: tab === 'events', showLogs: tab === 'logs', showYaml: tab === 'yaml',
+      yaml: yamlOf(selected === 'comp' ? ROOT_ID : selected), yamlSel: selected === 'comp' ? ROOT_ID : selected, selected, yamlOptions, onYamlObj: (e) => this.setState({ sel: e.target.value }),
+      evObj, evType, evObjOptions, evAllLabel, evTypeOptions, evShown: events.length, evTotal: allEvents.length, noEvents: events.length === 0,
+      anyEvFilter: !!(cause || evObj || evType), clearEvFilters: () => this.setState({ cause: '', evObj: '', evType: '' }),
+      onEvObj: (e) => this.setState({ evObj: e.target.value }), onEvType: (e) => this.setState({ evType: e.target.value }),
+      hasFilter: !!cause, filterLabel: cause, clearFilter: () => this.setState({ cause: '' }),
+      goLogs: () => this.setState({ tab: 'logs' }),
+      goEvents: () => this.setState({ tab: 'events', cause: '', evType: '', evObj: selected }),
+      goYaml: () => this.setState({ tab: 'yaml' })
+    };
+  }
+}
+</script>
+</body>
+</html>
