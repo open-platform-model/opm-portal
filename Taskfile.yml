@@ -56,9 +56,10 @@ tasks:
       - golangci-lint fmt ./...
 
   vet:
-    desc: Run go vet
+    desc: Run go vet, including the e2e- and browser-tagged tests the nightly run builds
     cmds:
       - go vet ./...
+      - go vet -tags e2e,browser ./...
 
   lint:
     desc: Run golangci-lint
