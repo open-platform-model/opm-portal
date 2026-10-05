@@ -82,11 +82,11 @@ tasks:
       - go tool cover -html=coverage.out -o coverage.html
 
   test:browser:
-    desc: 'Launch a local session from the --open page and from the printed link in Chromium, Firefox and WebKit (Playwright image; OPM_PORTAL_CONTAINER_ENGINE=podman|docker)'
+    desc: 'In Chromium, Firefox and WebKit, launch a local session from the --open page and the printed link, and keep a tailed log pane through refreshes (Playwright image; OPM_PORTAL_CONTAINER_ENGINE=podman|docker)'
     env:
       OPM_PORTAL_CONTAINER_ENGINE: '{{.OPM_PORTAL_CONTAINER_ENGINE}}'
     cmds:
-      - go test -tags browser -count=1 -run '^TestBrowserLaunch' -v ./cmd/opm-portal
+      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs)$' -v ./cmd/opm-portal
 
   #########################
   ## e2e fixture cluster (test/e2e)
