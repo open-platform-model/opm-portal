@@ -1,4 +1,4 @@
-# cert-manager renders CRDs, webhooks and cluster-scoped RBAC. The operator's own
+# cert-manager renders CRDs, webhooks and cluster-scoped RBAC. The controller's own
 # ServiceAccount cannot patch CRDs, so the instance names an applier bound to cluster-admin.
 apiVersion: v1
 kind: Namespace

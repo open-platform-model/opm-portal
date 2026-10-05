@@ -1,4 +1,4 @@
-# Copied from opm-operator test/fixtures/modules/backup_provider/moduleinstance.yaml at 8d34b6b.
+# Copied from opm-controller test/fixtures/modules/backup_provider/moduleinstance.yaml at 8d34b6b.
 # The module renders a TransformerRegistration claiming the backup catalog for opm's backup trait.
 ---
 # The claim this module renders is cluster-scoped, so the applier needs a
@@ -40,7 +40,7 @@ metadata:
   namespace: default
 spec:
   module:
-    path: testing.opmodel.dev/modules/operator/backup_provider@v0
+    path: testing.opmodel.dev/modules/controller/backup_provider@v0
     version: v0.1.0
   serviceAccountName: backup-provider-applier
   prune: true

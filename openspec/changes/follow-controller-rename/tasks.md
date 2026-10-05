@@ -15,10 +15,10 @@
 
 ## 3. Install and read the controller in the e2e cluster (test/e2e, cmd/opm-portal)
 
-- [ ] 3.1 `versions.env`: `OPM_CONTROLLER_VERSION=0.1.0`, the `opm_controller` module version `opm controller install --version` takes; the cli pin marked `TODO(cutover)` until the cli release with `opm controller` exists
-- [ ] 3.2 `lib.sh`, `up.sh`: the `OPM_CONTROLLER_VERSION` override and `opm controller install`; `capture.sh`: Deployment `opm-controller-manager` in `opm-controller-system`, `meta.yaml` key `controller:` read from `status.controllerVersion`, default owner `controller`; `dump.sh`: `controller.log` from the same Deployment
-- [ ] 3.3 F1 fixtures and `cmd/opm-portal/m1_e2e_test.go`: `testing.opmodel.dev/*/controller/*` and owner `controller`; `testdata/clusters/f1/meta.yaml` keys follow `capture.sh` (`controller:`, `owner: controller`); Taskfile descriptions
-- [ ] 3.4 `task check` green, then commit `test(e2e): install the controller under its new names`
+- [x] 3.1 `versions.env`: `OPM_CONTROLLER_VERSION=0.1.0`, the `opm_controller` module version `opm controller install --version` takes; the cli pin marked `TODO(cutover)` until the cli release with `opm controller` exists
+- [x] 3.2 `lib.sh`, `up.sh`: the `OPM_CONTROLLER_VERSION` override and `opm controller install`; `capture.sh`: Deployment `opm-controller-manager` in `opm-controller-system`, `meta.yaml` key `controller:` read from `status.controllerVersion`, default owner `controller`; `dump.sh`: `controller.log` from the same Deployment
+- [x] 3.3 F1 fixtures and `cmd/opm-portal/m1_e2e_test.go`: `testing.opmodel.dev/*/controller/*` and owner `controller`; `testdata/clusters/f1/meta.yaml` keys follow `capture.sh` (`controller:`, `owner: controller`); Taskfile descriptions
+- [x] 3.4 `task check` green, then commit `test(e2e): install the controller under its new names`
 
 ## 4. Docs and specs (docs, README, ROADMAP, AGENTS, CONSTITUTION, openspec)
 

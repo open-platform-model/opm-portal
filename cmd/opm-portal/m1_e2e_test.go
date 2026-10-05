@@ -36,7 +36,7 @@ import (
 const (
 	acceptedClaim = "default.backup-provider"
 	refusedClaim  = "default.refused-claim-fixture"
-	backupCatalog = "testing.opmodel.dev/catalogs/operator/backup@v0"
+	backupCatalog = "testing.opmodel.dev/catalogs/controller/backup@v0"
 	// brokenTag is an image tag the podinfo image does not have.
 	brokenTag = "opm-portal-e2e-absent"
 	// degradedLag is how long after the cluster first reports the broken
@@ -140,10 +140,10 @@ func (s m1Session) instanceAxes(t *testing.T) {
 		t.Fatalf("access = %q; want ok", list.Access)
 	}
 	want := map[string]struct{ owner, applied, health string }{
-		"cert-manager/cert-manager": {"operator", "Applied", "Healthy"},
-		"default/podinfo":           {"operator", "Applied", "Healthy"},
-		"default/backup-provider":   {"operator", "Applied", "Healthy"},
-		"default/backup-consumer":   {"operator", "Applied", "Healthy"},
+		"cert-manager/cert-manager": {"controller", "Applied", "Healthy"},
+		"default/podinfo":           {"controller", "Applied", "Healthy"},
+		"default/backup-provider":   {"controller", "Applied", "Healthy"},
+		"default/backup-consumer":   {"controller", "Applied", "Healthy"},
 		"web/web":                   {"cli", "ManagedExternally", "Healthy"},
 	}
 	got := map[string]*v1.InstanceSummary{}
@@ -304,7 +304,7 @@ func (s m1Session) streamScoped(t *testing.T) {
 // imageBreak patches podinfo's image tag to one that does not exist and
 // follows podinfo on the stream: the new Pod cannot pull, so health must
 // turn Degraded within degradedLag of the cluster reporting it, while the
-// operator's applied state stays Applied. The patch is reverted, and the
+// controller's applied state stays Applied. The patch is reverted, and the
 // rollout waited for, when the test ends.
 func (s m1Session) imageBreak(t *testing.T, cfg *rest.Config) {
 	dyn, err := dynamic.NewForConfig(cfg)
@@ -345,7 +345,7 @@ func (s m1Session) imageBreak(t *testing.T, cfg *rest.Config) {
 		t.Errorf("the stream said Degraded %s after the cluster reported the broken Pod; want within %s", lag.Round(time.Millisecond), degradedLag)
 	}
 
-	// Applied stays: the operator neither fails nor stalls on a workload it
+	// Applied stays: the controller neither fails nor stalls on a workload it
 	// applied, and Degraded stays while the Pod cannot pull.
 	events.holdApplied(t, 5*time.Second)
 	var list v1.InstanceList
@@ -364,7 +364,7 @@ type sseStream struct{ events <-chan sseEvent }
 
 // untilDegraded reads Instance documents until one says Degraded, and
 // returns when it arrived. That document must still say Applied; a passing
-// Reconciling while the operator applies the patch is logged, not failed.
+// Reconciling while the controller applies the patch is logged, not failed.
 func (s *sseStream) untilDegraded(t *testing.T, patched time.Time) time.Time {
 	t.Helper()
 	deadline := time.Now().Add(3 * time.Minute)

@@ -91,7 +91,7 @@ write events
 
 log "writing meta.yaml"
 k version -o json >"$TMP/version.json"
-k get deployment -n opm-operator-system opm-operator-controller-manager -o json >"$TMP/operator.json"
+k get deployment -n opm-controller-system opm-controller-manager -o json >"$TMP/controller.json"
 jq -n \
   --arg capturedAt "$(date -u +%FT%TZ)" \
   --arg cluster "$CLUSTER" \
@@ -103,7 +103,7 @@ jq -n \
   --argjson objects "$(yq '.items | length' "$TMP/out/objects.yaml")" \
   --argjson missing "$(printf '%s\n' "${missing[@]}" | jq -R 'select(length > 0)' | jq -s .)" \
   --slurpfile version "$TMP/version.json" \
-  --slurpfile operator "$TMP/operator.json" \
+  --slurpfile controller "$TMP/controller.json" \
   --slurpfile platforms <(yq -o json "$TMP/out/platforms.yaml") \
   --slurpfile instances <(yq -o json "$TMP/out/moduleinstances.yaml") \
   --slurpfile packages <(yq -o json "$TMP/out/modulepackages.yaml") \
@@ -116,13 +116,13 @@ jq -n \
       kubernetes: $version[0].serverVersion.gitVersion
     },
     opmCLI: $cli,
-    operator: {
-      image: $operator[0].spec.template.spec.containers[0].image,
-      version: ($platforms[0].items[0].status.operatorVersion // null)
+    controller: {
+      image: $controller[0].spec.template.spec.containers[0].image,
+      version: ($platforms[0].items[0].status.controllerVersion // null)
     },
     catalogs: [$platforms[0].items[0].status.registry[]? | {catalog, version, source}],
     instances: [$instances[0].items[] | {
-      namespace: .metadata.namespace, name: .metadata.name, owner: (.spec.owner // "operator"),
+      namespace: .metadata.namespace, name: .metadata.name, owner: (.spec.owner // "controller"),
       ready: (ready.status // "absent"), reason: (ready.reason // null)
     }],
     packages: [$packages[0].items[] | {
@@ -136,7 +136,7 @@ jq -n \
     } | if .deliberateRefusal then . + {
       note: "deliberate refusal fixture (test/e2e/fixtures/f1/60-refused-claim.yaml): refused on purpose"
     } elif (.accepted and .active) then del(.deliberateRefusal) else del(.deliberateRefusal) + {
-      note: "not accepted and active on this operator; the claim is accepted only by an operator built on library v1.0.0-beta.2 or later"
+      note: "not accepted and active on this controller; the claim is accepted only by a controller built on library v1.0.0-beta.2 or later"
     } end],
     inventory: {objects: $objects, secretsSkipped: $secretsSkipped, missing: $missing}
   }' | yq -P >"$TMP/out/meta.yaml"
