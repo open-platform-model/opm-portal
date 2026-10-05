@@ -1,6 +1,6 @@
 {{define "content"}}{{$p := .}}{{with .Main}}
 <header class="page-head reveal">
-  <p class="kicker">ModuleInstances</p>
+  <p class="kicker">Module instances</p>
   <h1>Instances</h1>
   <p class="lede">Each instance shows two separate values: <strong>Applied</strong>, what the operator applied, and <strong>Health</strong>, what the portal sees running. One never stands for the other.</p>
 </header>
@@ -18,7 +18,7 @@
     <th scope="row" data-label="Instance"><a href="/instances/{{.Ref.Namespace}}/{{.Ref.Name}}"><span class="ns">{{.Ref.Namespace}}/</span>{{.Ref.Name}}</a></th>
     <td data-label="Applied">{{template "applied" .Reconcile}}</td>
     <td data-label="Health">{{template "health" .Health}}</td>
-    <td data-label="Module"><span class="mono">{{.Module.Path}}</span>{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</td>
+    <td data-label="Module"><span class="mono">{{template "breakable" .Module.Path}}</span>{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</td>
     <td data-label="Objects" class="num">{{.InventoryCount}}</td>
     <td data-label="Last applied">{{template "time" .LastAppliedAt}}</td>
   </tr>

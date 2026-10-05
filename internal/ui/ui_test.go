@@ -148,7 +148,7 @@ func TestGoldenLocked(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.DenyResources("services"))
 	checkGoldens(t, s, []goldenPage{{"instance-podinfo-services-locked", "/instances/default/podinfo", false}})
 	main := mainOf(s.get(t, "/instances/default/podinfo").body)
-	if !strings.Contains(main, `<li class="object locked">`) || !strings.Contains(main, "Service default/podinfo-podinfo") {
+	if !strings.Contains(main, `<li class="object locked">`) || !strings.Contains(main, "Service default/<wbr>podinfo-podinfo") {
 		t.Error("the forbidden Service is not rendered locked")
 	}
 	if !strings.Contains(main, `class="node kind-object locked"`) {

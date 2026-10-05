@@ -62,8 +62,11 @@ func problemStatus(p *v1.Problem) int {
 // --- Platform ---
 
 type platformView struct {
-	Problem      *v1.Problem
-	Platform     v1.Platform
+	Problem  *v1.Problem
+	Platform v1.Platform
+	// Conditions are the Platform's conditions less the ones the contracts
+	// banner already shows.
+	Conditions   []v1.Condition
 	Accepted     int
 	Refused      int
 	Graph        svgGraph
@@ -90,12 +93,13 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		}
 		var g v1.Graph
 		if v.GraphProblem = h.fetch(r, "/platform/graph", graphQuery(r), &g); v.GraphProblem == nil {
-			v.Graph = buildGraph(g, "platform-graph", "/", "/platform/node")
+			v.Graph = buildGraph(g, "platform-graph", "/", "/platform/node", r.URL.Query().Get("node"))
 			if id := r.URL.Query().Get("node"); id != "" {
 				v.Panel = h.panel(r, &g, id, panelContext{})
 			}
 		}
 		v.Events = h.events(r, "/platform/events", nil, "events:platform")
+		v.Conditions = withoutNotes(v.Platform.Conditions, v.Platform.Reconcile.Notes)
 	}
 	h.render(w, r, problemStatus(v.Problem), "platform", page{
 		Title:  "Platform",
@@ -103,6 +107,18 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		Topics: []string{"platform", "events:platform"},
 		Main:   v,
 	})
+}
+
+// withoutNotes drops the conditions the page already shows as notes
+// beside the applied state.
+func withoutNotes(cs, notes []v1.Condition) []v1.Condition {
+	out := make([]v1.Condition, 0, len(cs))
+	for i := range cs {
+		if !slices.ContainsFunc(notes, func(n v1.Condition) bool { return n.Type == cs[i].Type }) {
+			out = append(out, cs[i])
+		}
+	}
+	return out
 }
 
 func (h *Handler) platformNode(w http.ResponseWriter, r *http.Request) {
@@ -204,6 +220,9 @@ type ownerView struct {
 	History     []v1.HistoryEntry
 	LastApplied v1.Digests
 	Components  []componentView
+	// Config is the configuration components the graph folds into one
+	// group, listed folded the same way; nil when the graph does not fold.
+	Config *configGroup
 
 	Graph        svgGraph
 	GraphProblem *v1.Problem
@@ -218,12 +237,24 @@ type componentView struct {
 	Objects []objectView
 }
 
+// configGroup is the configuration components folded into one entry, with
+// the health the graph's group node reports. It opens when that health is
+// not Healthy.
+type configGroup struct {
+	Health     string
+	Open       bool
+	Components []componentView
+}
+
 type objectView struct {
 	v1.InventoryObject
 	Text      string
 	YAML      string
 	EventsURL string
 	Children  []childView
+	// Old are the ReplicaSets scaled to zero, folded apart from the live
+	// children.
+	Old []childView
 }
 
 type childView struct {
@@ -231,10 +262,13 @@ type childView struct {
 	Text      string
 	YAML      string
 	EventsURL string
+	// LogID is the id of the Pod's first container's log pane.
+	LogID string
 }
 
 // logPane is one container's log, followed on its log topic.
 type logPane struct {
+	ID        string
 	Topic     string
 	Pod       string
 	Container string
@@ -273,7 +307,8 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 		if v.Problem == nil {
 			var g v1.Graph
 			if v.GraphProblem = h.fetch(r, api+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
-				v.Graph = buildGraph(g, k.Topic+"-graph", v.Base, v.Base+"/node")
+				v.Graph = buildGraph(g, k.Topic+"-graph", v.Base, v.Base+"/node", r.URL.Query().Get("node"))
+				v.Components, v.Config = foldConfig(v.Components, &g)
 				if id := r.URL.Query().Get("node"); id != "" {
 					v.Panel = h.panel(r, &g, id, panelContext{owner: k, base: v.Base})
 				}
@@ -288,6 +323,38 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 			Main:   v,
 		})
 	}
+}
+
+// foldConfig moves the components the graph folds into its configuration
+// group out of cs, in their order, so the list folds what the graph folds
+// (0030:D4:R5).
+func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup) {
+	var group *v1.GraphNode
+	for i := range g.Nodes {
+		if n := &g.Nodes[i]; n.Kind == "group" && n.Group != nil && n.Group.Kind == "configuration" {
+			group = n
+		}
+	}
+	if group == nil {
+		return cs, nil
+	}
+	cg := &configGroup{Health: "Unknown"}
+	if group.Health != nil {
+		cg.Health = group.Health.State
+	}
+	cg.Open = cg.Health != "Healthy"
+	rest := make([]componentView, 0, len(cs))
+	for i := range cs {
+		if slices.Contains(group.Group.Members, cs[i].Name) {
+			cg.Components = append(cg.Components, cs[i])
+		} else {
+			rest = append(rest, cs[i])
+		}
+	}
+	if len(cg.Components) == 0 {
+		return cs, nil
+	}
+	return rest, cg
 }
 
 // components adds the links each object offers: its YAML and its events,
@@ -322,7 +389,15 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 	for k := range obj.Children {
 		ch := obj.Children[k]
 		q := refQuery(ch.Ref).Encode()
-		o.Children = append(o.Children, childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q})
+		cv := childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q}
+		if isPod(ch.Ref) && len(ch.Containers) > 0 {
+			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
+		}
+		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
+			o.Old = append(o.Old, cv)
+			continue
+		}
+		o.Children = append(o.Children, cv)
 	}
 	return o
 }
@@ -334,18 +409,24 @@ func logPanes(cs []componentView) []logPane {
 		for j := range cs[i].Objects {
 			for k := range cs[i].Objects[j].Children {
 				ch := &cs[i].Objects[j].Children[k]
-				if ch.Ref.Kind != "Pod" || ch.Ref.Group != "" {
+				if !isPod(ch.Ref) {
 					continue
 				}
 				for _, c := range ch.Containers {
 					topic := "log:" + ch.Ref.Namespace + "/" + ch.Ref.Name + "/" + c
-					out = append(out, logPane{Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c})
+					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c})
 				}
 			}
 		}
 	}
 	return out
 }
+
+func isPod(r v1.ObjectRef) bool { return r.Kind == "Pod" && r.Group == "" }
+
+// logID is the id of a container's log pane. Pod and container names are
+// DNS labels, so the id needs no escaping.
+func logID(pod, container string) string { return "log-" + pod + "-" + container }
 
 func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

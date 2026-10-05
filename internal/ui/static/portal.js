@@ -362,23 +362,64 @@
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
       logTopics.clear();
+      selected.clear();
+      zooms.clear();
     }
   });
 
   // ---- Graph nodes ----
+  // selected maps a graph id to the id of its selected node, so a refresh
+  // that replaces the graph keeps the mark.
+  var selected = new Map();
+
+  function markSelected(g) {
+    var want = selected.get(g.getAttribute("data-graph"));
+    g.querySelectorAll(".node").forEach(function (n) {
+      if (want && n.getAttribute("data-node") === want) {
+        n.setAttribute("aria-current", "true");
+      } else {
+        n.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  function intoView(el) {
+    var r = el.getBoundingClientRect();
+    if (r.top < 0 || r.top > window.innerHeight - 80) {
+      el.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+  }
+
   function openNode(a) {
     var panel = a.getAttribute("data-panel");
     var target = document.getElementById("detail");
     if (!panel || !target || typeof htmx === "undefined") {
       return false;
     }
-    htmx.ajax("GET", panel, { target: "#detail", swap: "innerHTML" }).then(function () {
-      if (window.matchMedia("(max-width: 1100px)").matches) {
-        target.scrollIntoView({ block: "start", behavior: "smooth" });
-      }
+    var g = a.closest(".graph[data-graph]");
+    if (g) {
+      selected.set(g.getAttribute("data-graph"), a.getAttribute("data-node"));
+      markSelected(g);
+    }
+    htmx.ajax("GET", panel, { source: a, target: "#detail", swap: "innerHTML" }).then(function () {
+      intoView(target);
     });
     return true;
   }
+
+  // A Pod's Logs link opens and shows its first container's pane.
+  document.addEventListener("click", function (evt) {
+    var l = evt.target.closest && evt.target.closest("a[data-log-link]");
+    if (!l) {
+      return;
+    }
+    var d = document.getElementById(l.getAttribute("data-log-link"));
+    if (d && d.matches("details.log")) {
+      evt.preventDefault();
+      d.open = true;
+      d.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+  });
 
   document.addEventListener("click", function (evt) {
     var a = evt.target.closest && evt.target.closest(".graph .node");
@@ -401,8 +442,9 @@
   // A graph is drawn at its natural size in a scrolling frame. Zoom sets
   // the SVG's width and height attributes (no style attribute, so no
   // policy exception); dragging the background scrolls the frame.
-  var zooms = new Map(); // graph id -> scale
+  var zooms = new Map(); // graph id -> scale the user chose
   var moved = false;
+  var minFit = 0.5;
 
   function frameOf(g) { return g.querySelector(".graph-frame"); }
 
@@ -412,22 +454,45 @@
       return;
     }
     var vb = svg.viewBox.baseVal;
-    var s = zooms.get(g.getAttribute("data-graph")) || 1;
+    var s = zooms.get(g.getAttribute("data-graph")) || fitScale(g);
     svg.setAttribute("width", String(Math.round(vb.width * s)));
     svg.setAttribute("height", String(Math.round(vb.height * s)));
   }
 
-  function restoreGraphs() {
-    document.querySelectorAll(".graph[data-graph]").forEach(apply);
+  // fitScale fits the graph's width to its frame, never above 1:1 and,
+  // on a narrow screen, never below minFit: there the frame scrolls.
+  function fitScale(g) {
+    var svg = g.querySelector("svg");
+    var frame = frameOf(g);
+    if (!svg || !frame || !frame.clientWidth) {
+      return 1;
+    }
+    return Math.max(minFit, Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
   }
+
+  // restoreGraphs sizes every graph (fitted until the user zooms) and puts
+  // back its selected node; it runs on load and after every swap.
+  function restoreGraphs() {
+    document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
+      if (!selected.has(g.getAttribute("data-graph"))) {
+        var cur = g.querySelector(".node[aria-current]");
+        if (cur) {
+          selected.set(g.getAttribute("data-graph"), cur.getAttribute("data-node"));
+        }
+      }
+      apply(g);
+      markSelected(g);
+    });
+  }
+  restoreGraphs();
 
   function zoom(g, how) {
     var id = g.getAttribute("data-graph");
     var svg = g.querySelector("svg");
     var frame = frameOf(g);
-    var s = zooms.get(id) || 1;
+    var s = zooms.get(id) || fitScale(g);
     if (how === "fit") {
-      s = Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width);
+      s = Math.max(0.2, Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
     } else if (how === "reset") {
       s = 1;
     } else {

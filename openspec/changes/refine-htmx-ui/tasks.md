@@ -12,11 +12,11 @@
 
 ## 3. Visual fixes (internal/ui)
 
-- [ ] 3.1 Graph: health on the outline, applied stamp, selection mark, fit on load, middle-ellipsis labels with titles, locked edges, edge token, toolbar wrap
-- [ ] 3.2 Colour: accent out of the red family; condition stripes by tone; partial health marked
-- [ ] 3.3 Pages: configuration components grouped, zero-replica ReplicaSets folded, refs break at separators, compact opaque masthead on a phone, log disclosure marks and Pod log links, panel scroll at any width, repeated messages dropped, kicker and stat labels
-- [ ] 3.4 UI goldens updated and reviewed
-- [ ] 3.5 `task check` green, then commit `fix(ui): keep the two axes apart and fix the review's visual findings`
+- [x] 3.1 Graph: health on the outline, applied stamp, selection mark, fit on load, middle-ellipsis labels with titles, locked edges, edge token, toolbar wrap
+- [x] 3.2 Colour: accent out of the red family; condition stripes by tone; partial health marked
+- [x] 3.3 Pages: configuration components grouped, zero-replica ReplicaSets folded, refs break at separators, compact opaque masthead on a phone, log disclosure marks and Pod log links, panel scroll at any width, repeated messages dropped, kicker and stat labels
+- [x] 3.4 UI goldens updated and reviewed
+- [x] 3.5 `task check` green, then commit `fix(ui): keep the two axes apart and fix the review's visual findings`
 
 ## 4. Escaping held by tests (internal/ui)
 

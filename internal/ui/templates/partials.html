@@ -82,7 +82,7 @@
 {{if .Empty}}<p class="muted">Nothing to draw.</p>{{else}}
 <div class="graph" data-graph="{{.ID}}">
   <div class="graph-tools" role="group" aria-label="Graph zoom">
-    <span class="hint">drag to pan · ctrl + wheel to zoom</span>
+    <span class="hint">drag to pan · ctrl + wheel to zoom · outline and rail: health · square: applied</span>
     <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
     <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
     <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
@@ -99,12 +99,15 @@
       {{$id := .ID}}
       {{range .Edges}}<path class="{{.Class}}" d="{{.D}}" marker-end="url(#{{$id}}-arrow)"><title>{{.Title}}</title></path>{{end}}
       {{range .Nodes}}
-      <a class="{{.Class}}" href="{{.Href}}" data-panel="{{.Panel}}" tabindex="0" aria-label="{{.Aria}}">
+      <a class="{{.Class}}" href="{{.Href}}" data-panel="{{.Panel}}" data-node="{{.ID}}" tabindex="0" aria-label="{{.Aria}}"{{if .Selected}} aria-current="true"{{end}}>
+        <title>{{.Full}}</title>
+        <rect class="node-ring" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="8"/>
         <rect class="node-box" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6"/>
         {{if .Locked}}<rect class="node-hatch" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6" fill="url(#{{$id}}-hatch)"/>{{end}}
         <rect class="node-rail" x="{{.X}}" y="{{.Y}}" width="5" height="{{.H}}" rx="2"/>
         <text class="node-label" x="{{.TextX}}" y="{{.TextY}}">{{.Label}}</text>
         <text class="node-sub" x="{{.TextX}}" y="{{.SubY}}">{{.Sub}}</text>
+        {{if .Applied}}<rect class="node-stamp" x="{{.StampX}}" y="{{.StampY}}" width="10" height="10" rx="1"/>{{end}}
       </a>
       {{end}}
     </g>
@@ -112,4 +115,46 @@
   </div>
 </div>
 {{end}}
+{{- end}}
+
+
+{{/* breakable is text that may wrap after a dot or a slash, and nowhere
+     else. */}}
+{{define "breakable" -}}
+{{range $i, $p := segments .}}{{if $i}}<wbr>{{end}}{{$p}}{{end}}
+{{- end}}
+
+{{define "component" -}}
+<li class="component">
+  <div class="component-head"><h3 class="component-name">{{.Name}}</h3>{{template "health" .Health}}</div>
+  <ul class="objects">
+  {{range .Objects}}
+    {{if locked .Access}}
+    <li class="object locked"><div class="object-row">{{template "lock"}}<span class="mono object-ref">{{template "breakable" .Text}}</span></div><p class="object-why">{{accessText .Access}}</p></li>
+    {{else}}
+    <li class="object">
+      <div class="object-row">
+        {{with .Health}}{{template "state" .State}}{{end}}
+        <span class="mono object-ref">{{template "breakable" .Text}}</span>
+        {{if not .Live}}<span class="pill pill-off" title="Polled, not watched">not live · read {{template "time" .EvaluatedAt}}</span>{{end}}
+        <span class="object-actions">{{if isSecret .Ref}}<span class="muted">Secret data is never read</span>{{else}}{{with .YAML}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a>{{end}}{{with .EventsURL}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a>{{end}}{{end}}</span>
+      </div>
+      {{with .Health}}{{with .Message}}<p class="object-why">{{.}}</p>{{end}}{{end}}
+      {{if .ChildrenUnread}}<p class="object-why muted">Its Pods could not be read, so its health is its own status alone.</p>{{end}}
+      {{with .Children}}<ul class="children">{{range .}}{{template "child" .}}{{end}}</ul>{{end}}
+      {{with .Old}}
+      <details class="old-revs">
+        <summary>{{len .}} old {{if eq (len .) 1}}revision{{else}}revisions{{end}} <span class="muted">scaled to zero</span></summary>
+        <ul class="children">{{range .}}{{template "child" .}}{{end}}</ul>
+      </details>
+      {{end}}
+    </li>
+    {{end}}
+  {{end}}
+  </ul>
+</li>
+{{- end}}
+
+{{define "child" -}}
+<li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{template "breakable" .Text}}</span>{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions">{{with .LogID}}<a href="#{{.}}" data-log-link="{{.}}">Logs</a>{{end}}<a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
 {{- end}}

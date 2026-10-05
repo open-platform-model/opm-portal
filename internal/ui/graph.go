@@ -9,7 +9,7 @@ import (
 )
 
 // maxLabel is how many characters of a label fit a node's width.
-const maxLabel = 26
+const maxLabel = 24
 
 // svgGraph is a laid-out graph ready for the SVG template.
 type svgGraph struct {
@@ -24,17 +24,24 @@ type svgGraph struct {
 }
 
 type svgNode struct {
-	ID     string
-	X, Y   int
-	W, H   int
-	Class  string
-	Label  string
-	Kind   string
-	Sub    string
-	Aria   string
-	Href   string
-	Panel  string
-	Locked bool
+	ID    string
+	X, Y  int
+	W, H  int
+	Class string
+	Label string
+	// Full is the whole label, shown as the node's title.
+	Full     string
+	Kind     string
+	Sub      string
+	Aria     string
+	Href     string
+	Panel    string
+	Locked   bool
+	Selected bool
+	// Applied is set when the node has an applied state; StampX and
+	// StampY place its square mark in the node's top-right corner.
+	Applied        bool
+	StampX, StampY int
 	// TextX and TextY place the label; SubY the kind line.
 	TextX, TextY, SubY int
 }
@@ -63,8 +70,9 @@ var kindText = map[string]string{
 
 // buildGraph turns a graph document into its SVG model. page is the page
 // the graph is on: a node links to page with ?node=<id> (its panel without
-// script) and names its panel fragment at panel?id=<id>.
-func buildGraph(g v1.Graph, id, page, panel string) svgGraph {
+// script) and names its panel fragment at panel?id=<id>. selected is the
+// node whose panel the page shows, if any.
+func buildGraph(g v1.Graph, id, page, panel, selected string) svgGraph {
 	out := svgGraph{
 		ID:      id,
 		Width:   g.Layout.Width,
@@ -72,19 +80,25 @@ func buildGraph(g v1.Graph, id, page, panel string) svgGraph {
 		Columns: g.Layout.Columns,
 		Empty:   len(g.Nodes) == 0,
 	}
+	locked := map[string]bool{}
 	for i := range g.Nodes {
-		out.Nodes = append(out.Nodes, nodeOf(&g.Nodes[i], g.Layout.NodeWidth, g.Layout.NodeHeight, page, panel))
+		n := nodeOf(&g.Nodes[i], g.Layout.NodeWidth, g.Layout.NodeHeight, page, panel)
+		n.Selected = n.ID == selected
+		locked[n.ID] = n.Locked
+		out.Nodes = append(out.Nodes, n)
 	}
 	for i := range g.Edges {
-		if e, ok := edgeOf(&g.Edges[i]); ok {
+		if e, ok := edgeOf(&g.Edges[i], locked); ok {
 			out.Edges = append(out.Edges, e)
 		}
 	}
 	return out
 }
 
-// nodeOf draws one node: its classes say kind, access, health and applied
-// state; its label and kind line are clipped to the box.
+// nodeOf draws one node. Its box outline and rail carry health; its applied
+// state, when it has one, is a separate square stamp, so neither axis is
+// drawn through the other (0030:D3:R1). Its label keeps the part that
+// tells nodes apart; the whole label is its title.
 func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 	state := ""
 	if n.Health != nil {
@@ -101,30 +115,68 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		classes = append(classes, strings.Fields(stateBadge(state).Class)[1])
 	}
 	if n.Reconcile != nil {
-		classes = append(classes, strings.Fields(appliedBadge(*n.Reconcile).Class)[1])
+		classes = append(classes, "ap-"+strings.TrimPrefix(strings.Fields(appliedBadge(*n.Reconcile).Class)[1], "applied-"))
 	}
 	kind := kindText[n.Kind]
 	if kind == "" {
 		kind = "Unknown kind"
 	}
+	label, sub := displayLabel(n, kind, locked)
 	return svgNode{
-		ID:     n.ID,
-		X:      n.X,
-		Y:      n.Y,
-		W:      w,
-		H:      hgt,
-		Class:  strings.Join(classes, " "),
-		Label:  clip(n.Label, maxLabel),
-		Kind:   kind,
-		Sub:    clip(subLine(n, kind, locked), maxLabel+4),
-		Aria:   nodeAria(n, kind, locked, state),
-		Href:   page + "?" + url.Values{"node": {n.ID}}.Encode(),
-		Panel:  panel + "?" + url.Values{"id": {n.ID}}.Encode(),
-		Locked: locked,
-		TextX:  n.X + 12,
-		TextY:  n.Y + 19,
-		SubY:   n.Y + 34,
+		ID:      n.ID,
+		X:       n.X,
+		Y:       n.Y,
+		W:       w,
+		H:       hgt,
+		Class:   strings.Join(classes, " "),
+		Label:   clipMiddle(label, maxLabel),
+		Full:    n.Label,
+		Kind:    kind,
+		Sub:     clipMiddle(sub, maxLabel+4),
+		Aria:    nodeAria(n, kind, locked, state),
+		Href:    page + "?" + url.Values{"node": {n.ID}}.Encode(),
+		Panel:   panel + "?" + url.Values{"id": {n.ID}}.Encode(),
+		Locked:  locked,
+		Applied: n.Reconcile != nil && !locked,
+		StampX:  n.X + w - 16,
+		StampY:  n.Y + 6,
+		TextX:   n.X + 12,
+		TextY:   n.Y + 19,
+		SubY:    n.Y + 34,
 	}
+}
+
+// displayLabel is what a node's two lines say. A catalog or module shows
+// its last path segment and version on the first line and the rest of the
+// path on the second, because the head of the path is what they share; a
+// configuration group says what it stands for in short.
+func displayLabel(n *v1.GraphNode, kind string, locked bool) (label, sub string) {
+	label, sub = n.Label, subLine(n, kind, locked)
+	switch {
+	case n.Kind == "catalog" || n.Kind == "module":
+		version := n.Version
+		if n.Catalog != nil && version == "" {
+			version = n.Catalog.Version
+		}
+		if head, last, ok := cutLast(n.Label); ok {
+			label, sub = last, kind+" · "+clipStart(head, maxLabel-len(kind)-1)
+		}
+		if version != "" {
+			label += " " + version
+		}
+	case n.Group != nil && n.Group.Kind == "configuration":
+		label = fmt.Sprintf("%d config components", len(n.Group.Members))
+	}
+	return label, sub
+}
+
+// cutLast splits a module or catalog path at its last slash.
+func cutLast(path string) (head, last string, ok bool) {
+	i := strings.LastIndex(path, "/")
+	if i <= 0 || i == len(path)-1 {
+		return "", path, false
+	}
+	return path[:i], path[i+1:], true
 }
 
 // subLine is the small line under a node's label: its object kind, or
@@ -143,8 +195,12 @@ func subLine(n *v1.GraphNode, kind string, locked bool) string {
 	return sub
 }
 
-// edgeOf draws one edge from its four-point cubic route.
-func edgeOf(e *v1.GraphEdge) (svgEdge, bool) {
+// edgeOf draws one edge from its four-point cubic route. An edge a second
+// source does not confirm is drawn as broken only when the portal could
+// read both ends; one whose end is locked, or whose provider the portal
+// could not read, is drawn as unconfirmed in the locked style, because
+// "cannot see" is not "broken" (0030:D5:R7).
+func edgeOf(e *v1.GraphEdge, locked map[string]bool) (svgEdge, bool) {
 	if len(e.Route) != 4 {
 		return svgEdge{}, false
 	}
@@ -152,8 +208,13 @@ func edgeOf(e *v1.GraphEdge) (svgEdge, bool) {
 	class := "edge edge-" + e.Kind
 	title := e.Kind + ", from " + e.Source
 	if e.Verified != nil && !*e.Verified {
-		class += " unverified"
-		title += "; not confirmed: " + e.Reason
+		if locked[e.From] || locked[e.To] || e.Reason == "ProviderUnreadable" || e.Reason == "ProviderNotLookedUp" {
+			class += " unconfirmed"
+			title += "; cannot be confirmed: " + e.Reason
+		} else {
+			class += " unverified"
+			title += "; not confirmed: " + e.Reason
+		}
 	}
 	return svgEdge{
 		ID:    e.ID,
@@ -187,13 +248,25 @@ func nodeAria(n *v1.GraphNode, kind string, locked bool, state string) string {
 	return strings.Join(parts, ", ")
 }
 
-// clip shortens s to n characters with an ellipsis.
-func clip(s string, n int) string {
+// clipMiddle shortens s to n characters, keeping its head and its longer
+// tail around an ellipsis: names that share a prefix differ at the end.
+func clipMiddle(s string, n int) string {
 	r := []rune(s)
 	if len(r) <= n {
 		return s
 	}
-	return string(r[:n-1]) + "…"
+	head := (n - 1) * 2 / 5
+	tail := n - 1 - head
+	return string(r[:head]) + "…" + string(r[len(r)-tail:])
+}
+
+// clipStart shortens s to n characters from its start, keeping its end.
+func clipStart(s string, n int) string {
+	r := []rune(s)
+	if len(r) <= n || n < 2 {
+		return s
+	}
+	return "…" + string(r[len(r)-n+1:])
 }
 
 // findNode returns the node with id, or nil.

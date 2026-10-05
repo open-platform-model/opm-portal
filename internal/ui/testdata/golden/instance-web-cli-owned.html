@@ -5,7 +5,7 @@
   <div class="axes"><span class="applied applied-managedexternally"><span class="axis">Applied axis</span>Managed externally</span><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
   <p class="lede">ModuleInstance is managed externally by the CLI</p>
   <dl class="facts facts-row">
-    <dt>Module</dt><dd class="mono">opmodel.dev/modules/web_app@v1 <span class="ver">v1.0.5</span></dd>
+    <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>web_app@v1 <span class="ver">v1.0.5</span></dd>
     <dt>Applied by</dt><dd>the opm CLI</dd>
     <dt>Objects</dt><dd>2</dd>
     <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC">5m ago</time></dd>
@@ -16,7 +16,7 @@
   <h2 id="graph-h">Graph <span class="h-note">select a node for details</span></h2>
 <div class="graph" data-graph="instance-graph">
   <div class="graph-tools" role="group" aria-label="Graph zoom">
-    <span class="hint">drag to pan · ctrl + wheel to zoom</span>
+    <span class="hint">drag to pan · ctrl + wheel to zoom · outline and rail: health · square: applied</span>
     <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
     <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
     <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
@@ -31,43 +31,58 @@
     <g class="viewport">
       <text class="col-title" x="16" y="20">Module</text><text class="col-title" x="280" y="20">Instance</text><text class="col-title" x="544" y="20">Components</text><text class="col-title" x="808" y="20">Objects</text><text class="col-title" x="1072" y="20">Runtime</text><text class="col-title" x="1336" y="20">Runtime</text>
       <path class="edge edge-controls" d="M1008 122 C1040 122, 1040 94, 1072 94" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 94 C1304 94, 1304 94, 1336 94" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M480 94 C512 94, 512 94, 544 94" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates" d="M280 94 C248 94, 248 94, 216 94" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 66, 808 66" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 122, 808 122" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
-      <a class="node kind-module" href="/instances/web/web?node=mod%3Aopmodel.dev%252Fmodules%252Fweb_app%2540v1%2Fv1.0.5" data-panel="/instances/web/web/node?id=mod%3Aopmodel.dev%252Fmodules%252Fweb_app%2540v1%2Fv1.0.5" tabindex="0" aria-label="Module, opmodel.dev/modules/web_app@v1">
+      <a class="node kind-module" href="/instances/web/web?node=mod%3Aopmodel.dev%252Fmodules%252Fweb_app%2540v1%2Fv1.0.5" data-panel="/instances/web/web/node?id=mod%3Aopmodel.dev%252Fmodules%252Fweb_app%2540v1%2Fv1.0.5" data-node="mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5" tabindex="0" aria-label="Module, opmodel.dev/modules/web_app@v1">
+        <title>opmodel.dev/modules/web_app@v1</title>
+        <rect class="node-ring" x="16" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="16" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="16" y="72" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="91">opmodel.dev/modules/web_a…</text>
-        <text class="node-sub" x="28" y="106">Module</text>
+        <text class="node-label" x="28" y="91">web_app@v1 v1.0.5</text>
+        <text class="node-sub" x="28" y="106">Module · …odel.dev/modules</text>
       </a>
-      <a class="node kind-instance health-healthy applied-managedexternally" href="/instances/web/web?node=mi%3Aweb%2Fweb" data-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb" tabindex="0" aria-label="Instance, web/web, health Healthy, Managed externally">
+      <a class="node kind-instance health-healthy ap-managedexternally" href="/instances/web/web?node=mi%3Aweb%2Fweb" data-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb" data-node="mi:web/web" tabindex="0" aria-label="Instance, web/web, health Healthy, Managed externally">
+        <title>web/web</title>
+        <rect class="node-ring" x="280" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="280" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="280" y="72" width="5" height="44" rx="2"/>
         <text class="node-label" x="292" y="91">web/web</text>
         <text class="node-sub" x="292" y="106">Instance</text>
+        <rect class="node-stamp" x="464" y="78" width="10" height="10" rx="1"/>
       </a>
-      <a class="node kind-component health-healthy" href="/instances/web/web?node=comp%3Ami%2Fweb%2Fweb%2Fweb" data-panel="/instances/web/web/node?id=comp%3Ami%2Fweb%2Fweb%2Fweb" tabindex="0" aria-label="Component, web, health Healthy">
+      <a class="node kind-component health-healthy" href="/instances/web/web?node=comp%3Ami%2Fweb%2Fweb%2Fweb" data-panel="/instances/web/web/node?id=comp%3Ami%2Fweb%2Fweb%2Fweb" data-node="comp:mi/web/web/web" tabindex="0" aria-label="Component, web, health Healthy">
+        <title>web</title>
+        <rect class="node-ring" x="544" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="544" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="544" y="72" width="5" height="44" rx="2"/>
         <text class="node-label" x="556" y="91">web</text>
         <text class="node-sub" x="556" y="106">Component</text>
       </a>
-      <a class="node kind-object health-healthy" href="/instances/web/web?node=obj%3A_%2FService%2Fweb%2Fweb-web" data-panel="/instances/web/web/node?id=obj%3A_%2FService%2Fweb%2Fweb-web" tabindex="0" aria-label="Object, web-web, health Healthy">
+      <a class="node kind-object health-healthy" href="/instances/web/web?node=obj%3A_%2FService%2Fweb%2Fweb-web" data-panel="/instances/web/web/node?id=obj%3A_%2FService%2Fweb%2Fweb-web" data-node="obj:_/Service/web/web-web" tabindex="0" aria-label="Object, web-web, health Healthy">
+        <title>web-web</title>
+        <rect class="node-ring" x="808" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="808" y="44" width="5" height="44" rx="2"/>
         <text class="node-label" x="820" y="63">web-web</text>
         <text class="node-sub" x="820" y="78">Service</text>
       </a>
-      <a class="node kind-object health-healthy" href="/instances/web/web?node=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web" data-panel="/instances/web/web/node?id=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web" tabindex="0" aria-label="Object, web-web, health Healthy">
+      <a class="node kind-object health-healthy" href="/instances/web/web?node=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web" data-panel="/instances/web/web/node?id=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web" data-node="obj:apps/Deployment/web/web-web" tabindex="0" aria-label="Object, web-web, health Healthy">
+        <title>web-web</title>
+        <rect class="node-ring" x="808" y="100" width="200" height="44" rx="8"/>
         <rect class="node-box" x="808" y="100" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="808" y="100" width="5" height="44" rx="2"/>
         <text class="node-label" x="820" y="119">web-web</text>
         <text class="node-sub" x="820" y="134">Deployment</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/web/web?node=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9" data-panel="/instances/web/web/node?id=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9, health Healthy">
+      <a class="node kind-runtime health-healthy" href="/instances/web/web?node=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9" data-panel="/instances/web/web/node?id=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9" data-node="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9, health Healthy">
+        <title>web-web-6f7fbf94f9</title>
+        <rect class="node-ring" x="1072" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1072" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="1072" y="72" width="5" height="44" rx="2"/>
         <text class="node-label" x="1084" y="91">web-web-6f7fbf94f9</text>
         <text class="node-sub" x="1084" y="106">ReplicaSet</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/web/web?node=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" data-panel="/instances/web/web/node?id=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9-v6hw2, health Healthy">
+      <a class="node kind-runtime health-healthy" href="/instances/web/web?node=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" data-panel="/instances/web/web/node?id=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" data-node="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9-v6hw2, health Healthy">
+        <title>web-web-6f7fbf94f9-v6hw2</title>
+        <rect class="node-ring" x="1336" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1336" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="1336" y="72" width="5" height="44" rx="2"/>
         <text class="node-label" x="1348" y="91">web-web-6f7fbf94f9-v6hw2</text>
@@ -81,36 +96,32 @@
 <section class="panel panel-7 reveal" id="components" aria-labelledby="components-h" data-follow="instance:web/web">
   <h2 id="components-h">Components</h2>
   <ol class="components">
-    <li class="component">
-      <div class="component-head"><h3 class="component-name">web</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
-      <ul class="objects">
-        
-        <li class="object">
-          <div class="object-row">
-            <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
-            <span class="mono object-ref">Deployment.apps web/web-web</span>
-            <span class="object-actions"><a href="/instances/web/web/object?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/object?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/events?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
-          </div>
-          <p class="object-why">Deployment is available. Replicas: 1</p>
-          
-          <ul class="children">
-            <li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod web/web-web-6f7fbf94f9-v6hw2</span><span class="object-actions"><a href="/instances/web/web/object?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-get="/instances/web/web/object?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-get="/instances/web/web/events?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li>
-            <li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.apps web/web-web-6f7fbf94f9</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/web/web/object?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-get="/instances/web/web/object?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-get="/instances/web/web/events?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li>
-          </ul>
-        </li>
-      
-        <li class="object">
-          <div class="object-row">
-            <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
-            <span class="mono object-ref">Service web/web-web</span>
-            <span class="object-actions"><a href="/instances/web/web/object?kind=Service&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/object?kind=Service&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?kind=Service&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/events?kind=Service&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
-          </div>
-          <p class="object-why">Service is ready</p>
-          
-        </li>
-      
-      </ul>
+  <li class="component">
+  <div class="component-head"><h3 class="component-name">web</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Deployment.<wbr>apps web/<wbr>web-web</span>
+        <span class="object-actions"><a href="/instances/web/web/object?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/object?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/events?group=apps&amp;kind=Deployment&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Deployment is available. Replicas: 1</p>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod web/<wbr>web-web-6f7fbf94f9-v6hw2</span><span class="object-actions"><a href="#log-web-web-6f7fbf94f9-v6hw2-web" data-log-link="log-web-web-6f7fbf94f9-v6hw2-web">Logs</a><a href="/instances/web/web/object?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-get="/instances/web/web/object?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-get="/instances/web/web/events?kind=Pod&amp;name=web-web-6f7fbf94f9-v6hw2&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps web/<wbr>web-web-6f7fbf94f9</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/web/web/object?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-get="/instances/web/web/object?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-get="/instances/web/web/events?group=apps&amp;kind=ReplicaSet&amp;name=web-web-6f7fbf94f9&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
     </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Service web/<wbr>web-web</span>
+        <span class="object-actions"><a href="/instances/web/web/object?kind=Service&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/object?kind=Service&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/web/web/events?kind=Service&amp;name=web-web&amp;namespace=web" hx-get="/instances/web/web/events?kind=Service&amp;name=web-web&amp;namespace=web" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Service is ready</p>
+      
+    </li>
+  
+  </ul>
+</li>
   </ol>
 </section>
 <aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
@@ -149,7 +160,7 @@
 <section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h">
   <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   <div class="logs">
-    <details class="log" data-log-topic="log:web/web-web-6f7fbf94f9-v6hw2/web">
+    <details class="log" id="log-web-web-6f7fbf94f9-v6hw2-web" data-log-topic="log:web/web-web-6f7fbf94f9-v6hw2/web">
       <summary><span class="mono">web-web-6f7fbf94f9-v6hw2</span> <span class="log-container">web</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="log:web/web-web-6f7fbf94f9-v6hw2/web/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of web in web-web-6f7fbf94f9-v6hw2"></pre>

@@ -7,7 +7,7 @@
   {{with .Reconcile.Message}}<p class="lede">{{.}}</p>{{end}}
   {{with .Instance}}
   <dl class="facts facts-row">
-    <dt>Module</dt><dd class="mono">{{.Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
+    <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
     <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the operator{{end}}{{with .ServiceAccountName}}, as ServiceAccount <span class="mono">{{.}}</span>{{end}}</dd>
     <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
     <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
@@ -34,36 +34,15 @@
 
 <section class="panel panel-7 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
   <h2 id="components-h">Components</h2>
-  {{if .Components}}
+  {{if or .Components .Config}}
   <ol class="components">
-  {{range .Components}}
-    <li class="component">
-      <div class="component-head"><h3 class="component-name">{{.Name}}</h3>{{template "health" .Health}}</div>
-      <ul class="objects">
-      {{range .Objects}}
-        {{if locked .Access}}
-        <li class="object locked"><div class="object-row">{{template "lock"}}<span class="mono">{{.Text}}</span></div><p class="object-why">{{accessText .Access}}</p></li>
-        {{else}}
-        <li class="object">
-          <div class="object-row">
-            {{with .Health}}{{template "state" .State}}{{end}}
-            <span class="mono object-ref">{{.Text}}</span>
-            {{if not .Live}}<span class="pill pill-off" title="Polled, not watched">not live · read {{template "time" .EvaluatedAt}}</span>{{end}}
-            <span class="object-actions">{{if isSecret .Ref}}<span class="muted">Secret data is never read</span>{{else}}{{with .YAML}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a>{{end}}{{with .EventsURL}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a>{{end}}{{end}}</span>
-          </div>
-          {{with .Health}}{{with .Message}}<p class="object-why">{{.}}</p>{{end}}{{end}}
-          {{if .ChildrenUnread}}<p class="object-why muted">Its Pods could not be read, so its health is its own status alone.</p>{{end}}
-          {{with .Children}}
-          <ul class="children">
-          {{range .}}
-            <li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{.Text}}</span>{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions"><a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
-          {{end}}
-          </ul>
-          {{end}}
-        </li>
-        {{end}}
-      {{end}}
-      </ul>
+  {{range .Components}}{{template "component" .}}{{end}}
+  {{with .Config}}
+    <li class="component component-group">
+      <details id="config-components"{{if .Open}} open{{end}}>
+        <summary class="component-head"><h3 class="component-name">{{len .Components}} configuration components</h3>{{template "state" .Health}}<span class="muted group-note">RBAC, CRDs, webhooks and other objects with no workload</span></summary>
+        <ol class="components">{{range .Components}}{{template "component" .}}{{end}}</ol>
+      </details>
     </li>
   {{end}}
   </ol>
@@ -101,7 +80,7 @@
   {{if .Logs}}
   <div class="logs">
   {{range .Logs}}
-    <details class="log" data-log-topic="{{.Topic}}">
+    <details class="log" id="{{.ID}}" data-log-topic="{{.Topic}}">
       <summary><span class="mono">{{.Pod}}</span> <span class="log-container">{{.Container}}</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="{{.Previous}}"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of {{.Container}} in {{.Pod}}"></pre>

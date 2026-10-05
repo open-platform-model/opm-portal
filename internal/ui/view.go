@@ -88,6 +88,9 @@ func healthBadge(h v1.Health) badge {
 	if len(notes) > 0 {
 		b.Text += " (" + strings.Join(notes, ", ") + ")"
 	}
+	if h.Partial {
+		b.Class += " health-partial"
+	}
 	return b
 }
 
@@ -188,6 +191,31 @@ func refQuery(r v1.ObjectRef) url.Values {
 	return q
 }
 
+// segments cuts s after every dot and slash, so a template can let a long
+// reference wrap only there.
+func segments(s string) []string {
+	var out []string
+	start := 0
+	for i, r := range s {
+		if r == '.' || r == '/' {
+			out = append(out, s[start:i+1])
+			start = i + 1
+		}
+	}
+	if start < len(s) {
+		out = append(out, s[start:])
+	}
+	return out
+}
+
+// plural picks the word for n.
+func plural(n int, one, many string) string {
+	if n == 1 {
+		return one
+	}
+	return many
+}
+
 // isSecret reports whether r is a core Secret, which the portal never
 // reads.
 func isSecret(r v1.ObjectRef) bool { return r.Group == "" && r.Kind == "Secret" }
@@ -203,6 +231,8 @@ var funcs = template.FuncMap{
 	"refText":      refText,
 	"isSecret":     isSecret,
 	"join":         strings.Join,
+	"segments":     segments,
+	"plural":       plural,
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK
 	},

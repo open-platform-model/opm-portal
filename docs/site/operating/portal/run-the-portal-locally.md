@@ -67,7 +67,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 After the launch, the browser shows the Platform page at `http://127.0.0.1:<port>/`: the catalogs the Platform subscribes to, the transformer registrations, and the platform graph. A **live** mark in the page header says the page follows changes.
 
-Open **Instances**. Each instance shows two values: **Applied**, what the operator applied, and **Health**, what is running. A locked list means your identity may not list ModuleInstances in that scope: check your access with:
+Open **Instances**. Each instance shows two values: **Applied**, what the operator applied, and **Health**, what is running. In a graph the node's outline and left rail show its health, and the small square in its corner shows its applied state. A locked list means your identity may not list ModuleInstances in that scope: check your access with:
 
 ```sh
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-namespaces

@@ -2,10 +2,10 @@
 <header class="page-head reveal" id="owner-head" data-follow="instance:default/podinfo">
   <p class="kicker"><a href="/instances">Instances</a> · default</p>
   <h1>podinfo</h1>
-  <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy (partial)</span></div>
+  <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="health health-healthy health-partial"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy (partial)</span></div>
   <p class="lede">Reconciliation succeeded</p>
   <dl class="facts facts-row">
-    <dt>Module</dt><dd class="mono">testing.opmodel.dev/modules/operator/podinfo@v0 <span class="ver">v0.1.11</span></dd>
+    <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>podinfo@v0 <span class="ver">v0.1.11</span></dd>
     <dt>Applied by</dt><dd>the operator, as ServiceAccount <span class="mono">podinfo-applier</span></dd>
     <dt>Objects</dt><dd>2</dd>
     <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></dd>
@@ -16,7 +16,7 @@
   <h2 id="graph-h">Graph <span class="h-note">select a node for details</span></h2>
 <div class="graph" data-graph="instance-graph">
   <div class="graph-tools" role="group" aria-label="Graph zoom">
-    <span class="hint">drag to pan · ctrl + wheel to zoom</span>
+    <span class="hint">drag to pan · ctrl + wheel to zoom · outline and rail: health · square: applied</span>
     <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
     <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
     <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
@@ -31,53 +31,70 @@
     <g class="viewport">
       <text class="col-title" x="16" y="20">Module</text><text class="col-title" x="280" y="20">Instance</text><text class="col-title" x="544" y="20">Components</text><text class="col-title" x="808" y="20">Objects</text><text class="col-title" x="1072" y="20">Runtime</text><text class="col-title" x="1336" y="20">Runtime</text>
       <path class="edge edge-controls" d="M1008 122 C1040 122, 1040 94, 1072 94" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 94 C1304 94, 1304 66, 1336 66" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 94 C1304 94, 1304 122, 1336 122" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M480 94 C512 94, 512 94, 544 94" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates" d="M280 94 C248 94, 248 94, 216 94" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 66, 808 66" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 122, 808 122" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
-      <a class="node kind-module" href="/instances/default/podinfo?node=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11" data-panel="/instances/default/podinfo/node?id=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11" tabindex="0" aria-label="Module, testing.opmodel.dev/modules/operator/podinfo@v0">
+      <a class="node kind-module" href="/instances/default/podinfo?node=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11" data-panel="/instances/default/podinfo/node?id=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11" data-node="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11" tabindex="0" aria-label="Module, testing.opmodel.dev/modules/operator/podinfo@v0">
+        <title>testing.opmodel.dev/modules/operator/podinfo@v0</title>
+        <rect class="node-ring" x="16" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="16" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="16" y="72" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="91">testing.opmodel.dev/modul…</text>
-        <text class="node-sub" x="28" y="106">Module</text>
+        <text class="node-label" x="28" y="91">podinfo@v0 v0.1.11</text>
+        <text class="node-sub" x="28" y="106">Module · …modules/operator</text>
       </a>
-      <a class="node kind-instance health-healthy applied-applied" href="/instances/default/podinfo?node=mi%3Adefault%2Fpodinfo" data-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo" tabindex="0" aria-label="Instance, default/podinfo, health Healthy, Applied">
+      <a class="node kind-instance health-healthy ap-applied" href="/instances/default/podinfo?node=mi%3Adefault%2Fpodinfo" data-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo" data-node="mi:default/podinfo" tabindex="0" aria-label="Instance, default/podinfo, health Healthy, Applied">
+        <title>default/podinfo</title>
+        <rect class="node-ring" x="280" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="280" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="280" y="72" width="5" height="44" rx="2"/>
         <text class="node-label" x="292" y="91">default/podinfo</text>
         <text class="node-sub" x="292" y="106">Instance</text>
+        <rect class="node-stamp" x="464" y="78" width="10" height="10" rx="1"/>
       </a>
-      <a class="node kind-component health-healthy" href="/instances/default/podinfo?node=comp%3Ami%2Fdefault%2Fpodinfo%2Fpodinfo" data-panel="/instances/default/podinfo/node?id=comp%3Ami%2Fdefault%2Fpodinfo%2Fpodinfo" tabindex="0" aria-label="Component, podinfo, health Healthy">
+      <a class="node kind-component health-healthy" href="/instances/default/podinfo?node=comp%3Ami%2Fdefault%2Fpodinfo%2Fpodinfo" data-panel="/instances/default/podinfo/node?id=comp%3Ami%2Fdefault%2Fpodinfo%2Fpodinfo" data-node="comp:mi/default/podinfo/podinfo" tabindex="0" aria-label="Component, podinfo, health Healthy">
+        <title>podinfo</title>
+        <rect class="node-ring" x="544" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="544" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="544" y="72" width="5" height="44" rx="2"/>
         <text class="node-label" x="556" y="91">podinfo</text>
         <text class="node-sub" x="556" y="106">Component</text>
       </a>
-      <a class="node kind-object locked" href="/instances/default/podinfo?node=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, locked">
+      <a class="node kind-object locked" href="/instances/default/podinfo?node=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo" data-node="obj:_/Service/default/podinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, locked">
+        <title>podinfo-podinfo</title>
+        <rect class="node-ring" x="808" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
         <rect class="node-hatch" x="808" y="44" width="200" height="44" rx="6" fill="url(#instance-graph-hatch)"/>
         <rect class="node-rail" x="808" y="44" width="5" height="44" rx="2"/>
         <text class="node-label" x="820" y="63">podinfo-podinfo</text>
         <text class="node-sub" x="820" y="78">Locked · Service</text>
       </a>
-      <a class="node kind-object health-healthy" href="/instances/default/podinfo?node=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo" data-panel="/instances/default/podinfo/node?id=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, health Healthy">
+      <a class="node kind-object health-healthy" href="/instances/default/podinfo?node=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo" data-panel="/instances/default/podinfo/node?id=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo" data-node="obj:apps/Deployment/default/podinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, health Healthy">
+        <title>podinfo-podinfo</title>
+        <rect class="node-ring" x="808" y="100" width="200" height="44" rx="8"/>
         <rect class="node-box" x="808" y="100" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="808" y="100" width="5" height="44" rx="2"/>
         <text class="node-label" x="820" y="119">podinfo-podinfo</text>
         <text class="node-sub" x="820" y="134">Deployment</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?node=obj%3Aapps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794" data-panel="/instances/default/podinfo/node?id=obj%3Aapps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794, health Healthy">
+      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?node=obj%3Aapps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794" data-panel="/instances/default/podinfo/node?id=obj%3Aapps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794" data-node="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794, health Healthy">
+        <title>podinfo-podinfo-d9585d794</title>
+        <rect class="node-ring" x="1072" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1072" y="72" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="1072" y="72" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1084" y="91">podinfo-podinfo-d9585d794</text>
+        <text class="node-label" x="1084" y="91">podinfo-p…info-d9585d794</text>
         <text class="node-sub" x="1084" y="106">ReplicaSet</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?node=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-4lg6h, health Healthy">
+      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?node=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h" data-node="obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-4lg6h, health Healthy">
+        <title>podinfo-podinfo-d9585d794-4lg6h</title>
+        <rect class="node-ring" x="1336" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1336" y="44" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="1336" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1348" y="63">podinfo-podinfo-d9585d794…</text>
+        <text class="node-label" x="1348" y="63">podinfo-p…9585d794-4lg6h</text>
         <text class="node-sub" x="1348" y="78">Pod</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?node=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-kp2jx, health Healthy">
+      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?node=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx" data-node="obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-kp2jx, health Healthy">
+        <title>podinfo-podinfo-d9585d794-kp2jx</title>
+        <rect class="node-ring" x="1336" y="100" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1336" y="100" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="1336" y="100" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1348" y="119">podinfo-podinfo-d9585d794…</text>
+        <text class="node-label" x="1348" y="119">podinfo-p…9585d794-kp2jx</text>
         <text class="node-sub" x="1348" y="134">Pod</text>
       </a>
     </g>
@@ -88,29 +105,24 @@
 <section class="panel panel-7 reveal" id="components" aria-labelledby="components-h" data-follow="instance:default/podinfo">
   <h2 id="components-h">Components</h2>
   <ol class="components">
-    <li class="component">
-      <div class="component-head"><h3 class="component-name">podinfo</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy (partial)</span></div>
-      <ul class="objects">
-        
-        <li class="object">
-          <div class="object-row">
-            <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
-            <span class="mono object-ref">Deployment.apps default/podinfo-podinfo</span>
-            <span class="object-actions"><a href="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
-          </div>
-          <p class="object-why">Deployment is available. Replicas: 2</p>
-          
-          <ul class="children">
-            <li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod default/podinfo-podinfo-d9585d794-4lg6h</span><span class="object-actions"><a href="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-get="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-get="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li>
-            <li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod default/podinfo-podinfo-d9585d794-kp2jx</span><span class="object-actions"><a href="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-get="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-get="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li>
-            <li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.apps default/podinfo-podinfo-d9585d794</span><span class="muted">2 desired</span><span class="object-actions"><a href="/instances/default/podinfo/object?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 2</p></li>
-          </ul>
-        </li>
-      
-        <li class="object locked"><div class="object-row"><svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span class="mono">Service default/podinfo-podinfo</span></div><p class="object-why">Locked: you may not read this.</p></li>
-      
-      </ul>
+  <li class="component">
+  <div class="component-head"><h3 class="component-name">podinfo</h3><span class="health health-healthy health-partial"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy (partial)</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Deployment.<wbr>apps default/<wbr>podinfo-podinfo</span>
+        <span class="object-actions"><a href="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Deployment is available. Replicas: 2</p>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod default/<wbr>podinfo-podinfo-d9585d794-4lg6h</span><span class="object-actions"><a href="#log-podinfo-podinfo-d9585d794-4lg6h-podinfo" data-log-link="log-podinfo-podinfo-d9585d794-4lg6h-podinfo">Logs</a><a href="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-get="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-get="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod default/<wbr>podinfo-podinfo-d9585d794-kp2jx</span><span class="object-actions"><a href="#log-podinfo-podinfo-d9585d794-kp2jx-podinfo" data-log-link="log-podinfo-podinfo-d9585d794-kp2jx-podinfo">Logs</a><a href="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-get="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-get="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps default/<wbr>podinfo-podinfo-d9585d794</span><span class="muted">2 desired</span><span class="object-actions"><a href="/instances/default/podinfo/object?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 2</p></li></ul>
     </li>
+  
+    <li class="object locked"><div class="object-row"><svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span class="mono object-ref">Service default/<wbr>podinfo-podinfo</span></div><p class="object-why">Locked: you may not read this.</p></li>
+  
+  </ul>
+</li>
   </ol>
 </section>
 <aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
@@ -169,12 +181,12 @@
 <section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h">
   <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   <div class="logs">
-    <details class="log" data-log-topic="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo">
+    <details class="log" id="log-podinfo-podinfo-d9585d794-4lg6h-podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo">
       <summary><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span> <span class="log-container">podinfo</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-d9585d794-4lg6h"></pre>
     </details>
-    <details class="log" data-log-topic="log:default/podinfo-podinfo-d9585d794-kp2jx/podinfo">
+    <details class="log" id="log-podinfo-podinfo-d9585d794-kp2jx-podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-kp2jx/podinfo">
       <summary><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span> <span class="log-container">podinfo</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-d9585d794-kp2jx/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-d9585d794-kp2jx"></pre>

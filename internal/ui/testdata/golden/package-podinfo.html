@@ -18,7 +18,7 @@
   <h2 id="graph-h">Graph <span class="h-note">select a node for details</span></h2>
 <div class="graph" data-graph="package-graph">
   <div class="graph-tools" role="group" aria-label="Graph zoom">
-    <span class="hint">drag to pan · ctrl + wheel to zoom</span>
+    <span class="hint">drag to pan · ctrl + wheel to zoom · outline and rail: health · square: applied</span>
     <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
     <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
     <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
@@ -33,17 +33,22 @@
     <g class="viewport">
       <text class="col-title" x="16" y="20">Source</text><text class="col-title" x="280" y="20">Package</text>
       <path class="edge edge-sourcedFrom" d="M280 66 C248 66, 248 66, 216 66" marker-end="url(#package-graph-arrow)"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
-      <a class="node kind-source" href="/packages/pkg/podinfo?node=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release">
+      <a class="node kind-source" href="/packages/pkg/podinfo?node=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release">
+        <title>OCIRepository podinfo-release</title>
+        <rect class="node-ring" x="16" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="16" y="44" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="16" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="63">OCIRepository podinfo-rel…</text>
+        <text class="node-label" x="28" y="63">OCIReposi…odinfo-release</text>
         <text class="node-sub" x="28" y="78">OCIRepository</text>
       </a>
-      <a class="node kind-package health-unknown applied-failed" href="/packages/pkg/podinfo?node=mp%3Apkg%2Fpodinfo" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" tabindex="0" aria-label="Package, pkg/podinfo, health Unknown, Failed, retrying">
+      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?node=mp%3Apkg%2Fpodinfo" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, health Unknown, Failed, retrying">
+        <title>pkg/podinfo</title>
+        <rect class="node-ring" x="280" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="280" y="44" width="200" height="44" rx="6"/>
         <rect class="node-rail" x="280" y="44" width="5" height="44" rx="2"/>
         <text class="node-label" x="292" y="63">pkg/podinfo</text>
         <text class="node-sub" x="292" y="78">Package</text>
+        <rect class="node-stamp" x="464" y="50" width="10" height="10" rx="1"/>
       </a>
     </g>
   </svg>

@@ -24,10 +24,10 @@
 {{end}}
 
 <div class="stats reveal" aria-label="Summary">
-  <div class="stat"><span class="stat-n">{{len .Platform.Subscriptions}}</span><span class="stat-l">subscriptions</span></div>
-  <div class="stat"><span class="stat-n">{{len .Platform.Catalogs}}</span><span class="stat-l">catalogs resolved</span></div>
-  <div class="stat"><span class="stat-n">{{.Accepted}}</span><span class="stat-l">claims accepted</span></div>
-  <div class="stat{{if .Refused}} stat-alert{{end}}"><span class="stat-n">{{.Refused}}</span><span class="stat-l">claims refused</span></div>
+  <div class="stat"><span class="stat-n">{{len .Platform.Subscriptions}}</span><span class="stat-l">{{plural (len .Platform.Subscriptions) "subscription" "subscriptions"}}</span></div>
+  <div class="stat"><span class="stat-n">{{len .Platform.Catalogs}}</span><span class="stat-l">{{plural (len .Platform.Catalogs) "catalog resolved" "catalogs resolved"}}</span></div>
+  <div class="stat"><span class="stat-n">{{.Accepted}}</span><span class="stat-l">{{plural .Accepted "claim accepted" "claims accepted"}}</span></div>
+  <div class="stat{{if .Refused}} stat-alert{{end}}"><span class="stat-n">{{.Refused}}</span><span class="stat-l">{{plural .Refused "claim refused" "claims refused"}}</span></div>
 </div>
 
 <section class="panel reveal" id="catalogs" aria-labelledby="catalogs-h" data-follow="platform">
@@ -35,17 +35,17 @@
   <h3 class="sub-h">Subscriptions</h3>
   {{if .Platform.Subscriptions}}
   <ul class="subs">
-    {{range .Platform.Subscriptions}}<li class="sub"><span class="mono">{{.Catalog}}</span>{{with .Version}}<span class="ver">{{.}}</span>{{end}}{{with .Enable}}{{if not .}}<span class="pill pill-off">disabled</span>{{end}}{{end}}</li>{{end}}
+    {{range .Platform.Subscriptions}}<li class="sub"><span class="mono">{{template "breakable" .Catalog}}</span>{{with .Version}}<span class="ver">{{.}}</span>{{end}}{{with .Enable}}{{if not .}}<span class="pill pill-off">disabled</span>{{end}}{{end}}</li>{{end}}
   </ul>
   {{else}}<p class="muted">The Platform subscribes to no catalog.</p>{{end}}
   <h3 class="sub-h">Resolved registry</h3>
   <ul class="registry">
   {{range .Platform.Catalogs}}
     <li class="entry">
-      <p class="entry-name"><span class="mono">{{.Catalog}}</span> {{with .Version}}<span class="ver">{{.}}</span>{{end}}{{if not .Enabled}} <span class="pill pill-off">disabled</span>{{end}}</p>
+      <p class="entry-name"><span class="mono">{{template "breakable" .Catalog}}</span> {{with .Version}}<span class="ver">{{.}}</span>{{end}}{{if not .Enabled}} <span class="pill pill-off">disabled</span>{{end}}</p>
       <dl class="facts">
         <dt>Source</dt><dd>{{.Source}}{{with .ContributedBy}}, contributed by <span class="mono">{{.}}</span>{{end}}</dd>
-        <dt>Claimed by</dt><dd>{{if .Claimants}}{{range .Claimants}}<span class="mono chip">{{.}}</span> {{end}}{{else}}<span class="muted">no registration</span>{{end}}</dd>
+        <dt>Claimed by</dt><dd>{{if .Claimants}}{{range .Claimants}}<span class="mono chip">{{template "breakable" .}}</span> {{end}}{{else}}<span class="muted">no registration</span>{{end}}</dd>
       </dl>
     </li>
   {{end}}
@@ -60,19 +60,18 @@
   {{range .Platform.Registrations}}
     <li class="card reg reg-{{.Verdict}}">
       <div class="card-head">
-        <h3 class="card-title mono">{{.Name}}</h3>
-        {{with verdictBadge .Verdict}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}>{{.Text}}</span>{{end}}
+        <h3 class="card-title mono">{{template "breakable" .Name}}</h3>
       </div>
       <p class="pills">
         <span class="pill {{if .Accepted}}pill-yes{{else}}pill-no{{end}}">{{if .Accepted}}accepted{{else}}not accepted{{end}}</span>
         <span class="pill {{if .Active}}pill-yes{{else}}pill-no{{end}}">{{if .Active}}active{{else}}inactive{{end}}</span>
       </p>
       <dl class="facts">
-        <dt>Catalog</dt><dd class="mono">{{.Catalog}}{{with .Version}} <span class="ver">{{.}}</span>{{end}}</dd>
-        {{with .Provides}}<dt>Provides</dt><dd>{{range .}}<span class="mono chip">{{.}}</span> {{end}}</dd>{{end}}
+        <dt>Catalog</dt><dd class="mono">{{template "breakable" .Catalog}}{{with .Version}} <span class="ver">{{.}}</span>{{end}}</dd>
+        {{with .Provides}}<dt>Provides</dt><dd>{{range .}}<span class="mono chip">{{template "breakable" .}}</span> {{end}}</dd>{{end}}
         {{with .Provider}}<dt>Provider</dt><dd><a class="mono" href="/instances/{{.Namespace}}/{{.Name}}">{{.Namespace}}/{{.Name}}</a></dd>{{end}}
       </dl>
-      {{if or .Reason .Message}}<p class="verdict-why"><span class="label">{{if eq .Verdict "Refused"}}Refused{{else if eq .Verdict "RemovalBlocked"}}Removal blocked{{else}}Verdict{{end}}</span> {{with .Reason}}<span class="mono">{{.}}</span>{{end}}{{with .Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}
+      {{if or (ne .Verdict "Accepted") .Message}}<p class="verdict-why">{{with verdictBadge .Verdict}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}>{{.Text}}</span>{{end}} {{if ne .Reason .Verdict}}{{with .Reason}}<span class="mono">{{.}}</span>{{end}}{{end}}{{with .Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}
       {{if or .ActiveReason .ActiveMessage}}<p class="verdict-why"><span class="label">Activation</span> {{with .ActiveReason}}<span class="mono">{{.}}</span>{{end}}{{with .ActiveMessage}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}
       <p class="card-foot"><a href="/platform/registrations/{{.Name}}/events" hx-get="/platform/registrations/{{.Name}}/events" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Recent events</a></p>
     </li>
@@ -89,7 +88,7 @@
 
 <section class="panel panel-7 reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
   <h2 id="conditions-h">Conditions</h2>
-  {{template "conditions" .Platform.Conditions}}
+  {{template "conditions" .Conditions}}
 </section>
 
 <aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
