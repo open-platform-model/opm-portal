@@ -10,7 +10,10 @@ so `0030:D7:R4` and `portal:D7:R4` name the same requirement. Numbers added here
 OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
 D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. D13 (2026-10-05) lets local mode run
 in a Pod as a test tool. D14 to D18 and OQ22 to OQ25 (2026-10-05) come with the web UI redesign
-(OpenSpec change `redesign-web-ui`), which also narrows OQ18. The never-merged enhancements PR 101 drafted
+(OpenSpec change `redesign-web-ui`), which also narrows OQ18. D19, D20, D9:R6, D14:R7 and OQ26
+(2026-10-06) come with the canvas alignment (OpenSpec changes `align-shell-and-tokens`,
+`align-platform-installed-catalog`, `align-owner-pages` and `align-graph`), which also amends D1,
+D3 and D4:R5 and widens OQ25. The never-merged enhancements PR 101 drafted
 the same answers under other numbers (OQ20 as 0030:D7:R5, the floor as 0030:D9:R6/R7); those
 numbers were never adopted, and this file's are the only ones.
 
@@ -238,7 +241,8 @@ decision it rests on.
 only requests it creates are access reviews the API server evaluates and never stores: the self
 reviews of D5:R6 locally and the SubjectAccessReview of D6:R9 in-cluster, which D11 grants. It reads
 the four OPM kinds, the objects their inventories name, the runtime children below those objects,
-events and Pod logs; and two kinds of non-resource path, the API server's discovery documents
+the one Flux source object a ModulePackage's `spec.sourceRef` names (D20), events and Pod logs; and
+two kinds of non-resource path, the API server's discovery documents
 (`/api`, `/apis`), which resolve kinds, and its `/version` (D18). Writes, including ordering a
 module, arrive with the marketplace (V2), which
 builds on the self-service kinds of enhancement 0027. A CLI-owned ModuleInstance is shown like any
@@ -367,6 +371,10 @@ The operator's failure counters and drift flag are diagnostics, never health.
   health in the operator is OQ3, not a V1 prerequisite.
 - **Health computed per request** (one read per inventory object). Measured at 7.4 to 9.4 s for
   cert-manager's graph at client-go's default rate limit.
+- **No runtime health for configuration objects** (the canvas's "configuration has no runtime
+  health", gap graph-26 in [evidence 05](design/evidence/05-canvas-gap-report/)). kstatus answers
+  for ServiceAccounts, RBAC objects, CRDs and webhook configurations as for any object, and a CRD
+  that is not Established is a real failure; dropping their health would hide it.
 
 **Rationale:** The portal's main promise is that a broken rollout looks broken. Ready is correct for
 what it says, apply success, so the portal keeps it and labels it honestly, and computes health from
@@ -375,7 +383,8 @@ the objects that show the failure.
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 3, 6, 11 and 12,
 and the CLI-owned instance addendum. 0015:D14 (readiness means apply success); 0015:D18 (an
 unfulfilled contract is reported, never refused), which R8 follows. Owner decision 2026-10-04 to
-capture a CLI-owned instance on the throwaway cluster.
+capture a CLI-owned instance on the throwaway cluster. Configuration objects keep kstatus health on
+the graph and in group roll-ups: supervisor ruling 2026-10-06, pending the owner.
 
 ### D4: Graphs derive only from operator- and API-server-written state
 
@@ -396,7 +405,11 @@ text, and requires edges wait for the operator to record provider demand. Regist
 activation as separate states, read from `status.accepted` and `status.active`, never inferred from
 the `Stalled` and `Ready` conditions: the same condition pair marks both a refused claim and an
 accepted, active claim whose removal is blocked by dependents. A blocked removal is its own state.
-Configuration-only components are grouped into one expandable node by default.
+Configuration-only components are grouped by default per kind family: CRDs
+(`apiextensions.k8s.io`), RBAC (`rbac.authorization.k8s.io`), webhook configuration
+(`admissionregistration.k8s.io`) and other configuration, one expandable node per family that
+folds two or more objects, opened one at a time. A component that holds a TransformerRegistration
+is never folded.
 
 **Requirements:**
 
@@ -409,7 +422,10 @@ Configuration-only components are grouped into one expandable node by default.
 - R4: A registration shows whether it was accepted and whether it is active as two separate states,
   taken from its `status.accepted` and `status.active`; a refused registration shows its refusal
   reason and message.
-- R5: Components that own no workload are grouped into one expandable node by default.
+- R5: Components that own no workload are grouped by default into one expandable node per kind
+  family (CRDs, RBAC, webhook configuration, other configuration), sorted by the API group of
+  their objects, when the family holds two or more objects; one family group is open at a time,
+  and an open group's members and their objects are shown together, apart from every other node.
 - R6: Graph node identifiers are stable across portal restarts and do not change when the
   underlying object is deleted and recreated.
 - R7: A registration that is being deleted while instances still demand its contracts is shown as
@@ -430,6 +446,12 @@ Configuration-only components are grouped into one expandable node by default.
   `Ready=False`, reason `DependentsRemain`, on a claim that stayed accepted and active.
 - **Every component as its own node.** cert-manager's graph had 86 nodes and 85 edges, 20 of them
   components (observation 13).
+- **One expandable node for all configuration components** (R5 until 2026-10-06). cert-manager's
+  17 configuration components folded into one node, so RBAC, CRDs and webhook configuration could
+  not be opened apart ([evidence 05](design/evidence/05-canvas-gap-report/), gap graph-01).
+- **Families by component-name pattern** (`-rbac`, `-role`, `webhook-*`), as the canvas mock
+  groups. Names are the module author's choice; the API group of the inventory's objects is
+  recorded (R1).
 
 **Rationale:** One source per edge kind makes every edge explainable and every disagreement
 visible. Drawing an edge the data does not support is worse than drawing none, because a platform
@@ -437,7 +459,12 @@ team would act on it.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 2, 8, 9 and 13,
 phases 7 to 9; [evidence 02](design/evidence/02-live-graph-spike/). Registration verdicts as
-0015:D3 defines them.
+0015:D3 defines them. R5: owner decision 2026-10-06, asked how the graph should group
+configuration: "Groups per kind (Recommended)" (groups per kind family, an accordion with one open
+at a time, a dotted frame, Collapse and Overview, zoom to the group;
+[evidence 05](design/evidence/05-canvas-gap-report/), gaps graph-01, graph-04, graph-06,
+graph-21). Families keyed by API group rather than component names: supervisor ruling 2026-10-06,
+pending the owner.
 
 ### D5: Milestone 1 runs locally, and the user's kubeconfig is the boundary
 
@@ -702,7 +729,12 @@ repeated events about the same object with the same reason and message become on
 and the latest time, however each repeat was recorded. Events about the cluster-scoped Platform and
 TransformerRegistrations, which Kubernetes records in namespace `default`, appear on those objects'
 pages. Render warnings the operator records only as events are labelled on the instance page as
-expiring with the feed.
+expiring with the feed. On an instance's or package's page the feed opens on the events of the
+owner and of every object and runtime child its inventory reaches that the reader may read, merged
+newest first, so a Pod's warnings show without first picking the Pod. Filters narrow it. The
+Applied card's warning counts stay on the owner's own events. The merged feed is read with one
+list per event namespace and regarded kind, never one read per object, and objects whose events
+the reader may not read are left out with a mark that the feed is partial.
 
 **Requirements:**
 
@@ -716,6 +748,10 @@ expiring with the feed.
   page.
 - R5: The instance page states that render warnings are kept only as events and that older ones are
   gone.
+- R6: An instance's or package's events view opens on the merged events of the owner and every
+  object and runtime child its inventory reaches that the caller may read, newest first, bounded
+  by the inventory. A resource, type or reason filter narrows it. Objects whose events the caller
+  may not read are left out, and the view says so.
 
 **Alternatives considered:**
 
@@ -725,11 +761,20 @@ expiring with the feed.
 - **Look for Platform events in the Platform's namespace.** It has none; they are in `default`
   (observation 5).
 - **Persist events in the portal.** Makes the portal stateful and a second record of history (OQ9).
+- **Only the owner's own events by default** (the redesign's choice, 2026-10-05). In the image break
+  the Pod's pull warnings stay hidden until the user picks the Pod, the object the reader is trying
+  to find ([evidence 05](design/evidence/05-canvas-gap-report/), gap instance-44).
+- **Merge in the UI with one read per reached object.** cert-manager's 42 entries cost about 50
+  reviewed reads and inventory walks per page, the per-object cost D3:R9 rules out.
 
 **Rationale:** Events are transition-only and expire, so they cannot carry state. Labelling them
 honestly and folding repeats keeps the feed useful without pretending it is history.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 4, 5, 7 and 10.
+R6: owner decision 2026-10-06 ("Merge all (Recommended)"), asked how the instance and package
+Events tab should open; the gap report ([evidence 05](design/evidence/05-canvas-gap-report/), gap
+instance-44). Reading per event namespace and regarded kind: OpenSpec change `align-owner-pages`,
+design.md "Where the merged feed is built".
 
 ### D10: Logs stream only for Pods an inventory reaches, bounded by the portal
 
@@ -951,6 +996,11 @@ stored there, which is why only filter queries and the theme are stored.
   theme with no remembered filters.
 - R6: Local mode listens on `127.0.0.1:7878` unless `--addr` says otherwise, and refuses to start,
   naming the address and `--addr` and before any cluster call, when that port is taken.
+- R7: A filter form offers as choices, and counts, only the values found in rows the caller may
+  read. When a list behind the form is locked or failed, its counts cover only the readable rows
+  and say so, no count stands for a list the caller may not read, and the namespace filter stays a
+  field the user can type into, so a reader who may list only some namespaces can still name one
+  (D7:R2).
 
 **Alternatives considered:**
 
@@ -974,7 +1024,10 @@ remember filters per device and offer a Light, Dark or System theme stored per b
 Principle VII in `openspec/config.yaml` and `CONSTITUTION.md`. R6: owner answer 2026-10-05 ("Fixed
 default port (Recommended)"), asked what local mode should do since a random port loses the stored
 preferences on every restart. The URL-wins and store-what-you-show rules: supervisor ruling
-2026-10-05, pending the owner.
+2026-10-05, pending the owner. R7: supervisor ruling 2026-10-06, pending the owner. It follows the
+owner's decision to follow the canvas (D19; filters as selects with counts) without letting a
+choice list or a count reveal what a reader may not list (OpenSpec change
+`align-platform-installed-catalog`).
 
 ### D15: A provider is whoever holds the claim, instance or package
 
@@ -1084,7 +1137,7 @@ rename's portal change. The redesign shows only what the cluster records. It lea
 source exists: catalog contents (definitions, their descriptions and documentation links, and
 transformers; OQ25), so the canvas's catalog Definitions, Contracts, Transformers and Used by
 tabs and a provided contract's kind and status; a catalog's registry and digest, which the
-Platform does not record; a health for the Platform itself (OQ22); the transformer behind each
+Platform does not record (OQ26); a health for the Platform itself (OQ22); the transformer behind each
 object (OQ5); and on graph hover cards, an object's own applied age and warning-event count, which
 would need a time per inventory entry and an events read per node. The Catalog page also has no
 YAML tab: the portal serves raw YAML only for inventory objects (D8). The Platform page shows the registrations and catalogs as filterable rows instead of
@@ -1163,6 +1216,119 @@ and as whom; three short facts in the header settle that on every page.
 identity card and "reading as" mark ([evidence 03](design/evidence/03-ui-canvas/)); reading
 `/version` like discovery, without a review. The supervisor's brief placed the version and context
 in the Platform document; the separate document is the writer's proposal for the reason above.
+
+### D19: The pages follow the reviewed canvas's flat look
+
+**Kind:** scope
+
+**Depends:** D3, D17
+
+**Decision:** The web UI is drawn as the owner-reviewed canvas draws it ([evidence
+03](design/evidence/03-ui-canvas/)). The page background is one flat colour. Panels and cards are
+flat: a 1 px border, no shadow, no corner mark. Headings are plain. The page column is at most 1840
+px wide. Every colour is a token, and each status tone has a border, an ink, a background and a
+tint, in light and dark, with the canvas's values. The Applied and Health axes share one square
+badge. The axis is named by the place the badge stands (a column head, a group label, a card's
+eyebrow or a label beside it) and in the badge's accessible name. The Applied badge keeps the
+controller's state words (Applied, Reconciling, Failed, Stalled, Suspended, Managed externally), not
+the canvas's "Ready" and "Not ready". Tabs are underline tabs. A tab shows a count only when the
+page already holds it and it covers everything the tab lists. Each summary of one axis or standing
+is drawn with one shared state block, whose time is a recorded time or none. Lists the canvas draws
+as tables (Resources, Events) are tables, graph edges are orthogonal elbows, and the instance and
+package pages show their conditions below the tab panels. What the canvas draws without a source
+stays out, as D17 says.
+
+**Requirements:**
+
+- R1: No page has a background pattern, a panel shadow, a corner mark or a heading marker, and the
+  page column is at most 1840 px wide. The graph pane's own grid is part of the graph, not the page
+  background.
+- R2: Every colour is a token defined for light and for dark. Each status tone has a border, ink,
+  background and tint token.
+- R3: Applied and Health badges share one shape. Every badge names its axis in its accessible name
+  and stands where visible text names its axis. The Applied badge reads the controller's state
+  words, never "Ready" or "Not ready", and D3:R1 holds.
+- R4: A tab count is shown only when the page holds it without another read and it covers everything
+  the tab lists; otherwise the tab shows none.
+- R5: A summary block shows a time only when its source records one for that state.
+
+**Alternatives considered:**
+
+- **Keep the drafting-table look** (blueprint grid, shadowed panels with registration marks, diamond
+  headings, mono labels, a 1500 px column), which the redesign shipped without recording it. D17
+  names the reviewed canvas as the target, and the canvas draws none of it ([evidence
+  05](design/evidence/05-canvas-gap-report/), section A).
+- **The canvas's "Ready" / "Not ready" for the Applied axis.** It folds Failed, Stalled and
+  Reconciling into one word, losing what D3 shows apart.
+- **Two badge shapes, one per axis** (the web-ui spec before this decision). The canvas draws one
+  shape, and the axis is already named by place and in each badge's accessible name.
+
+**Rationale:** The owner reviewed the canvas as the product's look. Following it in full, except
+where it would show an unrecorded fact or merge states the controller reports apart, keeps D3's and
+D17's promises.
+
+**Source:** Owner decision 2026-10-06, asked about the global look: "Follow the canvas
+(Recommended)": flat panels, no grid background or shadows, plain headings, 1840 px column. The
+Applied words (R3), the tab-count rule (R4), the state block's recorded-time rule (R5), tables for
+Resources and Events, elbow edges and the conditions below the tab panels are supervisor rulings
+2026-10-06, pending the owner. Gaps measured in [evidence
+05](design/evidence/05-canvas-gap-report/).
+
+### D20: A package's source is read as the caller, and its own state is shown
+
+**Kind:** contract
+
+**Depends:** D1, D4, D7, D11
+
+**Decision:** The portal reads the Flux source a ModulePackage's `spec.sourceRef` names, so the
+package's graph and page show what the cluster says about the source itself: its Ready condition,
+its artifact revision, and whether the cluster serves its kind at all. It reads only the kinds the
+controller reads (OCIRepository, GitRepository and Bucket in `source.toolkit.fluxcd.io`), in the
+sourceRef's namespace or else the package's, with one `get` per request for the caller after the
+caller's access review and the reader's own, never with list or watch, and it does not follow the
+source's `secretRef`. A kind the cluster does not serve is found through discovery without a review
+and shown as not installed. The artifact's fetch URL is never served. The source is not watched: the
+controller watches it and re-reconciles the package, which refreshes the package's page.
+
+**Requirements:**
+
+- R1: The source is read with `get` only, by name, only for OCIRepository, GitRepository and Bucket
+  in `source.toolkit.fluxcd.io`; any other kind named by `spec.sourceRef` is shown as not read,
+  without a review or a read, and a core Secret is refused before any review.
+- R2: A caller who may not get the source sees it locked, and a reader denied the get sees it as not
+  readable by the portal; a failed source read never fails the package's page or document.
+- R3: A kind the cluster does not serve is shown as not installed, found through discovery without a
+  review (D18:R3).
+- R4: The served state carries the Ready condition's status, reason and message and
+  `status.artifact.revision`, and never `status.artifact.url`.
+- R5: The portal's roles gain no rule for the source kinds in V1; where the portal reads as its own
+  ServiceAccount, the source shows as not readable by the portal (D11:R3).
+
+**Alternatives considered:**
+
+- **Show the controller's reason only** (`SourceNotReady`). It is already on the Applied card and
+  says nothing about the source object; on F1 the only sign that Flux is missing was the
+  controller's message.
+- **Read whatever kind `spec.sourceRef` names.** A spec field would steer which objects the portal
+  reads; the controller refuses other kinds anyway.
+- **Watch source objects.** Another watched kind per namespace for a value the package's own topic
+  already refreshes.
+- **Add the source kinds to the `deploy/` role.** Every launch-token holder would see Flux source
+  specs (repository URLs and references); left to the operator of the Pod.
+
+**Rationale:** "Source not ready" has two very different causes, an unready artifact and a missing
+source-controller; reading the source as the caller tells them apart without trusting anything the
+portal did not read.
+
+**Source:** Owner decision 2026-10-06, asked whether the package graph should read its source: "Read
+the source (Recommended)": an authorized get of the package's sourceRef object, showing its Ready
+state, its revision, and "kind not installed" when the CRD is missing ([evidence
+05](design/evidence/05-canvas-gap-report/), gap instance-25). Controller behaviour read from source
+(opm-operator 59537b7): `internal/source/resolve.go:17-22` (the three kinds), `:41-44` (namespace
+default), `:60-73` (Ready condition and artifact),
+`internal/controller/modulepackage_controller.go:178-241` (the watches, guarded for a missing CRD).
+F1's package Ready message (`no matches for kind "OCIRepository"`) shows the not-installed case.
+The three-kind limit and R5: supervisor rulings 2026-10-06, pending the owner.
 
 ## Open questions
 
@@ -1245,10 +1411,25 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   until packages record them, D16:R2 shows "not recorded", and the controller's removal guard
   does not count packages as dependents either (it lists ModuleInstances only).
 - **OQ25: Where should the portal read a catalog's contents (definitions, their descriptions and
-  documentation links, transformers) from?** Status: open. Blocking: deferrable. The owner
-  deferred these views (D17). The portal may not fetch or evaluate CUE to get them (Principle I,
-  D4). Candidates: the Platform's contract inventory (OQ4), a catalog index the controller or the
-  publisher records, or the documentation bundle's catalog pages.
+  documentation links, transformers) and the catalog's own description from?** Status: open.
+  Blocking: deferrable. The owner deferred these views (D17). The canvas's Catalog page also draws
+  a one-sentence description of the catalog itself, which neither the Platform nor its registry
+  entries carry, so the page shows none (widened 2026-10-06, gap catalog-03 in
+  [evidence 05](design/evidence/05-canvas-gap-report/)). The portal may not fetch or evaluate CUE
+  to get them (Principle I, D4). Candidates: the Platform's contract inventory (OQ4), a catalog
+  index the controller or the publisher records (which could carry the catalog's own
+  description), or the documentation bundle's catalog pages.
+- **OQ26: Should the controller record, per resolved catalog, when it resolved and the digest it
+  resolved to?** Status: open, tracked as
+  [opm-operator#230](https://github.com/open-platform-model/opm-operator/issues/230). Blocking:
+  deferrable. A controller change. The canvas's Catalog page says "resolved 9 min ago" and shows a
+  digest (gap catalog-09 in [evidence 05](design/evidence/05-canvas-gap-report/)). The Platform's
+  `status.registry` entries carry neither, and the only times are Platform-wide
+  (`Reconcile.Since`, the `Ready` condition's transition), which would claim a per-catalog fact
+  (Principle IV). Until the controller records them, the Catalog page shows no resolve time and no
+  digest (D17). An unresolved catalog can still show the claiming registration's condition time.
+  Candidates: `resolvedAt` and `digest` on each `status.registry` entry, served in
+  `v1alpha1.Catalog`.
 
 ### Scope of what is shown
 

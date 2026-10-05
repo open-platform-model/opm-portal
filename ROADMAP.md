@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-05 (web UI redesign in review).
+Last updated: 2026-10-06 (web UI redesign merged; canvas alignment planned).
 
 ## Where it stands
 
@@ -61,6 +61,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 | 35 | OIDC sign-in removed and kept as a future plan (owner decision 2026-10-05) |
 | 34 | Every `0030:` citation outside archived changes rewritten as `portal:` (issues 31 and 32) |
 | 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
+| 39 | Web UI redesign (`redesign-web-ui`): Platform and Installed views, a theme choice and remembered filters, summary cards and tabs on instance and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); the `Cluster` document, provider holders and package sources in the read API; local mode on `127.0.0.1:7878` |
 
 
 ### Next in V1
@@ -68,11 +69,28 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 1. **First release, 0.1.0** (PR 18), held until the portal's part of the opm-operator to
    opm-controller rename merges (it renames `operatorVersion` and the owner value `operator` in the
    read API).
-2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, in review, PR 39): Platform
-   and Installed views, a theme choice and remembered filters, summary cards and tabs on instance
-   and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to
-   D18); the `Cluster` document, provider holders and package sources in the read API; local mode
-   on the fixed default port `127.0.0.1:7878`.
+2. **Canvas alignment** (planned 2026-10-06; four OpenSpec changes closing the verified gaps
+   between the owner's canvas and the live pages,
+   [evidence 05](docs/design/evidence/05-canvas-gap-report/); portal:D19, D20, D4:R5 as amended,
+   D9:R6, D14:R7):
+   - `align-shell-and-tokens` first, the gate for the other three: fixes the empty details panel
+     after a graph node is selected, and lands the flat look (no grid, shadows or heading marks,
+     an 1840 px column), tone and kind chip tokens in light and dark, one square badge for both
+     axes with the Applied words kept, underline tabs with counts, a worded live mark and the
+     shared state block (portal:D19).
+   - `align-platform-installed-catalog`, after the gate: Platform and Catalog state blocks with
+     reason counts, filter selects that list the values present with counts and apply as you type
+     (portal:D14:R7), Installed counted across namespaces with a package's source in the Module
+     filter, and events tables.
+   - `align-owner-pages`, after the gate, beside `align-graph`: Applied, Health and Provider as
+     state blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
+     over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, and
+     `prune` on packages.
+   - `align-graph`, after the gate, beside `align-owner-pages`: configuration grouped per kind
+     family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
+     legend, selection apart from the spotlight, registration standing on its node, and the
+     package's source read as the caller (portal:D20). It and `align-owner-pages` share files but
+     no function or requirement; the split is in both proposals.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
