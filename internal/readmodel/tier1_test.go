@@ -34,8 +34,8 @@ func TestPlatformView(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v.Name != "cluster" || v.Type != "kubernetes" || v.OperatorVersion != "v1.0.0-beta.6" {
-		t.Errorf("platform = %s %s %s", v.Name, v.Type, v.OperatorVersion)
+	if v.Name != "cluster" || v.Type != "kubernetes" || v.ControllerVersion != "v1.0.0-beta.6" {
+		t.Errorf("platform = %s %s %s", v.Name, v.Type, v.ControllerVersion)
 	}
 	if v.Applied.State != health.AppliedStateApplied {
 		t.Errorf("applied = %+v, want Applied", v.Applied)
@@ -136,8 +136,8 @@ func TestInstanceViews(t *testing.T) {
 		contracts int
 		history   int
 	}{
-		{"cert-manager", "cert-manager", OwnerOperator, health.AppliedStateApplied, 42, 15, 1},
-		{"default", "podinfo", OwnerOperator, health.AppliedStateApplied, 2, 7, 1},
+		{"cert-manager", "cert-manager", OwnerController, health.AppliedStateApplied, 42, 15, 1},
+		{"default", "podinfo", OwnerController, health.AppliedStateApplied, 2, 7, 1},
 		{"web", "web", OwnerCLI, health.AppliedStateManagedExternally, 2, 0, 0},
 	}
 	for _, tc := range cases {

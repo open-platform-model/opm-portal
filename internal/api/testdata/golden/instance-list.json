@@ -16,7 +16,7 @@
         "path": "opmodel.dev/modules/cert_manager@v2",
         "version": "v2.0.5"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",
@@ -72,7 +72,7 @@
         "path": "testing.opmodel.dev/modules/operator/backup_consumer@v0",
         "version": "v0.1.0"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",
@@ -115,7 +115,7 @@
         "path": "testing.opmodel.dev/modules/operator/backup_provider@v0",
         "version": "v0.1.0"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",
@@ -168,7 +168,7 @@
         "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
         "version": "v0.1.11"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",

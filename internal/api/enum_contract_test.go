@@ -51,7 +51,7 @@ func TestEnumsMatchTheGoConstants(t *testing.T) {
 		"Platform/registrationsAccess":      access,
 		"GraphPlatform/registrationsAccess": access,
 		"GraphNode/access":                  strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),
-		"InstanceSummary/owner":             strs(readmodel.OwnerOperator, readmodel.OwnerCLI),
+		"InstanceSummary/owner":             strs(readmodel.OwnerController, readmodel.OwnerCLI),
 		"Registration/verdict":              verdicts,
 		"ProviderClaim/verdict":             verdicts,
 		"ProviderClaim/access":              strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),

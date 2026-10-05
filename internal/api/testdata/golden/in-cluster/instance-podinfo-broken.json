@@ -13,7 +13,7 @@
     "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
     "version": "v0.1.11"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",

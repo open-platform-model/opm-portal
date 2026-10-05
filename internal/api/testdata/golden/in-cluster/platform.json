@@ -4,7 +4,7 @@
   "name": "cluster",
   "uid": "e99bd454-ca6f-4bf1-9213-2d59665c673d",
   "type": "kubernetes",
-  "operatorVersion": "v1.0.0-beta.6",
+  "controllerVersion": "v1.0.0-beta.6",
   "reconcile": {
     "state": "Applied",
     "reason": "Generated",

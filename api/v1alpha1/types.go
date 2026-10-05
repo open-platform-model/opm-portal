@@ -188,7 +188,7 @@ type InstanceSummary struct {
 	Ref    ObjectRef `json:"ref"`
 	UID    string    `json:"uid,omitempty"`
 	Module Module    `json:"module"`
-	// Owner is operator or cli; a cli instance's reconcile state is
+	// Owner is controller or cli; a cli instance's reconcile state is
 	// ManagedExternally.
 	Owner          string     `json:"owner"`
 	Reconcile      Reconcile  `json:"reconcile"`
@@ -354,15 +354,15 @@ type Registration struct {
 // the registrations the caller may read.
 type Platform struct {
 	TypeMeta
-	Name            string         `json:"name"`
-	UID             string         `json:"uid,omitempty"`
-	Type            string         `json:"type,omitempty"`
-	OperatorVersion string         `json:"operatorVersion,omitempty"`
-	Reconcile       Reconcile      `json:"reconcile"`
-	Conditions      []Condition    `json:"conditions"`
-	Subscriptions   []Subscription `json:"subscriptions"`
-	Catalogs        []Catalog      `json:"catalogs"`
-	Registrations   []Registration `json:"registrations"`
+	Name              string         `json:"name"`
+	UID               string         `json:"uid,omitempty"`
+	Type              string         `json:"type,omitempty"`
+	ControllerVersion string         `json:"controllerVersion,omitempty"`
+	Reconcile         Reconcile      `json:"reconcile"`
+	Conditions        []Condition    `json:"conditions"`
+	Subscriptions     []Subscription `json:"subscriptions"`
+	Catalogs          []Catalog      `json:"catalogs"`
+	Registrations     []Registration `json:"registrations"`
 	// RegistrationsAccess says whether Registrations is all of them.
 	RegistrationsAccess string `json:"registrationsAccess"`
 }
@@ -475,7 +475,7 @@ type GraphCatalog struct {
 // GraphPlatform is what the platform node says beyond its reconcile state.
 type GraphPlatform struct {
 	Type                string `json:"type,omitempty"`
-	OperatorVersion     string `json:"operatorVersion,omitempty"`
+	ControllerVersion   string `json:"controllerVersion,omitempty"`
 	RegistrationsAccess string `json:"registrationsAccess"`
 }
 

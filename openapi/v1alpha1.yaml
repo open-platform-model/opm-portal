@@ -721,7 +721,7 @@ components:
           $ref: '#/components/schemas/Module'
         owner:
           description: "Who applies the instance. A cli instance is read-only to the operator and its reconcile state is ManagedExternally."
-          x-extensible-enum: [operator, cli]
+          x-extensible-enum: [controller, cli]
           type: string
         reconcile:
           $ref: '#/components/schemas/Reconcile'
@@ -1060,7 +1060,7 @@ components:
           type: string
         type:
           type: string
-        operatorVersion:
+        controllerVersion:
           type: string
         reconcile:
           $ref: '#/components/schemas/Reconcile'
@@ -1273,7 +1273,7 @@ components:
       properties:
         type:
           type: string
-        operatorVersion:
+        controllerVersion:
           type: string
         registrationsAccess:
           x-extensible-enum: [ok, forbidden, notReadable, withheld]

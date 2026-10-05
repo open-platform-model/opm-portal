@@ -59,7 +59,7 @@
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/volumes@v1beta1",
         "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"

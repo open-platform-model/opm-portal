@@ -55,7 +55,7 @@ func Platform(in PlatformInput, opts Options) Graph {
 		Applied: appliedOf(p.Applied),
 		Platform: &PlatformFacts{
 			Type:                p.Type,
-			OperatorVersion:     p.OperatorVersion,
+			ControllerVersion:   p.ControllerVersion,
 			RegistrationsAccess: p.RegistrationsAccess,
 		},
 	}

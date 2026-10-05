@@ -25,7 +25,7 @@ type Owner string
 
 // Owners.
 const (
-	OwnerOperator Owner = "operator"
+	OwnerController Owner = "controller"
 	// OwnerCLI: the CLI applied the instance and the operator only records
 	// it; its applied state is ManagedExternally (portal:D3:R6).
 	OwnerCLI Owner = "cli"
@@ -257,14 +257,14 @@ type RegistrationView struct {
 // PlatformView is the Platform with its subscriptions, resolved catalogs and
 // registrations.
 type PlatformView struct {
-	Name            string
-	UID             string
-	Type            string
-	OperatorVersion string
-	Applied         health.Applied
-	Conditions      []health.Condition
-	Subscriptions   []Subscription
-	Catalogs        []Catalog
+	Name              string
+	UID               string
+	Type              string
+	ControllerVersion string
+	Applied           health.Applied
+	Conditions        []health.Condition
+	Subscriptions     []Subscription
+	Catalogs          []Catalog
 	// Registrations holds what the caller may read; RegistrationsAccess
 	// says whether that is all of them.
 	Registrations       []RegistrationView

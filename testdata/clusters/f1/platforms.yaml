@@ -31,7 +31,7 @@ items:
           status: "False"
           type: ContractsFulfilled
       observedGeneration: 1
-      operatorVersion: v1.0.0-beta.6
+      controllerVersion: v1.0.0-beta.6
       packageIdentity: gen-1-e1f6ae3f2c30aa1a
       registry:
         - catalog: opmodel.dev/catalogs/opm@v4

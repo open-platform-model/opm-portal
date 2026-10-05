@@ -59,7 +59,7 @@
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
       ],

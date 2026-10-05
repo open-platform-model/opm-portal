@@ -13,7 +13,7 @@
     "path": "testing.opmodel.dev/modules/operator/backup_provider@v0",
     "version": "v0.1.0"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",

@@ -1,10 +1,10 @@
 ## 1. Rename the wire fields (api/v1alpha1, internal/readmodel, internal/graph, internal/api, openapi)
 
-- [ ] 1.1 `internal/readmodel`: `OwnerController Owner = "controller"`, `ownerOf` returns it for any owner but `cli`; `PlatformView.ControllerVersion` read from `status.controllerVersion` only
-- [ ] 1.2 `internal/graph` and `internal/api`: `ControllerVersion` on the graph platform and in the converters; `api/v1alpha1`: `Platform.ControllerVersion` and `GraphPlatform.ControllerVersion` (`json:"controllerVersion,omitempty"`)
-- [ ] 1.3 `openapi/v1alpha1.yaml`: owner `x-extensible-enum: [controller, cli]`, `controllerVersion` on Platform and GraphPlatform; `enum_contract_test` names `readmodel.OwnerController`
-- [ ] 1.4 Captured data: rename only the keys the code reads (`status.controllerVersion` in `testdata/clusters/f1/platforms.yaml` and `internal/health/testdata/platform-*.yaml`); regenerate the goldens with `-update`
-- [ ] 1.5 `task check` green and `task api:breaking PR_TITLE='feat(api)!: ...'` passes, then commit `feat(api)!: name the controller in owner and version fields`
+- [x] 1.1 `internal/readmodel`: `OwnerController Owner = "controller"`, `ownerOf` returns it for any owner but `cli`; `PlatformView.ControllerVersion` read from `status.controllerVersion` only
+- [x] 1.2 `internal/graph` and `internal/api`: `ControllerVersion` on the graph platform and in the converters; `api/v1alpha1`: `Platform.ControllerVersion` and `GraphPlatform.ControllerVersion` (`json:"controllerVersion,omitempty"`)
+- [x] 1.3 `openapi/v1alpha1.yaml`: owner `x-extensible-enum: [controller, cli]`, `controllerVersion` on Platform and GraphPlatform; `enum_contract_test` names `readmodel.OwnerController`
+- [x] 1.4 Captured data: rename only the keys the code reads (`status.controllerVersion` in `testdata/clusters/f1/platforms.yaml` and `internal/health/testdata/platform-*.yaml`); regenerate the goldens with `-update`
+- [x] 1.5 `task check` green and `PR_TITLE='feat(api)!: ...' task api:breaking` passes, then commit `feat(api)!: name the controller in owner and version fields`
 
 ## 2. Call the product the controller in pages, explanations and code (internal/ui, internal/health, internal/api, internal/readmodel, internal/graph)
 

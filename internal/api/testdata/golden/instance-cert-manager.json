@@ -13,7 +13,7 @@
     "path": "opmodel.dev/modules/cert_manager@v2",
     "version": "v2.0.5"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",

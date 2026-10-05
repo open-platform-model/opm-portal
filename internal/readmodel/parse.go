@@ -196,5 +196,5 @@ func ownerOf(u *unstructured.Unstructured) Owner {
 	if str(u.Object, "spec", "owner") == string(OwnerCLI) {
 		return OwnerCLI
 	}
-	return OwnerOperator
+	return OwnerController
 }

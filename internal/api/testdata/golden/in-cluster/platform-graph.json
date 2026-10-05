@@ -45,7 +45,7 @@
       },
       "platform": {
         "type": "kubernetes",
-        "operatorVersion": "v1.0.0-beta.6",
+        "controllerVersion": "v1.0.0-beta.6",
         "registrationsAccess": "ok"
       },
       "column": 0,
@@ -170,7 +170,7 @@
         "state": "Applied",
         "reason": "ReconciliationSucceeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "column": 3,
       "row": 0,
       "x": 808,

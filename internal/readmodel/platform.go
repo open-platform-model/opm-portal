@@ -23,13 +23,13 @@ func (m *Model) Platform(ctx context.Context, who authz.Identity, g authz.Grant)
 		return PlatformView{}, err
 	}
 	view := PlatformView{
-		Name:            u.GetName(),
-		UID:             string(u.GetUID()),
-		Type:            str(u.Object, "spec", "type"),
-		OperatorVersion: str(u.Object, "status", "operatorVersion"),
-		Applied:         health.ReadApplied(u),
-		Conditions:      conditions(u),
-		Subscriptions:   subscriptions(u),
+		Name:              u.GetName(),
+		UID:               string(u.GetUID()),
+		Type:              str(u.Object, "spec", "type"),
+		ControllerVersion: str(u.Object, "status", "controllerVersion"),
+		Applied:           health.ReadApplied(u),
+		Conditions:        conditions(u),
+		Subscriptions:     subscriptions(u),
 	}
 	view.Registrations, view.RegistrationsAccess = m.readableRegistrations(ctx, who)
 	if len(view.Registrations) > 0 {
