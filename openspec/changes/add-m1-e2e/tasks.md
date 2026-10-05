@@ -7,8 +7,8 @@
 
 ## 2. Logs region shape (internal/ui)
 
-- [ ] 2.1 Unit test: the owner page's `#logs` section has `.logs` as a direct child, each log pane a direct child of it with its summary, tools and pane, on the F1 and image-break captures
-- [ ] 2.2 `task check` green, then commit `test(ui): hold the logs region to the shape the page script refreshes`
+- [x] 2.1 Unit test: the owner page's `#logs` section has `.logs` as a direct child, each log pane a direct child of it with its summary, tools and pane, on the F1 and image-break captures
+- [x] 2.2 `task check` green, then commit `test(ui): hold the logs region to the shape the page script refreshes`
 
 ## 3. Nightly workflow (.github/workflows, test, AGENTS.md)
 
