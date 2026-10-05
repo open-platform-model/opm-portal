@@ -16,3 +16,10 @@ to an old one.
 Every sample has `managedFields`, the `kubectl.kubernetes.io/last-applied-configuration`
 annotation and `spec.values` removed. The files under `inputs/` are what the capture applied; none
 holds Secret data. The full snapshots (about 12 MB) were never committed.
+
+These captures predate the rename of opm-operator to opm-controller. The prose here uses the
+current name; the content and file names under `samples/`, `inputs/` and `out/`, and the paths in
+the screenshots of `04-ui-redesign-screenshots/`, keep every name exactly as it was captured: the
+product, namespace, ServiceAccount, status keys and fixture paths. The same holds for the copies in
+`internal/health/testdata/` and the F1 capture in `testdata/clusters/f1/`, until a recapture on the
+renamed controller replaces F1.
