@@ -7,8 +7,10 @@ mechanism lives in the OpenSpec changes under `openspec/`.
 **Numbering.** Decisions D1 to D11, their requirements and the open questions OQ1 to OQ20 were
 enhancement 0030's numbers until that entry was withdrawn on 2026-10-05; the numbers are unchanged,
 so `0030:D7:R4` and `portal:D7:R4` name the same requirement. Numbers added here start at D12 and
-OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D11:R6, D12
-and OQ21, and closed OQ2, OQ6, OQ8 and OQ20.
+OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
+D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. The never-merged enhancements PR 101 drafted
+the same answers under other numbers (OQ20 as 0030:D7:R5, the floor as 0030:D9:R6/R7); those
+numbers were never adopted, and this file's are the only ones.
 
 ## Citing this record
 
@@ -486,8 +488,9 @@ Identity mapping fails closed: an empty mapped username is refused before any Ku
 prefix unless the deployment declares that the API server trusts the same issuer with the same
 prefixes. A review that errors or times out is a denial. The reads that keep the watched view
 current are not a person's: they are authorized by a SubjectAccessReview for the portal's own
-ServiceAccount, with exactly the groups the API server gives it, and no person's request is ever
-answered with that review. The portal holds no impersonate permission and no write verb other than
+ServiceAccount, with exactly the groups the API server gives it, sent at startup and renewed at a
+bounded interval. A denied, failed or expired review stops that read, and no person's request is
+ever answered with that review. The portal holds no impersonate permission and no write verb other than
 `create` on the review API of R9; the only object it creates is the SubjectAccessReview, which the
 API server evaluates and does not store. It keeps a per-user log of reads because the API server's
 audit log sees only the portal's ServiceAccount.
@@ -511,9 +514,11 @@ audit log sees only the portal's ServiceAccount.
   configured audience; any other token is refused with no Kubernetes call made on its behalf.
 - R9: In-cluster, the only create request the portal sends is `subjectaccessreviews`; it sends no
   other create, update, patch or delete.
-- R10: In-cluster, the portal's own background reads are authorized by a SubjectAccessReview for
-  its ServiceAccount, never by a self review, and no person's request is answered with that
-  ServiceAccount's review.
+- R10: In-cluster, a background read the portal makes for no single user is preceded by an allowed
+  SubjectAccessReview naming the portal's own ServiceAccount for that read's attributes, never by a
+  self review, sent at startup and renewed at a bounded interval; a denied, failed or expired review
+  stops that read, and what it would have read is shown as not readable. No person's request is
+  answered with that ServiceAccount's review.
 
 **Alternatives considered:**
 
@@ -535,7 +540,9 @@ confused deputy.
 
 **Source:** Owner decision 2026-10-04 (milestone 2: in-cluster Deployment, OIDC login,
 SubjectAccessReview-as-user, fail closed on empty identity). Owner decision 2026-10-04 ("Keep the
-seam"). R10: owner answer 2026-10-05 ("SAR for its own SA"). [Research](design/evidence/prior-art-and-access.md),
+seam"). R10: owner answer 2026-10-05 ("SAR for its own SA (Recommended)": at startup and per TTL
+the portal sends a SubjectAccessReview naming its own ServiceAccount, background reads hold that
+grant, and every user-facing answer is still gated by a review as the user). [Research](design/evidence/prior-art-and-access.md),
 access model.
 
 ### D7: Authorize before lookup, and never reveal existence
@@ -583,6 +590,8 @@ pending the owner.
 
 **Kind:** contract
 
+**Depends:** 0013:D28
+
 **Decision:** The portal never reads a Secret's data, in any mode, so it can never serve one. In V1
 it shows no instance's `spec.values`: users supply plain values that unification marks as secrets
 only inside the module's schema, and modules still take plain-string passwords, so no marker in the
@@ -608,6 +617,7 @@ nothing the user's kubeconfig cannot read.
 - R5: In-cluster, no API document, stream event or page carries message text the operator or the
   kernel wrote (condition, history and registration messages, event notes, and the messages in an
   OPM object's raw status); reasons are shown. This holds until the kernel redacts that text.
+- R6: In local mode, condition, event and history messages are shown verbatim.
 
 **Alternatives considered:**
 
@@ -625,7 +635,8 @@ mask on.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observation 14. Core's secret
 marker shape and the plain-string password fields in the first-party modules, read from source. R5:
-owner answer 2026-10-05 to OQ8 ("Hide messages in-cluster").
+owner answer 2026-10-05 to OQ8 ("Hide messages in-cluster"). R6: the local-mode half of the same
+answer, which the question's text recorded (local mode reveals nothing the kubeconfig cannot read).
 
 ### D9: Conditions and history are the record; events are an expiring feed
 
@@ -766,6 +777,8 @@ ConstrainedImpersonation, OQ1) are not used until the floor moves.
 - R1: The portal's documentation states 1.34 as the minimum supported version.
 - R2: The events field selectors the portal sends (`regarding.*`, `reason`, `type`) are verified
   against a 1.34 API server before the in-cluster release.
+- R3: The portal's CI keeps at least one job on a Kubernetes 1.34 cluster, and that job exercises
+  the events field selectors the portal relies on.
 
 **Alternatives considered:**
 
@@ -773,16 +786,20 @@ ConstrainedImpersonation, OQ1) are not used until the floor moves.
   supports.
 - **No declared floor.** Every installer would guess.
 
-**Rationale:** The portal reads what OPM writes, so it should run where OPM runs.
+**Rationale:** The portal reads what OPM writes, so it should run where OPM runs. A floor is only a
+promise if something tests it, which is why R3 keeps a job there. The owner's answer also puts the
+opm-operator on the same floor with its own CI job; that half is tracked in the roadmap, because
+this record binds only the portal.
 
-**Source:** Owner answer 2026-10-05 to OQ2 ("1.34"). OPM's tested range (1.34 to 1.36) and the
+**Source:** Owner answer 2026-10-05 to OQ2 ("1.34 (Recommended)": the oldest version tested today;
+CI keeps one job on the floor and event field selectors are checked there). OPM's tested range (1.34 to 1.36) and the
 event selector measurement at 1.36 ([evidence 01](design/evidence/01-live-cluster-capture/),
 observation 7).
 
 ## Open questions
 
 Each question carries a status. An open one carries **Blocking:** `milestone 2` (must be answered
-before the in-cluster release), `V2`, or `deferrable`.
+before the in-cluster release), `V2`, a named release or event it must precede, or `deferrable`.
 
 ### Access and identity
 
@@ -793,13 +810,13 @@ before the in-cluster release), `V2`, or `deferrable`.
   passthrough works only where the API server trusts the portal's issuer. Binding when V2 adds
   writes (see 0027:OQ26).
 - **OQ2: What is the minimum Kubernetes version?** Status: resolved-by-D12 (owner answer
-  2026-10-05: 1.34). The selector check at 1.34 is D12:R2.
+  2026-10-05: 1.34). The selector check at 1.34 is D12:R2, and the CI job that keeps it is D12:R3.
 - **OQ6: Who may read the cluster-scoped Platform and TransformerRegistrations, and do the
   operator's viewer roles aggregate into `view`?** Status: resolved-by-D11 (owner answer
   2026-10-05: no aggregation; D11:R6).
 - **OQ8: Does the operator's embedded kernel redact marked secret paths in condition and event
-  messages?** Status: resolved-by-D8 (owner answer 2026-10-05: it does not, so message text is
-  hidden in-cluster; D8:R5). Local mode shows messages verbatim.
+  messages?** Status: resolved-by-D8 (owner answer 2026-10-05: "Hide messages in-cluster"; the
+  kernel was found not to redact; D8:R5). Local mode shows messages verbatim (D8:R6).
 - **OQ20: Does change detection in the change stream leak a timing signal across access boundaries
   in-cluster?** Status: resolved-by-D2 (supervisor ruling 2026-10-05, pending the owner: compare each
   subscriber's rendered document with the last one sent to it and send only on a difference;
@@ -847,7 +864,9 @@ before the in-cluster release), `V2`, or `deferrable`.
 ### Product and distribution
 
 - **OQ10: When does the read API leave `v1alpha1`, and who may depend on it before then?** Status:
-  open. Blocking: deferrable. Adapters need to know what the additive-only promise of D2 is worth.
+  open. Blocking: before the first release outside `0.x`, and before any adapter is published as
+  depending on the API. In 0030 it blocked acceptance; with no acceptance stage left, it binds where
+  the promise does. Adapters need to know what the additive-only promise of D2 is worth.
   Candidate: a declared stability point after which a removal needs a new version served beside the
   old one for at least one minor release.
 - **OQ13: Is the portal published as an OPM module?** Status: open. Blocking: deferrable. V1 ships
