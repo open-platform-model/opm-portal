@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-05 (regrouped into Now and Future plans).
+Last updated: 2026-10-05 (local mode in a Pod as a test tool, in review).
 
 ## Where it stands
 
@@ -60,6 +60,12 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 | 29 | The design and this plan moved into the repo when enhancement 0030 was withdrawn |
 | 35 | OIDC sign-in removed and kept as a future plan (owner decision 2026-10-05) |
 | 34 | Every `0030:` citation outside archived changes rewritten as `portal:` (issues 31 and 32) |
+
+### In review
+
+| PR | What |
+| --- | --- |
+| TBD | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
 
 ### Next in V1
 

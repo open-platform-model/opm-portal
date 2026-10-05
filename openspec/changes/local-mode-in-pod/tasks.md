@@ -28,7 +28,7 @@
 
 ## 5. Docs and roadmap (README.md, AGENTS.md, ROADMAP.md)
 
-- [ ] 5.1 README "Try it in a cluster": apply from a release tag, read the token from the log, `port-forward 8090:8090`, open the link, rollout restart for a new token, the trust model in two sentences, delete
-- [ ] 5.2 `AGENTS.md`: `deploy/` in the layout, `task e2e:pod` in the commands and the nightly list
-- [ ] 5.3 `ROADMAP.md`: one line under Now for this change, and "Last updated"
-- [ ] 5.4 `task check` green, then commit `docs: explain how to try the portal in a cluster`
+- [x] 5.1 README "Try it in a cluster": apply from a release tag, read the token from the log, `port-forward 8090:8090`, open the link, rollout restart for a new token, the trust model in two sentences, delete
+- [x] 5.2 `AGENTS.md`: `deploy/` in the layout, `task e2e:pod` in the commands and the nightly list
+- [x] 5.3 `ROADMAP.md`: one line under Now for this change, and "Last updated"
+- [x] 5.4 `task check` green, then commit `docs: explain how to try the portal in a cluster`
