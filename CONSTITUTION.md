@@ -86,16 +86,16 @@ The portal reports what the cluster says, with its source.
     `selfsubjectaccessreviews`, to ask with the user's kubeconfig whether the user may make a
     read so the UI can show locked nodes up front, and `authentication.k8s.io`
     `selfsubjectreviews`, to learn which identity that kubeconfig authenticates as
-    (0030:D5:R6)
+    (portal:D5:R6)
   - In-cluster mode (milestone 2) MUST create only `authorization.k8s.io`
-    `subjectaccessreviews`, to check each read for the signed-in user (0030:D6:R9); it swaps
+    `subjectaccessreviews`, to check each read for the signed-in user (portal:D6:R9); it swaps
     the backend behind the same seam
   - In-cluster mode MUST NOT create a `selfsubjectaccessreviews` or `selfsubjectreviews`: there
     it would check the portal's own ServiceAccount, not the user
 - The portal MUST NOT read Secret data
 - In V1 the portal MUST NOT serve any instance's or package's `spec.values`, and MUST strip the
   `kubectl.kubernetes.io/last-applied-configuration` annotation from every object it serves
-  (0030:D8)
+  (portal:D8)
 - The portal acts as the user: in milestone 1 with the user's kubeconfig, in milestone 2 through
   a SubjectAccessReview for the signed-in user
 - An empty or unmapped identity MUST fail closed; the portal never falls back to its own

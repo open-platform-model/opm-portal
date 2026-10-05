@@ -11,11 +11,10 @@ reading the cluster as your kubeconfig's user. To install a release, download it
 [the how-to for running the portal locally](docs/site/operating/portal/run-the-portal-locally.md)
 describes.
 
-The design is enhancement
-[0030](https://github.com/open-platform-model/enhancements/tree/main/0030) in the OPM
-enhancements repo.
+The design and its decisions are in [docs/DESIGN.md](docs/DESIGN.md); the plan and progress
+are in [ROADMAP.md](ROADMAP.md).
 
-> **Direction (enhancement 0030).** The first version is read-only. It shows what a cluster runs
+> **Direction ([docs/DESIGN.md](docs/DESIGN.md)).** The first version is read-only. It shows what a cluster runs
 > under OPM, from the Platform down to Pods: status as the operator reports it, events, pod logs
 > and a relationship graph. It first runs on your machine with your kubeconfig, then in-cluster
 > with OIDC login, where every read is authorized as the signed-in user. It creates, edits and
