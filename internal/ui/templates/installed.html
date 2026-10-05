@@ -7,6 +7,7 @@
 <section class="panel panel-wide reveal" id="list" aria-label="Installed" data-follow="{{index $p.Topics 0}}">
   <p class="shown">Showing <strong>{{len .Rows}}</strong> of {{.Total}}{{if or .InstancesLocked .PackagesLocked .InstancesProblem .PackagesProblem}} you may read{{end}}</p>
   {{if .UsesSet}}<p class="note">Packages are not included: a package does not record which contracts its render used.</p>{{end}}
+  {{if .ModuleSet}}<p class="note">Packages are not included: a package records a source, not a module.</p>{{end}}
   {{with .InstancesProblem}}{{template "problem-region" .}}{{end}}
   {{if .InstancesLocked}}<div class="locked-panel locked-group">{{template "lock"}}<p><strong>Module instances</strong>: locked. You may not list ModuleInstances{{with index $v.Filters.Values "namespace"}} in namespace <span class="mono">{{.}}</span>{{else}} in every namespace; filter by a namespace you may read{{end}}.</p></div>{{end}}
   {{with .PackagesProblem}}{{template "problem-region" .}}{{end}}
@@ -19,12 +20,12 @@
     {{range .Rows}}
     <tr>
       <th scope="row" data-label="Name"><a href="{{.Href}}">{{.Name}}</a><span class="row-ns mono">{{.Namespace}}</span></th>
-      <td data-label="Kind"><span class="kind kind-{{.Kind}}">{{if eq .Kind "package"}}Package{{else}}Instance{{end}}</span>{{range .ProviderOf}}{{with providerBadge .}} <span class="{{.Class}}" title="{{.Title}}">{{if eq .Class "prov prov-locked"}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}}{{end}}</td>
+      <td data-label="Kind"><span class="kind kind-{{.Kind}}">{{if eq .Kind "package"}}Package{{else}}Instance{{end}}</span>{{range .ProviderOf}}{{with providerBadge .}} <span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}}{{end}}</td>
       <td data-label="Module or source">{{if eq .Kind "package"}}<span class="mono">{{.Source.Kind}} {{with .Source.Namespace}}{{.}}/{{end}}{{.Source.Name}}</span>{{with .Path}} <span class="ver">path {{.}}</span>{{end}}{{else}}<span class="mono">{{template "breakable" .Module.Path}}</span>{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}{{end}}</td>
       <td data-label="Applied">{{template "applied" .Reconcile}}</td>
       <td data-label="Health">{{template "health" .Health}}</td>
       <td data-label="Objects" class="num">{{.Objects}}</td>
-      <td data-label="Owner">{{ownerText .Owner}}</td>
+      <td data-label="Owner">{{.Owner}}</td>
     </tr>
     {{end}}
     </tbody>

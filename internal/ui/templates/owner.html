@@ -52,7 +52,7 @@
     <h2 id="provider-h">Provider <span class="h-note">the controller's verdict on what this holds</span></h2>
     <ul class="claims">
     {{range .ProviderOf}}
-      <li>{{with claimBadge .}}<span class="{{.Class}}" title="{{.Title}}">{{if eq .Class "prov prov-locked"}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}} <span class="mono">{{template "breakable" .Registration}}</span>{{with .Reason}} <span class="mono muted">{{.}}</span>{{end}}{{if ne .Access "ok"}} <span class="muted">{{accessText .Access}}</span>{{end}}</li>
+      <li>{{with claimBadge .}}<span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}} <span class="mono">{{template "breakable" .Registration}}</span>{{with .Reason}} <span class="mono muted">{{.}}</span>{{end}}{{if ne .Access "ok"}} <span class="muted">{{accessText .Access}}</span>{{end}}</li>
     {{end}}
     </ul>
   </section>

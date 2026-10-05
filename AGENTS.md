@@ -287,9 +287,10 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   `TestBrowserLogs`, which refreshes a logs region under a tailed, focused pane and checks the
   pane keeps its scroll offset, focus and tail; run it after any change to the page script's
   refresh or log code. `TestBrowserExpired` ends a page's stream with the `expired` event and
-  checks the page says so and does not reconnect. `TestBrowserTheme` checks over the F1 capture that a stored Dark theme paints dark
-  first, and that a stored Installed filter opens filtered on a full load and on a boosted
-  navigation; run it after any change to `prefs.js` or the page script's filter code.
+  checks the page says so and does not reconnect. `TestBrowserTheme` checks over the F1
+  capture that a stored Dark theme paints dark first, and that a stored Installed filter opens
+  filtered on a full load and on a boosted navigation; run it after any change to `prefs.js`
+  or the page script's filter code.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,

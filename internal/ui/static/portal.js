@@ -28,12 +28,35 @@
   // it for this page and keeps it in the browser when storage allows.
   var prefs = window.opmPortalPrefs || null;
 
+  var themeNames = { light: "Light", dark: "Dark", system: "System" };
+
   function markTheme() {
     var cur = document.documentElement.getAttribute("data-theme") || "system";
     document.querySelectorAll("[data-theme-choice]").forEach(function (b) {
-      b.setAttribute("aria-checked", b.getAttribute("data-theme-choice") === cur ? "true" : "false");
+      b.setAttribute("aria-pressed", b.getAttribute("data-theme-choice") === cur ? "true" : "false");
+    });
+    document.querySelectorAll("[data-theme-summary]").forEach(function (s) {
+      s.setAttribute("aria-label", "Theme: " + (themeNames[cur] || "System"));
     });
   }
+
+  // Escape and a click outside close the theme menu.
+  document.addEventListener("keydown", function (evt) {
+    var open = document.querySelector("details.theme[open]");
+    if (open && evt.key === "Escape") {
+      open.open = false;
+      var s = open.querySelector("summary");
+      if (s) {
+        s.focus();
+      }
+    }
+  });
+  document.addEventListener("click", function (evt) {
+    var open = document.querySelector("details.theme[open]");
+    if (open && !open.contains(evt.target)) {
+      open.open = false;
+    }
+  });
   markTheme();
 
   document.addEventListener("click", function (evt) {
@@ -77,6 +100,10 @@
   // topic change never are.
   document.addEventListener("htmx:configRequest", function (evt) {
     var d = evt.detail;
+    if (d && d.verb === "get" && d.elt && d.elt.matches && d.elt.matches("form[data-filters]")) {
+      dropEmpty(d);
+      return;
+    }
     if (!prefs || !d || !d.boosted || d.verb !== "get" || !d.elt || d.elt.tagName !== "A" ||
         d.elt.hasAttribute("data-filters-explicit")) {
       return;
@@ -96,14 +123,40 @@
     }
   });
 
-  // After each render, a remembered view stores the filters it shows.
+  // dropEmpty leaves the fields a filter form submits empty out of its
+  // request, so the address shows only the filters that apply.
+  function dropEmpty(d) {
+    var empty = [];
+    if (d.formData && d.formData.forEach) {
+      d.formData.forEach(function (v, k) {
+        if (v === "") {
+          empty.push(k);
+        }
+      });
+    }
+    empty.forEach(function (k) {
+      try {
+        d.formData.delete(k);
+        delete d.parameters[k];
+      } catch (e) {
+        // The request keeps the empty field; it filters nothing.
+      }
+    });
+  }
+
+  // After each render, a remembered view stores the filters it shows;
+  // a document prefs.js is replacing stores nothing.
   function rememberFilters() {
-    if (prefs) {
+    if (prefs && !prefs.restoring) {
       prefs.remember(location.pathname, location.search);
     }
   }
   rememberFilters();
   document.addEventListener("htmx:pushedIntoHistory", rememberFilters);
+  document.addEventListener("htmx:historyRestore", function () {
+    rememberFilters();
+    markTheme();
+  });
 
   // "Clear filters" forgets the view first, so nothing restores them.
   document.addEventListener("click", function (evt) {

@@ -34,18 +34,13 @@ type filterView struct {
 	Params []filterParam
 }
 
-var (
-	healthValues  = []string{"Healthy", "Progressing", "Degraded", "Missing", "Unknown"}
-	appliedValues = []string{"Applied", "Reconciling", "Failed", "Stalled", "Suspended", "ManagedExternally", "Unknown"}
-)
-
 // installedFilters are the Installed list's filters.
 var installedFilters = filterView{Key: "installed", Path: "/installed", Params: []filterParam{
 	{Name: "q", Label: "Search"},
 	{Name: "kind", Label: "Kind", Values: []string{"instance", "package"},
 		Text: map[string]string{"instance": "Instance", "package": "Package"}},
 	{Name: "provider", Label: "Provider", Values: []string{"yes", "no"},
-		Text: map[string]string{"yes": "holds a registration", "no": "holds no registration"}},
+		Text: map[string]string{"yes": "Provider", "no": "Not a provider"}},
 	{Name: "uses", Label: "Uses"},
 	{Name: "namespace", Label: "Namespace"},
 	{Name: "health", Label: "Health", Values: healthValues, Text: healthText},

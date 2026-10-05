@@ -217,8 +217,12 @@ func (h *Handler) header(r *http.Request) header {
 		return header{}
 	}
 	hd := header{OK: true, Cluster: c.Context, Context: c.Context, Username: c.ReadingAs.Username, Version: c.KubernetesVersion}
-	if c.Source == v1.SourceInCluster || c.Context == "" {
+	switch {
+	case c.Source == v1.SourceInCluster:
 		hd.Cluster, hd.Context = "in cluster", v1.SourceInCluster
+	case c.Context == "":
+		// No context to key remembered filters by: the browser keeps none.
+		hd.Cluster = "unknown"
 	}
 	return hd
 }

@@ -436,11 +436,12 @@ func text(n *html.Node) string {
 func TestPagesDeclareTheirTopics(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for path, want := range map[string]string{
-		"/":                          "platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture",
-		"/installed":                 "instances",
-		"/installed?namespace=web":   "instances:web",
-		"/instances/default/podinfo": "instance:default/podinfo events:instance:default/podinfo",
-		"/packages/pkg/podinfo":      "package:pkg/podinfo events:package:pkg/podinfo",
+		"/":                                "platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture",
+		"/installed":                       "instances",
+		"/installed?namespace=web":         "instances:web",
+		"/installed?namespace=Not_A_Label": "instances",
+		"/instances/default/podinfo":       "instance:default/podinfo events:instance:default/podinfo",
+		"/packages/pkg/podinfo":            "package:pkg/podinfo events:package:pkg/podinfo",
 	} {
 		body := s.get(t, path).body
 		main := between(body, "<main ", ">")

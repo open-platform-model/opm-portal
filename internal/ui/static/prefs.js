@@ -161,6 +161,7 @@
   }
 
   window.opmPortalPrefs = {
+    restoring: false,
     setTheme: setTheme,
     restored: restored,
     remember: remember,
@@ -169,6 +170,9 @@
 
   var next = restored(location.pathname, location.search);
   if (next !== null) {
+    // Nothing of this document is painted or remembered: it is replaced.
+    root.classList.add("opm-restoring");
+    window.opmPortalPrefs.restoring = true;
     location.replace(next);
   }
 })();

@@ -17,27 +17,41 @@ type badge struct {
 	Class string
 	Text  string
 	Title string
+	// Locked: the caller may not read what the badge is about.
+	Locked bool
 }
 
-// appliedText names the applied states the UI knows. Any other value is
-// shown as unknown, never as an error (portal:D2:R3).
-var appliedText = map[string]string{
-	"Applied":           "Applied",
-	"Reconciling":       "Reconciling",
-	"Failed":            "Failed",
-	"Stalled":           "Stalled",
-	"Suspended":         "Suspended",
-	"ManagedExternally": "Managed externally",
-	"Unknown":           "Unknown",
+// state is one value of an axis the UI knows, with its words.
+type state struct{ Value, Text string }
+
+// appliedStates are the applied states the UI knows, in the order the
+// pages list them. Any other value is shown as unknown, never as an error
+// (portal:D2:R3).
+var appliedStates = []state{
+	{"Applied", "Applied"}, {"Reconciling", "Reconciling"}, {"Failed", "Failed"}, {"Stalled", "Stalled"},
+	{"Suspended", "Suspended"}, {"ManagedExternally", "Managed externally"}, {"Unknown", "Unknown"},
 }
 
-// healthText names the health states the UI knows.
-var healthText = map[string]string{
-	"Healthy":     "Healthy",
-	"Progressing": "Progressing",
-	"Degraded":    "Degraded",
-	"Missing":     "Missing",
-	"Unknown":     "Unknown",
+// healthStates are the health states the UI knows, in order.
+var healthStates = []state{
+	{"Healthy", "Healthy"}, {"Progressing", "Progressing"}, {"Degraded", "Degraded"}, {"Missing", "Missing"}, {"Unknown", "Unknown"},
+}
+
+// appliedText and healthText name each state; appliedValues and
+// healthValues list them in order. All four come from the tables above.
+var (
+	appliedText, appliedValues = stateTable(appliedStates)
+	healthText, healthValues   = stateTable(healthStates)
+)
+
+func stateTable(states []state) (text map[string]string, values []string) {
+	text = make(map[string]string, len(states))
+	values = make([]string, 0, len(states))
+	for _, s := range states {
+		text[s.Value] = s.Text
+		values = append(values, s.Value)
+	}
+	return text, values
 }
 
 // verdictText names the registration verdicts the UI knows.
@@ -105,6 +119,7 @@ func verdictBadge(v string) badge { return known("verdict", verdictText, v) }
 func providerBadge(c v1.ProviderClaim) badge {
 	b := badge{Class: "prov", Text: "Provider", Title: c.Registration}
 	if c.Access != v1.AccessOK {
+		b.Locked = true
 		b.Class += " prov-locked"
 		b.Text = "Provider, locked"
 		b.Title = c.Registration + ": " + accessText(c.Access)
@@ -116,6 +131,7 @@ func providerBadge(c v1.ProviderClaim) badge {
 		b.Text = "Provider, removal blocked"
 	case c.Verdict == verdictAccepted && c.Active:
 		b.Class += " prov-active"
+		b.Text = "Provider, active"
 	case c.Verdict == verdictAccepted:
 		b.Class += " prov-inactive"
 		b.Text = "Provider, not active"

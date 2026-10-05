@@ -63,6 +63,33 @@ func clusterAs(api http.Handler, status int, body string) http.Handler {
 	})
 }
 
+// TestHeaderWithoutAContext: a kubeconfig source that names no context
+// reads unknown, and the browser keys no filters by it.
+func TestHeaderWithoutAContext(t *testing.T) {
+	doc, err := json.Marshal(map[string]any{
+		"apiVersion": "portal.opmodel.dev/v1alpha1", "kind": "Cluster", "name": "default", "mode": "local",
+		"source": "kubeconfig", "readingAs": map[string]string{"username": "alice"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	body := mount(t, clusterAs(apitest.New(t, apitest.F1(t), apitest.AllowAll), http.StatusOK, string(doc))).get(t, "/").body
+	if !strings.Contains(between(body, "<header", "</header>"), `title="The kubeconfig context the portal reads with">unknown</span>`) ||
+		strings.Contains(body, "data-context=") {
+		t.Errorf("a header without a context:\n%s", between(body, "<html", "</header>"))
+	}
+}
+
+// TestThemeMenuIsAGroupOfPressedButtons: three buttons, the current one
+// pressed, and the summary names the choice.
+func TestThemeMenuIsAGroupOfPressedButtons(t *testing.T) {
+	head := between(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body, `<details class="theme"`, "</details>")
+	if !strings.Contains(head, `<summary aria-label="Theme: System" data-theme-summary>`) || strings.Contains(head, "menuitem") ||
+		strings.Count(head, "aria-pressed=") != 3 || !strings.Contains(head, `aria-pressed="true" data-theme-choice="system"`) {
+		t.Errorf("theme menu:\n%s", head)
+	}
+}
+
 func TestHeaderWithoutAVersion(t *testing.T) {
 	doc, err := json.Marshal(map[string]any{
 		"apiVersion": "portal.opmodel.dev/v1alpha1", "kind": "Cluster", "name": "default", "mode": "local",
@@ -135,8 +162,11 @@ func TestTheBrowserStoresOnlyPreferences(t *testing.T) {
 		!strings.Contains(src, `return "opm-portal.filters." + view + ":" + context();`) {
 		t.Error("prefs.js does not name the theme key and the per-context filter key as expected")
 	}
-	for _, call := range regexp.MustCompile(`\bwrite\(((?:[^,()]|\([^)]*\))*)`).FindAllStringSubmatch(src, -1) {
-		if arg := strings.TrimSpace(call[1]); arg != "THEME_KEY" && arg != "filterKey(view)" && arg != "key" {
+	for _, call := range regexp.MustCompile(`(function )?\bwrite\(((?:[^,()]|\([^)]*\))*)`).FindAllStringSubmatch(src, -1) {
+		if call[1] != "" {
+			continue // the definition
+		}
+		if arg := strings.TrimSpace(call[2]); arg != "THEME_KEY" && arg != "filterKey(view)" {
 			t.Errorf("prefs.js writes storage under %s, which is neither the theme key nor a filter key", arg)
 		}
 	}

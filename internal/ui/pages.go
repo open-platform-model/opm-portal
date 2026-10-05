@@ -45,6 +45,9 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 	}})
 }
 
+// unauthenticated reports whether a read was refused for want of a session.
+func unauthenticated(p *v1.Problem) bool { return p != nil && p.Code == v1.CodeUnauthenticated }
+
 // problemStatus is the page status a main document's problem gives. A
 // forbidden document renders as a locked region of a page that was served
 // as asked, so it is 200, as the read API answers a list the caller may
@@ -112,8 +115,10 @@ type installedView struct {
 	Rows             []installedRow
 	// Total is the number of rows before the filters.
 	Total int
-	// UsesSet: the uses filter leaves packages out, and the page says so.
-	UsesSet bool
+	// UsesSet and ModuleSet: the uses or module filter leaves packages
+	// out, and the page says so.
+	UsesSet   bool
+	ModuleSet bool
 	// Suggestions for the free-text filters, from the rows the caller may
 	// read.
 	Namespaces []string
@@ -133,11 +138,11 @@ func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
 	var packages v1.PackageList
 	if readable {
 		v.InstancesProblem = h.fetch(r, "/instances", query, &instances)
-		if v.InstancesProblem != nil && v.InstancesProblem.Code == v1.CodeUnauthenticated {
+		v.PackagesProblem = h.fetch(r, "/packages", query, &packages)
+		if unauthenticated(v.InstancesProblem) || unauthenticated(v.PackagesProblem) {
 			h.signIn(w, r)
 			return
 		}
-		v.PackagesProblem = h.fetch(r, "/packages", query, &packages)
 		v.InstancesLocked = v.InstancesProblem == nil && instances.Access != v1.AccessOK
 		v.PackagesLocked = v.PackagesProblem == nil && packages.Access != v1.AccessOK
 	}
@@ -165,24 +170,20 @@ func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
 	slices.Sort(v.Contracts)
 	slices.Sort(v.Modules)
 	slices.Sort(v.Namespaces)
-	v.UsesSet = fv["uses"] != ""
+	v.UsesSet, v.ModuleSet = fv["uses"] != "", fv["module"] != ""
 
+	// The topic names the namespace only when the read API could be asked
+	// for it, so a malformed one never reaches the stream.
 	topic := "instances"
-	if ns != "" {
+	if ns != "" && readable {
 		topic += ":" + ns
 	}
-	status := http.StatusOK
-	if v.InstancesProblem != nil && v.InstancesProblem.Code != v1.CodeForbidden {
-		status = problemStatus(v.InstancesProblem)
-	}
+	status := max(problemStatus(v.InstancesProblem), problemStatus(v.PackagesProblem))
 	h.render(w, r, status, "installed", page{Title: "Installed", Nav: "installed", Topics: []string{topic}, Main: v})
 }
 
 func instanceRow(it *v1.InstanceSummary) installedRow {
-	owner := ownerController
-	if it.Owner != "operator" {
-		owner = it.Owner
-	}
+	owner := ownerText(it.Owner)
 	return installedRow{
 		Kind: instanceKind.Topic, Href: instanceKind.base(it.Ref.Namespace, it.Ref.Name),
 		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Module: it.Module,
@@ -201,8 +202,10 @@ func packageRow(it *v1.PackageSummary) installedRow {
 }
 
 // matchesInstalled applies the Installed filters to one row. Free text
-// and names are matched as given; module and uses name what an instance
-// records, so a package never matches them (portal:D16:R2).
+// and names are matched as given. uses names what an instance's render
+// used, which a package does not record (portal:D16:R2), and module what
+// an instance was rendered from, where a package records a source; a
+// package matches neither.
 func matchesInstalled(row *installedRow, f map[string]string) bool {
 	if q := strings.ToLower(f["q"]); q != "" {
 		hay := strings.ToLower(strings.Join([]string{row.Namespace, row.Name, row.Module.Path, row.Source.Kind, row.Source.Name, row.Path}, " "))

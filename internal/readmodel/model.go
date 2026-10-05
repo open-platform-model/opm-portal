@@ -216,7 +216,7 @@ func (m *Model) readServerVersion(ctx context.Context) <-chan struct{} {
 // ServerVersion, which takes no context.
 func serverVersion(ctx context.Context, d discovery.DiscoveryInterface) (*version.Info, error) {
 	rc := d.RESTClient()
-	if rc == nil || reflect.ValueOf(rc).IsNil() {
+	if v := reflect.ValueOf(rc); rc == nil || (v.Kind() == reflect.Pointer && v.IsNil()) {
 		return d.ServerVersion()
 	}
 	body, err := rc.Get().AbsPath("/version").Do(ctx).Raw()

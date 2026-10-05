@@ -209,6 +209,10 @@ a:hover { color: var(--accent); }
 .skip { position: absolute; left: -999px; top: 0; }
 .skip:focus { left: 16px; top: 8px; z-index: 10; background: var(--surface); padding: 6px 10px; }
 
+/* While prefs.js moves to the remembered filters, the unfiltered view is
+   never painted. */
+.opm-restoring body { visibility: hidden; }
+
 /* ---- Masthead ---- */
 
 .sentinel { position: absolute; top: 48px; left: 0; width: 1px; height: 1px; pointer-events: none; }
@@ -265,8 +269,8 @@ body.is-offline .live-dot { background: var(--live-off); }
 .theme-list { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; min-width: 160px; display: flex; flex-direction: column; padding: 6px; border-radius: 10px; border: 1px solid var(--hdr-line); background: var(--hdr-menu); box-shadow: 0 12px 28px -10px var(--hdr-shadow); }
 .theme-list button { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 36px; padding: 6px 12px; border-radius: 6px; background: transparent; color: var(--hdr-strong); font-weight: 400; text-align: left; }
 .theme-list button:hover { background: var(--hdr-menu-hover); color: var(--hdr-strong); }
-.theme-list button[aria-checked="true"] { background: var(--hdr-menu-hover); }
-.theme-list button[aria-checked="true"]::after { content: "✓"; color: var(--hdr-accent); }
+.theme-list button[aria-pressed="true"] { background: var(--hdr-menu-hover); }
+.theme-list button[aria-pressed="true"]::after { content: "✓"; color: var(--hdr-accent); }
 
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--healthy) 60%, transparent); }
