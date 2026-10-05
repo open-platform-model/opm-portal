@@ -325,7 +325,7 @@ func TestRotatedKeyIsAcceptedAfterTheInterval(t *testing.T) {
 	}
 }
 
-func TestACancelledRequestDoesNotUseUpTheKeyRefresh(t *testing.T) {
+func TestACanceledRequestDoesNotUseUpTheKeyRefresh(t *testing.T) {
 	f := newOIDCFixture(t, nil, oidctest.Options{})
 	f.iss.Rotate()
 	f.clk.Advance(defaultKeyRefreshInterval)
@@ -333,13 +333,16 @@ func TestACancelledRequestDoesNotUseUpTheKeyRefresh(t *testing.T) {
 	cancel()
 	r := httptest.NewRequestWithContext(ctx, http.MethodGet, portalURL+"/", http.NoBody)
 	r.Header.Set("Authorization", "Bearer "+f.iss.Sign(f.iss.Claims("mallory", f.iss.ClientID())))
-	_, _, _ = f.o.Authenticate(r) // the caller hung up before the answer
+	// The caller hung up before the answer; the fetch it started still runs.
+	if _, _, err := f.o.Authenticate(r); err != nil {
+		t.Fatalf("the canceled request: %v", err)
+	}
 	if got := f.iss.KeyFetches(); got != 2 {
-		t.Fatalf("key fetches after the cancelled request = %d, want 2", got)
+		t.Fatalf("key fetches after the canceled request = %d, want 2", got)
 	}
 	token := f.iss.Sign(f.iss.Claims("alice", f.iss.ClientID()))
 	if _, _, err := f.o.Authenticate(bearerRequest(t, token)); err != nil {
-		t.Fatalf("a key rotated in is refused after a cancelled request: %v", err)
+		t.Fatalf("a key rotated in is refused after a canceled request: %v", err)
 	}
 }
 
