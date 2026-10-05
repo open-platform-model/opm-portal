@@ -40,7 +40,7 @@ func TestPod(t *testing.T) {
 		return exec.CommandContext(ctx, "kubectl", append([]string{"--kubeconfig", kubeconfig, "--context", kubeContext, "-n", podNamespace}, args...)...)
 	}
 
-	podLog := waitForLaunchLine(ctx, t, kubectl)
+	podLog := waitForLaunchLine(ctx, t, kubectl, "")
 	if !strings.Contains(podLog, "user="+podIdentity) || !strings.Contains(podLog, "source=in-cluster") {
 		t.Fatalf("the Pod log does not name %s with source=in-cluster:\n%s", podIdentity, podLog)
 	}
@@ -81,19 +81,38 @@ func TestPod(t *testing.T) {
 	if res := get(ctx, t, &http.Client{Timeout: 30 * time.Second}, link.String(), nil); res.status != http.StatusForbidden {
 		t.Fatalf("second launch: %d; want 403", res.status)
 	}
+
+	// The documented recovery: restart the Pod, read the new link from its
+	// log, and launch with it.
+	stop()
+	if out, err := kubectl("rollout", "restart", "deploy/opm-portal").CombinedOutput(); err != nil {
+		t.Fatalf("rollout restart: %v\n%s", err, out)
+	}
+	if out, err := kubectl("rollout", "status", "deploy/opm-portal", "--timeout=180s").CombinedOutput(); err != nil {
+		t.Fatalf("rollout status: %v\n%s", err, out)
+	}
+	fresh, err := url.Parse(launchLine.FindStringSubmatch(waitForLaunchLine(ctx, t, kubectl, link.String()))[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	portForward(ctx, t, kubectl, podPort) // stopped by its cleanup
+	launch(ctx, t, fresh)
+	t.Log("after a rollout restart, the new Pod's launch link admits a browser")
 }
 
-// waitForLaunchLine returns the Pod's log once it holds the launch link.
-func waitForLaunchLine(ctx context.Context, t *testing.T, kubectl func(...string) *exec.Cmd) string {
+// waitForLaunchLine returns the Pod's log once one portal Pod is left and
+// its log holds a launch link other than previous.
+func waitForLaunchLine(ctx context.Context, t *testing.T, kubectl func(...string) *exec.Cmd, previous string) string {
 	t.Helper()
-	deadline := time.Now().Add(90 * time.Second)
+	deadline := time.Now().Add(120 * time.Second)
 	for {
+		pods, perr := kubectl("get", "pods", "-l", "app.kubernetes.io/name=opm-portal", "-o", "name").Output()
 		out, err := kubectl("logs", "deploy/opm-portal").CombinedOutput()
-		if err == nil && launchLine.Match(out) {
+		if m := launchLine.FindSubmatch(out); perr == nil && err == nil && len(strings.Fields(string(pods))) == 1 && m != nil && string(m[1]) != previous {
 			return string(out)
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("no launch link in the Pod log within 90 s: %v\n%s", err, out)
+			t.Fatalf("no new launch link in the log of a single Pod within 120 s: %v\n%s", err, out)
 		}
 		select {
 		case <-ctx.Done():
