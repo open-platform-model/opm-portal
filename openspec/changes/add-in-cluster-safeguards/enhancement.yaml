@@ -1,0 +1,14 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time. Whole decisions only.
+#
+# This change carries two answers that are not yet decisions of 0030: the
+# owner's answer to 0030:OQ8 (in-cluster mode omits operator message text
+# until the kernel redacts) and the supervisor's ruling on 0030:OQ20 (each
+# subscriber is written only a change to its own rendered document). Both
+# questions are still open in 07-questions.md, so neither is claimed under
+# `resolves`, and no decision is claimed: the delivery log records the
+# landing by its summary until 0030 records the answers.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []

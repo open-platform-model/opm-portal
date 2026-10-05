@@ -204,6 +204,12 @@ type subscription struct {
 	attrs       []authz.Attributes
 	grants      []authz.Grant
 	snapshotSeq uint64
+	// sent is the document last written for this subscription on its
+	// current connection: the item of an upsert, delete or k8sevent event,
+	// or a snapshot's only item. nil when nothing was written yet, after a
+	// snapshot of more or fewer than one item, and after a reconnect. An
+	// item equal to it is not written (Stream.eventID). Guarded by Broker.mu.
+	sent []byte
 }
 
 // streamState is a stream as the broker tracks it. conn is nil while the
@@ -679,6 +685,9 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*
 			}
 			sub.grants = d.grants
 		}
+		// The new connection may not hold what the old one last wrote, so
+		// its first document for the topic is written whatever it says.
+		sub.sent = nil
 		items, snapshot := b.resumeTopicLocked(sub, after)
 		replay = append(replay, items...)
 		if snapshot != nil {

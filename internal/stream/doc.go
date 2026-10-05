@@ -16,6 +16,15 @@
 // increase along a stream. Ids count the stream's own events, so a gap never
 // reveals an item left out for the reader or anything published elsewhere.
 //
+// A topic changes for everyone at once, but each subscriber's document is
+// rendered for them. The stream remembers, per subscription, the document it
+// last wrote (an upsert, delete or k8sevent item, or a snapshot's only item)
+// and writes a later item only when it differs, so a change a subscriber
+// cannot see, or a refresh that changed nothing, sends them no event and
+// takes no id: they cannot tell when it happened. A reconnect forgets the
+// remembered documents, so its first item per topic is always written. Log
+// lines are records, not documents, and are never compared.
+//
 // # The producer contract
 //
 // The read model and the log reader implement Producer, joined by a Mux, and
