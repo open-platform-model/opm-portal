@@ -1,8 +1,8 @@
 ## 1. Design record and rules (docs/DESIGN.md, AGENTS.md, CONSTITUTION.md, openspec/config.yaml)
 
-- [ ] 1.1 `docs/DESIGN.md`: add portal:D13 (Kind, Decision, Requirements R1 to R4, Alternatives, Rationale, Source); amend D5's decision text, R1 and alternatives in place to point at D13; update the numbering header and the Summary/Operations lines that say nothing is installed
-- [ ] 1.2 `AGENTS.md` Security Rules, `CONSTITUTION.md` Principle V and `openspec/config.yaml` Principle V: one-line carve-out that a Pod running local mode reads as its configured ServiceAccount per portal:D13, and the no-fallback rule still binds in-cluster mode
-- [ ] 1.3 `task check` green, then commit `docs(design): let local mode run in a Pod as a test tool (portal:D13)`
+- [x] 1.1 `docs/DESIGN.md`: add portal:D13 (Kind, Decision, Requirements R1 to R4, Alternatives, Rationale, Source); amend D5's decision text, R1 and alternatives in place to point at D13; update the numbering header and the Summary/Operations lines that say nothing is installed
+- [x] 1.2 `AGENTS.md` Security Rules, `CONSTITUTION.md` Principle V and `openspec/config.yaml` Principle V: one-line carve-out that a Pod running local mode reads as its configured ServiceAccount per portal:D13, and the no-fallback rule still binds in-cluster mode
+- [x] 1.3 `task check` green, then commit `docs(design): let local mode run in a Pod as a test tool (portal:D13)`
 
 ## 2. Name the in-cluster source at startup (cmd/opm-portal)
 

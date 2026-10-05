@@ -167,7 +167,9 @@ hold in every change; a change that bends one needs a decision in `docs/DESIGN.m
   user before the lookup, and returns the same denial for a missing object as for a forbidden
   one.
 - **Fail closed on an empty identity.** An empty or unmapped identity is denied, and an
-  authorization error is a denial. Never fall back to the portal's own ServiceAccount.
+  authorization error is a denial. Never fall back to the portal's own ServiceAccount. (A Pod
+  running local mode from `deploy/` reads as its configured ServiceAccount per portal:D13; the
+  rule still binds in-cluster mode.)
 - **No secrets in logs or errors.** Tokens, cookies, kubeconfig content and `Authorization`
   headers never appear in a log line, an error message or an API response.
 - **Untrusted text everywhere.** Condition messages, event notes, labels, annotations and log

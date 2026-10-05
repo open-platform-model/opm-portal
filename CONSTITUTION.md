@@ -100,7 +100,8 @@ The portal reports what the cluster says, with its source.
 - The portal acts as the user: in milestone 1 with the user's kubeconfig, in milestone 2 through
   a SubjectAccessReview for the signed-in user
 - An empty or unmapped identity MUST fail closed; the portal never falls back to its own
-  ServiceAccount
+  ServiceAccount (a Pod running local mode reads as its configured ServiceAccount per
+  portal:D13; the rule still binds in-cluster mode)
 - Tokens, kubeconfig content and `Authorization` headers MUST NOT appear in logs or errors
 
 `AGENTS.md`, "Security Rules", lists the working rules that follow from this principle.

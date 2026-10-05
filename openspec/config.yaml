@@ -58,7 +58,9 @@ context: |
     annotation from every object it serves (portal:D8).
   - The portal acts as the user: in M1 with the user's kubeconfig, in M2 through
     SubjectAccessReview for the authenticated user. An empty or unmapped identity MUST fail
-    closed (deny), never fall through to the portal's own ServiceAccount.
+    closed (deny), never fall through to the portal's own ServiceAccount. A Pod running local
+    mode reads as its configured ServiceAccount per portal:D13; the rule still binds in-cluster
+    mode.
   - Tokens, kubeconfig content and `Authorization` headers MUST NOT appear in logs or errors.
 
   ### VI. Semantic Versioning & Commits

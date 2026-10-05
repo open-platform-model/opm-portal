@@ -8,7 +8,8 @@ mechanism lives in the OpenSpec changes under `openspec/`.
 enhancement 0030's numbers until that entry was withdrawn on 2026-10-05; the numbers are unchanged,
 so `0030:D7:R4` and `portal:D7:R4` name the same requirement. Numbers added here start at D12 and
 OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
-D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. The never-merged enhancements PR 101 drafted
+D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. D13 (2026-10-05) lets local mode run
+in a Pod as a test tool. The never-merged enhancements PR 101 drafted
 the same answers under other numbers (OQ20 as 0030:D7:R5, the floor as 0030:D9:R6/R7); those
 numbers were never adopted, and this file's are the only ones.
 
@@ -56,7 +57,8 @@ Available for ten minutes.
 **Graphs come only from recorded state (D4).** No module is re-rendered. V1 draws no "requires"
 edges, because the recorded contracts are everything a render used, not what it demands.
 
-**Your access is the boundary (D5, D6, D7).** Locally, the portal reads with your kubeconfig.
+**Your access is the boundary (D5, D6, D7).** Locally, the portal reads with your kubeconfig; as a
+single-user test tool in a Pod, with its ServiceAccount (D13).
 In-cluster, a future plan, every read is checked for the signed-in user first and empty identity
 is refused. Either way a missing object looks like a forbidden one.
 
@@ -432,9 +434,11 @@ phases 7 to 9; [evidence 02](design/evidence/02-live-graph-spike/). Registration
 **Kind:** contract
 
 **Decision:** In local mode the portal is a binary on the user's machine that reads the cluster
-only as the kubeconfig's identity. It binds to loopback only, refuses a request whose `Host` is not
+only as the kubeconfig's identity; the same mode may also run in a Pod as a single-user test tool,
+reading as the Pod's ServiceAccount (D13). It binds to loopback only, refuses a request whose `Host` is not
 that loopback address, and admits a browser only through a one-time launch token exchanged for a
-session cookie. There is no login code against the cluster and nothing to install in it. Before
+session cookie. There is no login code against the cluster, and on a user's machine nothing to
+install in it. Before
 each read the portal asks the API server whether the kubeconfig's identity may make it, with a
 SelfSubjectAccessReview for the exact verb, resource, namespace and name, and learns who that
 identity is with a SelfSubjectReview. A node the user may not read is shown locked up front, and
@@ -443,8 +447,9 @@ reviews are the only objects local mode creates; the API server evaluates them a
 
 **Requirements:**
 
-- R1: In local mode every cluster read is made as the kubeconfig's identity; the portal adds no
-  credential and installs nothing in the cluster.
+- R1: In local mode every cluster read is made as the kubeconfig's identity, or in a Pod as the
+  Pod's ServiceAccount (D13); the portal adds no credential of its own, and on a user's machine
+  installs nothing in the cluster.
 - R2: Local mode refuses to listen on a non-loopback address.
 - R3: A request that does not carry the session established from the launch token is refused, so
   another local user or process cannot read the cluster through the portal.
@@ -465,7 +470,9 @@ reviews are the only objects local mode creates; the API server evaluates them a
 - **Loopback without a launch token.** Any local process or user can reach loopback; the token is
   the same defence notebook servers use.
 - **A container image as the only artifact.** A container cannot reach a kind API server on host
-  loopback or serve a browser on loopback without host networking.
+  loopback or serve a browser on loopback without host networking. The image does run local mode
+  in a Pod, reached through `kubectl port-forward`, but only as the test tool of D13, beside the
+  binary.
 - **No access review in local mode** (read, and map the API server's refusal). The UI learns a node
   is locked only after a failed read, and in-cluster mode would need a second authorization path.
 
@@ -827,6 +834,56 @@ this record binds only the portal.
 CI keeps one job on the floor and event field selectors are checked there). OPM's tested range (1.34 to 1.36) and the
 event selector measurement at 1.36 ([evidence 01](design/evidence/01-live-cluster-capture/),
 observation 7).
+
+### D13: Local mode may run in a Pod as a single-user test tool
+
+**Kind:** scope
+
+**Decision:** The portal ships a manifest that runs local mode, unchanged, in a Pod: bound to
+loopback, admitting a browser only through the launch token, learning its identity with a
+SelfSubjectReview and checking each read with a SelfSubjectAccessReview. With no kubeconfig in the
+Pod, client-go loads the in-cluster configuration, so the identity is the Pod's ServiceAccount,
+bound to a read-only role. The manifest has no Service, Ingress or probe: the only way in is
+`kubectl port-forward` to the bound port, and the launch link is in the Pod's log. Everyone who
+holds the launch token reads what that ServiceAccount may read, not what they themselves may
+read. This is a tool for trying the portal on a cluster, not D6's in-cluster mode, which stays a
+future plan: no OIDC, no SubjectAccessReview for a signed-in user, no per-user access.
+
+**Requirements:**
+
+- R1: A Pod running local mode reads as its ServiceAccount with local mode's safeguards unchanged:
+  loopback bind, one-time launch token and session, `Host` allowlist, self reviews, and a refusal
+  to start on an empty or anonymous identity.
+- R2: The shipped manifest holds no Service, Ingress or probe, so a port-forward to the bound port
+  is the only way to reach the portal.
+- R3: The shipped role grants only `get`, `list` and `watch`, with no write verb, no impersonate,
+  no Secrets and no wildcard, and a test fails on any of them.
+- R4: The portal's documentation states the trust model plainly: everyone who holds the token sees
+  what the ServiceAccount sees; getting the token needs `pods/log` and reaching the portal needs
+  `pods/portforward` in the portal's namespace; and it is a test tool, not the in-cluster mode of
+  D6.
+
+**Alternatives considered:**
+
+- **Wait for in-cluster mode (D6).** Needs OIDC, a session store and per-user authorization before
+  anyone can try the portal on a shared cluster; the owner wanted a way to try it now.
+- **Fix the port mismatch in code** (accept any forwarded port). Weakens D5:R4's `Host` check, the
+  DNS-rebinding defence, for a convenience; the docs name `8090:8090` instead.
+- **Bind the built-in `view` role.** Grants every namespaced read in the cluster, kinds the portal
+  never shows included; an explicit list keeps the role reviewable and the test meaningful.
+- **A Service with a NodePort or Ingress.** Opens the portal to the network with one shared
+  identity behind a token in a log; rejected.
+
+**Rationale:** Local mode already treats the identity it is given as the boundary and adds every
+safeguard a browser needs on loopback; in a Pod, the identity is a ServiceAccount an administrator
+chose and bound, and the port-forward grants decide who reaches it. Writing the trust model down
+keeps a shared test tool from being mistaken for per-user access.
+
+**Source:** Owner request 2026-10-05 ("How much work is left so that it can be used in the
+cluster. Still with only local auth but as a tool to test out?", then "go"). Manual run on kind,
+2026-10-05: the stock image served in a Pod as `system:serviceaccount:opm-portal:opm-portal`
+through `kubectl port-forward 8090:8090`, and `8091:8090` was refused by the `Host` check.
+Supervisor ruling 2026-10-05 on the manifest's shape, which waits for the owner's review.
 
 ## Open questions
 
