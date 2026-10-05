@@ -53,7 +53,8 @@ release tag, so the image it names exists (replace `vX.Y.Z` with the
 ```bash
 kubectl apply -k 'https://github.com/open-platform-model/opm-portal//deploy?ref=vX.Y.Z'
 kubectl -n opm-portal rollout status deploy/opm-portal
-kubectl -n opm-portal logs deploy/opm-portal          # the "Open this link once" line
+# No probe, so a rolled-out Pod may not have started serving yet: wait for the link.
+until kubectl -n opm-portal logs deploy/opm-portal | grep 'Open this link once'; do sleep 2; done
 kubectl -n opm-portal port-forward deploy/opm-portal 8090:8090
 ```
 
