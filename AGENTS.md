@@ -99,7 +99,10 @@ can reword them.
 - Design: enhancement 0030 in the sibling `enhancements/` repo. `opm-portal serve` runs local
   mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`
   (under `/api/v1alpha1`) and `internal/ui` (every other path), reading as the kubeconfig's user.
-  `opm-portal version` only prints the version.
+  `opm-portal version` only prints the version. `internal/auth` also holds milestone 2's OIDC
+  authenticator (`NewOIDC`: code flow with PKCE, in-memory sessions, bearer tokens, fail-closed
+  identity mapping); no command wires it yet. `internal/auth/oidctest` is an in-process issuer
+  for its tests.
 
 ## Entrypoint
 
@@ -116,7 +119,7 @@ Read these first, in order:
 .
 ├── cmd/opm-portal/   # main: version, and serve (local mode's flags and wiring)
 ├── api/v1alpha1/     # wire types of the read API (no logic)
-├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
+├── internal/         # auth (local front door, OIDC), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
 ├── docs/site/        # site pages, published as the opm-portal docs bundle (docs-kit.cue)
 ├── hack/             # helper scripts (release-pin gate, API breaking-change gate)

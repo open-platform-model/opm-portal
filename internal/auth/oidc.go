@@ -120,6 +120,8 @@ type OIDC struct {
 	// bearerKey keys the HMAC that turns a bearer token into its session
 	// key, so the key identifies the token only inside this process.
 	bearerKey []byte
+	logins    *sealer
+	sessions  *sessionStore
 }
 
 // NewOIDC checks cfg, runs discovery against the issuer and fetches its
@@ -168,6 +170,10 @@ func NewOIDC(ctx context.Context, cfg OIDCConfig) (*OIDC, error) {
 	if _, err := rand.Read(bearerKey); err != nil {
 		return nil, fmt.Errorf("oidc auth: %w", err)
 	}
+	logins, err := newSealer()
+	if err != nil {
+		return nil, fmt.Errorf("oidc auth: %w", err)
+	}
 	return &OIDC{
 		cfg:    cfg,
 		log:    cfg.Logger,
@@ -183,6 +189,8 @@ func NewOIDC(ctx context.Context, cfg OIDCConfig) (*OIDC, error) {
 		bearers:    verifier(cfg.Audience),
 		endSession: meta.EndSession,
 		bearerKey:  bearerKey,
+		logins:     logins,
+		sessions:   newSessionStore(cfg.MaxSessions, cfg.Now),
 	}, nil
 }
 

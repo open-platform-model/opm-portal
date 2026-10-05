@@ -15,8 +15,8 @@
 
 ## 3. Browser sign-in, sessions and the front door (internal/auth)
 
-- [ ] 3.1 `internal/auth/oidc_session.go`: sealed login cookie (AES-GCM, per-process key), session store (digest-keyed, absolute lifetime, bounded), `Authenticate` for cookies
-- [ ] 3.2 `internal/auth/oidc_handler.go`: `Handler` with headers plus HSTS, cross-origin protection, `/auth/login`, `/auth/callback`, `POST /auth/logout`, the navigation redirect; shared `refuse`
-- [ ] 3.3 Tests: full sign-in through the fake issuer; forged state, missing cookie, issuer error, nonce mismatch, unmapped identity; open-redirect return paths; logout revokes and redirects to end-session; expiry; session cap; cross-origin logout refused; headers on every response; no credential in logs
-- [ ] 3.4 `internal/auth/doc.go`, `AGENTS.md` layout and purpose lines
-- [ ] 3.5 `task check` green, then commit `feat(auth): sign browsers in with OIDC code flow and PKCE`
+- [x] 3.1 `internal/auth/oidc_session.go`: sealed login cookie (AES-GCM, per-process key), session store (digest-keyed, absolute lifetime, bounded), `Authenticate` for cookies
+- [x] 3.2 `internal/auth/oidc_handler.go`: `Handler` with headers plus HSTS, cross-origin protection, `/auth/login`, `/auth/callback`, `POST /auth/logout`, the navigation redirect; shared `refuse`
+- [x] 3.3 Tests: full sign-in through the fake issuer; forged state, missing cookie, issuer error, nonce mismatch, unmapped identity; open-redirect return paths; logout revokes and redirects to end-session; expiry; session cap; cross-origin logout refused; headers on every response; no credential in logs
+- [x] 3.4 `internal/auth/doc.go`, `AGENTS.md` layout and purpose lines
+- [x] 3.5 `task check` green, then commit `feat(auth): sign browsers in with OIDC code flow and PKCE`
