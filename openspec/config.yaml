@@ -6,8 +6,8 @@ context: |
   The opm-portal is a Go web portal over an OPM cluster: a versioned JSON/SSE read API
   (`/api/v1alpha1`) with an HTMX UI as its first consumer. V1 is read-only: it shows what a
   cluster runs under OPM, from the Platform down to Pods, and creates, edits and deletes nothing.
-  Milestone 1 runs on the user's machine with their kubeconfig; milestone 2 runs in-cluster with
-  OIDC and SubjectAccessReview-as-user. The design record is `docs/DESIGN.md`: its decisions
+  Milestone 1 runs on the user's machine with their kubeconfig; milestone 2, in-cluster with
+  OIDC and SubjectAccessReview-as-user, is a future plan (OIDC was removed on 2026-10-05). The design record is `docs/DESIGN.md`: its decisions
   are cited as `portal:Dn` and bind every change. Plan and progress live in `ROADMAP.md`.
 
   ## Core Principles (Web Portal)
@@ -28,7 +28,7 @@ context: |
   - `internal/stream/`, `internal/logs/`: server-sent event topics and bounded log readers.
   - `internal/api/`: `/api/v1alpha1` HTTP handlers.
   - `internal/ui/`: HTMX pages rendered from the same DTOs the API serves.
-  - `internal/auth/`: identity (local launch token in M1, OIDC in M2).
+  - `internal/auth/`: identity (local launch token in M1, OIDC in M2, a future plan).
   - `internal/version/`: the build's version identity.
   A package is created when the first change needs it, never ahead of it.
 

@@ -44,7 +44,8 @@ The codebase MUST keep these package boundaries:
 - `internal/graph/` and `internal/health/` derive views as pure functions of read-model data
 - `internal/stream/` and `internal/logs/` serve server-sent event topics and bounded log readers
 - `internal/api/` serves `/api/v1alpha1`; `internal/ui/` renders HTMX pages from the same DTOs
-- `internal/auth/` owns identity: the local launch token in milestone 1, OIDC in milestone 2
+- `internal/auth/` owns identity: the local launch token in milestone 1, OIDC in milestone 2 (a
+  future plan)
 
 A package is created by the first change that needs it, never ahead of it.
 
