@@ -428,10 +428,16 @@ func isPod(r v1.ObjectRef) bool { return r.Kind == "Pod" && r.Group == "" }
 // logID is the id of a container's log pane.
 func logID(pod, container string) string { return domID("log", pod, container) }
 
-// domID joins parts into an element id. Kubernetes names, namespaces,
-// groups and kinds hold no underscore or whitespace, so joining them with
-// an underscore keeps ids of different parts apart: Pod a-b's container c
-// and Pod a's container b-c differ.
+// domID joins parts into an element id. The ids it makes reach a page
+// only for a Pod's containers (logID: Pod names and container names, both
+// DNS labels) and for a workload's old-revisions fold (objectViewOf: an
+// object that has old ReplicaSets, so its group, kind, namespace and name
+// follow DNS and identifier rules). None of those parts hold an underscore
+// or whitespace, so joining them with an underscore keeps ids of different
+// parts apart: Pod a-b's container c and Pod a's container b-c differ. A
+// name validated only as a path segment, such as an RBAC role's, may hold
+// other characters, so an id rendered for such an object needs another
+// separator.
 func domID(prefix string, parts ...string) string {
 	return prefix + "_" + strings.Join(parts, "_")
 }
