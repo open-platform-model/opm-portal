@@ -5,12 +5,18 @@ Usage: python3 theme.py <browser> <site URL> <context>
 The site is the portal's UI over the F1 capture. Checks, each printing one line, exiting 1 on the
 first failure:
 
-1. A stored Dark theme is applied before first paint on a light system: by DOMContentLoaded, the
-   earliest point a script can look, the root carries data-theme="dark" and the body has the dark
-   background.
+1. A stored Dark theme is applied before first paint on a light system: by DOMContentLoaded the
+   root already carries data-theme="dark", set by the head script before the stylesheet link.
+   The dark background is checked at `load`, once the stylesheet has been applied: at
+   DOMContentLoaded WebKit may not have applied a head stylesheet yet (it reports a transparent
+   body), but it does not paint before that stylesheet is in, so the earlier reading says nothing
+   about what was painted.
 2. A stored Installed filter opens filtered on a full load: /installed becomes
-   /installed?kind=package and lists only packages; the document that was replaced was hidden
-   (opm-restoring) when its body was parsed, so the unfiltered view was never painted.
+   /installed?kind=package and lists only packages. A MutationObserver records each document
+   when its <body> appears. The replaced /installed document either never reached <body> (the
+   head script replaced it first) or reached it marked opm-restoring, whose stylesheet rule hides
+   the body; the output says which. The final document must have a record, not marked
+   restoring.
 3. A boosted navigation restores it too: from the Platform page, the header's Installed link
    requests /installed?kind=package (an htmx request) and pushes that URL.
 4. A stale stored value is dropped: health=Bogus&namespace=default opens
@@ -27,16 +33,22 @@ from playwright.sync_api import sync_playwright
 
 DARK_BG = "rgb(12, 15, 20)"
 
-# Records, for every document, whether it was being replaced and whether its body was hidden.
+# Records every document as soon as its <body> appears (before DOMContentLoaded, so a document
+# the head script replaces is still seen if it gets that far), the theme at DOMContentLoaded, and
+# the body's background at load, once the stylesheet has been applied.
 RECORD = (
-    "document.addEventListener('DOMContentLoaded', () => {"
-    " const log = JSON.parse(sessionStorage.getItem('rec') || '[]');"
-    " log.push({path: location.pathname + location.search,"
-    " restoring: document.documentElement.classList.contains('opm-restoring'),"
-    " hidden: getComputedStyle(document.body).visibility === 'hidden'});"
-    " sessionStorage.setItem('rec', JSON.stringify(log));"
-    " window.__theme = document.documentElement.getAttribute('data-theme');"
-    " window.__bg = getComputedStyle(document.body).backgroundColor; });"
+    "(() => {"
+    " const mo = new MutationObserver(() => { if (!document.body) return; mo.disconnect();"
+    "  const log = JSON.parse(sessionStorage.getItem('rec') || '[]');"
+    "  log.push({path: location.pathname + location.search,"
+    "   restoring: document.documentElement.classList.contains('opm-restoring')});"
+    "  sessionStorage.setItem('rec', JSON.stringify(log)); });"
+    " mo.observe(document, {childList: true, subtree: true});"
+    " document.addEventListener('DOMContentLoaded', () => {"
+    "  window.__theme = document.documentElement.getAttribute('data-theme'); });"
+    " window.addEventListener('load', () => {"
+    "  window.__bg = getComputedStyle(document.body).backgroundColor; });"
+    "})();"
 )
 
 THROWING = (
@@ -58,9 +70,10 @@ def run(p, engine, base, context):
         page.add_init_script(RECORD)
         page.goto(base + "/")
         page.evaluate("localStorage.setItem('opm-portal.theme', 'dark')")
-        page.goto(base + "/")
+        page.goto(base + "/", wait_until="load")
         theme, bg = page.evaluate("[window.__theme, window.__bg]")
-        if not check(engine, theme == "dark" and bg == DARK_BG, f"at DOMContentLoaded data-theme={theme!r} background={bg!r}"):
+        if not check(engine, theme == "dark" and bg == DARK_BG,
+                     f"data-theme={theme!r} at DOMContentLoaded, background={bg!r} at load"):
             return False
 
         page.evaluate(f"localStorage.setItem({key!r}, 'kind=package'); sessionStorage.removeItem('rec')")
@@ -69,9 +82,16 @@ def run(p, engine, base, context):
         page.wait_for_load_state()
         rec = page.evaluate("JSON.parse(sessionStorage.getItem('rec') || '[]')")
         replaced = [r for r in rec if r["path"] == "/installed"]
-        if not check(engine, all(r["restoring"] and r["hidden"] for r in replaced),
-                     f"full load opened {page.url}; replaced documents {replaced!r}"):
-            return False
+        final = [r for r in rec if r["path"] == "/installed?kind=package"]
+        if not final or any(r["restoring"] for r in final):
+            return check(engine, False, f"full load opened {page.url}; no unmarked record of the final document in {rec!r}")
+        if not replaced:
+            how = "the replaced document was aborted before <body>"
+        elif all(r["restoring"] for r in replaced):
+            how = "the replaced document reached <body> marked opm-restoring (hidden)"
+        else:
+            return check(engine, False, f"the replaced document reached <body> unmarked: {replaced!r}")
+        check(engine, True, f"full load opened {page.url}; {how}; the final document is not marked")
         kinds = page.locator("#list .kind").all_text_contents()
         if not check(engine, bool(kinds) and all(k.strip() == "Package" for k in kinds), f"rows {kinds!r}"):
             return False
