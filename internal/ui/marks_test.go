@@ -31,7 +31,7 @@ func TestGraphKeepsTheAxesApart(t *testing.T) {
 // selected node is marked.
 func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
-	main := mainOf(s.get(t, "/instances/cert-manager/cert-manager?node=mi%3Acert-manager%2Fcert-manager").body)
+	main := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
 	if !strings.Contains(main, `<details id="config-components">`) || !strings.Contains(main, "17 configuration components") {
 		t.Error("the configuration components are not one closed group of 17")
 	}
@@ -39,7 +39,8 @@ func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
 	if strings.Contains(comps, `<h3 class="component-name">crds</h3>`) {
 		t.Error("a configuration component is listed outside the group")
 	}
-	if !regexp.MustCompile(`data-node="mi:cert-manager/cert-manager"[^>]*aria-current="true"`).MatchString(main) {
+	graph := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=graph&focus=mi%3Acert-manager%2Fcert-manager").body)
+	if !regexp.MustCompile(`data-node="mi:cert-manager/cert-manager"[^>]*aria-current="true"`).MatchString(graph) {
 		t.Error("the selected node is not marked")
 	}
 }

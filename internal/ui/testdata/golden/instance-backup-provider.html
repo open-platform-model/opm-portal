@@ -1,0 +1,134 @@
+<main id="main" tabindex="-1" data-topics="instance:default/backup-provider events:instance:default/backup-provider" data-canonical="/instances/default/backup-provider">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=instance">Installed</a> <span aria-hidden="true">/</span> <span class="mono">default</span> <span aria-hidden="true">/</span> <span>backup-provider</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:default/backup-provider">
+    <p class="kicker">Instance <span class="prov prov-active" title="default.backup-provider: Accepted">Provider</span></p>
+    <h1>backup-provider</h1>
+    
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">default</dd>
+      <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>backup_provider@v0 <span class="ver">v0.1.0</span></dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="mono">backup-provider-applier</span></dd>
+      <dt>Objects</dt><dd>1</dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></dd>
+    </dl>
+    
+  </section>
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:default/backup-provider events:instance:default/backup-provider">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
+    <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+    <p class="card-message">Reconciliation succeeded</p>
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:21 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:21 UTC"></span></span></div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>
+<ol class="timeline">
+  <li class="tl-item" data-phase="complete">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-phase">complete</span><span class="tl-time"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></span></div>
+    <p class="tl-meta mono">1 objects · render <span title="sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b">43a9e76157da</span> · source <span title="sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1">b21e617a3429</span></p>
+  </li>
+</ol>
+</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:default/backup-provider">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
+  </section>
+  <section class="card owner-card" id="provider-card" aria-labelledby="provider-h" data-follow="instance:default/backup-provider">
+    <h2 id="provider-h">Provider <span class="h-note">the controller's verdict on what this holds</span></h2>
+    <ul class="claims">
+      <li><span class="prov prov-active" title="default.backup-provider: Accepted">Active</span> <span class="mono">default.<wbr>backup-provider</span> <span class="mono muted">Accepted</span></li>
+    </ul>
+  </section>
+  
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/backup-provider">
+  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></span></div>
+    <p class="cond-message">Reconciliation succeeded</p>
+    <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+  </li>
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></span></div>
+    <p class="cond-message">module resolved: testing.opmodel.dev/modules/operator/backup_provider@v0@v0.1.0</p>
+    <p class="cond-meaning">The module version was found in the registry.</p>
+  </li>
+</ol>
+  
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1</li></ul>
+</details>
+<nav class="tabs owner-tabs" aria-label="Views"><a href="/instances/default/backup-provider?tab=graph" aria-current="page">Graph</a><a href="/instances/default/backup-provider?tab=resources">Resources</a><a href="/instances/default/backup-provider?tab=events">Events</a><a href="/instances/default/backup-provider?tab=logs">Logs</a><a href="/instances/default/backup-provider?tab=yaml">YAML</a></nav>
+<section class="panel panel-8 reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:default/backup-provider">
+  <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
+<div class="graph" data-graph="instance-graph">
+  <div class="graph-tools" role="group" aria-label="Graph view">
+    <span class="hint">drag to pan · Ctrl + wheel to zoom · Esc clears the selection · outline and rail: health · square: applied</span>
+    <a class="tool-link" href="/instances/default/backup-provider" data-clear-selection hidden>Clear selection</a>
+    <button type="button" data-zoom="fit">Fit</button>
+    <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
+    <button type="button" data-graph-full aria-pressed="false">Full screen</button>
+  </div>
+  <div class="graph-frame">
+  <svg viewBox="0 0 1024 104" width="1024" height="104" role="group" aria-label="Relationship graph">
+    <defs>
+      <marker id="instance-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
+      <pattern id="instance-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+    </defs>
+    <g class="viewport">
+      <text class="col-title" x="16" y="20">Module</text><text class="col-title" x="280" y="20">Instance</text><text class="col-title" x="544" y="20">Components</text><text class="col-title" x="808" y="20">Objects</text>
+      <path class="edge edge-hasComponent" d="M480 66 C512 66, 512 66, 544 66" data-from="mi:default/backup-provider" data-to="comp:mi/default/backup-provider/registration" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates" d="M280 66 C248 66, 248 66, 216 66" data-from="mi:default/backup-provider" data-to="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns" d="M744 66 C776 66, 776 66, 808 66" data-from="comp:mi/default/backup-provider/registration" data-to="obj:opmodel.dev/TransformerRegistration/_/default.backup-provider" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
+      <a class="node kind-module" href="/instances/default/backup-provider?focus=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fbackup_provider%2540v0%2Fv0.1.0&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fbackup_provider%2540v0%2Fv0.1.0" data-node="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0" tabindex="0" aria-label="Module, testing.opmodel.dev/modules/operator/backup_provider@v0" aria-describedby="instance-graph-card-0">
+        <title>testing.opmodel.dev/modules/operator/backup_provider@v0</title>
+        <rect class="node-ring" x="16" y="44" width="200" height="44" rx="8"/>
+        <rect class="node-box" x="16" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="16" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="28" y="63">backup_pr…ider@v0 v0.1.0</text>
+        <text class="node-sub" x="28" y="78">Module · testing.opmodel.de…</text>
+      </a>
+      <a class="node kind-instance health-healthy ap-applied" href="/instances/default/backup-provider?focus=mi%3Adefault%2Fbackup-provider&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=mi%3Adefault%2Fbackup-provider" data-node="mi:default/backup-provider" tabindex="0" aria-label="Instance, default/backup-provider, health Healthy, Applied" aria-describedby="instance-graph-card-1">
+        <title>default/backup-provider</title>
+        <rect class="node-ring" x="280" y="44" width="200" height="44" rx="8"/>
+        <rect class="node-box" x="280" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="280" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="292" y="63">default/…kup-provider</text>
+        <text class="node-sub" x="292" y="78">Instance</text>
+        <rect class="node-stamp" x="464" y="50" width="10" height="10" rx="1"/>
+      </a>
+      <a class="node kind-component health-healthy" href="/instances/default/backup-provider?focus=comp%3Ami%2Fdefault%2Fbackup-provider%2Fregistration&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=comp%3Ami%2Fdefault%2Fbackup-provider%2Fregistration" data-node="comp:mi/default/backup-provider/registration" tabindex="0" aria-label="Component, registration, health Healthy" aria-describedby="instance-graph-card-2">
+        <title>registration</title>
+        <rect class="node-ring" x="544" y="44" width="200" height="44" rx="8"/>
+        <rect class="node-box" x="544" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="544" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="556" y="63">registration</text>
+        <text class="node-sub" x="556" y="78">Component</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/default/backup-provider?focus=obj%3Aopmodel.dev%2FTransformerRegistration%2F_%2Fdefault.backup-provider&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=obj%3Aopmodel.dev%2FTransformerRegistration%2F_%2Fdefault.backup-provider" data-node="obj:opmodel.dev/TransformerRegistration/_/default.backup-provider" tabindex="0" aria-label="Object, default.backup-provider, health Healthy" aria-describedby="instance-graph-card-3">
+        <title>default.backup-provider</title>
+        <rect class="node-ring" x="808" y="44" width="200" height="44" rx="8"/>
+        <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
+        <rect class="node-rail" x="808" y="44" width="5" height="44" rx="2"/>
+        <text class="node-label" x="820" y="63">default.backup-provider</text>
+        <text class="node-sub" x="820" y="78">TransformerRegistration</text>
+      </a>
+    </g>
+  </svg>
+  </div>
+  <div class="node-cards">
+  <div class="node-card" id="instance-graph-card-0" role="tooltip" data-card-for="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0" hidden><span class="nc-kind">Module</span> <strong class="nc-name mono">testing.opmodel.dev/modules/operator/backup_provider@v0</strong> <span class="nc-origin">The module it was rendered from</span></div>
+  <div class="node-card" id="instance-graph-card-1" role="tooltip" data-card-for="mi:default/backup-provider" hidden><span class="nc-kind">Instance</span> <strong class="nc-name mono">default/backup-provider</strong> <span class="nc-marks"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span> <span class="applied applied-applied">Applied</span></span> <span class="nc-origin">The ModuleInstance</span></div>
+  <div class="node-card" id="instance-graph-card-2" role="tooltip" data-card-for="comp:mi/default/backup-provider/registration" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">registration</strong> <span class="nc-marks"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span></span> <span class="nc-origin">A component of the module</span></div>
+  <div class="node-card" id="instance-graph-card-3" role="tooltip" data-card-for="obj:opmodel.dev/TransformerRegistration/_/default.backup-provider" hidden><span class="nc-kind">TransformerRegistration</span> <strong class="nc-name mono">default.backup-provider</strong> <span class="nc-marks"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
+  </div>
+</div>
+</section>
+<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+</aside>
+</main>

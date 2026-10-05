@@ -3,6 +3,8 @@ package ui
 import (
 	"fmt"
 	"net/url"
+	"slices"
+	"strconv"
 	"strings"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
@@ -26,6 +28,14 @@ type svgGraph struct {
 	Edges   []svgEdge
 	// Empty: the graph has no nodes.
 	Empty bool
+	// FitGroup is the group whose members the view fits to on load, after
+	// it was expanded.
+	FitGroup string
+	// Focused: a node is focused; Clear is the graph without the focus and
+	// Whole the graph with no group expanded, when one is.
+	Focused bool
+	Clear   string
+	Whole   string
 }
 
 type svgNode struct {
@@ -43,6 +53,14 @@ type svgNode struct {
 	Panel    string
 	Locked   bool
 	Selected bool
+	// Dim: a node is focused and this one is not next to it.
+	Dim bool
+	// MemberOf is the group an expanded member belongs to; Group marks a
+	// group node, which expands on activation.
+	MemberOf string
+	Group    bool
+	// Card is what the node's hover and focus card says.
+	Card nodeCard
 	// Applied is set when the node has an applied state; StampX and
 	// StampY place its square mark in the node's top-right corner.
 	Applied        bool
@@ -53,9 +71,35 @@ type svgNode struct {
 
 type svgEdge struct {
 	ID    string
+	From  string
+	To    string
 	Class string
 	D     string
 	Title string
+}
+
+// nodeCard is a node's hover card: only what the graph document carries.
+type nodeCard struct {
+	ID      string
+	Kind    string
+	Name    string
+	Health  *badge
+	Applied *badge
+	Reason  string
+	Origin  string
+	Access  string
+}
+
+// originText says where a node's object comes from.
+var originText = map[string]string{
+	"object":    "In the inventory: applied by the controller",
+	"runtime":   "Made by the cluster below an inventory object",
+	"instance":  "The ModuleInstance",
+	"package":   "The ModulePackage",
+	"module":    "The module it was rendered from",
+	"source":    "The source the package reads",
+	"component": "A component of the module",
+	"group":     "A group of nodes folded into one",
 }
 
 // kindText names node kinds for people.
@@ -77,7 +121,7 @@ var kindText = map[string]string{
 // the graph is on: a node links to page with ?node=<id> (its panel without
 // script) and names its panel fragment at panel?id=<id>. selected is the
 // node whose panel the page shows, if any.
-func buildGraph(g v1.Graph, id, page, panel, selected string) svgGraph {
+func buildGraph(g v1.Graph, id, page, panel, selected string, expanded ...string) svgGraph {
 	out := svgGraph{
 		ID:      id,
 		Width:   g.Layout.Width,
@@ -85,15 +129,39 @@ func buildGraph(g v1.Graph, id, page, panel, selected string) svgGraph {
 		Columns: g.Layout.Columns,
 		Empty:   len(g.Nodes) == 0,
 	}
+	near := map[string]bool{selected: true}
+	for i := range g.Edges {
+		if e := &g.Edges[i]; e.From == selected || e.To == selected {
+			near[e.From], near[e.To] = true, true
+		}
+	}
+	spot := selected != "" && findNode(&g, selected) != nil
 	locked := map[string]bool{}
 	for i := range g.Nodes {
-		n := nodeOf(&g.Nodes[i], g.Layout.NodeWidth, g.Layout.NodeHeight, page, panel)
+		gn := &g.Nodes[i]
+		n := nodeOf(gn, g.Layout.NodeWidth, g.Layout.NodeHeight, page, panel)
 		n.Selected = n.ID == selected
+		n.Dim = spot && !near[n.ID]
+		n.MemberOf = gn.MemberOf
+		n.Card.ID = id + "-card-" + strconv.Itoa(i)
+		if gn.Group != nil && !slices.Contains(expanded, gn.ID) {
+			n.Group = true
+			q := url.Values{"tab": {"graph"}}
+			for _, e := range expanded {
+				q.Add("expand", e)
+			}
+			q.Add("expand", gn.ID)
+			q.Set("fit", gn.ID)
+			n.Href = page + "?" + q.Encode()
+		}
 		locked[n.ID] = n.Locked
 		out.Nodes = append(out.Nodes, n)
 	}
 	for i := range g.Edges {
 		if e, ok := edgeOf(&g.Edges[i], locked); ok {
+			if spot && e.From != selected && e.To != selected {
+				e.Class += " dim"
+			}
 			out.Edges = append(out.Edges, e)
 		}
 	}
@@ -127,6 +195,7 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		kind = "Unknown kind"
 	}
 	label, sub := displayLabel(n, kind, locked)
+	card := cardOf(n, kind, locked, state)
 	applied := n.Reconcile != nil && !locked
 	fit := maxLabel
 	if applied {
@@ -144,7 +213,8 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		Kind:    kind,
 		Sub:     clipMiddle(sub, maxLabel+4),
 		Aria:    nodeAria(n, kind, locked, state),
-		Href:    page + "?" + url.Values{"node": {n.ID}}.Encode(),
+		Href:    page + "?" + url.Values{"tab": {"graph"}, "focus": {n.ID}}.Encode(),
+		Card:    card,
 		Panel:   panel + "?" + url.Values{"id": {n.ID}}.Encode(),
 		Locked:  locked,
 		Applied: applied,
@@ -154,6 +224,34 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 		TextY:   n.Y + 19,
 		SubY:    n.Y + 34,
 	}
+}
+
+// cardOf is what a node's hover card says: only what the graph document
+// carries for it.
+func cardOf(n *v1.GraphNode, kind string, locked bool, state string) nodeCard {
+	card := nodeCard{Kind: kind, Name: n.Label, Origin: originText[n.Kind]}
+	if n.Ref != nil && n.Kind != instanceKind.Topic && n.Kind != packageKind.Topic {
+		card.Kind = n.Ref.Kind
+	}
+	switch {
+	case locked:
+		card.Access = accessText(n.Access)
+		return card
+	case n.Missing:
+		b := badge{Class: "health health-missing", Text: "Missing"}
+		card.Health = &b
+	case state != "":
+		b := stateBadge(state)
+		card.Health = &b
+	}
+	if n.Health != nil {
+		card.Reason = n.Health.Reason
+	}
+	if n.Reconcile != nil {
+		b := appliedBadge(*n.Reconcile)
+		card.Applied = &b
+	}
+	return card
 }
 
 // displayLabel is what a node's two lines say. A catalog or module shows
@@ -194,7 +292,7 @@ func cutLast(path string) (head, last string, ok bool) {
 // what a group stands for, marked when locked.
 func subLine(n *v1.GraphNode, kind string, locked bool) string {
 	sub := kind
-	if n.Ref != nil && n.Kind != "instance" && n.Kind != "package" {
+	if n.Ref != nil && n.Kind != instanceKind.Topic && n.Kind != packageKind.Topic {
 		sub = n.Ref.Kind
 	}
 	if n.Group != nil {
@@ -229,6 +327,8 @@ func edgeOf(e *v1.GraphEdge, locked map[string]bool) (svgEdge, bool) {
 	}
 	return svgEdge{
 		ID:    e.ID,
+		From:  e.From,
+		To:    e.To,
 		Class: class,
 		D:     fmt.Sprintf("M%d %d C%d %d, %d %d, %d %d", p[0].X, p[0].Y, p[1].X, p[1].Y, p[2].X, p[2].Y, p[3].X, p[3].Y),
 		Title: title,

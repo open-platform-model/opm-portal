@@ -58,7 +58,7 @@ func TestAcceptedAndActiveApart(t *testing.T) {
 func TestSecretsOfferNoYAML(t *testing.T) {
 	h := &Handler{cfg: Config{Now: time.Now}}
 	ref := v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}
-	v := ownerView{Kind: instanceKind, Namespace: "default", Name: "app", Components: h.components("/instances/default/app", []v1.Component{{
+	v := ownerView{Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources, Components: h.components("/instances/default/app", []v1.Component{{
 		Name:    "db",
 		Objects: []v1.InventoryObject{{Ref: ref, Access: v1.AccessOK, Health: &v1.ObjectHealth{State: "Healthy"}, Live: true}},
 	}})}
@@ -75,7 +75,7 @@ func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 	read := time.Date(2026, 10, 5, 12, 0, 30, 0, time.UTC)
 	ref := v1.ObjectRef{Version: "v1", Kind: "Service", Namespace: "default", Name: "web"}
 	v := ownerView{
-		Kind: instanceKind, Namespace: "default", Name: "app",
+		Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources,
 		Health: v1.Health{State: "Healthy", Live: false, EvaluatedAt: &read},
 		Components: h.components("/instances/default/app", []v1.Component{{
 			Name:    "web",
@@ -91,7 +91,7 @@ func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := b.String()
-	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "health evaluated <time") || !strings.Contains(out, "Healthy (not live)") {
-		t.Errorf("polled object without its read time:\n%s", between(out, `id="owner-head"`, `id="conditions"`))
+	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "evaluated <time") || !strings.Contains(out, "Healthy (not live)") {
+		t.Errorf("polled object without its read time:\n%s", between(out, `id="health-card"`, `id="detail"`))
 	}
 }

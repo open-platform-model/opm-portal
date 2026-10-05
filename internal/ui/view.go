@@ -111,7 +111,7 @@ func providerBadge(c v1.ProviderClaim) badge {
 		return b
 	}
 	switch {
-	case c.Verdict == "RemovalBlocked":
+	case c.Verdict == verdictRemovalBlocked:
 		b.Class += " prov-blocked"
 		b.Text = "Provider, removal blocked"
 	case c.Verdict == verdictAccepted && c.Active:
@@ -119,10 +119,10 @@ func providerBadge(c v1.ProviderClaim) badge {
 	case c.Verdict == verdictAccepted:
 		b.Class += " prov-inactive"
 		b.Text = "Provider, not active"
-	case c.Verdict == "Refused":
+	case c.Verdict == verdictRefused:
 		b.Class += " prov-refused"
 		b.Text = "Provider, refused"
-	case c.Verdict == "Pending":
+	case c.Verdict == verdictPending:
 		b.Class += " prov-pending"
 		b.Text = "Provider, pending"
 	default:
@@ -131,6 +131,29 @@ func providerBadge(c v1.ProviderClaim) badge {
 	}
 	if c.Reason != "" {
 		b.Title += ": " + c.Reason
+	}
+	return b
+}
+
+// claimBadge is a held registration's standing on the Provider card, in
+// the card's words; the classes are providerBadge's.
+func claimBadge(c v1.ProviderClaim) badge {
+	b := providerBadge(c)
+	switch {
+	case c.Access != v1.AccessOK:
+		b.Text = "Locked"
+	case c.Verdict == verdictRemovalBlocked:
+		b.Text = "Removal blocked"
+	case c.Verdict == verdictAccepted && c.Active:
+		b.Text = "Active"
+	case c.Verdict == verdictAccepted:
+		b.Text = "Accepted, not active"
+	case c.Verdict == verdictRefused:
+		b.Text = "Refused"
+	case c.Verdict == verdictPending:
+		b.Text = "Pending"
+	default:
+		b.Text = "Unknown"
 	}
 	return b
 }
@@ -274,6 +297,7 @@ var funcs = template.FuncMap{
 	"stateBadge":    stateBadge,
 	"verdictBadge":  verdictBadge,
 	"providerBadge": providerBadge,
+	"claimBadge":    claimBadge,
 	"ownerText":     ownerText,
 	"accessText":    accessText,
 	"toneClass":     toneClass,

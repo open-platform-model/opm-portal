@@ -273,34 +273,6 @@ func appendUnique(list []string, s string) []string {
 
 // --- Owner pages ---
 
-// ownerView is an instance or package page.
-type ownerView struct {
-	Kind      ownerKind
-	Namespace string
-	Name      string
-	Base      string // the page's path
-	Problem   *v1.Problem
-
-	Instance *v1.Instance
-	Package  *v1.Package
-
-	Reconcile   v1.Reconcile
-	Health      v1.Health
-	Conditions  []v1.Condition
-	History     []v1.HistoryEntry
-	LastApplied v1.Digests
-	Components  []componentView
-	// Config is the configuration components the graph folds into one
-	// group, listed folded the same way; nil when the graph does not fold.
-	Config *configGroup
-
-	Graph        svgGraph
-	GraphProblem *v1.Problem
-	Events       eventsView
-	Logs         []logPane
-	Panel        *nodePanel
-}
-
 type componentView struct {
 	Name    string
 	Health  v1.Health
@@ -318,6 +290,8 @@ type configGroup struct {
 
 type objectView struct {
 	v1.InventoryObject
+	// Focus opens the Graph tab focused on the node that shows the object.
+	Focus     string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -330,11 +304,14 @@ type objectView struct {
 
 type childView struct {
 	v1.RuntimeChild
+	Focus     string
 	Text      string
 	YAML      string
 	EventsURL string
-	// LogID is the id of the Pod's first container's log pane.
-	LogID string
+	// LogID is the id of the Pod's first container's log pane, and LogHref
+	// the Logs tab opened at it.
+	LogID   string
+	LogHref string
 }
 
 // logPane is one container's log, followed on its log topic.
@@ -348,52 +325,6 @@ type logPane struct {
 
 func (k ownerKind) base(ns, name string) string {
 	return "/" + k.Path + "/" + url.PathEscape(ns) + "/" + url.PathEscape(name)
-}
-
-func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ns, name := r.PathValue("namespace"), r.PathValue("name")
-		v := ownerView{Kind: k, Namespace: ns, Name: name, Base: k.base(ns, name)}
-		api := v.Base
-		if k == instanceKind {
-			var doc v1.Instance
-			if v.Problem = h.fetch(r, api, nil, &doc); v.Problem == nil {
-				v.Instance = &doc
-				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
-				v.Components = h.components(v.Base, doc.Components)
-			}
-		} else {
-			var doc v1.Package
-			if v.Problem = h.fetch(r, api, nil, &doc); v.Problem == nil {
-				v.Package = &doc
-				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
-				v.Components = h.components(v.Base, doc.Components)
-			}
-		}
-		if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
-			h.signIn(w, r)
-			return
-		}
-		topic := k.Topic + ":" + ns + "/" + name
-		if v.Problem == nil {
-			var g v1.Graph
-			if v.GraphProblem = h.fetch(r, api+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
-				v.Graph = buildGraph(g, k.Topic+"-graph", v.Base, v.Base+"/node", r.URL.Query().Get("node"))
-				v.Components, v.Config = foldConfig(v.Components, &g)
-				if id := r.URL.Query().Get("node"); id != "" {
-					v.Panel = h.panel(r, &g, id, panelContext{owner: k, base: v.Base})
-				}
-			}
-			v.Events = h.events(r, api+"/events", nil, "events:"+topic)
-			v.Logs = logPanes(v.Components)
-		}
-		h.render(w, r, problemStatus(v.Problem), "owner", page{
-			Title:  k.Title + " " + ns + "/" + name,
-			Nav:    "installed",
-			Topics: []string{topic, "events:" + topic},
-			Main:   v,
-		})
-	}
 }
 
 // foldConfig moves the components the graph folds into its configuration
@@ -463,6 +394,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 		cv := childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q}
 		if isPod(ch.Ref) && len(ch.Containers) > 0 {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
+			cv.LogHref = base + "?tab=" + tabLogs + "#" + cv.LogID
 		}
 		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)

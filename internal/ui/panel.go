@@ -7,8 +7,7 @@ import (
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
-// panelContext is the page a node panel opens on: an owner page, or the
-// Platform page when owner is the zero value.
+// panelContext is the owner page a node panel opens on.
 type panelContext struct {
 	owner ownerKind
 	base  string
@@ -37,16 +36,17 @@ type nodePanel struct {
 	Path             string
 	Reg              *v1.GraphRegistration
 	Catalog          *v1.GraphCatalog
-	Platform         *v1.GraphPlatform
 	Group            *v1.GraphGroup
 	Replicas         *int64
 	Unread           bool
 	ScaledDown       int
 	// Links.
-	Open      string
-	YAML      string
-	Events    string
-	Expand    string
+	Open   string
+	YAML   string
+	Events string
+	Expand string
+	// Logs opens the Logs tab, for a Pod.
+	Logs      string
 	EdgesFrom []string
 }
 
@@ -72,7 +72,6 @@ func (h *Handler) panel(r *http.Request, g *v1.Graph, id string, ctx panelContex
 		Path:       n.Path,
 		Reg:        n.Registration,
 		Catalog:    n.Catalog,
-		Platform:   n.Platform,
 		Group:      n.Group,
 		Replicas:   n.Replicas,
 		Unread:     n.ChildrenUnread,
@@ -90,6 +89,9 @@ func (h *Handler) panel(r *http.Request, g *v1.Graph, id string, ctx panelContex
 	p.EdgesFrom = edgeLines(g, n.ID)
 	if !p.Locked {
 		p.Open, p.YAML, p.Events = links(n, ctx)
+		if n.Ref != nil && isPod(*n.Ref) && ctx.base != "" && !n.Missing {
+			p.Logs = ctx.base + "?tab=" + tabLogs
+		}
 		if n.Group != nil {
 			p.Expand = expandLink(r, n.ID, ctx)
 		}
@@ -115,15 +117,13 @@ func edgeLines(g *v1.Graph, id string) []string {
 }
 
 // links are what a readable node may open: its page, or its YAML and
-// events on the owner page it is on, or a registration's events.
+// events on the owner page it is on.
 func links(n *v1.GraphNode, ctx panelContext) (open, yamlView, events string) {
 	switch {
-	case n.Kind == "instance" && n.Ref != nil:
+	case n.Kind == instanceKind.Topic && n.Ref != nil:
 		return instanceKind.base(n.Ref.Namespace, n.Ref.Name), "", ""
-	case n.Kind == "package" && n.Ref != nil:
+	case n.Kind == packageKind.Topic && n.Ref != nil:
 		return packageKind.base(n.Ref.Namespace, n.Ref.Name), "", ""
-	case n.Kind == "registration" && ctx.base == "":
-		return "", "", "/platform/registrations/" + url.PathEscape(n.Label) + "/events"
 	case (n.Kind == "object" || n.Kind == "runtime") && n.Ref != nil && ctx.base != "" && !n.Missing && !isSecret(*n.Ref):
 		q := refQuery(*n.Ref).Encode()
 		return "", ctx.base + "/object?" + q, ctx.base + "/events?" + q
@@ -131,18 +131,16 @@ func links(n *v1.GraphNode, ctx panelContext) (open, yamlView, events string) {
 	return "", "", ""
 }
 
-// expandLink is the page with group id added to the expanded groups.
+// expandLink is the Graph tab with group id added to the expanded groups,
+// fitted to its members.
 func expandLink(r *http.Request, id string, ctx panelContext) string {
-	q := url.Values{}
+	q := url.Values{"tab": {tabGraph}}
 	for _, e := range r.URL.Query()["expand"] {
 		q.Add("expand", e)
 	}
 	q.Add("expand", id)
-	base := ctx.base
-	if base == "" {
-		base = "/"
-	}
-	return base + "?" + q.Encode()
+	q.Set("fit", id)
+	return ctx.base + "?" + q.Encode()
 }
 
 // renderPanel writes a node panel fragment.

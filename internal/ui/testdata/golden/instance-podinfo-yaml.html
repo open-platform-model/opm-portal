@@ -1,0 +1,176 @@
+<main id="main" tabindex="-1" data-topics="instance:default/podinfo events:instance:default/podinfo" data-canonical="/instances/default/podinfo">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=instance">Installed</a> <span aria-hidden="true">/</span> <span class="mono">default</span> <span aria-hidden="true">/</span> <span>podinfo</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:default/podinfo">
+    <p class="kicker">Instance</p>
+    <h1>podinfo</h1>
+    
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">default</dd>
+      <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>podinfo@v0 <span class="ver">v0.1.11</span></dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="mono">podinfo-applier</span></dd>
+      <dt>Objects</dt><dd>2</dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></dd>
+    </dl>
+    
+  </section>
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:default/podinfo events:instance:default/podinfo">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
+    <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+    <p class="card-message">Reconciliation succeeded</p>
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:06 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:06 UTC"></span></span></div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>
+<ol class="timeline">
+  <li class="tl-item" data-phase="complete">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-phase">complete</span><span class="tl-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="tl-meta mono">2 objects · render <span title="sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e">2ee385ae7832</span> · source <span title="sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969">20f3bd71e576</span></p>
+  </li>
+</ol>
+</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:default/podinfo">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
+  </section>
+  
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">
+  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="cond-message">Reconciliation succeeded</p>
+    <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+  </li>
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="cond-message">module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11</p>
+    <p class="cond-meaning">The module version was found in the registry.</p>
+  </li>
+</ol>
+  
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
+</details>
+<nav class="tabs owner-tabs" aria-label="Views"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources</a><a href="/instances/default/podinfo?tab=events">Events</a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml" aria-current="page">YAML</a></nav>
+<section class="panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="instance:default/podinfo">
+  <h2 id="yaml-picker-h">Objects</h2>
+  <h3 class="sub-h">Deployment</h3>
+  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=apps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=yaml" aria-current="true">default/<wbr>podinfo-podinfo</a></li></ul>
+  <h3 class="sub-h">Pod</h3>
+  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=yaml">default/<wbr>podinfo-podinfo-d9585d794-4lg6h</a></li><li><a class="mono" href="/instances/default/podinfo?object=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=yaml">default/<wbr>podinfo-podinfo-d9585d794-kp2jx</a></li></ul>
+  <h3 class="sub-h">ReplicaSet</h3>
+  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=apps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=yaml">default/<wbr>podinfo-podinfo-d9585d794</a></li></ul>
+  <h3 class="sub-h">Service</h3>
+  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=%2FService%2Fdefault%2Fpodinfo-podinfo&amp;tab=yaml">default/<wbr>podinfo-podinfo</a></li></ul>
+</section>
+<section class="panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
+  <h2 id="yaml-h">YAML</h2>
+  <p class="mono muted">Deployment.apps default/podinfo-podinfo</p><pre class="yaml" tabindex="0" aria-label="YAML of Deployment.apps default/podinfo-podinfo"><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: &#34;1&#34;
+  creationTimestamp: &#34;2026-10-04T18:04:06Z&#34;
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: podinfo
+    app.kubernetes.io/managed-by: opm-controller
+    app.kubernetes.io/name: podinfo
+    component.opmodel.dev/name: podinfo
+    core.opmodel.dev/workload-type: stateless
+    module-instance.opmodel.dev/name: podinfo
+    module-instance.opmodel.dev/uuid: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+    module.opmodel.dev/name: podinfo
+    module.opmodel.dev/uuid: 88d73eac-695b-5baf-a3f1-1101b88eea73
+    module.opmodel.dev/version: 0.1.11
+  name: podinfo-podinfo
+  namespace: default
+  resourceVersion: &#34;893&#34;
+  uid: 29b73074-fde9-4910-9d57-6676b1c5fd1f
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      module-instance.opmodel.dev/name: podinfo
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: podinfo
+        component.opmodel.dev/name: podinfo
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: podinfo
+    spec:
+      containers:
+      - image: ghcr.io/stefanprodan/podinfo:6.7.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 9898
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: podinfo
+        ports:
+        - containerPort: 9898
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: 9898
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 2
+  conditions:
+  - lastTransitionTime: &#34;2026-10-04T18:04:17Z&#34;
+    lastUpdateTime: &#34;2026-10-04T18:04:17Z&#34;
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: &#34;True&#34;
+    type: Available
+  - lastTransitionTime: &#34;2026-10-04T18:04:06Z&#34;
+    lastUpdateTime: &#34;2026-10-04T18:04:17Z&#34;
+    message: ReplicaSet &#34;podinfo-podinfo-d9585d794&#34; has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: &#34;True&#34;
+    type: Progressing
+  observedGeneration: 1
+  readyReplicas: 2
+  replicas: 2
+  terminatingReplicas: 0
+  updatedReplicas: 2
+</code></pre>
+</section>
+</main>

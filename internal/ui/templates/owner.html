@@ -1,39 +1,88 @@
 {{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
-<header class="page-head reveal" id="owner-head" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <p class="kicker"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> · {{.Kind.Topic}} · {{.Namespace}}</p>
-  <h1>{{.Name}}</h1>
-  {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
-  <div class="axes">{{template "applied" .Reconcile}}{{template "health" .Health}}{{if not .Health.Live}}{{with .Health.EvaluatedAt}}<span class="muted">health evaluated {{template "time" .}}</span>{{end}}{{end}}</div>
-  {{with .Reconcile.Message}}<p class="lede">{{.}}</p>{{end}}
-  {{with .Instance}}
-  <dl class="facts facts-row">
-    <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
-    <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the controller{{end}}{{with .ServiceAccountName}}, as ServiceAccount <span class="mono">{{.}}</span>{{end}}</dd>
-    <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
-    <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
-  </dl>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> <span aria-hidden="true">/</span> <span class="mono">{{.Namespace}}</span> <span aria-hidden="true">/</span> <span>{{.Name}}</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="{{.Topic}}">
+    <p class="kicker">{{.Kind.Title}}{{range .ProviderOf}}{{with providerBadge .}} <span class="{{.Class}}" title="{{.Title}}">{{.Text}}</span>{{end}}{{end}}</p>
+    <h1>{{.Name}}</h1>
+    {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
+    {{with .Instance}}
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">{{.Ref.Namespace}}</dd>
+      <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
+      <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the controller{{end}}</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</dd>
+      <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
+      <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
+    </dl>
+    {{end}}
+    {{with .Package}}
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">{{.Ref.Namespace}}</dd>
+      <dt>Source</dt><dd class="mono">{{.Source.Kind}} {{with .Source.Namespace}}{{.}}/{{end}}{{.Source.Name}}</dd>
+      {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
+      <dt>Interval</dt><dd>{{with .Interval}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</dd>
+      <dt>Revision</dt><dd>{{with .SourceArtifact}}{{with .Revision}}<span class="mono">{{template "breakable" .}}</span>{{else}}<span class="muted">not recorded</span>{{end}}{{else}}<span class="muted">not recorded</span>{{end}}</dd>
+      <dt>Depends on</dt><dd>{{if .DependsOn}}{{range .DependsOn}}<a class="mono chip" href="/packages/{{if .Namespace}}{{.Namespace}}{{else}}{{$v.Namespace}}{{end}}/{{.Name}}">{{.Name}}</a> {{end}}{{else}}<span class="muted">nothing</span>{{end}}</dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
+      <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
+    </dl>
+    {{end}}
+    {{end}}
+  </section>
+  {{if not .Problem}}
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="{{.Topic}} events:{{.Topic}}">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes">{{template "applied" .Reconcile}}{{with .Reconcile.Reason}}<span class="mono">{{.}}</span>{{end}}</div>
+    {{with .Applied.Meaning}}<p class="card-meaning">{{.}}</p>{{end}}
+    {{with .Reconcile.Message}}<p class="card-message">{{.}}</p>{{end}}
+    {{with .Applied.Reconciling}}<p class="reconciling"><span class="label">Reconciling</span> <span class="mono">{{.Reason}}</span> since {{template "time" .LastTransitionTime}}</p>{{end}}
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span>{{range .Applied.Warnings}}<a class="count count-warning" href="{{.Href}}">{{.Text}} <span class="count-n">{{.N}}</span></a>{{else}}<span class="muted">none</span>{{end}}</div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span>{{if .Applied.Dots}}<span class="dots">{{range .Applied.Dots}}<span class="adot {{.Class}}" role="img" tabindex="0" title="{{.Title}}" aria-label="{{.Title}}"></span>{{end}}</span>{{else}}<span class="muted">none recorded</span>{{end}}</div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>{{template "history" .History}}</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="{{.Topic}}">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes">{{template "health" .Health}}{{if not .Health.Live}}{{with .Health.EvaluatedAt}}<span class="muted">evaluated {{template "time" .}}</span>{{end}}{{end}}</div>
+    <div class="reason-counts"><span class="label">By reason</span>{{range .Healthc.Reasons}}<a class="count" href="{{.Href}}"><span class="mono">{{.Text}}</span> <span class="count-n">{{.N}}</span></a>{{else}}<span class="muted">no object reports a reason</span>{{end}}</div>
+  </section>
+  {{if .ProviderOf}}
+  <section class="card owner-card" id="provider-card" aria-labelledby="provider-h" data-follow="{{.Topic}}">
+    <h2 id="provider-h">Provider <span class="h-note">the controller's verdict on what this holds</span></h2>
+    <ul class="claims">
+    {{range .ProviderOf}}
+      <li>{{with claimBadge .}}<span class="{{.Class}}" title="{{.Title}}">{{if eq .Class "prov prov-locked"}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}} <span class="mono">{{template "breakable" .Registration}}</span>{{with .Reason}} <span class="mono muted">{{.}}</span>{{end}}{{if ne .Access "ok"}} <span class="muted">{{accessText .Access}}</span>{{end}}</li>
+    {{end}}
+    </ul>
+  </section>
   {{end}}
-  {{with .Package}}
-  <dl class="facts facts-row">
-    <dt>Source</dt><dd class="mono">{{.Source.Kind}} {{with .Source.Namespace}}{{.}}/{{end}}{{.Source.Name}}</dd>
-    {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
-    <dt>Depends on</dt><dd>{{if .DependsOn}}{{range .DependsOn}}<a class="mono chip" href="/packages/{{if .Namespace}}{{.Namespace}}{{else}}{{$v.Namespace}}{{end}}/{{.Name}}">{{.Name}}</a> {{end}}{{else}}<span class="muted">nothing</span>{{end}}</dd>
-    <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
-    <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
-  </dl>
   {{end}}
-  {{end}}
-</header>
+</div>
 
 {{if not .Problem}}
-<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <h2 id="graph-h">Graph <span class="h-note">select a node for details</span></h2>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="{{.Topic}}">
+  <summary><h2 id="conditions-h">Conditions{{with .Instance}} and render contracts{{end}}</h2></summary>
+  {{template "conditions" .Conditions}}
+  {{with .Instance}}
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  {{if .RenderContracts}}<ul class="contracts">{{range .RenderContracts}}<li class="mono">{{.}}</li>{{end}}</ul>{{else}}<p class="muted">None recorded.</p>{{end}}
+  {{end}}
+</details>
+
+<nav class="tabs owner-tabs" aria-label="Views">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
+
+{{if eq .Tab "graph"}}
+<section class="panel panel-8 reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
+  <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
   {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
 </section>
-
-
-<section class="panel panel-7 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <h2 id="components-h">Components</h2>
+{{template "detail" .}}
+{{else if eq .Tab "resources"}}
+<section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
+  <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
+  {{template "filter-form" .ReasonForm}}
   {{if or .Components .Config}}
   <ol class="components">
   {{range .Components}}{{template "component" .}}{{end}}
@@ -46,36 +95,38 @@
     </li>
   {{end}}
   </ol>
+  {{else if .ReasonForm.Filters.Active}}<p class="muted">No object or child reports this reason.</p>
   {{else}}<p class="muted">The inventory names no objects yet.</p>{{end}}
 </section>
-
-<aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>{{end}}
-</aside>
-
-<section class="panel reveal" id="conditions" aria-labelledby="conditions-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <h2 id="conditions-h">Conditions</h2>
-  {{template "conditions" .Conditions}}
-  {{with .Instance}}
-  <h3 class="sub-h">Render contracts</h3>
-  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
-  {{if .RenderContracts}}<ul class="contracts">{{range .RenderContracts}}<li class="mono">{{.}}</li>{{end}}</ul>{{else}}<p class="muted">None recorded.</p>{{end}}
-  {{end}}
-</section>
-
-<section class="panel reveal" id="history" aria-labelledby="history-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <h2 id="history-h">History <span class="h-note">the controller's record, newest first</span></h2>
-  {{template "history" .History}}
-</section>
-
+{{template "detail" .}}
+{{else if eq .Tab "events"}}
 <section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
-  <h2 id="events-h">Recent events</h2>
+  <h2 id="events-h">Events{{with .Events.About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
+  {{with .EventsForm}}
+  <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" data-filters="owner-events">
+    <input type="hidden" name="tab" value="events">
+    <div class="filter-fields">
+      <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource"><option value=""{{if not (index .Filters.Values "resource")}} selected{{end}}>This {{$v.Kind.Topic}}</option>{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
+      <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any</option>{{range .Types}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
+      <div class="field"><label for="f-reason">Reason</label><input id="f-reason" name="reason" value="{{.Reason}}" placeholder="an event reason" autocomplete="off" spellcheck="false"></div>
+      <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    </div>
+    {{with .Filters}}{{if or .Active .Ignored}}
+    <div class="filter-chips">
+      {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+      {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
+      {{if .Active}}<a class="fclear" href="{{.Clear}}" data-filters-explicit>Clear filters</a>{{end}}
+    </div>
+    {{end}}{{end}}
+  </form>
+  <p class="shown">Showing <strong>{{.Shown}}</strong> of {{.Total}}, newest first, repeats folded</p>
+  {{end}}
   {{template "events-note"}}
   <p class="note">Render warnings are recorded only as events, so a warning older than about an hour is gone.</p>
   {{template "events-list" .Events}}
 </section>
-
-<section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
+{{else if eq .Tab "logs"}}
+<section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
   <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   <div class="logs">
   {{range .Logs}}
@@ -89,5 +140,25 @@
   {{if .Logs}}<p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
   {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}
 </section>
+{{else if eq .Tab "yaml"}}
+<section class="panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="{{.Topic}}">
+  <h2 id="yaml-picker-h">Objects</h2>
+  {{range .YAML.Groups}}
+  <h3 class="sub-h">{{.Kind}}</h3>
+  <ul class="yaml-list">{{range .Items}}<li>{{if .Secret}}<span class="mono muted">{{template "breakable" .Text}}</span> <span class="muted">Secret data is never read</span>{{else}}<a class="mono" href="{{.Href}}"{{if .Current}} aria-current="true"{{end}}>{{template "breakable" .Text}}</a>{{end}}</li>{{end}}</ul>
+  {{else}}<p class="muted">No object you may read.</p>{{end}}
+</section>
+<section class="panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
+  <h2 id="yaml-h">YAML</h2>
+  {{if .YAML.Has}}{{with .YAML.Picked}}{{if .Problem}}{{template "problem-region" .Problem}}{{else}}<p class="mono muted">{{.Text}}</p><pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>{{end}}{{end}}
+  {{else}}<p class="muted">Pick an object. Every object is shown as the cluster serves it, without managed fields, the last-applied annotation or values.</p>{{end}}
+</section>
+{{end}}
 {{end}}
 {{end}}{{end}}
+
+{{define "detail"}}
+<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>{{end}}
+</aside>
+{{end}}

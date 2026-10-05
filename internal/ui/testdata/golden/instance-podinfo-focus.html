@@ -19,7 +19,7 @@
     <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
     <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
     <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
-    
+    <p class="card-message">Reconciliation succeeded</p>
     <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
     <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:06 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:06 UTC"></span></span></div>
     <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
@@ -44,10 +44,12 @@
 <ol class="conditions">
   <li class="condition tone-normal">
     <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="cond-message">Reconciliation succeeded</p>
     <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
   </li>
   <li class="condition tone-normal">
     <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="cond-message">module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11</p>
     <p class="cond-meaning">The module version was found in the registry.</p>
   </li>
 </ol>
@@ -62,7 +64,7 @@
 <div class="graph" data-graph="instance-graph">
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">drag to pan · Ctrl + wheel to zoom · Esc clears the selection · outline and rail: health · square: applied</span>
-    <a class="tool-link" href="/instances/default/podinfo" data-clear-selection hidden>Clear selection</a>
+    <a class="tool-link" href="/instances/default/podinfo?tab=graph" data-clear-selection>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>
     <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
@@ -75,8 +77,8 @@
     </defs>
     <g class="viewport">
       <text class="col-title" x="16" y="20">Module</text><text class="col-title" x="280" y="20">Instance</text><text class="col-title" x="544" y="20">Components</text><text class="col-title" x="808" y="20">Objects</text><text class="col-title" x="1072" y="20">Runtime</text><text class="col-title" x="1336" y="20">Runtime</text>
-      <path class="edge edge-controls" d="M1008 122 C1040 122, 1040 94, 1072 94" data-from="obj:apps/Deployment/default/podinfo-podinfo" data-to="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 94 C1304 94, 1304 66, 1336 66" data-from="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" data-to="obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 94 C1304 94, 1304 122, 1336 122" data-from="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" data-to="obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M480 94 C512 94, 512 94, 544 94" data-from="mi:default/podinfo" data-to="comp:mi/default/podinfo/podinfo" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates" d="M280 94 C248 94, 248 94, 216 94" data-from="mi:default/podinfo" data-to="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 66, 808 66" data-from="comp:mi/default/podinfo/podinfo" data-to="obj:_/Service/default/podinfo-podinfo" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 122, 808 122" data-from="comp:mi/default/podinfo/podinfo" data-to="obj:apps/Deployment/default/podinfo-podinfo" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
-      <a class="node kind-module" href="/instances/default/podinfo?focus=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11" data-node="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11" tabindex="0" aria-label="Module, testing.opmodel.dev/modules/operator/podinfo@v0" aria-describedby="instance-graph-card-0">
+      <path class="edge edge-controls" d="M1008 122 C1040 122, 1040 94, 1072 94" data-from="obj:apps/Deployment/default/podinfo-podinfo" data-to="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls dim" d="M1272 94 C1304 94, 1304 66, 1336 66" data-from="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" data-to="obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls dim" d="M1272 94 C1304 94, 1304 122, 1336 122" data-from="obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794" data-to="obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent dim" d="M480 94 C512 94, 512 94, 544 94" data-from="mi:default/podinfo" data-to="comp:mi/default/podinfo/podinfo" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates dim" d="M280 94 C248 94, 248 94, 216 94" data-from="mi:default/podinfo" data-to="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns dim" d="M744 94 C776 94, 776 66, 808 66" data-from="comp:mi/default/podinfo/podinfo" data-to="obj:_/Service/default/podinfo-podinfo" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 94 C776 94, 776 122, 808 122" data-from="comp:mi/default/podinfo/podinfo" data-to="obj:apps/Deployment/default/podinfo-podinfo" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
+      <a class="node kind-module dim" href="/instances/default/podinfo?focus=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=mod%3Atesting.opmodel.dev%252Fmodules%252Foperator%252Fpodinfo%2540v0%2Fv0.1.11" data-node="mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11" tabindex="0" aria-label="Module, testing.opmodel.dev/modules/operator/podinfo@v0" aria-describedby="instance-graph-card-0">
         <title>testing.opmodel.dev/modules/operator/podinfo@v0</title>
         <rect class="node-ring" x="16" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="16" y="72" width="200" height="44" rx="6"/>
@@ -84,7 +86,7 @@
         <text class="node-label" x="28" y="91">podinfo@v0 v0.1.11</text>
         <text class="node-sub" x="28" y="106">Module · testing.opmodel.de…</text>
       </a>
-      <a class="node kind-instance health-healthy ap-applied" href="/instances/default/podinfo?focus=mi%3Adefault%2Fpodinfo&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo" data-node="mi:default/podinfo" tabindex="0" aria-label="Instance, default/podinfo, health Healthy, Applied" aria-describedby="instance-graph-card-1">
+      <a class="node kind-instance health-healthy ap-applied dim" href="/instances/default/podinfo?focus=mi%3Adefault%2Fpodinfo&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo" data-node="mi:default/podinfo" tabindex="0" aria-label="Instance, default/podinfo, health Healthy, Applied" aria-describedby="instance-graph-card-1">
         <title>default/podinfo</title>
         <rect class="node-ring" x="280" y="72" width="200" height="44" rx="8"/>
         <rect class="node-box" x="280" y="72" width="200" height="44" rx="6"/>
@@ -101,7 +103,7 @@
         <text class="node-label" x="556" y="91">podinfo</text>
         <text class="node-sub" x="556" y="106">Component</text>
       </a>
-      <a class="node kind-object health-healthy" href="/instances/default/podinfo?focus=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo" data-node="obj:_/Service/default/podinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, health Healthy" aria-describedby="instance-graph-card-3">
+      <a class="node kind-object health-healthy dim" href="/instances/default/podinfo?focus=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FService%2Fdefault%2Fpodinfo-podinfo" data-node="obj:_/Service/default/podinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, health Healthy" aria-describedby="instance-graph-card-3">
         <title>podinfo-podinfo</title>
         <rect class="node-ring" x="808" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
@@ -109,7 +111,7 @@
         <text class="node-label" x="820" y="63">podinfo-podinfo</text>
         <text class="node-sub" x="820" y="78">Service</text>
       </a>
-      <a class="node kind-object health-healthy" href="/instances/default/podinfo?focus=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo" data-node="obj:apps/Deployment/default/podinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, health Healthy" aria-describedby="instance-graph-card-4">
+      <a class="node kind-object health-healthy" href="/instances/default/podinfo?focus=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo" data-node="obj:apps/Deployment/default/podinfo-podinfo" tabindex="0" aria-label="Object, podinfo-podinfo, health Healthy" aria-describedby="instance-graph-card-4" aria-current="true">
         <title>podinfo-podinfo</title>
         <rect class="node-ring" x="808" y="100" width="200" height="44" rx="8"/>
         <rect class="node-box" x="808" y="100" width="200" height="44" rx="6"/>
@@ -125,7 +127,7 @@
         <text class="node-label" x="1084" y="91">podinfo-p…info-d9585d794</text>
         <text class="node-sub" x="1084" y="106">ReplicaSet</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h" data-node="obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-4lg6h, health Healthy" aria-describedby="instance-graph-card-6">
+      <a class="node kind-runtime health-healthy dim" href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h" data-node="obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-4lg6h, health Healthy" aria-describedby="instance-graph-card-6">
         <title>podinfo-podinfo-d9585d794-4lg6h</title>
         <rect class="node-ring" x="1336" y="44" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1336" y="44" width="200" height="44" rx="6"/>
@@ -133,7 +135,7 @@
         <text class="node-label" x="1348" y="63">podinfo-p…9585d794-4lg6h</text>
         <text class="node-sub" x="1348" y="78">Pod</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx" data-node="obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-kp2jx, health Healthy" aria-describedby="instance-graph-card-7">
+      <a class="node kind-runtime health-healthy dim" href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=graph" data-panel="/instances/default/podinfo/node?id=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx" data-node="obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx" tabindex="0" aria-label="Runtime, podinfo-podinfo-d9585d794-kp2jx, health Healthy" aria-describedby="instance-graph-card-7">
         <title>podinfo-podinfo-d9585d794-kp2jx</title>
         <rect class="node-ring" x="1336" y="100" width="200" height="44" rx="8"/>
         <rect class="node-box" x="1336" y="100" width="200" height="44" rx="6"/>
@@ -157,6 +159,23 @@
 </div>
 </section>
 <aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<p class="kicker">Object</p>
+<h2 class="frag-h mono">podinfo-podinfo</h2>
+<div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">Deployment.<wbr>apps default/<wbr>podinfo-podinfo</dd>
+  <dt>Health reason</dt><dd class="mono">Current</dd><dt>Health</dt><dd>Deployment is available. Replicas: 2</dd>
+  
+  
+  
+  
+  
+</dl>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>controls (metadata.ownerReferences, controller only)</li><li>owns (status.inventory entries)</li></ul>
+<p class="panel-links">
+  
+  <a href="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a>
+  <a href="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a>
+</p>
 </aside>
 </main>

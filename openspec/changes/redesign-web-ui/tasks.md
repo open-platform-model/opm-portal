@@ -33,12 +33,12 @@
 
 ## 4. Instance and package pages (internal/ui)
 
-- [ ] 4.1 Identity card (applier ServiceAccount, package interval "not set" and revision "not recorded" when absent); Applied card with the `Reconciling` mark (reason, since) while it is `True`, feed reason counts linking to Events, attempt dots by `outcome` with no running dot, the ten-entry note and "Show history"; Health card with reason counts linking to `tab=resources&reason=`; Provider card when `providerOf` is not empty
-- [ ] 4.2 Tabs Graph, Resources, Events, Logs, YAML as `tab=` links; the details panel on Graph and Resources only, keeping its Open, Expand, YAML and Events links and adding Logs for a Pod; Resources filtered by `reason`, rows linking to Graph with `focus`; Events filtered by resource, type and reason; Logs and YAML pickers from today's regions
-- [ ] 4.3 `portal.js` graph interactions: hover and focus cards placed through CSSOM properties, focus spotlight and "Clear selection", full screen with a class fallback, zoom slider bound to the existing scale beside Fit, group expand through `expand` with fit-to-members and "Whole graph"; `graph.go` `edgeOf` stays as it is
-- [ ] 4.4 Live refresh renders the open tab's regions and the cards and keeps the tab, focus, selection, zoom, open card and groups (extend `refresh_test.go`); `TestBrowserLogs` and `TestBrowserExpired` still pass under `task test:browser`
-- [ ] 4.5 UI goldens updated and reviewed; the hostile-text suite covers cards, dots and tabs
-- [ ] 4.6 `task check` green, then commit `feat(ui): split instance and package pages into summary cards and tabs`
+- [x] 4.1 Identity card (applier ServiceAccount, package interval "not set" and revision "not recorded" when absent); Applied card with the `Reconciling` mark (reason, since) while it is `True`, feed reason counts linking to Events, attempt dots by `outcome` with no running dot, the ten-entry note and "Show history"; Health card with reason counts linking to `tab=resources&reason=`; Provider card when `providerOf` is not empty
+- [x] 4.2 Tabs Graph, Resources, Events, Logs, YAML as `tab=` links; the details panel on Graph and Resources only, keeping its Open, Expand, YAML and Events links and adding Logs for a Pod; Resources filtered by `reason`, rows linking to Graph with `focus`; Events filtered by resource, type and reason; Logs and YAML pickers from today's regions
+- [x] 4.3 `portal.js` graph interactions: hover and focus cards placed through CSSOM properties, focus spotlight and "Clear selection", full screen with a class fallback, zoom slider bound to the existing scale beside Fit, group expand through `expand` with fit-to-members and "Whole graph"; `graph.go` `edgeOf` stays as it is
+- [x] 4.4 Live refresh renders the open tab's regions and the cards and keeps the tab, focus, selection, zoom, open card and groups (extend `refresh_test.go`); `TestBrowserLogs` and `TestBrowserExpired` still pass under `task test:browser`
+- [x] 4.5 UI goldens updated and reviewed; the hostile-text suite covers cards, dots and tabs
+- [x] 4.6 `task check` green, then commit `feat(ui): split instance and package pages into summary cards and tabs`
 
 ## 5. Provider tab, Catalog page, live check and docs (internal/ui, test/e2e, docs/site, ROADMAP.md)
 
