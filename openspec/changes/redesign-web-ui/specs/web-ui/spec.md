@@ -221,7 +221,7 @@ A graph SHALL show a card for a node on pointer hover and on keyboard focus (kin
 and applied marks, health reason, origin, access), positioned without any `style` attribute. A
 `focus` parameter SHALL spotlight its node and dim what is not adjacent to it, and "Clear
 selection" SHALL remove it. The graph SHALL open in full screen and back. It SHALL zoom with a
-slider, with Fit, with the buttons and with Ctrl and the wheel, and pan with the pointer. A group
+zoom slider, Fit and Ctrl/Cmd-wheel, and pan with the pointer. A group
 node SHALL expand in place through the graph's `expand` parameter and fit the view to its
 members, and a "Whole graph" control SHALL collapse it and fit the whole graph again. Source:
 portal:D4:R5.
@@ -446,8 +446,8 @@ accessible name, and a title with their full label, and SHALL be reachable with 
 document order. A node's box outline SHALL carry its health only, and a separate mark on the node
 SHALL carry its applied state. A label too long for its node SHALL keep the part that tells nodes
 apart. Activating a node SHALL show its detail panel and mark the node as selected; activating a
-group node SHALL show it expanded. A graph SHALL open fitted to its frame and SHALL pan and zoom
-with pointer, wheel and buttons. Graphs SHALL appear on instance and package pages; the Platform
+group node SHALL show it expanded. A graph SHALL open fitted to its frame, SHALL pan with the
+pointer and SHALL zoom with a zoom slider, Fit and Ctrl/Cmd-wheel. Graphs SHALL appear on instance and package pages; the Platform
 page SHALL not draw one. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17.
 
 #### Scenario: Keyboard focus

@@ -46,6 +46,9 @@ func TestPackageCardsOnF1(t *testing.T) {
 func TestBrokenRolloutHandsOffToResources(t *testing.T) {
 	s := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
 	health := between(mainOf(s.get(t, "/instances/default/podinfo").body), `id="health-card"`, "</section>")
+	if !strings.Contains(health, `<span class="mono">ImagePullBackOff</span> <span class="count-n">1</span>`) {
+		t.Errorf("the waiting reason is not counted once, at the Pod:\n%s", health)
+	}
 	m := regexp.MustCompile(`href="(/instances/default/podinfo\?reason=ImagePullBackOff&amp;tab=resources)"`).FindStringSubmatch(health)
 	if m == nil {
 		t.Fatalf("no ImagePullBackOff count:\n%s", health)

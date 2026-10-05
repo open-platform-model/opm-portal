@@ -62,7 +62,7 @@
     {{range .Rows}}
     <tr class="reg reg-{{.Verdict}}">
       <th scope="row" data-label="Provider"><span class="mono">{{template "breakable" .Name}}</span></th>
-      <td data-label="Catalog"><span class="mono">{{template "breakable" .Catalog}}</span>{{with .Version}} <span class="ver">{{.}}</span>{{end}}</td>
+      <td data-label="Catalog"><a class="mono" href="{{catalogHref .Catalog}}">{{template "breakable" .Catalog}}</a>{{with .Version}} <span class="ver">{{.}}</span>{{end}}</td>
       <td data-label="Provides">{{range .Provides}}<span class="mono chip" title="{{.}}">{{contractShort .}}</span> {{else}}<span class="muted">nothing</span>{{end}}</td>
       <td data-label="Installed as">{{range .Holders}}<span class="holder"><span class="kind kind-{{.Kind}}">{{if eq .Kind "package"}}Package{{else}}Instance{{end}}</span> <a class="mono" href="{{.Href}}">{{.Text}}</a></span> {{else}}<span class="muted">held by nothing you may read</span>{{end}}{{if .HeldByPartial}}<p class="muted holder-note">You may not see every instance and package, so a holder may be missing.</p>{{end}}{{if .RefElsewhere}}{{with .Provider}}<p class="muted holder-note">spec.providerRef names ModuleInstance <span class="mono">{{.Namespace}}/{{.Name}}</span>.</p>{{end}}{{end}}</td>
       <td data-label="Status">
@@ -96,7 +96,7 @@
     <tbody>
     {{range .Rows}}
     <tr>
-      <th scope="row" data-label="Catalog"><span class="mono">{{template "breakable" .Path}}</span>{{if not .Resolved}}<p class="muted holder-note">Not in the Platform's resolved registry.</p>{{end}}</th>
+      <th scope="row" data-label="Catalog"><a class="mono" href="{{catalogHref .Path}}">{{template "breakable" .Path}}</a>{{if not .Resolved}}<p class="muted holder-note">Not in the Platform's resolved registry.</p>{{end}}</th>
       <td data-label="Version">{{with .Version}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</td>
       <td data-label="Source">{{.SourceText}}{{with .ContributedBy}}, contributed by <span class="mono">{{.}}</span>{{end}}</td>
       <td data-label="Claimed by">{{range .Claimants}}<span class="claimant"><span class="mono">{{template "breakable" .Name}}</span>{{range .Holders}} <a class="mono holder-link" href="{{.Href}}">{{.Text}}</a>{{end}}</span> {{else}}<span class="muted">no provider</span>{{end}}</td>

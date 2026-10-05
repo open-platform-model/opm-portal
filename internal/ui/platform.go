@@ -154,11 +154,13 @@ type holderLink struct {
 	Text string
 }
 
+// holderOf links a holder to its Provider tab.
 func holderOf(ref v1.ObjectRef) holderLink {
+	k := instanceKind
 	if ref.Kind == "ModulePackage" {
-		return holderLink{Kind: packageKind.Topic, Href: packageKind.base(ref.Namespace, ref.Name), Text: ref.Namespace + "/" + ref.Name}
+		k = packageKind
 	}
-	return holderLink{Kind: instanceKind.Topic, Href: instanceKind.base(ref.Namespace, ref.Name), Text: ref.Namespace + "/" + ref.Name}
+	return holderLink{Kind: k.Topic, Href: k.base(ref.Namespace, ref.Name) + "?tab=" + tabProvider, Text: ref.Namespace + "/" + ref.Name}
 }
 
 // providerRow is one registration with the instances and packages that

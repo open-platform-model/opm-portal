@@ -418,8 +418,8 @@ Graph interactions, all in `portal.js` over the server-rendered SVG:
 - **Focus spotlight**: `focus=<id>` dims every node and edge not adjacent to it by a class;
   "Clear selection" drops the parameter.
 - **Full screen**: the Fullscreen API on the graph region, with a class-based fallback.
-- **Zoom**: an `<input type="range">` bound to the existing zoom scale, beside Fit; Ctrl-wheel and
-  pointer pan exist.
+- **Zoom**: an `<input type="range">` bound to the existing zoom scale, beside Fit; Ctrl/Cmd-wheel
+  and pointer pan exist. The −, 1:1 and + buttons are gone (supervisor ruling 2026-10-05).
 - **Groups**: a group node's accordion expands it through the graph resource's `expand` parameter
   (exists), then fits the view to the group's members; a "Whole graph" button removes the
   expansion and fits again.

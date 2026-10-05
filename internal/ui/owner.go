@@ -83,6 +83,7 @@ type ownerView struct {
 	EventsForm eventsForm
 	Logs       []logPane
 	YAML       yamlTab
+	Provider   providerTabView
 }
 
 // --- Cards ---
@@ -106,7 +107,8 @@ type attemptDot struct {
 }
 
 // healthCard counts objects and runtime children by health reason, each
-// linking to the Resources tab filtered by it.
+// linking to the Resources tab filtered by it. A reason an object only
+// mirrors from a child below it is counted once, at the child.
 type healthCard struct {
 	Reasons []countLink
 }
@@ -169,9 +171,15 @@ func healthCardOf(v *ownerView) healthCard {
 		for i := range cs {
 			for j := range cs[i].Objects {
 				o := &cs[i].Objects[j]
-				add(o.Health)
+				mirrored := false
 				for k := range o.Children {
 					add(&o.Children[k].Health)
+					mirrored = mirrored || (o.Health != nil && o.Children[k].Health.Reason == o.Health.Reason)
+				}
+				// A workload degraded only because a child waits carries the
+				// child's reason: the reason is counted once, at its source.
+				if !mirrored {
+					add(o.Health)
 				}
 			}
 		}
@@ -462,14 +470,6 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 		q := r.URL.Query()
 		v := ownerView{Kind: k, Namespace: ns, Name: name, Base: k.base(ns, name), Tab: tabGraph}
 		v.Topic = k.Topic + ":" + ns + "/" + name
-		for _, t := range ownerTabs {
-			if q.Get("tab") == t.Name {
-				v.Tab = t.Name
-			}
-		}
-		for _, t := range ownerTabs {
-			v.Tabs = append(v.Tabs, tabLink{Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab})
-		}
 		api := v.Base
 		if k == instanceKind {
 			var doc v1.Instance
@@ -491,6 +491,18 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 		if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
 			h.signIn(w, r)
 			return
+		}
+		tabs := ownerTabs
+		if len(v.ProviderOf) > 0 {
+			tabs = append(slices.Clone(tabs), struct{ Name, Label string }{tabProvider, "Provider"})
+		}
+		for _, t := range tabs {
+			if q.Get("tab") == t.Name {
+				v.Tab = t.Name
+			}
+		}
+		for _, t := range tabs {
+			v.Tabs = append(v.Tabs, tabLink{Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab})
 		}
 		if v.Problem == nil {
 			h.ownerTabsOf(r, &v)
@@ -558,6 +570,8 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 		h.ownerEventsTab(r, v, refs)
 	case tabYAML:
 		h.ownerYAMLTab(r, v)
+	case tabProvider:
+		v.Provider = h.providerTab(r, v)
 	}
 }
 

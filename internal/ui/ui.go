@@ -93,6 +93,7 @@ func (h *Handler) routes() {
 	h.mux.HandleFunc("/{$}", h.platformPage)
 	h.mux.HandleFunc("/platform/registrations/{name}/events", h.registrationEvents)
 	h.mux.HandleFunc("/installed", h.installedPage)
+	h.mux.HandleFunc("/catalog", h.catalogPage)
 	h.mux.HandleFunc("/instances", listRedirect(instanceKind.Topic))
 	h.mux.HandleFunc("/packages", listRedirect("package"))
 	for _, k := range []ownerKind{instanceKind, packageKind} {

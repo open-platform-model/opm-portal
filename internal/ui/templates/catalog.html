@@ -1,0 +1,56 @@
+{{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Platform</a> <span aria-hidden="true">/</span> <a href="/?tab=catalogs">Catalogs</a> <span aria-hidden="true">/</span> <span class="mono">{{contractShort .Row.Path}}</span></nav>
+<div class="summary reveal">
+  <section class="card" id="catalog-head" aria-label="Identity" data-follow="platform">
+    <p class="kicker">Catalog · {{.Origin}}</p>
+    <h1 class="mono">{{template "breakable" .Row.Path}}</h1>
+    {{with .Row}}
+    <dl class="facts">
+      <dt>Version</dt><dd>{{with .Version}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</dd>
+      <dt>Source</dt><dd>{{.SourceText}}{{with .ContributedBy}}, contributed by <span class="mono">{{.}}</span>{{end}}</dd>
+      <dt>Enabled</dt><dd>{{with .Enabled}}{{if .}}yes{{else}}no{{end}}{{else}}<span class="muted">not recorded</span>{{end}}</dd>
+    </dl>
+    {{end}}
+  </section>
+  <section class="card owner-card" id="catalog-resolved" aria-labelledby="resolved-h" data-follow="platform">
+    <h2 id="resolved-h">Resolved <span class="h-note">in the Platform's registry</span></h2>
+    {{if .Row.Resolved}}<p><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Resolved</span></p>
+    {{else}}<p><span class="health health-degraded"><span class="dot" aria-hidden="true"></span>Not resolved</span>{{with .NotResolvedReason}} <span class="mono">{{.}}</span>{{end}}</p>{{with .NotResolvedWhy}}<p class="muted">The reason is {{.}}'s.</p>{{end}}{{end}}
+    {{with .Contracts}}
+    <p class="reason-info"><span class="label">Platform-wide contracts</span> <span class="mono">{{with .Reason}}{{.}}{{else}}{{.Status}}{{end}}</span> <span class="muted">for the whole Platform, not this catalog; information, not a failure</span></p>
+    {{end}}
+  </section>
+</div>
+<p class="note">The cluster does not record a catalog's definitions, their descriptions or the transformers it ships, so they are not shown.</p>
+<nav class="tabs" aria-label="Views">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
+{{if eq .Tab "claims"}}
+<section class="panel panel-wide reveal" id="claims" aria-labelledby="claims-h" data-follow="platform">
+  <h2 id="claims-h">Claims <span class="h-note">registrations that claim this catalog</span></h2>
+  {{if .Claims}}
+  <div class="table-wrap"><table class="table rows">
+    <thead><tr><th scope="col">Registration</th><th scope="col">Installed as</th><th scope="col">Standing</th></tr></thead>
+    <tbody>
+    {{range .Claims}}
+    <tr class="reg reg-{{.Reg.Verdict}}">
+      <th scope="row" data-label="Registration"><span class="mono">{{template "breakable" .Reg.Name}}</span>{{with .Reg.Version}} <span class="ver">{{.}}</span>{{end}}</th>
+      <td data-label="Installed as">{{range .Holders}}<span class="holder"><span class="kind kind-{{.Kind}}">{{if eq .Kind "package"}}Package{{else}}Instance{{end}}</span> <a class="mono" href="{{.Href}}">{{.Text}}</a></span> {{else}}<span class="muted">held by nothing you may read</span>{{end}}</td>
+      <td data-label="Standing"><p class="pills"><span class="pill {{if .Reg.Accepted}}pill-yes{{else}}pill-no{{end}}">{{if .Reg.Accepted}}accepted{{else}}not accepted{{end}}</span> <span class="pill {{if .Reg.Active}}pill-yes{{else}}pill-no{{end}}">{{if .Reg.Active}}active{{else}}inactive{{end}}</span></p>{{if ne .Reg.Verdict "Accepted"}}<p class="verdict-why">{{with verdictBadge .Reg.Verdict}}<span class="{{.Class}}">{{.Text}}</span>{{end}} {{with .Reg.Reason}}<span class="mono">{{.}}</span>{{end}}{{with .Reg.Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table></div>
+  {{else}}<p class="muted">No registration you may read claims this catalog.</p>{{end}}
+</section>
+{{else}}
+<section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
+  <h2 id="events-h">Events <span class="h-note">the Platform's and its claimants'</span></h2>
+  {{template "events-note"}}
+  {{with .Events}}
+  <div id="events" data-follow="{{.Follow}}">
+    {{with .Unread}}<p class="note">The events of {{range $i, $n := .}}{{if $i}}, {{end}}<span class="mono">{{$n}}</span>{{end}} could not be read.</p>{{end}}
+    {{template "events-list" .Feed}}
+  </div>
+  {{end}}
+</section>
+{{end}}
+{{end}}{{end}}

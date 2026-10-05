@@ -537,6 +537,16 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .yaml-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .yaml-list a[aria-current] { font-weight: 700; color: var(--accent); }
 
+/* ---- Provider tab and Catalog page ---- */
+
+.claim { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+.claim:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+.claim h3 { margin: 0 0 6px; overflow-wrap: anywhere; }
+.provides { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.provides li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.used-by { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.reason-info { margin: 12px 0 0; }
+
 /* ---- Graph view: spotlight, cards, full screen ---- */
 
 .graph { position: relative; }

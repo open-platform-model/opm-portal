@@ -89,6 +89,13 @@ func F1Broken(t testing.TB) []*unstructured.Unstructured {
 	return append(out, replace...)
 }
 
+// F1PackageHolder is F1 with a package holding a refused claim, as
+// readmodeltest.WithPackageHolder constructs it (not captured).
+func F1PackageHolder(t testing.TB) []*unstructured.Unstructured {
+	t.Helper()
+	return readmodeltest.WithPackageHolder(t, F1(t))
+}
+
 // New serves the read API in local mode over objs. Reviews for Caller
 // follow rule; the reader may read everything. A request is Caller's when
 // it carries SessionCookie with SessionValue.

@@ -60,6 +60,7 @@ func TestM1(t *testing.T) {
 	t.Run("platform shows the accepted and the refused claim", s.platformClaims)
 	t.Run("instance list keeps applied and health apart", s.instanceAxes)
 	t.Run("CLI-owned instance reads managed externally", s.cliOwned)
+	t.Run("the cluster document and Installed name what is read", func(t *testing.T) { s.clusterAndInstalled(t, kubeContext) })
 	t.Run("image break turns health degraded while applied stays", func(t *testing.T) {
 		s.imageBreak(t, restConfig(t, kubeconfig, kubeContext))
 	})
@@ -175,6 +176,35 @@ func (s m1Session) cliOwned(t *testing.T) {
 	page := get(s.ctx, t, s.browser, s.base+"/instances/web/web", nil)
 	if page.status != http.StatusOK || !strings.Contains(page.body, "Managed externally") {
 		t.Errorf("the web/web page: %d, does not read Managed externally", page.status)
+	}
+}
+
+// clusterAndInstalled: the Cluster document names the fixture's context,
+// the kubeconfig's user and a Kubernetes version (portal:D18), and
+// Installed lists instances and packages together with the provider badge
+// on backup-provider (portal:D17:R1).
+func (s m1Session) clusterAndInstalled(t *testing.T, kubeContext string) {
+	var c v1.Cluster
+	getJSON(s.ctx, t, s.browser, s.api(""), &c)
+	if c.Source != v1.SourceKubeconfig || c.Context != kubeContext || c.ClusterEntry == "" || c.ReadingAs.Username == "" ||
+		!strings.HasPrefix(c.KubernetesVersion, "v1.") {
+		t.Errorf("cluster document = %+v; want source kubeconfig, context %s, a cluster entry, a user and a v1.x version", c, kubeContext)
+	}
+	page := get(s.ctx, t, s.browser, s.base+"/installed", nil)
+	for _, want := range []string{`href="/instances/default/podinfo"`, `href="/packages/pkg/podinfo"`, `href="/instances/web/web"`,
+		`class="prov prov-active"`, "<td data-label=\"Owner\">cli</td>", c.KubernetesVersion} {
+		if !strings.Contains(page.body, want) {
+			t.Errorf("/installed lacks %s", want)
+		}
+	}
+	// The old list redirects to Installed filtered by kind and namespace;
+	// the session's client does not follow redirects, so it reads the 308.
+	if res := get(s.ctx, t, s.browser, s.base+"/instances?namespace=default", nil); res.status != http.StatusPermanentRedirect {
+		t.Errorf("/instances?namespace=default: %d; want 308 to Installed", res.status)
+	}
+	filtered := get(s.ctx, t, s.browser, s.base+"/installed?kind=instance&namespace=default", nil)
+	if !strings.Contains(filtered.body, `<span class="fchip-label">Kind</span> Instance`) || strings.Contains(filtered.body, `href="/packages/pkg/podinfo"`) {
+		t.Errorf("/installed?kind=instance&namespace=default is not filtered")
 	}
 }
 

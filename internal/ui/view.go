@@ -319,6 +319,7 @@ var funcs = template.FuncMap{
 	"toneClass":     toneClass,
 	"short":         short,
 	"contractShort": contractShort,
+	"catalogHref":   catalogHref,
 	"refText":       refText,
 	"isSecret":      isSecret,
 	"join":          strings.Join,

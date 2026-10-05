@@ -52,7 +52,7 @@
     <h2 id="provider-h">Provider <span class="h-note">the controller's verdict on what this holds</span></h2>
     <ul class="claims">
     {{range .ProviderOf}}
-      <li>{{with claimBadge .}}<span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}} <span class="mono">{{template "breakable" .Registration}}</span>{{with .Reason}} <span class="mono muted">{{.}}</span>{{end}}{{if ne .Access "ok"}} <span class="muted">{{accessText .Access}}</span>{{end}}</li>
+      <li>{{with claimBadge .}}<span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}} <a class="mono" href="{{$v.Base}}?tab=provider">{{template "breakable" .Registration}}</a>{{with .Reason}} <span class="mono muted">{{.}}</span>{{end}}{{if ne .Access "ok"}} <span class="muted">{{accessText .Access}}</span>{{end}}</li>
     {{end}}
     </ul>
   </section>
@@ -152,6 +152,50 @@
   <h2 id="yaml-h">YAML</h2>
   {{if .YAML.Has}}{{with .YAML.Picked}}{{if .Problem}}{{template "problem-region" .Problem}}{{else}}<p class="mono muted">{{.Text}}</p><pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>{{end}}{{end}}
   {{else}}<p class="muted">Pick an object. Every object is shown as the cluster serves it, without managed fields, the last-applied annotation or values.</p>{{end}}
+</section>
+{{else if eq .Tab "provider"}}
+<section class="panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform">
+  <h2 id="provider-tab-h">Provider <span class="h-note">the registrations this {{.Kind.Topic}}'s inventory holds, as the controller judged them</span></h2>
+  {{with .Provider}}
+  {{if .PlatformLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not read the Platform, so each claim's conditions, catalog and registry state are not shown. The standing below is the registration's own.</p></div>{{end}}
+  {{with .PlatformProblem}}{{template "problem-region" .}}{{end}}
+  {{range .Claims}}
+  <article class="claim" aria-label="Registration {{.Claim.Registration}}">
+    <h3 class="mono">{{template "breakable" .Claim.Registration}}</h3>
+    <p class="pills">{{with claimBadge .Claim}}<span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}}{{if eq .Claim.Access "ok"}}
+      <span class="pill {{if .Claim.Accepted}}pill-yes{{else}}pill-no{{end}}">{{if .Claim.Accepted}}accepted{{else}}not accepted{{end}}</span>
+      <span class="pill {{if .Claim.Active}}pill-yes{{else}}pill-no{{end}}">{{if .Claim.Active}}active{{else}}inactive{{end}}</span>{{with .Claim.Reason}} <span class="mono">{{.}}</span>{{end}}{{end}}</p>
+    {{if ne .Claim.Access "ok"}}<div class="locked-panel">{{template "lock"}}<p>{{accessText .Claim.Access}}</p></div>
+    {{else if .Reg}}{{$c := .}}{{with .Reg}}
+    <dl class="facts">
+      <dt>Catalog</dt><dd><a class="mono" href="{{$c.CatalogHref}}">{{template "breakable" .Catalog}}</a>{{with .Version}} <span class="ver">{{.}}</span>{{end}}</dd>
+      <dt>Registry</dt><dd>{{if $c.ContributedHere}}In the Platform's resolved registry, contributed by this registration.{{else if $c.InRegistry}}In the Platform's resolved registry{{with $c.ContributedBy}}, contributed by <span class="mono">{{.}}</span>{{end}}.{{else}}Not in the Platform's resolved registry.{{end}}</dd>
+      {{with .Provider}}<dt>providerRef</dt><dd>names ModuleInstance <span class="mono">{{.Namespace}}/{{.Name}}</span>{{if or (ne .Namespace $v.Namespace) (ne .Name $v.Name) (ne $v.Kind.Topic "instance")}}, not this {{$v.Kind.Topic}}{{end}}</dd>{{end}}
+      {{with .Message}}<dt>Controller says</dt><dd>{{.}}</dd>{{end}}
+    </dl>
+    <h4 class="sub-h">Conditions</h4>
+    {{if .Conditions}}
+    <div class="table-wrap"><table class="table rows">
+      <thead><tr><th scope="col">Condition</th><th scope="col">Status</th><th scope="col">Reason</th><th scope="col">Meaning</th><th scope="col">Since</th></tr></thead>
+      <tbody>{{range .Conditions}}<tr class="{{toneClass .Tone}}"><th scope="row" data-label="Condition">{{.Type}}</th><td data-label="Status">{{.Status}}</td><td data-label="Reason" class="mono">{{.Reason}}</td><td data-label="Meaning">{{.Meaning}}{{with .Message}}<p class="cond-message">{{.}}</p>{{end}}</td><td data-label="Since">{{template "time" .LastTransitionTime}}</td></tr>{{end}}</tbody>
+    </table></div>
+    {{else}}<p class="muted">No conditions reported.</p>{{end}}
+    <h4 class="sub-h">What it provides</h4>
+    {{if $c.Contracts}}
+    <ul class="provides">
+    {{range $c.Contracts}}
+      <li><span class="mono chip" title="{{.Contract}}">{{contractShort .Contract}}</span>
+        <span class="used-by"><span class="label">Used by</span>{{if $v.Provider.UsedByLocked}}{{template "lock"}} <span class="muted">you may not list instances</span>{{else}}{{range .First}}<a class="mono" href="{{.Href}}">{{.Text}}</a> {{else}}<span class="muted">no instance you may read</span>{{end}}{{if .More}}<span class="muted">and {{.More}} more</span>{{end}}{{end}}
+        <a href="{{.All}}">All {{if not $v.Provider.UsedByLocked}}{{.Total}} {{end}}in Installed</a></span></li>
+    {{end}}
+    </ul>
+    {{if $v.Provider.UsedByLocked}}<p class="note">The list may be incomplete: you may not list every instance.</p>{{end}}
+    {{else}}<p class="muted">The registration provides no contract.</p>{{end}}
+    {{end}}
+    {{else if not $v.Provider.PlatformLocked}}<p class="muted">The Platform names no such registration you may read.</p>{{end}}
+  </article>
+  {{end}}
+  {{end}}
 </section>
 {{end}}
 {{end}}

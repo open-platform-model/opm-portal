@@ -39,10 +39,13 @@ func TestNoOperatorTextOnAnInClusterPage(t *testing.T) {
 	sources := map[string][]string{
 		"/": {apiBase + "/platform", apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events",
 			apiBase + "/platform/registrations/default.backup-provider/events"},
-		"/?tab=catalogs":                     {apiBase + "/platform"},
-		"/instances/default/podinfo":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
-		"/instances/default/backup-provider": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
-		"/packages/pkg/podinfo":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
+		"/?tab=catalogs": {apiBase + "/platform"},
+		"/instances/default/backup-provider?tab=provider": {apiBase + "/platform", apiBase + "/instances/default/backup-provider"},
+		"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events": {apiBase + "/platform",
+			apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events"},
+		"/instances/default/podinfo":                                   {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
+		"/instances/default/backup-provider":                           {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
+		"/packages/pkg/podinfo":                                        {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
 		"/platform/registrations/default.refused-claim-fixture/events": {apiBase + "/platform/registrations/default.refused-claim-fixture/events"},
 	}
 	for name, objs := range map[string]func(testing.TB) []*unstructured.Unstructured{"F1": apitest.F1, "broken": apitest.F1Broken} {
