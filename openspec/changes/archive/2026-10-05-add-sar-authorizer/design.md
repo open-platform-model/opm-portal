@@ -57,8 +57,10 @@ type Options struct {
 
 `subjectReviewer.decide(ctx, who, req)`:
 
-1. `who.key() == reader.key()`: send a SubjectAccessReview with the reader's username, groups
-   and extra.
+1. `who` carries the reader mark and `who.key() == reader.key()`: send a SubjectAccessReview
+   with the reader's username, groups and extra. The mark is an unexported `Identity` field that
+   only `ServiceAccountIdentity` sets, and it is part of the key, so an identity built from
+   claims can never take this route, whatever its username and groups say.
 2. Otherwise `who` is a person. A username starting `system:` or a group starting `system:`
    other than `system:authenticated` is a `CodeUnauthenticated` denial; no review is sent.
 3. Send a SubjectAccessReview with `User`, `UID`, `Groups`, `Extra` from `who` and
@@ -93,13 +95,15 @@ kinds as forbidden at startup (the read model's denied scopes) instead of failin
 **Context**: the read model, the logs producer and the read API ask one `Authorizer` for both
 people and the reader.
 **Options considered**:
-1. One `Checker`, routed on the identity's full key, with people barred from system names and
-   groups (chosen). A person can match the reader only with a `system:serviceaccount:` username
-   and the ServiceAccount groups, both of which the person route refuses and identity mapping
-   strips (0030:D6:R3).
+1. One `Checker`, routed on a reader mark only `ServiceAccountIdentity` sets, with people barred
+   from system names and groups (chosen). An identity built from claims never carries the mark,
+   so one with the ServiceAccount's exact username and groups takes the person route and is
+   refused there (0030:D6:R3). Routing on the key alone was the first draft; review found that
+   such claims matched it, were answered with the ServiceAccount's access and left out of the
+   access log.
 2. A second `Authorizer` field for the reader in three packages' configs. Stronger separation,
-   but it touches the read model, the logs producer and the read API for a case route 1 already
-   refuses twice over.
+   but it touches the read model, the logs producer and the read API, while the mark gives the
+   same guarantee inside one package.
 **Decision**: option 1.
 
 ### Access log in the Checker

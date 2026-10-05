@@ -207,7 +207,9 @@ SHALL NOT be answered as the portal's ServiceAccount. Source: 0030:D6:R2.
 In-cluster the portal SHALL refuse as unauthenticated, without any call, a person whose username
 starts with `system:` or who carries any group starting with `system:` other than
 `system:authenticated`, so a person can never be answered with the portal's ServiceAccount's
-access or a privileged group's. Source: 0030:D6:R3.
+access or a privileged group's. Every identity is a person unless the portal built it as its own
+ServiceAccount; matching the ServiceAccount's username and groups does not make an identity the
+ServiceAccount. Source: 0030:D6:R3.
 
 #### Scenario: System username
 
@@ -215,6 +217,15 @@ access or a privileged group's. Source: 0030:D6:R3.
   without the ServiceAccount's groups, or `system:admin`
 - **THEN** the read is refused as unauthenticated
 - **AND** the cluster receives no request
+
+#### Scenario: Claims that spell the ServiceAccount
+
+- **WHEN** a person's identity names the username `system:serviceaccount:opm-portal:opm-portal`
+  with exactly the ServiceAccount's groups, and the ServiceAccount already holds an allow for
+  the same read
+- **THEN** the read is refused as unauthenticated
+- **AND** the cluster receives no request
+- **AND** the access log records the denial
 
 #### Scenario: System group
 
