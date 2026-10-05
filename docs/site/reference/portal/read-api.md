@@ -9,7 +9,7 @@ This page lists every resource of the OPM portal's read API, version `v1alpha1`,
 
 ## Rules for every resource
 
-- Every resource lives below `/api/v1alpha1`, and every method is `GET`. Any other method is refused with `method_not_allowed`.
+- Every resource lives below `/api/v1alpha1`, and every method is `GET`, except the request that changes an open stream's topics, which is `POST`. Any other method is refused with `method_not_allowed`.
 - Every path names the cluster. The portal serves one cluster, `default`; any other is answered with `not_found`.
 - Every document carries `apiVersion: portal.opmodel.dev/v1alpha1` and a `kind`.
 - Every request is authorized for the caller before anything is looked up. A caller who may not make a read receives the same `forbidden` problem whether or not the object exists. A list the caller may not read is empty, its `access` field is `forbidden`, and it carries no count.
@@ -27,19 +27,22 @@ Paths are below `/api/v1alpha1`.
 | `GET /clusters/{cluster}/instances/{namespace}/{name}` | `Instance`: one ModuleInstance with its components and inventory. |
 | `GET /clusters/{cluster}/instances/{namespace}/{name}/graph` | `Graph`: the instance's relationship graph. `?expand=` opens a group node, `?showScaledDown=true` shows ReplicaSets scaled to zero. |
 | `GET /clusters/{cluster}/instances/{namespace}/{name}/events` | `EventList`: recent events about the instance, or, with `?group=&kind=&namespace=&name=`, about one object it reaches. |
+| `GET /clusters/{cluster}/instances/{namespace}/{name}/object` | `Object`: one object the instance reaches, named by `?group=&kind=&namespace=&name=`, as the cluster serves it, without managed fields, the last-applied annotation or values. A Secret, and an object no inventory reaches, are refused with `forbidden`. |
 | `GET /clusters/{cluster}/packages` | `PackageList`: the ModulePackages the caller may list. `?namespace=` lists one namespace. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}` | `Package`: one ModulePackage with its components and inventory. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}/graph` | `Graph`: the package's relationship graph. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}/events` | `EventList`: recent events about the package, or about one object it reaches. |
+| `GET /clusters/{cluster}/packages/{namespace}/{name}/object` | `Object`: one object the package reaches, as for an instance. |
 | `GET /clusters/{cluster}/platform` | `Platform`: the Platform, its catalogs and its transformer registrations. |
 | `GET /clusters/{cluster}/platform/graph` | `Graph`: catalogs, registrations and the instances that provide them. |
 | `GET /clusters/{cluster}/platform/events` | `EventList`: recent events about the Platform. |
 | `GET /clusters/{cluster}/platform/registrations/{name}/events` | `EventList`: recent events about one TransformerRegistration. |
 | `GET /clusters/{cluster}/stream` | A server-sent-events stream of the topics named in `?topics=`. |
+| `POST /clusters/{cluster}/stream/{stream}/topics` | Adds and removes topics on an open stream of this session, named by the id its `open` event carries. The body is JSON, `{"add": [topic], "remove": [topic]}`, with `Content-Type: application/json`; the answer is `204`. An added topic the caller may not follow is closed on the stream. |
 
 ## Change stream topics
 
-`GET /clusters/{cluster}/stream?topics=<topic>,<topic>` follows several topics on one connection. Each topic carries the document its `GET` returns, rendered for the caller.
+`GET /clusters/{cluster}/stream?topics=<topic>,<topic>` follows several topics on one connection. Each topic carries the document its `GET` returns, rendered for the caller. The stream's first event, `open`, carries `{stream: <id>}`; post to `stream/<id>/topics` to change the topics while the stream stays open.
 
 | Topic | Document |
 | --- | --- |
@@ -57,7 +60,7 @@ Paths are below `/api/v1alpha1`.
 
 A `snapshot` event carries `{topic, items: [document]}`; `upsert`, `delete` and `k8sevent` events carry `{topic, item: document}`. A `delete`, and a snapshot of an object that does not exist, carry a `Removed` document. A topic the caller may not follow is closed with a `closed` event naming a problem code. To resume after a disconnect, reconnect with the `Last-Event-ID` header.
 
-A log topic is served where the serving mode routes it; local mode does. Its snapshot carries the recent messages, and `log` and `logend` events carry `{topic, item: message}`. A message has a `seq`, a `type` (`line`, `marker` or `end`), its `container`, and, as its type needs, `time`, `text`, `marker` (`truncated`, `rate-limited` or `skipped`), `cut`, `dropped` or `reason`. These enumerations are open. Log text is untrusted. A session follows at most four log topics at once.
+A log topic is served where the serving mode routes it; local mode does. Its snapshot carries the recent messages, and `log` and `logend` events carry `{topic, item: message}`. A Pod in an `Instance` or `Package` names its containers in `containers`, the names its log topics take. A message has a `seq`, a `type` (`line`, `marker` or `end`), its `container`, and, as its type needs, `time`, `text`, `marker` (`truncated`, `rate-limited` or `skipped`), `cut`, `dropped` or `reason`. These enumerations are open. Log text is untrusted. A session follows at most four log topics at once.
 
 ## Problem codes
 
@@ -69,7 +72,7 @@ Every error the read API answers is an RFC 9457 problem document, media type `ap
 | 401 | `unauthenticated` | The request names no authenticated user. |
 | 403 | `forbidden` | The caller may not make this read, or the portal does not serve the object. The same for an object that does not exist. |
 | 404 | `not_found` | The object does not exist, and the caller may read its kind there; or the cluster is not `default`; or the path is not a read API resource. |
-| 405 | `method_not_allowed` | The method is not `GET`. |
+| 405 | `method_not_allowed` | The resource does not take the method: every resource takes `GET`, and a stream's topics take `POST`. |
 | 429 | `too_many_streams` | The session, or the portal, holds as many streams as it may. |
 | 503 | `not_readable_by_portal` | The portal's reading identity may not list and watch the kind, or its cache has not synced yet. |
 | 503 | `upstream_unavailable` | An access review or the Kubernetes API failed, or the portal is shutting down. Try again. |
@@ -85,4 +88,4 @@ In local mode, the portal's front door answers some requests before the read API
 | 403 | A `GET /launch` whose token is missing, wrong or already used, from a browser without the session. A browser with the session is sent on whatever the token. |
 | 405 | A `/launch` request with a method other than `GET`. |
 
-A `GET /launch` that is not refused answers `200` with a page that moves the browser on to `/api/v1alpha1/clusters/default/instances`. A request without the session cookie reaches the read API and is answered with `unauthenticated`.
+A `GET /launch` that is not refused answers `200` with the Platform page, under the new session; its script then moves the browser once to `/`. A request without the session cookie reaches the read API and is answered with `unauthenticated`.

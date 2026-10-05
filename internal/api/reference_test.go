@@ -22,7 +22,7 @@ const readAPIReferencePath = "../../docs/site/reference/portal/read-api.md"
 
 // referenceRow matches a resource row of the reference page's table:
 // | `GET /clusters/{cluster}/instances` | ... |
-var referenceRow = regexp.MustCompile("(?m)^\\| `GET (/[^`]*)` \\|")
+var referenceRow = regexp.MustCompile("(?m)^\\| `(?:GET|POST) (/[^`]*)` \\|")
 
 // TestReadAPIReferenceListsEveryPath: the published read API reference names
 // exactly the OpenAPI document's paths, so a route added to or removed from
