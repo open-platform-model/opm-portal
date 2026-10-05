@@ -1,4 +1,4 @@
-# Copied from opm-controller test/fixtures/modules/backup_consumer/moduleinstance.yaml at 8d34b6b.
+# Copied from opm-controller test/fixtures/modules/backup_consumer/moduleinstance.yaml at 8d34b6b; path and version re-pinned for the controller rename.
 # The module demands opm's backup trait, which only the backup provider's claim fulfils.
 ---
 apiVersion: v1
@@ -39,7 +39,7 @@ metadata:
 spec:
   module:
     path: testing.opmodel.dev/modules/controller/backup_consumer@v0
-    version: v0.1.0
+    version: v0.1.1
   serviceAccountName: backup-consumer-applier
   values:
     schedule: "15 4 * * *"
