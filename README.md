@@ -82,8 +82,8 @@ What it does with your access:
   nothing loads from the internet.
 - **Logs** go to standard error and never hold the link's token, the cookie or kubeconfig
   content. The link is printed to standard output only. `--open` hands it to the browser through
-  a private file, not a command line other local users could read, and removes that file when
-  the portal stops.
+  a private file, not a command line other local users could read, and removes that file as soon
+  as the link's token is spent, or when the portal stops if it never is.
 
 The session cookie is `opm-portal-<port>` with `HttpOnly`, `SameSite=Strict`, `Path=/`, no
 `Domain` and a 12-hour `Max-Age`. The portal serves plain HTTP on loopback, so the cookie has no

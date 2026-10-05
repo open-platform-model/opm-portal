@@ -74,6 +74,8 @@ type Local struct {
 	expires    time.Time
 
 	launchToken string
+	// launched is closed when the token is spent.
+	launched chan struct{}
 }
 
 // NewLocal returns a Local with a fresh launch token.
@@ -115,6 +117,7 @@ func NewLocal(cfg LocalConfig) (*Local, error) {
 		landing:     cfg.Landing,
 		token:       &digest,
 		launchToken: token,
+		launched:    make(chan struct{}),
 	}, nil
 }
 
@@ -129,6 +132,10 @@ func (l *Local) LaunchURL() string {
 	}
 	return u.String()
 }
+
+// Launched returns a channel closed once the launch token is spent, so the
+// caller can remove every copy of it it wrote, such as the --open page.
+func (l *Local) Launched() <-chan struct{} { return l.launched }
 
 // CookieName returns the session cookie's name.
 func (l *Local) CookieName() string { return l.cookie }
@@ -175,6 +182,7 @@ func (l *Local) launch(token string) (*http.Cookie, bool) {
 		return nil, false
 	}
 	l.token, l.launchToken = nil, ""
+	close(l.launched)
 	value := rand.Text()
 	session := sha256.Sum256([]byte(value))
 	l.session = &session

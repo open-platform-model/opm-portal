@@ -212,12 +212,28 @@ func TestLaunchRefusals(t *testing.T) {
 	if f.reached != 0 {
 		t.Fatalf("refused launches reached the next handler %d times", f.reached)
 	}
+	if spent(f.l) {
+		t.Fatal("Launched closed on a refused launch")
+	}
 	f.launch(t)
+	if !spent(f.l) {
+		t.Fatal("Launched is still open after the launch")
+	}
 	if f.reached != 1 {
 		t.Fatalf("the launch reached the next handler %d times; want once, for the landing page", f.reached)
 	}
 	if got := f.do(t, request{method: http.MethodPost, target: f.launchPath(t), header: map[string]string{"Sec-Fetch-Site": "same-origin"}}).status; got != http.StatusMethodNotAllowed {
 		t.Errorf("POST launch = %d; want 405", got)
+	}
+}
+
+// spent reports whether l's Launched channel is closed.
+func spent(l *Local) bool {
+	select {
+	case <-l.Launched():
+		return true
+	default:
+		return false
 	}
 }
 

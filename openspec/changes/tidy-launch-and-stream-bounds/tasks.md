@@ -1,8 +1,8 @@
 ## 1. Remove the launch page once its token is spent (internal/auth, cmd/opm-portal)
 
-- [ ] 1.1 `internal/auth`: `Local.Launched()` closes when the token is spent; test it closes on the first launch only and not on a refused one
-- [ ] 1.2 `cmd/opm-portal`: `openLaunch`'s cleanup runs once; `runLocal` removes the page when `Launched` closes, and at shutdown otherwise; test the page is gone after a launch while the portal serves
-- [ ] 1.3 `task check` green, then commit `fix(auth): remove the launch page once its token is spent`
+- [x] 1.1 `internal/auth`: `Local.Launched()` closes when the token is spent; test it closes on the first launch only and not on a refused one
+- [x] 1.2 `cmd/opm-portal`: `openLaunch`'s cleanup runs once; `runLocal` removes the page when `Launched` closes, and at shutdown otherwise; test the page is gone after a launch while the portal serves
+- [x] 1.3 `task check` green, then commit `fix(auth): remove the launch page once its token is spent`
 
 ## 2. Bound re-validation by time and pin the write guard (internal/stream, internal/authz)
 
