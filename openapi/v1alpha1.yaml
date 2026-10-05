@@ -23,11 +23,14 @@ info:
 
     Messages depend on where the portal runs. In local mode condition and history messages and
     event notes are served exactly as the operator and the API server wrote them; the portal
-    shows nothing the caller's own kubeconfig could not read with kubectl. In-cluster they are
-    absent, because the operator does not remove secret values from its text: every condition,
-    reconcile, history and registration message, every event note, the health message of an
-    opmodel.dev object and the messages in an opmodel.dev Object's status are left out. Reasons,
-    states, tone, meaning and nextStep stay.
+    shows nothing the caller's own kubeconfig could not read with kubectl. In-cluster the text
+    the operator wrote is absent, because the operator does not remove secret values from it:
+    every condition, reconcile, history and registration message, the note of every event the
+    operator reported (reportingController opm-controller, or none on an event about an
+    opmodel.dev object), the health message of an opmodel.dev object and the messages in an
+    opmodel.dev Object's status are left out. Reasons, states, tone, meaning and nextStep stay,
+    and so does other writers' text: the kubelet's and other controllers' event notes, and the
+    health message of a rendered workload.
 
     Errors are RFC 9457 problem documents (application/problem+json) with a code.
 servers:
@@ -975,7 +978,7 @@ components:
         reason:
           type: string
         note:
-          description: "The reporting controller's text, served unchanged in local mode. Absent in-cluster for every event: the operator does not remove secret values from the notes it writes. In-cluster, events that differ only in their note are served as one, their counts summed."
+          description: "The reporting controller's text, served unchanged in local mode. In-cluster it is absent from an event the operator reported (reportingController opm-controller, or none on an event about an opmodel.dev object), because the operator does not remove secret values from the notes it writes, and such events that differ only in their note are served as one, their counts summed. Other controllers' notes, such as the kubelet's, are served in-cluster as written."
           type: string
         reportingController:
           type: string

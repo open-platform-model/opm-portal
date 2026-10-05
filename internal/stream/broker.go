@@ -715,7 +715,7 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after, held uint
 		// A client that holds the event the topic's last document was
 		// written in still holds that document, so a replayed item equal
 		// to it is not written again: its replay would tell the client when
-		// a change it cannot see happened (0030:OQ20 ruling). A client that
+		// a change it cannot see happened (portal:D2:R7). A client that
 		// resumes from before that event may not hold it, so its first
 		// document for the topic is written whatever it says.
 		if sub.sentID == 0 || sub.sentID > held {
