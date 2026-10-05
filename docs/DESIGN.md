@@ -880,8 +880,11 @@ a signed-in user, no per-user access.
   anyone can try the portal on a shared cluster; the owner wanted a way to try it now.
 - **Fix the port mismatch in code** (accept any forwarded port). Weakens D5:R4's `Host` check, the
   DNS-rebinding defence, for a convenience; the docs name `8090:8090` instead.
-- **Bind the built-in `view` role.** Grants every namespaced read in the cluster, kinds the portal
-  never shows included; an explicit list keeps the role reviewable and the test meaningful.
+- **Bind the built-in `view` role.** `view` is not a narrower choice, it is a different one: it
+  covers namespaced kinds the portal never shows, and none of the cluster-scoped RBAC objects,
+  CRDs and webhook configurations an OPM inventory holds, which the explicit role reads; like the
+  explicit role it grants no Secrets. An explicit list matches what the portal reads and keeps the
+  role reviewable and the test meaningful.
 - **A Service with a NodePort or Ingress.** Opens the portal to the network with one shared
   identity behind a token in a log; rejected.
 
