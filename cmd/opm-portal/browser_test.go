@@ -162,6 +162,22 @@ func TestBrowserTheme(t *testing.T) {
 	}
 }
 
+// TestBrowserGraph drives the instance graph in real browsers (task
+// test:browser): Clear selection, the Resources hand-off, a group's fit and
+// Whole graph, and the state and full screen a live refresh keeps.
+func TestBrowserGraph(t *testing.T) {
+	script := browserScript(t, "graph.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("a graph interaction did not hold: %v", err)
+			}
+		})
+	}
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {

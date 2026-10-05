@@ -317,3 +317,21 @@ func updateObject(t *testing.T, e *env, gvr schema.GroupVersionResource, namespa
 		t.Fatal(err)
 	}
 }
+
+// TestPackageServesItsApplier: a package's spec.serviceAccountName is
+// served; F1's package sets none, so its document carries none.
+func TestPackageServesItsApplier(t *testing.T) {
+	objs := loadF1(t)
+	pkg := readmodeltest.Find(t, objs, "ModulePackage", "podinfo")
+	if err := unstructured.SetNestedField(pkg.Object, "podinfo-applier", "spec", "serviceAccountName"); err != nil {
+		t.Fatal(err)
+	}
+	e := newEnv(t, objs, readmodeltest.AllowAll)
+	if p := decode[v1.Package](t, e.get(t, base+"/packages/pkg/podinfo")); p.ServiceAccountName != "podinfo-applier" {
+		t.Errorf("serviceAccountName = %q; want podinfo-applier", p.ServiceAccountName)
+	}
+	plain := newEnv(t, loadF1(t), readmodeltest.AllowAll)
+	if res := plain.get(t, base+"/packages/pkg/podinfo"); strings.Contains(string(res.body), "serviceAccountName") {
+		t.Error("F1's package, which sets no ServiceAccount, carries one")
+	}
+}

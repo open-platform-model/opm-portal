@@ -230,12 +230,13 @@ func packageSummary(it readmodel.PackageItem) v1.PackageSummary {
 
 func packageDoc(d readmodel.PackageDetail) v1.Package {
 	return v1.Package{
-		TypeMeta:       meta(v1.KindPackage),
-		PackageSummary: packageSummary(d.PackageItem),
-		Conditions:     conditions(d.Conditions),
-		History:        historyEntries(d.History),
-		LastApplied:    digests(d.LastApplied),
-		Components:     components(d.Components),
+		TypeMeta:           meta(v1.KindPackage),
+		PackageSummary:     packageSummary(d.PackageItem),
+		ServiceAccountName: d.ServiceAccountName,
+		Conditions:         conditions(d.Conditions),
+		History:            historyEntries(d.History),
+		LastApplied:        digests(d.LastApplied),
+		Components:         components(d.Components),
 	}
 }
 

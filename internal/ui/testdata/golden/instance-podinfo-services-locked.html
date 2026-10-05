@@ -58,10 +58,10 @@
   <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
   <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
 </details>
-<nav class="tabs owner-tabs" aria-label="Views"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources" aria-current="page">Resources</a><a href="/instances/default/podinfo?tab=events">Events</a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources" aria-current="page">Resources</a><a href="/instances/default/podinfo?tab=events">Events</a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
 <section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="instance:default/podinfo">
   <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
-  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Filter resources">
+  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
   <input type="hidden" name="tab" value="resources">
   <div class="filter-fields">
     

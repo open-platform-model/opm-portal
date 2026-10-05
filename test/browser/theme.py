@@ -103,6 +103,9 @@ def run(p, engine, base, context):
         if not check(engine, req.value.url.endswith("/installed?kind=package"),
                      f"boosted Installed link requested {req.value.url}, pushed {page.url}"):
             return False
+        # The boosted page stores its filters once it settles, which can land after a query this
+        # script stores; leave it for a page that stores nothing under the key first.
+        page.goto(base + "/", wait_until="load")
 
         page.evaluate(f"localStorage.setItem({key!r}, 'health=Bogus&namespace=default')")
         page.goto(base + "/installed", wait_until="commit")

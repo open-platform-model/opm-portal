@@ -29,11 +29,11 @@
   
 </section>
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
-  <nav class="tabs" aria-label="Platform parts">
+  <nav class="tabs" aria-label="Platform parts" hx-swap="outerHTML show:none">
     <a href="/?tab=providers" aria-current="page">Providers</a>
     <a href="/?tab=catalogs">Catalogs</a>
   </nav>
-  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" data-filters="providers">
+  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" hx-swap="outerHTML show:none" data-filters="providers">
   
   <div class="filter-fields">
     <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
@@ -46,7 +46,6 @@
   
 </form>
   <div id="providers" data-follow="platform">
-  
   <p class="shown">Showing <strong>2</strong> of 2</p>
   <div class="table-wrap">
   <table class="table rows providers">
@@ -102,7 +101,7 @@
 </section>
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" data-filters="events">
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>
       <div class="field field-submit"><button type="submit">Show</button></div>

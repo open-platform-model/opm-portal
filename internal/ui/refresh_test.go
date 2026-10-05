@@ -176,15 +176,15 @@ func TestStampedLabelsLeaveRoomForTheStamp(t *testing.T) {
 	}
 }
 
-// TestCatalogSubLineShowsTheHost: two catalogs that share their path's
-// tail but not its host read apart on the sub-line.
-func TestCatalogSubLineShowsTheHost(t *testing.T) {
+// TestModuleSubLineShowsTheHost: two modules that share their path's tail
+// but not its host read apart on the sub-line.
+func TestModuleSubLineShowsTheHost(t *testing.T) {
 	for _, tc := range []struct{ label, want string }{
-		{"opmodel.dev/catalogs/operator", "Catalog · opmodel.dev/…"},
-		{"testing.opmodel.dev/catalogs/operator", "Catalog · testing.opmodel.d…"},
-		{"opmodel.dev/operator", "Catalog · opmodel.dev"},
+		{"opmodel.dev/modules/podinfo", "Module · opmodel.dev/…"},
+		{"testing.opmodel.dev/modules/podinfo", "Module · testing.opmodel.de…"},
+		{"opmodel.dev/podinfo", "Module · opmodel.dev"},
 	} {
-		_, sub := displayLabel(&v1.GraphNode{Kind: "catalog", Label: tc.label}, "Catalog", false)
+		_, sub := displayLabel(&v1.GraphNode{Kind: "module", Label: tc.label}, "Module", false)
 		if sub != tc.want {
 			t.Errorf("%s: sub-line %q, want %q", tc.label, sub, tc.want)
 		}

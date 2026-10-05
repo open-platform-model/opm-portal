@@ -47,11 +47,12 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 	item.Health = res.Instance
 	item.ProviderOf = m.newClaims(ctx, who).of(u)
 	return PackageDetail{
-		PackageItem: item,
-		Conditions:  conditions(u),
-		History:     history(u),
-		LastApplied: lastApplied(u),
-		Components:  componentsOf(res),
+		PackageItem:        item,
+		ServiceAccountName: str(u.Object, "spec", "serviceAccountName"),
+		Conditions:         conditions(u),
+		History:            history(u),
+		LastApplied:        lastApplied(u),
+		Components:         componentsOf(res),
 	}, nil
 }
 

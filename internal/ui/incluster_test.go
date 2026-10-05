@@ -18,7 +18,6 @@ var inClusterPages = []goldenPage{
 	{"in-cluster/instance-podinfo", "/instances/default/podinfo", false},
 	{"in-cluster/package-podinfo", "/packages/pkg/podinfo", false},
 	{"in-cluster/fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
-	{"in-cluster/fragment-registration-events", "/platform/registrations/default.refused-claim-fixture/events", true},
 }
 
 func TestGoldenPagesInCluster(t *testing.T) {
@@ -39,14 +38,16 @@ func TestNoOperatorTextOnAnInClusterPage(t *testing.T) {
 	sources := map[string][]string{
 		"/": {apiBase + "/platform", apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events",
 			apiBase + "/platform/registrations/default.backup-provider/events"},
-		"/?tab=catalogs": {apiBase + "/platform"},
+		"/?tab=catalogs":                                  {apiBase + "/platform"},
+		"/instances/default/podinfo?tab=events":           {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
+		"/instances/default/backup-provider?tab=events":   {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
+		"/packages/pkg/podinfo?tab=events":                {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
 		"/instances/default/backup-provider?tab=provider": {apiBase + "/platform", apiBase + "/instances/default/backup-provider"},
 		"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events": {apiBase + "/platform",
 			apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events"},
-		"/instances/default/podinfo":                                   {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
-		"/instances/default/backup-provider":                           {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
-		"/packages/pkg/podinfo":                                        {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
-		"/platform/registrations/default.refused-claim-fixture/events": {apiBase + "/platform/registrations/default.refused-claim-fixture/events"},
+		"/instances/default/podinfo":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
+		"/instances/default/backup-provider": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
+		"/packages/pkg/podinfo":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
 	}
 	for name, objs := range map[string]func(testing.TB) []*unstructured.Unstructured{"F1": apitest.F1, "broken": apitest.F1Broken} {
 		t.Run(name, func(t *testing.T) {

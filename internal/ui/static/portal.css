@@ -504,6 +504,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .holder, .claimant { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0; }
 .holder-note { margin: 4px 0 0; font-size: 0.8rem; }
 .holder-link { font-size: 0.8rem; }
+.locked-inline { display: inline-flex; gap: 4px; align-items: center; color: var(--locked); font-size: 0.85rem; }
 
 /* ---- Instance and package pages ---- */
 
@@ -564,9 +565,11 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .tool-link[hidden] { display: none; }
 .zoom-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }
 .zoom-label input { width: 110px; }
-.graph-full { position: fixed; inset: 0; z-index: 50; background: var(--surface); border-radius: 0; display: flex; flex-direction: column; }
-.graph-full .graph-frame, .graph:fullscreen .graph-frame { max-height: none; flex: 1; }
-.graph:fullscreen { background: var(--surface); display: flex; flex-direction: column; }
+.graph-stage { min-width: 0; }
+.graph-stage > .panel { height: 100%; }
+.graph-stage.graph-full { position: fixed; inset: 0; z-index: 50; background: var(--surface); overflow: auto; }
+.graph-stage:fullscreen { background: var(--surface); overflow: auto; }
+.graph-stage.graph-full .graph-frame, .graph-stage:fullscreen .graph-frame { max-height: calc(100vh - 160px); }
 
 /* ---- Catalogs and registrations ---- */
 
@@ -685,17 +688,13 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .node.health-degraded .node-box { stroke: var(--degraded); }
 .node.health-missing .node-rail { fill: var(--missing); }
 .node.health-missing .node-box { stroke-dasharray: 4 3; }
-.node.kind-platform .node-box { fill: var(--ink); }
-.node.kind-platform .node-label { fill: var(--bg); }
-.node.kind-platform .node-sub { fill: var(--line-strong); }
-.node.kind-catalog .node-rail, .node.kind-module .node-rail, .node.kind-source .node-rail { fill: var(--accent); }
+.node.kind-module .node-rail, .node.kind-source .node-rail { fill: var(--accent); }
 .node.kind-group .node-box { stroke-dasharray: 6 3; fill: var(--surface-2); }
 /* The applied stamp: the operator's axis, shaped like the applied badge. */
 .node-stamp { fill: var(--applied); stroke: var(--applied); stroke-width: 1.2; }
 .node.ap-failed .node-stamp, .node.ap-stalled .node-stamp { fill: var(--degraded); stroke: var(--degraded); }
 .node.ap-reconciling .node-stamp { fill: var(--progressing); stroke: var(--progressing); }
 .node.ap-managedexternally .node-stamp, .node.ap-suspended .node-stamp, .node.ap-unknown .node-stamp { fill: none; stroke: var(--neutral); stroke-dasharray: 2 1.5; }
-.node.kind-platform .node-stamp { stroke: var(--bg); }
 .node.locked .node-box { fill: var(--locked-bg); stroke: var(--locked); stroke-dasharray: 3 3; }
 .node.locked .node-rail { fill: var(--locked); }
 .node.locked .node-label, .node.locked .node-sub { fill: var(--locked); }

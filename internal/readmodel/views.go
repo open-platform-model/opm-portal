@@ -206,10 +206,13 @@ type PackageItem struct {
 // PackageDetail is one ModulePackage with its inventory, if it has one.
 type PackageDetail struct {
 	PackageItem
-	Conditions  []health.Condition
-	History     []HistoryEntry
-	LastApplied Digests
-	Components  []Component
+	// ServiceAccountName is the ServiceAccount the controller applies as;
+	// empty means its own identity.
+	ServiceAccountName string
+	Conditions         []health.Condition
+	History            []HistoryEntry
+	LastApplied        Digests
+	Components         []Component
 }
 
 // Subscription is one catalog the Platform's spec subscribes to. Enable is

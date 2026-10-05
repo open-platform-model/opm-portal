@@ -119,3 +119,38 @@ func TestPlatformRegionsEscapeClusterText(t *testing.T) {
 		}
 	}
 }
+
+// TestLockedRegistrationsLockTheirClaims (portal:D7:R2/R3): when the
+// caller may not list registrations, which catalog is claimed is locked,
+// not "no provider", the claimed filter is set aside, and no count of
+// providers is shown.
+func TestLockedRegistrationsLockTheirClaims(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.DenyResources("transformerregistrations"))
+	cats := between(mainOf(s.get(t, "/?tab=catalogs&claimed=no").body), `<div id="catalogs"`, "</section>")
+	if strings.Contains(cats, ">no provider<") || !strings.Contains(cats, `class="locked-inline"`) {
+		t.Errorf("claims are not locked:\n%s", cats)
+	}
+	if strings.Count(between(cats, "<tbody>", "</tbody>"), "<tr") != 2 {
+		t.Error("the claimed filter was applied to locked claims")
+	}
+	form := between(mainOf(s.get(t, "/?tab=catalogs&claimed=no").body), `aria-label="Filter catalogs"`, "</form>")
+	if !strings.Contains(form, "Ignored filter <span class=\"mono\">claimed=no</span>") {
+		t.Errorf("the set-aside filter is not named:\n%s", form)
+	}
+	if prov := between(mainOf(s.get(t, "/").body), `<div id="providers"`, "</div>"); strings.Contains(prov, "Showing") {
+		t.Errorf("a count of providers shows while they are locked:\n%s", prov)
+	}
+	events := between(mainOf(newSite(t, apitest.F1(t), apitest.DenyResources("platforms")).get(t, "/").body), `<div id="events"`, "</section>")
+	if strings.Contains(events, "Showing") {
+		t.Errorf("a count of events shows while the feed is locked:\n%s", events)
+	}
+}
+
+// TestPlatformEventsFilterShowsItsChip: the events form names the filter
+// it applies, like every other filter form.
+func TestPlatformEventsFilterShowsItsChip(t *testing.T) {
+	form := between(mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/?eresource=platform").body), `aria-label="Filter recent events"`, "</form>")
+	if !strings.Contains(form, `<span class="fchip-label">Resource</span> the Platform`) {
+		t.Errorf("no chip for the events filter:\n%s", form)
+	}
+}

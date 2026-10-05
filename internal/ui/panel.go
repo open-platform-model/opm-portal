@@ -11,6 +11,8 @@ import (
 type panelContext struct {
 	owner ownerKind
 	base  string
+	// firstContainer names each Pod's first container, for its Logs link.
+	firstContainer func(pod string) string
 }
 
 // nodePanel is what a graph node's detail panel shows: only the fields
@@ -34,8 +36,6 @@ type nodePanel struct {
 	Contracts        []string
 	Version          string
 	Path             string
-	Reg              *v1.GraphRegistration
-	Catalog          *v1.GraphCatalog
 	Group            *v1.GraphGroup
 	Replicas         *int64
 	Unread           bool
@@ -70,8 +70,6 @@ func (h *Handler) panel(r *http.Request, g *v1.Graph, id string, ctx panelContex
 		Contracts:  n.RenderContracts,
 		Version:    n.Version,
 		Path:       n.Path,
-		Reg:        n.Registration,
-		Catalog:    n.Catalog,
 		Group:      n.Group,
 		Replicas:   n.Replicas,
 		Unread:     n.ChildrenUnread,
@@ -91,6 +89,11 @@ func (h *Handler) panel(r *http.Request, g *v1.Graph, id string, ctx panelContex
 		p.Open, p.YAML, p.Events = links(n, ctx)
 		if n.Ref != nil && isPod(*n.Ref) && ctx.base != "" && !n.Missing {
 			p.Logs = ctx.base + "?tab=" + tabLogs
+			if ctx.firstContainer != nil {
+				if c := ctx.firstContainer(n.Ref.Name); c != "" {
+					p.Logs += "#" + logID(n.Ref.Name, c)
+				}
+			}
 		}
 		if n.Group != nil {
 			p.Expand = expandLink(r, n.ID, ctx)

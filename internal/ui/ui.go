@@ -91,7 +91,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) routes() {
 	h.mux.HandleFunc("/{$}", h.platformPage)
-	h.mux.HandleFunc("/platform/registrations/{name}/events", h.registrationEvents)
 	h.mux.HandleFunc("/installed", h.installedPage)
 	h.mux.HandleFunc("/catalog", h.catalogPage)
 	h.mux.HandleFunc("/instances", listRedirect(instanceKind.Topic))

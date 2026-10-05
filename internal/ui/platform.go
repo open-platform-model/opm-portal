@@ -413,7 +413,7 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 	v.ProvidersTab = linkWith("/", q, "tab", tabProviders)
 	v.CatalogsTab = linkWith("/", q, "tab", tabCatalogs)
 	v.Problem = h.fetch(r, "/platform", nil, &v.Platform)
-	if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
+	if unauthenticated(v.Problem) {
 		h.signIn(w, r)
 		return
 	}
@@ -426,6 +426,12 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		v.Status = statusOf(plat)
 		v.Providers.Access = v.Platform.RegistrationsAccess
 		v.Providers.Rows, v.Providers.Total = providerRows(plat, pf.Values)
+		if v.Platform.RegistrationsAccess != v1.AccessOK {
+			// Claims come from the registrations, which the caller may not
+			// read: whether a catalog is claimed is locked, not "no"
+			// (portal:D7:R2/R3).
+			cf = withoutFilter(cf, "claimed")
+		}
 		v.Catalogs.Rows, v.Catalogs.Total = catalogRows(plat, cf.Values)
 		v.Catalogs.Contracts = v.Status.Contracts
 	}
@@ -453,6 +459,24 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		Topics: topics,
 		Main:   v,
 	})
+}
+
+// withoutFilter moves an applied filter to the ignored ones.
+func withoutFilter(f filters, name string) filters {
+	if _, ok := f.Values[name]; !ok {
+		return f
+	}
+	delete(f.Values, name)
+	active := f.Active[:0:0]
+	for _, c := range f.Active {
+		if c.Name == name {
+			f.Ignored = append(f.Ignored, c)
+			continue
+		}
+		active = append(active, c)
+	}
+	f.Active = active
+	return f
 }
 
 // contractShort names a contract by its last two path segments and its

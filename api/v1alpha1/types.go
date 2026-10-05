@@ -292,10 +292,13 @@ type PackageList struct {
 type Package struct {
 	TypeMeta
 	PackageSummary
-	Conditions  []Condition    `json:"conditions"`
-	History     []HistoryEntry `json:"history"`
-	LastApplied Digests        `json:"lastApplied"`
-	Components  []Component    `json:"components"`
+	// ServiceAccountName is the ServiceAccount the controller applies the
+	// package's objects as; absent means the controller's own.
+	ServiceAccountName string         `json:"serviceAccountName,omitempty"`
+	Conditions         []Condition    `json:"conditions"`
+	History            []HistoryEntry `json:"history"`
+	LastApplied        Digests        `json:"lastApplied"`
+	Components         []Component    `json:"components"`
 }
 
 // Subscription is one catalog the Platform's spec subscribes to.

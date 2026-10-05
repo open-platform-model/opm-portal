@@ -29,11 +29,11 @@
   
 </section>
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
-  <nav class="tabs" aria-label="Platform parts">
+  <nav class="tabs" aria-label="Platform parts" hx-swap="outerHTML show:none">
     <a href="/?tab=providers">Providers</a>
     <a href="/?tab=catalogs" aria-current="page">Catalogs</a>
   </nav>
-  <form class="filters" method="get" action="/" role="search" aria-label="Filter catalogs" data-filters="catalogs">
+  <form class="filters" method="get" action="/" role="search" aria-label="Filter catalogs" hx-swap="outerHTML show:none" data-filters="catalogs">
   <input type="hidden" name="tab" value="catalogs">
   <div class="filter-fields">
     <div class="field field-search"><label for="f-cq">Search</label><input id="f-cq" name="cq" type="search" value="" placeholder="Catalog path or claimant" autocomplete="off" spellcheck="false"></div>
@@ -103,7 +103,7 @@
 </section>
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" data-filters="events">
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
     <input type="hidden" name="tab" value="catalogs">
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>

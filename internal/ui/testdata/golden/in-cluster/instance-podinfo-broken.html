@@ -56,13 +56,14 @@
   <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
   <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
 </details>
-<nav class="tabs owner-tabs" aria-label="Views"><a href="/instances/default/podinfo?tab=graph" aria-current="page">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources</a><a href="/instances/default/podinfo?tab=events">Events</a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
-<section class="panel panel-8 reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:default/podinfo">
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph" aria-current="page">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources</a><a href="/instances/default/podinfo?tab=events">Events</a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
+<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:default/podinfo">
   <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
 <div class="graph" data-graph="instance-graph">
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">drag to pan · Ctrl + wheel to zoom · Esc clears the selection · outline and rail: health · square: applied</span>
-    <a class="tool-link" href="/instances/default/podinfo" data-clear-selection hidden>Clear selection</a>
+    <a class="tool-link" href="/instances/default/podinfo" hx-boost="false" data-clear-selection hidden>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>
     <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
@@ -174,6 +175,7 @@
   </div>
 </div>
 </section>
+</div>
 <aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
   <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
 </aside>

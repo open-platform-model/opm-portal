@@ -104,17 +104,14 @@ var originText = map[string]string{
 
 // kindText names node kinds for people.
 var kindText = map[string]string{
-	"platform":     "Platform",
-	"catalog":      "Catalog",
-	"registration": "Registration",
-	"instance":     "Instance",
-	"package":      "Package",
-	"module":       "Module",
-	"source":       "Source",
-	"component":    "Component",
-	"object":       "Object",
-	"runtime":      "Runtime",
-	"group":        "Group",
+	"instance":  "Instance",
+	"package":   "Package",
+	"module":    "Module",
+	"source":    "Source",
+	"component": "Component",
+	"object":    "Object",
+	"runtime":   "Runtime",
+	"group":     "Group",
 }
 
 // buildGraph turns a graph document into its SVG model. page is the page
@@ -254,7 +251,7 @@ func cardOf(n *v1.GraphNode, kind string, locked bool, state string) nodeCard {
 	return card
 }
 
-// displayLabel is what a node's two lines say. A catalog or module shows
+// displayLabel is what a node's two lines say. A module shows
 // its last path segment and version on the first line and its path's host
 // on the second, because the host is what tells opmodel.dev from
 // testing.opmodel.dev; a configuration group says what it stands for in
@@ -262,11 +259,8 @@ func cardOf(n *v1.GraphNode, kind string, locked bool, state string) nodeCard {
 func displayLabel(n *v1.GraphNode, kind string, locked bool) (label, sub string) {
 	label, sub = n.Label, subLine(n, kind, locked)
 	switch {
-	case n.Kind == "catalog" || n.Kind == "module":
+	case n.Kind == "module":
 		version := n.Version
-		if n.Catalog != nil && version == "" {
-			version = n.Catalog.Version
-		}
 		if head, last, ok := cutLast(n.Label); ok {
 			label, sub = last, kind+" · "+hostOf(head, maxLabel+4-len(kind)-3)
 		}

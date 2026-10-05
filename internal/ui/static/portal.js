@@ -40,17 +40,8 @@
     });
   }
 
-  // Escape and a click outside close the theme menu.
-  document.addEventListener("keydown", function (evt) {
-    var open = document.querySelector("details.theme[open]");
-    if (open && evt.key === "Escape") {
-      open.open = false;
-      var s = open.querySelector("summary");
-      if (s) {
-        s.focus();
-      }
-    }
-  });
+  // A click outside closes the theme menu; Escape closes it too (the one
+  // Escape handler, under Graph view).
   document.addEventListener("click", function (evt) {
     var open = document.querySelector("details.theme[open]");
     if (open && !open.contains(evt.target)) {
@@ -306,11 +297,18 @@
       }
       return res.text();
     }).then(function (text) {
-      if (text === null || url !== location.pathname + location.search) {
+      if (text === null) {
+        return;
+      }
+      if (url !== location.pathname + location.search) {
+        // The page moved on while this render was read: what changed
+        // still has to reach the page now open.
+        topics.forEach(function (t) { dirty.add(t); });
         return;
       }
       var doc = new DOMParser().parseFromString(text, "text/html");
       var views = [];
+      var focused = focusKey(regions);
       regions.forEach(function (el) {
         var next = el.id && doc.getElementById(el.id);
         if (!next || !el.isConnected) {
@@ -334,6 +332,7 @@
       });
       restoreGraphs();
       restoreViews(views);
+      refocus(focused);
     }).catch(function () {
       setLive(false, "offline");
     }).then(function () {
@@ -345,12 +344,42 @@
   // keepOpen carries the open state of details groups with an id from the
   // region on the page to its replacement.
   function keepOpen(from, to) {
+    if (from.matches("details[id]") && to.matches("details[id]") && from.id === to.id) {
+      to.open = from.open;
+    }
     from.querySelectorAll("details[id]").forEach(function (d) {
       var twin = to.querySelector("#" + CSS.escape(d.id));
       if (twin) {
         twin.open = d.open;
       }
     });
+  }
+
+  // focusKey names the focused element when a refreshed region holds it:
+  // by id, or a graph node by its graph and node ids; refocus focuses its
+  // twin in the fresh render, so keyboard focus survives a refresh.
+  function focusKey(regions) {
+    var a = document.activeElement;
+    if (!a || a === document.body || !regions.some(function (r) { return r.contains(a); })) {
+      return null;
+    }
+    var g = a.closest && a.closest(".graph[data-graph]");
+    return { id: a.id || "", graph: g ? g.getAttribute("data-graph") : "", node: a.getAttribute("data-node") || "" };
+  }
+
+  function refocus(key) {
+    if (!key) {
+      return;
+    }
+    var el = null;
+    if (key.node && key.graph) {
+      el = document.querySelector('.graph[data-graph="' + CSS.escape(key.graph) + '"] .node[data-node="' + CSS.escape(key.node) + '"]');
+    } else if (key.id) {
+      el = document.getElementById(key.id);
+    }
+    if (el && el.focus) {
+      el.focus({ preventScroll: true });
+    }
   }
 
   // keepViews records where each graph frame in a region is scrolled to,
@@ -639,12 +668,29 @@
     }
   });
   // Panes swapped away with their page stop following.
+  var mainSwapped = false;
   document.addEventListener("htmx:beforeSwap", function (evt) {
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
       logTopics.clear();
       selected.clear();
       zooms.clear();
+      hovered = null;
+      mainSwapped = true;
+    }
+  });
+  // After a page swap, focus moves to the current tab, or to the page, so
+  // keyboard users are not left on a detached element.
+  document.addEventListener("htmx:afterSettle", function () {
+    if (!mainSwapped) {
+      return;
+    }
+    mainSwapped = false;
+    var m = document.getElementById("main");
+    var tab = m && m.querySelector(".tabs a[aria-current]");
+    var target = tab || m;
+    if (target && target.focus) {
+      target.focus({ preventScroll: true });
     }
   });
 
@@ -657,6 +703,12 @@
   // and edge not next to it is dimmed by a class.
   function markSelected(g) {
     var want = selected.get(g.getAttribute("data-graph"));
+    if (want && !g.querySelector('.node[data-node="' + CSS.escape(want) + '"]')) {
+      // The focused node is gone (the object was deleted): nothing dims.
+      selected.delete(g.getAttribute("data-graph"));
+      setFocusParam("");
+      want = "";
+    }
     var near = new Set();
     if (want) {
       near.add(want);
@@ -750,20 +802,6 @@
   }
   openHashedPane();
   document.addEventListener("htmx:afterSettle", openHashedPane);
-
-  // A Pod's Logs link opens and shows its first container's pane.
-  document.addEventListener("click", function (evt) {
-    var l = evt.target.closest && evt.target.closest("a[data-log-link]");
-    if (!l) {
-      return;
-    }
-    var d = document.getElementById(l.getAttribute("data-log-link"));
-    if (d && d.matches("details.log")) {
-      evt.preventDefault();
-      d.open = true;
-      d.scrollIntoView({ block: "start", behavior: "smooth" });
-    }
-  });
 
   // A group node expands in place: the page is loaded with the group in
   // its expand parameter and the view fitted to the group's members.
@@ -896,6 +934,7 @@
       markSelected(g);
       fitGroup(g);
     });
+    markFull();
     showHovered();
   }
   restoreGraphs();
@@ -907,8 +946,6 @@
     var s = zooms.get(id) || fitScale(g);
     if (how === "fit") {
       s = Math.max(0.2, Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
-    } else if (how === "reset") {
-      s = 1;
     } else {
       s = how === "in" ? s * 1.25 : s * 0.8;
     }
@@ -935,21 +972,39 @@
   // ---- Full screen ----
   // The Fullscreen API on the graph, or a class that fills the window where
   // the API is missing or refused. A navigation leaves full screen.
-  function setFull(g, on) {
-    var b = g.querySelector("[data-graph-full]");
-    if (b) {
-      b.setAttribute("aria-pressed", on ? "true" : "false");
-    }
-    if (!on) {
-      g.classList.remove("graph-full");
-    }
+  // The stage is the element that goes full screen: it holds the graph's
+  // region but is not itself refreshed, so a live refresh replaces the
+  // graph inside it and the view stays full screen.
+  function stageOf(g) {
+    return (g.closest && g.closest("[data-graph-stage]")) || g;
+  }
+
+  function isFull(stage) {
+    return document.fullscreenElement === stage || stage.classList.contains("graph-full");
+  }
+
+  // markFull sets every Full screen button to what its stage is, and
+  // resizes the graphs: after entering, leaving, and every refresh.
+  function markFull() {
+    document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
+      var b = g.querySelector("[data-graph-full]");
+      if (b) {
+        b.setAttribute("aria-pressed", isFull(stageOf(g)) ? "true" : "false");
+      }
+      apply(g);
+    });
   }
 
   function leaveFull() {
     if (document.fullscreenElement && document.exitFullscreen) {
       document.exitFullscreen().catch(function () {});
     }
-    document.querySelectorAll(".graph.graph-full").forEach(function (g) { setFull(g, false); });
+    document.querySelectorAll(".graph-full").forEach(function (el) { el.classList.remove("graph-full"); });
+    markFull();
+  }
+
+  function anyFull() {
+    return !!document.fullscreenElement || !!document.querySelector(".graph-full");
   }
 
   document.addEventListener("click", function (evt) {
@@ -957,30 +1012,22 @@
     if (!b) {
       return;
     }
-    var g = b.closest(".graph[data-graph]");
-    if (document.fullscreenElement === g || g.classList.contains("graph-full")) {
+    var stage = stageOf(b.closest(".graph[data-graph]"));
+    if (isFull(stage)) {
       leaveFull();
-      setFull(g, false);
       return;
     }
     var fallback = function () {
-      g.classList.add("graph-full");
-      setFull(g, true);
-      apply(g);
+      stage.classList.add("graph-full");
+      markFull();
     };
-    if (g.requestFullscreen) {
-      g.requestFullscreen().then(function () { setFull(g, true); apply(g); }, fallback);
+    if (stage.requestFullscreen) {
+      stage.requestFullscreen().then(markFull, fallback);
     } else {
       fallback();
     }
   });
-  document.addEventListener("fullscreenchange", function () {
-    document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
-      if (document.fullscreenElement !== g && !g.classList.contains("graph-full")) {
-        setFull(g, false);
-      }
-    });
-  });
+  document.addEventListener("fullscreenchange", markFull);
   document.addEventListener("htmx:beforeSwap", function (evt) {
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
@@ -988,18 +1035,37 @@
     }
   });
 
-  // Escape steps back: out of full screen first, then out of the selection.
+  // Escape steps back one thing per press: the theme menu, then an open
+  // hover card, then full screen, then the selection.
   document.addEventListener("keydown", function (evt) {
-    if (evt.key !== "Escape") {
+    if (evt.key !== "Escape" || evt.defaultPrevented) {
       return;
     }
-    if (document.querySelector(".graph.graph-full")) {
+    var menu = document.querySelector("details.theme[open]");
+    if (menu) {
+      menu.open = false;
+      var s = menu.querySelector("summary");
+      if (s) {
+        s.focus();
+      }
+      evt.preventDefault();
+      return;
+    }
+    if (document.querySelector(".node-card:not([hidden])")) {
+      hideCards();
+      hovered = null;
+      evt.preventDefault();
+      return;
+    }
+    if (anyFull()) {
       leaveFull();
+      evt.preventDefault();
       return;
     }
     document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
       if (selected.has(g.getAttribute("data-graph"))) {
         clearSelection(g);
+        evt.preventDefault();
       }
     });
   });

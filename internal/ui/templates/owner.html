@@ -2,7 +2,7 @@
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> <span aria-hidden="true">/</span> <span class="mono">{{.Namespace}}</span> <span aria-hidden="true">/</span> <span>{{.Name}}</span></nav>
 <div class="summary reveal">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="{{.Topic}}">
-    <p class="kicker">{{.Kind.Title}}{{range .ProviderOf}}{{with providerBadge .}} <span class="{{.Class}}" title="{{.Title}}">{{.Text}}</span>{{end}}{{end}}</p>
+    <p class="kicker">{{.Kind.Title}}{{range .ProviderOf}}{{with providerBadge .}} <span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}}{{end}}</p>
     <h1>{{.Name}}</h1>
     {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
     {{with .Instance}}
@@ -10,7 +10,7 @@
       <dt>Namespace</dt><dd class="mono">{{.Ref.Namespace}}</dd>
       <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
       <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the controller{{end}}</dd>
-      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}</dd>
       <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
       <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
     </dl>
@@ -24,6 +24,7 @@
       <dt>Revision</dt><dd>{{with .SourceArtifact}}{{with .Revision}}<span class="mono">{{template "breakable" .}}</span>{{else}}<span class="muted">not recorded</span>{{end}}{{else}}<span class="muted">not recorded</span>{{end}}</dd>
       <dt>Depends on</dt><dd>{{if .DependsOn}}{{range .DependsOn}}<a class="mono chip" href="/packages/{{if .Namespace}}{{.Namespace}}{{else}}{{$v.Namespace}}{{end}}/{{.Name}}">{{.Name}}</a> {{end}}{{else}}<span class="muted">nothing</span>{{end}}</dd>
       <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this package's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}</dd>
       <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
       <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
     </dl>
@@ -71,13 +72,15 @@
   {{end}}
 </details>
 
-<nav class="tabs owner-tabs" aria-label="Views">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
 
 {{if eq .Tab "graph"}}
-<section class="panel panel-8 reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
+<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
+<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
   <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
   {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
 </section>
+</div>
 {{template "detail" .}}
 {{else if eq .Tab "resources"}}
 <section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
@@ -103,7 +106,7 @@
 <section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
   <h2 id="events-h">Events{{with .Events.About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
   {{with .EventsForm}}
-  <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" data-filters="owner-events">
+  <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
     <input type="hidden" name="tab" value="events">
     <div class="filter-fields">
       <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource"><option value=""{{if not (index .Filters.Values "resource")}} selected{{end}}>This {{$v.Kind.Topic}}</option>{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>

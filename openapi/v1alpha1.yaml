@@ -949,6 +949,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProviderClaim'
+        serviceAccountName:
+          description: "The ServiceAccount the controller applies the package's objects as; absent means the controller's own."
+          type: string
         conditions:
           type: array
           items:

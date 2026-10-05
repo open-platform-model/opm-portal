@@ -13,6 +13,7 @@
       <dt>Revision</dt><dd><span class="muted">not recorded</span></dd>
       <dt>Depends on</dt><dd><span class="muted">nothing</span></dd>
       <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this package's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
       <dt>Objects</dt><dd>0</dd>
       <dt>Last applied</dt><dd><span class="muted">never</span></dd>
     </dl>
@@ -64,13 +65,14 @@
 </ol>
   
 </details>
-<nav class="tabs owner-tabs" aria-label="Views"><a href="/packages/pkg/podinfo?tab=graph" aria-current="page">Graph</a><a href="/packages/pkg/podinfo?tab=resources">Resources</a><a href="/packages/pkg/podinfo?tab=events">Events</a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
-<section class="panel panel-8 reveal" id="graph" aria-labelledby="graph-h" data-follow="package:pkg/podinfo">
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph" aria-current="page">Graph</a><a href="/packages/pkg/podinfo?tab=resources">Resources</a><a href="/packages/pkg/podinfo?tab=events">Events</a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
+<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
+<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="package:pkg/podinfo">
   <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
 <div class="graph" data-graph="package-graph">
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">drag to pan · Ctrl + wheel to zoom · Esc clears the selection · outline and rail: health · square: applied</span>
-    <a class="tool-link" href="/packages/pkg/podinfo" data-clear-selection hidden>Clear selection</a>
+    <a class="tool-link" href="/packages/pkg/podinfo" hx-boost="false" data-clear-selection hidden>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>
     <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
@@ -110,6 +112,7 @@
   </div>
 </div>
 </section>
+</div>
 <aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
   <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
 </aside>

@@ -16,14 +16,6 @@
   {{with .Replicas}}<dt>Desired replicas</dt><dd>{{.}}</dd>{{end}}
   {{if .ScaledDown}}<dt>Scaled down</dt><dd>{{.ScaledDown}} ReplicaSets at zero, hidden</dd>{{end}}
   {{if .Unread}}<dt>Pods</dt><dd>Could not be read; health is the object's own status.</dd>{{end}}
-  {{with .Reg}}
-  <dt>Claim</dt><dd><span class="pill {{if .Accepted}}pill-yes{{else}}pill-no{{end}}">{{if .Accepted}}accepted{{else}}not accepted{{end}}</span> <span class="pill {{if .Active}}pill-yes{{else}}pill-no{{end}}">{{if .Active}}active{{else}}inactive{{end}}</span> {{with verdictBadge .Verdict}}<span class="{{.Class}}">{{.Text}}</span>{{end}}</dd>
-  <dt>Catalog</dt><dd class="mono">{{template "breakable" .Catalog}}{{with .Version}} <span class="ver">{{.}}</span>{{end}}</dd>
-  {{with .Provides}}<dt>Provides</dt><dd>{{range .}}<span class="mono chip">{{template "breakable" .}}</span> {{end}}</dd>{{end}}
-  {{if ne .Message $.ReconcileMessage}}{{with .Message}}<dt>Verdict</dt><dd>{{.}}</dd>{{end}}{{end}}
-  {{with .ActiveMessage}}<dt>Activation</dt><dd>{{.}}</dd>{{end}}
-  {{end}}
-  {{with .Catalog}}<dt>Registry entry</dt><dd>{{with .Version}}<span class="ver">{{.}}</span> {{end}}{{.Source}}{{if not .Enabled}}, disabled{{end}}</dd>{{end}}
   {{with .Group}}<dt>Stands for</dt><dd>{{len .Members}} {{.Kind}} nodes{{range .Hidden}}, {{.Count}} {{.Kind}}{{end}}</dd>{{end}}
 </dl>
 {{with .Contracts}}<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts">{{range .}}<li class="mono">{{.}}</li>{{end}}</ul>{{end}}

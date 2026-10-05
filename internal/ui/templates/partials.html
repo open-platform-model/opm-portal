@@ -82,7 +82,7 @@
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">drag to pan · Ctrl + wheel to zoom · Esc clears the selection · outline and rail: health · square: applied</span>
     {{with .Whole}}<a class="tool-link" href="{{.}}" data-whole-graph>Whole graph</a>{{end}}
-    <a class="tool-link" href="{{.Clear}}" data-clear-selection{{if not .Focused}} hidden{{end}}>Clear selection</a>
+    <a class="tool-link" href="{{.Clear}}" hx-boost="false" data-clear-selection{{if not .Focused}} hidden{{end}}>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>
     <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
@@ -166,7 +166,7 @@
 
 {{/* filter-form is one view's GET filter form, its chips and its notes. */}}
 {{define "filter-form" -}}
-<form class="filters" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}"{{with .Filters.View}}{{with .Key}} data-filters="{{.}}"{{end}}{{end}}>
+<form class="filters" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}" hx-swap="outerHTML show:none"{{with .Filters.View}}{{with .Key}} data-filters="{{.}}"{{end}}{{end}}>
   {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
   {{with .Fields}}
   <div class="filter-fields">

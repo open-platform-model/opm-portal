@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"html"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"strings"
 	"testing"
@@ -166,4 +168,41 @@ func TestOwnerCardsEscapeClusterText(t *testing.T) {
 func httptestRequest(t *testing.T, target string) *http.Request {
 	t.Helper()
 	return httptest.NewRequestWithContext(t.Context(), http.MethodGet, target, http.NoBody)
+}
+
+// TestFoldedObjectsFocusTheirOwnNode: every Graph link of cert-manager's
+// folded configuration objects opens the group expanded and focuses a node
+// the expanded graph draws.
+func TestFoldedObjectsFocusTheirOwnNode(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	res := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
+	links := regexp.MustCompile(`href="(/instances/cert-manager/cert-manager\?expand=[^"]+)">Graph</a>`).FindAllStringSubmatch(res, -1)
+	if len(links) == 0 {
+		t.Fatal("no folded object links to the graph")
+	}
+	expanded := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=graph&expand=grp:configuration/mi/cert-manager/cert-manager").body)
+	for _, l := range links {
+		u, err := url.Parse(strings.ReplaceAll(l[1], "&amp;", "&"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		focus := u.Query().Get("focus")
+		if !strings.Contains(expanded, `data-node="`+html.EscapeString(focus)+`"`) {
+			t.Errorf("focus %q names no node of the expanded graph", focus)
+		}
+	}
+}
+
+// TestPodPanelLogsOpenItsPane: a Pod's panel links to its first
+// container's pane on the Logs tab, on the page and as a fragment.
+func TestPodPanelLogsOpenItsPane(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	const pod = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
+	want := `href="/instances/default/podinfo?tab=logs#log_podinfo-podinfo-d9585d794-4lg6h_podinfo"`
+	if page := mainOf(s.get(t, "/instances/default/podinfo?tab=graph&focus="+url.QueryEscape(pod)).body); !strings.Contains(page, want) {
+		t.Error("the page's Pod panel lacks its Logs link to the pane")
+	}
+	if frag := s.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape(pod), htmxRequest).body; !strings.Contains(frag, want) {
+		t.Error("the Pod panel fragment lacks its Logs link to the pane")
+	}
 }

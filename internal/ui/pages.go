@@ -62,13 +62,6 @@ func problemStatus(p *v1.Problem) int {
 	return http.StatusServiceUnavailable
 }
 
-func (h *Handler) registrationEvents(w http.ResponseWriter, r *http.Request) {
-	name := r.PathValue("name")
-	ev := h.events(r, "/platform/registrations/"+url.PathEscape(name)+"/events", nil, "")
-	ev.About = "Provider " + name
-	h.renderFragment(w, r, problemStatus(ev.Problem), "events", page{Title: "Events", Nav: "platform", Main: ev})
-}
-
 // --- Installed ---
 
 // ownerController is the owner the pages name for the read API's operator,
@@ -455,8 +448,46 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 			h.renderProblemFragment(w, r, p)
 			return
 		}
-		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), panelContext{owner: k, base: base}))
+		ctx := panelContext{owner: k, base: base}
+		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && isPod(*n.Ref) {
+			ctx.firstContainer = h.firstContainers(r, k, base)
+		}
+		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), ctx))
 	}
+}
+
+// firstContainers reads the owner's document for its Pods' containers,
+// for a Pod panel's Logs link.
+func (h *Handler) firstContainers(r *http.Request, k ownerKind, base string) func(string) string {
+	var comps []v1.Component
+	if k == instanceKind {
+		var doc v1.Instance
+		if h.fetch(r, base, nil, &doc) == nil {
+			comps = doc.Components
+		}
+	} else {
+		var doc v1.Package
+		if h.fetch(r, base, nil, &doc) == nil {
+			comps = doc.Components
+		}
+	}
+	return containersOf(comps)
+}
+
+// containersOf maps each Pod below cs to its first container.
+func containersOf(cs []v1.Component) func(string) string {
+	first := map[string]string{}
+	for i := range cs {
+		for j := range cs[i].Objects {
+			for k := range cs[i].Objects[j].Children {
+				ch := &cs[i].Objects[j].Children[k]
+				if isPod(ch.Ref) && len(ch.Containers) > 0 {
+					first[ch.Ref.Name] = ch.Containers[0]
+				}
+			}
+		}
+	}
+	return func(pod string) string { return first[pod] }
 }
 
 // objectYAML is the YAML view of one object.
@@ -480,7 +511,7 @@ func (h *Handler) ownerObject(k ownerKind) http.HandlerFunc {
 			}
 			v.YAML = string(out)
 		}
-		if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
+		if unauthenticated(v.Problem) {
 			h.signIn(w, r)
 			return
 		}
@@ -496,7 +527,7 @@ func (h *Handler) ownerEvents(k ownerKind) http.HandlerFunc {
 		if q.Get("kind") != "" {
 			ev.About = refText(v1.ObjectRef{Group: q.Get("group"), Kind: q.Get("kind"), Namespace: q.Get("namespace"), Name: q.Get("name")})
 		}
-		if ev.Problem != nil && ev.Problem.Code == v1.CodeUnauthenticated {
+		if unauthenticated(ev.Problem) {
 			h.signIn(w, r)
 			return
 		}

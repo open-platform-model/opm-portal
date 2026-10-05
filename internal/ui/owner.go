@@ -84,6 +84,8 @@ type ownerView struct {
 	Logs       []logPane
 	YAML       yamlTab
 	Provider   providerTabView
+
+	firstContainer func(string) string
 }
 
 // --- Cards ---
@@ -225,23 +227,43 @@ func focusIDs(g *v1.Graph) (byRef, groupOf map[string]string) {
 	return byRef, groupOf
 }
 
+// objectNodeID is the graph's id of an inventory object's or child's node,
+// as internal/graph writes it: obj:<group>/<Kind>/<namespace>/<name>, each
+// part path-escaped with ":" and "@" escaped too, an empty part written
+// as "_" and a literal "_" as "%5F". TestFoldedObjectsFocusTheirOwnNode
+// holds the two to the same ids.
+func objectNodeID(r v1.ObjectRef) string {
+	part := func(s string) string {
+		switch s {
+		case "":
+			return "_"
+		case "_":
+			return "%5F"
+		}
+		return strings.NewReplacer(":", "%3A", "@", "%40").Replace(url.PathEscape(s))
+	}
+	return "obj:" + part(r.Group) + "/" + part(r.Kind) + "/" + part(r.Namespace) + "/" + part(r.Name)
+}
+
 func refKey(r v1.ObjectRef) string { return r.Group + "/" + r.Kind + "/" + r.Namespace + "/" + r.Name }
 
 // annotateResources links each object and child to the graph node that
 // shows it, and keeps only those with reason, when one is asked for.
 func annotateResources(cs []componentView, byRef, groupOf map[string]string, base, reason string) []componentView {
 	focus := func(r v1.ObjectRef, component string) string {
-		id := byRef[refKey(r)]
-		if id == "" {
-			id = groupOf[r.Name]
+		if id := byRef[refKey(r)]; id != "" {
+			return base + "?" + url.Values{"tab": {tabGraph}, "focus": {id}}.Encode()
 		}
-		if id == "" {
-			id = groupOf[component]
+		// Folded into a group: open the group and focus the object's own
+		// node in it.
+		group := groupOf[r.Name]
+		if group == "" {
+			group = groupOf[component]
 		}
-		if id == "" {
+		if group == "" {
 			return base + "?tab=" + tabGraph
 		}
-		return base + "?" + url.Values{"tab": {tabGraph}, "focus": {id}}.Encode()
+		return base + "?" + url.Values{"tab": {tabGraph}, "expand": {group}, "focus": {objectNodeID(r)}}.Encode()
 	}
 	out := make([]componentView, 0, len(cs))
 	for i := range cs {
@@ -366,7 +388,9 @@ func (h *Handler) ownerEventsTab(r *http.Request, v *ownerView, refs []v1.Object
 	}
 	if res := f.Values["resource"]; res != "" {
 		ref := parseResource(res)
-		ev := h.events(r, v.Base+"/events", refQuery(ref), "")
+		// The object's own events have no topic; the region follows the
+		// owner's, and the stream's periodic refresh re-reads it.
+		ev := h.events(r, v.Base+"/events", refQuery(ref), "events:"+v.Topic)
 		ev.About = refText(ref)
 		v.Events = ev
 	}
@@ -438,6 +462,9 @@ func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView) {
 			for k := range o.Children {
 				add(o.Children[k].Ref, false)
 			}
+			for k := range o.Old {
+				add(o.Old[k].Ref, false)
+			}
 		}
 	}
 	slices.Sort(kinds)
@@ -478,6 +505,7 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
 				v.ProviderOf = doc.ProviderOf
 				v.Components = h.components(v.Base, doc.Components)
+				v.firstContainer = containersOf(doc.Components)
 			}
 		} else {
 			var doc v1.Package
@@ -486,9 +514,10 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
 				v.ProviderOf = doc.ProviderOf
 				v.Components = h.components(v.Base, doc.Components)
+				v.firstContainer = containersOf(doc.Components)
 			}
 		}
-		if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
+		if unauthenticated(v.Problem) {
 			h.signIn(w, r)
 			return
 		}
@@ -526,7 +555,7 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 		v.Graph.FitGroup = q.Get("fit")
 		v.Components, v.Config = foldConfig(v.Components, &g)
 		if v.Focus != "" {
-			v.Panel = h.panel(r, &g, v.Focus, panelContext{owner: v.Kind, base: v.Base})
+			v.Panel = h.panel(r, &g, v.Focus, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer})
 		}
 		if len(q["expand"]) > 0 {
 			v.Graph.Whole = v.Base + "?tab=" + tabGraph

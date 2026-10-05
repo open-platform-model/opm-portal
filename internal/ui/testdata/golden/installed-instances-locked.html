@@ -3,7 +3,7 @@
   <h1>Installed</h1>
   <p class="lede">Every module this cluster runs under OPM, as a ModuleInstance or a ModulePackage. <strong>Applied</strong> is what the controller applied, <strong>Health</strong> what the portal sees running; one never stands for the other.</p>
 </header>
-<form class="filters" method="get" action="/installed" role="search" aria-label="Filter what is installed" data-filters="installed">
+<form class="filters" method="get" action="/installed" role="search" aria-label="Filter what is installed" hx-swap="outerHTML show:none" data-filters="installed">
   
   <div class="filter-fields">
     <div class="field field-search"><label for="f-q">Search</label><input id="f-q" name="q" type="search" value="" placeholder="Name, namespace, module or source" autocomplete="off" spellcheck="false"></div>

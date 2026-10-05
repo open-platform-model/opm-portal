@@ -34,7 +34,7 @@
     <div class="count-group"><span class="label">Health</span>{{range .Health}}<a class="count {{.Class}}" href="{{.Href}}">{{.Text}} <span class="count-n">{{.N}}</span></a>{{else}}<span class="muted">nothing counted</span>{{end}}</div>
     <div class="count-group"><span class="label">Applied</span>{{range .Applied}}<a class="count {{.Class}}" href="{{.Href}}">{{.Text}} <span class="count-n">{{.N}}</span></a>{{else}}<span class="muted">nothing counted</span>{{end}}</div>
   </div>
-  <p class="pf-line">{{if .Partial}}You may read {{else}}{{add .Instances .Packages}} installed: {{end}}{{if .InstancesLocked}}{{template "lock"}} instances locked{{else if .InstancesProblem}}instances unavailable{{else}}{{.Instances}} {{plural .Instances "instance" "instances"}}{{end}}, {{if .PackagesLocked}}{{template "lock"}} packages locked{{else if .PackagesProblem}}packages unavailable{{else}}{{.Packages}} {{plural .Packages "package" "packages"}}{{end}}; {{.Holders}} of them {{plural .Holders "holds" "hold"}} a registration.</p>
+  <p class="pf-line">{{if .Partial}}Counted: {{else}}{{add .Instances .Packages}} installed: {{end}}{{if .InstancesLocked}}instances locked {{template "lock"}}{{else if .InstancesProblem}}instances unavailable{{else}}{{.Instances}} {{plural .Instances "instance" "instances"}}{{end}}, {{if .PackagesLocked}}packages locked {{template "lock"}}{{else if .PackagesProblem}}packages unavailable{{else}}{{.Packages}} {{plural .Packages "package" "packages"}}{{end}}; {{.Holders}} of {{if .Partial}}those{{else}}them{{end}} {{plural .Holders "holds" "hold"}} a registration.</p>
   {{if .InstancesLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not list ModuleInstances in every namespace, so the counts leave them out.</p></div>{{end}}
   {{if .PackagesLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not list ModulePackages in every namespace, so the counts leave them out.</p></div>{{end}}
   {{with .InstancesProblem}}{{template "problem-region" .}}{{end}}
@@ -43,7 +43,7 @@
 </section>
 
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
-  <nav class="tabs" aria-label="Platform parts">
+  <nav class="tabs" aria-label="Platform parts" hx-swap="outerHTML show:none">
     <a href="{{.ProvidersTab}}"{{if eq .Tab "providers"}} aria-current="page"{{end}}>Providers</a>
     <a href="{{.CatalogsTab}}"{{if eq .Tab "catalogs"}} aria-current="page"{{end}}>Catalogs</a>
   </nav>
@@ -52,8 +52,8 @@
   <div id="providers" data-follow="platform">
   {{if .Problem}}{{template "problem-region" .Problem}}
   {{else}}{{with .Providers}}
-  {{if ne .Access "ok"}}{{template "locked" .Access}}<p class="muted">Only the providers you may read are listed.</p>{{end}}
-  <p class="shown">Showing <strong>{{len .Rows}}</strong> of {{.Total}}</p>
+  {{if ne .Access "ok"}}{{template "locked" .Access}}<p class="muted">Only the providers you may read are listed.</p>
+  {{else}}<p class="shown">Showing <strong>{{len .Rows}}</strong> of {{.Total}}</p>{{end}}
   {{if .Rows}}
   <div class="table-wrap">
   <table class="table rows providers">
@@ -99,7 +99,7 @@
       <th scope="row" data-label="Catalog"><a class="mono" href="{{catalogHref .Path}}">{{template "breakable" .Path}}</a>{{if not .Resolved}}<p class="muted holder-note">Not in the Platform's resolved registry.</p>{{end}}</th>
       <td data-label="Version">{{with .Version}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</td>
       <td data-label="Source">{{.SourceText}}{{with .ContributedBy}}, contributed by <span class="mono">{{.}}</span>{{end}}</td>
-      <td data-label="Claimed by">{{range .Claimants}}<span class="claimant"><span class="mono">{{template "breakable" .Name}}</span>{{range .Holders}} <a class="mono holder-link" href="{{.Href}}">{{.Text}}</a>{{end}}</span> {{else}}<span class="muted">no provider</span>{{end}}</td>
+      <td data-label="Claimed by">{{if ne $v.Platform.RegistrationsAccess "ok"}}<span class="locked-inline">{{template "lock"}} locked</span>{{else}}{{range .Claimants}}<span class="claimant"><span class="mono">{{template "breakable" .Name}}</span>{{range .Holders}} <a class="mono holder-link" href="{{.Href}}">{{.Text}}</a>{{end}}</span> {{else}}<span class="muted">no provider</span>{{end}}{{end}}</td>
       <td data-label="Enabled">{{with .Enabled}}{{if .}}yes{{else}}<span class="pill pill-off">disabled</span>{{end}}{{else}}<span class="muted">not recorded</span>{{end}}</td>
     </tr>
     {{end}}
@@ -137,17 +137,22 @@
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
   {{with .Events}}
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" data-filters="events">
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
     {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value=""{{if not (index .Filters.Values "eresource")}} selected{{end}}>Everything</option>{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
       <div class="field field-submit"><button type="submit">Show</button></div>
     </div>
-    {{range .Filters.Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a resource this page shows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
+    {{with .Filters}}{{if or .Active .Ignored}}
+    <div class="filter-chips">
+      {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+      {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a resource this page shows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
+    </div>
+    {{end}}{{end}}
   </form>
   {{template "events-note"}}
   <div id="events" data-follow="{{.Follow}}">
-    <p class="shown">Showing <strong>{{len .Feed.Items}}</strong> of {{.Total}}, newest first, repeats folded</p>
+    {{if not .Feed.Problem}}<p class="shown">Showing <strong>{{len .Feed.Items}}</strong> of {{.Total}}, newest first, repeats folded</p>{{end}}
     {{with .Unread}}<p class="note">The events of {{range $i, $n := .}}{{if $i}}, {{end}}<span class="mono">{{$n}}</span>{{end}} could not be read.</p>{{end}}
     {{template "events-list" .Feed}}
   </div>

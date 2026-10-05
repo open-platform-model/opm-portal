@@ -135,7 +135,6 @@ var f1Pages = []goldenPage{
 	{"fragment-object-deployment", "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo", true},
 	{"fragment-node-deployment", "/instances/default/podinfo/node?id=obj:apps/Deployment/default/podinfo-podinfo", true},
 	{"fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
-	{"fragment-registration-events", "/platform/registrations/default.refused-claim-fixture/events", true},
 }
 
 // TestGoldenPages renders every page over the F1 capture and compares its

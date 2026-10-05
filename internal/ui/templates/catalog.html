@@ -22,7 +22,7 @@
   </section>
 </div>
 <p class="note">The cluster does not record a catalog's definitions, their descriptions or the transformers it ships, so they are not shown.</p>
-<nav class="tabs" aria-label="Views">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
+<nav class="tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
 {{if eq .Tab "claims"}}
 <section class="panel panel-wide reveal" id="claims" aria-labelledby="claims-h" data-follow="platform">
   <h2 id="claims-h">Claims <span class="h-note">registrations that claim this catalog</span></h2>
