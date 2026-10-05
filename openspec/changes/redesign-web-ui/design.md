@@ -306,9 +306,10 @@ Remembering (`prefs.js` and `portal.js`):
 2. On a boosted navigation (`hx-boost` swaps `#main`, so the head script does not run),
    `portal.js` handles `htmx:configRequest` for requests htmx makes for a boosted link or form only
    (`evt.detail.boosted`; never region refreshes, panel fetches or the stream's topic `POST`), and
-   applies the same check and rewrite to the request path. Whether htmx 2.0.11 then pushes the
-   rewritten URL is unverified; the spike settles it, with the server's `HX-Push-Url` response
-   header as the fallback.
+   applies the same check and rewrite to the request path. htmx 2.0.11 then requests and pushes
+   the rewritten URL, so no `HX-Push-Url` header is needed (spike, "Boosted filter restore"
+   below). Only a boosted link is rewritten: a boosted `GET` form carries its own filter fields as
+   request parameters, which are an explicit choice and are never merged with stored ones.
 3. After every render of a remembered view, `portal.js` writes the view's current parameters to its
    key, or removes the key when there are none. "Clear filters" is a link to the path without that
    view's parameters that removes the key first.
@@ -527,6 +528,52 @@ portal:D14).
 **Rationale**: Owner answer 2026-10-05 ("Fixed default port (Recommended)"). The cost: another
 local process that later binds 7878 serves pages on the same origin and can read the stored filter
 queries; `portal-security.md` says so.
+
+### Boosted filter restore (spike)
+
+**Context**: Remembered filters must be restored on a boosted navigation, where the head script
+does not run, without painting the unfiltered view and with the filtered URL in the address bar.
+The question: if `portal.js` rewrites the path of a boosted request in `htmx:configRequest`, which
+URL does htmx 2.0.11 push, and which requests count as boosted?
+**Explored**: the vendored `internal/ui/static/vendor/htmx-2.0.11.min.js` (minified names in
+brackets), read without a browser:
+- `issueAjaxRequest` builds the request config as `{boosted: getInternalData(elt).boosted, ...,
+  path, ...}` and fires `htmx:configRequest` with it as `evt.detail` [`const $=re(r).boosted; ...
+  const C={boosted:$, ..., path:n, ...}; if(!ae(r,"htmx:configRequest",C))`]. After the event it
+  reads the path back from the detail [`n=C.path`], splits off a `#` anchor, appends the
+  parameters to it for a `GET` (with `&` when the path already has a query), and opens the request
+  on that final path [`g.open(t.toUpperCase(),T,true)`]. So a rewritten `evt.detail.path`,
+  query included, is the URL requested.
+- `determineHistoryUpdates` [the function holding `HX-Push-Url`]: with no `HX-Push`,
+  `HX-Push-Url` or `HX-Replace-Url` response header and no `hx-push-url` or `hx-replace-url`
+  attribute (the portal sets none), a boosted element pushes `responsePath || finalRequestPath`
+  [`else if(u){a="push";f=s||i}`]. `responsePath` is the `pathname + search` of the XHR's
+  `responseURL` [`function Nn`], which is the rewritten URL, or its target after a server redirect.
+  So the rewritten URL is pushed, and the anchor is appended when the rewritten path has none.
+- Which elements are boosted: `boostElement` [`function ht`] sets the internal `boosted` flag only
+  on an `HTMLAnchorElement` with a same-host, non-`#` `href` and an empty or `_self` target, or on
+  a `FORM` whose method is not `dialog`; `processNode` [`function Mt`] calls it only under
+  `hx-boost="true"` and only when the element has no explicit `hx-get`, `hx-post` and so on.
+- The other requests on a page: region refreshes and the topics `POST` go through `window.fetch`
+  (`portal.js` `refresh` and `post`), which fires no htmx event at all. The panel fetch is
+  `htmx.ajax("GET", panel, {source: a})` from a graph node, an SVG `<a>` (`SVGAElement`, not
+  `HTMLAnchorElement`), so its source is never boosted. The panel's YAML and Events links carry an
+  explicit `hx-get`, so they are not boosted either. None of them sees `evt.detail.boosted`.
+- A boosted `GET` form drops the query from its `action` [`o=o.replace(/\?[^#]+/,"")`] and sends
+  its fields as parameters, which htmx appends to whatever path the handler leaves.
+**Options considered**:
+1. Rewrite `evt.detail.path` in `htmx:configRequest` - the rewritten URL is requested and pushed;
+   no server change.
+2. The server answers with `HX-Push-Url` - needs `internal/ui` to know the stored filters, which
+   live only in the browser.
+**Decision**: Option 1, for boosted links only: the handler acts when `evt.detail.boosted` is true,
+the verb is `get` and `evt.detail.elt` is an `A`. A boosted form submit is left alone, because its
+fields are the viewer's explicit filters and would otherwise be appended to the restored query.
+A tab link (`?tab=`, section 4) is a boosted link and is restored like any other, since `tab` and
+`focus` never count as filters. `HX-Push-Url` is not needed.
+**Rationale**: The code path is short and has no branch for a rewritten path. Confidence: high
+for the request and push behaviour, which follows directly from the source above; not run in a
+browser, so section 2's `TestBrowserTheme` (a stored filter opens filtered) is the live check.
 
 ### History outcome and Reconciling
 
