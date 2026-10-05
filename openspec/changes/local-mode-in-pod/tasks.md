@@ -6,9 +6,9 @@
 
 ## 2. Name the in-cluster source at startup (cmd/opm-portal)
 
-- [ ] 2.1 `cmd/opm-portal/serve.go`: `configSource(raw, contextName) slog.Attr`; `loadKubeconfig` returns it; the identity log line carries `source=in-cluster` when the raw config holds no context, `context=<name>` otherwise
-- [ ] 2.2 `cmd/opm-portal/serve_test.go`: table test for `configSource` (no context → `source=in-cluster`; a named context → `context=<name>`; a current context in the raw config → that name)
-- [ ] 2.3 `task check` green, then commit `feat(local): name the in-cluster config source in the startup log`
+- [x] 2.1 `cmd/opm-portal/serve.go`: `configSource(raw, contextName) slog.Attr`; `loadKubeconfig` returns it; the identity log line carries `source=in-cluster` when the raw config holds no context, `context=<name>` otherwise
+- [x] 2.2 `cmd/opm-portal/serve_test.go`: table test for `configSource` (no context → `source=in-cluster`; a named context → `context=<name>`; a current context in the raw config → that name)
+- [x] 2.3 `task check` green, then commit `feat(local): name the in-cluster config source in the startup log`
 
 ## 3. The manifest, its role and its tests (deploy/, release-please-config.json)
 

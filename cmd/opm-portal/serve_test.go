@@ -19,11 +19,38 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
 )
+
+func TestConfigSource(t *testing.T) {
+	withContexts := clientcmdapi.Config{
+		CurrentContext: "kind-dev",
+		Contexts:       map[string]*clientcmdapi.Context{"kind-dev": {}, "prod": {}},
+	}
+	tests := []struct {
+		name      string
+		raw       clientcmdapi.Config
+		asked     string
+		wantKey   string
+		wantValue string
+	}{
+		{"no kubeconfig, client-go fell back in-cluster", clientcmdapi.Config{}, "", "source", "in-cluster"},
+		{"the current context", withContexts, "", "context", "kind-dev"},
+		{"the context asked for", withContexts, "prod", "context", "prod"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := configSource(tt.raw, tt.asked)
+			if got.Key != tt.wantKey || got.Value.String() != tt.wantValue {
+				t.Fatalf("configSource() = %s=%s; want %s=%s", got.Key, got.Value, tt.wantKey, tt.wantValue)
+			}
+		})
+	}
+}
 
 func TestServeRefusesBeforeReadingTheKubeconfig(t *testing.T) {
 	// The kubeconfig does not exist: reading it would fail with exit 1 and
