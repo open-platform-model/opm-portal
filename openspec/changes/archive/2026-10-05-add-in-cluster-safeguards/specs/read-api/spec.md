@@ -17,7 +17,10 @@ text the operator wrote: a condition's `message`, a reconcile `message`, a histo
 `message`, a registration's `message` or `activeMessage`, an event's `note`, the health
 `message` of an inventory object or graph node of an `opmodel.dev` kind, or, in an `Object` of
 an `opmodel.dev` kind, `status.conditions[].message` and `status.history[].message`. Every
-reason, state, `tone`, `meaning` and `nextStep` SHALL stay. A document type the omission does not
+reason, state, `tone`, `meaning` and `nextStep` SHALL stay. Events left alike once their notes
+are dropped (same type, reason, reporting controller, regarded object and field path) SHALL be
+served as one line, their counts summed and its time the latest, so the number of lines does not
+tell how many distinct notes were dropped. A document type the omission does not
 know SHALL fail with `upstream_unavailable` rather than be served. The OpenAPI document SHALL say,
 on each of those fields, that it is absent in-cluster. Source: owner answer to 0030:OQ8.
 
@@ -32,6 +35,12 @@ on each of those fields, that it is absent in-cluster. Source: owner answer to 0
 
 - **WHEN** a client of an in-cluster server reads an `EventList` or follows its `events:` topic
 - **THEN** every event carries its type, reason, count and times, and no `note`
+
+#### Scenario: Events differing only in their note in-cluster
+
+- **WHEN** a client of an in-cluster server reads the `EventList` of an instance with two
+  `Applied` events whose notes differ
+- **THEN** it carries one `Applied` line with count 2 and the later time
 
 #### Scenario: An OPM object's YAML in-cluster
 

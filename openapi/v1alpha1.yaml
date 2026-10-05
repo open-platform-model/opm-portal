@@ -973,7 +973,7 @@ components:
         reason:
           type: string
         note:
-          description: "The reporting controller's text, served unchanged in local mode. Absent in-cluster for every event: the operator does not remove secret values from the notes it writes."
+          description: "The reporting controller's text, served unchanged in local mode. Absent in-cluster for every event: the operator does not remove secret values from the notes it writes. In-cluster, events that differ only in their note are served as one, their counts summed."
           type: string
         reportingController:
           type: string

@@ -3,6 +3,8 @@ package api
 import (
 	"fmt"
 	"maps"
+	"slices"
+	"time"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
@@ -24,9 +26,10 @@ func (m Mode) valid() bool { return m == ModeLocal || m == ModeInCluster }
 
 // omitOperatorText returns doc without the text the operator wrote: the
 // message of every condition, reconcile state, history entry and
-// registration, every event note, the health message of an OPM object
-// (kstatus copies its Ready message into it), and the condition and history
-// messages in the raw status of an OPM object. Reasons, states, tone,
+// registration, every event note (folding the events that leaves alike), the
+// health message of an OPM object (kstatus copies its Ready message into
+// it), and the condition and history messages in the raw status of an OPM
+// object. Reasons, states, tone,
 // meaning and next step stay. The operator's kernel does not redact secret
 // values it copies into that text, and the portal cannot tell a secret from
 // other text, so in-cluster it serves none of it.
@@ -55,9 +58,7 @@ func omitOperatorText(doc any) (any, error) {
 		omitPlatform(&d)
 		return d, nil
 	case v1.EventList:
-		for i := range d.Items {
-			d.Items[i].Note = ""
-		}
+		d.Items = foldWithoutNotes(d.Items)
 		return d, nil
 	case v1.Graph:
 		for i := range d.Nodes {
@@ -73,6 +74,52 @@ func omitOperatorText(doc any) (any, error) {
 		return d, nil
 	}
 	return nil, fmt.Errorf("omitting operator text: unknown document type %T", doc)
+}
+
+// foldWithoutNotes drops every event's note and folds the events left alike
+// into one line, summing their counts and keeping the latest time seen. The
+// read model folds on the note too (0030:D9:R3), so without the second fold
+// a note that differs between events (the operator's Applied note counts
+// resources) would leave rows that look the same, and their number would
+// tell how many distinct notes were hidden. Events stay newest first.
+func foldWithoutNotes(items []v1.Event) []v1.Event {
+	type key struct {
+		typ, reason, controller, fieldPath string
+		regarding                          v1.ObjectRef
+	}
+	at := map[key]int{}
+	out := make([]v1.Event, 0, len(items))
+	for i := range items {
+		ev := items[i]
+		ev.Note = ""
+		k := key{ev.Type, ev.Reason, ev.ReportingController, ev.FieldPath, ev.Regarding}
+		j, seen := at[k]
+		if !seen {
+			at[k] = len(out)
+			out = append(out, ev)
+			continue
+		}
+		out[j].Count += ev.Count
+		if ev.LastSeen != nil && (out[j].LastSeen == nil || ev.LastSeen.After(*out[j].LastSeen)) {
+			out[j].LastSeen = ev.LastSeen
+		}
+	}
+	slices.SortStableFunc(out, func(x, y v1.Event) int { return newestFirst(x.LastSeen, y.LastSeen) })
+	return out
+}
+
+// newestFirst orders two event times newest first, an event with no time
+// last.
+func newestFirst(x, y *time.Time) int {
+	switch {
+	case x == nil && y == nil:
+		return 0
+	case x == nil:
+		return 1
+	case y == nil:
+		return -1
+	}
+	return y.Compare(*x)
 }
 
 // omitDetail omits the operator text of an instance's or package's record.

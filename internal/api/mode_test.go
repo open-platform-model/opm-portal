@@ -6,6 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/types"
+
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
 	"github.com/open-platform-model/opm-portal/internal/stream"
@@ -51,6 +54,66 @@ func TestGoldenBrokenRolloutInCluster(t *testing.T) {
 	e := newEnv(t, f1Broken(t), readmodeltest.AllowAll, inCluster)
 	checkGoldens(t, e, []goldenCase{{"in-cluster/instance-podinfo-broken", base + "/instances/default/podinfo"}})
 	assertNoOperatorText(t, "broken podinfo", e.get(t, base+"/instances/default/podinfo").body)
+}
+
+// TestInClusterEventsDifferingOnlyInNoteFoldIntoOneRow: the operator's
+// Applied note counts the resources each apply touched, so two applies
+// leave two Applied events. In-cluster their notes are dropped, and they
+// are served as one row with both counted: two rows that look the same
+// would tell how many distinct notes were hidden.
+func TestInClusterEventsDifferingOnlyInNoteFoldIntoOneRow(t *testing.T) {
+	const path = base + "/instances/default/podinfo/events"
+	objs := withASecondApplied(t, loadF1(t))
+
+	e := newEnv(t, objs, readmodeltest.AllowAll, inCluster)
+	checkGoldens(t, e, []goldenCase{{"in-cluster/instance-podinfo-events-two-applied", path}})
+	assertNoOperatorText(t, path, e.get(t, path).body)
+	if rows, count := appliedRows(t, e.get(t, path).body); rows != 1 || count != 2 {
+		t.Errorf("in-cluster: %d Applied rows counting %d, want one row counting 2", rows, count)
+	}
+
+	local := newEnv(t, objs, readmodeltest.AllowAll)
+	if rows, _ := appliedRows(t, local.get(t, path).body); rows != 2 {
+		t.Errorf("local: %d Applied rows, want 2 (one per note)", rows)
+	}
+}
+
+// withASecondApplied adds to objs a later Applied event about
+// default/podinfo whose note differs from the first one's.
+func withASecondApplied(t *testing.T, objs []*unstructured.Unstructured) []*unstructured.Unstructured {
+	t.Helper()
+	for _, o := range objs {
+		if o.GetKind() != "Event" || o.Object["reason"] != "Applied" {
+			continue
+		}
+		r, _ := o.Object["regarding"].(map[string]any)
+		if r["kind"] != "ModuleInstance" || r["namespace"] != "default" || r["name"] != "podinfo" {
+			continue
+		}
+		ev := o.DeepCopy()
+		ev.SetName(o.GetName() + "-again")
+		ev.SetUID(types.UID(string(o.GetUID()) + "-again"))
+		ev.Object["note"] = "Applied 3 resources (0 created, 3 updated, 0 unchanged)"
+		ev.Object["eventTime"] = "2026-10-04T18:05:00.000000Z"
+		return append(objs, ev)
+	}
+	t.Fatal("F1 has no Applied event about default/podinfo")
+	return nil
+}
+
+func appliedRows(t *testing.T, body []byte) (rows int, count int64) {
+	t.Helper()
+	var doc v1.EventList
+	if err := json.Unmarshal(body, &doc); err != nil {
+		t.Fatal(err)
+	}
+	for i := range doc.Items {
+		if ev := &doc.Items[i]; ev.Reason == "Applied" {
+			rows++
+			count += ev.Count
+		}
+	}
+	return rows, count
 }
 
 // TestEveryDocumentInClusterCarriesNoOperatorText reads every F1 resource
