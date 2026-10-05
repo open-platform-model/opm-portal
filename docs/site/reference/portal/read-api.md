@@ -16,6 +16,7 @@ This page lists every resource of the OPM portal's read API, version `v1alpha1`,
 - An item the caller may not read inside a readable document is marked by its `access` field: `forbidden` (the caller may not read it), `notReadable` (the portal could not read it: the access review or the read failed, or the kind is not served) or `withheld` (a Secret, never read).
 - Within `v1alpha1` fields and enumerated values are only added. Clients ignore fields they do not know and treat every enumerated string as open, showing an unknown value as unknown.
 - No document carries an instance's or package's `spec.values`, Secret data or the `kubectl.kubernetes.io/last-applied-configuration` annotation. Condition and history messages and event notes are served exactly as the operator and the API server wrote them.
+- Every condition carries a `tone`, how it reads for its type, because its status alone does not say it: `Stalled=True` is `abnormal`, `Reconciling=True` `progressing`, `ContractsFulfilled=False` `informational`, and an `Unknown` status or a type the portal does not know is `unknown`. A condition whose reason the portal knows also carries its `meaning` and, when you can act on it, its `nextStep`.
 
 ## Resources
 

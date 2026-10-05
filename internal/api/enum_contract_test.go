@@ -40,6 +40,8 @@ func TestEnumsMatchTheGoConstants(t *testing.T) {
 	want := map[string][]string{
 		"Reconcile/state": strs(health.AppliedStateApplied, health.AppliedStateReconciling, health.AppliedStateFailed,
 			health.AppliedStateStalled, health.AppliedStateSuspended, health.AppliedStateManagedExternally, health.AppliedStateUnknown),
+		"Condition/tone": strs(health.ToneNormal, health.ToneAbnormal, health.ToneProgressing, health.ToneInformational,
+			health.ToneUnknown),
 		"Health/state":                      states,
 		"ObjectHealth/state":                states,
 		"GraphHealth/state":                 states,

@@ -350,8 +350,11 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 
 .conditions, .timeline, .events, .components, .objects, .children, .contracts, .edges-list { list-style: none; margin: 0; padding: 0; }
 .condition { padding: 10px 0 10px 14px; border-left: 3px solid var(--line-strong); margin-bottom: 8px; }
-.cond-true { border-left-color: var(--healthy); }
-.cond-false { border-left-color: var(--degraded); }
+.tone-normal { border-left-color: var(--healthy); }
+.tone-abnormal { border-left-color: var(--degraded); }
+.tone-progressing { border-left-color: var(--progressing); }
+.tone-informational { border-left-color: var(--neutral); border-left-style: dashed; }
+.tone-unknown { border-left-color: var(--unknown); border-left-style: dotted; }
 .cond-head, .tl-head, .ev-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
 .cond-type { font-weight: 700; }
 .cond-status, .cond-reason, .tl-seq, .tl-phase, .ev-type, .ev-count { font-family: var(--font-mono); font-size: 0.75rem; }

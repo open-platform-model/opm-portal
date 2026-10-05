@@ -60,12 +60,12 @@
 <section class="panel reveal" id="conditions" aria-labelledby="conditions-h" data-follow="package:pkg/podinfo">
   <h2 id="conditions-h">Conditions</h2>
 <ol class="conditions">
-  <li class="condition cond-true">
+  <li class="condition tone-progressing">
     <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
     <p class="cond-message">Reconciliation in progress</p>
     <p class="cond-meaning">The operator is working on the latest change.</p>
   </li>
-  <li class="condition cond-false">
+  <li class="condition tone-abnormal">
     <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
     <p class="cond-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
     <p class="cond-meaning">The package&#39;s source is not ready or does not exist.</p><p class="cond-next"><span class="label">Next step</span> Check the source object the package names; the operator retries.</p>

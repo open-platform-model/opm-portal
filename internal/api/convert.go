@@ -29,14 +29,19 @@ func objectRef(r readmodel.ObjectRef) v1.ObjectRef {
 }
 
 func condition(c health.Condition) v1.Condition {
-	return v1.Condition{
+	out := v1.Condition{
 		Type:               c.Type,
 		Status:             string(c.Status),
 		Reason:             c.Reason,
 		Message:            c.Message,
 		LastTransitionTime: timePtr(c.LastTransitionTime),
 		ObservedGeneration: c.ObservedGeneration,
+		Tone:               string(health.ConditionTone(c)),
 	}
+	if e, ok := health.Explain(c.Reason); ok {
+		out.Meaning, out.NextStep = e.Meaning, e.NextStep
+	}
+	return out
 }
 
 func conditions(cs []health.Condition) []v1.Condition {

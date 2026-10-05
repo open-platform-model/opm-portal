@@ -45,7 +45,9 @@
       "reason": "Progressing",
       "message": "Reconciliation in progress",
       "lastTransitionTime": "2026-10-04T18:03:54Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "progressing",
+      "meaning": "The operator is working on the latest change."
     },
     {
       "type": "Ready",
@@ -53,7 +55,10 @@
       "reason": "SourceNotReady",
       "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
       "lastTransitionTime": "2026-10-04T18:03:54Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "abnormal",
+      "meaning": "The package's source is not ready or does not exist.",
+      "nextStep": "Check the source object the package names; the operator retries."
     }
   ],
   "history": [

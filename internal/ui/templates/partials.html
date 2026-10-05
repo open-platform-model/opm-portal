@@ -35,10 +35,10 @@
 {{if .}}
 <ol class="conditions">
 {{range .}}
-  <li class="condition cond-{{if eq .Status "True"}}true{{else if eq .Status "False"}}false{{else}}unknown{{end}}">
+  <li class="condition {{toneClass .Tone}}">
     <div class="cond-head"><span class="cond-type">{{.Type}}</span><span class="cond-status">{{.Status}}</span>{{with .Reason}}<span class="cond-reason">{{.}}</span>{{end}}<span class="cond-time">{{template "time" .LastTransitionTime}}</span></div>
     {{with .Message}}<p class="cond-message">{{.}}</p>{{end}}
-    {{with explain .Reason}}<p class="cond-meaning">{{.Meaning}}</p>{{with .NextStep}}<p class="cond-next"><span class="label">Next step</span> {{.}}</p>{{end}}{{end}}
+    {{with .Meaning}}<p class="cond-meaning">{{.}}</p>{{end}}{{with .NextStep}}<p class="cond-next"><span class="label">Next step</span> {{.}}</p>{{end}}
   </li>
 {{end}}
 </ol>

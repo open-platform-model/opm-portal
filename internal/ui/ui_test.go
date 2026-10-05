@@ -25,10 +25,14 @@ import (
 
 var update = flag.Bool("update", false, "rewrite the golden HTML fragments")
 
-// TestTheUIDoesNotImportTheReadModel (0030:D2): every file of the package,
-// tests included, reads through the read API only.
-func TestTheUIDoesNotImportTheReadModel(t *testing.T) {
-	const forbidden = "github.com/open-platform-model/opm-portal/internal/readmodel"
+// TestTheUIImportsOnlyTheWireTypes (0030:D2:R1): among this module's
+// packages, the UI's code imports only api/v1alpha1, so every fact a page
+// shows is one the read API serves. Its tests may also build the API with
+// internal/api/apitest.
+func TestTheUIImportsOnlyTheWireTypes(t *testing.T) {
+	const module = "github.com/open-platform-model/opm-portal/"
+	allowed := map[string]bool{module + "api/v1alpha1": true}
+	allowedInTests := map[string]bool{module + "internal/api/apitest": true}
 	files, err := filepath.Glob("*.go")
 	if err != nil || len(files) == 0 {
 		t.Fatalf("listing the package's files: %v", err)
@@ -41,9 +45,10 @@ func TestTheUIDoesNotImportTheReadModel(t *testing.T) {
 		}
 		for _, imp := range parsed.Imports {
 			path, _ := strconv.Unquote(imp.Path.Value)
-			if path == forbidden || strings.HasPrefix(path, forbidden+"/") {
-				t.Errorf("%s imports %s: the UI reads through the read API only", f, path)
+			if !strings.HasPrefix(path, module) || allowed[path] || (strings.HasSuffix(f, "_test.go") && allowedInTests[path]) {
+				continue
 			}
+			t.Errorf("%s imports %s: the UI reads through the read API only", f, path)
 		}
 	}
 }

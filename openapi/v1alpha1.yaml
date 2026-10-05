@@ -480,7 +480,7 @@ components:
           type: string
     Condition:
       type: object
-      required: [type, status]
+      required: [type, status, tone]
       properties:
         type:
           type: string
@@ -496,6 +496,19 @@ components:
           format: date-time
         observedGeneration:
           type: integer
+        tone:
+          description: >-
+            How the condition reads for its type, which its status alone does not say:
+            Stalled=True is abnormal, Reconciling=True progressing, ContractsFulfilled=False
+            informational. unknown for an Unknown status or a type the portal does not know.
+          type: string
+          x-extensible-enum: [normal, abnormal, progressing, informational, unknown]
+        meaning:
+          description: "What the reason means, in the portal's words; absent for a reason the portal does not know."
+          type: string
+        nextStep:
+          description: "What a person can do about the reason, when they can act on it."
+          type: string
     Reconcile:
       type: object
       required: [state]

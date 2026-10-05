@@ -1,9 +1,9 @@
 ## 1. Conditions from the read API (internal/health, api/v1alpha1, internal/api, internal/ui)
 
-- [ ] 1.1 `internal/health`: `ConditionTone` with its table and test
-- [ ] 1.2 `api/v1alpha1` and `internal/api`: `Condition.tone`, `meaning`, `nextStep`; OpenAPI and enum contract; API goldens
-- [ ] 1.3 `internal/ui`: render meaning, next step and the stripe from the condition; drop the `internal/health` import; the import test allows only `api/v1alpha1` among the module's packages
-- [ ] 1.4 `task check` green, then commit `feat(api): serve a condition's tone, meaning and next step`
+- [x] 1.1 `internal/health`: `ConditionTone` with its table and test
+- [x] 1.2 `api/v1alpha1` and `internal/api`: `Condition.tone`, `meaning`, `nextStep`; OpenAPI and enum contract; API goldens
+- [x] 1.3 `internal/ui`: render meaning, next step and the stripe from the condition; drop the `internal/health` import; the import test allows only `api/v1alpha1` among the module's packages
+- [x] 1.4 `task check` green, then commit `feat(api): serve a condition's tone, meaning and next step`
 
 ## 2. Live refresh from one fetch (internal/ui/static)
 

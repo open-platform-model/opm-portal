@@ -9,7 +9,6 @@ import (
 	"time"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
-	"github.com/open-platform-model/opm-portal/internal/health"
 )
 
 // badge is one rendered status value: its CSS class, its words and, for a
@@ -110,19 +109,14 @@ func accessText(access string) string {
 	return "Locked: the portal does not know this access value."
 }
 
-// explanation is a condition reason's meaning and next step, when the
-// portal knows the reason.
-type explanation struct {
-	Meaning  string
-	NextStep string
-}
-
-func explain(reason string) *explanation {
-	e, ok := health.Explain(reason)
-	if !ok {
-		return nil
+// toneClass is a condition's stripe class from the tone the read API
+// serves; a tone the UI does not know is shown as unknown.
+func toneClass(tone string) string {
+	switch tone {
+	case "normal", "abnormal", "progressing", "informational":
+		return "tone-" + tone
 	}
-	return &explanation{Meaning: e.Meaning, NextStep: e.NextStep}
+	return "tone-unknown"
 }
 
 // stamp is a time as the pages show it: absolute in the datetime attribute
@@ -204,7 +198,7 @@ var funcs = template.FuncMap{
 	"stateBadge":   stateBadge,
 	"verdictBadge": verdictBadge,
 	"accessText":   accessText,
-	"explain":      explain,
+	"toneClass":    toneClass,
 	"short":        short,
 	"refText":      refText,
 	"isSecret":     isSecret,

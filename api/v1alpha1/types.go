@@ -56,6 +56,14 @@ type Condition struct {
 	Message            string     `json:"message,omitempty"`
 	LastTransitionTime *time.Time `json:"lastTransitionTime,omitempty"`
 	ObservedGeneration int64      `json:"observedGeneration,omitempty"`
+	// Tone is how the condition reads for its type: normal, abnormal,
+	// progressing, informational or unknown. Status alone does not say it:
+	// Stalled=True is a fault and ContractsFulfilled=False is information.
+	Tone string `json:"tone"`
+	// Meaning and NextStep are the portal's explanation of Reason, absent
+	// for a reason the portal does not know.
+	Meaning  string `json:"meaning,omitempty"`
+	NextStep string `json:"nextStep,omitempty"`
 }
 
 // Reconcile is what the operator says it applied: Applied, Reconciling,
