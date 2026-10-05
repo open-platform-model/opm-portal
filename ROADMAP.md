@@ -65,7 +65,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 
 | PR | What |
 | --- | --- |
-| TBD | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
+| 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
 
 ### Next in V1
 
