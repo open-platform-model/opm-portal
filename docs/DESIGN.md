@@ -238,15 +238,16 @@ creates and D11's read-only role)
 
 - **Simple writes in V1** (restart a workload, suspend an instance, delete). Each needs a write
   identity, which in-cluster means impersonation or token passthrough. Both reverse the posture D6
-  takes for reads and widen the blast radius of the empty-identity class of bug.
+  takes for reads and widen the blast radius of the empty-identity class of bug. Deferred to the
+  marketplace (V2), where the write identity is an open question in its own right.
 - **Ordering modules in V1.** Needs the 0027 definition kind, a draft, plus a presentation contract
   that does not exist yet.
 
 **Rationale:** A read-only V1 ships on today's operator with no dependency on unaccepted
 enhancements, and removes every write-side security question from the first release.
 
-**Source:** Owner decision 2026-10-04 (V1 read-only, writes in V2 through 0027 kinds). Owner
-decision 2026-10-04 ("Keep the seam": the only allowed creates are the non-persisted review APIs).
+**Source:** Owner decision 2026-10-04 (V1 read-only, writes in V2 through 0027 kinds); see
+[ROADMAP](../ROADMAP.md). Owner decision 2026-10-04 ("Keep the seam": the only allowed creates are the non-persisted review APIs).
 
 ### D2: The versioned read API is the durable contract, and the web UI is its first consumer
 
@@ -359,7 +360,8 @@ the objects that show the failure.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 3, 6, 11 and 12,
 and the CLI-owned instance addendum. 0015:D14 (readiness means apply success); 0015:D18 (an
-unfulfilled contract is reported, never refused), which R8 follows.
+unfulfilled contract is reported, never refused), which R8 follows. Owner decision 2026-10-04 to
+capture a CLI-owned instance on the throwaway cluster.
 
 ### D4: Graphs derive only from operator- and API-server-written state
 
@@ -375,7 +377,8 @@ provider's inventory; instance-to-module from the instance spec; component and o
 the inventory; runtime children from ownerReferences walked below inventory workloads;
 package-to-package from the package's dependencies. **V1 draws no "requires" edge from an instance
 to a provider contract**: the instance's recorded contracts are every contract its render used,
-most fulfilled by the catalog itself, so V1 lists them as text. Registrations show acceptance and
+most fulfilled by the catalog itself, not the provider contracts it demands, so V1 lists them as
+text, and requires edges wait for the operator to record provider demand. Registrations show acceptance and
 activation as separate states, read from `status.accepted` and `status.active`, never inferred from
 the `Stalled` and `Ready` conditions: the same condition pair marks both a refused claim and an
 accepted, active claim whose removal is blocked by dependents. A blocked removal is its own state.
@@ -646,7 +649,8 @@ answer, which the question's text recorded (local mode reveals nothing the kubec
 `status.history`. Kubernetes events are a recent-activity feed with the API server's roughly
 one-hour lifetime, labelled as such, and no displayed state is inferred from them. The portal
 deduplicates events itself: the recorder folds a repeat into `series` only when it regards the same
-object version, and kubelet events count through the deprecated count and timestamp fields, so
+object version, so repeats after the object's status changed arrive as separate events, and kubelet
+events count through the deprecated count and timestamp fields, so
 repeated events about the same object with the same reason and message become one line with a count
 and the latest time, however each repeat was recorded. Events about the cluster-scoped Platform and
 TransformerRegistrations, which Kubernetes records in namespace `default`, appear on those objects'
@@ -710,8 +714,8 @@ followed stream outright.
 protects the browser and the portal without cutting off the live tail a developer is watching.
 
 **Source:** Portal architecture, logs section. The Deployment to ReplicaSet to Pod chain was
-measured ([evidence 01](design/evidence/01-live-cluster-capture/), observation 8); the other chains
-are read from the Kubernetes controllers' ownerReference behaviour.
+measured ([evidence 01](design/evidence/01-live-cluster-capture/), observation 8); the capture held no StatefulSet, DaemonSet, Job or CronJob, so those chains are
+design, read from the Kubernetes controllers' ownerReference behaviour.
 
 ### D11: The portal's role is read-only, follows the catalog, and the operator ships viewer roles
 
