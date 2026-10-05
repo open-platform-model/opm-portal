@@ -20,7 +20,7 @@ type badge struct {
 }
 
 // appliedText names the applied states the UI knows. Any other value is
-// shown as unknown, never as an error (0030:D2:R3).
+// shown as unknown, never as an error (portal:D2:R3).
 var appliedText = map[string]string{
 	"Applied":           "Applied",
 	"Reconciling":       "Reconciling",
@@ -65,7 +65,7 @@ func known(prefix string, table map[string]string, value string) badge {
 func slug(s string) string { return strings.ToLower(s) }
 
 // appliedBadge is the operator's axis: a squared stamp. Ready=True reads
-// Applied; ManagedExternally is neutral (0030:D3:R1/R6).
+// Applied; ManagedExternally is neutral (portal:D3:R1/R6).
 func appliedBadge(r v1.Reconcile) badge {
 	b := known("applied", appliedText, r.State)
 	if r.State == "Failed" && r.Retrying {
@@ -75,7 +75,7 @@ func appliedBadge(r v1.Reconcile) badge {
 }
 
 // healthBadge is the portal's axis: a dot and a word, partial and not live
-// said beside it (0030:D3:R4/R5).
+// said beside it (portal:D3:R4/R5).
 func healthBadge(h v1.Health) badge {
 	b := known("health", healthText, h.State)
 	var notes []string

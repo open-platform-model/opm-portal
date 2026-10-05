@@ -42,7 +42,7 @@ func ungrantedReads(typ reflect.Type, exempt []string) []string {
 }
 
 // TestEveryReadTakesAGrant: no exported read of the Model can be called
-// without the caller's identity and a grant (0030:D7). Each read's own tests
+// without the caller's identity and a grant (portal:D7). Each read's own tests
 // cover that it refuses a grant that does not cover it.
 func TestEveryReadTakesAGrant(t *testing.T) {
 	if bad := ungrantedReads(reflect.TypeFor[*Model](), slices.Concat(lifecycleMethods, nonReads)); len(bad) > 0 {

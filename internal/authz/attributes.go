@@ -38,7 +38,7 @@ func (a Attributes) Covers(req Attributes) bool {
 var readVerbs = map[string]bool{"get": true, "list": true, "watch": true}
 
 // readSubresources are the only subresources the portal ever reads: the
-// object itself, its status, and a Pod's log (0030:D10, 0030:D11). Others
+// object itself, its status, and a Pod's log (portal:D10, portal:D11). Others
 // are refused because a get on them is not a read: pods/exec, pods/attach
 // and pods/portforward, and the proxy subresources (nodes/proxy is an exec
 // path), are authorized as get when upgraded to a stream.
@@ -63,7 +63,7 @@ func (a Attributes) validate() error {
 		// the workload or node; the portal never asks for one.
 		return &DenialError{Code: CodeForbidden, Attributes: a}
 	case a.Resource.Group == "" && a.Resource.Resource == "secrets":
-		// The portal never reads Secret data, whatever the caller's RBAC (0030:D8:R1).
+		// The portal never reads Secret data, whatever the caller's RBAC (portal:D8:R1).
 		return &DenialError{Code: CodeForbidden, Attributes: a}
 	}
 	return nil
@@ -89,7 +89,7 @@ func (a Attributes) key() string {
 }
 
 // String renders the request without its object name, so a message built
-// from it reads the same for an existing and a missing object (0030:D7:R1).
+// from it reads the same for an existing and a missing object (portal:D7:R1).
 func (a Attributes) String() string {
 	resource := a.Resource.Resource
 	if a.Resource.Group != "" {

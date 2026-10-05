@@ -50,7 +50,7 @@ type LocalConfig struct {
 	Logger *slog.Logger
 }
 
-// Local is local mode's front door (0030:D5:R3/R4). It holds a one-time
+// Local is local mode's front door (portal:D5:R3/R4). It holds a one-time
 // launch token, exchanges it for the one session, and admits only requests
 // that carry that session and name a loopback host.
 //

@@ -328,7 +328,7 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 
 // foldConfig moves the components the graph folds into its configuration
 // group out of cs, in their order, so the list folds what the graph folds
-// (0030:D4:R5).
+// (portal:D4:R5).
 func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup) {
 	var group *v1.GraphNode
 	for i := range g.Nodes {

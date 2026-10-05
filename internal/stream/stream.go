@@ -348,7 +348,7 @@ func isDocument(event string) bool {
 //
 // A topic denial or error returns its closing code. A part reviewed on its
 // own that is now forbidden is dropped from m, so a snapshot is written
-// without it and an item event not at all, without a trace (0030:D7:R2); any
+// without it and an item event not at all, without a trace (portal:D7:R2); any
 // other code for it closes the topic. It returns a closing code, or "".
 func (s *Stream) revalidate(parent context.Context, m *message) string {
 	ctx, cancel := context.WithTimeout(parent, s.b.opts.RevalidateTimeout)
@@ -455,7 +455,7 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 // own: it rides the topic's grants, which are gated again here so a denial
 // stops a slow snapshot before the next render. On a list topic nothing else
 // is delivered and nothing is reviewed: a list carries only the items within
-// the scope of its list grant, as a GET list does (0030:D7:R2), so no review
+// the scope of its list grant, as a GET list does (portal:D7:R2), so no review
 // per item is sent and none can fail. On an object topic an item that
 // reveals another read is reviewed on its own, and the part keeps that
 // grant. Whatever is checked here, send re-validates every grant before the
@@ -479,7 +479,7 @@ func (s *Stream) payload(ctx context.Context, sub *subscription, it *Item) (p pa
 			if code := closeCode(err); code != CodeForbidden {
 				return part{}, false, code
 			}
-			// Forbidden items are left out without a trace (0030:D7:R2).
+			// Forbidden items are left out without a trace (portal:D7:R2).
 			return part{}, false, ""
 		}
 		p.own, p.grant = true, g

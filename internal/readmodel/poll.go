@@ -18,7 +18,7 @@ const readTimeout = 10 * time.Second
 
 // poller refreshes, by reading them one at a time, the objects of a kind the
 // reader may get but not list and watch. Every result says it is not live
-// and when it was read (0030:D3:R5). An object no view has read for
+// and when it was read (portal:D3:R5). An object no view has read for
 // IdleTimeout is dropped instead of refreshed.
 type poller struct {
 	resource schema.GroupVersionResource

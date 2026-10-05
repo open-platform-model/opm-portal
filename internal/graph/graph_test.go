@@ -35,7 +35,7 @@ func TestIDs(t *testing.T) {
 }
 
 // TestIDsSurviveARecreate: a Deployment recreated with a new UID keeps its
-// node id, and so does every other node (0030:D4:R6).
+// node id, and so does every other node (portal:D4:R6).
 func TestIDsSurviveARecreate(t *testing.T) {
 	objs := f1(t)
 	before := Instance(newCluster(t, objs, readmodeltest.AllowAll).instance(t, "default", "podinfo"), Options{})
@@ -93,7 +93,7 @@ func TestPodinfoGraph(t *testing.T) {
 }
 
 // TestEdgesNameTheirSource: every edge of every F1 graph has a known kind
-// and names that kind's source, and no node is a contract (0030:D4:R1/R3).
+// and names that kind's source, and no node is a contract (portal:D4:R1/R3).
 func TestEdgesNameTheirSource(t *testing.T) {
 	c := newCluster(t, f1(t), readmodeltest.AllowAll)
 	graphs := []Graph{
@@ -409,7 +409,7 @@ func TestPlatformGraph(t *testing.T) {
 // TestContributesNeedsTheContributingClaim: the registry entry does not
 // name its registration, so a claim on an already contributed catalog that
 // is refused as a duplicate, accepted but not active, or at another version
-// gets no contributes edge (0030:D4).
+// gets no contributes edge (portal:D4).
 func TestContributesNeedsTheContributingClaim(t *testing.T) {
 	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"
 	for _, tt := range []struct {
@@ -450,7 +450,7 @@ func TestContributesNeedsTheContributingClaim(t *testing.T) {
 }
 
 // TestProviderEdges: the accepted claim's provider holds it; the refused
-// claim names an instance that does not exist (0030:D4:R2).
+// claim names an instance that does not exist (portal:D4:R2).
 func TestProviderEdges(t *testing.T) {
 	g := Platform(newCluster(t, f1(t), readmodeltest.AllowAll).platform(t), Options{})
 	accepted := "treg:default.backup-provider"
@@ -467,7 +467,7 @@ func TestProviderEdges(t *testing.T) {
 }
 
 // TestRegistrationStanding: acceptance, activation and verdict are
-// separate values, read from the status fields (0030:D4:R4).
+// separate values, read from the status fields (portal:D4:R4).
 func TestRegistrationStanding(t *testing.T) {
 	g := Platform(newCluster(t, f1(t), readmodeltest.AllowAll).platform(t), Options{})
 	accepted := "treg:default.backup-provider"
@@ -485,7 +485,7 @@ func TestRegistrationStanding(t *testing.T) {
 
 // TestRemovalBlockedIsNotRefused: experiment 01's accepted, active claim
 // whose deletion is blocked by dependents keeps showing as accepted and
-// active, with verdict RemovalBlocked (0030:D4:R7).
+// active, with verdict RemovalBlocked (portal:D4:R7).
 func TestRemovalBlockedIsNotRefused(t *testing.T) {
 	blocked := readmodeltest.LoadList(t, "../health/testdata/treg-removal-blocked.yaml")
 	var objs []*unstructured.Unstructured
@@ -531,7 +531,7 @@ func TestProviderNotLookedUp(t *testing.T) {
 }
 
 // TestProviderNotHoldingTheClaim: a registration naming an instance whose
-// inventory does not hold it is drawn unverified (0030:D4:R2).
+// inventory does not hold it is drawn unverified (portal:D4:R2).
 func TestProviderNotHoldingTheClaim(t *testing.T) {
 	objs := f1(t)
 	claim := readmodeltest.Find(t, objs, "TransformerRegistration", "default.refused-claim-fixture")

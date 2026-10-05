@@ -1,7 +1,7 @@
 # cert-manager healthy, applied by a cluster-admin applier ServiceAccount.
 # CRD schemas and conversion removed (kstatus reads only status).
 # Captured live from a throwaway kind cluster (Kubernetes v1.36.1, opm-operator v1.0.0-beta.5),
-# enhancement 0030 experiment 01. managedFields and annotations removed; no Secrets.
+# design evidence 01 (docs/design/evidence/01-live-cluster-capture). managedFields and annotations removed; no Secrets.
 apiVersion: v1
 kind: List
 items:

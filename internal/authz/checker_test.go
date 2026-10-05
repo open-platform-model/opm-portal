@@ -302,7 +302,7 @@ func TestGrantCovers(t *testing.T) {
 }
 
 // TestGrantIsBoundToItsIdentity: a grant kept in shared state must not
-// cover the same read for another caller (0030:D7).
+// cover the same read for another caller (portal:D7).
 func TestGrantIsBoundToItsIdentity(t *testing.T) {
 	req := getDeployment("team-a", "web")
 	g, err := newChecker(&fakeDecider{allowed: true}, Options{}).Check(t.Context(), alice, req)

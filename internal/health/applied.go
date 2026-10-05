@@ -10,7 +10,7 @@ import (
 
 // AppliedState is what the operator says it applied. It is its own axis and
 // never a health value: Ready=True means every apply succeeded, not that the
-// workload runs (0030:D3).
+// workload runs (portal:D3).
 type AppliedState string
 
 // Applied states.
@@ -94,7 +94,7 @@ type Applied struct {
 // For a TransformerRegistration the verdict from ReadRegistration, not this
 // state, decides how the registration is shown: a blocked removal reads
 // Stalled here, the same as a refusal, but its verdict is RemovalBlocked and
-// it is never shown as refused (0030:D4:R7).
+// it is never shown as refused (portal:D4:R7).
 func ReadApplied(u *unstructured.Unstructured) Applied {
 	if u == nil || u.GroupVersionKind().Group != operatorGroup || !operatorKinds[u.GetKind()] {
 		return Applied{State: AppliedStateUnknown, Message: "not an OPM operator kind"}
@@ -233,7 +233,7 @@ type Registration struct {
 // ReadRegistration reads a TransformerRegistration's standing from its status
 // fields, never from the Stalled and Ready pair alone: the same pair marks a
 // refused claim and an accepted, active claim whose removal is blocked by
-// dependents (0030:D4:R4/R7).
+// dependents (portal:D4:R4/R7).
 func ReadRegistration(u *unstructured.Unstructured) Registration {
 	if u == nil || u.GroupVersionKind().Group != operatorGroup || u.GetKind() != "TransformerRegistration" {
 		return Registration{Verdict: VerdictUnknown, Message: "not a TransformerRegistration"}

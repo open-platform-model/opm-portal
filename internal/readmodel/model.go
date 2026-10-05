@@ -37,7 +37,7 @@ const (
 
 	// tunedQPS and tunedBurst replace client-go's defaults (5 and 10). A
 	// cold instance read lists one resource per inventory kind, and the
-	// capture measured 7-9 s for a per-request graph at QPS 5 (0030:D3:R9).
+	// capture measured 7-9 s for a per-request graph at QPS 5 (portal:D3:R9).
 	tunedQPS   = 50
 	tunedBurst = 100
 )
@@ -119,7 +119,7 @@ func (c Config) validate() error {
 // Model is the portal's read model: the cache, watches, on-demand reads and
 // joins every view is built from. Every exported read takes the caller's
 // identity and a grant, and refuses before looking anything up unless the
-// grant covers the read (0030:D7).
+// grant covers the read (portal:D7).
 type Model struct {
 	cfg   Config
 	kinds *kindResolver

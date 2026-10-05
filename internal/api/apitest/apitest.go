@@ -60,7 +60,7 @@ func F1(t testing.TB) []*unstructured.Unstructured {
 }
 
 // F1Broken is F1 with default/podinfo and its objects replaced by the
-// enhancement 0030 experiment 01 image-break samples: Applied and Degraded.
+// design evidence 01 image-break samples: Applied and Degraded.
 func F1Broken(t testing.TB) []*unstructured.Unstructured {
 	t.Helper()
 	dir := filepath.Join(root(), "internal", "health", "testdata")

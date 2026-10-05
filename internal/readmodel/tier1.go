@@ -44,7 +44,7 @@ var opmKinds = []struct {
 
 // Start starts the informers on the four OPM kinds (tier 1): cluster-wide,
 // or one per configured namespace for ModuleInstances and ModulePackages
-// (0030:D5:R5). Each starts only after the reader's list and watch grants
+// (portal:D5:R5). Each starts only after the reader's list and watch grants
 // for its scope; a scope that is denied, or has not synced within
 // SyncTimeout, leaves its kind unavailable there, and reads of it return
 // ErrUnavailable until it syncs. A scope whose review could not be made is

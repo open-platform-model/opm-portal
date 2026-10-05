@@ -138,7 +138,7 @@ and any map of kind `Secret` carrying `data` or `stringData` as a Secret. A file
 of these rules, or does not parse, SHALL fail it. `test/e2e/check-capture_test.sh` SHALL run the
 check against scratch cases for each rule before `task e2e:capture:check` checks the committed
 captures. The capture runs it last, and `task check` and
-the `Test` check run it on every pull request. Source: 0030:D8.
+the `Test` check run it on every pull request. Source: portal:D8.
 
 #### Scenario: Clean capture
 
@@ -184,8 +184,8 @@ podinfo's image tag to one that does not exist and SHALL fail unless the stream 
 Degraded within 10 seconds of the cluster first reporting a Pod that cannot pull its image, with
 its applied state Applied, and for 5 seconds afterwards never reports it Failed or Stalled or
 other than Degraded. It SHALL revert the
-patch and wait for podinfo to settle before it ends. Source: 0030:D3:R2/R3, 0030:D4:R4,
-0030:D5:R5/R7.
+patch and wait for podinfo to settle before it ends. Source: portal:D3:R2/R3, portal:D4:R4,
+portal:D5:R5/R7.
 
 #### Scenario: Image break
 

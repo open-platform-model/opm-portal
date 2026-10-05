@@ -79,7 +79,7 @@ func (c *Checker) Check(ctx context.Context, who Identity, req Attributes) (Gran
 // cache. It returns an allowed decision or a *DenialError, never both.
 func (c *Checker) check(ctx context.Context, who Identity, req Attributes) (cachedDecision, bool, error) {
 	if !who.Authenticated() {
-		// No Kubernetes call is made for an identity that names no one (0030:D6:R2).
+		// No Kubernetes call is made for an identity that names no one (portal:D6:R2).
 		return cachedDecision{}, false, &DenialError{Code: CodeUnauthenticated, Attributes: req}
 	}
 	if err := req.validate(); err != nil {
@@ -94,7 +94,7 @@ func (c *Checker) check(ctx context.Context, who Identity, req Attributes) (cach
 	if !cached {
 		allowed, err := c.decide(ctx, who, req)
 		if err != nil {
-			// A failure is never cached: the next check asks again (0030:D6:R4).
+			// A failure is never cached: the next check asks again (portal:D6:R4).
 			return cachedDecision{}, false, err
 		}
 		d = c.cache.put(key, allowed)

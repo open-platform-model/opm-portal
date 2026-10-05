@@ -184,7 +184,7 @@ func podLogRead(t stream.Topic) authz.Attributes {
 }
 
 // Attributes implements stream.Producer: a log topic needs get pods/log on
-// its Pod (0030:D10:R2). Other kinds are not served.
+// its Pod (portal:D10:R2). Other kinds are not served.
 func (p *Producer) Attributes(t stream.Topic) ([]authz.Attributes, bool) {
 	if t.Kind() != stream.KindLog {
 		return nil, false
@@ -193,7 +193,7 @@ func (p *Producer) Attributes(t stream.Topic) ([]authz.Attributes, bool) {
 }
 
 // Admit implements stream.Admitter: the topic attaches only when an OPM
-// inventory who may read reaches the Pod (0030:D10:R1). It runs after the
+// inventory who may read reaches the Pod (portal:D10:R1). It runs after the
 // broker allowed the topic's read, so nothing is looked up for a caller
 // without it, and every refusal is the same one. Admit starts nothing: it
 // also runs on a reconnect, which never reopens an ended read.
@@ -401,7 +401,7 @@ func (tl *tail) run(ctx context.Context) {
 	}
 	tailLines := p.opts.TailLines
 	// LimitBytes is never set: the API server would end a followed stream
-	// after that many bytes (0030:D10). The reader bounds the output.
+	// after that many bytes (portal:D10). The reader bounds the output.
 	rc, err := p.cfg.Source.Logs(ctx, t.Namespace(), t.Name(), &corev1.PodLogOptions{
 		Container:  t.Container(),
 		Follow:     !t.Previous(),
@@ -554,7 +554,7 @@ func (tl *tail) copy(ctx context.Context, r io.Reader, start time.Time) error {
 // marks holds one read's initial tail until it ends, and counts the lines
 // the read skipped or dropped. It sends their markers before the next
 // delivered line, or after the marker delay when no line follows, so a
-// burst followed by silence is still marked (0030:D10:R3).
+// burst followed by silence is still marked (portal:D10:R3).
 type marks struct {
 	tl      *tail
 	delay   time.Duration

@@ -22,7 +22,7 @@ var events = schema.GroupVersionResource{Group: "events.k8s.io", Version: "v1", 
 // Event is one line of an object's recent-activity feed: every event about
 // the object with the same type, reason and note, folded into one. Events
 // expire after about an hour and are never the source of a status
-// (0030:D9:R1/R2).
+// (portal:D9:R1/R2).
 type Event struct {
 	Type                string
 	Reason              string
@@ -48,11 +48,11 @@ func EventNamespace(about ObjectRef) string {
 }
 
 // eventNamespaceForClusterScoped is where Kubernetes records events about
-// cluster-scoped objects (0030:D9:R4).
+// cluster-scoped objects (portal:D9:R4).
 const eventNamespaceForClusterScoped = "default"
 
 // Events returns the recent events about one object, read when asked,
-// folded per 0030:D9:R3 and newest first. g must cover list events in
+// folded per portal:D9:R3 and newest first. g must cover list events in
 // EventNamespace(about). The reader must be allowed the same list, or the
 // feed is unavailable.
 func (m *Model) Events(ctx context.Context, who authz.Identity, g authz.Grant, about ObjectRef) ([]Event, error) {
@@ -101,7 +101,7 @@ func regards(ev *unstructured.Unstructured, about ObjectRef) bool {
 // foldEvents folds events with the same regarded object (by uid), type,
 // reason and note into one line. The event recorder folds only repeats about
 // an unchanged object version into a series, and kubelet events count
-// through the deprecated fields, so the portal folds itself (0030:D9:R3).
+// through the deprecated fields, so the portal folds itself (portal:D9:R3).
 func foldEvents(evs []*unstructured.Unstructured) []Event {
 	byKey := map[string]int{}
 	var out []Event

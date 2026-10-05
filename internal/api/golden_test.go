@@ -61,7 +61,7 @@ func TestGoldenF1(t *testing.T) {
 }
 
 // TestGoldenBrokenRollout: the image-break sample is Applied and Degraded
-// at once (0030:D3:R1/R2).
+// at once (portal:D3:R1/R2).
 func TestGoldenBrokenRollout(t *testing.T) {
 	e := newEnv(t, f1Broken(t), readmodeltest.AllowAll)
 	checkGoldens(t, e, brokenGoldens)
@@ -116,7 +116,7 @@ func checkGoldens(t *testing.T, e *env, cases []goldenCase) {
 }
 
 // assertNothingWithheldIsServed fails on a values field or the last-applied
-// annotation anywhere in a document (0030:D8:R2/R3).
+// annotation anywhere in a document (portal:D8:R2/R3).
 func assertNothingWithheldIsServed(t *testing.T, body []byte) {
 	t.Helper()
 	var doc any

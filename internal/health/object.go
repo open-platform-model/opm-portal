@@ -1,5 +1,5 @@
 // Package health derives the two status axes the portal shows side by side
-// (0030:D3): workload health, computed from live objects, and applied state,
+// (portal:D3): workload health, computed from live objects, and applied state,
 // read from the operator's conditions. Every function is pure: it evaluates
 // the objects it is handed and reads nothing from a cluster.
 package health
@@ -68,7 +68,7 @@ type ObjectHealth struct {
 // brokenWaitingReasons are the container waiting reasons that mark a Pod
 // Degraded at once. The capture showed an image-pull failure stays
 // InProgress under kstatus until the progress deadline, about ten minutes,
-// so these reasons are read directly (0030:D3:R2).
+// so these reasons are read directly (portal:D3:R2).
 var brokenWaitingReasons = map[string]bool{
 	"ErrImagePull":               true,
 	"ImagePullBackOff":           true,

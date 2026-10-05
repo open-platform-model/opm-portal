@@ -20,7 +20,7 @@ cluster served SHALL be `default`. Any other cluster name SHALL be answered `404
 `not_found` before any authorization review. A method a resource does not take SHALL be answered
 `405` with code `method_not_allowed`. A namespace that is not a DNS-1123 label, or a name that is
 not a DNS-1123 subdomain, SHALL be answered `400` with code `bad_request` before any
-authorization review. Source: 0030:D2:R2.
+authorization review. Source: portal:D2:R2.
 
 #### Scenario: The default cluster
 
@@ -52,7 +52,7 @@ applied state (`reconcile`: state, reason, message, since) and the portal's work
 (`health`: state, per-state and per-access counts, `partial`, `evaluatedAt`, `live`) as two
 separate blocks, never one merged status. Enumerated values SHALL be documented as open: a
 client is told to treat an unknown value as unknown and to ignore unknown fields. Source:
-0030:D2:R3/R4, 0030:D3:R1.
+portal:D2:R3/R4, portal:D3:R1.
 
 #### Scenario: Both axes on an applied, degraded instance
 
@@ -71,7 +71,7 @@ Every resource SHALL authorize each Kubernetes read it is about to serve, for th
 identity, before it looks anything up. A caller who may not make one of those reads SHALL
 receive `403` with code `forbidden` and a detail that names neither the object nor the check
 that failed, identical whether or not the object exists. A caller who may make them and asks for
-an object that does not exist SHALL receive `404` with code `not_found`. Source: 0030:D7:R1.
+an object that does not exist SHALL receive `404` with code `not_found`. Source: portal:D7:R1.
 
 #### Scenario: Forbidden, existing and missing alike
 
@@ -89,8 +89,8 @@ an object that does not exist SHALL receive `404` with code `not_found`. Source:
 
 A list resource SHALL authorize `list` on its kind in its scope: cluster-wide, or the namespace a
 `namespace` query parameter names. When that is denied it SHALL answer `200` with an empty
-`items` and `access: forbidden`, and no count or name of a hidden item. Source: 0030:D7:R2,
-0030:D5:R5.
+`items` and `access: forbidden`, and no count or name of a hidden item. Source: portal:D7:R2,
+portal:D5:R5.
 
 #### Scenario: A namespace-scoped list
 
@@ -108,7 +108,7 @@ A list resource SHALL authorize `list` on its kind in its scope: cluster-wide, o
 Inside a readable document, an inventory object the caller may not read SHALL be marked
 `forbidden` and one the portal could not read `notReadable`, and neither SHALL fail the request.
 When the caller may not list TransformerRegistrations, the platform document SHALL say
-`registrationsAccess: forbidden` rather than show none. Source: 0030:D7:R3, 0030:D11:R5.
+`registrationsAccess: forbidden` rather than show none. Source: portal:D7:R3, portal:D11:R5.
 
 #### Scenario: A forbidden kind inside an instance
 
@@ -124,7 +124,7 @@ Every error SHALL be an RFC 9457 `application/problem+json` document with `type`
 `not_readable_by_portal` (503: the portal holds no readable copy of the kind) and
 `upstream_unavailable` (503: an authorization review or the API server failed). The set SHALL be
 documented as open. No problem document SHALL carry a credential, an identity or a review's
-error text. Source: 0030:D2:R6.
+error text. Source: portal:D2:R6.
 
 #### Scenario: Authorization unavailable
 
@@ -136,7 +136,7 @@ error text. Source: 0030:D2:R6.
 Every request SHALL be resolved to a principal (an identity and a session) by the mode that
 serves the API before any handler runs. A request with no principal, or whose identity has an
 empty or anonymous username, SHALL be answered `401` with code `unauthenticated` and SHALL cause
-no authorization review and no read. Source: 0030:D6:R2.
+no authorization review and no read. Source: portal:D6:R2.
 
 #### Scenario: Empty identity
 
@@ -168,7 +168,7 @@ the owner is allowed, from the discovery the portal already holds, and a request
 refresh that discovery. An object that is neither the owner, nor in its inventory,
 nor a runtime child below an inventory object SHALL be refused with the same `403` document as a
 forbidden read. Lines SHALL carry type, reason, note, reporting controller, the object regarded,
-a count and the latest occurrence time. Source: 0030:D7:R4, 0030:D9:R3/R4.
+a count and the latest occurrence time. Source: portal:D7:R4, portal:D9:R3/R4.
 
 #### Scenario: An inventory object's events
 
@@ -200,7 +200,7 @@ the field they were drawn from, verification and route; and the layout's size an
 `expand` query parameter, repeatable, SHALL expand the group node it names, and
 `showScaledDown=true` SHALL show ReplicaSets scaled to zero. The platform graph SHALL authorize
 get on each registration's provider instance for the caller and show a provider the caller may
-not read as such. Source: 0030:D4.
+not read as such. Source: portal:D4.
 
 #### Scenario: The platform graph with a forbidden provider
 
@@ -214,7 +214,7 @@ not read as such. Source: 0030:D4.
 Each catalog in the platform document SHALL list as `claimants` the readable registrations that
 claim it, and SHALL name as `contributedBy` the one accepted and active registration the
 registry's contribution is joined to, by the same rule the platform graph draws its
-`contributes` edge. Source: 0030:D4:R4.
+`contributes` edge. Source: portal:D4:R4.
 
 #### Scenario: The accepted claim contributed the backup catalog
 
@@ -233,7 +233,7 @@ the subscriber. When the object is deleted, or does not exist at the snapshot, t
 carry a `Removed` document naming it. A change to an OPM object, to an inventory object or to a
 runtime child below one SHALL reach the topics showing it. Topics the broker does not serve
 SHALL be refused with `400` and code `bad_request`; a stream beyond the session's cap with `429`
-and code `too_many_streams`. Source: 0030:D2:R5.
+and code `too_many_streams`. Source: portal:D2:R5.
 
 #### Scenario: An instance topic follows a health change
 
@@ -261,7 +261,7 @@ document in a way `oasdiff breaking` reports as an error SHALL fail the required
 unless its title marks a breaking change with `!`. Because `oasdiff` ignores
 `x-extensible-enum`, the same check SHALL fail when a value the base document lists for an
 enumerated field is missing from the head, and a test SHALL fail when an enumerated field's
-values differ from the Go constants the server writes. Source: 0030:D2:R2.
+values differ from the Go constants the server writes. Source: portal:D2:R2.
 
 #### Scenario: A field renamed without a breaking title
 
@@ -285,7 +285,7 @@ The read API SHALL serve the topics of its own documents itself and SHALL route 
 kind to the producer the serving mode configures for it, on the same stream and under the same
 authorization. Local mode SHALL route `log:` topics to the pod-log producer, so a client follows a
 container's log on the `stream` resource like any other topic. A mode that configures a producer
-for a kind the read API serves itself SHALL fail to start. Source: 0030:D10:R2.
+for a kind the read API serves itself SHALL fail to start. Source: portal:D10:R2.
 
 #### Scenario: A log topic on the read API's stream
 
@@ -342,8 +342,8 @@ the object as the cluster returns it, without `metadata.managedFields`, the
 ModulePackage, `spec.values`. The reads SHALL be authorized as the events about one object are,
 before any lookup: `get` on the owner, then `get` on the object; a kind the cluster does not
 serve, an object the owner's inventory does not reach, and a core Secret SHALL each be refused
-`403` with code `forbidden`, a Secret before any review about it. Source: 0030:D7:R4,
-0030:D8:R1/R2/R3, 0030:D2:R4.
+`403` with code `forbidden`, a Secret before any review about it. Source: portal:D7:R4,
+portal:D8:R1/R2/R3, portal:D2:R4.
 
 #### Scenario: podinfo's Deployment
 
@@ -382,7 +382,7 @@ Every condition a document serves SHALL carry `tone`, how the condition reads fo
 `informational`, `Ready=False` `abnormal`; an `Unknown` status or a type the portal does not know
 SHALL be `unknown`. A condition whose reason the portal explains SHALL carry its `meaning` and,
 when a person can act on it, its `nextStep`; a reason the portal does not know SHALL carry
-neither. Source: 0030:D2:R1, 0030:D3:R8.
+neither. Source: portal:D2:R1, portal:D3:R8.
 
 #### Scenario: A refused registration's platform
 

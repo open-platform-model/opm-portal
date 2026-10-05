@@ -34,7 +34,7 @@ func podLogRead(namespace, pod string) authz.Attributes {
 
 // ReachPod answers which inventory object reaches Pod namespace/pod for the
 // caller, through the runtime children the instance and package views carry
-// (0030:D10:R1). g must cover get pods/log on the Pod; nothing is looked up
+// (portal:D10:R1). g must cover get pods/log on the Pod; nothing is looked up
 // otherwise. Only owners the caller may get, inventory objects the caller may
 // read and children the caller may list count, so a Pod reached only through
 // objects the caller may not read is ErrNotReachable, as are a Pod no
@@ -58,7 +58,7 @@ func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant,
 	if !ok {
 		return PodReach{}, ErrNotReachable
 	}
-	// The label names the owner but not its namespace (0030:OQ12), so every
+	// The label names the owner but not its namespace (portal:OQ12), so every
 	// held owner of that name is a candidate.
 	unavailable := false
 	for _, resource := range []schema.GroupVersionResource{moduleInstances, modulePackages} {
@@ -73,7 +73,7 @@ func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant,
 			}
 			// The owner is authorized before its inventory is read, so an
 			// owner the caller may not get never decides the answer
-			// (0030:D7:R1). An owner whose access could not be decided
+			// (portal:D7:R1). An owner whose access could not be decided
 			// makes the answer unavailable unless another owner reaches.
 			switch ev.m.callerAccess(ctx, who, "get", resource, u.GetNamespace(), u.GetName()) {
 			case health.AccessOK:

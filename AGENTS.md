@@ -315,9 +315,8 @@ Default is none: a comment says what the code does and why, in its own words.
   id, colon, decision id, no space). Several decisions share a head: `portal:D6/D7`. Across
   sources, repeat the head: `portal:D9, 0027:D1`. A single requirement is `portal:D9:R2`; several
   under one decision share it (`portal:D9:R1/R2`). An open question is `portal:OQ20`.
-- `0030:Dn` citations already in the code, specs and archived changes name the same decision as `portal:Dn` (the numbers moved
-  unchanged when enhancement 0030 was withdrawn on 2026-10-05) and are rewritten in a sweep. Never
-  write a new `0030:` citation.
+- Never write a `0030:` citation. Enhancement 0030 was withdrawn on 2026-10-05 and its numbers
+  moved unchanged into `docs/DESIGN.md`; archived changes keep the old head as history.
 - Decision numbers restart per source, so a bare `D9` names nothing. Never write one.
 - Never a section, slice, phase, task or design-doc-local number (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers. A requirement number (`R2` under a decision) is a stable identifier and is allowed.
 - Never in scaffold templates, generated files, fixtures a user copies, or user-facing strings (pages, API errors, log lines). Those reach people who do not read the design record.

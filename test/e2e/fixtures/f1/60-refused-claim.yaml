@@ -1,6 +1,6 @@
 # DELIBERATE REFUSAL FIXTURE. This claim is meant to be refused; it is not a broken fixture.
 #
-# It is applied by hand (no module renders it), the way enhancements/0030 experiment 01 applied
+# It is applied by hand (no module renders it), the way design evidence 01 applied
 # its tregs.yaml, so golden suites keep a refused registration now that the operator accepts the
 # backup provider's claim. Its catalog path is published nowhere, so the operator cannot resolve
 # it and refuses it (expected: Stalled=True plus Ready=False, reason CatalogUnresolved, no

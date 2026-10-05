@@ -4,24 +4,24 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-05.
+Last updated: 2026-10-05 (regrouped into Now and Future plans).
 
 ## Where it stands
 
-| Milestone | State |
+| Area | State |
 | --- | --- |
-| V1 M1: local mode | Done; hardening in review, first release (0.1.0) pending |
-| V1 M2: in-cluster | Future plan: OIDC removed; authorizer and safeguards dormant on main |
-| V2: marketplace | Not started; waits on enhancement 0027 |
-| Beyond V2 | Ideas, ranked |
+| Now: V1, the local read-only portal | M1 done and hardened; first release (0.1.0) pending |
+| Future: in-cluster mode with OIDC sign-in | Not scheduled; OIDC removed, authorizer and safeguards dormant on main |
+| Future: the marketplace (V2) | Not scheduled; waits on enhancement 0027 |
+| Future: advanced features | Not scheduled; ideas, ranked |
 
-## V1: read-only portal
+## Now
 
 V1 shows what OPM runs in a cluster, from the Platform down to Pods, and changes nothing
 (portal:D1). The read API under `/api/v1alpha1` is the product; the HTMX UI is its first consumer
-(portal:D2).
+(portal:D2). Only local mode is built.
 
-### M1: local mode (done)
+### V1 M1: local mode (done)
 
 A binary on the user's machine reads with their kubeconfig behind a loopback launch token
 (portal:D5). Merged:
@@ -46,20 +46,36 @@ Exit evidence shown: every page renders from the read API over the F1 capture; t
 break turns health Degraded while Applied stays (portal:D3:R2/R3); goldens come from captured
 cluster state; F1 holds an accepted, active registration on a released operator (v1.0.0-beta.6).
 
-### M1 hardening (in review)
+### V1 M1 hardening (done)
 
-| Change | PR | Gate |
-| --- | --- | --- |
-| Run the M1 e2e suite and browser tests nightly (issue 21 item 1, issue 23 item 2) | 25 | nightly E2E green |
-| Bound stream revalidation by time; end streams at session expiry; delete the spent launch page (issue 13, issue 21 items 2 and 5) | 26 | `task check`, `task test:browser`, `task e2e:local` |
-| First release, 0.1.0 | 18 | release PR merged after the two above |
+| PR | What landed |
+| --- | --- |
+| 25 | The M1 e2e suite and browser tests run nightly (issue 21 item 1, issue 23 item 2) |
+| 26 | Stream revalidation bounded by time; streams end at session expiry; the spent launch page is deleted (issue 13, issue 21 items 2 and 5) |
 
-Still open: issue 23 items 1 and 3 (provider health on the Platform page, graph defaults from real
-use), issue 13 items 3 and 4.
+### Also merged
 
-### Future plans: in-cluster mode with OIDC sign-in
+| PR | What landed |
+| --- | --- |
+| 29 | The design and this plan moved into the repo when enhancement 0030 was withdrawn |
+| 35 | OIDC sign-in removed and kept as a future plan (owner decision 2026-10-05) |
+| 34 | Every `0030:` citation outside archived changes rewritten as `portal:` (issues 31 and 32) |
 
-Not scheduled. The same binary would run in-cluster: OIDC sign-in, a SubjectAccessReview for the
+### Next in V1
+
+1. **First release, 0.1.0** (PR 18), now unblocked.
+2. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
+   graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
+   item 4 (the loopback cookie risk, accepted and documented).
+
+## Future plans
+
+Nothing here is scheduled. The order below is the order the owner set, not a timeline; each plan
+starts as an OpenSpec change only when the owner schedules it.
+
+### 1. In-cluster mode with OIDC sign-in (milestone 2)
+
+The same binary would run in-cluster: OIDC sign-in, a SubjectAccessReview for the
 signed-in user before every read, reads as the portal's own read-only ServiceAccount (portal:D6,
 portal:D11). On 2026-10-05 the owner decided "Remove OIDC, but keet it as future plans"; portal:D6's
 Status says which parts are planned and which exist.
@@ -94,14 +110,14 @@ What it would take, in order:
    (portal:D6:R7).
 3. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
    (portal:D11:R1/R2/R3).
-4. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before M2
-   exits.
+4. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before
+   in-cluster mode ships.
 5. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
    selectors, and the floor documented (portal:D12). Cross-repo: the owner's 1.34 answer also puts
    opm-operator on that floor, declared, with its own CI job on 1.34; tracked here until an
    operator issue carries it.
 
-M2 exit gate:
+Exit gate:
 
 - With a test OIDC issuer on kind: two users with different namespace RBAC see different instance
   sets; a user without Platform read sees the hidden notice (portal:D11:R5); a bearer-token client
@@ -113,10 +129,10 @@ M2 exit gate:
   (portal:D11:R1/R2); the authorize-before-lookup test is green (portal:D7:R1).
 - A workspace `security-audit` pass with no critical finding.
 
-Evidence still missing from the design (not blocking M2): a ModulePackage reconciling from a real
-Flux source, and a removal-blocked registration on a released operator.
+Evidence still missing from the design (not blocking this plan): a ModulePackage reconciling from a
+real Flux source, and a removal-blocked registration on a released operator.
 
-## V2: marketplace
+### 2. The marketplace (V2)
 
 Writes arrive with V2: a tenant browses offerings, fills a form generated from the module's
 configuration, and orders an instance as themselves. **V2 cannot start before enhancement 0027
@@ -140,18 +156,18 @@ prefill). The direction the portal brings to them, as candidates and not decisio
 
 Evidence: the withdrawn enhancement 0031 (module presentation contract) and 0027's experiments.
 
-Milestones, each gated:
+What it would take, in order, each step gated:
 
-| Milestone | Delivers | Gate |
+| Step | Delivers | Gate |
 | --- | --- | --- |
-| V2.0 evidence | Experiments on secret encoding, field hints, unions, card and index | none |
-| M3 browse and preview | Card and asset gate, index module, admin registry browser, author preview | 0027:OQ17 answered; core release |
-| M4 tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | 0027 accepted with its OQ18 to OQ22 answered |
-| M5 order | Dry run and submit as the user, review and status pages, edit and delete | 0027:OQ24 to OQ27 answered; write identity decided (portal:OQ1) |
+| Evidence | Experiments on secret encoding, field hints, unions, card and index | none |
+| Browse and preview | Card and asset gate, index module, admin registry browser, author preview | 0027:OQ17 answered; core release |
+| Tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | 0027 accepted with its OQ18 to OQ22 answered |
+| Order | Dry run and submit as the user, review and status pages, edit and delete | 0027:OQ24 to OQ27 answered; write identity decided (portal:OQ1) |
 
-## Beyond V2
+### 3. Advanced features
 
-Ranked by value per effort:
+Beyond the marketplace, ranked by value per effort:
 
 1. **MCP server over the read API**: list offerings, describe a form, dry run, read status. A thin
    adapter.
@@ -174,7 +190,7 @@ Not planned: a bespoke package format, a central OPM-hosted marketplace, multi-p
 ## How this file is maintained
 
 - The PR that lands a change updates this file in the same diff: move the change to done with its
-  PR number, and add what it uncovered under "Next" or "Still open".
+  PR number, and add what it uncovered under "Next in V1".
 - A decision or open question changes in [docs/DESIGN.md](docs/DESIGN.md), not here; this file
   cites it.
 - Keep one line per change. The OpenSpec change, the PR and `git log` hold the detail.

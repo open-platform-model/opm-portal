@@ -15,7 +15,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/stream"
 )
 
-// TestObjectOnlyWhenReached (0030:D7:R4): an object no inventory reaches,
+// TestObjectOnlyWhenReached (portal:D7:R4): an object no inventory reaches,
 // a kind the cluster does not serve, and a Secret all get the forbidden
 // problem a forbidden caller gets, and a Secret is never asked about or
 // read.

@@ -20,8 +20,8 @@ Cite a portal decision as `portal:D7`, a requirement as `portal:D7:R4`, several 
 nothing outside this file. Inside this file, decisions refer to one another without the `portal:`
 head.
 
-Citations of `0030:Dn` already in the repo keep their meaning and are rewritten to `portal:Dn` in a
-separate sweep ([issue 31](https://github.com/open-platform-model/opm-portal/issues/31)). Write `portal:Dn` in anything new.
+Archived OpenSpec changes keep their `0030:Dn` citations as history; read each as `portal:Dn`.
+Everything else cites `portal:Dn`, and no new text may cite the withdrawn entry.
 
 ## How this file is maintained
 

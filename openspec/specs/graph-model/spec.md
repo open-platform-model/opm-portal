@@ -19,7 +19,7 @@ to catalog; the registration's
 `spec.sourceRef` and `spec.dependsOn` for package to source and to package; `status.inventory`
 for owner to component and component to object; controller `metadata.ownerReferences` for object
 to runtime child. A `spec.dependsOn` entry naming another namespace, which the operator refuses,
-SHALL be drawn unverified with reason `ForeignNamespace`. Source: 0030:D4:R1.
+SHALL be drawn unverified with reason `ForeignNamespace`. Source: portal:D4:R1.
 
 #### Scenario: cert-manager's edges
 
@@ -50,7 +50,7 @@ SHALL be drawn unverified with reason `ForeignNamespace`. Source: 0030:D4:R1.
 
 A graph SHALL NOT contain a contract node or an edge from an instance to a contract. An instance
 node SHALL carry the contracts its render used as text, labelled as the render's contracts.
-Source: 0030:D4:R3.
+Source: portal:D4:R3.
 
 #### Scenario: cert-manager's contracts
 
@@ -66,7 +66,7 @@ reason: the provider was not found, could not be read, does not hold the registr
 inventory, or was not looked up by the caller. A provider that could not be read SHALL still be
 drawn, marked with its access; one that was not looked up SHALL be drawn with no access, never a
 guessed one.
-Source: 0030:D4:R2.
+Source: portal:D4:R2.
 
 #### Scenario: Accepted claim
 
@@ -97,7 +97,7 @@ Source: 0030:D4:R2.
 A registration node SHALL carry `accepted` and `active` as two values, its verdict, and the
 reason and message of its Ready condition, as `internal/health` read them from the status
 fields. A blocked removal SHALL keep its verdict `RemovalBlocked`, never refused.
-Source: 0030:D4:R4/R7.
+Source: portal:D4:R4/R7.
 
 #### Scenario: Refused claim
 
@@ -112,7 +112,7 @@ When an instance or package has two or more components that hold no workload (no
 StatefulSet, DaemonSet, ReplicaSet, Job, CronJob or Pod entry), they SHALL be shown as one group
 node whose health is the worst of theirs, partial when any is, with their objects hidden and
 their names listed sorted, so a reordered inventory yields the same group. The group SHALL be
-shown expanded when the graph is asked to expand its id. Source: 0030:D4:R5.
+shown expanded when the graph is asked to expand its id. Source: portal:D4:R5.
 
 #### Scenario: cert-manager collapsed
 
@@ -129,7 +129,7 @@ shown expanded when the graph is asked to expand its id. Source: 0030:D4:R5.
 
 Node ids SHALL have the form `<prefix>:<parts>`, built from kind, group, namespace and name only,
 never from a UID, so that the id of an object survives a portal restart and a delete and
-recreate of the object. Source: 0030:D4:R6.
+recreate of the object. Source: portal:D4:R6.
 
 #### Scenario: Recreated Deployment
 
@@ -195,7 +195,7 @@ a route. Building the same graph from the same views SHALL produce identical lay
 
 An object the caller may not read SHALL be a node marked with its access and no health, and a
 platform whose registrations the caller may not list SHALL say so on its node instead of showing
-none. Source: 0030:D7:R3.
+none. Source: portal:D7:R3.
 
 #### Scenario: Registrations forbidden
 

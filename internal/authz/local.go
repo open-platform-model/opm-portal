@@ -12,7 +12,7 @@ import (
 
 // NewLocal returns a Checker for local mode. It asks the cluster with
 // SelfSubjectAccessReviews sent through reviews, so every answer is about the
-// identity the kubeconfig authenticates as (0030:D5:R1). self is that
+// identity the kubeconfig authenticates as (portal:D5:R1). self is that
 // identity, as the caller resolved it; the Checker serves self alone and
 // refuses any other identity before a review is sent.
 //
@@ -69,7 +69,7 @@ func resourceAttributes(req Attributes) *authorizationv1.ResourceAttributes {
 
 // verdict reads an access review's status, failing closed: an explicit deny
 // wins over an allow, no opinion is a deny, and an evaluation error without
-// an allow is an error, so it is neither allowed nor cached (0030:D6:R4).
+// an allow is an error, so it is neither allowed nor cached (portal:D6:R4).
 func verdict(st authorizationv1.SubjectAccessReviewStatus) (bool, error) {
 	switch {
 	case st.Denied:

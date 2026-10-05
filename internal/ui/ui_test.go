@@ -25,7 +25,7 @@ import (
 
 var update = flag.Bool("update", false, "rewrite the golden HTML fragments")
 
-// TestTheUIImportsOnlyTheWireTypes (0030:D2:R1): among this module's
+// TestTheUIImportsOnlyTheWireTypes (portal:D2:R1): among this module's
 // packages, the UI's code imports only api/v1alpha1, so every fact a page
 // shows is one the read API serves. Its tests may also build the API with
 // internal/api/apitest.
@@ -131,7 +131,7 @@ func TestGoldenPages(t *testing.T) {
 }
 
 // TestGoldenBrokenRollout: the image-break sample shows Applied and
-// Degraded side by side (0030:D3:R1/R2).
+// Degraded side by side (portal:D3:R1/R2).
 func TestGoldenBrokenRollout(t *testing.T) {
 	s := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
 	checkGoldens(t, s, []goldenPage{{"instance-podinfo-broken", "/instances/default/podinfo", false}})
@@ -143,7 +143,7 @@ func TestGoldenBrokenRollout(t *testing.T) {
 }
 
 // TestGoldenLocked: an unreadable kind inside an instance, and a list the
-// caller may not read, render locked (0030:D5:R7).
+// caller may not read, render locked (portal:D5:R7).
 func TestGoldenLocked(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.DenyResources("services"))
 	checkGoldens(t, s, []goldenPage{{"instance-podinfo-services-locked", "/instances/default/podinfo", false}})
@@ -484,7 +484,7 @@ func TestYAMLHidesWhatIsNeverServed(t *testing.T) {
 	}
 }
 
-// TestUnknownValuesReadUnknown (0030:D2:R3).
+// TestUnknownValuesReadUnknown (portal:D2:R3).
 func TestUnknownValuesReadUnknown(t *testing.T) {
 	cases := []badge{
 		appliedBadge(v1Reconcile("Exploded")),

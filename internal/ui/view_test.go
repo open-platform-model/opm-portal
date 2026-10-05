@@ -25,7 +25,7 @@ func renderMain(t *testing.T, name string, main any) string {
 	return b.String()
 }
 
-// TestAcceptedAndActiveApart (0030:D4:R4/R7): an accepted, inactive claim
+// TestAcceptedAndActiveApart (portal:D4:R4/R7): an accepted, inactive claim
 // shows two pills on their own, and a blocked removal reads as removal
 // blocked while accepted and active, never as refused.
 func TestAcceptedAndActiveApart(t *testing.T) {
@@ -49,7 +49,7 @@ func TestAcceptedAndActiveApart(t *testing.T) {
 	}
 }
 
-// TestSecretsOfferNoYAML (0030:D8:R1): a Secret in an inventory says its
+// TestSecretsOfferNoYAML (portal:D8:R1): a Secret in an inventory says its
 // data is never read and links to nothing.
 func TestSecretsOfferNoYAML(t *testing.T) {
 	h := &Handler{cfg: Config{Now: time.Now}}
@@ -64,7 +64,7 @@ func TestSecretsOfferNoYAML(t *testing.T) {
 	}
 }
 
-// TestPolledObjectsSayWhenTheyWereRead (0030:D3:R5): a polled object and
+// TestPolledObjectsSayWhenTheyWereRead (portal:D3:R5): a polled object and
 // a health that is not live show when they were evaluated.
 func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 	h := &Handler{cfg: Config{Now: func() time.Time { return time.Date(2026, 10, 5, 12, 1, 0, 0, time.UTC) }}}

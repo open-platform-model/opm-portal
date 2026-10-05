@@ -42,7 +42,7 @@ type ProviderLookup struct {
 // Platform returns the platform graph: the Platform, the catalogs its
 // registry resolved, the registrations and the provider instances they
 // name. There is no column of consumer instances: no recorded field says
-// which provider contract an instance demands (0030:D4:R3).
+// which provider contract an instance demands (portal:D4:R3).
 func Platform(in PlatformInput, opts Options) Graph {
 	b := newBuilder(ScopePlatform, platformTitles, opts)
 	p := in.Platform
@@ -117,7 +117,7 @@ func Platform(in PlatformInput, opts Options) Graph {
 // into the registry: accepted and active (opm-operator
 // platform_controller.go:335), on c's catalog, at the version the entry
 // resolved, and c's source must be Registration. A refused, duplicate or
-// pending claim contributed nothing (0030:D4). The platform graph's
+// pending claim contributed nothing (portal:D4). The platform graph's
 // contributes edge and the read API's catalogs both use it, so they cannot
 // disagree.
 func Contributor(c readmodel.Catalog, regs []readmodel.RegistrationView) string {
@@ -138,7 +138,7 @@ func Contributor(c readmodel.Catalog, regs []readmodel.RegistrationView) string 
 
 // provider adds the instance a registration names and the edge to it,
 // verified only when the instance's inventory holds the registration
-// (0030:D4:R2).
+// (portal:D4:R2).
 func (b *builder) provider(reg string, r *readmodel.RegistrationView, l *ProviderLookup) {
 	var n Node
 	switch {

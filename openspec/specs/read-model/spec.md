@@ -12,7 +12,7 @@ The read model SHALL serve a view only to a caller whose grant, issued by the au
 caller, covers the view's own read (verb, resource, namespace, name) at the time of the call. A
 zero grant, a grant issued to another identity, an expired grant or a grant for another read
 SHALL be refused before anything is looked up, with the same refusal whether or not the object
-exists. Source: 0030:D7:R1.
+exists. Source: portal:D7:R1.
 
 #### Scenario: Grant for another read
 
@@ -38,7 +38,7 @@ registration) SHALL be authorized for that caller on its own before it is shown.
 caller may not read SHALL be marked forbidden and shown without its content; an item the portal
 could not read SHALL be marked not readable; neither SHALL fail the view. A list SHALL contain
 only items within the namespace scope of the caller's list grant, with no count or name of
-others. Source: 0030:D7:R2/R3.
+others. Source: portal:D7:R2/R3.
 
 #### Scenario: Inventory kind the caller may not read
 
@@ -65,7 +65,7 @@ others. Source: 0030:D7:R2/R3.
 Every object the read model holds or returns SHALL have no `metadata.managedFields` and no
 `kubectl.kubernetes.io/last-applied-configuration` annotation, and no ModuleInstance or
 ModulePackage it holds or returns SHALL carry `spec.values`. No view SHALL embed a raw custom
-resource status. Source: 0030:D8:R2/R3, 0030:D2:R4.
+resource status. Source: portal:D8:R2/R3, portal:D2:R4.
 
 #### Scenario: Client-side applied instance
 
@@ -78,7 +78,7 @@ resource status. Source: 0030:D8:R2/R3, 0030:D2:R4.
 
 The read model SHALL NOT get, list or watch Secrets, at any tier. An inventory entry naming a
 Secret SHALL be shown as withheld, SHALL NOT make the instance's health partial, and SHALL NOT
-start a watch. Source: 0030:D8:R1, 0030:D3:R4.
+start a watch. Source: portal:D8:R1, portal:D3:R4.
 
 #### Scenario: Inventory names a Secret
 
@@ -90,7 +90,7 @@ start a watch. Source: 0030:D8:R1, 0030:D3:R4.
 
 Once the kinds an instance's inventory names are held, the instance detail and the instance list
 SHALL be answered without one Kubernetes read per inventory object, and the reading client SHALL
-run with a raised request rate. Source: 0030:D3:R9.
+run with a raised request rate. Source: portal:D3:R9.
 
 #### Scenario: Second read of cert-manager
 
@@ -101,7 +101,7 @@ run with a raised request rate. Source: 0030:D3:R9.
 
 The read model SHALL start watching an inventory kind on the first read that needs it, limited to
 objects carrying the module-instance label, and SHALL stop watching it once no read has used it
-for the idle period. Source: 0030:D3:R9.
+for the idle period. Source: portal:D3:R9.
 
 #### Scenario: Kind idles out
 
@@ -113,7 +113,7 @@ for the idle period. Source: 0030:D3:R9.
 
 When the reader may get an inventory kind but may not list and watch it in the scope it needs,
 the read model SHALL refresh those objects by reading them at most every 30 seconds, and each
-such entry SHALL report that it is not live and when it was last evaluated. Source: 0030:D3:R5.
+such entry SHALL report that it is not live and when it was last evaluated. Source: portal:D3:R5.
 
 #### Scenario: Reader may only get Services
 
@@ -127,7 +127,7 @@ such entry SHALL report that it is not live and when it was last evaluated. Sour
 ReplicaSets, Pods and Jobs below inventory workloads SHALL be watched in a namespace only while
 at least one caller holds interest in that namespace; without interest they SHALL be read on
 demand when a view needs them. If they cannot be read, the workloads that can own Pods SHALL be
-marked as having unread children and the health SHALL be partial. Source: 0030:D3:R2/R4.
+marked as having unread children and the health SHALL be partial. Source: portal:D3:R2/R4.
 
 #### Scenario: Interest released
 
@@ -145,7 +145,7 @@ Events SHALL be read only when asked for, from `events.k8s.io/v1`, selected by t
 regard. Events about the Platform and about a TransformerRegistration SHALL be read from
 namespace `default`. Repeats about the same object with the same type, reason and note SHALL be
 returned once, with a count that sums separate events, event series and deprecated counts, and
-the latest occurrence time. Source: 0030:D9:R3/R4.
+the latest occurrence time. Source: portal:D9:R3/R4.
 
 #### Scenario: Platform events
 
@@ -163,7 +163,7 @@ the latest occurrence time. Source: 0030:D9:R3/R4.
 
 The instance, package and platform views SHALL carry the applied state read from the operator's
 conditions beside, never merged with, the workload health; a registration SHALL carry accepted,
-active and its verdict as separate values. Source: 0030:D3:R1/R6, 0030:D4:R4.
+active and its verdict as separate values. Source: portal:D3:R1/R6, portal:D4:R4.
 
 #### Scenario: CLI-owned instance
 
@@ -200,7 +200,7 @@ instance or package view SHALL carry the ReplicaSets, Pods and Jobs whose chain 
 owner references reaches it, each with its direct controller owner, its health, and for a
 ReplicaSet its desired replica count. A child whose chain reaches no inventory object SHALL NOT
 be attached to any. When the children could not be read, no object SHALL carry children and the
-workloads SHALL keep saying their children are unread. Source: 0030:D4:R1.
+workloads SHALL keep saying their children are unread. Source: portal:D4:R1.
 
 #### Scenario: podinfo's Deployment
 
@@ -234,7 +234,7 @@ caller's grant SHALL cover `get` on the Pod's `log` subresource before anything 
 Pod that does not exist, that no inventory reaches, or that is reached only through objects the
 caller may not read SHALL get one and the same refusal; a read the reading identity cannot make,
 and a caller check the authorizer cannot decide, the owner's included, SHALL be reported as
-unavailable rather than refused. Source: 0030:D10:R1, 0030:D7:R1.
+unavailable rather than refused. Source: portal:D10:R1, portal:D7:R1.
 
 #### Scenario: A Pod below an inventory Deployment
 
@@ -313,7 +313,7 @@ grant covers `get` on it, after the reader identity's own `get` review, and SHAL
 without `metadata.managedFields`, the `kubectl.kubernetes.io/last-applied-configuration`
 annotation, or, on a ModuleInstance or ModulePackage, `spec.values`. It SHALL keep the fields the
 held copies drop for memory, such as a Deployment's pod template. It SHALL refuse a core Secret
-before any review or read. Source: 0030:D8:R1/R2/R3.
+before any review or read. Source: portal:D8:R1/R2/R3.
 
 #### Scenario: A Deployment with its template
 

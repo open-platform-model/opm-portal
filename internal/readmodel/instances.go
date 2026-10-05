@@ -12,7 +12,7 @@ import (
 // ListInstances returns the ModuleInstances in namespace ("" for every
 // namespace the Model holds), sorted by namespace and name. g must cover
 // list moduleinstances in that namespace; the list holds nothing outside it
-// (0030:D7:R2).
+// (portal:D7:R2).
 func (m *Model) ListInstances(ctx context.Context, who authz.Identity, g authz.Grant, namespace string) ([]InstanceItem, error) {
 	if err := covers(who, g, "list", moduleInstances, namespace, ""); err != nil {
 		return nil, err

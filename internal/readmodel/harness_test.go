@@ -17,8 +17,8 @@ import (
 // f1Dir is the committed capture of the e2e fixture cluster.
 const f1Dir = "../../testdata/clusters/f1"
 
-// applyFailedSample is the ApplyFailed instance from enhancement 0030
-// experiment 01. F1 holds no failed apply, so the health package's copy of
+// applyFailedSample is the ApplyFailed instance from design evidence 01.
+// F1 holds no failed apply, so the health package's copy of
 // the live sample is reused.
 const applyFailedSample = "../health/testdata/mi-apply-failed.yaml"
 

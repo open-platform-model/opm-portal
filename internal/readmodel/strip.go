@@ -10,7 +10,7 @@ import (
 const lastAppliedAnnotation = "kubectl.kubernetes.io/last-applied-configuration"
 
 // valuesKinds are the OPM kinds whose spec.values the portal never holds
-// (0030:D8:R2).
+// (portal:D8:R2).
 var valuesKinds = map[schema.GroupKind]bool{
 	{Group: opmGroup, Kind: "ModuleInstance"}: true,
 	{Group: opmGroup, Kind: "ModulePackage"}:  true,
@@ -42,7 +42,7 @@ func stripTransform(obj any) (any, error) {
 
 // strip removes, in place, everything the read model must not hold: managed
 // fields and the last-applied annotation from every object, spec.values from
-// ModuleInstances and ModulePackages (0030:D8:R2/R3), and the bulky fields of
+// ModuleInstances and ModulePackages (portal:D8:R2/R3), and the bulky fields of
 // droppedFields. Objects reach it freshly decoded, so nothing else shares
 // them.
 func strip(u *unstructured.Unstructured) {

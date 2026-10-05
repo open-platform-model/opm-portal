@@ -8,7 +8,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
-// TestGraphKeepsTheAxesApart (0030:D3:R1): on the image-break sample the
+// TestGraphKeepsTheAxesApart (portal:D3:R1): on the image-break sample the
 // instance node's outline says Degraded and its stamp says Applied; no
 // node draws an applied state through its outline class.
 func TestGraphKeepsTheAxesApart(t *testing.T) {
@@ -26,7 +26,7 @@ func TestGraphKeepsTheAxesApart(t *testing.T) {
 	}
 }
 
-// TestEdgeToALockedProviderIsUnconfirmed (0030:D5:R7): an edge the portal
+// TestEdgeToALockedProviderIsUnconfirmed (portal:D5:R7): an edge the portal
 // cannot confirm because the provider is locked is not drawn as broken;
 // the refused claim's missing provider still is.
 func TestEdgeToALockedProviderIsUnconfirmed(t *testing.T) {
@@ -44,7 +44,7 @@ func TestEdgeToALockedProviderIsUnconfirmed(t *testing.T) {
 	}
 }
 
-// TestConfigComponentsFoldAsInTheGraph (0030:D4:R5): cert-manager's
+// TestConfigComponentsFoldAsInTheGraph (portal:D4:R5): cert-manager's
 // configuration components are one closed group in the list, and the
 // selected node is marked.
 func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
