@@ -23,7 +23,7 @@ A web page you visit in the same browser can send requests to a loopback address
 
 The portal learns who your kubeconfig authenticates as with a SelfSubjectReview when it starts, and refuses to start when the answer is an empty or anonymous user. Before each read, it asks the API server whether that identity may make it, with a SelfSubjectAccessReview for the exact verb, resource, namespace and name. The API server answers both reviews in its response and stores nothing. Only on an allow does the portal read. A resource you may not read is shown as locked, without being read. A review that fails or times out is never taken as an allow: nothing is read, the request is answered with `upstream_unavailable`, and an item inside a page is marked not readable.
 
-Each answer is cached for up to 30 seconds, for that identity and that exact request. A permission granted or revoked in the cluster therefore takes effect in the portal within 30 seconds, also for a change stream or log stream already open.
+Each answer is cached for up to 30 seconds from when it arrives, for that identity and that exact request. A permission granted or revoked in the cluster therefore takes effect in the portal within about 35 seconds: the 30 seconds an answer is kept, plus up to 5 seconds for the check that produced it. That holds for a change stream or log stream already open too.
 
 The check runs on the request's attributes before anything is looked up. When you may not read a kind in a namespace, the portal gives the same `forbidden` answer whether the object exists or not, and a list you may not read is empty, with no count of what it hides. Inside a page you may read, an object you may not read is marked forbidden instead of failing the page.
 

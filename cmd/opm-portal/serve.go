@@ -17,6 +17,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
@@ -232,6 +233,9 @@ func runLocal(ctx context.Context, o serveOptions, addr string, stdout io.Writer
 		if err != nil {
 			log.Warn("could not open a browser; open the printed link instead", "error", err)
 		}
+		// The page holds the token: it goes as soon as the token is spent,
+		// by the page or the printed link, and at the latest on return.
+		go removeWhenLaunched(ctx, p.gate.Launched(), cleanup)
 		defer cleanup()
 	}
 
@@ -377,8 +381,8 @@ func wire(c cluster, model *readmodel.Model, bound netip.AddrPort, log *slog.Log
 		Authorizer: c.checker,
 		Reader:     c.self,
 		Authenticate: func(r *http.Request) (api.Principal, error) {
-			id, session, err := gate.Authenticate(r)
-			return api.Principal{Identity: id, Session: session}, err
+			s, err := gate.Authenticate(r)
+			return api.Principal{Identity: s.Identity, Session: s.Key, Expires: s.Expires}, err
 		},
 		Producers: stream.Mux{stream.KindLog: logsProducer},
 		Logger:    log,
@@ -403,18 +407,30 @@ func site(apiHandler, pages http.Handler) http.Handler {
 	return mux
 }
 
+// removeWhenLaunched runs cleanup once launched is closed, or returns when
+// ctx is done first.
+func removeWhenLaunched(ctx context.Context, launched <-chan struct{}, cleanup func()) {
+	select {
+	case <-launched:
+		cleanup()
+	case <-ctx.Done():
+	}
+}
+
 // openLaunch opens url in a browser without putting it on a command line,
 // where any local user could read it from the process list: it writes a
 // redirect page into a fresh private directory and opens that file. The
 // returned cleanup removes the directory; it is safe to call after an
-// error.
+// error, more than once and from several goroutines. The browser has read
+// the page before it sends the request that spends the token, so the page
+// can be removed as soon as the token is spent.
 func openLaunch(ctx context.Context, url string, start func(ctx context.Context, path string) error) (cleanup func(), err error) {
 	cleanup = func() {}
 	dir, err := os.MkdirTemp("", "opm-portal-launch-")
 	if err != nil {
 		return cleanup, fmt.Errorf("creating the launch page directory: %w", err)
 	}
-	cleanup = func() { _ = os.RemoveAll(dir) }
+	cleanup = sync.OnceFunc(func() { _ = os.RemoveAll(dir) })
 	if err := os.Chmod(dir, 0o700); err != nil {
 		return cleanup, fmt.Errorf("securing the launch page directory: %w", err)
 	}

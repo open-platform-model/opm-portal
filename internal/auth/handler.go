@@ -2,6 +2,7 @@ package auth
 
 import (
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -101,11 +102,16 @@ func (l *Local) landingRequest(r *http.Request, cookie *http.Cookie) *http.Reque
 }
 
 func (l *Local) refuse(w http.ResponseWriter, status int, body string) {
+	writeText(w, l.log, status, body)
+}
+
+// writeText answers with a short plain-text body that is never cached.
+func writeText(w http.ResponseWriter, log *slog.Logger, status int, body string) {
 	h := w.Header()
 	h.Set("Content-Type", "text/plain; charset=utf-8")
 	h.Set("Cache-Control", "no-store")
 	w.WriteHeader(status)
 	if _, err := io.WriteString(w, body); err != nil {
-		l.log.Debug("writing a refusal", "status", status, "error", err)
+		log.Debug("writing a plain-text answer", "status", status, "error", err)
 	}
 }

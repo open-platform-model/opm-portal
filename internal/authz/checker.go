@@ -23,7 +23,8 @@ type Options struct {
 	// Timeout bounds one access review. Default 5 seconds.
 	Timeout time.Duration
 	// TTL is how long an allow or deny is reused for the same identity
-	// and request. Default 30 seconds.
+	// and request, counted from when its review answers. Default 30
+	// seconds.
 	TTL time.Duration
 	// MaxEntries bounds the decision cache. Default 4096.
 	MaxEntries int
@@ -79,7 +80,9 @@ func (c *Checker) Check(ctx context.Context, who Identity, req Attributes) (Gran
 		return Grant{}, &DenialError{Code: CodeForbidden, Attributes: req}
 	}
 	// The grant lasts as long as the decision behind it, so a held grant
-	// sees a revocation within one TTL, like a new Check does.
+	// sees a revocation when a new Check does: within one TTL plus one
+	// review, since the TTL starts when the review answers (about 35 s
+	// with the default 30 s TTL and 5 s timeout).
 	return issue(who, req, d.expires, c.cache.clock()), nil
 }
 

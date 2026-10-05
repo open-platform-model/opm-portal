@@ -6,17 +6,22 @@ import (
 	"errors"
 	"log/slog"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	k8stesting "k8s.io/client-go/testing"
 
+	"github.com/open-platform-model/opm-portal/internal/auth"
+	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
 )
 
@@ -222,6 +227,50 @@ func TestOpenLaunchKeepsTheTokenOffTheCommandLine(t *testing.T) {
 	if _, err := os.Stat(opened); !os.IsNotExist(err) {
 		t.Errorf("cleanup after a failure left the page: %v", err)
 	}
+}
+
+// The --open page leaves the disk as soon as a browser spends its token,
+// while the portal keeps serving.
+func TestTheLaunchPageGoesOnceTheTokenIsSpent(t *testing.T) {
+	gate, err := auth.NewLocal(auth.LocalConfig{Identity: authz.Identity{Username: "alice"}, Port: 8123})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var opened string
+	cleanup, err := openLaunch(t.Context(), gate.LaunchURL(), func(_ context.Context, path string) error {
+		opened = path
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	removed := make(chan struct{})
+	go func() {
+		removeWhenLaunched(t.Context(), gate.Launched(), cleanup)
+		close(removed)
+	}()
+	if _, err := os.Stat(opened); err != nil {
+		t.Fatalf("the launch page is gone before the launch: %v", err)
+	}
+
+	h := gate.Handler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) }))
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, gate.LaunchURL(), http.NoBody)
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("launch = %d; want 200", rec.Code)
+	}
+	select {
+	case <-removed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the launch page was not removed after the launch")
+	}
+	if _, err := os.Stat(filepath.Dir(opened)); !os.IsNotExist(err) {
+		t.Errorf("the launch page directory is still there: %v", err)
+	}
+	// Shutdown's cleanup runs again without harm.
+	cleanup()
 }
 
 func TestLogDeniedNamesTheFlagWhereItHelps(t *testing.T) {

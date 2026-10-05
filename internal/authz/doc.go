@@ -56,9 +56,11 @@
 //
 // Allow and deny decisions are cached for a short time (30 seconds by
 // default), keyed by the full identity and the full attributes. Group and
-// extra-value order does not change the key. A Grant expires with the
-// decision it was issued from, so a newly granted or revoked permission is
-// seen within one TTL by new checks and by grants already held. A read path
+// extra-value order does not change the key. A decision's TTL starts when
+// its review answers, and a Grant expires with the decision it was issued
+// from, so a newly granted or revoked permission is seen by new checks and
+// by grants already held within one TTL plus one review: about 35 seconds
+// with the defaults (a 30 s TTL and a 5 s review timeout). A read path
 // that holds a grant across many reads (a change stream, a log stream) gets
 // ErrNoGrant from Covers once it expires and must call Check again.
 package authz

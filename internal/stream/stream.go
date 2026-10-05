@@ -31,7 +31,8 @@ func (s *Stream) ID() string { return s.st.id }
 
 // Serve writes the stream to w as server-sent events until ctx is done, the
 // broker closes, the client falls behind, a reconnect takes the stream over,
-// or the stream idles out. It returns why it ended. Serve is called once.
+// the stream idles out, or its session expires, which it ends with an
+// expired event. It returns why it ended. Serve is called once.
 // The caller has written no body yet; Serve sets no headers (the handler
 // does).
 func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
@@ -45,9 +46,20 @@ func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
 	b.mu.Unlock()
 
 	// Ending the connection (eviction, takeover, Close) also cancels the
-	// work done for it: snapshots, reviews and renders.
+	// work done for it: snapshots, reviews and renders. So does the
+	// session's end, and from then on the writer refuses every event but
+	// the expired one, so no work still running at the end, and no message
+	// already queued, reaches the client after it.
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	b.mu.Lock()
+	ends := s.st.expires
+	b.mu.Unlock()
+	if !ends.IsZero() {
+		var stop context.CancelFunc
+		ctx, stop = context.WithDeadlineCause(ctx, ends, errSessionOver)
+		defer stop()
+	}
 	go func() {
 		select {
 		case <-c.done:
@@ -55,8 +67,11 @@ func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
 		case <-ctx.Done():
 		}
 	}()
-	wr := &writer{w: w, rc: http.NewResponseController(w), timeout: b.opts.WriteTimeout}
+	wr := &writer{w: w, rc: http.NewResponseController(w), timeout: b.opts.WriteTimeout, ends: ends}
 	reason := s.run(ctx, wr)
+	if errors.Is(reason, errSessionOver) {
+		reason = s.expire(wr)
+	}
 	b.disconnect(s.st, c, reason)
 	return reason
 }
@@ -129,14 +144,26 @@ func (s *Stream) heartbeat(ctx context.Context, wr *writer) error {
 	return wr.event("", "", EventHeartbeat, []byte("{}"))
 }
 
+// expire ends the stream at its session's end: the client is told, and the
+// stream is discarded, so nothing more reaches it and a reconnect resumes
+// nothing.
+func (s *Stream) expire(wr *writer) error {
+	if err := wr.expired(); err != nil {
+		// The stream is discarded whether or not the client heard.
+		return fmt.Errorf("%w: %w", ErrSessionExpired, err)
+	}
+	return ErrSessionExpired
+}
+
 // ended returns why the connection ended: the broker's reason when it ended
-// the connection, or the context's error.
+// the connection, or the context's cause (errSessionOver at the session's
+// end).
 func (s *Stream) ended(ctx context.Context) error {
 	select {
 	case <-s.conn.done:
 		return s.conn.reason
 	default:
-		return ctx.Err()
+		return context.Cause(ctx)
 	}
 }
 
@@ -296,33 +323,44 @@ func isDocument(event string) bool {
 	return false
 }
 
-// revalidateRounds caps the rounds of reviews revalidate sends for one
-// message. A message whose grants keep expiring while others are asked
-// again does not settle, and its topic is closed instead of written.
-const revalidateRounds = 3
-
 // revalidate makes sure every grant m was built under covers its read, and
 // returns "" only right after a pass that confirms it in memory: the pass
 // (covered) makes no review call, and send does no I/O between it and the
 // write. Any other pass asks again for every grant that has expired, the
 // topic's first (gateTopic), then each part's own, and loops, since a slow
-// review can outlast a grant that covered when it was looked at. After
-// revalidateRounds rounds of reviews without a clean pass the topic is
-// closed with upstream_unavailable.
+// review can outlast a grant that covered when it was looked at.
+//
+// Re-validation is bounded by time, not by rounds: it runs for at most
+// Options.RevalidateTimeout (one decision lifetime by default), so however
+// many parts a message carries it cannot keep the stream silent for longer.
+// No review starts after the deadline, a review still running at it is
+// canceled, and a message not confirmed by then closes its topic with
+// upstream_unavailable. A fresh grant covers the read it was asked for, so
+// a pass that does not confirm either makes progress or meets the deadline.
 //
 // The guarantee is: every message is written right after an in-memory pass
-// confirms that every decision it used is unexpired; decisions are cached
-// for at most 30 s, so revocation reaches the stream within that TTL. The
-// moment between that pass and the write is inherent to check-then-write.
+// confirms that every decision it used is unexpired. A decision lives one
+// TTL (30 s by default) from when its review answers, so a revocation
+// reaches the stream within the TTL plus one review: about 35 s with the
+// default 5 s review timeout. The moment between that pass and the write
+// is inherent to check-then-write.
 //
 // A topic denial or error returns its closing code. A part reviewed on its
 // own that is now forbidden is dropped from m, so a snapshot is written
 // without it and an item event not at all, without a trace (0030:D7:R2); any
 // other code for it closes the topic. It returns a closing code, or "".
-func (s *Stream) revalidate(ctx context.Context, m *message) string {
-	for range revalidateRounds {
+func (s *Stream) revalidate(parent context.Context, m *message) string {
+	ctx, cancel := context.WithTimeout(parent, s.b.opts.RevalidateTimeout)
+	defer cancel()
+	for {
 		if s.covered(m) {
 			return ""
+		}
+		if ctx.Err() != nil {
+			if parent.Err() == nil {
+				s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
+			}
+			return CodeUpstreamUnavailable
 		}
 		if code := s.gateTopic(ctx, m.sub); code != "" {
 			return code
@@ -331,11 +369,6 @@ func (s *Stream) revalidate(ctx context.Context, m *message) string {
 			return code
 		}
 	}
-	if s.covered(m) {
-		return ""
-	}
-	s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
-	return CodeUpstreamUnavailable
 }
 
 // covered reports whether every topic grant of m's subscription and every
@@ -367,6 +400,10 @@ func (s *Stream) recheckParts(ctx context.Context, m *message) string {
 	for i := range m.parts {
 		p := &m.parts[i]
 		if p.own && p.grant.Covers(who, p.attrs) != nil {
+			if ctx.Err() != nil {
+				// No review starts after the deadline or the connection's end.
+				return CodeUpstreamUnavailable
+			}
 			g, err := b.az.Check(ctx, who, p.attrs)
 			if err != nil {
 				if code := closeCode(err); code != CodeForbidden {
@@ -392,6 +429,10 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 		b.mu.Unlock()
 		if g.Covers(who, req) == nil {
 			continue
+		}
+		if ctx.Err() != nil {
+			// No review starts after the deadline or the connection's end.
+			return CodeUpstreamUnavailable
 		}
 		g, err := b.az.Check(ctx, who, req)
 		if err != nil {
@@ -540,11 +581,18 @@ func (s *Stream) eventID(m *message, doc []byte) (id string, ok bool) {
 	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(local, 10), true
 }
 
-// writer writes server-sent events and flushes each one.
+// errSessionOver is why a connection ends at its session's end: the
+// writer refuses an event, or the context's deadline passes. Serve turns it
+// into the expired event and ErrSessionExpired.
+var errSessionOver = errors.New("stream: the session is over")
+
+// writer writes server-sent events and flushes each one. From ends on (the
+// session's end; zero for none) it writes nothing but the expired event.
 type writer struct {
 	w       http.ResponseWriter
 	rc      *http.ResponseController
 	timeout time.Duration
+	ends    time.Time
 	buf     bytes.Buffer
 }
 
@@ -559,11 +607,25 @@ func (wr *writer) closed(t Topic, code string) error {
 	return wr.event("", "", EventClosed, body)
 }
 
+// expired writes the expired event. It carries the stream's own code only.
+func (wr *writer) expired() error {
+	body, err := json.Marshal(struct {
+		Code string `json:"code"`
+	}{CodeUnauthenticated})
+	if err != nil {
+		return fmt.Errorf("encoding the expired event: %w", err)
+	}
+	return wr.event("", "", EventExpired, body)
+}
+
 // event writes one event. prefix is written first (a retry field); data
 // must be one line of JSON, which json.Marshal guarantees.
 func (wr *writer) event(prefix, id, name string, data []byte) error {
 	if bytes.ContainsAny(data, "\r\n") || strings.ContainsAny(id+name, "\r\n") {
 		return errors.New("stream: event field spans lines")
+	}
+	if name != EventExpired && !wr.ends.IsZero() && !time.Now().Before(wr.ends) {
+		return errSessionOver
 	}
 	if err := wr.rc.SetWriteDeadline(time.Now().Add(wr.timeout)); err != nil && !errors.Is(err, http.ErrNotSupported) {
 		return fmt.Errorf("setting the write deadline: %w", err)

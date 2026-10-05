@@ -20,6 +20,8 @@ const (
 	EventLogEnd    = "logend"
 	EventClosed    = "closed"
 	EventHeartbeat = "heartbeat"
+	// EventExpired is a stream's last message when its session expires.
+	EventExpired = "expired"
 )
 
 // Item is one change on a topic, or one entry of a snapshot.

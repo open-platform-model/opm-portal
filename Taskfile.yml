@@ -56,9 +56,10 @@ tasks:
       - golangci-lint fmt ./...
 
   vet:
-    desc: Run go vet
+    desc: Run go vet, including the e2e- and browser-tagged tests the nightly run builds
     cmds:
       - go vet ./...
+      - go vet -tags e2e,browser ./...
 
   lint:
     desc: Run golangci-lint
@@ -86,7 +87,7 @@ tasks:
     env:
       OPM_PORTAL_CONTAINER_ENGINE: '{{.OPM_PORTAL_CONTAINER_ENGINE}}'
     cmds:
-      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs)$' -v ./cmd/opm-portal
+      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs|Expired)$' -v ./cmd/opm-portal
 
   #########################
   ## e2e fixture cluster (test/e2e)
@@ -114,6 +115,22 @@ tasks:
       E2E_CLUSTER: '{{.E2E_CLUSTER}}'
     cmds:
       - test/e2e/local.sh
+
+  e2e:m1:
+    desc: Check the milestone 1 reads end to end on the fixture cluster, including a scripted image break it reverts (needs e2e:up)
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/m1.sh
+
+  e2e:dump:
+    desc: 'Dump the fixture cluster''s OPM objects, Pods, events and operator log for a failed run, without Secrets or values (DIR=<directory>, default .e2e/dump/<cluster>)'
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/dump.sh {{if .DIR}}"{{.DIR}}"{{end}}
 
   e2e:capture:
     desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)

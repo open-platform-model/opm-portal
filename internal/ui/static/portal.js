@@ -25,6 +25,7 @@
 
   // ---- Stream topics ----
   var streamID = "";
+  var expired = false;
   var opened = words(body.getAttribute("data-opened-topics"));
   var subscribed = new Set(opened);
   var primed = new Set();
@@ -52,10 +53,14 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ add: add, remove: remove })
     }).then(function (res) {
-      if (!res.ok) {
+      if (!res.ok && !expired) {
         setLive(false, "topics refused");
       }
-    }).catch(function () { setLive(false, "offline"); });
+    }).catch(function () {
+      if (!expired) {
+        setLive(false, "offline");
+      }
+    });
   }
 
   // sync moves the stream to the topics the page wants now.
@@ -352,9 +357,22 @@
       });
       logState(data.topic, "closed: " + (data.code || "closed"));
     });
+
+    // The session ended. The extension closes the stream on this event
+    // (sse-close), so it does not reconnect into a refusal; the page keeps
+    // what it shows and says how to go on.
+    listener.addEventListener("sse:expired", function () {
+      streamID = "";
+      expired = true;
+      setLive(false, "session expired, reload");
+    });
   }
 
-  body.addEventListener("htmx:sseError", function () { setLive(false, "reconnecting"); });
+  body.addEventListener("htmx:sseError", function () {
+    if (!expired) {
+      setLive(false, "reconnecting");
+    }
+  });
   body.addEventListener("htmx:sseOpen", function () { setLive(true, "live"); });
 
   // A boosted navigation swaps #main: move the stream to the new page.
