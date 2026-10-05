@@ -155,8 +155,10 @@ beyond in-memory sessions"); local mode's digest-keyed session.
 2. Server-side in-memory store keyed by the SHA-256 of a random cookie value - logout revokes at
    once, the cookie is 26 random characters, nothing to manage; sessions are lost on restart and
    a second replica needs sticky sessions.
-**Decision**: Option 2, bounded by `MaxSessions` (expired sessions are swept on insert; at the cap
-the session closest to expiry is evicted).
+**Decision**: Option 2, bounded twice. Each mapped username holds at most ten sessions; at that
+bound a new sign-in ends that user's own session closest to expiry. `MaxSessions` bounds the whole
+store (expired sessions are swept on insert; at the cap the session closest to expiry is evicted,
+whoever holds it).
 **Rationale**: Revocation on logout is a security property; restart re-login is a cost the
 operational notes already accept, and V1 runs one replica.
 
@@ -207,6 +209,10 @@ end-session endpoints.
   group still reaches the authorizer; no refresh token is kept.
 - [Logout ends only the portal session when the issuer has no end-session endpoint] -> the next
   navigation signs in again silently; the signed-out page says so.
+- [The global session cap evicts across users] -> one account can push out only its own sessions,
+  but an attacker holding `MaxSessions / 10` accounts the mapper accepts (1,000 at the default) can
+  still sign everyone else out, and each sign-in at the cap scans every session under one mutex.
+  The accounts need no Kubernetes rights; an issuer that lets anyone register widens this.
 - [A key rotated within `KeyRefreshInterval` of the last fetch] -> tokens signed with it are
   refused for at most that interval.
 

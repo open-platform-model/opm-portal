@@ -456,6 +456,30 @@ func TestSessionLifetimeAndCap(t *testing.T) {
 			t.Fatalf("at expiry: %d", res.status)
 		}
 	})
+	t.Run("one user's sign-ins end only that user's sessions", func(t *testing.T) {
+		f := newOIDCFixture(t, nil, oidctest.Options{})
+		bob := newBrowser(t, f)
+		f.iss.SetClaims(map[string]any{"sub": "bob"})
+		bob.signIn("/")
+		f.iss.SetClaims(map[string]any{"sub": "alice"})
+		alice := make([]*browser, maxSessionsPerUser+1)
+		for i := range alice {
+			alice[i] = newBrowser(t, f)
+			alice[i].signIn("/")
+			f.clk.Advance(time.Second)
+		}
+		if res := alice[0].do(http.MethodGet, "/x", nil); res.status != http.StatusUnauthorized {
+			t.Fatalf("alice's oldest session: %d, want %d", res.status, http.StatusUnauthorized)
+		}
+		for i, b := range alice[1:] {
+			if res := b.do(http.MethodGet, "/x", nil); res.status != http.StatusOK {
+				t.Fatalf("alice's session %d: %d, want %d", i+1, res.status, http.StatusOK)
+			}
+		}
+		if res := bob.do(http.MethodGet, "/x", nil); res.status != http.StatusOK {
+			t.Fatalf("bob's session: %d, want %d", res.status, http.StatusOK)
+		}
+	})
 	t.Run("cap evicts the session closest to expiry", func(t *testing.T) {
 		f := newOIDCFixture(t, func(c *OIDCConfig) { c.MaxSessions = 2 }, oidctest.Options{})
 		browsers := make([]*browser, 3)

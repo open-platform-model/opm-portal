@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"iter"
+	"maps"
 	"net/http"
 	"slices"
 	"sync"
@@ -68,46 +70,97 @@ type oidcSession struct {
 	expires time.Time
 }
 
+// maxSessionsPerUser bounds the sessions one mapped username holds. At the
+// bound a new sign-in ends that user's own session closest to expiry, so
+// one account signing in over and over cannot push other users out.
+const maxSessionsPerUser = 10
+
+type sessionDigest = [sha256.Size]byte
+
 // sessionStore holds sessions in memory, keyed by the SHA-256 of their
 // cookie value, so the value itself is never kept. Logout deletes the
 // entry, which revokes the cookie at once.
 type sessionStore struct {
-	max int
-	now func() time.Time
+	max     int
+	perUser int
+	now     func() time.Time
 
 	mu       sync.Mutex
-	sessions map[[sha256.Size]byte]*oidcSession
+	sessions map[sessionDigest]*oidcSession
+	byUser   map[string]map[sessionDigest]struct{}
 }
 
 func newSessionStore(maxSessions int, now func() time.Time) *sessionStore {
-	return &sessionStore{max: maxSessions, now: now, sessions: map[[sha256.Size]byte]*oidcSession{}}
+	return &sessionStore{
+		max:      maxSessions,
+		perUser:  maxSessionsPerUser,
+		now:      now,
+		sessions: map[sessionDigest]*oidcSession{},
+		byUser:   map[string]map[sessionDigest]struct{}{},
+	}
 }
 
-// create starts a session for id and returns its cookie value. At the cap,
-// expired sessions are dropped first, then the one closest to expiry.
+// create starts a session for id and returns its cookie value. At the
+// per-user bound, that user's expired sessions are dropped first, then
+// their one closest to expiry. At the global cap, expired sessions are
+// dropped first, then the one closest to expiry, whoever holds it.
 func (s *sessionStore) create(id authz.Identity, ttl time.Duration) string {
 	value := rand.Text()
+	digest := sha256.Sum256([]byte(value))
 	now := s.now()
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if own := s.byUser[id.Username]; len(own) >= s.perUser {
+		s.evict(maps.Keys(own), now)
+	}
 	if len(s.sessions) >= s.max {
-		var oldest *[sha256.Size]byte
-		var oldestAt time.Time
-		for k, v := range s.sessions {
-			if !now.Before(v.expires) {
-				delete(s.sessions, k)
-				continue
-			}
-			if oldest == nil || v.expires.Before(oldestAt) {
-				oldest, oldestAt = &k, v.expires
-			}
+		s.evict(maps.Keys(s.sessions), now)
+	}
+	s.sessions[digest] = &oidcSession{identity: id, key: rand.Text(), expires: now.Add(ttl)}
+	own := s.byUser[id.Username]
+	if own == nil {
+		own = map[sessionDigest]struct{}{}
+		s.byUser[id.Username] = own
+	}
+	own[digest] = struct{}{}
+	return value
+}
+
+// evict drops the expired sessions among digests, and when none had
+// expired, the one closest to expiry. The caller holds s.mu.
+func (s *sessionStore) evict(digests iter.Seq[sessionDigest], now time.Time) {
+	var oldest sessionDigest
+	var oldestAt time.Time
+	found, dropped := false, false
+	for d := range digests {
+		v := s.sessions[d]
+		if !now.Before(v.expires) {
+			s.remove(d)
+			dropped = true
+			continue
 		}
-		if len(s.sessions) >= s.max && oldest != nil {
-			delete(s.sessions, *oldest)
+		if !found || v.expires.Before(oldestAt) {
+			oldest, oldestAt, found = d, v.expires, true
 		}
 	}
-	s.sessions[sha256.Sum256([]byte(value))] = &oidcSession{identity: id, key: rand.Text(), expires: now.Add(ttl)}
-	return value
+	if !dropped && found {
+		s.remove(oldest)
+	}
+}
+
+// remove drops one session and its entry in the per-user index. The caller
+// holds s.mu.
+func (s *sessionStore) remove(digest sessionDigest) {
+	sess, ok := s.sessions[digest]
+	if !ok {
+		return
+	}
+	delete(s.sessions, digest)
+	own := s.byUser[sess.identity.Username]
+	delete(own, digest)
+	if len(own) == 0 {
+		delete(s.byUser, sess.identity.Username)
+	}
 }
 
 // lookup returns the live session for a cookie value.
@@ -120,7 +173,7 @@ func (s *sessionStore) lookup(value string) (oidcSession, bool) {
 		return oidcSession{}, false
 	}
 	if !s.now().Before(sess.expires) {
-		delete(s.sessions, digest)
+		s.remove(digest)
 		return oidcSession{}, false
 	}
 	return *sess, true
@@ -131,7 +184,7 @@ func (s *sessionStore) delete(value string) {
 	digest := sha256.Sum256([]byte(value))
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	delete(s.sessions, digest)
+	s.remove(digest)
 }
 
 // loginState is what a sign-in carries between /auth/login and
