@@ -40,3 +40,6 @@ go.work.sum
 
 # docs bundle preview (task docs:bundle)
 /out/
+
+# Python bytecode from the Playwright scripts
+__pycache__/
