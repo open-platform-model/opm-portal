@@ -263,9 +263,15 @@ func (s m1Session) lockedObjects(t *testing.T) {
 	if objects == 0 || !mi.Health.Partial {
 		t.Errorf("podinfo: %d objects, partial %t; want its objects listed and its health partial", objects, mi.Health.Partial)
 	}
-	page := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo", nil)
+	// Object rows live on the Resources tab and nodes on the Graph tab;
+	// each renders what the reader may not read locked.
+	page := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=resources", nil)
 	if rows := strings.Count(page.body, `<li class="object locked">`); page.status != http.StatusOK || rows != objects {
-		t.Errorf("the podinfo page: %d with %d locked object rows; want 200 with %d", page.status, rows, objects)
+		t.Errorf("podinfo's Resources tab: %d with %d locked object rows; want 200 with %d", page.status, rows, objects)
+	}
+	graph := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=graph", nil)
+	if nodes := strings.Count(graph.body, `class="node kind-object locked`); graph.status != http.StatusOK || nodes != objects {
+		t.Errorf("podinfo's Graph tab: %d with %d locked object nodes; want 200 with %d", graph.status, nodes, objects)
 	}
 }
 
