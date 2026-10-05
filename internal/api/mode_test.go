@@ -15,7 +15,11 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/stream"
 )
 
-func inCluster(cfg *Config) { cfg.Mode = ModeInCluster }
+// inCluster serves as in-cluster mode would: with in-cluster credentials.
+func inCluster(cfg *Config) {
+	cfg.Mode = ModeInCluster
+	cfg.Connection = Connection{Source: "in-cluster"}
+}
 
 // The backup-provider instance reaches a TransformerRegistration: an OPM
 // object whose raw status carries operator text.
@@ -25,6 +29,7 @@ const backupRegistrationObject = base + "/instances/default/backup-provider/obje
 // mode, served in-cluster. Their local goldens are the same names without
 // the directory.
 var inClusterGoldens = []goldenCase{
+	{"in-cluster/cluster", base},
 	{"in-cluster/instance-list", base + "/instances"},
 	{"in-cluster/instance-podinfo", base + "/instances/default/podinfo"},
 	{"in-cluster/instance-backup-provider", base + "/instances/default/backup-provider"},

@@ -174,6 +174,16 @@ namespace. `heldByPartial` is true whenever the caller lacks cluster-wide `list`
 or on ModulePackages, whether or not a holder was found, so an empty `heldBy` never reads as
 "nobody holds it" when the caller could not look everywhere.
 
+As built (section 1): the two joins are unexported (`holders`, `claims.of` in
+`internal/readmodel/providers.go`) and fill the views (`InstanceItem.ProviderOf`,
+`PackageItem.ProviderOf`, `RegistrationView.HeldBy` and `HeldByPartial`), because every exported
+read of the model takes a grant (`TestEveryReadTakesAGrant`). `heldByPartial` is also true when
+the model itself does not hold every namespace (`--namespaces`, or a scope the reader may not
+watch). An inventory entry naming a registration the model does not hold (not created yet, or
+deleted) gives a claim with `access: ok`, verdict `Unknown` and `providerRefMatches: false`,
+never a guessed standing. A change routed through a join is marked `Joined` on the read model's
+`Change`, so the producer marks the document topics and leaves the events topics alone.
+
 `Registration.provider` keeps meaning what it meant: `spec.providerRef` as the controller reads it,
 kind ModuleInstance (`api/v1alpha1/common_types.go:48`). `heldBy` is the new, kind-agnostic answer.
 `ProviderClaim.providerRefMatches` says, for a readable registration, whether the reference names

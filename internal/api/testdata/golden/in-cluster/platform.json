@@ -91,7 +91,36 @@
         "state": "Applied",
         "reason": "Accepted",
         "since": "2026-10-04T18:04:22Z"
-      }
+      },
+      "conditions": [
+        {
+          "type": "Ready",
+          "status": "True",
+          "reason": "Accepted",
+          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "observedGeneration": 1,
+          "tone": "normal",
+          "meaning": "The registration passed every check. Whether it is active is shown separately."
+        },
+        {
+          "type": "Active",
+          "status": "True",
+          "reason": "ProviderReady",
+          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "observedGeneration": 1,
+          "tone": "normal",
+          "meaning": "The provider is ready, so the registration is active."
+        }
+      ],
+      "heldBy": [
+        {
+          "group": "opmodel.dev",
+          "version": "v1alpha1",
+          "kind": "ModuleInstance",
+          "namespace": "default",
+          "name": "backup-provider"
+        }
+      ]
     },
     {
       "name": "default.refused-claim-fixture",
@@ -112,7 +141,29 @@
         "state": "Stalled",
         "reason": "CatalogUnresolved",
         "since": "2026-10-04T18:04:26Z"
-      }
+      },
+      "conditions": [
+        {
+          "type": "Stalled",
+          "status": "True",
+          "reason": "CatalogUnresolved",
+          "lastTransitionTime": "2026-10-04T18:04:26Z",
+          "observedGeneration": 1,
+          "tone": "abnormal",
+          "meaning": "The registered catalog and version resolve to nothing.",
+          "nextStep": "Check the catalog path and version, including the version's format, and the registry."
+        },
+        {
+          "type": "Ready",
+          "status": "False",
+          "reason": "CatalogUnresolved",
+          "lastTransitionTime": "2026-10-04T18:04:26Z",
+          "observedGeneration": 1,
+          "tone": "abnormal",
+          "meaning": "The registered catalog and version resolve to nothing.",
+          "nextStep": "Check the catalog path and version, including the version's format, and the registry."
+        }
+      ]
     }
   ],
   "registrationsAccess": "ok"

@@ -25,14 +25,15 @@ const (
 func (m Mode) valid() bool { return m == ModeLocal || m == ModeInCluster }
 
 // omitOperatorText returns doc without the text the operator wrote: the
-// message of every condition, reconcile state, history entry and
-// registration, the note of every event the operator reported (folding the
-// events that leaves alike), the health message of an OPM object (kstatus
-// copies its Ready message into it), and the condition and history messages
-// in the raw status of an OPM object. Reasons, states, tone, meaning and
-// next step stay. The operator's kernel does not redact secret values it
-// copies into that text, and the portal cannot tell a secret from other
-// text, so in-cluster it serves none of it.
+// message of every condition (a registration's included), reconcile state,
+// history entry and registration, the note of every event the operator
+// reported (folding the events that leaves alike), the health message of an
+// OPM object (kstatus copies its Ready message into it), and the condition
+// and history messages in the raw status of an OPM object. Reasons, states,
+// tone, meaning, next step, history outcomes and provider standings stay.
+// The operator's kernel does not redact secret values it copies into that
+// text, and the portal cannot tell a secret from other text, so in-cluster
+// it serves none of it.
 //
 // Text other writers wrote stays (supervisor ruling on the scope of
 // portal:D8:R5): the notes of events the kubelet or another controller
@@ -78,6 +79,10 @@ func omitOperatorText(doc any) (any, error) {
 		}
 		return d, nil
 	case v1.Removed:
+		return d, nil
+	case v1.Cluster:
+		// The connection's names, the caller's username and the server
+		// version: no text the operator wrote.
 		return d, nil
 	}
 	return nil, fmt.Errorf("omitting operator text: unknown document type %T", doc)
@@ -167,6 +172,7 @@ func omitPlatform(p *v1.Platform) {
 		r := &p.Registrations[i]
 		r.Message, r.ActiveMessage = "", ""
 		omitReconcile(&r.Reconcile)
+		omitConditions(r.Conditions)
 	}
 }
 

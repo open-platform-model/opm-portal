@@ -29,7 +29,7 @@ task build
 ./bin/opm-portal serve --namespaces team-a,team-b  # only these namespaces
 ```
 
-`serve` prints one link, `Open this link once to sign in: http://127.0.0.1:<port>/launch?token=...`,
+`serve` prints one link, `Open this link once to sign in: http://127.0.0.1:7878/launch?token=...`,
 and with `--open` opens it in your default browser. The link works once: it trades its token for
 a session cookie and answers with the Platform page. Stop the portal with Ctrl-C; restart it for
 a new link.
@@ -38,7 +38,7 @@ a new link.
 | --- | --- | --- |
 | `--kubeconfig` | `$KUBECONFIG`, then `~/.kube/config` | the kubeconfig to read the cluster with |
 | `--context` | the current context | the kubeconfig context |
-| `--addr` | `127.0.0.1:0` (a free port) | the address to listen on; only loopback addresses are accepted |
+| `--addr` | `127.0.0.1:7878` | the address to listen on; only loopback addresses are accepted. The fixed default keeps the browser's theme and filters across restarts. When the port is taken, `serve` stops before reading the kubeconfig; pass another port, or `127.0.0.1:0` for a free one |
 | `--namespaces` | all | read ModuleInstances and ModulePackages only in these namespaces, for users who cannot list them cluster-wide |
 | `--open` | off | open the link in the default browser |
 

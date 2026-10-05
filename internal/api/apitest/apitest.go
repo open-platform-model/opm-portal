@@ -26,6 +26,10 @@ const (
 	SessionValue  = "session-alice"
 )
 
+// Context is the kubeconfig context, and the name of its cluster entry, a
+// local-mode server says it reads with: the e2e fixture cluster's.
+const Context = "kind-opm-portal-e2e"
+
 var (
 	// Caller is who an authenticated request reads as.
 	Caller = authz.Identity{Username: "alice", Groups: []string{"system:authenticated"}}
@@ -119,11 +123,16 @@ func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode 
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
+	conn := api.Connection{Source: "kubeconfig", Context: Context, ClusterEntry: Context}
+	if mode == api.ModeInCluster {
+		conn = api.Connection{Source: "in-cluster"}
+	}
 	srv, err := api.New(api.Config{
 		Mode:       mode,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
+		Connection: conn,
 		Authenticate: func(r *http.Request) (api.Principal, error) {
 			c, err := r.Cookie(SessionCookie)
 			if err != nil || c.Value != SessionValue {

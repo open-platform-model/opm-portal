@@ -23,6 +23,7 @@ type goldenCase struct {
 }
 
 var f1Goldens = []goldenCase{
+	{"cluster", base},
 	{"instance-list", base + "/instances"},
 	{"instance-list-default", base + "/instances?namespace=default"},
 	{"instance-podinfo", base + "/instances/default/podinfo"},

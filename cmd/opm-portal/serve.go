@@ -18,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
@@ -29,6 +30,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
@@ -39,7 +41,9 @@ import (
 )
 
 const (
-	defaultAddr     = "127.0.0.1:0"
+	// defaultAddr is fixed so the browser origin, and the theme and filters
+	// stored for it, stay the same across restarts (portal:D14:R6).
+	defaultAddr     = "127.0.0.1:7878"
 	identityTimeout = 10 * time.Second
 	shutdownTimeout = 5 * time.Second
 )
@@ -68,7 +72,7 @@ func parseServe(args []string, stderr io.Writer) (serveOptions, error) {
 	}
 	fs.StringVar(&o.kubeconfig, "kubeconfig", "", "kubeconfig to read the cluster with (default: $KUBECONFIG, then ~/.kube/config)")
 	fs.StringVar(&o.context, "context", "", "kubeconfig context to use (default: the current context)")
-	fs.StringVar(&o.addr, "addr", defaultAddr, "loopback address to listen on; port 0 picks a free port")
+	fs.StringVar(&o.addr, "addr", defaultAddr, "loopback address to listen on; the browser keeps its theme and filters per address, and port 0 picks a free port")
 	fs.StringVar(&namespaces, "namespaces", "", "comma-separated namespaces to read ModuleInstances and ModulePackages in (default: all)")
 	fs.BoolVar(&o.open, "open", false, "open the launch link in the default browser")
 	if err := fs.Parse(args); err != nil {
@@ -121,6 +125,25 @@ func boundLoopback(a net.Addr) (netip.AddrPort, error) {
 	return netip.AddrPortFrom(ap.Addr().Unmap(), ap.Port()), nil
 }
 
+// listen binds addr and checks the bound address is loopback. An address
+// another process holds is refused with the flag that picks another.
+func listen(ctx context.Context, addr string) (net.Listener, netip.AddrPort, error) {
+	var lc net.ListenConfig
+	ln, err := lc.Listen(ctx, "tcp", addr)
+	if errors.Is(err, syscall.EADDRINUSE) {
+		return nil, netip.AddrPort{}, fmt.Errorf("%s is in use; pass --addr 127.0.0.1:<port> to use another port", addr)
+	}
+	if err != nil {
+		return nil, netip.AddrPort{}, fmt.Errorf("listening on %s: %w", addr, err)
+	}
+	bound, err := boundLoopback(ln.Addr())
+	if err != nil {
+		_ = ln.Close()
+		return nil, netip.AddrPort{}, err
+	}
+	return ln, bound, nil
+}
+
 // serve runs local mode until ctx is done.
 func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	o, err := parseServe(args, stderr)
@@ -135,8 +158,16 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "opm-portal serve:", err)
 		return exitUsage
 	}
+	// The address is bound before the kubeconfig is read, so a taken port
+	// fails before any cluster call.
+	ln, bound, err := listen(ctx, addr)
+	if err != nil {
+		fmt.Fprintln(stderr, "opm-portal serve:", err)
+		return exitFailure
+	}
+	defer func() { _ = ln.Close() }()
 	log := slog.New(slog.NewTextHandler(stderr, nil))
-	if err := runLocal(ctx, o, addr, stdout, log); err != nil {
+	if err := runLocal(ctx, o, ln, bound, stdout, log); err != nil {
 		log.Error("local mode stopped", "error", err)
 		return exitFailure
 	}
@@ -144,9 +175,9 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 }
 
 // loadKubeconfig returns the REST config of the kubeconfig and context o
-// names, and the log attribute naming where it came from. Errors carry
-// client-go's message and the path, never the file's content.
-func loadKubeconfig(o serveOptions) (*rest.Config, slog.Attr, error) {
+// names, and the names of where it came from. Errors carry client-go's
+// message and the path, never the file's content.
+func loadKubeconfig(o serveOptions) (*rest.Config, api.Connection, error) {
 	rules := clientcmd.NewDefaultClientConfigLoadingRules()
 	if o.kubeconfig != "" {
 		rules.ExplicitPath = o.kubeconfig
@@ -154,11 +185,11 @@ func loadKubeconfig(o serveOptions) (*rest.Config, slog.Attr, error) {
 	cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(rules, &clientcmd.ConfigOverrides{CurrentContext: o.context})
 	raw, err := cc.RawConfig()
 	if err != nil {
-		return nil, slog.Attr{}, fmt.Errorf("loading the kubeconfig: %w", err)
+		return nil, api.Connection{}, fmt.Errorf("loading the kubeconfig: %w", err)
 	}
 	cfg, err := cc.ClientConfig()
 	if err != nil {
-		return nil, slog.Attr{}, fmt.Errorf("loading the kubeconfig: %w", err)
+		return nil, api.Connection{}, fmt.Errorf("loading the kubeconfig: %w", err)
 	}
 	return cfg, configSource(raw, o.context, inClusterPossible()), nil
 }
@@ -181,16 +212,31 @@ func inClusterPossible() bool {
 // repeats client-go's own decision: when the kubeconfig yields an empty
 // configuration (no file, no context, or no current context) and the
 // in-cluster configuration is possible, client-go falls back to it inside
-// a Pod; otherwise the kubeconfig context was used.
-func configSource(raw clientcmdapi.Config, contextName string, inCluster bool) slog.Attr {
+// a Pod; otherwise the kubeconfig context was used, and the connection
+// names it and its cluster entry. It names no server URL, user entry or
+// credential (portal:D18:R1).
+func configSource(raw clientcmdapi.Config, contextName string, inCluster bool) api.Connection {
 	_, err := clientcmd.NewDefaultClientConfig(raw, &clientcmd.ConfigOverrides{CurrentContext: contextName}).ClientConfig()
 	if inCluster && clientcmd.IsEmptyConfig(err) {
-		return slog.String("source", "in-cluster")
+		return api.Connection{Source: v1.SourceInCluster}
 	}
 	if contextName == "" {
 		contextName = raw.CurrentContext
 	}
-	return slog.String("context", contextName)
+	conn := api.Connection{Source: v1.SourceKubeconfig, Context: contextName}
+	if c, ok := raw.Contexts[contextName]; ok && c != nil {
+		conn.ClusterEntry = c.Cluster
+	}
+	return conn
+}
+
+// sourceAttr is the log attribute naming a connection: the context, or the
+// in-cluster source.
+func sourceAttr(c api.Connection) slog.Attr {
+	if c.Source == v1.SourceInCluster {
+		return slog.String("source", "in-cluster")
+	}
+	return slog.String("context", c.Context)
 }
 
 // selfIdentity asks the cluster who the kubeconfig authenticates as, with
@@ -221,19 +267,10 @@ func selfIdentity(ctx context.Context, reviews authenticationv1client.SelfSubjec
 	return id, nil
 }
 
-// runLocal wires local mode and serves until ctx is done.
-func runLocal(ctx context.Context, o serveOptions, addr string, stdout io.Writer, log *slog.Logger) error {
+// runLocal wires local mode on the bound listener and serves until ctx is
+// done.
+func runLocal(ctx context.Context, o serveOptions, ln net.Listener, bound netip.AddrPort, stdout io.Writer, log *slog.Logger) error {
 	c, err := connect(ctx, o, log)
-	if err != nil {
-		return err
-	}
-	var lc net.ListenConfig
-	ln, err := lc.Listen(ctx, "tcp", addr)
-	if err != nil {
-		return fmt.Errorf("listening on %s: %w", addr, err)
-	}
-	defer func() { _ = ln.Close() }()
-	bound, err := boundLoopback(ln.Addr())
 	if err != nil {
 		return err
 	}
@@ -290,11 +327,14 @@ type cluster struct {
 	dyn     dynamic.Interface
 	self    authz.Identity
 	checker *authz.Checker
+	// conn names the kubeconfig context and cluster entry read with, or
+	// the in-cluster source.
+	conn api.Connection
 }
 
 // connect loads the kubeconfig and learns its identity.
 func connect(ctx context.Context, o serveOptions, log *slog.Logger) (cluster, error) {
-	restCfg, source, err := loadKubeconfig(o)
+	restCfg, conn, err := loadKubeconfig(o)
 	if err != nil {
 		return cluster{}, err
 	}
@@ -313,12 +353,12 @@ func connect(ctx context.Context, o serveOptions, log *slog.Logger) (cluster, er
 	if err != nil {
 		return cluster{}, err
 	}
-	log.Info("reading the cluster as this identity", "user", self.Username, source)
+	log.Info("reading the cluster as this identity", "user", self.Username, sourceAttr(conn))
 	checker, err := authz.NewLocal(cs.AuthorizationV1().SelfSubjectAccessReviews(), self, authz.Options{})
 	if err != nil {
 		return cluster{}, err
 	}
-	return cluster{cs: cs, dyn: dyn, self: self, checker: checker}, nil
+	return cluster{cs: cs, dyn: dyn, self: self, checker: checker, conn: conn}, nil
 }
 
 // portal is local mode's started parts.
@@ -411,8 +451,9 @@ func wire(c cluster, model *readmodel.Model, bound netip.AddrPort, log *slog.Log
 			s, err := gate.Authenticate(r)
 			return api.Principal{Identity: s.Identity, Session: s.Key, Expires: s.Expires}, err
 		},
-		Producers: stream.Mux{stream.KindLog: logsProducer},
-		Logger:    log,
+		Producers:  stream.Mux{stream.KindLog: logsProducer},
+		Logger:     log,
+		Connection: c.conn,
 	})
 	if err != nil {
 		return nil, err

@@ -38,6 +38,7 @@
   },
   "inventoryCount": 2,
   "lastAppliedAt": "2026-10-04T18:04:30Z",
+  "renderContracts": [],
   "conditions": [
     {
       "type": "Ready",
@@ -56,7 +57,6 @@
     "config": "sha256:301645fcda027e2b01d0504e7cdfe049b86bc27922b72974145eac9f24d020e4",
     "render": "sha256:e39ebdab50eecc8751f3b87d9f2a53b5aa5701d3b4413d094c1350e5105a17a3"
   },
-  "renderContracts": [],
   "components": [
     {
       "name": "web",

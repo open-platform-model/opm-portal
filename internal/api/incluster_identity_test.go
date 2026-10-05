@@ -54,6 +54,7 @@ func TestEmptyIdentityNeverReachesTheClusterInCluster(t *testing.T) {
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
+		Connection: api.Connection{Source: "in-cluster"},
 		Authenticate: func(*http.Request) (api.Principal, error) {
 			mu.Lock()
 			defer mu.Unlock()

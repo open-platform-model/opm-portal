@@ -38,6 +38,23 @@
   },
   "inventoryCount": 42,
   "lastAppliedAt": "2026-10-04T18:04:05Z",
+  "renderContracts": [
+    "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1",
+    "opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1",
+    "opmodel.dev/catalogs/opm/resources/role@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/service-account@v1beta1",
+    "opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1",
+    "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/security-context@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"
+  ],
   "serviceAccountName": "cert-manager-applier",
   "conditions": [
     {
@@ -65,6 +82,7 @@
     {
       "action": "reconcile",
       "phase": "complete",
+      "outcome": "Succeeded",
       "sequence": 1,
       "startedAt": "2026-10-04T18:04:05Z",
       "finishedAt": "2026-10-04T18:04:05Z",
@@ -82,23 +100,6 @@
     "config": "sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4",
     "render": "sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c"
   },
-  "renderContracts": [
-    "opmodel.dev/catalogs/opm/resources/container@v1beta1",
-    "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
-    "opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1",
-    "opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1",
-    "opmodel.dev/catalogs/opm/resources/role@v1beta1",
-    "opmodel.dev/catalogs/opm/resources/service-account@v1beta1",
-    "opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1",
-    "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/security-context@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"
-  ],
   "components": [
     {
       "name": "namespace",

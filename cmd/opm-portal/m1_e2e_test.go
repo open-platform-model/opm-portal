@@ -52,7 +52,7 @@ func TestM1(t *testing.T) {
 	kubeconfig, kubeContext := fixtureCluster(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 12*time.Minute)
 	defer cancel()
-	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", kubeconfig, "--context", kubeContext)
+	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", kubeconfig, "--context", kubeContext, "--addr", "127.0.0.1:0")
 	defer p.stop(t)
 	browser, _ := launch(ctx, t, p.launch)
 	s := m1Session{ctx: ctx, browser: browser, base: p.launch.Scheme + "://" + p.launch.Host}
@@ -73,7 +73,7 @@ func TestM1NamespaceReader(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
 	scoped := namespaceReader(ctx, t, kubeconfig, kubeContext)
-	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", scoped, "--namespaces", "default")
+	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", scoped, "--namespaces", "default", "--addr", "127.0.0.1:0")
 	defer p.stop(t)
 	browser, _ := launch(ctx, t, p.launch)
 	s := m1Session{ctx: ctx, browser: browser, base: p.launch.Scheme + "://" + p.launch.Host}

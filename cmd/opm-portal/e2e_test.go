@@ -88,7 +88,13 @@ func TestLocalMode(t *testing.T) {
 	defer cancel()
 
 	bin := buildPortal(ctx, t)
+	// The one start on the default address; every other e2e start passes
+	// --addr 127.0.0.1:0, so it never collides with a portal a developer
+	// has open there.
 	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", kubeconfig, "--context", kubeContext)
+	if p.launch.Host != defaultAddr {
+		t.Fatalf("launch link %s; want the default address %s", p.launch, defaultAddr)
+	}
 	base := p.launch.Scheme + "://" + p.launch.Host
 	instances := base + "/api/v1alpha1/clusters/default/instances"
 
@@ -134,7 +140,7 @@ func TestLocalModeNamespaces(t *testing.T) {
 	defer cancel()
 	bin := buildPortal(ctx, t)
 	scoped := namespaceReader(ctx, t, kubeconfig, kubeContext)
-	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped, "--namespaces", "default")
+	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped, "--namespaces", "default", "--addr", "127.0.0.1:0")
 	instances := p.launch.Scheme + "://" + p.launch.Host + "/api/v1alpha1/clusters/default/instances"
 	browser, _ := launch(ctx, t, p.launch)
 	res := get(ctx, t, browser, instances+"?namespace=default", nil)
@@ -155,7 +161,7 @@ func TestLocalModeNamespaces(t *testing.T) {
 	}
 
 	// Without --namespaces the user is told the flag is the way in.
-	p = startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped)
+	p = startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped, "--addr", "127.0.0.1:0")
 	p.stop(t)
 	if stderr := p.stderr.String(); !strings.Contains(stderr, "pass --namespaces with the namespaces you may read\" resource=moduleinstances") {
 		t.Fatalf("stderr does not point a namespace-scoped user at --namespaces:\n%s", stderr)

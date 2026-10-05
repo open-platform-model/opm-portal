@@ -14,6 +14,7 @@
     "kind": "OCIRepository",
     "name": "podinfo-release"
   },
+  "interval": "1m",
   "path": ".",
   "reconcile": {
     "state": "Failed",
@@ -64,6 +65,7 @@
   "history": [
     {
       "action": "reconcile",
+      "outcome": "Failed",
       "sequence": 3,
       "startedAt": "2026-10-04T18:04:23Z",
       "finishedAt": "2026-10-04T18:04:23Z",
@@ -73,6 +75,7 @@
     },
     {
       "action": "reconcile",
+      "outcome": "Failed",
       "sequence": 2,
       "startedAt": "2026-10-04T18:04:23Z",
       "finishedAt": "2026-10-04T18:04:23Z",
@@ -82,6 +85,7 @@
     },
     {
       "action": "reconcile",
+      "outcome": "Failed",
       "sequence": 1,
       "startedAt": "2026-10-04T18:03:54Z",
       "finishedAt": "2026-10-04T18:03:54Z",

@@ -298,7 +298,18 @@ func (h *hold) release() {
 // topic and its events topic deleted; any other change marks them dirty and
 // cancels a deletion still waiting in this window, so an object deleted and
 // recreated within one Coalesce is published as it now is.
+//
+// A joined change (a registration's holder, or the Platform after a change
+// to an owner that holds or held a registration) marks only the document
+// topic and, for an instance, the instance lists: the object and its events
+// did not change, so its events topic is left alone. The read model emits
+// one for every holder; which subscriber is then written anything is still
+// decided per subscriber (portal:D2:R7).
 func (p *producer) changed(c readmodel.Change) {
+	if c.Joined {
+		p.joined(c)
+		return
+	}
 	var own, lists []string
 	var ref readmodel.ObjectRef
 	switch c.Kind {
@@ -334,6 +345,27 @@ func (p *producer) changed(c readmodel.Change) {
 	}
 	for _, name := range lists {
 		if t, ok := p.followed(name); ok {
+			p.dirty[t] = true
+		}
+	}
+}
+
+// joined marks the topics a joined change affects dirty.
+func (p *producer) joined(c readmodel.Change) {
+	var names []string
+	switch c.Kind {
+	case readmodel.ChangeInstance:
+		names = []string{"instance:" + c.Namespace + "/" + c.Name, "instances", "instances:" + c.Namespace}
+	case readmodel.ChangePackage:
+		names = []string{"package:" + c.Namespace + "/" + c.Name}
+	case readmodel.ChangePlatform:
+		names = []string{"platform"}
+	case readmodel.ChangeRegistration:
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for _, name := range names {
+		if t, ok := p.followed(name); ok && !p.removed[t] {
 			p.dirty[t] = true
 		}
 	}

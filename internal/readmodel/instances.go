@@ -22,10 +22,12 @@ func (m *Model) ListInstances(ctx context.Context, who authz.Identity, g authz.G
 		return nil, err
 	}
 	ev := m.newEvaluator(who)
+	cl := m.newClaims(ctx, who)
 	out := make([]InstanceItem, 0, len(objs))
 	for _, u := range objs {
 		item := instanceItem(u)
 		item.Health = ev.inventoryHealth(ctx, u).Instance
+		item.ProviderOf = cl.of(u)
 		out = append(out, item)
 	}
 	return out, nil
@@ -44,13 +46,13 @@ func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant,
 	res := m.newEvaluator(who).inventoryHealth(ctx, u)
 	item := instanceItem(u)
 	item.Health = res.Instance
+	item.ProviderOf = m.newClaims(ctx, who).of(u)
 	return InstanceDetail{
 		InstanceItem:       item,
 		ServiceAccountName: str(u.Object, "spec", "serviceAccountName"),
 		Conditions:         conditions(u),
 		History:            history(u),
 		LastApplied:        lastApplied(u),
-		RenderContracts:    strs(u.Object, "status", "requiredContracts"),
 		Components:         componentsOf(res),
 	}, nil
 }
@@ -69,12 +71,13 @@ func (m *Model) InstanceExists(ctx context.Context, who authz.Identity, g authz.
 
 func instanceItem(u *unstructured.Unstructured) InstanceItem {
 	return InstanceItem{
-		Ref:            refOf(u),
-		UID:            string(u.GetUID()),
-		Module:         ModuleRef{Path: str(u.Object, "spec", "module", "path"), Version: str(u.Object, "spec", "module", "version")},
-		Owner:          ownerOf(u),
-		Applied:        health.ReadApplied(u),
-		InventoryCount: inventoryCount(u, inventory(u)),
-		LastAppliedAt:  timestamp(u.Object, "status", "lastAppliedAt"),
+		Ref:             refOf(u),
+		UID:             string(u.GetUID()),
+		Module:          ModuleRef{Path: str(u.Object, "spec", "module", "path"), Version: str(u.Object, "spec", "module", "version")},
+		Owner:           ownerOf(u),
+		Applied:         health.ReadApplied(u),
+		InventoryCount:  inventoryCount(u, inventory(u)),
+		LastAppliedAt:   timestamp(u.Object, "status", "lastAppliedAt"),
+		RenderContracts: strs(u.Object, "status", "requiredContracts"),
 	}
 }

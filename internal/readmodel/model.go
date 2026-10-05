@@ -135,6 +135,10 @@ type Model struct {
 	childList map[string]childListing
 
 	feed changeFeed
+
+	// serverVersion is the API server's gitVersion, read once at Start;
+	// empty when that read failed. Guarded by mu.
+	serverVersion string
 }
 
 // New returns a Model for cfg. It reads nothing until Start.
@@ -167,5 +171,40 @@ func TuneConfig(cfg *rest.Config) {
 	}
 	if cfg.Burst == 0 {
 		cfg.Burst = tunedBurst
+	}
+}
+
+// ServerVersion returns the API server's gitVersion as read once at Start,
+// or "" when it was not read. It is a public fact of the cluster, not an
+// object, so it takes no grant (portal:D18:R3).
+func (m *Model) ServerVersion() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.serverVersion
+}
+
+// readServerVersion reads /version once through discovery, as the reader,
+// without an access review: like the discovery documents, it is open to
+// every authenticated identity and says nothing about any object
+// (portal:D18:R3). A failed read holds nothing. The wait is bounded by
+// SyncTimeout so an API server that does not answer cannot hold Start; an
+// answer that arrives later is still kept.
+func (m *Model) readServerVersion() {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		info, err := m.cfg.Discovery.ServerVersion()
+		if err != nil || info == nil {
+			return
+		}
+		m.mu.Lock()
+		m.serverVersion = info.GitVersion
+		m.mu.Unlock()
+	}()
+	timer := time.NewTimer(m.cfg.SyncTimeout)
+	defer timer.Stop()
+	select {
+	case <-done:
+	case <-timer.C:
 	}
 }

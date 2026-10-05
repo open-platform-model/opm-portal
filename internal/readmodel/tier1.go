@@ -48,8 +48,9 @@ var opmKinds = []struct {
 // for its scope; a scope that is denied, or has not synced within
 // SyncTimeout, leaves its kind unavailable there, and reads of it return
 // ErrUnavailable until it syncs. A scope whose review could not be made is
-// reviewed again by the next read that needs it. Start returns an error
-// only when called twice or after Stop.
+// reviewed again by the next read that needs it. Start also reads the API
+// server's version once (ServerVersion). Start returns an error only when
+// called twice or after Stop.
 func (m *Model) Start(ctx context.Context) error {
 	m.mu.Lock()
 	if m.started || m.stopped {
@@ -80,6 +81,7 @@ func (m *Model) Start(ctx context.Context) error {
 		m.mu.Unlock()
 	}
 	waitSynced(ctx, m.cfg.SyncTimeout, started...)
+	m.readServerVersion()
 	go m.janitor()
 	return nil
 }

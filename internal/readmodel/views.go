@@ -44,11 +44,27 @@ type Digests struct {
 	Render string
 }
 
+// Outcome is how a history entry's attempt ended, read from the shape the
+// operator wrote it in.
+type Outcome string
+
+// Outcomes. The operator writes a success entry with phase complete and no
+// message, and a failure entry with a message and no phase.
+const (
+	OutcomeSucceeded Outcome = "Succeeded"
+	OutcomeFailed    Outcome = "Failed"
+	// OutcomeUnknown: an entry of neither shape.
+	OutcomeUnknown Outcome = "Unknown"
+)
+
 // HistoryEntry is one entry of an operator object's status.history, the
 // durable record (portal:D9:R1).
 type HistoryEntry struct {
-	Action          string
-	Phase           string
+	Action string
+	Phase  string
+	// Outcome is decided from Phase and Message as the operator wrote
+	// them, so it survives any later omission of the message.
+	Outcome         Outcome
 	Sequence        int64
 	StartedAt       time.Time
 	FinishedAt      time.Time
@@ -69,6 +85,13 @@ type InstanceItem struct {
 	Health         health.Summary
 	InventoryCount int64
 	LastAppliedAt  time.Time
+	// RenderContracts are every contract the instance's render used, most
+	// of them fulfilled by the catalog itself. They are not the provider
+	// contracts the instance demands (portal:D4:R3).
+	RenderContracts []string
+	// ProviderOf are the TransformerRegistrations the instance's inventory
+	// holds; nil when it holds none.
+	ProviderOf []ProviderClaim
 }
 
 // InstanceDetail is one ModuleInstance with its inventory grouped by
@@ -79,11 +102,23 @@ type InstanceDetail struct {
 	Conditions         []health.Condition
 	History            []HistoryEntry
 	LastApplied        Digests
-	// RenderContracts are every contract the instance's render used, most
-	// of them fulfilled by the catalog itself. They are not the provider
-	// contracts the instance demands (portal:D4:R3).
-	RenderContracts []string
-	Components      []Component
+	Components         []Component
+}
+
+// ProviderClaim is one TransformerRegistration an owner's inventory holds,
+// whatever the owner's kind (portal:D15).
+type ProviderClaim struct {
+	Registration string
+	// Access is the caller's access to the registrations: ok, forbidden or
+	// not readable. Standing and ProviderRefMatches mean something only
+	// when it is ok.
+	Access health.Access
+	// Standing is the registration's own, as the controller wrote it.
+	Standing health.Registration
+	// ProviderRefMatches: the owner is a ModuleInstance whose namespace and
+	// name the registration's spec.providerRef names. Always false for a
+	// ModulePackage, since the reference names a ModuleInstance.
+	ProviderRefMatches bool
 }
 
 // Component is one component of an inventory with its objects, in
@@ -136,11 +171,23 @@ type SourceRef struct {
 	Name       string
 }
 
+// SourceArtifact is what a ModulePackage's last reconcile fetched, from
+// status.source. Its fetch URL is not kept.
+type SourceArtifact struct {
+	Revision string
+	Digest   string
+}
+
 // PackageItem is one ModulePackage in a list.
 type PackageItem struct {
 	Ref    ObjectRef
 	UID    string
 	Source SourceRef
+	// Interval is spec.interval as written; empty when the package sets
+	// none.
+	Interval string
+	// SourceArtifact is nil when the operator recorded no source artifact.
+	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.
 	DependsOn      []ObjectRef
@@ -149,6 +196,9 @@ type PackageItem struct {
 	Health         health.Summary
 	InventoryCount int64
 	LastAppliedAt  time.Time
+	// ProviderOf are the TransformerRegistrations the package's inventory
+	// holds; nil when it holds none.
+	ProviderOf []ProviderClaim
 }
 
 // PackageDetail is one ModulePackage with its inventory, if it has one.
@@ -188,6 +238,15 @@ type RegistrationView struct {
 	Provider ObjectRef
 	Standing health.Registration
 	Applied  health.Applied
+	// Conditions are the registration's status.conditions.
+	Conditions []health.Condition
+	// HeldBy are the ModuleInstances and ModulePackages the caller may list
+	// whose inventory holds the registration, instances first. Set on the
+	// Platform's registrations only.
+	HeldBy []ObjectRef
+	// HeldByPartial: the caller could not look at every instance and
+	// package, so HeldBy may lack a holder.
+	HeldByPartial bool
 }
 
 // PlatformView is the Platform with its subscriptions, resolved catalogs and

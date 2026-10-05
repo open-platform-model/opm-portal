@@ -21,10 +21,12 @@ func (m *Model) ListPackages(ctx context.Context, who authz.Identity, g authz.Gr
 		return nil, err
 	}
 	ev := m.newEvaluator(who)
+	cl := m.newClaims(ctx, who)
 	out := make([]PackageItem, 0, len(objs))
 	for _, u := range objs {
 		item := packageItem(u)
 		item.Health = ev.inventoryHealth(ctx, u).Instance
+		item.ProviderOf = cl.of(u)
 		out = append(out, item)
 	}
 	return out, nil
@@ -43,6 +45,7 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 	res := m.newEvaluator(who).inventoryHealth(ctx, u)
 	item := packageItem(u)
 	item.Health = res.Instance
+	item.ProviderOf = m.newClaims(ctx, who).of(u)
 	return PackageDetail{
 		PackageItem: item,
 		Conditions:  conditions(u),
@@ -74,6 +77,8 @@ func packageItem(u *unstructured.Unstructured) PackageItem {
 			Namespace:  str(u.Object, "spec", "sourceRef", "namespace"),
 			Name:       str(u.Object, "spec", "sourceRef", "name"),
 		},
+		Interval:       str(u.Object, "spec", "interval"),
+		SourceArtifact: sourceArtifact(u),
 		DependsOn:      dependsOn(u),
 		Path:           str(u.Object, "spec", "path"),
 		Applied:        health.ReadApplied(u),
@@ -96,4 +101,18 @@ func dependsOn(u *unstructured.Unstructured) []ObjectRef {
 		})
 	}
 	return out
+}
+
+// sourceArtifact reads the revision and digest of status.source, or nil
+// when the operator recorded neither. status.source.artifactURL is a fetch
+// URL inside the cluster and is not read.
+func sourceArtifact(u *unstructured.Unstructured) *SourceArtifact {
+	a := SourceArtifact{
+		Revision: str(u.Object, "status", "source", "artifactRevision"),
+		Digest:   str(u.Object, "status", "source", "artifactDigest"),
+	}
+	if a == (SourceArtifact{}) {
+		return nil
+	}
+	return &a
 }

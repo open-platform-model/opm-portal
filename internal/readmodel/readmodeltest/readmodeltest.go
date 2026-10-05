@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/version"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	dynfake "k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes/fake"
@@ -144,9 +145,14 @@ func Dynamic(objs ...*unstructured.Unstructured) *dynfake.FakeDynamicClient {
 	return dynfake.NewSimpleDynamicClientWithCustomListKinds(runtime.NewScheme(), listKinds, runtimeObjs...)
 }
 
-// Discovery returns a fake discovery client that knows kinds.
+// ServerVersion is the API server version the fake discovery reports: the
+// Kubernetes version F1 was captured on.
+const ServerVersion = "v1.36.1"
+
+// Discovery returns a fake discovery client that knows kinds and reports
+// ServerVersion.
 func Discovery(kinds ...Kind) *fakediscovery.FakeDiscovery {
-	d := &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}}
+	d := &fakediscovery.FakeDiscovery{Fake: &k8stesting.Fake{}, FakedServerVersion: &version.Info{GitVersion: ServerVersion}}
 	SetDiscovery(d, kinds...)
 	return d
 }
@@ -282,4 +288,70 @@ func Actions(c *dynfake.FakeDynamicClient) []string {
 		out = append(out, a.GetVerb()+" "+a.GetResource().Resource+" "+a.GetNamespace()+"/"+name)
 	}
 	return out
+}
+
+// PackageHolderNamespace, PackageHolderName and PackageHolderClaim name the
+// ModulePackage and the TransformerRegistration WithPackageHolder adds.
+const (
+	PackageHolderNamespace = "pkg"
+	PackageHolderName      = "provider"
+	PackageHolderClaim     = "pkg.provider"
+)
+
+// WithPackageHolder returns objs, a capture holding F1's pkg/podinfo and
+// default.refused-claim-fixture, plus a ModulePackage pkg/provider whose
+// inventory holds the TransformerRegistration pkg.provider, and that
+// registration refused with ProviderMismatch.
+//
+// CONSTRUCTED, not captured: F1's only package holds no claim, and a live
+// package claim needs a Flux source the fixture cluster does not run. The
+// package is pkg/podinfo renamed with one inventory entry added, the shape
+// common_types.go gives every inventory entry. The registration is the
+// deliberate refusal fixture renamed, claiming the catalog F1's accepted
+// claim resolves, with providerRef stamped from the package's own name and
+// namespace as the catalog's registration transformer does, and the
+// verdict and message the controller writes when no ModuleInstance of that
+// name exists (opm-operator internal/controller/
+// transformerregistration_controller.go, checkProviderIdentity and refuse:
+// Stalled=True and Ready=False, both ProviderMismatch).
+func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstructured.Unstructured {
+	t.Helper()
+	pkg := Find(t, objs, "ModulePackage", "podinfo").DeepCopy()
+	pkg.SetName(PackageHolderName)
+	pkg.SetUID("00000000-0000-4000-8000-00000000c0de")
+	if err := unstructured.SetNestedField(pkg.Object, map[string]any{
+		"count": int64(1),
+		"entries": []any{map[string]any{
+			"component": "registration", "group": opmGroup, "kind": "TransformerRegistration",
+			"name": PackageHolderClaim, "v": "v1alpha1",
+		}},
+		"revision": int64(1),
+	}, "status", "inventory"); err != nil {
+		t.Fatal(err)
+	}
+
+	claim := Find(t, objs, "TransformerRegistration", "default.refused-claim-fixture").DeepCopy()
+	claim.SetName(PackageHolderClaim)
+	claim.SetUID("00000000-0000-4000-8000-00000000c1a1")
+	claim.SetLabels(nil)
+	spec := map[string]any{
+		"catalog":     "testing.opmodel.dev/catalogs/operator/backup@v0",
+		"version":     "0.1.0",
+		"provides":    []any{},
+		"providerRef": map[string]any{"namespace": PackageHolderNamespace, "name": PackageHolderName},
+	}
+	const msg = "Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output"
+	conds := []any{
+		map[string]any{"type": "Stalled", "status": "True", "reason": "ProviderMismatch", "message": msg,
+			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+		map[string]any{"type": "Ready", "status": "False", "reason": "ProviderMismatch", "message": msg,
+			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+	}
+	if err := unstructured.SetNestedField(claim.Object, spec, "spec"); err != nil {
+		t.Fatal(err)
+	}
+	if err := unstructured.SetNestedSlice(claim.Object, conds, "status", "conditions"); err != nil {
+		t.Fatal(err)
+	}
+	return append(objs, pkg, claim)
 }

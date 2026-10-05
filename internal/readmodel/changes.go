@@ -1,6 +1,7 @@
 package readmodel
 
 import (
+	"slices"
 	"sync"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -28,6 +29,11 @@ type Change struct {
 	Name      string
 	// Deleted: the OPM object itself was deleted.
 	Deleted bool
+	// Joined: the object's view changed through a provider join with
+	// another object (a registration it holds, or an owner that holds or
+	// held a registration); the object itself, and its events, did not
+	// change. Never set with Deleted.
+	Joined bool
 }
 
 // changeFeed holds the listeners OnChange registered.
@@ -81,13 +87,13 @@ func (m *Model) emit(changes []Change) {
 // each event to the OPM objects whose views the object feeds.
 func (m *Model) changeHandler() cache.ResourceEventHandler {
 	return cache.ResourceEventHandlerFuncs{
-		AddFunc:    func(obj any) { m.emit(m.changesFor(obj, false)) },
-		UpdateFunc: func(_, obj any) { m.emit(m.changesFor(obj, false)) },
+		AddFunc:    func(obj any) { m.emit(m.changesFor(nil, obj, false)) },
+		UpdateFunc: func(old, obj any) { m.emit(m.changesFor(old, obj, false)) },
 		DeleteFunc: func(obj any) {
 			if tomb, ok := obj.(cache.DeletedFinalStateUnknown); ok {
 				obj = tomb.Obj
 			}
-			m.emit(m.changesFor(obj, true))
+			m.emit(m.changesFor(nil, obj, true))
 		},
 	}
 }
@@ -100,10 +106,16 @@ var opmChangeKinds = map[string]ChangeKind{
 	"TransformerRegistration": ChangeRegistration,
 }
 
-// changesFor returns the changes one informer event means:
+// changesFor returns the changes one informer event means; old is the
+// object before an update, nil otherwise:
 //
 //   - an OPM object is itself changed (deleted is passed through), and a
 //     registration also changes the Platform, whose view lists them;
+//   - a registration also changes, joined, every held instance and package
+//     whose inventory holds it, whose provider claims show its standing;
+//   - an instance or package whose inventory holds a registration, before
+//     or after the event, also changes the Platform, joined, whose
+//     registrations name their holders;
 //   - an object carrying the uuid label (an inventory object, tier 2)
 //     changes every held instance or package whose status.inventory names
 //     it; the label's value is not recorded on operator-owned instances, so
@@ -111,7 +123,7 @@ var opmChangeKinds = map[string]ChangeKind{
 //   - a runtime child, which carries the instance name label but no uuid
 //     (capture, observation 8), changes every held instance or package of
 //     that name.
-func (m *Model) changesFor(obj any, deleted bool) []Change {
+func (m *Model) changesFor(old, obj any, deleted bool) []Change {
 	u, ok := obj.(*unstructured.Unstructured)
 	if !ok {
 		return nil
@@ -119,8 +131,22 @@ func (m *Model) changesFor(obj any, deleted bool) []Change {
 	var out []Change
 	if kind, ok := opmChangeKinds[u.GetKind()]; ok && u.GroupVersionKind().Group == opmGroup {
 		out = append(out, Change{Kind: kind, Namespace: u.GetNamespace(), Name: u.GetName(), Deleted: deleted})
-		if kind == ChangeRegistration {
+		switch kind {
+		case ChangeRegistration:
 			out = append(out, Change{Kind: ChangePlatform, Name: platformName})
+			name := u.GetName()
+			for _, c := range m.heldOwners(func(o *unstructured.Unstructured) bool {
+				return slices.Contains(heldRegistrations(o), name)
+			}) {
+				c.Joined = true
+				out = append(out, c)
+			}
+		case ChangeInstance, ChangePackage:
+			before, ok := old.(*unstructured.Unstructured)
+			if holdsRegistration(u) || (ok && holdsRegistration(before)) {
+				out = append(out, Change{Kind: ChangePlatform, Name: platformName, Joined: true})
+			}
+		case ChangePlatform:
 		}
 	}
 	labels := u.GetLabels()

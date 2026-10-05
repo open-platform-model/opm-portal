@@ -17,6 +17,7 @@
         "kind": "OCIRepository",
         "name": "podinfo-release"
       },
+      "interval": "1m",
       "path": ".",
       "reconcile": {
         "state": "Failed",

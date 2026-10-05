@@ -23,11 +23,20 @@
 // exposes the cache for kinds a request names and never refreshes it.
 // TuneConfig raises the reading client's request rate.
 //
+// # Joins
+//
+// An instance's or package's provider claims (the TransformerRegistrations
+// its inventory holds, with each one's own standing) and a registration's
+// holders (the instances and packages whose inventory holds it) are joined
+// from held state, kind-agnostic, for the caller.
+//
 // # Changes
 //
 // OnChange tells a listener which OPM object's view may have changed: the
-// object itself, the owners whose inventory names a changed object, and the
-// owners a changed runtime child names. A Change carries no content; the
+// object itself, the owners whose inventory names a changed object, the
+// owners a changed runtime child names, and through the provider joins, a
+// changed registration's holders and, for an owner that holds or held a
+// registration, the Platform. A Change carries no content; the
 // listener renders the view again through a grant like any other read.
 //
 // # Authorization
@@ -40,7 +49,9 @@
 // one through the Authorizer; what the caller may not read is marked
 // forbidden, never omitted and never a failed view. The informers, polls
 // and on-demand lists read as Config.Reader, each after the reader's own
-// grant.
+// grant. The discovery documents and the API server's version, read once,
+// are the only reads without a review: they are open to every
+// authenticated identity and name no object.
 //
 // # What is never held
 //

@@ -38,6 +38,20 @@
   },
   "inventoryCount": 1,
   "lastAppliedAt": "2026-10-04T18:04:21Z",
+  "renderContracts": [
+    "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
+  ],
+  "providerOf": [
+    {
+      "registration": "default.backup-provider",
+      "access": "ok",
+      "accepted": true,
+      "active": true,
+      "verdict": "Accepted",
+      "reason": "Accepted",
+      "providerRefMatches": true
+    }
+  ],
   "serviceAccountName": "backup-provider-applier",
   "conditions": [
     {
@@ -65,6 +79,7 @@
     {
       "action": "reconcile",
       "phase": "complete",
+      "outcome": "Succeeded",
       "sequence": 1,
       "startedAt": "2026-10-04T18:04:21Z",
       "finishedAt": "2026-10-04T18:04:21Z",
@@ -82,9 +97,6 @@
     "config": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "render": "sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b"
   },
-  "renderContracts": [
-    "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
-  ],
   "components": [
     {
       "name": "registration",

@@ -15,9 +15,12 @@ var lifecycleMethods = []string{"Start", "Stop"}
 
 // nonReads are the exported methods of Model that hand out no object
 // content: OnChange reports only which OPM object's view to render again,
-// ResolveKind answers from discovery, which names kinds, never objects, and
-// Denied reports the outcome of the reader's own access reviews at Start.
-var nonReads = []string{"OnChange", "ResolveKind", "Denied"}
+// ResolveKind answers from discovery, which names kinds, never objects,
+// Denied reports the outcome of the reader's own access reviews at Start,
+// and ServerVersion returns the API server's version, which every
+// authenticated identity may read and which names no object
+// (portal:D18:R3).
+var nonReads = []string{"OnChange", "ResolveKind", "Denied", "ServerVersion"}
 
 // ungrantedReads returns the exported methods of typ, other than exempt,
 // that do not take both an authz.Identity and an authz.Grant.
