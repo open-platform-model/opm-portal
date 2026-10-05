@@ -231,34 +231,23 @@ func TestLogsRegionShape(t *testing.T) {
 			t.Errorf("GET %s: no section#logs", c.path)
 			continue
 		}
-		var list *html.Node
-		for k := range region.ChildNodes() {
-			if k.Type == html.ElementNode && hasClass(k, "logs") {
-				list = k
-			}
-		}
-		if list == nil {
-			t.Errorf("GET %s: #logs has no .logs direct child", c.path)
+		lists := children(region, func(n *html.Node) bool { return hasClass(n, "logs") })
+		if len(lists) != 1 {
+			t.Errorf("GET %s: #logs has %d .logs direct children; want 1", c.path, len(lists))
 			continue
 		}
-		var direct int
-		for k := range list.ChildNodes() {
-			if k.Type == html.ElementNode && k.Data == "details" && hasClass(k, "log") {
-				direct++
-				checkPane(t, c.path, k)
-			}
+		direct := children(lists[0], isPane)
+		for _, d := range direct {
+			checkPane(t, c.path, d)
 		}
-		var all int
-		for n := range region.Descendants() {
-			if n.Type == html.ElementNode && n.Data == "details" && hasClass(n, "log") {
-				all++
-			}
-		}
-		if all != direct || (direct > 0) != c.panes {
-			t.Errorf("GET %s: %d log panes, %d of them direct children of .logs; want all direct, panes %t", c.path, all, direct, c.panes)
+		all := descendants(region, isPane)
+		if len(all) != len(direct) || (len(direct) > 0) != c.panes {
+			t.Errorf("GET %s: %d log panes, %d of them direct children of .logs; want all direct, panes %t", c.path, len(all), len(direct), c.panes)
 		}
 	}
 }
+
+func isPane(n *html.Node) bool { return n.Data == "details" && hasClass(n, "log") }
 
 // checkPane: a pane has an id and a log topic, and its summary, its tools
 // (the previous-instance box and the state) and its pre as direct children.
@@ -267,33 +256,44 @@ func checkPane(t *testing.T, path string, d *html.Node) {
 	if attr(d, "id") == "" || attr(d, "data-log-topic") == "" {
 		t.Errorf("GET %s: a log pane lacks its id or data-log-topic", path)
 	}
-	var summary, tools, pre bool
-	for k := range d.ChildNodes() {
-		switch {
-		case k.Type != html.ElementNode:
-		case k.Data == "summary":
-			summary = true
-		case k.Data == "div" && hasClass(k, "log-tools"):
-			var previous, state bool
-			for n := range k.Descendants() {
-				previous = previous || (n.Type == html.ElementNode && n.Data == "input" && attr(n, "data-log-previous") != "")
-				state = state || (n.Type == html.ElementNode && hasClass(n, "log-state"))
-			}
-			tools = previous && state
-		case k.Data == "pre" && hasClass(k, "log-pane"):
-			pre = true
-		}
+	summary := children(d, func(n *html.Node) bool { return n.Data == "summary" })
+	pre := children(d, func(n *html.Node) bool { return n.Data == "pre" && hasClass(n, "log-pane") })
+	var tools bool
+	for _, k := range children(d, func(n *html.Node) bool { return n.Data == "div" && hasClass(n, "log-tools") }) {
+		previous := descendants(k, func(n *html.Node) bool { return n.Data == "input" && attr(n, "data-log-previous") != "" })
+		state := descendants(k, func(n *html.Node) bool { return hasClass(n, "log-state") })
+		tools = tools || (len(previous) == 1 && len(state) == 1)
 	}
-	if !summary || !tools || !pre {
-		t.Errorf("GET %s: pane %s: summary %t, tools %t, pre %t; want all", path, attr(d, "id"), summary, tools, pre)
+	if len(summary) != 1 || !tools || len(pre) != 1 {
+		t.Errorf("GET %s: pane %s: %d summaries, tools %t, %d pres; want one of each", path, attr(d, "id"), len(summary), tools, len(pre))
 	}
 }
 
-func findByID(n *html.Node, id string) *html.Node {
-	for d := range n.Descendants() {
-		if d.Type == html.ElementNode && attr(d, "id") == id {
-			return d
+// children returns n's element children that match.
+func children(n *html.Node, match func(*html.Node) bool) []*html.Node {
+	var out []*html.Node
+	for k := range n.ChildNodes() {
+		if k.Type == html.ElementNode && match(k) {
+			out = append(out, k)
 		}
+	}
+	return out
+}
+
+// descendants returns n's element descendants that match.
+func descendants(n *html.Node, match func(*html.Node) bool) []*html.Node {
+	var out []*html.Node
+	for d := range n.Descendants() {
+		if d.Type == html.ElementNode && match(d) {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+func findByID(n *html.Node, id string) *html.Node {
+	if found := descendants(n, func(d *html.Node) bool { return attr(d, "id") == id }); len(found) > 0 {
+		return found[0]
 	}
 	return nil
 }
