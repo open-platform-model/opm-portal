@@ -163,13 +163,18 @@
         keepOpen(el, next);
         keepViews(el, views);
         var fresh = document.importNode(next, true);
-        mergeLogs(el, fresh);
-        el.replaceWith(fresh);
-        if (typeof htmx !== "undefined") {
-          htmx.process(fresh);
+        var shown = fresh;
+        if (mergeLogs(el, fresh)) {
+          shown = el;
+        } else {
+          el.querySelectorAll("details.log").forEach(unfollow);
+          el.replaceWith(fresh);
         }
-        fresh.classList.add("refreshed");
-        window.setTimeout(function () { fresh.classList.remove("refreshed"); }, 900);
+        if (typeof htmx !== "undefined") {
+          htmx.process(shown);
+        }
+        shown.classList.add("refreshed");
+        window.setTimeout(function () { shown.classList.remove("refreshed"); }, 900);
       });
       restoreGraphs();
       restoreViews(views);
@@ -215,31 +220,70 @@
     });
   }
 
-  // mergeLogs keeps the log panes on the page in the fresh logs region:
-  // a pane whose container the fresh region still lists is moved over with
-  // its text, its open state and its stream; a Pod new since the page
-  // loaded gets the fresh, closed pane. An open pane whose Pod is gone stays,
-  // marked gone, so its last lines can still be read; a closed one is
-  // dropped and stops following.
-  function mergeLogs(from, to) {
-    var list = to.querySelector(".logs");
-    from.querySelectorAll("details.log").forEach(function (d) {
-      var twin = d.id ? to.querySelector("#" + CSS.escape(d.id)) : null;
+  // mergeLogs refreshes a region holding log panes in place, from its
+  // fresh render: a kept pane is never detached, because a detached element
+  // loses its scroll offset, its tail and keyboard focus. A pane the fresh
+  // render still lists stays as it is, with its text, open state and
+  // stream; a Pod new since the last render gets the fresh, closed pane,
+  // appended to the list. An open pane whose Pod is gone stays, marked
+  // gone, so its last lines can still be read; a closed one is removed and
+  // stops following. The rest of the region, around the list, is replaced
+  // from the fresh render. It answers false, changing nothing, when either
+  // render has no pane list as a direct child.
+  function mergeLogs(el, fresh) {
+    var list = el.querySelector(":scope > .logs");
+    var next = fresh.querySelector(":scope > .logs");
+    if (!list || !next) {
+      return false;
+    }
+    list.querySelectorAll("details.log").forEach(function (d) {
+      var twin = d.id ? next.querySelector("#" + CSS.escape(d.id)) : null;
       if (twin) {
-        twin.replaceWith(d);
-        return;
-      }
-      if (d.open && list) {
+        d.classList.remove("log-gone");
+        twin.remove();
+      } else if (d.open) {
         d.classList.add("log-gone");
-        list.appendChild(d);
-        return;
-      }
-      var f = d.getAttribute("data-following");
-      if (f) {
-        logTopics.delete(f);
-        sync();
+      } else {
+        unfollow(d);
+        d.remove();
       }
     });
+    next.querySelectorAll("details.log").forEach(function (d) {
+      list.appendChild(d);
+    });
+    Array.from(el.childNodes).forEach(function (n) {
+      if (n !== list) {
+        el.removeChild(n);
+      }
+    });
+    var before = true;
+    Array.from(fresh.childNodes).forEach(function (n) {
+      if (n === next) {
+        before = false;
+      } else if (before) {
+        el.insertBefore(n, list);
+      } else {
+        el.appendChild(n);
+      }
+    });
+    Array.from(el.attributes).forEach(function (a) {
+      if (!fresh.hasAttribute(a.name)) {
+        el.removeAttribute(a.name);
+      }
+    });
+    Array.from(fresh.attributes).forEach(function (a) {
+      el.setAttribute(a.name, a.value);
+    });
+    return true;
+  }
+
+  // unfollow stops the stream a pane follows, for a pane leaving the page.
+  function unfollow(d) {
+    var f = d.getAttribute("data-following");
+    if (f) {
+      logTopics.delete(f);
+      sync();
+    }
   }
 
   if (listener) {

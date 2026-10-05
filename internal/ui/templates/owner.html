@@ -77,7 +77,6 @@
 
 <section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
   <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
-  {{if .Logs}}
   <div class="logs">
   {{range .Logs}}
     <details class="log" id="{{.ID}}" data-log-topic="{{.Topic}}">
@@ -87,7 +86,7 @@
     </details>
   {{end}}
   </div>
-  <p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
+  {{if .Logs}}<p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
   {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}
 </section>
 {{end}}
