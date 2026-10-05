@@ -107,7 +107,9 @@ task check              # fmt, vet, lint, openspec, test, capture check
 
 `task e2e:up` builds a throwaway kind cluster with the released opm-operator and a set of test
 modules, `task e2e:capture` snapshots it into `testdata/clusters/f1/`, `task e2e:local` runs the
-built binary in local mode against it, and `task e2e:down` deletes it. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
+built binary in local mode against it, `task e2e:m1` checks the milestone 1 views through it
+(including a scripted image break it reverts), and `task e2e:down` deletes it. The `E2E`
+workflow runs them, and the browser tests, every night. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
 jq, and never touch a cluster other than `opm-portal-e2e` (or the `opm-portal-e2e-<suffix>`
 cluster `E2E_CLUSTER` names).
 

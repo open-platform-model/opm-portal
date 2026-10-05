@@ -75,8 +75,8 @@ depend on this workflow.
 - **WHEN** a change to `internal/auth` makes a browser land on the launch without its session
 - **THEN** the next nightly run fails in the `Browser` job and uploads the browser screenshots
 
-#### Scenario: A failing milestone 1 test
+#### Scenario: A failing local-mode test
 
-- **WHEN** `task e2e:m1` fails in the nightly run
-- **THEN** the run still runs `task e2e:local`, deletes the cluster, and uploads the test output
+- **WHEN** `task e2e:local` fails in the nightly run
+- **THEN** the run still runs `task e2e:m1`, deletes the cluster, and uploads the test output
   and the cluster dump

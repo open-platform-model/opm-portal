@@ -123,6 +123,14 @@ tasks:
     cmds:
       - test/e2e/m1.sh
 
+  e2e:dump:
+    desc: 'Dump the fixture cluster''s OPM objects, Pods, events and operator log for a failed run, without Secrets or values (DIR=<directory>, default .e2e/dump/<cluster>)'
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/dump.sh {{.DIR}}
+
   e2e:capture:
     desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)
     env:

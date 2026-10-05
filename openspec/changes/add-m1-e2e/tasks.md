@@ -12,8 +12,8 @@
 
 ## 3. Nightly workflow (.github/workflows, test, AGENTS.md)
 
-- [ ] 3.1 Pin the Playwright image by digest; screenshots on failure into `OPM_PORTAL_BROWSER_SHOTS`
-- [ ] 3.2 `test/e2e/dump.sh`: OPM objects, Pods and events of the fixture cluster, no Secrets
-- [ ] 3.3 `e2e.yml`: `e2e:local` and `e2e:m1` in the `E2E` job, a parallel `Browser` job, artifacts on failure; `actionlint`
-- [ ] 3.4 `AGENTS.md`: `task e2e:m1` and the nightly coverage
-- [ ] 3.5 `task check` and `actionlint` green, then commit `ci(e2e): run the local, milestone 1 and browser tests nightly`
+- [x] 3.1 Pin the Playwright image by digest; screenshots on failure into `OPM_PORTAL_BROWSER_SHOTS`
+- [x] 3.2 `test/e2e/dump.sh` and `task e2e:dump`: OPM objects (no values), Pods, events and the operator log of the fixture cluster, no Secrets
+- [x] 3.3 `e2e.yml`: `e2e:local` and `e2e:m1` in the `E2E` job, a parallel `Browser` job, artifacts on failure; `actionlint`
+- [x] 3.4 `AGENTS.md` and `README.md`: `task e2e:m1`, `task e2e:dump` and the nightly coverage
+- [x] 3.5 `task check` and `actionlint` green, then commit `ci(e2e): run the local, milestone 1 and browser tests nightly`

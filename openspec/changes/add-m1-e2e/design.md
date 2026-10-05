@@ -52,7 +52,7 @@ the nightly E2E workflow only builds and captures the cluster.
   runners a pull from MCR takes about as long as restoring a multi-gigabyte tarball from the
   Actions cache, and the cache would take a large share of the repository's 10 GB quota.
 - On failure the run uploads the test output, a dump of the fixture cluster's OPM objects, Pods
-  and events (`test/e2e/dump.sh`, never Secrets), and the browser screenshots the Playwright
+  and events (`task e2e:dump`, never Secrets or values), and the browser screenshots the Playwright
   scripts save when `OPM_PORTAL_BROWSER_SHOTS` names a directory.
 
 ## Risks / Trade-offs

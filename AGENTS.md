@@ -242,11 +242,23 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task e2e:local`: build the binary and run `TestLocalMode` (build tag `e2e`) against the
   fixture cluster: launch, reads with and without the session, a foreign `Host`, a cross-site
   `POST`, a pod log on the stream, and a clean `SIGINT`.
+- `task e2e:m1`: build the binary and run `TestM1` and `TestM1NamespaceReader` (build tag `e2e`)
+  against the fixture cluster: the milestone 1 views through the read API and the stream (both
+  claims, Applied and Health apart, the CLI-owned instance, a namespace-scoped reader with locked
+  objects), and a scripted image break that must read Degraded within 10 s of the cluster while
+  Applied stays. It patches podinfo's image tag and reverts it before it ends.
+- `task e2e:dump` (`DIR=<directory>`): the fixture cluster's OPM objects (no values), Pods,
+  events and operator log, for reading a failed run.
+- The nightly `E2E` workflow runs `e2e:up`, `e2e:capture`, `e2e:local` and `e2e:m1` on docker
+  kind, and `test:browser` in a parallel `Browser` job; on failure it uploads the test logs, the
+  cluster dump and the browser screenshots. Dispatch it on a branch with
+  `gh workflow run e2e.yml --ref <branch>`.
 - `task test:browser`: launch a local session in Chromium, Firefox and WebKit from the
   `--open` page (file://) and from the printed link, through `TestBrowserLaunch` (build tag
   `browser`) and the Playwright image (podman by default, `OPM_PORTAL_CONTAINER_ENGINE=docker`
-  otherwise; pulls the image and installs the pinned Playwright package, so it needs the
-  network). A Go client ignores SameSite, so only this test catches a launch whose cookie a
+  otherwise; pulls the image by its pinned digest and installs the matching Playwright package,
+  so it needs the network; `OPM_PORTAL_BROWSER_SHOTS=<directory>` saves a screenshot of each
+  failing browser there). A Go client ignores SameSite, so only this test catches a launch whose cookie a
   browser withholds. Run it after any change to `internal/auth` or `openLaunch`. It also runs
   `TestBrowserLogs`, which refreshes a logs region under a tailed, focused pane and checks the
   pane keeps its scroll offset, focus and tail; run it after any change to the page script's

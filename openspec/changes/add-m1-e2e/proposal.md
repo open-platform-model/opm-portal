@@ -35,7 +35,8 @@ item 1). And `TestBrowserLogs` serves a hand-copied logs region, so a template c
 
 - Files: `cmd/opm-portal` (`e2e_test.go`, a new `m1_e2e_test.go`, `browser_test.go`),
   `test/e2e` (`m1.sh`, `dump.sh`), `test/browser` (screenshots on failure), `internal/ui` (a
-  test), `Taskfile.yml`, `.github/workflows/e2e.yml`, `AGENTS.md`. No production code changes.
+  test), `Taskfile.yml` (`e2e:m1`, `e2e:dump`), `.github/workflows/e2e.yml`, `AGENTS.md`,
+  `README.md`. No production code changes.
 - API and pages: none. No new dependency.
 - Principle V: the portal's reads and verbs are unchanged. The test itself writes to the
   throwaway fixture cluster with the fixture kubeconfig (a ServiceAccount, Role and RoleBinding,

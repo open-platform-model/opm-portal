@@ -1,9 +1,10 @@
 name: E2E
 
-# Builds the e2e fixture cluster from released artifacts on GHCR and GitHub releases and
-# captures it. Never on pull requests: it depends on registries outside this repo, so it must
-# not gate a merge. A capture that differs from testdata/clusters/f1 is uploaded for review,
-# not committed; one whose verdicts or versions differ fails the run.
+# Builds the e2e fixture cluster from released artifacts on GHCR and GitHub releases, captures
+# it, and runs the local-mode and milestone 1 tests against it; a parallel job runs the browser
+# tests. Never on pull requests: it depends on registries outside this repo and a multi-gigabyte
+# browser image, so it must not gate a merge. A capture that differs from testdata/clusters/f1 is
+# uploaded for review, not committed; one whose verdicts or versions differ fails the run.
 on:
   workflow_dispatch:
   schedule:
@@ -13,19 +14,26 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
+
+defaults:
+  run:
+    # Explicit bash runs with pipefail, so a test piped into tee still fails its step.
+    shell: bash
 
 jobs:
   e2e:
     name: E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       E2E_PROVIDER: docker
     steps:
       - name: Clone the code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -44,6 +52,7 @@ jobs:
           kind version
 
       - name: Create the fixture cluster
+        id: up
         run: task e2e:up
 
       - name: Capture the fixture cluster
@@ -92,6 +101,72 @@ jobs:
           path: testdata/clusters/f1/
           if-no-files-found: warn
 
+      # The tests run whenever the cluster came up, even after a verdict difference, so one
+      # failure does not hide another. e2e:m1 breaks podinfo's image and reverts it, so it runs
+      # after e2e:local, whose log follow needs a running podinfo Pod.
+      - name: Run the local-mode test
+        if: ${{ !cancelled() && steps.up.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/e2e-logs"
+          task e2e:local 2>&1 | tee "$RUNNER_TEMP/e2e-logs/local.log"
+
+      - name: Run the milestone 1 test
+        if: ${{ !cancelled() && steps.up.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/e2e-logs"
+          task e2e:m1 2>&1 | tee "$RUNNER_TEMP/e2e-logs/m1.log"
+
+      # Best effort: when e2e:up failed before writing the kubeconfig there is nothing to dump.
+      - name: Dump the fixture cluster
+        if: failure()
+        continue-on-error: true
+        run: task e2e:dump DIR="$RUNNER_TEMP/e2e-logs/cluster"
+
+      - name: Upload the test logs
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-logs
+          path: ${{ runner.temp }}/e2e-logs/
+          if-no-files-found: ignore
+
       - name: Delete the fixture cluster
         if: always()
         run: task e2e:down
+
+  browser:
+    name: Browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OPM_PORTAL_CONTAINER_ENGINE: docker
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install Task
+        uses: go-task/setup-task@a00fbb05ce67b35648be3c78cbc9fd85354c757e # v2.2.0
+        with:
+          version: 3.x
+
+      # The image is pulled by the digest browser_test.go pins, not cached: a pull from MCR takes
+      # about as long as restoring a multi-gigabyte tarball from the Actions cache.
+      - name: Run the browser tests
+        run: |
+          mkdir -p "$RUNNER_TEMP/browser"
+          OPM_PORTAL_BROWSER_SHOTS="$RUNNER_TEMP/browser/shots" task test:browser 2>&1 | tee "$RUNNER_TEMP/browser/test.log"
+
+      - name: Upload the screenshots and the test log
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: browser
+          path: ${{ runner.temp }}/browser/
+          if-no-files-found: ignore
