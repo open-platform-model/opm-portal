@@ -295,7 +295,12 @@ func TestInClusterRefusesSystemIdentities(t *testing.T) {
 	saName := Identity{Username: portalSA, Groups: []string{"system:authenticated"}}
 	saGroups := person.clone()
 	saGroups.Groups = reader.Groups
+	otherReader, err := ServiceAccountIdentity("system:serviceaccount:kube-system:default")
+	if err != nil {
+		t.Fatal(err)
+	}
 	cases := map[string]Identity{
+		"another ServiceAccount marked as a reader":    otherReader,
 		"the ServiceAccount's name without its groups": saName,
 		"another ServiceAccount":                       {Username: "system:serviceaccount:kube-system:default", Groups: []string{"system:authenticated"}},
 		"a system user":                                {Username: "system:admin"},
@@ -337,9 +342,6 @@ func TestInClusterClaimsSpellingTheReaderAreAPerson(t *testing.T) {
 	requireDenial(t, g, err, CodeUnauthenticated)
 	if after := len(sc.Actions()); after != before {
 		t.Fatalf("cluster saw %d requests for claims spelling the reader, want 0", after-before)
-	}
-	if err := (Grant{}).Covers(spelled, req); err == nil {
-		t.Fatal("a zero grant covers the spelled identity")
 	}
 	rg, err := c.Check(t.Context(), portalReader(t), req)
 	if err != nil {

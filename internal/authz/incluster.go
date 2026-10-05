@@ -59,12 +59,12 @@ type subjectReviewer struct {
 }
 
 func (s *subjectReviewer) decide(ctx context.Context, who Identity, req Attributes) (bool, error) {
-	isReader := who.reader && who.key() == s.readerKey
-	if !isReader && !isPerson(who) {
+	// The key carries the reader mark, which only ServiceAccountIdentity
+	// sets, so claims that spell the ServiceAccount's name and groups, and
+	// any other marked ServiceAccount, still land on the person route.
+	if who.key() != s.readerKey && !isPerson(who) {
 		// A person never carries a system name or group; one that does
 		// came through a broken mapping and is refused, not reviewed.
-		// Only ServiceAccountIdentity marks the reader, so claims that
-		// spell the ServiceAccount's name and groups still land here.
 		return false, &DenialError{Code: CodeUnauthenticated, Attributes: req}
 	}
 	review := &authorizationv1.SubjectAccessReview{
