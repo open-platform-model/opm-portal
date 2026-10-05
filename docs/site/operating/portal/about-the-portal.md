@@ -75,4 +75,4 @@ An object no OPM inventory reaches, such as a Deployment you applied with `kubec
 > [!NOTE]
 > **Direction**
 >
-> An in-cluster mode, in which people sign in with OIDC and every read is checked for the signed-in user, is designed in [enhancement 0030](/enhancements/0030/), a draft. It is not built.
+> An in-cluster mode, in which people sign in with OIDC and every read is checked for the signed-in user, is planned: the portal's [design record](https://github.com/open-platform-model/opm-portal/blob/main/docs/DESIGN.md) holds its decisions and the [roadmap](https://github.com/open-platform-model/opm-portal/blob/main/ROADMAP.md) tracks its progress. It is not built, and `opm-portal serve` runs local mode only.
