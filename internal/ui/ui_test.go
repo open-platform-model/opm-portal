@@ -109,13 +109,15 @@ type goldenPage struct {
 var f1Pages = []goldenPage{
 	{"platform", "/", false},
 	{"platform-node-registration", "/?node=treg:default.refused-claim-fixture", false},
-	{"instances", "/instances", false},
-	{"instances-default", "/instances?namespace=default", false},
+	{"installed", "/installed", false},
+	{"installed-default", "/installed?namespace=default", false},
+	{"installed-packages", "/installed?kind=package", false},
+	{"installed-uses", "/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1", false},
+	{"installed-ignored", "/installed?health=Bogus&q=pod", false},
 	{"instance-podinfo", "/instances/default/podinfo", false},
 	{"instance-cert-manager", "/instances/cert-manager/cert-manager", false},
 	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager", false},
 	{"instance-web-cli-owned", "/instances/web/web", false},
-	{"packages", "/packages", false},
 	{"package-podinfo", "/packages/pkg/podinfo", false},
 	{"fragment-object-deployment", "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo", true},
 	{"fragment-node-deployment", "/instances/default/podinfo/node?id=obj:apps/Deployment/default/podinfo-podinfo", true},
@@ -156,9 +158,13 @@ func TestGoldenLocked(t *testing.T) {
 	}
 
 	lists := newSite(t, apitest.F1(t), apitest.DenyResources("moduleinstances"))
-	checkGoldens(t, lists, []goldenPage{{"instances-locked", "/instances", false}})
-	if main := mainOf(lists.get(t, "/instances").body); !strings.Contains(main, "locked-panel") || strings.Contains(main, "<table") {
-		t.Errorf("a forbidden list is not a locked panel without rows:\n%s", main)
+	checkGoldens(t, lists, []goldenPage{{"installed-instances-locked", "/installed", false}})
+	main = mainOf(lists.get(t, "/installed").body)
+	if !strings.Contains(main, "Module instances</strong>: locked") || strings.Contains(main, "/instances/default/podinfo") {
+		t.Errorf("a forbidden instance list is not a locked group without its rows:\n%s", main)
+	}
+	if !strings.Contains(main, "/packages/pkg/podinfo") || strings.Contains(main, "Module packages</strong>: locked") {
+		t.Errorf("the readable package list does not show beside the locked instances:\n%s", main)
 	}
 }
 
@@ -417,11 +423,10 @@ func TestPagesDeclareTheirTopics(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for path, want := range map[string]string{
 		"/":                          "platform events:platform",
-		"/instances":                 "instances",
-		"/instances?namespace=web":   "instances:web",
+		"/installed":                 "instances",
+		"/installed?namespace=web":   "instances:web",
 		"/instances/default/podinfo": "instance:default/podinfo events:instance:default/podinfo",
 		"/packages/pkg/podinfo":      "package:pkg/podinfo events:package:pkg/podinfo",
-		"/packages":                  "",
 	} {
 		body := s.get(t, path).body
 		main := between(body, "<main ", ">")
@@ -442,7 +447,7 @@ func TestPagesDeclareTheirTopics(t *testing.T) {
 // page with 401, and asks for no review.
 func TestSignInWithoutASession(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
-	for _, path := range []string{"/", "/instances", "/instances/default/podinfo", "/packages/pkg/podinfo/object?kind=Pod&name=x&namespace=pkg"} {
+	for _, path := range []string{"/", "/installed", "/instances/default/podinfo", "/packages/pkg/podinfo/object?kind=Pod&name=x&namespace=pkg"} {
 		res := s.get(t, path, anonymous)
 		if res.status != http.StatusUnauthorized || !strings.Contains(res.body, "You are not signed in") {
 			t.Errorf("GET %s without a session = %d", path, res.status)

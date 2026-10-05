@@ -210,8 +210,8 @@ func (s m1Session) restForbidden(t *testing.T) {
 			t.Errorf("%s: %d %.200s; want 403 forbidden", path, res.status, res.body)
 		}
 	}
-	if page := get(s.ctx, t, s.browser, s.base+"/instances", nil); !strings.Contains(page.body, "Locked: you may not list") {
-		t.Errorf("the cluster-wide instance page is not a locked list")
+	if page := get(s.ctx, t, s.browser, s.base+"/installed", nil); !strings.Contains(page.body, "You may not list ModuleInstances in every namespace") {
+		t.Errorf("the cluster-wide Installed list does not lock its instances")
 	}
 }
 

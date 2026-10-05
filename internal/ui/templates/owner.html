@@ -1,6 +1,6 @@
 {{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
 <header class="page-head reveal" id="owner-head" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <p class="kicker"><a href="/{{.Kind.Path}}">{{.Kind.Plural}}</a> · {{.Namespace}}</p>
+  <p class="kicker"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> · {{.Kind.Topic}} · {{.Namespace}}</p>
   <h1>{{.Name}}</h1>
   {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
   <div class="axes">{{template "applied" .Reconcile}}{{template "health" .Health}}{{if not .Health.Live}}{{with .Health.EvaluatedAt}}<span class="muted">health evaluated {{template "time" .}}</span>{{end}}{{end}}</div>
@@ -8,7 +8,7 @@
   {{with .Instance}}
   <dl class="facts facts-row">
     <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
-    <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the operator{{end}}{{with .ServiceAccountName}}, as ServiceAccount <span class="mono">{{.}}</span>{{end}}</dd>
+    <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the controller{{end}}{{with .ServiceAccountName}}, as ServiceAccount <span class="mono">{{.}}</span>{{end}}</dd>
     <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
     <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
   </dl>
@@ -64,7 +64,7 @@
 </section>
 
 <section class="panel reveal" id="history" aria-labelledby="history-h" data-follow="{{.Kind.Topic}}:{{.Namespace}}/{{.Name}}">
-  <h2 id="history-h">History <span class="h-note">the operator's record, newest first</span></h2>
+  <h2 id="history-h">History <span class="h-note">the controller's record, newest first</span></h2>
   {{template "history" .History}}
 </section>
 

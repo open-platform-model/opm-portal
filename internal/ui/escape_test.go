@@ -99,11 +99,18 @@ func TestNoTrustedMarkupInTheUI(t *testing.T) {
 			t.Errorf("%s uses %s, which bypasses escaping", name, m)
 		}
 	}
-	js, err := os.ReadFile("static/portal.js")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if m := regexp.MustCompile(`\.(innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML\s*\(|document\.write(ln)?\s*\(`).FindString(string(js)); m != "" {
-		t.Errorf("portal.js uses %s; untrusted text goes in as textContent only", m)
+	markup := regexp.MustCompile(`\.(innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML\s*\(|document\.write(ln)?\s*\(`)
+	style := regexp.MustCompile(`setAttribute\(\s*["']style["']`)
+	for _, name := range []string{"static/portal.js", "static/prefs.js"} {
+		js, err := os.ReadFile(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if m := markup.FindString(string(js)); m != "" {
+			t.Errorf("%s uses %s; untrusted text goes in as textContent only", name, m)
+		}
+		if m := style.FindString(string(js)); m != "" {
+			t.Errorf("%s uses %s; the page policy forbids style attributes, so positions go through CSSOM", name, m)
+		}
 	}
 }

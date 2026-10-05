@@ -23,6 +23,104 @@
   }
   window.setTimeout(function () { body.classList.add("loaded"); }, 900);
 
+  // ---- Theme ----
+  // prefs.js applied the stored theme before first paint; the menu changes
+  // it for this page and keeps it in the browser when storage allows.
+  var prefs = window.opmPortalPrefs || null;
+
+  function markTheme() {
+    var cur = document.documentElement.getAttribute("data-theme") || "system";
+    document.querySelectorAll("[data-theme-choice]").forEach(function (b) {
+      b.setAttribute("aria-checked", b.getAttribute("data-theme-choice") === cur ? "true" : "false");
+    });
+  }
+  markTheme();
+
+  document.addEventListener("click", function (evt) {
+    var b = evt.target.closest && evt.target.closest("[data-theme-choice]");
+    if (!b) {
+      return;
+    }
+    var choice = b.getAttribute("data-theme-choice");
+    if (prefs) {
+      prefs.setTheme(choice);
+    } else if (choice === "light" || choice === "dark") {
+      document.documentElement.setAttribute("data-theme", choice);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    markTheme();
+    var menu = b.closest("details");
+    if (menu) {
+      menu.open = false;
+    }
+  });
+
+  // ---- Header ----
+  // The header slims once a sentinel 48 px down the page leaves the
+  // viewport; the transition is off under reduced motion (portal.css).
+  var sentinel = document.getElementById("top-sentinel");
+  var masthead = document.getElementById("masthead");
+  if (sentinel && masthead && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      masthead.classList.toggle("compact", !entries[entries.length - 1].isIntersecting);
+    }).observe(sentinel);
+  }
+
+  // ---- Remembered filters ----
+  // A boosted link to a remembered list view whose URL carries none of the
+  // view's filters is requested, and pushed, with the filters the browser
+  // remembers for it; htmx requests and pushes the path left in
+  // htmx:configRequest (design.md, the boosted filter restore spike). Only
+  // a boosted link is rewritten: a form submit, a chip or "Clear filters"
+  // (data-filters-explicit), a region refresh, a panel fetch and the
+  // topic change never are.
+  document.addEventListener("htmx:configRequest", function (evt) {
+    var d = evt.detail;
+    if (!prefs || !d || !d.boosted || d.verb !== "get" || !d.elt || d.elt.tagName !== "A" ||
+        d.elt.hasAttribute("data-filters-explicit")) {
+      return;
+    }
+    var u;
+    try {
+      u = new URL(d.path, location.href);
+    } catch (e) {
+      return;
+    }
+    if (u.origin !== location.origin) {
+      return;
+    }
+    var next = prefs.restored(u.pathname, u.search);
+    if (next !== null) {
+      d.path = next + u.hash;
+    }
+  });
+
+  // After each render, a remembered view stores the filters it shows.
+  function rememberFilters() {
+    if (prefs) {
+      prefs.remember(location.pathname, location.search);
+    }
+  }
+  rememberFilters();
+  document.addEventListener("htmx:pushedIntoHistory", rememberFilters);
+
+  // "Clear filters" forgets the view first, so nothing restores them.
+  document.addEventListener("click", function (evt) {
+    var a = evt.target.closest && evt.target.closest("a[data-clear-filters]");
+    if (a && prefs) {
+      prefs.forget(a.getAttribute("data-clear-filters"));
+    }
+  }, true);
+
+  // A filter form's selects apply at once; without script its button does.
+  document.addEventListener("change", function (evt) {
+    var sel = evt.target;
+    if (sel && sel.matches && sel.matches("form[data-filters] select") && sel.form && sel.form.requestSubmit) {
+      sel.form.requestSubmit();
+    }
+  });
+
   // ---- Stream topics ----
   var streamID = "";
   var expired = false;
@@ -379,6 +477,7 @@
   document.addEventListener("htmx:afterSettle", function () {
     sync();
     restoreGraphs();
+    rememberFilters();
   });
 
   // ---- Logs ----

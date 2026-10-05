@@ -43,3 +43,6 @@ go.work.sum
 
 # Python bytecode from the Playwright scripts
 __pycache__/
+
+# The binary go build writes when run inside cmd/opm-portal
+/cmd/opm-portal/opm-portal

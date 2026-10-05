@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/ui"
@@ -142,6 +143,52 @@ func TestBrowserLogs(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestBrowserTheme checks, in real browsers (task test:browser), what only
+// a browser shows: a stored Dark theme paints dark first on a light system,
+// a stored Installed filter opens filtered on a full load and on a boosted
+// navigation, and a stale stored value is dropped (portal:D14).
+func TestBrowserTheme(t *testing.T) {
+	script := browserScript(t, "theme.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), apitest.Context); err != nil {
+				t.Fatalf("the theme or the remembered filters did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// serveF1Site serves, on a free loopback port, the read API and the pages
+// over the F1 capture, every request reading as the test caller.
+func serveF1Site(t *testing.T) string {
+	t.Helper()
+	var lc net.ListenConfig
+	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := apitest.New(t, apitest.F1(t), apitest.AllowAll)
+	pages, err := ui.New(ui.Config{API: srv})
+	if err != nil {
+		t.Fatal(err)
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/api/", srv)
+	mux.Handle("/", pages)
+	httpSrv := &http.Server{
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.AddCookie(&http.Cookie{Name: apitest.SessionCookie, Value: apitest.SessionValue})
+			mux.ServeHTTP(w, r)
+		}),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	go func() { _ = httpSrv.Serve(ln) }()
+	t.Cleanup(func() { _ = httpSrv.Close() })
+	return "http://" + ln.Addr().String()
 }
 
 // TestBrowserExpired ends a page's stream with the expired event in real

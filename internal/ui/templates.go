@@ -8,10 +8,10 @@ import (
 
 // baseTemplates are parsed into every page: the layout and the shared
 // partials. Every other file defines one page's "content".
-var baseTemplates = []string{"layout.html", "partials.html", "list.html", "panel-body.html"}
+var baseTemplates = []string{"layout.html", "partials.html", "panel-body.html"}
 
 // pageTemplates name each page and fragment by its file.
-var pageTemplates = []string{"platform", "instances", "packages", "owner", "message", "object", "events", "panel", "problem"}
+var pageTemplates = []string{"platform", "installed", "owner", "message", "object", "events", "panel", "problem"}
 
 // parsePages parses one template set per page, each the base templates and
 // the page's own file.

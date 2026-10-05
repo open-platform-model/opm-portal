@@ -99,6 +99,54 @@ func stateBadge(state string) badge { return known("health", healthText, state) 
 
 func verdictBadge(v string) badge { return known("verdict", verdictText, v) }
 
+// providerBadge is the standing of one registration an instance or
+// package holds, as the controller wrote it (portal:D15:R2/R4): never one
+// the portal computed, and locked when the caller may not read it.
+func providerBadge(c v1.ProviderClaim) badge {
+	b := badge{Class: "prov", Text: "Provider", Title: c.Registration}
+	if c.Access != v1.AccessOK {
+		b.Class += " prov-locked"
+		b.Text = "Provider, locked"
+		b.Title = c.Registration + ": " + accessText(c.Access)
+		return b
+	}
+	switch {
+	case c.Verdict == "RemovalBlocked":
+		b.Class += " prov-blocked"
+		b.Text = "Provider, removal blocked"
+	case c.Verdict == verdictAccepted && c.Active:
+		b.Class += " prov-active"
+	case c.Verdict == verdictAccepted:
+		b.Class += " prov-inactive"
+		b.Text = "Provider, not active"
+	case c.Verdict == "Refused":
+		b.Class += " prov-refused"
+		b.Text = "Provider, refused"
+	case c.Verdict == "Pending":
+		b.Class += " prov-pending"
+		b.Text = "Provider, pending"
+	default:
+		b.Class += " prov-unknown"
+		b.Text = "Provider, unknown"
+	}
+	if c.Reason != "" {
+		b.Title += ": " + c.Reason
+	}
+	return b
+}
+
+// ownerText is an owner as the pages say it: the read API's operator is
+// the controller (portal:D17:R2).
+func ownerText(owner string) string {
+	switch owner {
+	case "operator", ownerController:
+		return ownerController
+	case "cli":
+		return "cli"
+	}
+	return owner
+}
+
 // accessText says why something is locked.
 func accessText(access string) string {
 	switch access {
@@ -221,18 +269,20 @@ func plural(n int, one, many string) string {
 func isSecret(r v1.ObjectRef) bool { return r.Group == "" && r.Kind == "Secret" }
 
 var funcs = template.FuncMap{
-	"appliedBadge": appliedBadge,
-	"healthBadge":  healthBadge,
-	"stateBadge":   stateBadge,
-	"verdictBadge": verdictBadge,
-	"accessText":   accessText,
-	"toneClass":    toneClass,
-	"short":        short,
-	"refText":      refText,
-	"isSecret":     isSecret,
-	"join":         strings.Join,
-	"segments":     segments,
-	"plural":       plural,
+	"appliedBadge":  appliedBadge,
+	"healthBadge":   healthBadge,
+	"stateBadge":    stateBadge,
+	"verdictBadge":  verdictBadge,
+	"providerBadge": providerBadge,
+	"ownerText":     ownerText,
+	"accessText":    accessText,
+	"toneClass":     toneClass,
+	"short":         short,
+	"refText":       refText,
+	"isSecret":      isSecret,
+	"join":          strings.Join,
+	"segments":      segments,
+	"plural":        plural,
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK
 	},

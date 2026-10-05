@@ -9,8 +9,8 @@
 <dl class="facts">
   {{with .RefText}}<dt>Object</dt><dd class="mono">{{template "breakable" .}}</dd>{{end}}
   {{with .Health}}{{with .Reason}}<dt>Health reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Health</dt><dd>{{.}}</dd>{{end}}{{if .Partial}}<dt>Partial</dt><dd>Some objects could not be read and were left out.</dd>{{end}}{{if .NotLive}}<dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>{{end}}{{end}}
-  {{with .Reconcile}}{{with .Reason}}<dt>Applied reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Operator says</dt><dd>{{.}}</dd>{{end}}{{end}}
-  {{with .Owner}}<dt>Applied by</dt><dd>{{if eq . "cli"}}the opm CLI{{else}}the operator{{end}}</dd>{{end}}
+  {{with .Reconcile}}{{with .Reason}}<dt>Applied reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Controller says</dt><dd>{{.}}</dd>{{end}}{{end}}
+  {{with .Owner}}<dt>Applied by</dt><dd>{{if eq . "cli"}}the opm CLI{{else}}the controller{{end}}</dd>{{end}}
   {{with .Version}}<dt>Version</dt><dd class="ver">{{.}}</dd>{{end}}
   {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
   {{with .Replicas}}<dt>Desired replicas</dt><dd>{{.}}</dd>{{end}}
@@ -24,7 +24,7 @@
   {{with .ActiveMessage}}<dt>Activation</dt><dd>{{.}}</dd>{{end}}
   {{end}}
   {{with .Catalog}}<dt>Registry entry</dt><dd>{{with .Version}}<span class="ver">{{.}}</span> {{end}}{{.Source}}{{if not .Enabled}}, disabled{{end}}</dd>{{end}}
-  {{with .Platform}}<dt>Platform</dt><dd>{{.Type}}{{with .OperatorVersion}}, operator {{.}}{{end}}</dd>{{end}}
+  {{with .Platform}}<dt>Platform</dt><dd>{{.Type}}{{with .OperatorVersion}}, controller version {{.}}{{end}}</dd>{{end}}
   {{with .Group}}<dt>Stands for</dt><dd>{{len .Members}} {{.Kind}} nodes{{range .Hidden}}, {{.Count}} {{.Kind}}{{end}}</dd>{{end}}
 </dl>
 {{with .Contracts}}<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts">{{range .}}<li class="mono">{{.}}</li>{{end}}</ul>{{end}}
