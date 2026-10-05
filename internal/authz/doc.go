@@ -52,6 +52,36 @@
 // built for; any other identity is refused before a review is sent, so a
 // wiring mistake cannot lend the kubeconfig's access to another principal.
 //
+// # In-cluster mode
+//
+// NewInCluster builds a Checker that asks the cluster with
+// SubjectAccessReviews naming the identity being checked: the signed-in
+// person's username, UID, groups and extra values, with the read's exact
+// attributes. It holds a SubjectAccessReview client and nothing else, so it
+// never sends a self review, which in-cluster would answer for the portal's
+// own ServiceAccount (portal:D6:R9).
+//
+// The Checker knows one more identity, the reader: the portal's
+// ServiceAccount, as ServiceAccountIdentity builds it from a
+// system:serviceaccount:<namespace>:<name> username (a flag, or the mounted
+// token's subject through ServiceAccountFromToken). The read model's
+// informers, polls and on-demand lists hold grants issued from reviews
+// naming it, asked for when first needed and again once the cached decision
+// expires. Only ServiceAccountIdentity marks an identity as the reader, so
+// every other identity is a person, even one whose username and groups equal
+// the reader's: a system username, or a system group other than
+// system:authenticated, is refused before any review, so no person is ever
+// answered with the ServiceAccount's access.
+//
+// # Access log
+//
+// With Options.AccessLog set, Check writes one line per decision about a
+// person, allowed or denied, from the cache or not: the username, the read's
+// attributes, the decision, the denial code and whether it was cached. It
+// never writes groups, extra values or a denial's cause, and leaves out the
+// in-cluster reader. In-cluster this is the only record of who read what,
+// since the API server's audit log sees the portal's ServiceAccount.
+//
 // # Decision cache
 //
 // Allow and deny decisions are cached for a short time (30 seconds by

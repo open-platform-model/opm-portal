@@ -398,6 +398,8 @@ func TestIdentityKeyIsCanonical(t *testing.T) {
 		{Username: "u", Groups: []string{"a", "b"}},
 		{Username: "u", Extra: map[string][]string{"a": {"b"}}},
 		{Username: "u;g=[]"},
+		{Username: "u", reader: true},
+		{Username: "reader;u=\"u\""},
 	}
 	seen := map[string]int{}
 	for i, id := range distinct {

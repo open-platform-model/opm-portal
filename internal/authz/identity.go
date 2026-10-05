@@ -17,6 +17,13 @@ type Identity struct {
 	UID      string
 	Groups   []string
 	Extra    map[string][]string
+
+	// reader marks the in-cluster portal ServiceAccount. Only
+	// ServiceAccountIdentity sets it, so no identity built from sign-in
+	// claims can take the reader's route, however its fields read
+	// (portal:D6:R3). It is part of the key, so a person with the reader's
+	// exact claims shares no decision, grant or log exemption with it.
+	reader bool
 }
 
 // Authenticated reports whether i names a principal. An empty or blank
@@ -31,7 +38,7 @@ func (i Identity) Authenticated() bool {
 // clone returns a deep copy of i, so a caller that mutates its slices or map
 // after Check cannot change what a Grant records.
 func (i Identity) clone() Identity {
-	c := Identity{Username: i.Username, UID: i.UID, Groups: slices.Clone(i.Groups)}
+	c := Identity{Username: i.Username, UID: i.UID, Groups: slices.Clone(i.Groups), reader: i.reader}
 	if i.Extra != nil {
 		c.Extra = make(map[string][]string, len(i.Extra))
 		for k, v := range i.Extra {
@@ -45,6 +52,9 @@ func (i Identity) clone() Identity {
 // differ only in the order of their groups or extra values have equal keys.
 func (i Identity) key() string {
 	var b strings.Builder
+	if i.reader {
+		b.WriteString("reader;")
+	}
 	b.WriteString("u=")
 	b.WriteString(strconv.Quote(i.Username))
 	b.WriteString(";uid=")
