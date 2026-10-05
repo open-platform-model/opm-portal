@@ -21,9 +21,9 @@ const (
 
 // NewInCluster returns a Checker for in-cluster mode. It asks the cluster
 // with SubjectAccessReviews sent through reviews, naming the identity being
-// checked, so every answer is about the signed-in person (0030:D6:R1) and
+// checked, so every answer is about the signed-in person (portal:D6:R1) and
 // never about the portal's own ServiceAccount. It holds no other client: it
-// sends no self review and reads no object (0030:D6:R9).
+// sends no self review and reads no object (portal:D6:R9).
 //
 // reader is the portal's ServiceAccount, the identity the read model reads
 // as, exactly as ServiceAccountIdentity returns it. Its own grants come from
@@ -32,7 +32,7 @@ const (
 // that ServiceAccountIdentity did not build, and a person with a system
 // username or a system group other than system:authenticated is refused
 // before a review is sent, so a mapping mistake cannot borrow the
-// ServiceAccount's access or a privileged group (0030:D6:R3).
+// ServiceAccount's access or a privileged group (portal:D6:R3).
 func NewInCluster(reviews authorizationv1client.SubjectAccessReviewInterface, reader Identity, opts Options) (*Checker, error) {
 	if reviews == nil {
 		return nil, errors.New("in-cluster authorizer: no access review client")

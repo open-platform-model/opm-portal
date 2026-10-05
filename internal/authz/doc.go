@@ -59,7 +59,7 @@
 // person's username, UID, groups and extra values, with the read's exact
 // attributes. It holds a SubjectAccessReview client and nothing else, so it
 // never sends a self review, which in-cluster would answer for the portal's
-// own ServiceAccount (0030:D6:R9).
+// own ServiceAccount (portal:D6:R9).
 //
 // The Checker knows one more identity, the reader: the portal's
 // ServiceAccount, as ServiceAccountIdentity builds it from a

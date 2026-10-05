@@ -391,7 +391,7 @@ func TestInClusterEmptyClaimsNeverBecomeThePortal(t *testing.T) {
 
 // TestInClusterSendsNoSelfReview records every request the fake cluster
 // receives across every route and outcome: each is a create of
-// subjectaccessreviews, never a self review (0030:D6:R9).
+// subjectaccessreviews, never a self review (portal:D6:R9).
 func TestInClusterSendsNoSelfReview(t *testing.T) {
 	sc := newSARCluster(t)
 	sc.answer = func(s authorizationv1.SubjectAccessReviewSpec) authorizationv1.SubjectAccessReviewStatus {

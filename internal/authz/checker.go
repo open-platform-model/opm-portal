@@ -30,7 +30,7 @@ type Options struct {
 	// MaxEntries bounds the decision cache. Default 4096.
 	MaxEntries int
 	// AccessLog, when set, receives one line per decision about a person,
-	// allowed or denied, cached or not (0030:D6:R7). Nil logs nothing.
+	// allowed or denied, cached or not (portal:D6:R7). Nil logs nothing.
 	AccessLog *slog.Logger
 }
 

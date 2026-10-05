@@ -21,7 +21,7 @@ type Identity struct {
 	// reader marks the in-cluster portal ServiceAccount. Only
 	// ServiceAccountIdentity sets it, so no identity built from sign-in
 	// claims can take the reader's route, however its fields read
-	// (0030:D6:R3). It is part of the key, so a person with the reader's
+	// (portal:D6:R3). It is part of the key, so a person with the reader's
 	// exact claims shares no decision, grant or log exemption with it.
 	reader bool
 }

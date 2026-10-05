@@ -173,11 +173,11 @@ timeout).
 
 In-cluster the portal SHALL decide each read for a person with a SubjectAccessReview carrying that
 person's username, UID, groups and extra values and the read's exact attributes, so the person's
-RBAC is the boundary. Source: 0030:D6:R1. The only object it SHALL create is
+RBAC is the boundary. Source: portal:D6:R1. The only object it SHALL create is
 `authorization.k8s.io` `subjectaccessreviews`: it SHALL NOT send a SelfSubjectAccessReview or a
-SelfSubjectReview, which would answer for the portal's own ServiceAccount. Source: 0030:D6:R9.
+SelfSubjectReview, which would answer for the portal's own ServiceAccount. Source: portal:D6:R9.
 An identity with an empty, blank or anonymous username SHALL be refused without any call, and
-SHALL NOT be answered as the portal's ServiceAccount. Source: 0030:D6:R2.
+SHALL NOT be answered as the portal's ServiceAccount. Source: portal:D6:R2.
 
 #### Scenario: Exact identity and attributes are reviewed
 
@@ -213,7 +213,7 @@ starts with `system:` or who carries any group starting with `system:` other tha
 `system:authenticated`, so a person can never be answered with the portal's ServiceAccount's
 access or a privileged group's. Every identity is a person unless the portal built it as its own
 ServiceAccount; matching the ServiceAccount's username and groups does not make an identity the
-ServiceAccount. Source: 0030:D6:R3.
+ServiceAccount. Source: portal:D6:R3.
 
 #### Scenario: System username
 
@@ -270,7 +270,7 @@ When an access log is configured, the portal SHALL write one structured line per
 a person, allowed or denied, from the cache or not, naming the username, the read's attributes,
 the decision and the denial code. The line SHALL NOT carry groups, extra values, tokens, the
 review's error text or any object content. Decisions about the portal's ServiceAccount SHALL NOT
-be logged. Source: 0030:D6:R7.
+be logged. Source: portal:D6:R7.
 
 #### Scenario: Allowed and denied reads are logged
 
