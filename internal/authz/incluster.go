@@ -45,7 +45,10 @@ func NewInCluster(reviews authorizationv1client.SubjectAccessReviewInterface, re
 		// gives the ServiceAccount, never with more.
 		return nil, errors.New("in-cluster authorizer: the reader is not the identity ServiceAccountIdentity returns")
 	}
-	return newChecker(&subjectReviewer{reviews: reviews, readerKey: reader.key()}, opts), nil
+	c := newChecker(&subjectReviewer{reviews: reviews, readerKey: reader.key()}, opts)
+	// The reader is no person, and the API server's audit log names it.
+	c.quiet = reader.key()
+	return c, nil
 }
 
 // subjectReviewer decides through SubjectAccessReviews.

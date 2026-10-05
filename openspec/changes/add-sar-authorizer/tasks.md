@@ -8,5 +8,5 @@
 
 ## 2. Per-user access log (internal/authz)
 
-- [ ] 2.1 Add `Options.AccessLog` and log one line per decision in `Checker.Check` (allow, deny, cached, every denial code), skipping the in-cluster reader; verify with a JSON slog handler that lines carry the user, the attributes, the decision, the code and `cached`, and never groups, extra values or a review error's text
-- [ ] 2.2 `task check` green, then commit `feat(authz): log each in-cluster access decision per user`
+- [x] 2.1 Add `Options.AccessLog` and log one line per decision in `Checker.Check` (allow, deny, cached, every denial code), skipping the in-cluster reader; verify with a JSON slog handler that lines carry the user, the attributes, the decision, the code and `cached`, and never groups, extra values or a review error's text
+- [x] 2.2 `task check` green, then commit `feat(authz): log each in-cluster access decision per user`

@@ -71,6 +71,15 @@
 // group other than system:authenticated, is refused before any review, so
 // no person is ever answered with the ServiceAccount's access.
 //
+// # Access log
+//
+// With Options.AccessLog set, Check writes one line per decision about a
+// person, allowed or denied, from the cache or not: the username, the read's
+// attributes, the decision, the denial code and whether it was cached. It
+// never writes groups, extra values or a denial's cause, and leaves out the
+// in-cluster reader. In-cluster this is the only record of who read what,
+// since the API server's audit log sees the portal's ServiceAccount.
+//
 // # Decision cache
 //
 // Allow and deny decisions are cached for a short time (30 seconds by
