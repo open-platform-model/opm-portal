@@ -154,8 +154,8 @@ type Options struct {
 	WriteTimeout time.Duration
 	// RevalidateTimeout bounds how long the grants of one message are
 	// re-validated before the write; a message not confirmed by then closes
-	// its topic. Default 30 seconds, one decision lifetime at the
-	// authorizer's default.
+	// its topic. Default authz.DefaultTTL (30 seconds), one decision
+	// lifetime at the authorizer's default.
 	RevalidateTimeout time.Duration
 	// Logger receives operational logs. Default: discarded.
 	Logger *slog.Logger
@@ -184,7 +184,7 @@ func (o Options) withDefaults() Options {
 	setDur(&o.IdleTimeout, 30*time.Minute)
 	setDur(&o.ResumeWindow, time.Minute)
 	setDur(&o.WriteTimeout, 10*time.Second)
-	setDur(&o.RevalidateTimeout, 30*time.Second)
+	setDur(&o.RevalidateTimeout, authz.DefaultTTL)
 	if o.Logger == nil {
 		o.Logger = slog.New(slog.DiscardHandler)
 	}
