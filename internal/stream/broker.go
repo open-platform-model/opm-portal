@@ -41,6 +41,9 @@ var (
 	ErrDisconnected = errors.New("stream: client disconnected")
 	// ErrIdle ends a stream that carried no topic for the idle timeout.
 	ErrIdle = errors.New("stream: idle")
+	// ErrSessionExpired ends a stream whose session expired. The stream is
+	// discarded, not kept for resume.
+	ErrSessionExpired = errors.New("stream: session expired")
 	// ErrNotAdmitted is what an Admitter returns to refuse a topic. The
 	// topic is closed with the code a denial gives, so a refusal reads the
 	// same as a missing permission.
@@ -98,12 +101,20 @@ type Follower interface {
 	Follow(t Topic)
 }
 
-// Session is who opens a stream: the session it belongs to and the identity
-// every read on it is authorized for. Key identifies the session for caps and
-// stream ownership; the broker never logs it.
+// Session is who opens a stream: the session it belongs to, the identity
+// every read on it is authorized for, and when the session ends. Key
+// identifies the session for caps and stream ownership; the broker never
+// logs it. A stream ends with an expired event at Expires; the zero time
+// never expires.
 type Session struct {
 	Key      string
 	Identity authz.Identity
+	Expires  time.Time
+}
+
+// lapsed reports whether s has an expiry that has passed.
+func (s Session) lapsed() bool {
+	return !s.Expires.IsZero() && !time.Now().Before(s.Expires)
 }
 
 // Options tune a Broker. Zero fields take their defaults.
@@ -218,6 +229,7 @@ type streamState struct {
 	id         string
 	session    string
 	who        authz.Identity
+	expires    time.Time // the session's end; zero for none
 	subs       map[Topic]*subscription
 	conn       *conn
 	detachedAt time.Time
@@ -458,11 +470,11 @@ func closeCode(err error) string {
 // stream still attached elsewhere is taken over. Anything else opens a new
 // stream. The given topics are checked only when a new stream opens.
 func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventID string) (*Stream, error) {
-	if s.Key == "" || !s.Identity.Authenticated() {
+	if s.Key == "" || !s.Identity.Authenticated() || s.lapsed() {
 		return nil, ErrUnauthenticated
 	}
 	if st, after, ok := b.resumable(s, lastEventID); ok {
-		stream, err := b.reattach(ctx, st, after)
+		stream, err := b.reattach(ctx, st, after, s.Expires)
 		if !errors.Is(err, ErrNoStream) {
 			return stream, err
 		}
@@ -500,6 +512,7 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 		id:      rand.Text(),
 		session: s.Key,
 		who:     s.Identity,
+		expires: s.Expires,
 		subs:    map[Topic]*subscription{},
 	}
 	b.streams[st.id] = st
@@ -634,10 +647,10 @@ func (b *Broker) resumeTopicLocked(sub *subscription, after uint64) (replay []en
 	return replay, nil
 }
 
-// reattach gives st a new connection that continues after sequence after.
-// It returns ErrNoStream when st is gone by the time its topics are
-// authorized again.
-func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*Stream, error) {
+// reattach gives st a new connection that continues after sequence after,
+// ending when the session does at expires. It returns ErrNoStream when st
+// is gone by the time its topics are authorized again.
+func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64, expires time.Time) (*Stream, error) {
 	b.mu.Lock()
 	topics := make([]Topic, 0, len(st.subs))
 	attrs := make(map[Topic][]authz.Attributes, len(st.subs))
@@ -668,6 +681,8 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64) (*
 	}
 	c := b.newConn()
 	st.conn = c
+	// The same session, so the same end, unless the session was renewed.
+	st.expires = expires
 
 	var replay, snapshots []entry
 	var release []func()
@@ -978,7 +993,7 @@ func (b *Broker) endConnLocked(st *streamState, reason error) []func() {
 	c.reason = reason
 	close(c.done)
 	st.conn = nil
-	if errors.Is(reason, ErrIdle) || errors.Is(reason, ErrClosed) {
+	if errors.Is(reason, ErrIdle) || errors.Is(reason, ErrClosed) || errors.Is(reason, ErrSessionExpired) {
 		return b.deleteLocked(st)
 	}
 	at := time.Now()
@@ -1023,9 +1038,10 @@ func (b *Broker) deleteLocked(st *streamState) []func() {
 }
 
 // disconnect runs when a writer returns with reason: the connection c is
-// gone. A stream ended for any reason but idleness stays resumable.
+// gone. A stream ended for any reason but idleness or its session's expiry
+// stays resumable.
 func (b *Broker) disconnect(st *streamState, c *conn, reason error) {
-	if !errors.Is(reason, ErrIdle) {
+	if !errors.Is(reason, ErrIdle) && !errors.Is(reason, ErrSessionExpired) {
 		reason = ErrDisconnected
 	}
 	b.mu.Lock()

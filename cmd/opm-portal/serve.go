@@ -380,8 +380,8 @@ func wire(c cluster, model *readmodel.Model, bound netip.AddrPort, log *slog.Log
 		Authorizer: c.checker,
 		Reader:     c.self,
 		Authenticate: func(r *http.Request) (api.Principal, error) {
-			id, session, err := gate.Authenticate(r)
-			return api.Principal{Identity: id, Session: session}, err
+			s, err := gate.Authenticate(r)
+			return api.Principal{Identity: s.Identity, Session: s.Key, Expires: s.Expires}, err
 		},
 		Producers: stream.Mux{stream.KindLog: logsProducer},
 		Logger:    log,

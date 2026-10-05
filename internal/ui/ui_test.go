@@ -431,6 +431,10 @@ func TestPagesDeclareTheirTopics(t *testing.T) {
 		if !strings.Contains(body, `sse-connect="/api/v1alpha1/clusters/default/stream?topics=`) {
 			t.Errorf("%s: no stream on the body", path)
 		}
+		// The stream's expired event closes it for good and is shown.
+		if !strings.Contains(body, `sse-close="expired"`) || !strings.Contains(body, "sse:expired") {
+			t.Errorf("%s: the page does not stop its stream on expired", path)
+		}
 	}
 }
 

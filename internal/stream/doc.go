@@ -102,7 +102,10 @@
 //
 // A stream whose client falls behind, so its queue fills, loses its
 // connection without delaying anyone else and stays resumable. A stream with
-// no topics for the idle timeout is closed. Session and process caps refuse
+// no topics for the idle timeout is closed. A stream ends when the session
+// that opened it expires (Session.Expires): its last message is an expired
+// event and it is discarded, not kept for resume, and a stream does not
+// open for a session that has already expired. Session and process caps refuse
 // a new stream only after the oldest disconnected stream in that scope has
 // been discarded.
 package stream

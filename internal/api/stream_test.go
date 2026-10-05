@@ -259,6 +259,37 @@ func TestForbiddenTopicCloses(t *testing.T) {
 	c.next(t, func(ev sse, m message) bool { return ev.event == stream.EventSnapshot && m.Topic == "instance:web/web" })
 }
 
+// The principal's expiry reaches the stream: at the session's end the
+// stream writes its expired event and the response ends.
+func TestAStreamEndsWithItsSession(t *testing.T) {
+	e := newEnv(t, loadF1(t), readmodeltest.AllowAll, fastStream)
+	e.principal.Expires = time.Now().Add(500 * time.Millisecond)
+	ts := newHTTPServer(t, e)
+	c, res := openStream(t, ts, "platform")
+	if c == nil {
+		t.Fatalf("stream refused: %d %s", res.status, res.body)
+	}
+	m := c.next(t, func(ev sse, _ message) bool { return ev.event == stream.EventExpired })
+	if m.Code != v1.CodeUnauthenticated || m.Topic != "" {
+		t.Errorf("expired = %+v", m)
+	}
+	select {
+	case ev, ok := <-c.events:
+		if ok {
+			t.Errorf("event after expired: %s", ev.event)
+		}
+	case <-time.After(5 * time.Second):
+		t.Error("the response did not end after the expired event")
+	}
+
+	// A principal whose session has ended opens no stream.
+	_, res = openStream(t, ts, "platform")
+	if res == nil {
+		t.Fatal("a stream opened for an expired session")
+	}
+	expectProblem(t, *res, http.StatusUnauthorized, v1.CodeUnauthenticated)
+}
+
 func TestStreamRefusals(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.AllowAll, fastStream, func(cfg *Config) { cfg.Stream.MaxStreamsPerSession = 1 })
 	ts := newHTTPServer(t, e)

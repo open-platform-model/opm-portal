@@ -31,7 +31,8 @@ func (s *Stream) ID() string { return s.st.id }
 
 // Serve writes the stream to w as server-sent events until ctx is done, the
 // broker closes, the client falls behind, a reconnect takes the stream over,
-// or the stream idles out. It returns why it ended. Serve is called once.
+// the stream idles out, or its session expires, which it ends with an
+// expired event. It returns why it ended. Serve is called once.
 // The caller has written no body yet; Serve sets no headers (the handler
 // does).
 func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
@@ -74,10 +75,24 @@ func (s *Stream) run(ctx context.Context, wr *writer) error {
 	}
 	ticker := time.NewTicker(s.b.opts.HeartbeatInterval)
 	defer ticker.Stop()
+	s.b.mu.Lock()
+	expires := s.st.expires
+	s.b.mu.Unlock()
+	var expiry <-chan time.Time
+	if !expires.IsZero() {
+		timer := time.NewTimer(time.Until(expires))
+		defer timer.Stop()
+		expiry = timer.C
+	}
 
 	backlog := c.backlog
 	c.backlog = nil
 	for i := range backlog {
+		select {
+		case <-expiry:
+			return s.expire(wr)
+		default:
+		}
 		if err := s.deliver(ctx, wr, &backlog[i]); err != nil {
 			return err
 		}
@@ -88,6 +103,8 @@ func (s *Stream) run(ctx context.Context, wr *writer) error {
 			return s.ended(ctx)
 		case <-c.done:
 			return c.reason
+		case <-expiry:
+			return s.expire(wr)
 		case e := <-c.queue:
 			if err := s.deliver(ctx, wr, &e); err != nil {
 				return err
@@ -127,6 +144,17 @@ func (s *Stream) heartbeat(ctx context.Context, wr *writer) error {
 		}
 	}
 	return wr.event("", "", EventHeartbeat, []byte("{}"))
+}
+
+// expire ends the stream at its session's end: the client is told, and the
+// stream is discarded, so nothing more reaches it and a reconnect resumes
+// nothing.
+func (s *Stream) expire(wr *writer) error {
+	if err := wr.expired(); err != nil {
+		// The stream is discarded whether or not the client heard.
+		return fmt.Errorf("%w: %w", ErrSessionExpired, err)
+	}
+	return ErrSessionExpired
 }
 
 // ended returns why the connection ended: the broker's reason when it ended
@@ -533,6 +561,17 @@ func (wr *writer) closed(t Topic, code string) error {
 		return fmt.Errorf("encoding a closed event: %w", err)
 	}
 	return wr.event("", "", EventClosed, body)
+}
+
+// expired writes the expired event. It carries the stream's own code only.
+func (wr *writer) expired() error {
+	body, err := json.Marshal(struct {
+		Code string `json:"code"`
+	}{CodeUnauthenticated})
+	if err != nil {
+		return fmt.Errorf("encoding the expired event: %w", err)
+	}
+	return wr.event("", "", EventExpired, body)
 }
 
 // event writes one event. prefix is written first (a retry field); data

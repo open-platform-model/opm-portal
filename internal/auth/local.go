@@ -140,33 +140,41 @@ func (l *Local) Launched() <-chan struct{} { return l.launched }
 // CookieName returns the session cookie's name.
 func (l *Local) CookieName() string { return l.cookie }
 
-// Authenticate returns the identity and the session key for a request that
-// carries the live session, and ErrNoSession for any other.
-func (l *Local) Authenticate(r *http.Request) (authz.Identity, string, error) {
-	key, ok := l.sessionOf(r)
-	if !ok {
-		return authz.Identity{}, "", ErrNoSession
-	}
-	return l.cfg.Identity, key, nil
+// Session is a live session: who it reads as, the key that identifies it to
+// the stream broker, and when it ends.
+type Session struct {
+	Identity authz.Identity
+	Key      string
+	Expires  time.Time
 }
 
-// sessionOf reports the session key of the live session r carries.
-func (l *Local) sessionOf(r *http.Request) (string, bool) {
+// Authenticate returns the live session a request carries, and
+// ErrNoSession for a request that carries none.
+func (l *Local) Authenticate(r *http.Request) (Session, error) {
+	s, ok := l.sessionOf(r)
+	if !ok {
+		return Session{}, ErrNoSession
+	}
+	return s, nil
+}
+
+// sessionOf reports the live session r carries.
+func (l *Local) sessionOf(r *http.Request) (Session, bool) {
 	c, err := r.Cookie(l.cookie)
 	if err != nil || c.Value == "" {
-		return "", false
+		return Session{}, false
 	}
 	digest := sha256.Sum256([]byte(c.Value))
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.session == nil || subtle.ConstantTimeCompare(digest[:], l.session[:]) != 1 {
-		return "", false
+		return Session{}, false
 	}
 	if !l.cfg.Now().Before(l.expires) {
 		l.session, l.sessionKey = nil, ""
-		return "", false
+		return Session{}, false
 	}
-	return l.sessionKey, true
+	return Session{Identity: l.cfg.Identity, Key: l.sessionKey, Expires: l.expires}, true
 }
 
 // launch spends token and returns the new session's cookie, or false when

@@ -349,7 +349,7 @@ func TestAMessageThatSettlesWithinTheDeadlineIsWritten(t *testing.T) {
 func TestOnlySendWritesTopicData(t *testing.T) {
 	allowed := map[string][]string{
 		"eventID": {"send"},
-		"event":   {"run", "heartbeat", "closed", "send"},
+		"event":   {"run", "heartbeat", "closed", "expired", "send"},
 		// send re-validates, and only send.
 		"revalidate": {"send"},
 	}
@@ -359,12 +359,14 @@ func TestOnlySendWritesTopicData(t *testing.T) {
 		"run":       {`"retry: " + strconv.Itoa(retryMillis) + "\n"`, `""`, "EventOpen", "open"},
 		"heartbeat": {`""`, `""`, "EventHeartbeat", `[]byte("{}")`},
 		"closed":    {`""`, `""`, "EventClosed", "body"},
+		"expired":   {`""`, `""`, "EventExpired", "body"},
 	}
 	// The one assignment of each control event's data variable: the
 	// stream's own fields, never an item.
 	controlBodies := map[string][2]string{
-		"run":    {"open", "json.Marshal(struct { Stream string `json:\"stream\"` }{s.st.id})"},
-		"closed": {"body", "json.Marshal(struct { Topic string `json:\"topic\"` Code string `json:\"code\"` }{t.String(), code})"},
+		"run":     {"open", "json.Marshal(struct { Stream string `json:\"stream\"` }{s.st.id})"},
+		"closed":  {"body", "json.Marshal(struct { Topic string `json:\"topic\"` Code string `json:\"code\"` }{t.String(), code})"},
+		"expired": {"body", "json.Marshal(struct { Code string `json:\"code\"` }{CodeUnauthenticated})"},
 	}
 
 	found := map[string][]string{}

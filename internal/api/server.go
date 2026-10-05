@@ -24,11 +24,13 @@ const Prefix = "/api/v1alpha1"
 const DefaultCluster = "default"
 
 // Principal is who a request is made by: the identity every read is
-// authorized for, and the session that owns its streams. Session is never
+// authorized for, the session that owns its streams, and when that session
+// ends, which ends its streams; the zero time never does. Session is never
 // logged.
 type Principal struct {
 	Identity authz.Identity
 	Session  string
+	Expires  time.Time
 }
 
 // Config wires a Server.
@@ -151,7 +153,7 @@ func New(cfg Config) (*Server, error) {
 		if !ok {
 			return stream.Session{}, stream.ErrUnauthenticated
 		}
-		return stream.Session{Key: p.Session, Identity: p.Identity}, nil
+		return stream.Session{Key: p.Session, Identity: p.Identity, Expires: p.Expires}, nil
 	}, stream.HandlerOptions{Error: func(w http.ResponseWriter, r *http.Request, _ int, err error) {
 		writeProblem(w, r, s.log, err)
 	}})

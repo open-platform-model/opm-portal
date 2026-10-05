@@ -45,7 +45,7 @@ func newFixture(t *testing.T) *fixture {
 	f.path = launchPathOf(t, l)
 	f.h = l.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		f.reached++
-		if _, _, err := l.Authenticate(r); err != nil {
+		if _, err := l.Authenticate(r); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -167,11 +167,14 @@ func TestLaunchExchangesTheTokenOnce(t *testing.T) {
 	// The session reads as the kubeconfig's identity.
 	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/x", http.NoBody)
 	req.AddCookie(cookie)
-	id, key, err := f.l.Authenticate(req)
-	if err != nil || id.Username != me.Username || key == "" {
-		t.Fatalf("Authenticate = %+v, %q, %v", id, key, err)
+	s, err := f.l.Authenticate(req)
+	if err != nil || s.Identity.Username != me.Username || s.Key == "" {
+		t.Fatalf("Authenticate = %+v, %v", s.Identity, err)
 	}
-	if key == cookie.Value {
+	if !s.Expires.Equal(f.now.Add(defaultSessionTTL)) {
+		t.Errorf("session expires %v; want the launch plus the TTL", s.Expires)
+	}
+	if s.Key == cookie.Value {
 		t.Fatal("the session key is the cookie value; it must not be")
 	}
 	if got := f.do(t, request{target: "/api/v1alpha1/clusters/default/instances", cookie: cookie}).status; got != http.StatusOK {

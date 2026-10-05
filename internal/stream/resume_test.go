@@ -245,6 +245,73 @@ func TestAnIdleStreamIsClosed(t *testing.T) {
 	})
 }
 
+// A stream ends when its session does: its last message is the expired
+// event, and it is discarded, so a reconnect with its last event id opens a
+// fresh stream with a fresh snapshot.
+func TestAStreamEndsWhenItsSessionExpires(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		e.prod.seed(blog, "blog", instItem("apps", "blog", 1))
+		sess := session("alice")
+		sess.Expires = time.Now().Add(time.Minute)
+		sv := e.open(sess, "instance:apps/blog")
+		last := sv.rec.lastID()
+
+		time.Sleep(59 * time.Second)
+		synctest.Wait()
+		if err := sv.ended(); err != nil {
+			t.Fatalf("ended before the session: %v", err)
+		}
+		time.Sleep(time.Second)
+		synctest.Wait()
+		if err := sv.ended(); !errors.Is(err, ErrSessionExpired) {
+			t.Fatalf("Serve = %v, want ErrSessionExpired", err)
+		}
+		evs := sv.rec.take()
+		if got, want := nonHeartbeats(evs), []string{"open()", "snapshot(instance:apps/blog)", "expired()unauthenticated"}; !slices.Equal(got, want) {
+			t.Fatalf("events = %v, want %v", got, want)
+		}
+		if got := evs[len(evs)-1]; got.ID != "" || got.Data != `{"code":"unauthenticated"}` {
+			t.Errorf("expired event = %+v", got)
+		}
+		// Nothing published after the end reaches anyone.
+		e.prod.upsert(t, blog, instItem("apps", "blog", 2))
+		synctest.Wait()
+		if evs := sv.rec.take(); len(evs) != 0 {
+			t.Errorf("events after the end: %v", eventNames(evs))
+		}
+		if err := e.b.Subscribe(context.Background(), sess, sv.ID(), blog); !errors.Is(err, ErrNoStream) {
+			t.Errorf("an expired stream is still registered: %v", err)
+		}
+		// A renewed session cannot resume it either.
+		renewed := session("alice")
+		renewed.Expires = time.Now().Add(time.Hour)
+		again := e.resume(renewed, last, "instance:apps/blog")
+		if again.ID() == sv.ID() {
+			t.Error("a reconnect resumed the expired stream")
+		}
+	})
+}
+
+// A session that has already expired opens no stream, and no review is
+// sent for it.
+func TestAnExpiredSessionOpensNoStream(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		sess := session("alice")
+		sess.Expires = time.Now()
+		if _, err := e.b.Open(context.Background(), sess, []Topic{mustTopic(t, "instance:apps/blog")}, ""); !errors.Is(err, ErrUnauthenticated) {
+			t.Fatalf("Open = %v, want ErrUnauthenticated", err)
+		}
+		if n := e.policy.count(); n != 0 {
+			t.Errorf("%d reviews sent for an expired session", n)
+		}
+	})
+}
+
 func TestASlowConsumerIsEvicted(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{QueueSize: 2}, "alice", "bob")

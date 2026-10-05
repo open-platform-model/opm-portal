@@ -86,7 +86,7 @@ tasks:
     env:
       OPM_PORTAL_CONTAINER_ENGINE: '{{.OPM_PORTAL_CONTAINER_ENGINE}}'
     cmds:
-      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs)$' -v ./cmd/opm-portal
+      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs|Expired)$' -v ./cmd/opm-portal
 
   #########################
   ## e2e fixture cluster (test/e2e)
