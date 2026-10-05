@@ -48,7 +48,8 @@ None.
   The removed code was never reachable from a command.
 - Principle VII: two dependencies leave.
 - SemVer: PATCH after 1.0 (the removed package is internal, no public surface changes). On the 0.x
-  line it ships as `revert`, which releases; the PR body names the reverted commit so
-  release-please drops PR 28's entry from the 0.1.0 changelog.
+  line neither PR 28 nor this one reaches 0.1.0's changelog: release-please does not drop
+  reverted commits, and the squash commit carries only the PR title. Both PR bodies therefore
+  carry a `BEGIN_COMMIT_OVERRIDE` block that retypes the commit as a hidden `chore(auth)`.
 - Decisions: portal:D6 (status of its OIDC requirements). No enhancement is implemented, so the
   change carries no `enhancement.yaml`.
