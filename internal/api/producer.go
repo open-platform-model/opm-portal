@@ -162,6 +162,9 @@ func (p *producer) item(t stream.Topic) (stream.Item, bool) {
 	}
 	it.Render = func(ctx context.Context, who authz.Identity) (json.RawMessage, error) {
 		doc, err := p.render(ctx, who, t)
+		if err == nil {
+			doc, err = p.s.forMode(doc)
+		}
 		if err != nil {
 			return nil, err
 		}

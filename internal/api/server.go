@@ -35,6 +35,10 @@ type Principal struct {
 
 // Config wires a Server.
 type Config struct {
+	// Mode is where the portal runs: ModeLocal or ModeInCluster. Required,
+	// so a caller that forgets it does not get the mode that serves more.
+	// In ModeInCluster no document carries text the operator wrote.
+	Mode Mode
 	// Model is the started read model every document is built from.
 	Model *readmodel.Model
 	// Authorizer authorizes every read for the request's identity.
@@ -113,6 +117,8 @@ const (
 // required.
 func New(cfg Config) (*Server, error) {
 	switch {
+	case !cfg.Mode.valid():
+		return nil, fmt.Errorf("read api: mode %q is neither %q nor %q", cfg.Mode, ModeLocal, ModeInCluster)
 	case cfg.Model == nil:
 		return nil, errors.New("read api: no read model")
 	case cfg.Authorizer == nil:
@@ -247,6 +253,9 @@ func (s *Server) document(serve func(*Server, context.Context, Principal, *http.
 			return
 		}
 		doc, err := serve(s, r.Context(), p, r)
+		if err == nil {
+			doc, err = s.forMode(doc)
+		}
 		if err != nil {
 			writeProblem(w, r, s.log, err)
 			return
@@ -265,6 +274,15 @@ func (s *Server) document(serve func(*Server, context.Context, Principal, *http.
 			s.log.Debug("writing a document", "path", r.URL.Path, "error", err)
 		}
 	}
+}
+
+// forMode returns doc as the server's mode serves it. Every document leaves
+// the server through here: the GET handlers' and the change stream's.
+func (s *Server) forMode(doc any) (any, error) {
+	if s.cfg.Mode == ModeInCluster {
+		return omitOperatorText(doc)
+	}
+	return doc, nil
 }
 
 // authorize checks every read for who, in order, and returns their grants.

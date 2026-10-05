@@ -275,10 +275,14 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 	topic := m.sub.topic.String()
 	var body []byte
 	var err error
+	var doc []byte // what the subscriber's view of the topic becomes, if a document
 	if m.snapshot {
 		items := make([]json.RawMessage, len(m.parts))
 		for i := range m.parts {
 			items[i] = m.parts[i].data
+		}
+		if len(items) == 1 {
+			doc = items[0]
 		}
 		body, err = json.Marshal(struct {
 			Topic string            `json:"topic"`
@@ -289,6 +293,9 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 			// The item was left out: it is not written, and leaves no trace.
 			return nil
 		}
+		if isDocument(m.event) {
+			doc = m.parts[0].data
+		}
 		body, err = json.Marshal(struct {
 			Topic string          `json:"topic"`
 			Item  json.RawMessage `json:"item"`
@@ -298,11 +305,23 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 		s.b.log.Warn("message payload is not JSON", "topic", topic, "error", err)
 		return s.closeTopic(ctx, wr, m.sub, CodeUpstreamUnavailable)
 	}
-	id, ok := s.eventID(m.sub, m.seq)
+	id, ok := s.eventID(m, doc)
 	if !ok {
 		return nil
 	}
 	return wr.event("", id, m.event, body)
+}
+
+// isDocument reports whether an item event replaces the subscriber's
+// document for its topic, so a later item equal to it changes nothing for
+// the client. A log line is a record, not a document. A delete sets the
+// document but is never itself left out (eventID).
+func isDocument(event string) bool {
+	switch event {
+	case EventUpsert, EventDelete, EventK8sEvent:
+		return true
+	}
+	return false
 }
 
 // revalidate makes sure every grant m was built under covers its read, and
@@ -529,20 +548,42 @@ func (s *Stream) writeClosed(wr *writer, topic Topic) error {
 	return nil
 }
 
-// eventID hands out the stream's next event id for an event of sub carrying
-// broker sequence seq. It encodes the broker epoch, the stream and a count of
-// the stream's own events, so a reconnect finds the stream and where it
-// stopped without the id revealing anything published elsewhere. ok is false
-// when this connection no longer serves the stream or sub was replaced: the
-// event is then not written.
-func (s *Stream) eventID(sub *subscription, seq uint64) (id string, ok bool) {
-	b := s.b
+// eventID decides whether m is written and hands out its event id. ok is
+// false, and nothing is written, when this connection no longer serves the
+// stream, when m's subscription was replaced, or when m is an item whose
+// document equals the last one written for the subscription: a change that
+// leaves the subscriber's rendered document as it was, such as a change to
+// something the subscriber may not see, sends that subscriber nothing, so
+// when it happened does not reach them either. doc is that document, or nil
+// for a message that is not one (a log line, or a snapshot of more or fewer
+// than one item); a snapshot is always written and sets the document an
+// item is compared with. A delete is always written too, even when an
+// upsert already carried its Removed document: the client drops the topic's
+// object on the delete event, and the delete's timing is the object's own,
+// which every subscriber of the topic may see. A closing never reaches
+// here (closeTopic), so it is never compared either.
+//
+// The id encodes the broker epoch, the stream and a count of the stream's
+// own events, so a reconnect finds the stream and where it stopped without
+// the id revealing anything published elsewhere.
+func (s *Stream) eventID(m *message, doc []byte) (id string, ok bool) {
+	b, sub := s.b, m.sub
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if s.st.conn != s.conn || s.st.subs[sub.topic] != sub {
 		return "", false
 	}
-	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(b.nextIDLocked(s.st, seq), 10), true
+	if !m.snapshot && m.event != EventDelete && doc != nil && sub.sent != nil && bytes.Equal(sub.sent, doc) {
+		return "", false
+	}
+	local := b.nextIDLocked(s.st, m.seq)
+	switch {
+	case m.snapshot && doc == nil:
+		sub.sent, sub.sentID = nil, 0
+	case m.snapshot || doc != nil:
+		sub.sent, sub.sentID = doc, local
+	}
+	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(local, 10), true
 }
 
 // errSessionOver is why a connection ends at its session's end: the

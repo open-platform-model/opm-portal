@@ -19,10 +19,21 @@ type site struct {
 	handler http.Handler
 }
 
-// newSite serves objs; the caller's reviews follow rule.
+// newSite serves objs over a local-mode read API; the caller's reviews
+// follow rule.
 func newSite(t testing.TB, objs []*unstructured.Unstructured, rule apitest.Rule) *site {
 	t.Helper()
-	srv := apitest.New(t, objs, rule)
+	return mount(t, apitest.New(t, objs, rule))
+}
+
+// newInClusterSite serves objs over an in-cluster read API.
+func newInClusterSite(t testing.TB, objs []*unstructured.Unstructured, rule apitest.Rule) *site {
+	t.Helper()
+	return mount(t, apitest.NewInCluster(t, objs, rule))
+}
+
+func mount(t testing.TB, srv http.Handler) *site {
+	t.Helper()
 	h, err := New(Config{API: srv, Now: func() time.Time { return apitest.Now }})
 	if err != nil {
 		t.Fatalf("New: %v", err)

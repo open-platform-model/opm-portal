@@ -60,6 +60,7 @@ func TestEmptyClaimsNeverReachTheCluster(t *testing.T) {
 	}
 	t.Cleanup(m.Stop)
 	srv, err := api.New(api.Config{
+		Mode:       api.ModeInCluster,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,

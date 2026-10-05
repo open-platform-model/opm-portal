@@ -147,8 +147,10 @@ no authorization review and no read. Source: 0030:D6:R2.
 ### Requirement: Values, Secrets and the apply annotation are never served
 
 No document SHALL contain an instance's or package's `spec.values`, Secret data, or the
-`kubectl.kubernetes.io/last-applied-configuration` annotation. Condition, history and event
-messages SHALL be served as the operator and the API server wrote them. Source: 0030:D8:R2/R3.
+`kubectl.kubernetes.io/last-applied-configuration` annotation. In `local` mode condition, history
+and event messages SHALL be served as the operator and the API server wrote them; in
+`in-cluster` mode the text the operator wrote SHALL be omitted, as the in-cluster requirement
+lists. Source: portal:D8:R2/R3/R5/R6.
 
 #### Scenario: No values in any document
 
@@ -391,4 +393,70 @@ neither. Source: 0030:D2:R1, 0030:D3:R8.
 #### Scenario: An unknown reason
 
 - **WHEN** a condition carries a reason the portal does not know
-- **THEN** it has no `meaning` and no `nextStep`, and its message is served unchanged
+- **THEN** it has no `meaning` and no `nextStep`, and in `local` mode its message is served
+  unchanged
+
+### Requirement: The server runs in a declared mode
+
+The read API server SHALL be configured with its mode, `local` or `in-cluster`, and SHALL refuse
+to start with no mode or any other value. `opm-portal serve` SHALL run it in `local` mode.
+
+#### Scenario: No mode
+
+- **WHEN** the server is built without a mode
+- **THEN** it refuses to start and names the missing mode
+
+### Requirement: In-cluster mode serves no operator text
+
+In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carry
+text the operator wrote: a condition's `message`, a reconcile `message`, a history entry's
+`message`, a registration's `message` or `activeMessage`, the `note` of an event the operator
+reported (its `reportingController` is `opm-controller`, or it names none and regards an
+`opmodel.dev` object), the health `message` of an inventory object or graph node of an
+`opmodel.dev` kind, or, in an `Object` of an `opmodel.dev` kind, `status.conditions[].message`
+and `status.history[].message`. Every reason, state, `tone`, `meaning` and `nextStep` SHALL stay.
+Text other writers wrote SHALL be served as written: the notes of events the kubelet or another
+controller reported, and the health `message` of an object outside `opmodel.dev`. Events the
+operator reported that are left alike once their notes are dropped (same type, reason, reporting
+controller, regarded object and field path) SHALL be served as one line, their counts summed and
+its time the latest, so the number of lines does not tell how many distinct notes were dropped. A
+document type the omission does not know SHALL fail with `upstream_unavailable` rather than be
+served. The OpenAPI document SHALL say, on each of those fields, that it is absent in-cluster.
+Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the supervisor ruling recorded
+under portal:D8.
+
+#### Scenario: A failed instance in-cluster
+
+- **WHEN** a client of an in-cluster server reads an instance whose `Ready` condition is `False`
+  with reason `RenderFailed` and a message
+- **THEN** the condition carries its type, status, reason, tone, meaning and next step, and no
+  `message`; the reconcile state carries its reason and no `message`
+
+#### Scenario: Events in-cluster
+
+- **WHEN** a client of an in-cluster server reads an `EventList` or follows its `events:` topic
+- **THEN** every event the operator reported carries its type, reason, count and times, and no
+  `note`
+
+#### Scenario: The kubelet's events in-cluster
+
+- **WHEN** a client of an in-cluster server reads the `EventList` of a Pod the kubelet reported
+  pulling an image for
+- **THEN** each of those events carries its `note` as the kubelet wrote it
+
+#### Scenario: Events differing only in their note in-cluster
+
+- **WHEN** a client of an in-cluster server reads the `EventList` of an instance with two
+  `Applied` events whose notes differ
+- **THEN** it carries one `Applied` line with count 2 and the later time
+
+#### Scenario: An OPM object's YAML in-cluster
+
+- **WHEN** a client of an in-cluster server reads the `Object` of the TransformerRegistration
+  `default.backup-provider` through the instance that reaches it
+- **THEN** its `status.conditions` keep their type, status and reason and carry no `message`
+
+#### Scenario: Local mode
+
+- **WHEN** a client of a local server reads the same documents
+- **THEN** every message and note is served as the operator and the API server wrote it

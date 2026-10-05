@@ -1,0 +1,25 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "TransformerRegistration",
+    "name": "default.refused-claim-fixture"
+  },
+  "items": [
+    {
+      "type": "Warning",
+      "reason": "CatalogUnresolved",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "TransformerRegistration",
+        "name": "default.refused-claim-fixture"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:26.703771Z"
+    }
+  ]
+}

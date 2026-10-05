@@ -1,0 +1,55 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "default",
+    "name": "podinfo"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "NoOp",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:31.637717Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ReconciliationSucceeded",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:06.945269Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Applied",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:06.945177Z"
+    }
+  ]
+}

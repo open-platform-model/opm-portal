@@ -221,6 +221,15 @@ type subscription struct {
 	attrs       []authz.Attributes
 	grants      []authz.Grant
 	snapshotSeq uint64
+	// sent is the document last written for this subscription: the item
+	// of an upsert, delete or k8sevent event, or a snapshot's only item.
+	// nil when nothing was written yet, after a snapshot of more or fewer
+	// than one item, and after a reconnect whose client may not hold it. An
+	// item equal to it is not written (Stream.eventID). sentID is the
+	// stream event id it was written under, 0 when sent is nil. Guarded by
+	// Broker.mu.
+	sent   []byte
+	sentID uint64
 }
 
 // streamState is a stream as the broker tracks it. conn is nil while the
@@ -473,8 +482,8 @@ func (b *Broker) Open(ctx context.Context, s Session, topics []Topic, lastEventI
 	if s.Key == "" || !s.Identity.Authenticated() || s.lapsed() {
 		return nil, ErrUnauthenticated
 	}
-	if st, after, ok := b.resumable(s, lastEventID); ok {
-		stream, err := b.reattach(ctx, st, after, s.Expires)
+	if st, after, held, ok := b.resumable(s, lastEventID); ok {
+		stream, err := b.reattach(ctx, st, after, held, s.Expires)
 		if !errors.Is(err, ErrNoStream) {
 			return stream, err
 		}
@@ -576,24 +585,26 @@ func (b *Broker) oldestDetachedLocked(match func(*streamState) bool) *streamStat
 	return oldest
 }
 
-// resumable finds the stream lastEventID names, if s may resume it, and the
-// broker sequence the client last received. An event id the stream no longer
-// remembers resumes at sequence 0, so every topic gets a fresh snapshot.
-func (b *Broker) resumable(s Session, lastEventID string) (st *streamState, after uint64, ok bool) {
+// resumable finds the stream lastEventID names, if s may resume it, the
+// broker sequence the client last received, and held, the stream's own id of
+// that event: the client holds every event of the stream up to it. An event
+// id the stream no longer remembers resumes at sequence 0 and held 0, so
+// every topic gets a fresh snapshot.
+func (b *Broker) resumable(s Session, lastEventID string) (st *streamState, after, held uint64, ok bool) {
 	epoch, id, local, ok := parseEventID(lastEventID)
 	if !ok || epoch != b.epoch {
-		return nil, 0, false
+		return nil, 0, 0, false
 	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	st = b.streams[id]
 	if st == nil || st.session != s.Key || !sameIdentity(st.who, s.Identity) {
-		return nil, 0, false
+		return nil, 0, 0, false
 	}
 	if i, found := slices.BinarySearchFunc(st.marks, local, func(m idMark, id uint64) int { return cmp.Compare(m.id, id) }); found {
-		return st, st.marks[i].seq, true
+		return st, st.marks[i].seq, local, true
 	}
-	return st, 0, true
+	return st, 0, 0, true
 }
 
 // nextIDLocked hands out st's next event id for an event carrying broker
@@ -648,9 +659,10 @@ func (b *Broker) resumeTopicLocked(sub *subscription, after uint64) (replay []en
 }
 
 // reattach gives st a new connection that continues after sequence after,
-// ending when the session does at expires. It returns ErrNoStream when st
-// is gone by the time its topics are authorized again.
-func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64, expires time.Time) (*Stream, error) {
+// for a client that holds the stream's events up to id held, ending when
+// the session does at expires. It returns ErrNoStream when st is gone by the
+// time its topics are authorized again.
+func (b *Broker) reattach(ctx context.Context, st *streamState, after, held uint64, expires time.Time) (*Stream, error) {
 	b.mu.Lock()
 	topics := make([]Topic, 0, len(st.subs))
 	attrs := make(map[Topic][]authz.Attributes, len(st.subs))
@@ -699,6 +711,15 @@ func (b *Broker) reattach(ctx context.Context, st *streamState, after uint64, ex
 				continue
 			}
 			sub.grants = d.grants
+		}
+		// A client that holds the event the topic's last document was
+		// written in still holds that document, so a replayed item equal
+		// to it is not written again: its replay would tell the client when
+		// a change it cannot see happened (portal:D2:R7). A client that
+		// resumes from before that event may not hold it, so its first
+		// document for the topic is written whatever it says.
+		if sub.sentID == 0 || sub.sentID > held {
+			sub.sent, sub.sentID = nil, 0
 		}
 		items, snapshot := b.resumeTopicLocked(sub, after)
 		replay = append(replay, items...)
