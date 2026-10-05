@@ -21,9 +21,11 @@
 // last wrote (an upsert, delete or k8sevent item, or a snapshot's only item)
 // and writes a later item only when it differs, so a change a subscriber
 // cannot see, or a refresh that changed nothing, sends them no event and
-// takes no id: they cannot tell when it happened. A reconnect forgets the
-// remembered documents, so its first item per topic is always written. Log
-// lines are records, not documents, and are never compared.
+// takes no id: they cannot tell when it happened. A reconnect keeps a
+// remembered document when the client's Last-Event-ID is at or after the
+// event it was written in, since the client holds it; otherwise it forgets
+// it, and the topic's first item after the reconnect is written. Log lines
+// are records, not documents, and are never compared.
 //
 // # The producer contract
 //

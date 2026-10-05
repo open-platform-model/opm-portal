@@ -38,9 +38,12 @@ default:
 
 `doc` is the item's data for `upsert`, `delete` and `k8sevent` events. An item that is not
 written takes no event id, so ids stay consecutive and no gap reveals it (as for a forbidden
-item today). `reattach` sets `sent = nil` on every kept subscription: the new connection's client
-may not hold what the old one last wrote (a write can succeed on the server and be lost on the
-way), so the first item after a reconnect is always written.
+item today). Each subscription also records `sentID`, the
+stream event id `sent` was written under. `reattach` keeps `sent` when the client's
+`Last-Event-ID` is at or after `sentID`, since the client then holds that document, so a replayed
+item equal to it is not written and the reconnect does not reveal when a change the client cannot
+see happened. Otherwise it sets `sent = nil`: the client may not hold what the old connection last
+wrote (a write can succeed on the server and be lost on the way), so the first item is written.
 
 The comparison is on the rendered bytes. Every read API document is `json.Marshal` output of a
 struct with no wall-clock field (evaluation times come from the read model's clock and change

@@ -111,10 +111,12 @@ func TestAChangeASubscriberCannotSeeSendsThemNothing(t *testing.T) {
 	})
 }
 
-// TestAnUnchangedDocumentIsSentAgainAfterAReconnect: a reconnect cannot know
-// what the old connection's client last held, so the first document after
-// it is written even when it equals the last one written before.
-func TestAnUnchangedDocumentIsSentAgainAfterAReconnect(t *testing.T) {
+// TestAReconnectWritesNoDocumentTheClientHolds: a client that resumes from
+// the event its topic's last document was written in still holds that
+// document, so a replayed item equal to it is not written: its replay would
+// tell the client when a change it cannot see happened. A different
+// document is written as usual.
+func TestAReconnectWritesNoDocumentTheClientHolds(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice")
 		e.policy.set("alice", allowNamespaces("apps"))
@@ -130,8 +132,46 @@ func TestAnUnchangedDocumentIsSentAgainAfterAReconnect(t *testing.T) {
 		e.prod.upsert(t, blog, instItem("apps", "blog", 2))
 		back := e.resume(session("alice"), last)
 		synctest.Wait()
+		if got := eventNames(back.rec.take()); !slices.Equal(got, []string{"open()"}) {
+			t.Fatalf("after the reconnect: %v, want nothing but the open event", got)
+		}
+
+		// A different document is still written, with the id right after
+		// the client's last one.
+		e.prod.upsert(t, blog, instItem("apps", "blog", 3))
+		synctest.Wait()
+		evs := back.rec.take()
+		if got := eventNames(evs); !slices.Equal(got, []string{"upsert(instance:apps/blog)"}) {
+			t.Fatalf("after a change: %v, want one upsert", got)
+		}
+		if got, want := seqOf(t, evs[0].ID), seqOf(t, last)+1; got != want {
+			t.Errorf("the upsert has id %d, want %d", got, want)
+		}
+	})
+}
+
+// TestAReconnectFromBeforeTheLastDocumentWritesIt: a client that resumes
+// from an event before the one its topic's last document was written in may
+// not hold that document, so the first one replayed is written whatever it
+// holds, and only later equal ones are left out.
+func TestAReconnectFromBeforeTheLastDocumentWritesIt(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		e.prod.upsert(t, blog, instItem("apps", "blog", 1))
+		sv := e.open(session("alice"), "instance:apps/blog")
+		synctest.Wait()
+		snapshotID := sv.rec.lastID()
+		e.prod.upsert(t, blog, instItem("apps", "blog", 2))
+		synctest.Wait()
+		_ = sv.disconnect()
+
+		e.prod.upsert(t, blog, instItem("apps", "blog", 2))
+		back := e.resume(session("alice"), snapshotID)
+		synctest.Wait()
 		if got := eventNames(back.rec.take()); !slices.Equal(got, []string{"open()", "upsert(instance:apps/blog)"}) {
-			t.Errorf("after the reconnect: %v, want the unchanged upsert written once", got)
+			t.Errorf("after the reconnect: %v, want the missed upsert written once", got)
 		}
 	})
 }

@@ -6,8 +6,9 @@ In every mode, the stream SHALL compare each document item it is about to write 
 subscriber (an `upsert`, `delete` or `k8sevent` item) with the document it last wrote to that
 subscriber on that topic, and SHALL write the item only when the two differ. A snapshot SHALL
 always be written, and its only item SHALL become the document later items are compared with. An
-item that is not written SHALL take no event identifier. After a reconnect the first item of
-each topic SHALL be written whatever it holds. Log lines SHALL never be compared. Source:
+item that is not written SHALL take no event identifier. After a reconnect, the document last
+written SHALL still be compared with when the client's `Last-Event-ID` is at or after the event
+it was written in; otherwise the first item of the topic SHALL be written whatever it holds. Log lines SHALL never be compared. Source:
 supervisor ruling on 0030:OQ20; keeps 0030:D7:R2.
 
 #### Scenario: A change the subscriber cannot see
@@ -23,11 +24,18 @@ supervisor ruling on 0030:OQ20; keeps 0030:D7:R2.
   was last sent
 - **THEN** no subscriber receives an event
 
-#### Scenario: A reconnect
+#### Scenario: A reconnect from the last event received
 
-- **WHEN** a stream reconnects and its topic's next item equals the last one written before the
-  disconnect
-- **THEN** the item is written on the new connection
+- **WHEN** a stream reconnects with the `Last-Event-ID` of its last event, and its topic's next
+  item equals the last one written before the disconnect
+- **THEN** the item is not written, and the next event's identifier follows that `Last-Event-ID`
+  with no gap
+
+#### Scenario: A reconnect from before the last document
+
+- **WHEN** a stream reconnects with a `Last-Event-ID` before the event its topic's last document
+  was written in
+- **THEN** the topic's first item after the reconnect is written
 
 #### Scenario: Equal log lines
 

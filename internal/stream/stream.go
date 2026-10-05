@@ -527,16 +527,17 @@ func (s *Stream) eventID(m *message, doc []byte) (id string, ok bool) {
 	if s.st.conn != s.conn || s.st.subs[sub.topic] != sub {
 		return "", false
 	}
-	switch {
-	case m.snapshot:
-		sub.sent = doc
-	case doc == nil:
-	case sub.sent != nil && bytes.Equal(sub.sent, doc):
+	if !m.snapshot && doc != nil && sub.sent != nil && bytes.Equal(sub.sent, doc) {
 		return "", false
-	default:
-		sub.sent = doc
 	}
-	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(b.nextIDLocked(s.st, m.seq), 10), true
+	local := b.nextIDLocked(s.st, m.seq)
+	switch {
+	case m.snapshot && doc == nil:
+		sub.sent, sub.sentID = nil, 0
+	case m.snapshot || doc != nil:
+		sub.sent, sub.sentID = doc, local
+	}
+	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(local, 10), true
 }
 
 // writer writes server-sent events and flushes each one.

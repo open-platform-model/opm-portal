@@ -20,7 +20,8 @@ process serves many users:
   (an `upsert`, `delete` or `k8sevent` item, or a snapshot's only item) and writes a later item
   only when it differs. An unchanged re-render (a periodic refresh, or a change the subscriber
   cannot see) writes nothing, takes no event id, and so leaves no gap and no timing signal. A
-  reconnect forgets the remembered document, so its first item is always written. Log lines are
+  reconnect keeps the remembered document when the client's `Last-Event-ID` shows it holds it, and
+  otherwise forgets it, so the first item is written. Log lines are
   records, not documents, and are never compared.
 - **Server mode.** `api.Config` gains a required `Mode`, `local` or `in-cluster`; `New` refuses
   any other value. `opm-portal serve` passes `local`.

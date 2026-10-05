@@ -1,7 +1,7 @@
 ## 1. Per-subscriber comparison on the stream (internal/stream)
 
 - [x] 1.1 `subscription.sent`; `Stream.eventID` writes a document item only when it differs from the last one written to the subscription, a snapshot sets it, a log line is never compared; `reattach` resets it
-- [x] 1.2 Tests: a change only bob may see sends alice nothing and leaves her ids consecutive; an unchanged re-render sends nobody anything; a reconnect writes the first item; equal log lines are both written; a re-added topic starts from its snapshot without touching another subscriber
+- [x] 1.2 Tests: a change only bob may see sends alice nothing and leaves her ids consecutive; an unchanged re-render sends nobody anything; a reconnect from the last event received writes no document the client holds, and one from before it writes the first item; equal log lines are both written; a re-added topic starts from its snapshot without touching another subscriber
 - [x] 1.3 Package documentation describes the comparison
 - [x] 1.4 `task check` green, then commit `feat(stream): write a subscriber only a change to its own document`
 
