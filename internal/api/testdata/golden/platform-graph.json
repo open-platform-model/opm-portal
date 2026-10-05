@@ -46,7 +46,6 @@
       },
       "platform": {
         "type": "kubernetes",
-        "controllerVersion": "v1.0.0-beta.6",
         "registrationsAccess": "ok"
       },
       "column": 0,

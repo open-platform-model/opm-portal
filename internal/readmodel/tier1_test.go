@@ -28,18 +28,31 @@ func TestStartRefusesASecondStart(t *testing.T) {
 	}
 }
 
-// TestPlatformViewWithoutControllerVersion: a Platform whose status names
-// no controllerVersion shows none.
-func TestPlatformViewWithoutControllerVersion(t *testing.T) {
-	objs := loadF1(t)
-	unstructured.RemoveNestedField(find(t, objs, "Platform", "cluster").Object, "status", "controllerVersion")
-	e := newEnv(t, objs, allowAll, allowAll)
-	v, err := e.m.Platform(t.Context(), alice, e.grant(t, "get", platforms, "", "cluster"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if v.ControllerVersion != "" {
-		t.Errorf("controller version = %q, want none", v.ControllerVersion)
+// TestPlatformViewControllerVersion: the version comes from
+// status.controllerVersion and from no other field. F1 was captured on a
+// controller released as opm-operator, which wrote status.operatorVersion, so
+// the captured Platform shows none until the F1 recapture.
+func TestPlatformViewControllerVersion(t *testing.T) {
+	for _, tc := range []struct {
+		name, set, want string
+	}{{"captured", "", ""}, {"set", "v1.0.0-beta.9", "v1.0.0-beta.9"}} {
+		t.Run(tc.name, func(t *testing.T) {
+			objs := loadF1(t)
+			if tc.set != "" {
+				p := find(t, objs, "Platform", "cluster")
+				if err := unstructured.SetNestedField(p.Object, tc.set, "status", "controllerVersion"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			e := newEnv(t, objs, allowAll, allowAll)
+			v, err := e.m.Platform(t.Context(), alice, e.grant(t, "get", platforms, "", "cluster"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if v.ControllerVersion != tc.want {
+				t.Errorf("controller version = %q, want %q", v.ControllerVersion, tc.want)
+			}
+		})
 	}
 }
 
@@ -66,8 +79,8 @@ func TestPlatformView(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v.Name != "cluster" || v.Type != "kubernetes" || v.ControllerVersion != "v1.0.0-beta.6" {
-		t.Errorf("platform = %s %s %s", v.Name, v.Type, v.ControllerVersion)
+	if v.Name != "cluster" || v.Type != "kubernetes" {
+		t.Errorf("platform = %s %s", v.Name, v.Type)
 	}
 	if v.Applied.State != health.AppliedStateApplied {
 		t.Errorf("applied = %+v, want Applied", v.Applied)

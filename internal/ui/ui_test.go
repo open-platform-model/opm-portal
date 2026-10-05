@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"flag"
 	"go/parser"
 	"go/token"
@@ -17,6 +18,7 @@ import (
 	"testing"
 
 	"golang.org/x/net/html"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 
@@ -540,3 +542,45 @@ func TestStaticAssetsAreServed(t *testing.T) {
 }
 
 func v1Reconcile(state string) v1.Reconcile { return v1.Reconcile{State: state} }
+
+// TestPlatformNamesTheControllerVersion: the version the Platform's
+// status.controllerVersion records reaches the API document, the platform
+// graph's platform node and the page. The F1 capture predates the rename (its
+// Platform wrote status.operatorVersion), so the goldens carry no version.
+func TestPlatformNamesTheControllerVersion(t *testing.T) {
+	const want = "v1.0.0-beta.9"
+	objs := apitest.F1(t)
+	for _, o := range objs {
+		if o.GetKind() == "Platform" {
+			if err := unstructured.SetNestedField(o.Object, want, "status", "controllerVersion"); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	s := newSite(t, objs, apitest.AllowAll)
+	res := s.get(t, defaultAPIBase+"/platform")
+	var doc v1.Platform
+	if err := json.Unmarshal([]byte(res.body), &doc); res.status != http.StatusOK || err != nil {
+		t.Fatalf("platform document: status %d, %v", res.status, err)
+	}
+	if doc.ControllerVersion != want {
+		t.Errorf("platform document controllerVersion = %q, want %s", doc.ControllerVersion, want)
+	}
+	res = s.get(t, defaultAPIBase+"/platform/graph")
+	var g v1.Graph
+	if err := json.Unmarshal([]byte(res.body), &g); res.status != http.StatusOK || err != nil {
+		t.Fatalf("platform graph: status %d, %v", res.status, err)
+	}
+	var got []string
+	for _, n := range g.Nodes {
+		if n.Platform != nil {
+			got = append(got, n.Platform.ControllerVersion)
+		}
+	}
+	if len(got) != 1 || got[0] != want {
+		t.Errorf("platform graph platform controllerVersion = %q, want one node with %s", got, want)
+	}
+	if main := mainOf(s.get(t, "/").body); !strings.Contains(main, `<dt>Controller version</dt><dd class="mono">`+want+`</dd>`) {
+		t.Errorf("the platform page does not name the controller version:\n%s", main)
+	}
+}

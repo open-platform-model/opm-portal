@@ -10,13 +10,16 @@ import (
 
 // TestPlatformStatusLinksItsReasons: the status card names Ready's and
 // ContractsFulfilled's own reasons, each linking to its condition row, and
-// the page draws no graph and no Platform health (portal:D17).
+// the page draws no graph and no Platform health (portal:D17). The F1
+// Platform was captured before the controller rename and records no
+// status.controllerVersion, so its version reads "not recorded";
+// TestPlatformNamesTheControllerVersion covers a recorded one.
 func TestPlatformStatusLinksItsReasons(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
 	for _, want := range []string{
 		`<a href="#cond-Ready"><span class="label">Ready</span> <span class="mono">Generated</span></a>`,
 		`<a href="#cond-ContractsFulfilled"><span class="label">Contracts</span> <span class="mono">UnfulfilledContracts</span></a>`,
-		`id="cond-Ready"`, `id="cond-ContractsFulfilled"`, `<dt>Controller version</dt><dd class="mono">v1.0.0-beta.6</dd>`,
+		`id="cond-Ready"`, `id="cond-ContractsFulfilled"`, `<dt>Controller version</dt><dd class="mono"><span class="muted">not recorded</span></dd>`,
 	} {
 		if !strings.Contains(main, want) {
 			t.Errorf("the Platform page lacks %s", want)
