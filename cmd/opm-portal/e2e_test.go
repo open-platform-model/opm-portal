@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -29,15 +30,43 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
+// fixtureContext matches the kind contexts of the fixture cluster family
+// that test/e2e/lib.sh allows (E2E_CLUSTER opm-portal-e2e or
+// opm-portal-e2e-<suffix>).
+var fixtureContext = regexp.MustCompile(`^kind-opm-portal-e2e(-[a-z0-9-]+)?$`)
+
 // fixtureCluster returns the fixture cluster's kubeconfig and context that
 // test/e2e/local.sh and test/e2e/m1.sh name, and skips the test without them.
+// Some tests write to the cluster, so it fails unless the context is a
+// fixture cluster's and its API server is on a loopback address, as
+// require_fixture_cluster in test/e2e/lib.sh does for the task path.
 func fixtureCluster(t *testing.T) (kubeconfig, kubeContext string) {
 	t.Helper()
 	kubeconfig, kubeContext = os.Getenv("OPM_PORTAL_E2E_KUBECONFIG"), os.Getenv("OPM_PORTAL_E2E_CONTEXT")
 	if kubeconfig == "" || kubeContext == "" {
 		t.Skip("OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT are not set: run task e2e:local or task e2e:m1")
 	}
+	if !fixtureContext.MatchString(kubeContext) {
+		t.Fatalf("context %q is not a fixture cluster's (want kind-opm-portal-e2e or kind-opm-portal-e2e-<suffix>)", kubeContext)
+	}
+	if server := restConfig(t, kubeconfig, kubeContext).Host; !loopbackServer(server) {
+		t.Fatalf("context %q points at %q, not an https loopback address", kubeContext, server)
+	}
 	return kubeconfig, kubeContext
+}
+
+// loopbackServer reports whether host is an https URL on 127.0.0.1,
+// localhost or [::1].
+func loopbackServer(host string) bool {
+	u, err := url.Parse(host)
+	if err != nil || u.Scheme != "https" {
+		return false
+	}
+	switch u.Hostname() {
+	case "127.0.0.1", "localhost", "::1":
+		return true
+	}
+	return false
 }
 
 // buildPortal builds the binary into a temporary directory.
