@@ -96,8 +96,9 @@ parameters, the view SHALL show exactly those. When it carries none and the brow
 filters for that view, the view SHALL open with them and the URL SHALL show them, without painting
 the unfiltered view first, on a full load and on a boosted navigation alike; no other request
 SHALL be rewritten. A stored query SHALL be checked against the view's parameters and values, and
-what does not fit SHALL be dropped. After rendering, a remembered view SHALL store the filters it
-shows and nothing else. The `uses` filter SHALL match an instance's render contracts, SHALL leave
+what does not fit SHALL be dropped. Stored filters SHALL be kept per kubeconfig context (or the
+in-cluster source), so filters stored while reading one context are never restored while reading
+another. After rendering, a remembered view SHALL store the filters it shows and nothing else. The `uses` filter SHALL match an instance's render contracts, SHALL leave
 packages out and SHALL say that packages do not record what they use. Source:
 portal:D14:R1/R2/R3, portal:D16:R2.
 
@@ -137,6 +138,12 @@ portal:D14:R1/R2/R3, portal:D16:R2.
 - **WHEN** the stored Installed query holds `health=Bogus&namespace=default` and the browser opens
   `/installed`
 - **THEN** the page shows `/installed?namespace=default`
+
+#### Scenario: Another context
+
+- **WHEN** a browser remembered `namespace=team-a` for Installed while the portal read context
+  `prod`, and the portal is restarted on the same address with `--context staging`
+- **THEN** `/installed` opens unfiltered
 
 #### Scenario: A tab is not a filter
 
@@ -343,9 +350,7 @@ withheld SHALL render locked: a distinct locked style, a lock mark and text sayi
 not read it or the portal cannot, showing only what the API document carries, with no link to a
 detail it cannot open. A forbidden instance or package list SHALL render as a locked group of the
 Installed list with no count. A Secret in an inventory SHALL show that Secret data is never read,
-with no YAML action. An edge the portal cannot confirm because its far end is locked or unreadable
-SHALL be drawn in the locked style, apart from an edge confirmed broken. Source: portal:D5:R7,
-portal:D7:R3.
+with no YAML action. Source: portal:D5:R7, portal:D7:R3.
 
 #### Scenario: A forbidden kind inside an instance
 
@@ -357,12 +362,6 @@ portal:D7:R3.
 
 - **WHEN** the caller may not list ModuleInstances and opens `/installed`
 - **THEN** the instances show as a locked group with no count
-
-#### Scenario: A dependency the caller may not read
-
-- **WHEN** a package's graph holds a `dependsOn` edge to a package the caller may not read
-- **THEN** the far node renders locked and the edge is drawn in the locked style, not as broken
-  and not as confirmed
 
 ## MODIFIED Requirements
 
@@ -560,6 +559,9 @@ the Platform page no longer shows (portal:D17), and "A forbidden list" names the
 page, which now redirects to Installed.
 
 **Migration**: Replaced by "Locked things render locked on every page", which keeps the rule and
-moves its list scenario to Installed. No page draws a registration-to-provider edge any more; the
-`platform/graph` read API resource still marks a forbidden provider and its edge (read-api,
-"Graphs are served as documents").
+moves its list scenario to Installed. Its locked-edge rule leaves the web UI with it: today only
+`platform/graph` produces an edge the UI draws in the locked style (its provider lookup), while
+instance and package graphs look up no access for `dependsOn` or source edges
+(`internal/graph/instance.go:104-121`), and no page draws the platform graph any more. The read
+API resource still marks a forbidden provider and its edge (read-api, "Graphs are served as
+documents").

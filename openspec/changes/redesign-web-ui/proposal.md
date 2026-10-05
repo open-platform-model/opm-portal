@@ -106,6 +106,7 @@ None.
 - Ordering: the controller rename's portal change (PORTAL-1) renames `operatorVersion` and the
   owner enum and recaptures the goldens; whichever lands second rebases its goldens. Release PR 18
   (0.1.0) is held for that rename, not for this change.
-- Decisions: implements portal:D14 to portal:D18; amends portal:D1 and portal:D2; portal:D18
-  names `/version` beside discovery as the reads portal:D5:R7's review does not precede; keeps
+- Decisions: implements portal:D14 to portal:D18; amends portal:D1 and portal:D2, and portal:D5:R7
+  and portal:D6:R10 to except the discovery documents and `/version`, read once without a review
+  (portal:D18); keeps
   portal:D3, portal:D4:R3, portal:D8:R5 and portal:D9 as they are.

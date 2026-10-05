@@ -471,7 +471,8 @@ reviews are the only objects local mode creates; the API server evaluates them a
   `selfsubjectreviews`; it sends no other create, update, patch or delete.
 - R7: In local mode every read is preceded by an allowed SelfSubjectAccessReview for the
   kubeconfig's identity and the exact request attributes, and an object the identity may not read
-  is shown as locked without being read.
+  is shown as locked without being read, except the discovery documents and `/version`, read once
+  without a review (D18).
 
 **Alternatives considered:**
 
@@ -551,7 +552,8 @@ audit log sees only the portal's ServiceAccount.
   SubjectAccessReview naming the portal's own ServiceAccount for that read's attributes, never by a
   self review, sent at startup and renewed at a bounded interval; a denied, failed or expired review
   stops that read, and what it would have read is shown as not readable. No person's request is
-  answered with that ServiceAccount's review.
+  answered with that ServiceAccount's review. The exception is the discovery documents and
+  `/version`, read once without a review (D18).
 
 **Alternatives considered:**
 
@@ -928,13 +930,15 @@ is unavailable or throws, the page works with the System theme and nothing remem
 Browser storage belongs to an origin: scheme, host and port. Preferences survive a restart of
 local mode only because local mode listens on a fixed default port (`127.0.0.1:7878`); a portal
 started with another `--addr` starts with none, and a Pod reached through a port-forward keeps
-them per forwarded port. Any other local process that later serves pages on the same origin can
-read what is stored there, which is why only filter queries and the theme are stored.
+them per forwarded port. One origin can read different clusters across restarts, so stored
+filters are kept per kubeconfig context (or the in-cluster source) and never restored against
+another. Any other local process that later serves pages on the same origin can read what is
+stored there, which is why only filter queries and the theme are stored.
 
 **Requirements:**
 
-- R1: Browser storage holds the theme choice and, per list view, the filter query the viewer had in
-  that view's URL. Filter values can name namespaces, modules and contracts, which are cluster
+- R1: Browser storage holds the theme choice and, per list view and kubeconfig context, the filter
+  query the viewer had in that view's URL. Filter values can name namespaces, modules and contracts, which are cluster
   facts the viewer already saw; nothing else from a document, and no identity, session, token or
   authorization result, is stored.
 - R2: A list view whose URL carries one of its filter parameters shows exactly the filters in the
@@ -946,7 +950,7 @@ read what is stored there, which is why only filter queries and the theme are st
 - R5: With browser storage unavailable or throwing, every page renders and works, in the System
   theme with no remembered filters.
 - R6: Local mode listens on `127.0.0.1:7878` unless `--addr` says otherwise, and refuses to start,
-  naming the address and `--addr`, when that port is taken.
+  naming the address and `--addr` and before any cluster call, when that port is taken.
 
 **Alternatives considered:**
 

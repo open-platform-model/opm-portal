@@ -60,12 +60,8 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 | 29 | The design and this plan moved into the repo when enhancement 0030 was withdrawn |
 | 35 | OIDC sign-in removed and kept as a future plan (owner decision 2026-10-05) |
 | 34 | Every `0030:` citation outside archived changes rewritten as `portal:` (issues 31 and 32) |
-
-### In review
-
-| PR | What |
-| --- | --- |
 | 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
+
 
 ### Next in V1
 

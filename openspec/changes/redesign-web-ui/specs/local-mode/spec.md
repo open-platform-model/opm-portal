@@ -26,8 +26,9 @@ credential. Source: portal:D18:R1.
 browser origin, and the theme and filters stored for it, stay the same across restarts. It SHALL
 refuse, with exit code 2 and before it reads the kubeconfig, an address whose host is empty, a
 name other than `localhost`, or an IP address outside the loopback ranges, and SHALL check the
-bound address again after listening. When the address is in use it SHALL exit 1 with a message
-naming the address and saying to pass `--addr` for another port. `--addr 127.0.0.1:0` SHALL still
+bound address again after listening. It SHALL bind the address before it reads the kubeconfig or
+makes any cluster call; when the address is in use it SHALL exit 1 with a message naming the
+address and saying to pass `--addr` for another port. `--addr 127.0.0.1:0` SHALL still
 pick a free port. Source: portal:D5:R2, portal:D14:R6.
 
 #### Scenario: Default address
@@ -47,7 +48,7 @@ pick a free port. Source: portal:D5:R2, portal:D14:R6.
 - **WHEN** another process listens on `127.0.0.1:7878` and a user runs `opm-portal serve` with no
   `--addr`
 - **THEN** standard error says `127.0.0.1:7878` is in use and to pass `--addr` for another port
-- **AND** the exit code is 1 and no launch link is printed
+- **AND** the exit code is 1, no launch link is printed, and no request reaches the cluster
 
 #### Scenario: The Pod keeps its own address
 

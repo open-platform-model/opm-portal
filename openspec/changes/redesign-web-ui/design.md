@@ -232,10 +232,15 @@ section 5's `TestPod` confirms by finding a version in the `Cluster` document.
 
 `--addr` defaults to `127.0.0.1:7878` instead of `127.0.0.1:0` (`cmd/opm-portal/serve.go:42`), so
 the browser origin, and with it the stored theme and filters, survives a restart (portal:D14:R6).
-When the port is taken, the listen that follows the identity check (`serve.go:226-231`) fails
-and `serve` exits 1 with `127.0.0.1:7878 is in use; pass --addr 127.0.0.1:<port> to use another
-port` in place of the bare listen error. The loopback checks
-are unchanged. `deploy/deployment.yaml:32` passes `--addr 127.0.0.1:8090` and keeps it, so the Pod
+The listener moves up: `serve` binds right after `loopbackAddr` accepts the address, before
+`connect` loads the kubeconfig and sends the SelfSubjectReview (today the listen follows them,
+`serve.go:226-231`). A taken port therefore fails before any cluster call, and `serve` exits 1
+with `127.0.0.1:7878 is in use; pass --addr 127.0.0.1:<port> to use another port` in place of the
+bare listen error. The loopback checks are unchanged.
+
+The e2e helpers start the portal with `--addr 127.0.0.1:0`, so a nightly run never collides with a
+portal a developer has open on 7878 (`cmd/opm-portal/e2e_test.go:91`, `:137`, `:158`;
+`m1_e2e_test.go:55`, `:76`); `TestLocalMode` keeps one start on the default address to test it. `deploy/deployment.yaml:32` passes `--addr 127.0.0.1:8090` and keeps it, so the Pod
 path is not affected; `--open` and the printed launch URL already use the bound address.
 
 `cmd/opm-portal` already resolves the context it loaded (`configSource`, `serve.go:180-194`). It
@@ -268,12 +273,18 @@ truth (portal:D14). Only the list views remember theirs: Installed and the Platf
 
 | View | Parameters | Remembered |
 | --- | --- | --- |
-| `/installed` | `q`, `kind` (`instance`, `package`), `provider` (`yes`, `no`), `uses` (a contract), `namespace`, `health`, `applied`, `owner` (`controller`, `cli`), `module` | yes, key `opm-portal.filters.installed` |
-| `/` Providers tab | `pq`, `pstatus` (`active`, `accepted`, `refused`, `blocked`, `pending`), `provides` | yes, key `opm-portal.filters.providers` |
-| `/` Catalogs tab | `cq`, `csource` (`subscription`, `registration`, `claim`), `claimed` (`yes`, `no`) | yes, key `opm-portal.filters.catalogs` |
+| `/installed` | `q`, `kind` (`instance`, `package`), `provider` (`yes`, `no`), `uses` (a contract), `namespace`, `health`, `applied`, `owner` (`controller`, `cli`), `module` | yes, key `opm-portal.filters.installed:<context>` |
+| `/` Providers tab | `pq`, `pstatus` (`active`, `accepted`, `refused`, `blocked`, `pending`), `provides` | yes, key `opm-portal.filters.providers:<context>` |
+| `/` Catalogs tab | `cq`, `csource` (`subscription`, `registration`, `claim`), `claimed` (`yes`, `no`) | yes, key `opm-portal.filters.catalogs:<context>` |
 | `/` events | `eresource` (`platform` or `registration:<name>`) | no |
 | instance and package Events tab | `resource`, `type`, `reason` | no |
 | instance and package Resources tab | `reason` (a health reason) | no |
+
+`<context>` is the kubeconfig context name, or `in-cluster`: the layout renders it into a
+`data-context` attribute on `<html>` from the `Cluster` document, and `prefs.js` reads it there.
+One origin can serve different clusters (the same port, another `--context`), and filters naming
+one cluster's namespaces and modules are not restored against another. When the `Cluster`
+document could not be fetched the attribute is absent and nothing is restored or stored.
 
 `tab` and `focus` are navigation, not filters: they are never stored and never count as "the URL
 carries a filter". The Health card's reason counts link to `tab=resources&reason=<health reason>`.
@@ -401,10 +412,11 @@ Graph interactions, all in `portal.js` over the server-rendered SVG:
 - **Groups**: a group node's accordion expands it through the graph resource's `expand` parameter
   (exists), then fits the view to the group's members; a "Whole graph" button removes the
   expansion and fits again.
-- **Locked edges**: `edgeOf` (`internal/ui/graph.go:213-235`) draws the locked style only for an
-  edge whose `verified` is false. An edge whose far node is locked or not readable (a package's
-  `dependsOn` to a package the caller may not read, or its source) is drawn in the locked style as
-  well, whatever `verified` says, because "cannot see" is not "confirmed".
+- **Locked edges** stay as they are: `edgeOf` (`internal/ui/graph.go:221-224`) draws the locked
+  style only for an unverified edge with a locked end, and only `platform/graph` produces one (its
+  provider lookup); instance and package graphs look up no access for `dependsOn` or source edges
+  (`internal/graph/instance.go:104-121`). With the platform graph off the Platform page, no page
+  draws a locked edge; a `dependsOn` to a package the caller may not read is drawn as today.
 
 Live refresh keeps the open tab, the `focus` parameter, the selected node, zoom, the open card and
 open groups (the refresh already keeps open groups, selection and zoom, `portal.js:196-236`). A
