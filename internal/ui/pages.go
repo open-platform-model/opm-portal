@@ -59,77 +59,6 @@ func problemStatus(p *v1.Problem) int {
 	return http.StatusServiceUnavailable
 }
 
-// --- Platform ---
-
-type platformView struct {
-	Problem  *v1.Problem
-	Platform v1.Platform
-	// Conditions are the Platform's conditions less the ones the contracts
-	// banner already shows.
-	Conditions   []v1.Condition
-	Accepted     int
-	Refused      int
-	Graph        svgGraph
-	GraphProblem *v1.Problem
-	Events       eventsView
-	Panel        *nodePanel
-}
-
-func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
-	var v platformView
-	v.Problem = h.fetch(r, "/platform", nil, &v.Platform)
-	if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
-		h.signIn(w, r)
-		return
-	}
-	if v.Problem == nil {
-		for i := range v.Platform.Registrations {
-			switch v.Platform.Registrations[i].Verdict {
-			case verdictAccepted, "RemovalBlocked":
-				v.Accepted++
-			case "Refused":
-				v.Refused++
-			}
-		}
-		var g v1.Graph
-		if v.GraphProblem = h.fetch(r, "/platform/graph", graphQuery(r), &g); v.GraphProblem == nil {
-			v.Graph = buildGraph(g, "platform-graph", "/", "/platform/node", r.URL.Query().Get("node"))
-			if id := r.URL.Query().Get("node"); id != "" {
-				v.Panel = h.panel(r, &g, id, panelContext{})
-			}
-		}
-		v.Events = h.events(r, "/platform/events", nil, "events:platform")
-		v.Conditions = withoutNotes(v.Platform.Conditions, v.Platform.Reconcile.Notes)
-	}
-	h.render(w, r, problemStatus(v.Problem), "platform", page{
-		Title:  "Platform",
-		Nav:    "platform",
-		Topics: []string{"platform", "events:platform"},
-		Main:   v,
-	})
-}
-
-// withoutNotes drops the conditions the page already shows as notes
-// beside the applied state.
-func withoutNotes(cs, notes []v1.Condition) []v1.Condition {
-	out := make([]v1.Condition, 0, len(cs))
-	for i := range cs {
-		if !slices.ContainsFunc(notes, func(n v1.Condition) bool { return n.Type == cs[i].Type }) {
-			out = append(out, cs[i])
-		}
-	}
-	return out
-}
-
-func (h *Handler) platformNode(w http.ResponseWriter, r *http.Request) {
-	var g v1.Graph
-	if p := h.fetch(r, "/platform/graph", graphQuery(r), &g); p != nil {
-		h.renderProblemFragment(w, r, p)
-		return
-	}
-	h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), panelContext{}))
-}
-
 func (h *Handler) registrationEvents(w http.ResponseWriter, r *http.Request) {
 	name := r.PathValue("name")
 	ev := h.events(r, "/platform/registrations/"+url.PathEscape(name)+"/events", nil, "")
@@ -172,6 +101,8 @@ type installedRow struct {
 // table, each kind locked on its own (portal:D17:R1, portal:D7:R2).
 type installedView struct {
 	Filters filters
+	// Query is the page's query, whose other parameters the form keeps.
+	Query url.Values
 	// InstancesProblem and PackagesProblem are a list that failed;
 	// InstancesLocked and PackagesLocked a list the caller may not read.
 	InstancesProblem *v1.Problem
@@ -191,7 +122,7 @@ type installedView struct {
 }
 
 func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
-	v := installedView{Filters: parseFilters(&installedFilters, r.URL.Query())}
+	v := installedView{Filters: parseFilters(&installedFilters, r.URL.Query()), Query: r.URL.Query()}
 	fv := v.Filters.Values
 	ns := fv["namespace"]
 	// A namespace no object can have matches nothing, and is not asked of
@@ -669,17 +600,10 @@ func (h *Handler) renderProblemFragment(w http.ResponseWriter, r *http.Request, 
 	h.renderFragment(w, r, problemStatus(p), "problem", page{Title: "Unavailable", Main: p})
 }
 
-// Form returns the Installed filter form's controls.
-func (v installedView) Form() formFields {
-	sel, txt := v.Filters.form(
+// FilterForm returns the Installed filter form.
+func (v installedView) FilterForm() filterForm {
+	return newFilterForm(v.Filters, "Filter what is installed", keepHidden(v.Query, installedFilters.paramNames()...),
 		map[string][]string{"namespace": v.Namespaces, "uses": v.Contracts, "module": v.Modules},
 		map[string]string{"q": "Name, namespace, module or source", "uses": "a contract the render used", "namespace": "all namespaces", "module": "a module path"},
 	)
-	return formFields{Selects: sel, Texts: txt}
-}
-
-// formFields are a filter form's controls.
-type formFields struct {
-	Selects []selectField
-	Texts   []textField
 }

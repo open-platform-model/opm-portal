@@ -183,8 +183,8 @@ func TestListenOnPortZeroPicksAFreePort(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func() { _ = ln.Close() }()
-	if bound.Port() == 0 || bound.Addr().String() != "127.0.0.1" {
-		t.Fatalf("bound = %s; want 127.0.0.1 and a chosen port", bound)
+	if bound.Port() == 0 || !bound.Addr().IsLoopback() {
+		t.Fatalf("bound = %s; want a loopback address and a chosen port", bound)
 	}
 }
 

@@ -193,6 +193,8 @@ type selectOption struct {
 
 type textField struct {
 	ID, Name, Label, Value, Placeholder string
+	// Search: the view's free-text search, drawn first and wide.
+	Search bool
 	// List is the id of the field's suggestions, if it has any.
 	List        string
 	Suggestions []string
@@ -206,7 +208,7 @@ func (f *filters) form(suggest map[string][]string, placeholders map[string]stri
 		id := "f-" + p.Name
 		cur := f.Values[p.Name]
 		if p.Values == nil {
-			t := textField{ID: id, Name: p.Name, Label: p.Label, Value: cur, Placeholder: placeholders[p.Name]}
+			t := textField{ID: id, Name: p.Name, Label: p.Label, Value: cur, Placeholder: placeholders[p.Name], Search: p.Label == "Search"}
 			if s := suggest[p.Name]; len(s) > 0 {
 				t.List, t.Suggestions = id+"-list", s
 			}
@@ -224,4 +226,65 @@ func (f *filters) form(suggest map[string][]string, placeholders map[string]stri
 		selects = append(selects, s)
 	}
 	return selects, texts
+}
+
+// linkWith is path with q and one parameter set to value.
+func linkWith(path string, q url.Values, name, value string) string {
+	next := url.Values{}
+	for k, vs := range q {
+		for _, val := range vs {
+			if val != "" {
+				next.Add(k, val)
+			}
+		}
+	}
+	next.Set(name, value)
+	return path + "?" + next.Encode()
+}
+
+// hiddenField is a parameter a filter form carries along unchanged, so a
+// form on a page with several views keeps the others' filters and tab.
+type hiddenField struct {
+	Name, Value string
+}
+
+// keepHidden is every non-empty parameter of q but the named ones.
+func keepHidden(q url.Values, drop ...string) []hiddenField {
+	keys := make([]string, 0, len(q))
+	for k := range q {
+		if !slices.Contains(drop, k) {
+			keys = append(keys, k)
+		}
+	}
+	slices.Sort(keys)
+	var out []hiddenField
+	for _, k := range keys {
+		for _, v := range q[k] {
+			if v != "" {
+				out = append(out, hiddenField{Name: k, Value: v})
+			}
+		}
+	}
+	return out
+}
+
+// filterForm is one view's filter form, chips and notes, as the
+// filter-form partial renders it.
+type filterForm struct {
+	Action  string
+	Aria    string
+	Fields  formFields
+	Filters filters
+	Hidden  []hiddenField
+}
+
+// formFields are a filter form's controls.
+type formFields struct {
+	Selects []selectField
+	Texts   []textField
+}
+
+func newFilterForm(f filters, aria string, hidden []hiddenField, suggest map[string][]string, placeholders map[string]string) filterForm {
+	sel, txt := f.form(suggest, placeholders)
+	return filterForm{Action: f.View.Path, Aria: aria, Fields: formFields{Selects: sel, Texts: txt}, Filters: f, Hidden: hidden}
 }

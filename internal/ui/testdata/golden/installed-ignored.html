@@ -4,6 +4,7 @@
   <p class="lede">Every module this cluster runs under OPM, as a ModuleInstance or a ModulePackage. <strong>Applied</strong> is what the controller applied, <strong>Health</strong> what the portal sees running; one never stands for the other.</p>
 </header>
 <form class="filters" method="get" action="/installed" role="search" aria-label="Filter what is installed" data-filters="installed">
+  
   <div class="filter-fields">
     <div class="field field-search"><label for="f-q">Search</label><input id="f-q" name="q" type="search" value="pod" placeholder="Name, namespace, module or source" autocomplete="off" spellcheck="false"></div>
     
@@ -21,7 +22,7 @@
   
   <div class="filter-chips">
     <a class="fchip" href="/installed" data-filters-explicit aria-label="Remove the filter Search: pod"><span class="fchip-label">Search</span> pod<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
-    <p class="fnote" role="note">Ignored filter <span class="mono">health=Bogus</span>: not a value this list knows. <a href="/installed?q=pod" data-filters-explicit>Dismiss</a></p>
+    <p class="fnote" role="note">Ignored filter <span class="mono">health=Bogus</span>: not a value this view knows. <a href="/installed?q=pod" data-filters-explicit>Dismiss</a></p>
     <a class="fclear" href="/installed" data-filters-explicit data-clear-filters="installed">Clear filters</a>
   </div>
 </form>

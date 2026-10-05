@@ -23,13 +23,13 @@
 
 ## 3. Platform page (internal/ui)
 
-- [ ] 3.1 Identity card (name, type, controller version) and status card: `Ready` reasons and `ContractsFulfilled` as information, each reason linking to its condition row
-- [ ] 3.2 Installed card: counts per health and applied state linking to `/installed` filtered, the instances, packages and holders line, locked counts for a forbidden list
-- [ ] 3.3 Providers and Catalogs tabs with their filters: provider rows with two pills and the refusal or blocked reason, and the holder linking to its instance or package page (section 5 points it at the Provider tab); catalog rows with the path and the provider catalogs as text (section 5 links them to the Catalog page)
-- [ ] 3.4 Recent events: the Platform's feed and each readable registration's, merged newest first, with the resource filter; follow `platform`, `instances`, `events:platform` and `events:registration:<name>`
-- [ ] 3.5 Remove the platform graph and the `/platform/node` route from the UI; `platform/graph` stays in the read API
-- [ ] 3.6 UI goldens updated and reviewed; the hostile-text suite covers the new regions
-- [ ] 3.7 `task check` green, then commit `feat(ui): rebuild the Platform page around providers and catalogs`
+- [x] 3.1 Identity card (name, type, controller version) and status card: `Ready` reasons and `ContractsFulfilled` as information, each reason linking to its condition row
+- [x] 3.2 Installed card: counts per health and applied state linking to `/installed` filtered, the instances, packages and holders line, locked counts for a forbidden list
+- [x] 3.3 Providers and Catalogs tabs with their filters: provider rows with two pills and the refusal or blocked reason, and the holder linking to its instance or package page (section 5 points it at the Provider tab); catalog rows with the path and the provider catalogs as text (section 5 links them to the Catalog page)
+- [x] 3.4 Recent events: the Platform's feed and each readable registration's, merged newest first, with the resource filter; follow `platform`, `instances`, `events:platform` and `events:registration:<name>`
+- [x] 3.5 Remove the platform graph and the `/platform/node` route from the UI; `platform/graph` stays in the read API
+- [x] 3.6 UI goldens updated and reviewed; the hostile-text suite covers the new regions
+- [x] 3.7 `task check` green, then commit `feat(ui): rebuild the Platform page around providers and catalogs`
 
 ## 4. Instance and package pages (internal/ui)
 

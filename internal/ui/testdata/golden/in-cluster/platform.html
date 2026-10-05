@@ -1,184 +1,124 @@
-<main id="main" tabindex="-1" data-topics="platform events:platform" data-canonical="/">
-<header class="page-head reveal" id="platform-head" data-follow="platform">
-  <p class="kicker">Platform · kubernetes · controller version v1.0.0-beta.6</p>
-  <h1>cluster</h1>
-  <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></div>
-  
-  <aside class="info" aria-label="Contracts">
-    <p class="info-head"><span class="label">Contracts</span> Some provider-fulfilled contracts have no provider yet. This is information, not a failure: a module that demands one waits until a provider registers.</p>
-  </aside>
-</header>
-<div class="stats reveal" aria-label="Summary">
-  <div class="stat"><span class="stat-n">1</span><span class="stat-l">subscription</span></div>
-  <div class="stat"><span class="stat-n">2</span><span class="stat-l">catalogs resolved</span></div>
-  <div class="stat"><span class="stat-n">1</span><span class="stat-l">claim accepted</span></div>
-  <div class="stat stat-alert"><span class="stat-n">1</span><span class="stat-l">claim refused</span></div>
+<main id="main" tabindex="-1" data-topics="platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture" data-canonical="/">
+<div class="pf-summary reveal">
+  <section class="card pf-identity" id="platform-head" aria-label="Identity" data-follow="platform">
+    <p class="kicker">Platform</p>
+    <h1>cluster</h1>
+    <dl class="facts">
+      <dt>Type</dt><dd>kubernetes</dd>
+      <dt>Controller version</dt><dd class="mono">v1.0.0-beta.6</dd>
+    </dl>
+  </section>
+  <section class="card pf-status" id="platform-status" aria-labelledby="status-h" data-follow="platform">
+    <h2 id="status-h">Status <span class="h-note">what the controller reports</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></div>
+    <p class="pf-line">2 catalogs resolved from 1 subscription · 1 claim active</p>
+    <ul class="reason-links">
+      <li><a href="#cond-Ready"><span class="label">Ready</span> <span class="mono">Generated</span></a> <span class="muted">The platform module was generated and built.</span></li>
+      <li class="reason-info"><a href="#cond-ContractsFulfilled"><span class="label">Contracts</span> <span class="mono">UnfulfilledContracts</span></a> <span class="muted">information, not a failure</span></li>
+    </ul>
+  </section>
 </div>
-<section class="panel reveal" id="catalogs" aria-labelledby="catalogs-h" data-follow="platform">
-  <h2 id="catalogs-h">Catalogs</h2>
-  <h3 class="sub-h">Subscriptions</h3>
-  <ul class="subs">
-    <li class="sub"><span class="mono">opmodel.<wbr>dev/<wbr>catalogs/<wbr>opm@v4</span><span class="ver">4.6.0</span></li>
-  </ul>
-  <h3 class="sub-h">Resolved registry</h3>
-  <ul class="registry">
-    <li class="entry">
-      <p class="entry-name"><span class="mono">opmodel.<wbr>dev/<wbr>catalogs/<wbr>opm@v4</span> <span class="ver">4.6.0</span></p>
-      <dl class="facts">
-        <dt>Source</dt><dd>Subscription</dd>
-        <dt>Claimed by</dt><dd><span class="muted">no provider</span></dd>
-      </dl>
-    </li>
-    <li class="entry">
-      <p class="entry-name"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</span> <span class="ver">0.1.0</span></p>
-      <dl class="facts">
-        <dt>Source</dt><dd>Registration, contributed by <span class="mono">default.backup-provider</span></dd>
-        <dt>Claimed by</dt><dd><span class="mono chip">default.<wbr>backup-provider</span> </dd>
-      </dl>
-    </li>
-  </ul>
-</section>
-<section class="panel reveal" id="registrations" aria-labelledby="registrations-h" data-follow="platform">
-  <h2 id="registrations-h">Providers <span class="h-note">claims on catalogs, and who holds them</span></h2>
+<section class="panel panel-wide reveal" id="installed-card" aria-labelledby="installed-h" data-follow="instances">
+  <div class="card-headline"><h2 id="installed-h">Installed</h2><a href="/installed">Open the full list</a></div>
+  <div class="count-groups">
+    <div class="count-group"><span class="label">Health</span><a class="count health health-healthy" href="/installed?health=Healthy">Healthy <span class="count-n">5</span></a><a class="count health health-unknown" href="/installed?health=Unknown">Unknown <span class="count-n">1</span></a></div>
+    <div class="count-group"><span class="label">Applied</span><a class="count applied applied-applied" href="/installed?applied=Applied">Applied <span class="count-n">4</span></a><a class="count applied applied-failed" href="/installed?applied=Failed">Failed <span class="count-n">1</span></a><a class="count applied applied-managedexternally" href="/installed?applied=ManagedExternally">Managed externally <span class="count-n">1</span></a></div>
+  </div>
+  <p class="pf-line">6 installed: 5 instances, 1 package; 1 of them holds a registration.</p>
   
-  <ul class="cards">
-    <li class="card reg reg-Accepted">
-      <div class="card-head">
-        <h3 class="card-title mono">default.<wbr>backup-provider</h3>
-      </div>
-      <p class="pills">
-        <span class="pill pill-yes">accepted</span>
-        <span class="pill pill-yes">active</span>
-      </p>
-      <dl class="facts">
-        <dt>Catalog</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0 <span class="ver">0.1.0</span></dd>
-        <dt>Provides</dt><dd><span class="mono chip">opmodel.<wbr>dev/<wbr>catalogs/<wbr>opm/<wbr>traits/<wbr>backup@v1alpha1</span> </dd>
-        <dt>Provider</dt><dd><a class="mono" href="/instances/default/backup-provider">default/backup-provider</a></dd>
-      </dl>
-      <p class="verdict-why"><span class="label">Activation</span> <span class="mono">ProviderReady</span></p>
-      <p class="card-foot"><a href="/platform/registrations/default.backup-provider/events" hx-get="/platform/registrations/default.backup-provider/events" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Recent events</a></p>
-    </li>
-    <li class="card reg reg-Refused">
-      <div class="card-head">
-        <h3 class="card-title mono">default.<wbr>refused-claim-fixture</h3>
-      </div>
-      <p class="pills">
-        <span class="pill pill-no">not accepted</span>
-        <span class="pill pill-no">inactive</span>
-      </p>
-      <dl class="facts">
-        <dt>Catalog</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0 <span class="ver">0.1.0</span></dd>
-        <dt>Provider</dt><dd><a class="mono" href="/instances/default/refused-claim-fixture">default/refused-claim-fixture</a></dd>
-      </dl>
-      <p class="verdict-why"><span class="verdict verdict-refused">Refused</span> <span class="mono">CatalogUnresolved</span></p>
-      <p class="card-foot"><a href="/platform/registrations/default.refused-claim-fixture/events" hx-get="/platform/registrations/default.refused-claim-fixture/events" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Recent events</a></p>
-    </li>
-  </ul>
+  
 </section>
-<section class="panel panel-wide reveal" id="graph" aria-labelledby="graph-h" data-follow="platform">
-  <h2 id="graph-h">Platform graph <span class="h-note">select a node for details</span></h2>
-<div class="graph" data-graph="platform-graph">
-  <div class="graph-tools" role="group" aria-label="Graph zoom">
-    <span class="hint">drag to pan · ctrl + wheel to zoom · outline and rail: health · square: applied</span>
-    <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
-    <button type="button" data-zoom="reset" aria-label="Actual size">1:1</button>
-    <button type="button" data-zoom="fit" aria-label="Fit to width">Fit</button>
-    <button type="button" data-zoom="in" aria-label="Zoom in">+</button>
+<section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
+  <nav class="tabs" aria-label="Platform parts">
+    <a href="/?tab=providers" aria-current="page">Providers</a>
+    <a href="/?tab=catalogs">Catalogs</a>
+  </nav>
+  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" data-filters="providers">
+  
+  <div class="filter-fields">
+    <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
+    
+    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="" selected>Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused">refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
+    
+    <div class="field"><label for="f-provides">Provides</label><input id="f-provides" name="provides" value="" placeholder="a contract" list="f-provides-list" autocomplete="off" spellcheck="false"><datalist id="f-provides-list"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"></datalist></div>
+    <div class="field field-submit"><button type="submit">Apply filters</button></div>
   </div>
-  <div class="graph-frame">
-  <svg viewBox="0 0 1024 160" width="1024" height="160" role="group" aria-label="Relationship graph">
-    <defs>
-      <marker id="platform-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
-      <pattern id="platform-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
-    </defs>
-    <g class="viewport">
-      <text class="col-title" x="16" y="20">Platform</text><text class="col-title" x="280" y="20">Catalogs</text><text class="col-title" x="544" y="20">Registrations</text><text class="col-title" x="808" y="20">Providers</text>
-      <path class="edge edge-contributes" d="M544 66 C512 66, 512 122, 480 122" marker-end="url(#platform-graph-arrow)"><title>contributes, from Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration</title></path><path class="edge edge-providedBy" d="M744 66 C776 66, 776 66, 808 66" marker-end="url(#platform-graph-arrow)"><title>providedBy, from TransformerRegistration spec.providerRef, checked against the provider&#39;s status.inventory</title></path><path class="edge edge-providedBy unverified" d="M744 122 C776 122, 776 122, 808 122" marker-end="url(#platform-graph-arrow)"><title>providedBy, from TransformerRegistration spec.providerRef, checked against the provider&#39;s status.inventory; not confirmed: ProviderNotFound</title></path><path class="edge edge-resolves" d="M216 94 C248 94, 248 66, 280 66" marker-end="url(#platform-graph-arrow)"><title>resolves, from Platform status.registry</title></path><path class="edge edge-resolves" d="M216 94 C248 94, 248 122, 280 122" marker-end="url(#platform-graph-arrow)"><title>resolves, from Platform status.registry</title></path>
-      <a class="node kind-platform ap-applied" href="/?node=plat%3Acluster" data-panel="/platform/node?id=plat%3Acluster" data-node="plat:cluster" tabindex="0" aria-label="Platform, cluster, Applied">
-        <title>cluster</title>
-        <rect class="node-ring" x="16" y="72" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="16" y="72" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="16" y="72" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="91">cluster</text>
-        <text class="node-sub" x="28" y="106">Platform</text>
-        <rect class="node-stamp" x="200" y="78" width="10" height="10" rx="1"/>
-      </a>
-      <a class="node kind-catalog" href="/?node=cat%3Aopmodel.dev%252Fcatalogs%252Fopm%2540v4" data-panel="/platform/node?id=cat%3Aopmodel.dev%252Fcatalogs%252Fopm%2540v4" data-node="cat:opmodel.dev%2Fcatalogs%2Fopm%40v4" tabindex="0" aria-label="Catalog, opmodel.dev/catalogs/opm@v4">
-        <title>opmodel.dev/catalogs/opm@v4</title>
-        <rect class="node-ring" x="280" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="280" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="280" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="292" y="63">opm@v4 4.6.0</text>
-        <text class="node-sub" x="292" y="78">Catalog · opmodel.dev/…</text>
-      </a>
-      <a class="node kind-catalog" href="/?node=cat%3Atesting.opmodel.dev%252Fcatalogs%252Foperator%252Fbackup%2540v0" data-panel="/platform/node?id=cat%3Atesting.opmodel.dev%252Fcatalogs%252Foperator%252Fbackup%2540v0" data-node="cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0" tabindex="0" aria-label="Catalog, testing.opmodel.dev/catalogs/operator/backup@v0">
-        <title>testing.opmodel.dev/catalogs/operator/backup@v0</title>
-        <rect class="node-ring" x="280" y="100" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="280" y="100" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="280" y="100" width="5" height="44" rx="2"/>
-        <text class="node-label" x="292" y="119">backup@v0 0.1.0</text>
-        <text class="node-sub" x="292" y="134">Catalog · testing.opmodel.d…</text>
-      </a>
-      <a class="node kind-registration ap-applied" href="/?node=treg%3Adefault.backup-provider" data-panel="/platform/node?id=treg%3Adefault.backup-provider" data-node="treg:default.backup-provider" tabindex="0" aria-label="Registration, default.backup-provider, Applied">
-        <title>default.backup-provider</title>
-        <rect class="node-ring" x="544" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="544" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="544" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="556" y="63">default.…kup-provider</text>
-        <text class="node-sub" x="556" y="78">TransformerRegistration</text>
-        <rect class="node-stamp" x="728" y="50" width="10" height="10" rx="1"/>
-      </a>
-      <a class="node kind-registration ap-stalled" href="/?node=treg%3Adefault.refused-claim-fixture" data-panel="/platform/node?id=treg%3Adefault.refused-claim-fixture" data-node="treg:default.refused-claim-fixture" tabindex="0" aria-label="Registration, default.refused-claim-fixture, Stalled">
-        <title>default.refused-claim-fixture</title>
-        <rect class="node-ring" x="544" y="100" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="544" y="100" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="544" y="100" width="5" height="44" rx="2"/>
-        <text class="node-label" x="556" y="119">default.…laim-fixture</text>
-        <text class="node-sub" x="556" y="134">TransformerRegistration</text>
-        <rect class="node-stamp" x="728" y="106" width="10" height="10" rx="1"/>
-      </a>
-      <a class="node kind-instance health-healthy ap-applied" href="/?node=mi%3Adefault%2Fbackup-provider" data-panel="/platform/node?id=mi%3Adefault%2Fbackup-provider" data-node="mi:default/backup-provider" tabindex="0" aria-label="Instance, default/backup-provider, health Healthy, Applied">
-        <title>default/backup-provider</title>
-        <rect class="node-ring" x="808" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="63">default/…kup-provider</text>
-        <text class="node-sub" x="820" y="78">Instance</text>
-        <rect class="node-stamp" x="992" y="50" width="10" height="10" rx="1"/>
-      </a>
-      <a class="node kind-instance health-missing" href="/?node=mi%3Adefault%2Frefused-claim-fixture" data-panel="/platform/node?id=mi%3Adefault%2Frefused-claim-fixture" data-node="mi:default/refused-claim-fixture" tabindex="0" aria-label="Instance, default/refused-claim-fixture, missing">
-        <title>default/refused-claim-fixture</title>
-        <rect class="node-ring" x="808" y="100" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="100" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="100" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="119">default/r…-claim-fixture</text>
-        <text class="node-sub" x="820" y="134">Instance</text>
-      </a>
-    </g>
-  </svg>
+  
+</form>
+  <div id="providers" data-follow="platform">
+  
+  <p class="shown">Showing <strong>2</strong> of 2</p>
+  <div class="table-wrap">
+  <table class="table rows providers">
+    <thead><tr><th scope="col">Provider</th><th scope="col">Catalog</th><th scope="col">Provides</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+    <tr class="reg reg-Accepted">
+      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>backup-provider</span></th>
+      <td data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</span> <span class="ver">0.1.0</span></td>
+      <td data-label="Provides"><span class="mono chip" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span> </td>
+      <td data-label="Installed as"><span class="holder"><span class="kind kind-instance">Instance</span> <a class="mono" href="/instances/default/backup-provider">default/backup-provider</a></span> </td>
+      <td data-label="Status">
+        <p class="pills">
+          <span class="pill pill-yes">accepted</span>
+          <span class="pill pill-yes">active</span>
+        </p>
+        
+      </td>
+    </tr>
+    <tr class="reg reg-Refused">
+      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>refused-claim-fixture</span></th>
+      <td data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</span> <span class="ver">0.1.0</span></td>
+      <td data-label="Provides"><span class="muted">nothing</span></td>
+      <td data-label="Installed as"><span class="muted">held by nothing you may read</span><p class="muted holder-note">spec.providerRef names ModuleInstance <span class="mono">default/refused-claim-fixture</span>.</p></td>
+      <td data-label="Status">
+        <p class="pills">
+          <span class="pill pill-no">not accepted</span>
+          <span class="pill pill-no">inactive</span>
+        </p>
+        <p class="verdict-why"><span class="verdict verdict-refused">Refused</span> <span class="mono">CatalogUnresolved</span></p>
+      </td>
+    </tr>
+    </tbody>
+  </table>
   </div>
-</div>
+  
+  </div>
 </section>
-<section class="panel panel-7 reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
+<section class="panel panel-wide reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
   <h2 id="conditions-h">Conditions</h2>
-<ol class="conditions">
-  <li class="condition tone-normal">
-    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">Generated</span><span class="cond-time"><time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC">6m ago</time></span></div>
+  <ol class="conditions">
+    <li class="condition tone-normal" id="cond-Ready">
+      <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">Generated</span><span class="cond-time"><time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC">6m ago</time></span></div>
     <p class="cond-meaning">The platform module was generated and built.</p>
-  </li>
-</ol>
+    </li>
+    <li class="condition tone-informational" id="cond-ContractsFulfilled">
+      <div class="cond-head"><span class="cond-type">ContractsFulfilled</span><span class="cond-status">False</span><span class="cond-reason">UnfulfilledContracts</span><span class="cond-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <p class="cond-meaning">Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers.</p>
+    </li>
+  </ol>
 </section>
-<aside class="panel panel-5 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node or a provider's events to see them here.</p>
-</aside>
-<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:platform">
+<section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" data-filters="events">
+    <div class="filter-fields">
+      <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+    </div>
+  </form>
   <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
+  <div id="events" data-follow="events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture">
+    <p class="shown">Showing <strong>2</strong> of 2, newest first, repeats folded</p>
+    
 <ol class="events">
+  <li class="event ev-warning">
+    <div class="ev-head"><span class="ev-type">Warning</span><span class="ev-reason">CatalogUnresolved</span><span class="ev-time"><time datetime="2026-10-04T18:04:26Z" title="2026-10-04 18:04:26 UTC">5m ago</time></span></div>
+    <p class="ev-meta mono">TransformerRegistration.opmodel.dev default.refused-claim-fixture · opm-controller</p>
+  </li>
   <li class="event ev-normal">
     <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Generated</span><span class="ev-count" title="Repeats folded into one line">×2</span><span class="ev-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
     <p class="ev-meta mono">Platform.opmodel.dev cluster · opm-controller</p>
   </li>
 </ol>
+  </div>
 </section>
 </main>

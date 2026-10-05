@@ -30,57 +30,58 @@
 </section>
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
   <nav class="tabs" aria-label="Platform parts">
-    <a href="/?tab=providers" aria-current="page">Providers</a>
-    <a href="/?tab=catalogs">Catalogs</a>
+    <a href="/?tab=providers">Providers</a>
+    <a href="/?tab=catalogs" aria-current="page">Catalogs</a>
   </nav>
-  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" data-filters="providers">
-  
+  <form class="filters" method="get" action="/" role="search" aria-label="Filter catalogs" data-filters="catalogs">
+  <input type="hidden" name="tab" value="catalogs">
   <div class="filter-fields">
-    <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
+    <div class="field field-search"><label for="f-cq">Search</label><input id="f-cq" name="cq" type="search" value="" placeholder="Catalog path or claimant" autocomplete="off" spellcheck="false"></div>
     
-    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="" selected>Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused">refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
+    <div class="field"><label for="f-csource">Source</label><select id="f-csource" name="csource"><option value="" selected>Any</option><option value="subscription">subscribed</option><option value="registration">from a provider</option><option value="claim">claimed only</option></select></div>
+    <div class="field"><label for="f-claimed">Claimed</label><select id="f-claimed" name="claimed"><option value="" selected>Any</option><option value="yes">yes</option><option value="no">no</option></select></div>
     
-    <div class="field"><label for="f-provides">Provides</label><input id="f-provides" name="provides" value="" placeholder="a contract" list="f-provides-list" autocomplete="off" spellcheck="false"><datalist id="f-provides-list"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"></datalist></div>
     <div class="field field-submit"><button type="submit">Apply filters</button></div>
   </div>
   
 </form>
-  <div id="providers" data-follow="platform">
+  <div id="catalogs" data-follow="platform">
+  <p class="shown">Showing <strong>3</strong> of 3</p>
   
-  <p class="shown">Showing <strong>2</strong> of 2</p>
   <div class="table-wrap">
-  <table class="table rows providers">
-    <thead><tr><th scope="col">Provider</th><th scope="col">Catalog</th><th scope="col">Provides</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
+  <table class="table rows catalogs">
+    <thead><tr><th scope="col">Catalog</th><th scope="col">Version</th><th scope="col">Source</th><th scope="col">Claimed by</th><th scope="col">Enabled</th></tr></thead>
     <tbody>
-    <tr class="reg reg-Accepted">
-      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>backup-provider</span></th>
-      <td data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</span> <span class="ver">0.1.0</span></td>
-      <td data-label="Provides"><span class="mono chip" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span> </td>
-      <td data-label="Installed as"><span class="holder"><span class="kind kind-instance">Instance</span> <a class="mono" href="/instances/default/backup-provider">default/backup-provider</a></span> </td>
-      <td data-label="Status">
-        <p class="pills">
-          <span class="pill pill-yes">accepted</span>
-          <span class="pill pill-yes">active</span>
-        </p>
-        <p class="verdict-why"><span class="verdict verdict-accepted">Accepted</span> <span class="msg">Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</span></p>
-      </td>
+    <tr>
+      <th scope="row" data-label="Catalog"><span class="mono">opmodel.<wbr>dev/<wbr>catalogs/<wbr>opm@v4</span></th>
+      <td data-label="Version"><span class="mono">4.6.0</span></td>
+      <td data-label="Source">subscribed</td>
+      <td data-label="Claimed by"><span class="muted">no provider</span></td>
+      <td data-label="Enabled">yes</td>
     </tr>
-    <tr class="reg reg-Refused">
-      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>refused-claim-fixture</span></th>
-      <td data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</span> <span class="ver">0.1.0</span></td>
-      <td data-label="Provides"><span class="muted">nothing</span></td>
-      <td data-label="Installed as"><span class="muted">held by nothing you may read</span><p class="muted holder-note">spec.providerRef names ModuleInstance <span class="mono">default/refused-claim-fixture</span>.</p></td>
-      <td data-label="Status">
-        <p class="pills">
-          <span class="pill pill-no">not accepted</span>
-          <span class="pill pill-no">inactive</span>
-        </p>
-        <p class="verdict-why"><span class="verdict verdict-refused">Refused</span> <span class="mono">CatalogUnresolved</span><span class="msg">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</span></p>
-      </td>
+    <tr>
+      <th scope="row" data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</span></th>
+      <td data-label="Version"><span class="mono">0.1.0</span></td>
+      <td data-label="Source">from a provider, contributed by <span class="mono">default.backup-provider</span></td>
+      <td data-label="Claimed by"><span class="claimant"><span class="mono">default.<wbr>backup-provider</span> <a class="mono holder-link" href="/instances/default/backup-provider">default/backup-provider</a></span> </td>
+      <td data-label="Enabled">yes</td>
+    </tr>
+    <tr>
+      <th scope="row" data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</span><p class="muted holder-note">Not in the Platform's resolved registry.</p></th>
+      <td data-label="Version"><span class="mono">0.1.0</span></td>
+      <td data-label="Source">claimed only</td>
+      <td data-label="Claimed by"><span class="claimant"><span class="mono">default.<wbr>refused-claim-fixture</span></span> </td>
+      <td data-label="Enabled"><span class="muted">not recorded</span></td>
     </tr>
     </tbody>
   </table>
   </div>
+  
+  <aside class="info" id="contracts" aria-label="Contracts">
+    <p class="info-head"><span class="label">Contracts</span> Some provider-fulfilled contracts have no provider yet. This is information, not a failure: a module that demands one waits until a provider registers.</p>
+    <pre class="info-body">1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
+  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)</pre>
+  </aside>
   
   </div>
 </section>
@@ -103,6 +104,7 @@
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
   <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" data-filters="events">
+    <input type="hidden" name="tab" value="catalogs">
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>
       <div class="field field-submit"><button type="submit">Show</button></div>

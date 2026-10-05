@@ -26,24 +26,6 @@ func TestGraphKeepsTheAxesApart(t *testing.T) {
 	}
 }
 
-// TestEdgeToALockedProviderIsUnconfirmed (portal:D5:R7): an edge the portal
-// cannot confirm because the provider is locked is not drawn as broken;
-// the refused claim's missing provider still is.
-func TestEdgeToALockedProviderIsUnconfirmed(t *testing.T) {
-	s := newSite(t, apitest.F1(t), apitest.DenyResources("moduleinstances"))
-	main := mainOf(s.get(t, "/").body)
-	if !strings.Contains(main, `class="edge edge-providedBy unconfirmed"`) {
-		t.Errorf("no unconfirmed providedBy edge:\n%s", between(main, `<g class="viewport">`, "</g>"))
-	}
-	if strings.Contains(main, `edge-providedBy unverified`) {
-		t.Error("an edge to a locked provider is drawn as unverified")
-	}
-	open := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
-	if !strings.Contains(open, `class="edge edge-providedBy unverified"`) {
-		t.Error("the refused claim's missing provider is not drawn as unverified")
-	}
-}
-
 // TestConfigComponentsFoldAsInTheGraph (portal:D4:R5): cert-manager's
 // configuration components are one closed group in the list, and the
 // selected node is marked.

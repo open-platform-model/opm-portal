@@ -29,7 +29,7 @@ func renderMain(t *testing.T, name string, main any) string {
 // shows two pills on their own, and a blocked removal reads as removal
 // blocked while accepted and active, never as refused.
 func TestAcceptedAndActiveApart(t *testing.T) {
-	v := platformView{Platform: v1.Platform{
+	v := platformView{Tab: tabProviders, Platform: v1.Platform{
 		Name:                "cluster",
 		RegistrationsAccess: v1.AccessOK,
 		Registrations: []v1.Registration{
@@ -37,12 +37,16 @@ func TestAcceptedAndActiveApart(t *testing.T) {
 			{Name: "leaving", Catalog: "d@v0", Accepted: true, Active: true, Verdict: "RemovalBlocked", Reason: "DependentsRemain", Message: "2 instances still demand it"},
 		},
 	}}
+	v.Providers.Access = v1.AccessOK
+	v.Providers.Rows, v.Providers.Total = providerRows(&v.Platform, nil)
+	v.Providers.Form = newFilterForm(parseFilters(&providerFilters, nil), "Filter providers", nil, nil, nil)
+	v.Events.Filters = parseFilters(&filterView{Path: "/"}, nil)
 	out := renderMain(t, "platform", v)
-	pending := between(out, ">pending<", "</li>")
+	pending := between(out, `<span class="mono">pending</span></th>`, "</tr>")
 	if !strings.Contains(pending, ">accepted<") || !strings.Contains(pending, ">inactive<") {
 		t.Errorf("accepted, inactive claim:\n%s", pending)
 	}
-	leaving := between(out, ">leaving<", "</li>")
+	leaving := between(out, `<span class="mono">leaving</span></th>`, "</tr>")
 	if !strings.Contains(leaving, "Removal blocked") || !strings.Contains(leaving, ">accepted<") || !strings.Contains(leaving, ">active<") ||
 		strings.Contains(leaving, "Refused") || !strings.Contains(leaving, "DependentsRemain") {
 		t.Errorf("removal-blocked claim:\n%s", leaving)

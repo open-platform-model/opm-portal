@@ -30,41 +30,32 @@
 </section>
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
   <nav class="tabs" aria-label="Platform parts">
-    <a href="/?tab=providers" aria-current="page">Providers</a>
-    <a href="/?tab=catalogs">Catalogs</a>
+    <a href="/?eresource=registration%3Adefault.refused-claim-fixture&amp;pstatus=refused&amp;tab=providers" aria-current="page">Providers</a>
+    <a href="/?eresource=registration%3Adefault.refused-claim-fixture&amp;pstatus=refused&amp;tab=catalogs">Catalogs</a>
   </nav>
   <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" data-filters="providers">
-  
+  <input type="hidden" name="eresource" value="registration:default.refused-claim-fixture">
   <div class="filter-fields">
     <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
     
-    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="" selected>Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused">refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
+    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="">Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused" selected>refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
     
     <div class="field"><label for="f-provides">Provides</label><input id="f-provides" name="provides" value="" placeholder="a contract" list="f-provides-list" autocomplete="off" spellcheck="false"><datalist id="f-provides-list"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"></datalist></div>
     <div class="field field-submit"><button type="submit">Apply filters</button></div>
   </div>
   
+  <div class="filter-chips">
+    <a class="fchip" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit aria-label="Remove the filter Status: refused"><span class="fchip-label">Status</span> refused<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+    <a class="fclear" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit data-clear-filters="providers">Clear filters</a>
+  </div>
 </form>
   <div id="providers" data-follow="platform">
   
-  <p class="shown">Showing <strong>2</strong> of 2</p>
+  <p class="shown">Showing <strong>1</strong> of 2</p>
   <div class="table-wrap">
   <table class="table rows providers">
     <thead><tr><th scope="col">Provider</th><th scope="col">Catalog</th><th scope="col">Provides</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
     <tbody>
-    <tr class="reg reg-Accepted">
-      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>backup-provider</span></th>
-      <td data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</span> <span class="ver">0.1.0</span></td>
-      <td data-label="Provides"><span class="mono chip" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span> </td>
-      <td data-label="Installed as"><span class="holder"><span class="kind kind-instance">Instance</span> <a class="mono" href="/instances/default/backup-provider">default/backup-provider</a></span> </td>
-      <td data-label="Status">
-        <p class="pills">
-          <span class="pill pill-yes">accepted</span>
-          <span class="pill pill-yes">active</span>
-        </p>
-        <p class="verdict-why"><span class="verdict verdict-accepted">Accepted</span> <span class="msg">Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</span></p>
-      </td>
-    </tr>
     <tr class="reg reg-Refused">
       <th scope="row" data-label="Provider"><span class="mono">default.<wbr>refused-claim-fixture</span></th>
       <td data-label="Catalog"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</span> <span class="ver">0.1.0</span></td>
@@ -103,25 +94,21 @@
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
   <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" data-filters="events">
+    <input type="hidden" name="pstatus" value="refused">
     <div class="filter-fields">
-      <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>
+      <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="">Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture" selected>default.refused-claim-fixture</option></optgroup></select></div>
       <div class="field field-submit"><button type="submit">Show</button></div>
     </div>
   </form>
   <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
   <div id="events" data-follow="events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture">
-    <p class="shown">Showing <strong>2</strong> of 2, newest first, repeats folded</p>
+    <p class="shown">Showing <strong>1</strong> of 2, newest first, repeats folded</p>
     
 <ol class="events">
   <li class="event ev-warning">
     <div class="ev-head"><span class="ev-type">Warning</span><span class="ev-reason">CatalogUnresolved</span><span class="ev-time"><time datetime="2026-10-04T18:04:26Z" title="2026-10-04 18:04:26 UTC">5m ago</time></span></div>
     <p class="ev-note">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</p>
     <p class="ev-meta mono">TransformerRegistration.opmodel.dev default.refused-claim-fixture · opm-controller</p>
-  </li>
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Generated</span><span class="ev-count" title="Repeats folded into one line">×2</span><span class="ev-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
-    <p class="ev-note">Platform module generated and built for generation 1</p>
-    <p class="ev-meta mono">Platform.opmodel.dev cluster · opm-controller</p>
   </li>
 </ol>
   </div>

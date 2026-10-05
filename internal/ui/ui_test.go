@@ -108,7 +108,8 @@ type goldenPage struct {
 
 var f1Pages = []goldenPage{
 	{"platform", "/", false},
-	{"platform-node-registration", "/?node=treg:default.refused-claim-fixture", false},
+	{"platform-catalogs", "/?tab=catalogs", false},
+	{"platform-providers-refused", "/?pstatus=refused&eresource=registration:default.refused-claim-fixture", false},
 	{"installed", "/installed", false},
 	{"installed-default", "/installed?namespace=default", false},
 	{"installed-packages", "/installed?kind=package", false},
@@ -422,7 +423,7 @@ func text(n *html.Node) string {
 func TestPagesDeclareTheirTopics(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for path, want := range map[string]string{
-		"/":                          "platform events:platform",
+		"/":                          "platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture",
 		"/installed":                 "instances",
 		"/installed?namespace=web":   "instances:web",
 		"/instances/default/podinfo": "instance:default/podinfo events:instance:default/podinfo",

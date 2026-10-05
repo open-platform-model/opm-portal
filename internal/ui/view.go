@@ -278,12 +278,28 @@ var funcs = template.FuncMap{
 	"accessText":    accessText,
 	"toneClass":     toneClass,
 	"short":         short,
+	"contractShort": contractShort,
 	"refText":       refText,
 	"isSecret":      isSecret,
 	"join":          strings.Join,
 	"segments":      segments,
 	"plural":        plural,
+	"add":           func(a, b int) int { return a + b },
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK
 	},
+}
+
+// newestFirst orders two event times newest first, an event with no time
+// last.
+func newestFirst(x, y *time.Time) int {
+	switch {
+	case x == nil && y == nil:
+		return 0
+	case x == nil:
+		return 1
+	case y == nil:
+		return -1
+	}
+	return y.Compare(*x)
 }

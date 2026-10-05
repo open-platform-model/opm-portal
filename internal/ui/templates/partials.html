@@ -36,9 +36,7 @@
 <ol class="conditions">
 {{range .}}
   <li class="condition {{toneClass .Tone}}">
-    <div class="cond-head"><span class="cond-type">{{.Type}}</span><span class="cond-status">{{.Status}}</span>{{with .Reason}}<span class="cond-reason">{{.}}</span>{{end}}<span class="cond-time">{{template "time" .LastTransitionTime}}</span></div>
-    {{with .Message}}<p class="cond-message">{{.}}</p>{{end}}
-    {{with .Meaning}}<p class="cond-meaning">{{.}}</p>{{end}}{{with .NextStep}}<p class="cond-next"><span class="label">Next step</span> {{.}}</p>{{end}}
+    {{template "condition-body" .}}
   </li>
 {{end}}
 </ol>
@@ -157,4 +155,38 @@
 
 {{define "child" -}}
 <li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{template "breakable" .Text}}</span>{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions">{{with .LogID}}<a href="#{{.}}" data-log-link="{{.}}">Logs</a>{{end}}<a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
+{{- end}}
+
+{{/* filter-form is one view's GET filter form, its chips and its notes. */}}
+{{define "filter-form" -}}
+<form class="filters" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}"{{with .Filters.View.Key}} data-filters="{{.}}"{{end}}>
+  {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
+  {{with .Fields}}
+  <div class="filter-fields">
+    {{range .Texts}}{{if .Search}}
+    <div class="field field-search"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" type="search" value="{{.Value}}" placeholder="{{.Placeholder}}" autocomplete="off" spellcheck="false"></div>
+    {{end}}{{end}}
+    {{range .Selects}}
+    <div class="field"><label for="{{.ID}}">{{.Label}}</label><select id="{{.ID}}" name="{{.Name}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
+    {{end}}
+    {{range .Texts}}{{if not .Search}}
+    <div class="field"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" value="{{.Value}}" placeholder="{{.Placeholder}}"{{with .List}} list="{{.}}"{{end}} autocomplete="off" spellcheck="false">{{if .List}}<datalist id="{{.List}}">{{range .Suggestions}}<option value="{{.}}">{{end}}</datalist>{{end}}</div>
+    {{end}}{{end}}
+    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+  </div>
+  {{end}}
+  {{with .Filters}}{{if or .Active .Ignored}}
+  <div class="filter-chips">
+    {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+    {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
+    {{if .Active}}<a class="fclear" href="{{.Clear}}" data-filters-explicit{{with .View.Key}} data-clear-filters="{{.}}"{{end}}>Clear filters</a>{{end}}
+  </div>
+  {{end}}{{end}}
+</form>
+{{- end}}
+
+{{define "condition-body" -}}
+<div class="cond-head"><span class="cond-type">{{.Type}}</span><span class="cond-status">{{.Status}}</span>{{with .Reason}}<span class="cond-reason">{{.}}</span>{{end}}<span class="cond-time">{{template "time" .LastTransitionTime}}</span></div>
+    {{with .Message}}<p class="cond-message">{{.}}</p>{{end}}
+    {{with .Meaning}}<p class="cond-meaning">{{.}}</p>{{end}}{{with .NextStep}}<p class="cond-next"><span class="label">Next step</span> {{.}}</p>{{end}}
 {{- end}}
