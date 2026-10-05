@@ -15,6 +15,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -285,7 +286,8 @@ func (s m1Session) imageBreak(t *testing.T, cfg *rest.Config) {
 	}
 
 	mis := dyn.Resource(instanceGVR).Namespace("default")
-	t.Cleanup(func() { restorePodinfo(context.WithoutCancel(s.ctx), t, mis, cs) })
+	revert := podinfoImageRevert(s.ctx, t, mis)
+	t.Cleanup(func() { restorePodinfo(context.WithoutCancel(s.ctx), t, mis, cs, revert) })
 	patched := time.Now()
 	if _, err := mis.Patch(s.ctx, "podinfo", types.MergePatchType,
 		[]byte(`{"spec":{"values":{"image":{"tag":"`+brokenTag+`"}}}}`), metav1.PatchOptions{}); err != nil {
@@ -358,6 +360,9 @@ func (s *sseStream) holdApplied(t *testing.T, d time.Duration) {
 			if !ok {
 				t.Fatal("the stream ended")
 			}
+			if e.name == "closed" {
+				t.Fatalf("the topic was closed: %s", e.data)
+			}
 			if e.name != "upsert" {
 				continue
 			}
@@ -408,11 +413,35 @@ func anyPullFailure(pods []corev1.Pod) bool {
 	return false
 }
 
-// restorePodinfo drops the image override and waits until podinfo's
-// Deployment has rolled back and only ready Pods remain, so the tests that
-// follow read a settled fixture.
-func restorePodinfo(ctx context.Context, t *testing.T, mis dynamic.ResourceInterface, cs kubernetes.Interface) {
-	if _, err := mis.Patch(ctx, "podinfo", types.MergePatchType, []byte(`{"spec":{"values":{"image":null}}}`), metav1.PatchOptions{}); err != nil {
+// podinfoImageRevert returns the JSON patch that puts podinfo's
+// spec.values.image back as it is now: the same value when the fixture
+// sets one, removed when it does not.
+func podinfoImageRevert(ctx context.Context, t *testing.T, mis dynamic.ResourceInterface) []byte {
+	t.Helper()
+	mi, err := mis.Get(ctx, "podinfo", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("reading podinfo before the break: %v", err)
+	}
+	image, found, err := unstructured.NestedFieldCopy(mi.Object, "spec", "values", "image")
+	if err != nil {
+		t.Fatalf("reading podinfo's spec.values.image: %v", err)
+	}
+	op := map[string]any{"op": "remove", "path": "/spec/values/image"}
+	if found {
+		op = map[string]any{"op": "replace", "path": "/spec/values/image", "value": image}
+	}
+	revert, err := json.Marshal([]any{op})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return revert
+}
+
+// restorePodinfo applies revert, which puts podinfo's image value back, and
+// waits until podinfo's Deployment has rolled back and only ready Pods
+// remain, so the tests that follow read a settled fixture.
+func restorePodinfo(ctx context.Context, t *testing.T, mis dynamic.ResourceInterface, cs kubernetes.Interface, revert []byte) {
+	if _, err := mis.Patch(ctx, "podinfo", types.JSONPatchType, revert, metav1.PatchOptions{}); err != nil {
 		t.Errorf("reverting podinfo's image tag: %v", err)
 		return
 	}
