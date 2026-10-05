@@ -26,7 +26,7 @@ type Owner string
 // Owners.
 const (
 	OwnerController Owner = "controller"
-	// OwnerCLI: the CLI applied the instance and the operator only records
+	// OwnerCLI: the CLI applied the instance and the controller only records
 	// it; its applied state is ManagedExternally (portal:D3:R6).
 	OwnerCLI Owner = "cli"
 )
@@ -45,10 +45,10 @@ type Digests struct {
 }
 
 // Outcome is how a history entry's attempt ended, read from the shape the
-// operator wrote it in.
+// controller wrote it in.
 type Outcome string
 
-// Outcomes. The operator writes a success entry with phase complete and no
+// Outcomes. The controller writes a success entry with phase complete and no
 // message, and a failure entry with a message and no phase.
 const (
 	OutcomeSucceeded Outcome = "Succeeded"
@@ -57,12 +57,12 @@ const (
 	OutcomeUnknown Outcome = "Unknown"
 )
 
-// HistoryEntry is one entry of an operator object's status.history, the
+// HistoryEntry is one entry of a controller object's status.history, the
 // durable record (portal:D9:R1).
 type HistoryEntry struct {
 	Action string
 	Phase  string
-	// Outcome is decided from Phase and Message as the operator wrote
+	// Outcome is decided from Phase and Message as the controller wrote
 	// them, so it survives any later omission of the message.
 	Outcome         Outcome
 	Sequence        int64
@@ -74,7 +74,7 @@ type HistoryEntry struct {
 	Digests         Digests
 }
 
-// InstanceItem is one ModuleInstance in a list: the operator's axis and the
+// InstanceItem is one ModuleInstance in a list: the controller's axis and the
 // portal's axis side by side, never merged (portal:D3:R1).
 type InstanceItem struct {
 	Ref            ObjectRef
@@ -188,7 +188,7 @@ type PackageItem struct {
 	// Interval is spec.interval as written; empty when the package sets
 	// none.
 	Interval string
-	// SourceArtifact is nil when the operator recorded no source artifact.
+	// SourceArtifact is nil when the controller recorded no source artifact.
 	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.

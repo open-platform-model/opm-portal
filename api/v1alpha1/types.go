@@ -54,8 +54,8 @@ type Module struct {
 	Version string `json:"version,omitempty"`
 }
 
-// Condition is one status condition as the operator wrote it. Its message is
-// the operator's text, unchanged.
+// Condition is one status condition as the controller wrote it. Its message is
+// the controller's text, unchanged.
 type Condition struct {
 	Type               string     `json:"type"`
 	Status             string     `json:"status"`
@@ -73,7 +73,7 @@ type Condition struct {
 	NextStep string `json:"nextStep,omitempty"`
 }
 
-// Reconcile is what the operator says it applied: Applied, Reconciling,
+// Reconcile is what the controller says it applied: Applied, Reconciling,
 // Failed, Stalled, Suspended, ManagedExternally or Unknown. Applied means
 // every apply succeeded, never that the workload is healthy; Health is the
 // other axis.
@@ -82,7 +82,7 @@ type Reconcile struct {
 	Reason  string     `json:"reason,omitempty"`
 	Message string     `json:"message,omitempty"`
 	Since   *time.Time `json:"since,omitempty"`
-	// Retrying is set on a Failed state the operator is still retrying.
+	// Retrying is set on a Failed state the controller is still retrying.
 	Retrying bool `json:"retrying,omitempty"`
 	// Notes are informational conditions shown beside the state; they never
 	// change it.
@@ -129,12 +129,12 @@ type Digests struct {
 	Render string `json:"render,omitempty"`
 }
 
-// HistoryEntry is one entry of the operator's status history, newest
+// HistoryEntry is one entry of the controller's status history, newest
 // first.
 type HistoryEntry struct {
 	Action string `json:"action"`
 	Phase  string `json:"phase,omitempty"`
-	// Outcome is Succeeded for an entry the operator wrote with phase
+	// Outcome is Succeeded for an entry the controller wrote with phase
 	// complete, Failed for one with no phase and a message, and Unknown
 	// otherwise. It is decided before any omission of the message.
 	Outcome         string     `json:"outcome"`

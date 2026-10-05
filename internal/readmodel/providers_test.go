@@ -158,7 +158,7 @@ func TestOutcomeOf(t *testing.T) {
 		{"", "", OutcomeUnknown},
 		{"complete", "a success entry with a message", OutcomeSucceeded},
 		{"applying", "", OutcomeUnknown},
-		{"applying", "a phase the operator never writes", OutcomeUnknown},
+		{"applying", "a phase the controller never writes", OutcomeUnknown},
 	} {
 		if got := outcomeOf(tt.phase, tt.message); got != tt.want {
 			t.Errorf("outcomeOf(%q, %q) = %s; want %s", tt.phase, tt.message, got, tt.want)

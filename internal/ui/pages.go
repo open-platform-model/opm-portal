@@ -64,8 +64,8 @@ func problemStatus(p *v1.Problem) int {
 
 // --- Installed ---
 
-// ownerController is the owner the pages name for the read API's operator,
-// and for every package (portal:D17:R2).
+// ownerController is the owner the pages name for every package, the read
+// API's owner value for the controller (portal:D17:R2).
 const ownerController = "controller"
 
 // verdictAccepted is a registration's accepted verdict on the wire.
@@ -85,8 +85,8 @@ type installedRow struct {
 	Reconcile v1.Reconcile
 	Health    v1.Health
 	Objects   int64
-	// Owner is controller or cli in the page's words: the read API's
-	// owner operator is the controller, and a package's is the controller.
+	// Owner is controller or cli: an instance's is the read API's owner
+	// value, and a package's is the controller.
 	Owner      string
 	ProviderOf []v1.ProviderClaim
 	// RenderContracts are an instance's; a package records none.
@@ -176,11 +176,10 @@ func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func instanceRow(it *v1.InstanceSummary) installedRow {
-	owner := ownerText(it.Owner)
 	return installedRow{
 		Kind: instanceKind.Topic, Href: instanceKind.base(it.Ref.Namespace, it.Ref.Name),
 		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Module: it.Module,
-		Reconcile: it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: owner,
+		Reconcile: it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: it.Owner,
 		ProviderOf: it.ProviderOf, RenderContracts: it.RenderContracts,
 	}
 }

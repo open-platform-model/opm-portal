@@ -51,7 +51,7 @@
   --live-ok: #3fbf86;
   --live-off: #f0806b;
 
-  /* The two axes. Applied is the operator's: stamps in ink tones.
+  /* The two axes. Applied is the controller's: stamps in ink tones.
      Health is the portal's: dots in signal tones. Unknown is amber, not
      grey and never red. */
   --applied: #1b2a44;
@@ -690,7 +690,7 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .node.health-missing .node-box { stroke-dasharray: 4 3; }
 .node.kind-module .node-rail, .node.kind-source .node-rail { fill: var(--accent); }
 .node.kind-group .node-box { stroke-dasharray: 6 3; fill: var(--surface-2); }
-/* The applied stamp: the operator's axis, shaped like the applied badge. */
+/* The applied stamp: the controller's axis, shaped like the applied badge. */
 .node-stamp { fill: var(--applied); stroke: var(--applied); stroke-width: 1.2; }
 .node.ap-failed .node-stamp, .node.ap-stalled .node-stamp { fill: var(--degraded); stroke: var(--degraded); }
 .node.ap-reconciling .node-stamp { fill: var(--progressing); stroke: var(--progressing); }

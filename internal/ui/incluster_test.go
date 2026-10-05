@@ -11,7 +11,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
-// inClusterPages are the pages and fragments that show operator text in
+// inClusterPages are the pages and fragments that show controller text in
 // local mode, rendered over an in-cluster read API.
 var inClusterPages = []goldenPage{
 	{"in-cluster/platform", "/", false},
@@ -30,10 +30,10 @@ func TestGoldenBrokenRolloutInCluster(t *testing.T) {
 	checkGoldens(t, s, []goldenPage{{"in-cluster/instance-podinfo-broken", "/instances/default/podinfo", false}})
 }
 
-// TestNoOperatorTextOnAnInClusterPage collects every operator message and
+// TestNoControllerTextOnAnInClusterPage collects every controller message and
 // event note the local read API serves for F1 and the broken sample, and
 // fails when one of them appears on the matching in-cluster page.
-func TestNoOperatorTextOnAnInClusterPage(t *testing.T) {
+func TestNoControllerTextOnAnInClusterPage(t *testing.T) {
 	const apiBase = "/api/v1alpha1/clusters/default"
 	sources := map[string][]string{
 		"/": {apiBase + "/platform", apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events",
@@ -58,29 +58,29 @@ func TestNoOperatorTextOnAnInClusterPage(t *testing.T) {
 			for page, docs := range sources {
 				var texts []string
 				for _, d := range docs {
-					texts = append(texts, operatorTexts(t, local.get(t, d).body)...)
+					texts = append(texts, controllerTexts(t, local.get(t, d).body)...)
 				}
 				body := in.get(t, page).body
 				for _, text := range texts {
 					checked++
 					if strings.Contains(body, html.EscapeString(text)) {
-						t.Errorf("in-cluster %s shows operator text %q", page, text)
+						t.Errorf("in-cluster %s shows controller text %q", page, text)
 					}
 				}
 			}
 			if checked == 0 {
-				t.Fatal("the local API served no operator text: the check proves nothing")
+				t.Fatal("the local API served no controller text: the check proves nothing")
 			}
 		})
 	}
 }
 
-// operatorTexts returns the operator-written strings of a read API
+// controllerTexts returns the controller-written strings of a read API
 // document: condition, reconcile, history and registration messages, and
-// the notes of events the operator reported. A workload's health message
-// and another controller's event note are not the operator's (supervisor
+// the notes of events the controller reported. A workload's health message
+// and another controller's event note are not the controller's (supervisor
 // ruling on the scope of portal:D8:R5).
-func operatorTexts(t *testing.T, body string) []string {
+func controllerTexts(t *testing.T, body string) []string {
 	t.Helper()
 	var doc any
 	if err := json.Unmarshal([]byte(body), &doc); err != nil {
@@ -93,9 +93,9 @@ func operatorTexts(t *testing.T, body string) []string {
 		case map[string]any:
 			for k, child := range x {
 				s, isText := child.(string)
-				operator := (k == "note" && operatorEvent(x)) || k == "activeMessage" ||
+				controllerText := (k == "note" && controllerEvent(x)) || k == "activeMessage" ||
 					(k == "message" && parentKey != "health" && parentKey != "")
-				if isText && s != "" && operator {
+				if isText && s != "" && controllerText {
 					out = append(out, s)
 				}
 				walk(k, child)
@@ -110,9 +110,9 @@ func operatorTexts(t *testing.T, body string) []string {
 	return out
 }
 
-// operatorEvent reports whether an event the read API served was reported
-// by the operator, or names no reporter and regards an OPM object.
-func operatorEvent(ev map[string]any) bool {
+// controllerEvent reports whether an event the read API served was reported
+// by the controller, or names no reporter and regards an OPM object.
+func controllerEvent(ev map[string]any) bool {
 	switch ev["reportingController"] {
 	case "opm-controller":
 		return true

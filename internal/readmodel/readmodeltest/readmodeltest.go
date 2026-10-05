@@ -1,5 +1,5 @@
 // Package readmodeltest serves committed cluster captures through fake
-// clients, so tests can build read-model views from real operator output.
+// clients, so tests can build read-model views from real controller output.
 // It does not import readmodel, so readmodel's own tests use it too.
 package readmodeltest
 
@@ -311,7 +311,7 @@ const (
 // claim resolves, with providerRef stamped from the package's own name and
 // namespace as the catalog's registration transformer does, and the
 // verdict and message the controller writes when no ModuleInstance of that
-// name exists (opm-operator internal/controller/
+// name exists (opm-controller internal/controller/
 // transformerregistration_controller.go, checkProviderIdentity and refuse:
 // Stalled=True and Ready=False, both ProviderMismatch).
 func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstructured.Unstructured {

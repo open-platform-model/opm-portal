@@ -17,7 +17,7 @@ func TestReadApplied_Captured(t *testing.T) {
 		notes    []string
 	}{
 		{"mi-podinfo-healthy.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
-		// One minute after the image break: the operator still says applied.
+		// One minute after the image break: the controller still says applied.
 		{"mi-podinfo-image-broken.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
 		{"mi-cert-manager-phase3-healthy.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
 		{"mi-backup-consumer-ready.yaml", 0, AppliedStateApplied, "ReconciliationSucceeded", false, nil},
@@ -63,8 +63,8 @@ func TestReadApplied_NeverHealthAndNotAFault(t *testing.T) {
 	}
 }
 
-// operatorObject builds a ModuleInstance with the given conditions and spec.
-func operatorObject(kind string, spec map[string]any, conds ...map[string]any) *unstructured.Unstructured {
+// controllerObject builds a ModuleInstance with the given conditions and spec.
+func controllerObject(kind string, spec map[string]any, conds ...map[string]any) *unstructured.Unstructured {
 	raw := make([]any, 0, len(conds))
 	for _, c := range conds {
 		if _, ok := c["lastTransitionTime"]; !ok {
@@ -92,14 +92,14 @@ func TestReadApplied_Synthetic(t *testing.T) {
 		want   AppliedState
 		reason string
 	}{
-		{"stalled", operatorObject("ModuleInstance", nil, cond("Stalled", "True", "ImpersonationFailed"), cond("Ready", "False", "ImpersonationFailed")), AppliedStateStalled, "ImpersonationFailed"},
-		{"suspended by spec", operatorObject("ModulePackage", map[string]any{"suspend": true}, cond("Ready", "True", "ReconciliationSucceeded")), AppliedStateSuspended, "ReconciliationSucceeded"},
-		{"suspended by reason", operatorObject("ModuleInstance", nil, cond("Ready", "False", "Suspended")), AppliedStateSuspended, "Suspended"},
-		{"reconciling", operatorObject("ModuleInstance", nil, cond("Reconciling", "True", "Progressing"), cond("Ready", "Unknown", "Progressing")), AppliedStateReconciling, "Progressing"},
-		{"ready unknown alone", operatorObject("TransformerRegistration", nil, cond("Ready", "Unknown", "ProviderInventoryPending")), AppliedStateReconciling, "ProviderInventoryPending"},
-		{"cli owner without conditions", operatorObject("ModuleInstance", map[string]any{"owner": "cli"}), AppliedStateManagedExternally, ""},
-		{"no conditions", operatorObject("ModuleInstance", nil), AppliedStateUnknown, ""},
-		{"unknown kind", operatorObject("Widget", nil, cond("Ready", "True", "Fine")), AppliedStateUnknown, ""},
+		{"stalled", controllerObject("ModuleInstance", nil, cond("Stalled", "True", "ImpersonationFailed"), cond("Ready", "False", "ImpersonationFailed")), AppliedStateStalled, "ImpersonationFailed"},
+		{"suspended by spec", controllerObject("ModulePackage", map[string]any{"suspend": true}, cond("Ready", "True", "ReconciliationSucceeded")), AppliedStateSuspended, "ReconciliationSucceeded"},
+		{"suspended by reason", controllerObject("ModuleInstance", nil, cond("Ready", "False", "Suspended")), AppliedStateSuspended, "Suspended"},
+		{"reconciling", controllerObject("ModuleInstance", nil, cond("Reconciling", "True", "Progressing"), cond("Ready", "Unknown", "Progressing")), AppliedStateReconciling, "Progressing"},
+		{"ready unknown alone", controllerObject("TransformerRegistration", nil, cond("Ready", "Unknown", "ProviderInventoryPending")), AppliedStateReconciling, "ProviderInventoryPending"},
+		{"cli owner without conditions", controllerObject("ModuleInstance", map[string]any{"owner": "cli"}), AppliedStateManagedExternally, ""},
+		{"no conditions", controllerObject("ModuleInstance", nil), AppliedStateUnknown, ""},
+		{"unknown kind", controllerObject("Widget", nil, cond("Ready", "True", "Fine")), AppliedStateUnknown, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -111,7 +111,7 @@ func TestReadApplied_Synthetic(t *testing.T) {
 	}
 }
 
-// Between a spec edit and the operator's next reconcile, Ready=True still
+// Between a spec edit and the controller's next reconcile, Ready=True still
 // describes the previous generation.
 func TestReadApplied_StaleReadyIsReconciling(t *testing.T) {
 	obj := loadCapture(t, "mi-podinfo-image-broken.yaml")[0]
@@ -121,7 +121,7 @@ func TestReadApplied_StaleReadyIsReconciling(t *testing.T) {
 		t.Fatalf("got %+v, want Reconciling", got)
 	}
 	// A condition without observedGeneration cannot be judged stale.
-	synthetic := operatorObject("ModuleInstance", nil, cond("Ready", "True", "ReconciliationSucceeded"))
+	synthetic := controllerObject("ModuleInstance", nil, cond("Ready", "True", "ReconciliationSucceeded"))
 	synthetic.SetGeneration(3)
 	if got := ReadApplied(synthetic); got.State != AppliedStateApplied {
 		t.Fatalf("without observedGeneration got %+v, want Applied", got)
@@ -142,7 +142,7 @@ func TestRegistrationVerdictSeparatesWhatAppliedCannot(t *testing.T) {
 }
 
 func TestReadApplied_DriftIsANote(t *testing.T) {
-	got := ReadApplied(operatorObject("ModuleInstance", nil, cond("Ready", "True", "ReconciliationSucceeded"), cond("Drifted", "True", "DriftDetected")))
+	got := ReadApplied(controllerObject("ModuleInstance", nil, cond("Ready", "True", "ReconciliationSucceeded"), cond("Drifted", "True", "DriftDetected")))
 	if got.State != AppliedStateApplied || len(got.Notes) != 1 || got.Notes[0].Reason != "DriftDetected" {
 		t.Fatalf("got %+v", got)
 	}
@@ -194,25 +194,25 @@ func TestReadRegistration_Captured(t *testing.T) {
 }
 
 func TestReadRegistration_Synthetic(t *testing.T) {
-	pending := operatorObject("TransformerRegistration", nil, cond("Ready", "Unknown", "ProviderInventoryPending"))
+	pending := controllerObject("TransformerRegistration", nil, cond("Ready", "Unknown", "ProviderInventoryPending"))
 	if got := ReadRegistration(pending); got.Verdict != VerdictPending {
 		t.Errorf("pending: %+v", got)
 	}
-	inactive := operatorObject("TransformerRegistration", nil, cond("Ready", "True", "Accepted"), cond("Active", "False", "ProviderNotReady"))
+	inactive := controllerObject("TransformerRegistration", nil, cond("Ready", "True", "Accepted"), cond("Active", "False", "ProviderNotReady"))
 	inactive.Object["status"].(map[string]any)["accepted"] = true
 	if got := ReadRegistration(inactive); got.Verdict != VerdictAccepted || got.Active || got.ActiveReason != "ProviderNotReady" {
 		t.Errorf("accepted inactive: %+v", got)
 	}
-	if got := ReadRegistration(operatorObject("TransformerRegistration", nil)); got.Verdict != VerdictUnknown {
+	if got := ReadRegistration(controllerObject("TransformerRegistration", nil)); got.Verdict != VerdictUnknown {
 		t.Errorf("no conditions: %+v", got)
 	}
-	if got := ReadRegistration(operatorObject("ModuleInstance", nil)); got.Verdict != VerdictUnknown {
+	if got := ReadRegistration(controllerObject("ModuleInstance", nil)); got.Verdict != VerdictUnknown {
 		t.Errorf("wrong kind: %+v", got)
 	}
 }
 
 // The two axes of one captured moment disagree, and both are reported: the
-// operator says applied while the workload is broken.
+// controller says applied while the workload is broken.
 func TestAxesStayApart_ImageBreak(t *testing.T) {
 	applied := ReadApplied(loadCapture(t, "mi-podinfo-image-broken.yaml")[0])
 	health := Evaluate(inputFromCapture(t, "mi-podinfo-image-broken.yaml", "objects-podinfo-phase4-broken-1min.yaml"))

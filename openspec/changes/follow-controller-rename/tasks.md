@@ -8,10 +8,10 @@
 
 ## 2. Call the product the controller in pages, explanations and code (internal/ui, internal/health, internal/api, internal/readmodel, internal/graph)
 
-- [ ] 2.1 `internal/ui` templates and CSS comments: "Controller says", "the controller", "the controller's record", "controller vX"
-- [ ] 2.2 `internal/health`: explanation text and the "not an OPM controller kind" message; `OPM_CONTROLLER_SRC` for the reason-source test
-- [ ] 2.3 Identifiers, comments and test names across `internal/` and `api/` (`omitControllerText`, `controllerReported`, `opmController`, `controllerGroup`, `controllerKinds`); OpenAPI descriptions; regenerate the goldens
-- [ ] 2.4 `task check` green, then commit `refactor: call the product the controller in pages and code`
+- [x] 2.1 `internal/ui` templates and CSS comments: "Controller says", "the controller", "the controller's record", "controller vX"
+- [x] 2.2 `internal/health`: explanation text and the "not an OPM controller kind" message; `OPM_CONTROLLER_SRC` for the reason-source test
+- [x] 2.3 Identifiers, comments and test names across `internal/` and `api/` (`omitControllerText`, `controllerReported`, `opmController`, `controllerGroup`, `controllerKinds`); OpenAPI descriptions; regenerate the goldens
+- [x] 2.4 `task check` green, then commit `refactor: call the product the controller in pages and code`
 
 ## 3. Install and read the controller in the e2e cluster (test/e2e, cmd/opm-portal)
 

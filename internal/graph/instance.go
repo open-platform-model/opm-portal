@@ -86,8 +86,8 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 	b.add(root, colOwner)
 	if src := d.Source; src.Kind != "" && src.Name != "" {
 		group, version := splitAPIVersion(src.APIVersion)
-		// The operator reads the source from the package's namespace when
-		// sourceRef names none (opm-operator modulepackage_controller.go).
+		// The controller reads the source from the package's namespace when
+		// sourceRef names none (opm-controller modulepackage_controller.go).
 		srcNS := src.Namespace
 		if srcNS == "" {
 			srcNS = ns
@@ -111,8 +111,8 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 		n := Node{ID: packageID(depNS, dep.Name), Kind: KindPackage, Label: depNS + "/" + dep.Name, Ref: refOf(ref)}
 		b.add(n, colUpstream)
 		e := b.edge(EdgeDependsOn, root.ID, n.ID)
-		// The operator refuses a dependency in another namespace
-		// (opm-operator modulepackage_types.go dependsOn), so the edge is
+		// The controller refuses a dependency in another namespace
+		// (opm-controller modulepackage_types.go dependsOn), so the edge is
 		// what the spec asks for, not a dependency it honors.
 		if depNS != ns {
 			unverified := false

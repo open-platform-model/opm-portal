@@ -167,7 +167,7 @@ func TestCertManagerCollapsed(t *testing.T) {
 	}
 }
 
-// TestGroupIgnoresInventoryOrder: the operator may reorder
+// TestGroupIgnoresInventoryOrder: the controller may reorder
 // status.inventory; the graph stays the same.
 func TestGroupIgnoresInventoryOrder(t *testing.T) {
 	d := newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager")
@@ -358,7 +358,7 @@ func TestPackageGraph(t *testing.T) {
 	}
 }
 
-// TestForeignNamespaceDependency: the operator refuses a dependsOn entry in
+// TestForeignNamespaceDependency: the controller refuses a dependsOn entry in
 // another namespace, so its edge is drawn unverified; a same-namespace one
 // is not marked.
 func TestForeignNamespaceDependency(t *testing.T) {

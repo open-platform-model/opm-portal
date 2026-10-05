@@ -113,8 +113,8 @@ func Platform(in PlatformInput, opts Options) Graph {
 
 // Contributor returns the name of the registration the Platform's registry
 // records as contributing c, or "" when none does. The registry entry does
-// not name its registration, so the claim must be one the operator folds
-// into the registry: accepted and active (opm-operator
+// not name its registration, so the claim must be one the controller folds
+// into the registry: accepted and active (opm-controller
 // platform_controller.go:335), on c's catalog, at the version the entry
 // resolved, and c's source must be Registration. A refused, duplicate or
 // pending claim contributed nothing (portal:D4). The platform graph's

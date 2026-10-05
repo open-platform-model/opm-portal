@@ -22,11 +22,11 @@ info:
     anyone who may read those objects, here as in kubectl.
 
     Messages depend on where the portal runs. In local mode condition and history messages and
-    event notes are served exactly as the operator and the API server wrote them; the portal
+    event notes are served exactly as the controller and the API server wrote them; the portal
     shows nothing the caller's own kubeconfig could not read with kubectl. In-cluster the text
-    the operator wrote is absent, because the operator does not remove secret values from it:
+    the controller wrote is absent, because the controller does not remove secret values from it:
     every condition (a registration's included), reconcile, history and registration message,
-    the note of every event the operator reported (reportingController opm-controller, or none
+    the note of every event the controller reported (reportingController opm-controller, or none
     on an event about an opmodel.dev object), the health message of an opmodel.dev object and
     the messages in an opmodel.dev Object's status are left out. Reasons, states, tone, meaning,
     nextStep, history outcomes and provider standings stay, and so does other writers' text:
@@ -523,7 +523,7 @@ components:
         reason:
           type: string
         message:
-          description: "The operator's text, served unchanged in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The controller's text, served unchanged in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
         lastTransitionTime:
           type: string
@@ -548,13 +548,13 @@ components:
       required: [state]
       properties:
         state:
-          description: "The operator's applied state. Applied means every apply succeeded, never that the workload is healthy."
+          description: "The controller's applied state. Applied means every apply succeeded, never that the workload is healthy."
           x-extensible-enum: [Applied, Reconciling, Failed, Stalled, Suspended, ManagedExternally, Unknown]
           type: string
         reason:
           type: string
         message:
-          description: "The deciding condition's message, or the portal's note on it, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The deciding condition's message, or the portal's note on it, in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
         since:
           type: string
@@ -614,7 +614,7 @@ components:
         reason:
           type: string
         message:
-          description: "Why the object has its state. For an opmodel.dev object it is the operator's Ready message, absent in-cluster."
+          description: "Why the object has its state. For an opmodel.dev object it is the controller's Ready message, absent in-cluster."
           type: string
     Digests:
       type: object
@@ -635,7 +635,7 @@ components:
           type: string
         outcome:
           description: >-
-            How the attempt ended, read from the shape the operator wrote the entry in:
+            How the attempt ended, read from the shape the controller wrote the entry in:
             Succeeded for phase complete, Failed for no phase and a message, Unknown otherwise.
             Decided before the in-cluster omission of the message, so it is served in both modes.
           x-extensible-enum: [Succeeded, Failed, Unknown]
@@ -649,7 +649,7 @@ components:
           type: string
           format: date-time
         message:
-          description: "The operator's text, served unchanged in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The controller's text, served unchanged in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
         inventoryCount:
           type: integer
@@ -720,7 +720,7 @@ components:
         module:
           $ref: '#/components/schemas/Module'
         owner:
-          description: "Who applies the instance. A cli instance is read-only to the operator and its reconcile state is ManagedExternally."
+          description: "Who applies the instance. A cli instance is read-only to the controller and its reconcile state is ManagedExternally."
           x-extensible-enum: [controller, cli]
           type: string
         reconcile:
@@ -784,7 +784,7 @@ components:
             $ref: '#/components/schemas/InstanceSummary'
     Instance:
       type: object
-      description: "One ModuleInstance. reconcile is what the operator applied; health is the portal's computation from live objects. The two are never merged. spec.values is never served."
+      description: "One ModuleInstance. reconcile is what the controller applied; health is the portal's computation from live objects. The two are never merged. spec.values is never served."
       required: [apiVersion, kind, ref, module, owner, reconcile, health, inventoryCount, conditions, history, lastApplied, renderContracts, components]
       properties:
         apiVersion:
@@ -1023,12 +1023,12 @@ components:
         reason:
           type: string
         message:
-          description: "The Ready condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The Ready condition's message, in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
         activeReason:
           type: string
         activeMessage:
-          description: "The Active condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The Active condition's message, in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
         reconcile:
           $ref: '#/components/schemas/Reconcile'
@@ -1132,7 +1132,7 @@ components:
         reason:
           type: string
         note:
-          description: "The reporting controller's text, served unchanged in local mode. In-cluster it is absent from an event the operator reported (reportingController opm-controller, or none on an event about an opmodel.dev object), because the operator does not remove secret values from the notes it writes, and such events that differ only in their note are served as one, their counts summed. Other controllers' notes, such as the kubelet's, are served in-cluster as written."
+          description: "The reporting controller's text, served unchanged in local mode. In-cluster it is absent from an event the controller reported (reportingController opm-controller, or none on an event about an opmodel.dev object), because the controller does not remove secret values from the notes it writes, and such events that differ only in their note are served as one, their counts summed. Other controllers' notes, such as the kubelet's, are served in-cluster as written."
           type: string
         reportingController:
           type: string
@@ -1219,7 +1219,7 @@ components:
         reason:
           type: string
         message:
-          description: "Why the node has its state. For an opmodel.dev object it is the operator's Ready message, absent in-cluster."
+          description: "Why the node has its state. For an opmodel.dev object it is the controller's Ready message, absent in-cluster."
           type: string
         partial:
           type: boolean
@@ -1249,12 +1249,12 @@ components:
         reason:
           type: string
         message:
-          description: "The Ready condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The Ready condition's message, in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
         activeReason:
           type: string
         activeMessage:
-          description: "The Active condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
+          description: "The Active condition's message, in local mode. Absent in-cluster: the controller does not remove secret values from its text."
           type: string
     GraphCatalog:
       type: object

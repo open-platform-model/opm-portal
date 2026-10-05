@@ -148,7 +148,7 @@ func TestYAMLTabListsASecretAsNeverRead(t *testing.T) {
 	}
 }
 
-// TestOwnerCardsEscapeClusterText: hostile operator text on the cards,
+// TestOwnerCardsEscapeClusterText: hostile controller text on the cards,
 // the dots' titles and every tab is shown as text.
 func TestOwnerCardsEscapeClusterText(t *testing.T) {
 	s := newSite(t, hostileF1(t), apitest.AllowAll)

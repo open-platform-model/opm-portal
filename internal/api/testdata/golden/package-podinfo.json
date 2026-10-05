@@ -48,7 +48,7 @@
       "lastTransitionTime": "2026-10-04T18:03:54Z",
       "observedGeneration": 1,
       "tone": "progressing",
-      "meaning": "The operator is working on the latest change."
+      "meaning": "The controller is working on the latest change."
     },
     {
       "type": "Ready",
@@ -59,7 +59,7 @@
       "observedGeneration": 1,
       "tone": "abnormal",
       "meaning": "The package's source is not ready or does not exist.",
-      "nextStep": "Check the source object the package names; the operator retries."
+      "nextStep": "Check the source object the package names; the controller retries."
     }
   ],
   "history": [

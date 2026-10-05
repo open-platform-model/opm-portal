@@ -110,7 +110,7 @@ func subscriptions(u *unstructured.Unstructured) []Subscription {
 	return out
 }
 
-// catalogs reads status.registry in the operator's order and names the
+// catalogs reads status.registry in the controller's order and names the
 // readable registrations that claim each catalog.
 func catalogs(u *unstructured.Unstructured, regs []RegistrationView) []Catalog {
 	raw := maps(u.Object, "status", "registry")

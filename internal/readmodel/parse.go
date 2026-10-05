@@ -9,7 +9,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/health"
 )
 
-// Field readers over operator custom resources. They read what the operator
+// Field readers over controller custom resources. They read what the controller
 // wrote and copy it into views; a field that is absent or of another type
 // reads as its zero value, never as a guess.
 
@@ -97,7 +97,7 @@ func refOf(u *unstructured.Unstructured) ObjectRef {
 	return ObjectRef{Group: gvk.Group, Version: gvk.Version, Kind: gvk.Kind, Namespace: u.GetNamespace(), Name: u.GetName()}
 }
 
-// conditions reads status.conditions in the operator's order.
+// conditions reads status.conditions in the controller's order.
 func conditions(u *unstructured.Unstructured) []health.Condition {
 	raw := maps(u.Object, "status", "conditions")
 	out := make([]health.Condition, 0, len(raw))
@@ -114,7 +114,7 @@ func conditions(u *unstructured.Unstructured) []health.Condition {
 	return out
 }
 
-// history reads status.history in the operator's order (newest first).
+// history reads status.history in the controller's order (newest first).
 func history(u *unstructured.Unstructured) []HistoryEntry {
 	raw := maps(u.Object, "status", "history")
 	out := make([]HistoryEntry, 0, len(raw))
@@ -140,10 +140,10 @@ func history(u *unstructured.Unstructured) []HistoryEntry {
 	return out
 }
 
-// historyPhaseComplete is the phase the operator writes on a success entry.
+// historyPhaseComplete is the phase the controller writes on a success entry.
 const historyPhaseComplete = "complete"
 
-// outcomeOf reads an entry's outcome from the operator's two entry shapes:
+// outcomeOf reads an entry's outcome from the controller's two entry shapes:
 // a success entry has phase complete, a failure entry a message and no
 // phase. Anything else is unknown, never a guess.
 func outcomeOf(phase, message string) Outcome {
@@ -183,7 +183,7 @@ func inventory(u *unstructured.Unstructured) []health.Ref {
 	return out
 }
 
-// inventoryCount is the operator's count, or the number of entries when it
+// inventoryCount is the controller's count, or the number of entries when it
 // wrote none.
 func inventoryCount(u *unstructured.Unstructured, entries []health.Ref) int64 {
 	if n, found := i64(u.Object, "status", "inventory", "count"); found {

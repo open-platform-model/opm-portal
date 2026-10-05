@@ -105,7 +105,7 @@ func New(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server
 }
 
 // NewInCluster is New in in-cluster mode: no document carries text the
-// operator wrote.
+// controller wrote.
 func NewInCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server {
 	t.Helper()
 	return newServer(t, objs, rule, api.ModeInCluster)

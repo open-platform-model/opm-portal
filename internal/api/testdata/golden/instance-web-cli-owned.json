@@ -48,7 +48,7 @@
       "lastTransitionTime": "2026-10-04T18:04:31Z",
       "observedGeneration": 1,
       "tone": "unknown",
-      "meaning": "The CLI applied this instance; the operator only records it."
+      "meaning": "The CLI applied this instance; the controller only records it."
     }
   ],
   "history": [],

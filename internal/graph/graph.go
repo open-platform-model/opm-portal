@@ -90,7 +90,7 @@ const (
 )
 
 // ReasonForeignNamespace: a dependsOn entry names a package in another
-// namespace, which the operator refuses.
+// namespace, which the controller refuses.
 const ReasonForeignNamespace = "ForeignNamespace"
 
 // Graph is one graph with its layout.
@@ -153,7 +153,7 @@ type Counts struct {
 	Withheld    int `json:"withheld,omitempty"`
 }
 
-// Applied is an operator object's applied state, never merged with health
+// Applied is a controller object's applied state, never merged with health
 // (portal:D3).
 type Applied struct {
 	State    health.AppliedState `json:"state"`

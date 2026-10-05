@@ -158,7 +158,7 @@ func TestInstanceViews(t *testing.T) {
 	}
 }
 
-// TestApplyFailedInstance: the operator could not apply, retries, and has
+// TestApplyFailedInstance: the controller could not apply, retries, and has
 // recorded no inventory; the instance is Failed and its inventory is empty,
 // not unreadable.
 func TestApplyFailedInstance(t *testing.T) {
@@ -174,7 +174,7 @@ func TestApplyFailedInstance(t *testing.T) {
 		t.Errorf("inventory %d components %v lastAppliedAt %v, want none", d.InventoryCount, d.Components, d.LastAppliedAt)
 	}
 	if len(d.RenderContracts) == 0 {
-		t.Errorf("render contracts missing although the operator recorded them")
+		t.Errorf("render contracts missing although the controller recorded them")
 	}
 }
 

@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-// AppliedState is what the operator says it applied. It is its own axis and
+// AppliedState is what the controller says it applied. It is its own axis and
 // never a health value: Ready=True means every apply succeeded, not that the
 // workload runs (portal:D3).
 type AppliedState string
@@ -43,18 +43,18 @@ const (
 	reasonSuspended         = "Suspended"
 	reasonDependentsRemain  = "DependentsRemain"
 
-	operatorGroup = "opmodel.dev"
+	controllerGroup = "opmodel.dev"
 )
 
-// operatorKinds are the kinds whose conditions the applied axis knows.
-var operatorKinds = map[string]bool{
+// controllerKinds are the kinds whose conditions the applied axis knows.
+var controllerKinds = map[string]bool{
 	"ModuleInstance":          true,
 	"ModulePackage":           true,
 	"Platform":                true,
 	"TransformerRegistration": true,
 }
 
-// Condition is one status condition as the operator wrote it.
+// Condition is one status condition as the controller wrote it.
 type Condition struct {
 	Type               string
 	Status             metav1.ConditionStatus
@@ -68,7 +68,7 @@ type Condition struct {
 // never changes the state.
 type Note = Condition
 
-// Applied is an operator object's applied state and the condition that
+// Applied is a controller object's applied state and the condition that
 // decided it.
 type Applied struct {
 	State   AppliedState
@@ -76,7 +76,7 @@ type Applied struct {
 	Message string
 	// Since is the deciding condition's last transition.
 	Since time.Time
-	// Retrying is set on a Failed state the operator is still retrying
+	// Retrying is set on a Failed state the controller is still retrying
 	// (Reconciling=True beside Ready=False).
 	Retrying bool
 	// Notes are informational conditions: ContractsFulfilled=False on a
@@ -96,8 +96,8 @@ type Applied struct {
 // Stalled here, the same as a refusal, but its verdict is RemovalBlocked and
 // it is never shown as refused (portal:D4:R7).
 func ReadApplied(u *unstructured.Unstructured) Applied {
-	if u == nil || u.GroupVersionKind().Group != operatorGroup || !operatorKinds[u.GetKind()] {
-		return Applied{State: AppliedStateUnknown, Message: "not an OPM operator kind"}
+	if u == nil || u.GroupVersionKind().Group != controllerGroup || !controllerKinds[u.GetKind()] {
+		return Applied{State: AppliedStateUnknown, Message: "not an OPM controller kind"}
 	}
 	conds := conditions(u)
 	ready, hasReady := conds[conditionReady]
@@ -121,7 +121,7 @@ func ReadApplied(u *unstructured.Unstructured) Applied {
 	case ready.Status == metav1.ConditionUnknown:
 		return fromCondition(AppliedStateReconciling, ready, notes)
 	case staleReady(u, ready):
-		// The spec changed and the operator has not reported on it yet.
+		// The spec changed and the controller has not reported on it yet.
 		a := fromCondition(AppliedStateReconciling, ready, notes)
 		a.Message = fmt.Sprintf("generation %d not reconciled yet; Ready=True is for generation %d", u.GetGeneration(), ready.ObservedGeneration)
 		return a
@@ -235,7 +235,7 @@ type Registration struct {
 // refused claim and an accepted, active claim whose removal is blocked by
 // dependents (portal:D4:R4/R7).
 func ReadRegistration(u *unstructured.Unstructured) Registration {
-	if u == nil || u.GroupVersionKind().Group != operatorGroup || u.GetKind() != "TransformerRegistration" {
+	if u == nil || u.GroupVersionKind().Group != controllerGroup || u.GetKind() != "TransformerRegistration" {
 		return Registration{Verdict: VerdictUnknown, Message: "not a TransformerRegistration"}
 	}
 	conds := conditions(u)
@@ -261,7 +261,7 @@ func ReadRegistration(u *unstructured.Unstructured) Registration {
 	case !hasReady:
 		r.Verdict = VerdictUnknown
 	default:
-		// Ready=True without status.accepted contradicts the operator's
+		// Ready=True without status.accepted contradicts the controller's
 		// contract; say so instead of choosing.
 		r.Verdict = VerdictUnknown
 	}

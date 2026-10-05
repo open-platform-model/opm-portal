@@ -13,11 +13,11 @@ import (
 	"testing"
 )
 
-// operatorConditionReasons is a copy of the reasons opm-operator writes into
+// controllerConditionReasons is a copy of the reasons opm-controller writes into
 // conditions, from internal/status/conditions.go (constants ending in Reason)
-// at opm-operator main 8d34b6b. The operator keeps them in an internal
+// at opm-controller main 8d34b6b. The controller keeps them in an internal
 // package, so they cannot be imported. Update this list with the table.
-var operatorConditionReasons = []string{
+var controllerConditionReasons = []string{
 	"Suspended", "ResolutionFailed", "RenderFailed", "SkewRefused", "DuplicateIdentities",
 	"ApplyFailed", "PruneFailed", "ImpersonationFailed", "DeletionSAMissing",
 	"ReconciliationSucceeded", "DriftDetected", "ManagedExternally", "SelfManagementRefused",
@@ -31,24 +31,24 @@ var operatorConditionReasons = []string{
 	"ContractSubscribed", "ContractClaimed", "DuplicateClaim", "DependentsRemain",
 }
 
-// operatorLiteralReasons are condition reasons the operator writes as string
+// controllerLiteralReasons are condition reasons the controller writes as string
 // literals rather than constants: "Progressing" in its MarkReconciling calls
 // (internal/reconcile) and "ModuleResolved" in MarkModuleResolved.
-var operatorLiteralReasons = []string{"Progressing", "ModuleResolved"}
+var controllerLiteralReasons = []string{"Progressing", "ModuleResolved"}
 
-// operatorEventOnlyReasons are reason constants the operator only uses on
+// controllerEventOnlyReasons are reason constants the controller only uses on
 // events, never on a condition; they need no row.
 // OrphanedOnDeletion is declared among the condition reasons but is only
 // emitted as an event when a deletion orphans its objects.
-var operatorEventOnlyReasons = []string{"Applied", "Pruned", "Resumed", "NoOp", "RenderWarning", "OrphanedOnDeletion"}
+var controllerEventOnlyReasons = []string{"Applied", "Pruned", "Resumed", "NoOp", "RenderWarning", "OrphanedOnDeletion"}
 
-func TestExplain_EveryOperatorReasonHasARow(t *testing.T) {
+func TestExplain_EveryControllerReasonHasARow(t *testing.T) {
 	want := map[string]bool{}
-	for _, r := range append(append([]string{}, operatorConditionReasons...), operatorLiteralReasons...) {
+	for _, r := range append(append([]string{}, controllerConditionReasons...), controllerLiteralReasons...) {
 		want[r] = true
 		e, ok := Explain(r)
 		if !ok {
-			t.Errorf("operator reason %q has no explanation", r)
+			t.Errorf("controller reason %q has no explanation", r)
 			continue
 		}
 		if e.Meaning == "" {
@@ -57,7 +57,7 @@ func TestExplain_EveryOperatorReasonHasARow(t *testing.T) {
 	}
 	for r := range reasonExplanations {
 		if !want[r] {
-			t.Errorf("explanation for %q names no operator condition reason", r)
+			t.Errorf("explanation for %q names no controller condition reason", r)
 		}
 	}
 }
@@ -76,18 +76,18 @@ func TestExplain_KnownAndUnknown(t *testing.T) {
 	if !ok || e.Meaning == "" || e.NextStep == "" {
 		t.Fatalf("ProvidesMismatch: %+v %v", e, ok)
 	}
-	if _, ok := Explain("SomethingTheOperatorNeverWrites"); ok {
+	if _, ok := Explain("SomethingTheControllerNeverWrites"); ok {
 		t.Fatal("unknown reason explained")
 	}
 }
 
-// TestOperatorReasonsMatchSource compares the copied lists with the reason
-// constants of an opm-operator checkout. It runs only when OPM_OPERATOR_SRC
+// TestControllerReasonsMatchSource compares the copied lists with the reason
+// constants of an opm-controller checkout. It runs only when OPM_CONTROLLER_SRC
 // names that checkout, because CI has no sibling repo.
-func TestOperatorReasonsMatchSource(t *testing.T) {
-	root := os.Getenv("OPM_OPERATOR_SRC")
+func TestControllerReasonsMatchSource(t *testing.T) {
+	root := os.Getenv("OPM_CONTROLLER_SRC")
 	if root == "" {
-		t.Skip("set OPM_OPERATOR_SRC to an opm-operator checkout to compare reason constants")
+		t.Skip("set OPM_CONTROLLER_SRC to an opm-controller checkout to compare reason constants")
 	}
 	path := filepath.Join(root, "internal", "status", "conditions.go")
 	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
@@ -121,7 +121,7 @@ func TestOperatorReasonsMatchSource(t *testing.T) {
 			}
 		}
 	}
-	copied := append(append([]string{}, operatorConditionReasons...), operatorEventOnlyReasons...)
+	copied := append(append([]string{}, controllerConditionReasons...), controllerEventOnlyReasons...)
 	sort.Strings(source)
 	sort.Strings(copied)
 	if strings.Join(source, ",") != strings.Join(copied, ",") {

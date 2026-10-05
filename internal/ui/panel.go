@@ -30,7 +30,7 @@ type nodePanel struct {
 	Health    *v1.GraphHealth
 	Reconcile *v1.Reconcile
 	// ReconcileMessage is the applied message, so the verdict's is not
-	// shown twice when the operator wrote the same text to both.
+	// shown twice when the controller wrote the same text to both.
 	ReconcileMessage string
 	Owner            string
 	Contracts        []string

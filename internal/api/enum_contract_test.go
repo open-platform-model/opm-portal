@@ -23,7 +23,7 @@ func strs[T ~string](vs ...T) []string {
 }
 
 // passedThrough are enumerated fields whose values the portal copies from
-// the operator's status without naming them in Go.
+// the controller's status without naming them in Go.
 var passedThrough = map[string]bool{
 	"Catalog/source":      true,
 	"GraphCatalog/source": true,

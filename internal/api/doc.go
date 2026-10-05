@@ -18,7 +18,7 @@
 // The read model never holds spec.values, Secret data or the last-applied
 // annotation, and no wire type has a field for them (portal:D8). Condition and
 // history messages and event notes are served verbatim: whether the
-// operator redacts secret paths in them is portal:OQ8. In local mode the
+// controller redacts secret paths in them is portal:OQ8. In local mode the
 // caller's kubeconfig reads the same text with kubectl; milestone 2 must
 // decide before the in-cluster release.
 //
