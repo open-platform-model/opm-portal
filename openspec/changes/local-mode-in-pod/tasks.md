@@ -32,3 +32,10 @@
 - [x] 5.2 `AGENTS.md`: `deploy/` in the layout, `task e2e:pod` in the commands and the nightly list
 - [x] 5.3 `ROADMAP.md`: one line under Now for this change, and "Last updated"
 - [x] 5.4 `task check` green, then commit `docs: explain how to try the portal in a cluster`
+
+## 6. Verify fixes (docs/site, README.md, deploy/, cmd/opm-portal)
+
+- [x] 6.1 `docs/site/operating/portal/portal-security.md`: the Pod option, its ServiceAccount identity and the token-holder trust model (portal:D13:R4), linking the README section; README: kinds outside the catalog and how to add a read rule; `deploy/manifest_test.go`: a provider-kind read rule passes the role check
+- [x] 6.2 `task check` and `task docs:bundle:check` green, then commit `docs: state the Pod option's trust model on the security page`
+- [x] 6.3 `cmd/opm-portal/pod_e2e_test.go`: after the token is spent, `rollout restart` and a launch with the new Pod's link; run against a throwaway podman cluster
+- [x] 6.4 `task check` green, then commit `test(e2e): launch again after restarting the portal Pod`

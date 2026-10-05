@@ -262,6 +262,17 @@ func TestManifest(t *testing.T) {
 	}
 }
 
+// TestCheckRoleAllowsAReadRule shows the README's advice holds: a read rule
+// for a provider kind added to the role passes.
+func TestCheckRoleAllowsAReadRule(t *testing.T) {
+	r := rbacv1.ClusterRole{ObjectMeta: metav1.ObjectMeta{Name: "opm-portal-reader"}, Rules: []rbacv1.PolicyRule{{
+		APIGroups: []string{"cert-manager.io"}, Resources: []string{"certificates", "issuers", "clusterissuers"}, Verbs: []string{"get", "list", "watch"},
+	}}}
+	if err := checkRole(r); err != nil {
+		t.Fatalf("checkRole() = %v; want a get, list and watch rule for a provider kind allowed", err)
+	}
+}
+
 func TestChecksRefuse(t *testing.T) {
 	read := []string{"get", "list", "watch"}
 	role := func(rules ...rbacv1.PolicyRule) rbacv1.ClusterRole {

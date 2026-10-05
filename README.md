@@ -66,9 +66,10 @@ Everyone who holds the link sees what the ServiceAccount may read, not what they
 themselves. Getting the link takes `pods/log`, and reaching the portal takes `pods/portforward`,
 in the `opm-portal` namespace, so whoever holds those holds the portal.
 
-This is a test tool, not the planned in-cluster mode with sign-in. Kinds the role does not list,
-such as provider kinds like cert-manager's Certificate, show as not readable; add a rule to
-`deploy/clusterrole.yaml` to read them. Remove it all with
+This is a test tool, not the planned in-cluster mode with sign-in. Kinds outside the OPM catalog,
+such as cert-manager's Certificate, show as not readable; to see them in the graph, add a rule
+with `get`, `list` and `watch` on them to the `opm-portal-reader` ClusterRole in
+`deploy/clusterrole.yaml`. Remove it all with
 `kubectl delete -k 'https://github.com/open-platform-model/opm-portal//deploy?ref=vX.Y.Z'`.
 
 ## Pages

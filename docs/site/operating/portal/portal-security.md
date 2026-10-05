@@ -7,6 +7,8 @@ weight: 30
 
 The portal reads a cluster as you and shows you only what you could read yourself. In local mode, the only mode built, it runs on your machine and reads with your kubeconfig, so your RBAC is the whole boundary: the portal adds no credential, holds no role of its own and installs nothing in the cluster. What it adds is a set of rules about who may reach it on your machine, what it reads, and what it never shows, even to you.
 
+To try the portal on a shared cluster, the same local mode can also run in a Pod, as the README's [Try it in a cluster](https://github.com/open-platform-model/opm-portal#try-it-in-a-cluster) section shows. There it reads as the Pod's ServiceAccount through a read-only role, not as you, and whoever holds its launch token sees what that ServiceAccount may read. Getting the token takes `pods/log`, and reaching the portal takes `pods/portforward`, in the portal's namespace, so whoever holds those grants holds the portal: treat it as a test tool, not as access checked per person.
+
 This page assumes you know Kubernetes RBAC. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
 ## How it works
