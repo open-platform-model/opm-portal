@@ -1,8 +1,8 @@
 ## 1. Identity mapping (internal/auth)
 
-- [ ] 1.1 `internal/auth/claims.go`: `claimMapper` from username and groups claims and prefixes; the fail-closed rules (empty raw username before prefixing, `system:` username, `email_verified` false, groups shape, `system:` groups dropped before and after prefixing, `system:authenticated` added); `ErrUnmappedIdentity`; prefix validation (`checkPrefixes`)
-- [ ] 1.2 Table tests: every refusal, the mapping of groups, prefix validation including `sys` and the trusted-issuer exception, refusals naming no claim value
-- [ ] 1.3 `task check` green, then commit `feat(auth): map OIDC claims to a fail-closed identity`
+- [x] 1.1 `internal/auth/claims.go`: `claimMapper` from username and groups claims and prefixes; the fail-closed rules (empty raw username before prefixing, `system:` username, `email_verified` false, groups shape, `system:` groups dropped before and after prefixing, `system:authenticated` added); `ErrUnmappedIdentity`; prefix validation (`checkPrefixes`)
+- [x] 1.2 Table tests: every refusal, the mapping of groups, prefix validation including `sys` and the trusted-issuer exception, refusals naming no claim value
+- [x] 1.3 `task check` green, then commit `feat(auth): map OIDC claims to a fail-closed identity`
 
 ## 2. Bearer tokens and the fake issuer (internal/auth, internal/auth/oidctest)
 
