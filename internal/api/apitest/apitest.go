@@ -108,6 +108,7 @@ func New(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server
 	}
 	t.Cleanup(m.Stop)
 	srv, err := api.New(api.Config{
+		Mode:       api.ModeLocal,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,

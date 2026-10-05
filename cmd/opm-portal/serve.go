@@ -372,6 +372,7 @@ func wire(c cluster, model *readmodel.Model, bound netip.AddrPort, log *slog.Log
 		return nil, err
 	}
 	srv, err := api.New(api.Config{
+		Mode:       api.ModeLocal,
 		Model:      model,
 		Authorizer: c.checker,
 		Reader:     c.self,

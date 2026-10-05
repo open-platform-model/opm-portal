@@ -1,0 +1,119 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Platform",
+  "name": "cluster",
+  "uid": "e99bd454-ca6f-4bf1-9213-2d59665c673d",
+  "type": "kubernetes",
+  "operatorVersion": "v1.0.0-beta.6",
+  "reconcile": {
+    "state": "Applied",
+    "reason": "Generated",
+    "since": "2026-10-04T18:03:50Z",
+    "notes": [
+      {
+        "type": "ContractsFulfilled",
+        "status": "False",
+        "reason": "UnfulfilledContracts",
+        "lastTransitionTime": "2026-10-04T18:04:23Z",
+        "observedGeneration": 1,
+        "tone": "informational",
+        "meaning": "Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers."
+      }
+    ]
+  },
+  "conditions": [
+    {
+      "type": "Ready",
+      "status": "True",
+      "reason": "Generated",
+      "lastTransitionTime": "2026-10-04T18:03:50Z",
+      "observedGeneration": 1,
+      "tone": "normal",
+      "meaning": "The platform module was generated and built."
+    },
+    {
+      "type": "ContractsFulfilled",
+      "status": "False",
+      "reason": "UnfulfilledContracts",
+      "lastTransitionTime": "2026-10-04T18:04:23Z",
+      "observedGeneration": 1,
+      "tone": "informational",
+      "meaning": "Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers."
+    }
+  ],
+  "subscriptions": [
+    {
+      "catalog": "opmodel.dev/catalogs/opm@v4",
+      "version": "4.6.0",
+      "enable": true
+    }
+  ],
+  "catalogs": [
+    {
+      "catalog": "opmodel.dev/catalogs/opm@v4",
+      "version": "4.6.0",
+      "enabled": true,
+      "source": "Subscription",
+      "claimants": []
+    },
+    {
+      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "version": "0.1.0",
+      "enabled": true,
+      "source": "Registration",
+      "claimants": [
+        "default.backup-provider"
+      ],
+      "contributedBy": "default.backup-provider"
+    }
+  ],
+  "registrations": [
+    {
+      "name": "default.backup-provider",
+      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "version": "0.1.0",
+      "provides": [
+        "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
+      ],
+      "provider": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "backup-provider"
+      },
+      "accepted": true,
+      "active": true,
+      "verdict": "Accepted",
+      "reason": "Accepted",
+      "activeReason": "ProviderReady",
+      "reconcile": {
+        "state": "Applied",
+        "reason": "Accepted",
+        "since": "2026-10-04T18:04:22Z"
+      }
+    },
+    {
+      "name": "default.refused-claim-fixture",
+      "catalog": "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+      "version": "0.1.0",
+      "provider": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "refused-claim-fixture"
+      },
+      "accepted": false,
+      "active": false,
+      "verdict": "Refused",
+      "reason": "CatalogUnresolved",
+      "reconcile": {
+        "state": "Stalled",
+        "reason": "CatalogUnresolved",
+        "since": "2026-10-04T18:04:26Z"
+      }
+    }
+  ],
+  "registrationsAccess": "ok"
+}

@@ -127,6 +127,7 @@ func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRul
 	t.Cleanup(m.Stop)
 	e := &env{model: m, client: client, disc: disc, az: az, principal: Principal{Identity: alice, Session: "session-alice"}}
 	cfg := Config{
+		Mode:       ModeLocal,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,

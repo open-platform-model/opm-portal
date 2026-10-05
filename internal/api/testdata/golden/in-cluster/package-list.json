@@ -1,0 +1,45 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "PackageList",
+  "access": "ok",
+  "items": [
+    {
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModulePackage",
+        "namespace": "pkg",
+        "name": "podinfo"
+      },
+      "uid": "5ae341c6-7de4-41d8-8799-817d4cb56ead",
+      "source": {
+        "apiVersion": "source.toolkit.fluxcd.io/v1",
+        "kind": "OCIRepository",
+        "name": "podinfo-release"
+      },
+      "path": ".",
+      "reconcile": {
+        "state": "Failed",
+        "reason": "SourceNotReady",
+        "since": "2026-10-04T18:03:54Z",
+        "retrying": true
+      },
+      "health": {
+        "state": "Unknown",
+        "counts": {
+          "healthy": 0,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        },
+        "partial": false,
+        "live": false
+      },
+      "inventoryCount": 0
+    }
+  ]
+}

@@ -21,10 +21,13 @@ info:
     non-Secret objects, such as a ConfigMap or a container's environment, stay readable to
     anyone who may read those objects, here as in kubectl.
 
-    Messages are verbatim: condition and history messages and event notes are served exactly
-    as the operator and the API server wrote them. Whether the operator redacts secret values
-    from them is not yet settled. In local mode the portal shows nothing the caller's own
-    kubeconfig could not read with kubectl.
+    Messages depend on where the portal runs. In local mode condition and history messages and
+    event notes are served exactly as the operator and the API server wrote them; the portal
+    shows nothing the caller's own kubeconfig could not read with kubectl. In-cluster they are
+    absent, because the operator does not remove secret values from its text: every condition,
+    reconcile, history and registration message, every event note, the health message of an
+    opmodel.dev object and the messages in an opmodel.dev Object's status are left out. Reasons,
+    states, tone, meaning and nextStep stay.
 
     Errors are RFC 9457 problem documents (application/problem+json) with a code.
 servers:
@@ -489,7 +492,7 @@ components:
         reason:
           type: string
         message:
-          description: "The operator's text, served unchanged."
+          description: "The operator's text, served unchanged in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
         lastTransitionTime:
           type: string
@@ -520,6 +523,7 @@ components:
         reason:
           type: string
         message:
+          description: "The deciding condition's message, or the portal's note on it, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
         since:
           type: string
@@ -579,6 +583,7 @@ components:
         reason:
           type: string
         message:
+          description: "Why the object has its state. For an opmodel.dev object it is the operator's Ready message, absent in-cluster."
           type: string
     Digests:
       type: object
@@ -606,7 +611,7 @@ components:
           type: string
           format: date-time
         message:
-          description: "The operator's text, served unchanged."
+          description: "The operator's text, served unchanged in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
         inventoryCount:
           type: integer
@@ -911,10 +916,12 @@ components:
         reason:
           type: string
         message:
+          description: "The Ready condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
         activeReason:
           type: string
         activeMessage:
+          description: "The Active condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
         reconcile:
           $ref: '#/components/schemas/Reconcile'
@@ -966,7 +973,7 @@ components:
         reason:
           type: string
         note:
-          description: "The reporting controller's text, served unchanged."
+          description: "The reporting controller's text, served unchanged in local mode. Absent in-cluster for every event: the operator does not remove secret values from the notes it writes."
           type: string
         reportingController:
           type: string
@@ -1053,6 +1060,7 @@ components:
         reason:
           type: string
         message:
+          description: "Why the node has its state. For an opmodel.dev object it is the operator's Ready message, absent in-cluster."
           type: string
         partial:
           type: boolean
@@ -1082,10 +1090,12 @@ components:
         reason:
           type: string
         message:
+          description: "The Ready condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
         activeReason:
           type: string
         activeMessage:
+          description: "The Active condition's message, in local mode. Absent in-cluster: the operator does not remove secret values from its text."
           type: string
     GraphCatalog:
       type: object
@@ -1247,7 +1257,7 @@ components:
           $ref: '#/components/schemas/ObjectRef'
         object:
           type: object
-          description: The object as the cluster serves it, less what is never served.
+          description: The object as the cluster serves it, less what is never served. In-cluster, an opmodel.dev object has no message in status.conditions or status.history.
           additionalProperties: true
     TopicChange:
       type: object

@@ -1,0 +1,95 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "version": "v1",
+    "kind": "Pod",
+    "namespace": "default",
+    "name": "podinfo-podinfo-d9585d794-4lg6h"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:16Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:16Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:16Z"
+    },
+    {
+      "type": "Warning",
+      "reason": "Unhealthy",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:16Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:07Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "reportingController": "default-scheduler",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-4lg6h"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-04T18:04:06Z"
+    }
+  ]
+}

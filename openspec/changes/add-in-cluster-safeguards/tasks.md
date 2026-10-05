@@ -7,11 +7,11 @@
 
 ## 2. Server mode and in-cluster omission (internal/api, cmd/opm-portal, openapi)
 
-- [ ] 2.1 `api.Mode` (`local`, `in-cluster`), required in `Config`; `New` refuses an empty or unknown mode; `serve`, `apitest` and the API test harness pass it
-- [ ] 2.2 `omitOperatorText` over every wire document, applied in `Server.document` and the stream producer's render in `in-cluster` mode; an unknown document type is an error
-- [ ] 2.3 OpenAPI: each omitted field's description says it is absent in-cluster; the info description says so too
-- [ ] 2.4 Tests: in-cluster goldens for the documents that carry operator text (instance, broken instance, package, lists, platform, graphs, events, the backup-provider registration's `Object`), a walk that fails on any operator-text field in an in-cluster document, the stream carrying the omitted document, every route's document type known to the omission, `New` refusing a missing mode; local goldens unchanged
-- [ ] 2.5 `task check` green, then commit `feat(api): hide operator messages in-cluster`
+- [x] 2.1 `api.Mode` (`local`, `in-cluster`), required in `Config`; `New` refuses an empty or unknown mode; `serve`, `apitest` and the API test harness pass it
+- [x] 2.2 `omitOperatorText` over every wire document, applied in `Server.document` and the stream producer's render in `in-cluster` mode; an unknown document type is an error
+- [x] 2.3 OpenAPI: each omitted field's description says it is absent in-cluster; the info description says so too
+- [x] 2.4 Tests: in-cluster goldens for the documents that carry operator text (instance, broken instance, package, lists, platform, graphs, events, the backup-provider registration's `Object`), a walk that fails on any operator-text field in an in-cluster document, the stream carrying the omitted document, every route's document type known to the omission, `New` refusing a missing mode; local goldens unchanged
+- [x] 2.5 `task check` green, then commit `feat(api): hide operator messages in-cluster`
 
 ## 3. Pages in both modes (internal/ui)
 
