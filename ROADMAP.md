@@ -66,14 +66,14 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 1. **First release, 0.1.0** (PR 18), now unblocked.
 2. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
    graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
-   item 4 (the loopback cookie risk, accepted and documented); issue 13 items 3 and 4.
+   item 4 (the loopback cookie risk, accepted and documented).
 
 ## Future plans
 
 Nothing here is scheduled. The order below is the order the owner set, not a timeline; each plan
 starts as an OpenSpec change only when the owner schedules it.
 
-### 1. In-cluster mode with OIDC sign-in
+### 1. In-cluster mode with OIDC sign-in (milestone 2)
 
 The same binary would run in-cluster: OIDC sign-in, a SubjectAccessReview for the
 signed-in user before every read, reads as the portal's own read-only ServiceAccount (portal:D6,
