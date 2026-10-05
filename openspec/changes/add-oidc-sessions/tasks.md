@@ -6,12 +6,12 @@
 
 ## 2. Bearer tokens and the fake issuer (internal/auth, internal/auth/oidctest)
 
-- [ ] 2.1 `go.mod`: add `github.com/coreos/go-oidc/v3` v3.21.0 and `golang.org/x/oauth2` as direct dependencies
-- [ ] 2.2 `internal/auth/oidctest`: in-process issuer over `httptest` TLS with discovery, keys, authorize (auto-approves the configured claims) and token (checks client, redirect URI and the `S256` verifier) endpoints, key rotation, request counters, `Sign` for bearer tokens
-- [ ] 2.3 `internal/auth/keyset.go`: cached `oidc.KeySet` with a refresh lower bound, stale-cache refresh, capped body, public signing keys only
-- [ ] 2.4 `internal/auth/oidc.go`: `OIDCConfig`, `NewOIDC` (validation, discovery, algorithms, first key fetch), `Authenticate` for bearer tokens (header shape, size cap, verification, mapping, HMAC session key)
-- [ ] 2.5 Tests: configuration refusals before any issuer request; bearer accept; wrong audience, issuer, expired, foreign key, `none` and `HS256` refused; key-ID burst fetches once; rotation after the interval; CVE-2026-23990 regression through `internal/api` with zero reviews and zero reads
-- [ ] 2.6 `task check` green, then commit `feat(auth): accept bearer tokens from the configured OIDC issuer`
+- [x] 2.1 `go.mod`: add `github.com/coreos/go-oidc/v3` v3.21.0 and `golang.org/x/oauth2` as direct dependencies
+- [x] 2.2 `internal/auth/oidctest`: in-process issuer over `httptest` TLS with discovery, keys, authorize (auto-approves the configured claims) and token (checks client, redirect URI and the `S256` verifier) endpoints, key rotation, request counters, `Sign` for bearer tokens
+- [x] 2.3 `internal/auth/keyset.go`: cached `oidc.KeySet` with a refresh lower bound, stale-cache refresh, capped body, public signing keys only
+- [x] 2.4 `internal/auth/oidc.go`: `OIDCConfig`, `NewOIDC` (validation, discovery, algorithms, first key fetch), `Authenticate` for bearer tokens (header shape, size cap, verification, mapping, HMAC session key)
+- [x] 2.5 Tests: configuration refusals before any issuer request; bearer accept; wrong audience, issuer, expired, foreign key, `none` and `HS256` refused; key-ID burst fetches once; rotation after the interval; CVE-2026-23990 regression through `internal/api` with zero reviews and zero reads
+- [x] 2.6 `task check` green, then commit `feat(auth): accept bearer tokens from the configured OIDC issuer`
 
 ## 3. Browser sign-in, sessions and the front door (internal/auth)
 
