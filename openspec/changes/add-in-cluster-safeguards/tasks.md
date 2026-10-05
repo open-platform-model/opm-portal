@@ -15,8 +15,8 @@
 
 ## 3. Pages in both modes (internal/ui)
 
-- [ ] 3.1 `apitest.NewInCluster`; UI goldens of the broken podinfo page and the platform page over an in-cluster API, and a test that no operator message of the capture appears on any in-cluster page
-- [ ] 3.2 `task check` green, then commit `test(ui): render the pages over an in-cluster read API`
+- [x] 3.1 `apitest.NewInCluster`; UI goldens of the broken podinfo page and the platform page over an in-cluster API, and a test that no operator message of the capture appears on any in-cluster page
+- [x] 3.2 `task check` green, then commit `test(ui): render the pages over an in-cluster read API`
 
 ## 4. Documentation (docs/site)
 

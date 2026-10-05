@@ -84,10 +84,22 @@ func F1Broken(t testing.TB) []*unstructured.Unstructured {
 	return append(out, replace...)
 }
 
-// New serves the read API over objs. Reviews for Caller follow rule; the
-// reader may read everything. A request is Caller's when it carries
-// SessionCookie with SessionValue.
+// New serves the read API in local mode over objs. Reviews for Caller
+// follow rule; the reader may read everything. A request is Caller's when
+// it carries SessionCookie with SessionValue.
 func New(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server {
+	t.Helper()
+	return newServer(t, objs, rule, api.ModeLocal)
+}
+
+// NewInCluster is New in in-cluster mode: no document carries text the
+// operator wrote.
+func NewInCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server {
+	t.Helper()
+	return newServer(t, objs, rule, api.ModeInCluster)
+}
+
+func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode api.Mode) *api.Server {
 	t.Helper()
 	caller, _ := readmodeltest.NewChecker(t, Caller, rule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readmodeltest.AllowAll, authz.Options{})
@@ -108,7 +120,7 @@ func New(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server
 	}
 	t.Cleanup(m.Stop)
 	srv, err := api.New(api.Config{
-		Mode:       api.ModeLocal,
+		Mode:       mode,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
