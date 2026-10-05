@@ -7,8 +7,8 @@ context: |
   (`/api/v1alpha1`) with an HTMX UI as its first consumer. V1 is read-only: it shows what a
   cluster runs under OPM, from the Platform down to Pods, and creates, edits and deletes nothing.
   Milestone 1 runs on the user's machine with their kubeconfig; milestone 2 runs in-cluster with
-  OIDC and SubjectAccessReview-as-user. The design record is enhancement 0030 in the sibling
-  `enhancements/` repo.
+  OIDC and SubjectAccessReview-as-user. The design record is `docs/DESIGN.md`: its decisions
+  are cited as `portal:Dn` and bind every change. Plan and progress live in `ROADMAP.md`.
 
   ## Core Principles (Web Portal)
 
@@ -49,13 +49,13 @@ context: |
     are `create` on review APIs that answer in the response and store nothing, per mode:
     - Local mode (M1) MUST create only `authorization.k8s.io` `selfsubjectaccessreviews` (read
       checks with the user's kubeconfig) and `authentication.k8s.io` `selfsubjectreviews`
-      (kubeconfig identity), per 0030:D5:R6.
+      (kubeconfig identity), per portal:D5:R6.
     - In-cluster mode (M2) MUST create only `authorization.k8s.io` `subjectaccessreviews`
-      (access checked as the signed-in user), per 0030:D6:R9. A self review in-cluster would
+      (access checked as the signed-in user), per portal:D6:R9. A self review in-cluster would
       check the portal's own ServiceAccount, so it MUST NOT be sent.
   - The portal MUST NOT read Secret data. In V1 it MUST NOT serve any instance's or package's
     `spec.values`, and MUST strip the `kubectl.kubernetes.io/last-applied-configuration`
-    annotation from every object it serves (0030:D8).
+    annotation from every object it serves (portal:D8).
   - The portal acts as the user: in M1 with the user's kubeconfig, in M2 through
     SubjectAccessReview for the authenticated user. An empty or unmapped identity MUST fail
     closed (deny), never fall through to the portal's own ServiceAccount.
@@ -129,10 +129,11 @@ context: |
   3. Internal packages
 
   ### Comments
-  - Default to no enhancement reference: say what the code does and why, in the comment's own words.
-  - When the rationale genuinely lives in an enhancement, cite it once at the symbol as `0030:D9` — enhancement id, colon, decision id, no space. One enhancement, several decisions: `0030:D16/D18/D21`. Across enhancements: `0030:D9, 0013:D28`. One requirement of a decision: `0030:D9:R2`; several: `0030:D9:R1/R2`. A bare `D9` names nothing, because decision numbers restart per enhancement.
+  - Default to no design reference: say what the code does and why, in the comment's own words.
+  - When the rationale genuinely lives in a decision, cite it once at the symbol. A portal decision in `docs/DESIGN.md` is `portal:D9`; an enhancement decision is `0027:D9` (enhancement id, colon, decision id, no space). Several decisions: `portal:D6/D7`. Across sources: `portal:D9, 0027:D1`. One requirement: `portal:D9:R2`; several: `portal:D9:R1/R2`. An open question: `portal:OQ20`. A bare `D9` names nothing, because decision numbers restart per source.
+  - Never write a new `0030:` citation. Enhancement 0030 was withdrawn on 2026-10-05 and its numbers moved unchanged into `docs/DESIGN.md`, so an existing `0030:Dn` means `portal:Dn` until a sweep rewrites it.
   - Never cite a section, slice, phase, task or design-doc-local id (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers; a requirement number (`R2`) is.
-  - Never put a reference in a scaffold template, a generated file, a fixture a user copies, or a user-facing string (a page, an API error, a log line). Those reach people with no access to the enhancements repo.
+  - Never put a reference in a scaffold template, a generated file, a fixture a user copies, or a user-facing string (a page, an API error, a log line). Those reach people who do not read the design record.
   - No `Was:` rename history in comments; `git log` owns it.
 
   ## Validation Gates (before merge)
@@ -162,7 +163,8 @@ rules:
       `Delivery: one PR per section (<consumer> needs <pin> after section <N>)`, and the change
       ships section by section. In that mode the change stays active on main between PRs, and
       spec sync and enhancement delivery logging wait for archive after the last PR."
-    - "If this change implements decisions from an enhancement in the sibling enhancements/ repo, create enhancement.yaml in this change directory declaring it (implements: [{enhancement: \"NNNN\", decisions: [D1, ...], resolves: []}]). Write it at creation time, while the enhancement is in context; it is what makes archive-time delivery logging mechanical."
+    - "Name the portal decisions the change implements as `portal:Dn` (docs/DESIGN.md). A change that alters a decision, adds one or answers an open question edits docs/DESIGN.md in the same PR, keeping every existing number; it creates no enhancement.yaml for portal decisions."
+    - "Only if this change implements decisions from another enhancement in the sibling enhancements/ repo (0027, for V2 writes), create enhancement.yaml in this change directory declaring it (implements: [{enhancement: \"NNNN\", decisions: [D1, ...], resolves: []}]). Write it at creation time, while the enhancement is in context; it is what makes archive-time delivery logging mechanical."
 
   design:
     - "Focus: HOW we'll implement it technically"
@@ -192,7 +194,8 @@ rules:
     - "Focus: WHAT behavior is changing (not HOW it's implemented)"
     - "Updates when: New or changed requirements emerge"
     - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
-    - When a requirement implements an enhancement requirement, cite `NNNN:DN:Rn` in its body
+    - When a requirement implements a portal or enhancement requirement, cite `portal:DN:Rn` or
+      `NNNN:DN:Rn` in its body
       (first sentence or a trailing `Source:` line), never inside the `### Requirement:` header,
       which tools read as the requirement's name.
     - Describe observable behavior (API responses, rendered pages, stream events, exit codes).
@@ -213,6 +216,8 @@ rules:
       unverified assumption; its commit task lands what the spike produced (a test, a fixture,
       or the finding written into design.md)."
     - Group tasks by package.
+    - The last section's commit updates ROADMAP.md (the change moves to done or in review, with
+      what it uncovered under next).
     - Include the validation gates (`task check`) in every section's commit task, not as a
       trailing section; cross-cutting checks (e2e runs, live captures) go into the last real
       section before its commit.

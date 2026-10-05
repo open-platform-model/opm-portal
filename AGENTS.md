@@ -96,7 +96,8 @@ can reword them.
 - V1 is read-only: status as the operator reports it, events, pod logs and a relationship graph,
   from the Platform down to Pods. Milestone 1 runs locally with the user's kubeconfig;
   milestone 2 runs in-cluster with OIDC and SubjectAccessReview-as-user.
-- Design: enhancement 0030 in the sibling `enhancements/` repo. `opm-portal serve` runs local
+- Design: [docs/DESIGN.md](docs/DESIGN.md), the decisions every change follows, cited as
+  `portal:Dn`. Plan and progress: [ROADMAP.md](ROADMAP.md). `opm-portal serve` runs local
   mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`
   (under `/api/v1alpha1`) and `internal/ui` (every other path), reading as the kubeconfig's user.
   `opm-portal version` only prints the version.
@@ -106,6 +107,8 @@ can reword them.
 Read these first, in order:
 
 - `AGENTS.md`: repo commands, workflows, style, security rules, verification.
+- `docs/DESIGN.md`: the design record, decisions `portal:D1` onwards and open questions.
+- `ROADMAP.md`: milestones, what is done, in review and next.
 - `CONSTITUTION.md`: engineering principles, change-shaping rules.
 - `openspec/config.yaml`: the normative constitutional source for OpenSpec changes.
 - `Taskfile.yml`: authoritative build, lint and test entrypoints.
@@ -118,12 +121,15 @@ Read these first, in order:
 ├── api/v1alpha1/     # wire types of the read API (no logic)
 ├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
+├── docs/DESIGN.md    # the design record: decisions (portal:Dn), open questions, risks
+├── docs/design/      # evidence/: the live captures and research DESIGN.md cites (snapshots)
 ├── docs/site/        # site pages, published as the opm-portal docs bundle (docs-kit.cue)
 ├── hack/             # helper scripts (release-pin gate, API breaking-change gate)
 ├── test/e2e/         # throwaway kind fixture cluster: pins, scripts, fixture set F1
 ├── testdata/         # committed cluster captures for golden suites (generated, never hand-edited)
 ├── openspec/         # OpenSpec config, main specs, changes
 ├── .github/          # workflows (Lint, Test, PR Title, Release, E2E, Docs) and release guard scripts
+├── ROADMAP.md        # plan and progress, updated in the PR that lands each change
 └── Taskfile.yml      # source of truth for build, lint, test
 ```
 
@@ -135,15 +141,15 @@ in `openspec/config.yaml`, Principle II: `api/v1alpha1` (public wire types), `in
 ## Security Rules
 
 A portal renders cluster data to people and, from milestone 2, authenticates them. These rules
-hold in every change; a change that bends one needs an enhancement decision first.
+hold in every change; a change that bends one needs a decision in `docs/DESIGN.md` first.
 
 - **Read-only in V1.** No create, update, patch or delete on any Kubernetes object, and no
   ClusterRole or Role that grants a write verb. The only exceptions are `create` on review APIs
   that answer in the response and store nothing, per mode. Local mode (milestone 1) creates
   only `authorization.k8s.io` `selfsubjectaccessreviews` (a read check with the user's
   kubeconfig) and `authentication.k8s.io` `selfsubjectreviews` (the kubeconfig's identity),
-  per 0030:D5:R6. In-cluster mode (milestone 2) creates only `authorization.k8s.io`
-  `subjectaccessreviews` (access checked as the signed-in user), per 0030:D6:R9; a self review
+  per portal:D5:R6. In-cluster mode (milestone 2) creates only `authorization.k8s.io`
+  `subjectaccessreviews` (access checked as the signed-in user), per portal:D6:R9; a self review
   there would check the portal's own ServiceAccount, so it is forbidden. Writes start in V2,
   through the 0027 kinds.
 - **Never read Secret data, and show no values in V1.** No `get`, `list` or `watch` on
@@ -151,10 +157,10 @@ hold in every change; a change that bends one needs an enhancement decision firs
   and the `kubectl.kubernetes.io/last-applied-configuration` annotation is stripped from every
   object the portal serves, because a client-side apply copies the full values into it. Secret
   markers live in the module's schema, not in the stored values, so there is nothing to mask
-  on (0030:D8). Hiding `spec.values` does not hide what they became: a value rendered into a
+  on (portal:D8). Hiding `spec.values` does not hide what they became: a value rendered into a
   non-Secret object, such as a ConfigMap entry or a container's environment, shows to anyone
   who may read that object, as it does in `kubectl`, and the portal's documentation says so
-  (0030:D8:R4).
+  (portal:D8:R4).
 - **Act as the user.** Milestone 1 uses the user's kubeconfig, so the user's RBAC is the
   boundary. Milestone 2 authorizes every read through a SubjectAccessReview for the signed-in
   user before the lookup, and returns the same denial for a missing object as for a forbidden
@@ -264,8 +270,11 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - Plan a change as an OpenSpec change under `openspec/changes/` (the `opsx:*` workspace skills,
   or the `openspec-*` skills under `.claude/skills/`). The archive commit rides the implementing
   PR.
-- A change that implements enhancement decisions carries `enhancement.yaml` (see
+- A change that implements portal decisions cites them as `portal:Dn` in its proposal and
+  design, and updates `docs/DESIGN.md` in the same PR when it changes or adds one. Only a change
+  that implements another enhancement's decisions (0027, for V2) carries `enhancement.yaml` (see
   `openspec/config.yaml`, proposal rules).
+- The PR that lands a change updates `ROADMAP.md`.
 - Go changes → `task check` before committing.
 - Workflow changes → `actionlint` as well.
 - `Taskfile.yml` is authoritative. Do not add a `Makefile`.
@@ -283,14 +292,21 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - Import groups: stdlib → third-party → local module.
 - No unused helpers, no speculative abstractions.
 
-## Enhancement References In Comments
+## Design References In Comments
 
 Default is none: a comment says what the code does and why, in its own words.
 
-- When a rationale genuinely lives in an enhancement, cite it **once at the symbol** as `0030:D9`: enhancement id, colon, decision id, no space. Several decisions of one enhancement share a head: `0030:D16/D18/D21`. Across enhancements, repeat the head: `0030:D9, 0013:D28`. A single requirement of a decision is `0030:D9:R2`; several under one decision share it (`0030:D9:R1/R2`).
-- Decision numbers restart per enhancement, so a bare `D9` names nothing. Never write one.
+- When a rationale genuinely lives in a decision, cite it **once at the symbol**. A portal
+  decision in `docs/DESIGN.md` is `portal:D9`; an enhancement decision is `0027:D9` (enhancement
+  id, colon, decision id, no space). Several decisions share a head: `portal:D6/D7`. Across
+  sources, repeat the head: `portal:D9, 0027:D1`. A single requirement is `portal:D9:R2`; several
+  under one decision share it (`portal:D9:R1/R2`). An open question is `portal:OQ20`.
+- `0030:Dn` citations already in the code, specs and archived changes name the same decision as `portal:Dn` (the numbers moved
+  unchanged when enhancement 0030 was withdrawn on 2026-10-05) and are rewritten in a sweep. Never
+  write a new `0030:` citation.
+- Decision numbers restart per source, so a bare `D9` names nothing. Never write one.
 - Never a section, slice, phase, task or design-doc-local number (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers. A requirement number (`R2` under a decision) is a stable identifier and is allowed.
-- Never in scaffold templates, generated files, fixtures a user copies, or user-facing strings (pages, API errors, log lines). Those reach people who have no access to the enhancements repo.
+- Never in scaffold templates, generated files, fixtures a user copies, or user-facing strings (pages, API errors, log lines). Those reach people who do not read the design record.
 - No `Was:` rename history. `git log` owns it.
 
 ## Naming And API Design
