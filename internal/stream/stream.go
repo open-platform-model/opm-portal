@@ -46,9 +46,20 @@ func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
 	b.mu.Unlock()
 
 	// Ending the connection (eviction, takeover, Close) also cancels the
-	// work done for it: snapshots, reviews and renders.
+	// work done for it: snapshots, reviews and renders. So does the
+	// session's end, and from then on the writer refuses every event but
+	// the expired one, so no work still running at the end, and no message
+	// already queued, reaches the client after it.
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	b.mu.Lock()
+	ends := s.st.expires
+	b.mu.Unlock()
+	if !ends.IsZero() {
+		var stop context.CancelFunc
+		ctx, stop = context.WithDeadlineCause(ctx, ends, errSessionOver)
+		defer stop()
+	}
 	go func() {
 		select {
 		case <-c.done:
@@ -56,8 +67,11 @@ func (s *Stream) Serve(ctx context.Context, w http.ResponseWriter) error {
 		case <-ctx.Done():
 		}
 	}()
-	wr := &writer{w: w, rc: http.NewResponseController(w), timeout: b.opts.WriteTimeout}
+	wr := &writer{w: w, rc: http.NewResponseController(w), timeout: b.opts.WriteTimeout, ends: ends}
 	reason := s.run(ctx, wr)
+	if errors.Is(reason, errSessionOver) {
+		reason = s.expire(wr)
+	}
 	b.disconnect(s.st, c, reason)
 	return reason
 }
@@ -75,24 +89,10 @@ func (s *Stream) run(ctx context.Context, wr *writer) error {
 	}
 	ticker := time.NewTicker(s.b.opts.HeartbeatInterval)
 	defer ticker.Stop()
-	s.b.mu.Lock()
-	expires := s.st.expires
-	s.b.mu.Unlock()
-	var expiry <-chan time.Time
-	if !expires.IsZero() {
-		timer := time.NewTimer(time.Until(expires))
-		defer timer.Stop()
-		expiry = timer.C
-	}
 
 	backlog := c.backlog
 	c.backlog = nil
 	for i := range backlog {
-		select {
-		case <-expiry:
-			return s.expire(wr)
-		default:
-		}
 		if err := s.deliver(ctx, wr, &backlog[i]); err != nil {
 			return err
 		}
@@ -103,8 +103,6 @@ func (s *Stream) run(ctx context.Context, wr *writer) error {
 			return s.ended(ctx)
 		case <-c.done:
 			return c.reason
-		case <-expiry:
-			return s.expire(wr)
 		case e := <-c.queue:
 			if err := s.deliver(ctx, wr, &e); err != nil {
 				return err
@@ -158,13 +156,14 @@ func (s *Stream) expire(wr *writer) error {
 }
 
 // ended returns why the connection ended: the broker's reason when it ended
-// the connection, or the context's error.
+// the connection, or the context's cause (errSessionOver at the session's
+// end).
 func (s *Stream) ended(ctx context.Context) error {
 	select {
 	case <-s.conn.done:
 		return s.conn.reason
 	default:
-		return ctx.Err()
+		return context.Cause(ctx)
 	}
 }
 
@@ -332,15 +331,17 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 // own that is now forbidden is dropped from m, so a snapshot is written
 // without it and an item event not at all, without a trace (0030:D7:R2); any
 // other code for it closes the topic. It returns a closing code, or "".
-func (s *Stream) revalidate(ctx context.Context, m *message) string {
-	ctx, cancel := context.WithTimeout(ctx, s.b.opts.RevalidateTimeout)
+func (s *Stream) revalidate(parent context.Context, m *message) string {
+	ctx, cancel := context.WithTimeout(parent, s.b.opts.RevalidateTimeout)
 	defer cancel()
 	for {
 		if s.covered(m) {
 			return ""
 		}
 		if ctx.Err() != nil {
-			s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
+			if parent.Err() == nil {
+				s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
+			}
 			return CodeUpstreamUnavailable
 		}
 		if code := s.gateTopic(ctx, m.sub); code != "" {
@@ -544,11 +545,18 @@ func (s *Stream) eventID(sub *subscription, seq uint64) (id string, ok bool) {
 	return b.epoch + "." + s.st.id + "." + strconv.FormatUint(b.nextIDLocked(s.st, seq), 10), true
 }
 
-// writer writes server-sent events and flushes each one.
+// errSessionOver is why a connection ends at its session's end: the
+// writer refuses an event, or the context's deadline passes. Serve turns it
+// into the expired event and ErrSessionExpired.
+var errSessionOver = errors.New("stream: the session is over")
+
+// writer writes server-sent events and flushes each one. From ends on (the
+// session's end; zero for none) it writes nothing but the expired event.
 type writer struct {
 	w       http.ResponseWriter
 	rc      *http.ResponseController
 	timeout time.Duration
+	ends    time.Time
 	buf     bytes.Buffer
 }
 
@@ -579,6 +587,9 @@ func (wr *writer) expired() error {
 func (wr *writer) event(prefix, id, name string, data []byte) error {
 	if bytes.ContainsAny(data, "\r\n") || strings.ContainsAny(id+name, "\r\n") {
 		return errors.New("stream: event field spans lines")
+	}
+	if name != EventExpired && !wr.ends.IsZero() && !time.Now().Before(wr.ends) {
+		return errSessionOver
 	}
 	if err := wr.rc.SetWriteDeadline(time.Now().Add(wr.timeout)); err != nil && !errors.Is(err, http.ErrNotSupported) {
 		return fmt.Errorf("setting the write deadline: %w", err)

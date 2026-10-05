@@ -104,8 +104,9 @@
 // connection without delaying anyone else and stays resumable. A stream with
 // no topics for the idle timeout is closed. A stream ends when the session
 // that opened it expires (Session.Expires): its last message is an expired
-// event and it is discarded, not kept for resume, and a stream does not
-// open for a session that has already expired. Session and process caps refuse
-// a new stream only after the oldest disconnected stream in that scope has
-// been discarded.
+// event, and no message whose snapshot, render or review is still running at
+// that moment is written after it. It is discarded, not kept for resume, and
+// a stream does not open for a session that has already expired. Session and
+// process caps refuse a new stream only after the oldest disconnected stream
+// in that scope has been discarded.
 package stream

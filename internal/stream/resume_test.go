@@ -2,12 +2,16 @@ package stream
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
 	"testing/synctest"
 	"time"
+
+	"github.com/open-platform-model/opm-portal/internal/authz"
 )
 
 // openBlog opens alice's stream on instance:apps/blog at version 1 and
@@ -291,6 +295,133 @@ func TestAStreamEndsWhenItsSessionExpires(t *testing.T) {
 		again := e.resume(renewed, last, "instance:apps/blog")
 		if again.ID() == sv.ID() {
 			t.Error("a reconnect resumed the expired stream")
+		}
+	})
+}
+
+// Nothing reaches the client after the session's end, not even a message
+// whose snapshot, render or review began before it: work that honors its
+// context is canceled at the end, and a message finished after it anyway is
+// not written. The expired event is the stream's last message, and it comes
+// at the end when the work is canceled.
+func TestNothingIsWrittenAfterTheSessionEnds(t *testing.T) {
+	for _, honors := range []bool{true, false} {
+		t.Run(fmt.Sprintf("honorsContext=%v", honors), func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+				e.policy.set("alice", allowNamespaces("apps"))
+				blog := mustTopic(t, "instance:apps/blog")
+				e.prod.seed(blog, "blog", instItem("apps", "blog", 1))
+				e.prod.snapshotWait = func(ctx context.Context) {
+					if honors {
+						select {
+						case <-ctx.Done():
+						case <-time.After(20 * time.Second):
+						}
+						return
+					}
+					time.Sleep(20 * time.Second)
+				}
+				sess := session("alice")
+				sess.Expires = time.Now().Add(10 * time.Second)
+				sv := e.open(sess, "instance:apps/blog")
+
+				time.Sleep(10 * time.Second)
+				synctest.Wait()
+				err := sv.ended()
+				if honors && !errors.Is(err, ErrSessionExpired) {
+					t.Fatalf("Serve at the session's end = %v, want ErrSessionExpired", err)
+				}
+				if !honors {
+					if err != nil {
+						t.Fatalf("Serve returned before the snapshot did: %v", err)
+					}
+					time.Sleep(10 * time.Second)
+					synctest.Wait()
+					if err := sv.ended(); !errors.Is(err, ErrSessionExpired) {
+						t.Fatalf("Serve = %v, want ErrSessionExpired", err)
+					}
+				}
+				if got, want := nonHeartbeats(sv.rec.take()), []string{"open()", "expired()unauthenticated"}; !slices.Equal(got, want) {
+					t.Errorf("events = %v, want %v", got, want)
+				}
+			})
+		})
+	}
+}
+
+// An update whose render runs across the session's end is not written, and
+// neither is one queued behind it: the expired event follows the snapshot.
+func TestAnUpdateRenderedAcrossTheSessionsEndIsNotWritten(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		e.prod.seed(blog, "blog", instItem("apps", "blog", 1))
+		sess := session("alice")
+		sess.Expires = time.Now().Add(10 * time.Second)
+		sv := e.open(sess, "instance:apps/blog")
+		synctest.Wait()
+
+		slow := instItem("apps", "blog", 2)
+		data := slow.Data
+		slow.Data = nil
+		slow.Render = func(context.Context, authz.Identity) (json.RawMessage, error) {
+			// Ignores its context: it finishes after the session's end.
+			time.Sleep(15 * time.Second)
+			return data, nil
+		}
+		e.prod.upsert(t, blog, slow)
+		e.prod.upsert(t, blog, instItem("apps", "blog", 3))
+
+		time.Sleep(time.Minute)
+		synctest.Wait()
+		if err := sv.ended(); !errors.Is(err, ErrSessionExpired) {
+			t.Fatalf("Serve = %v, want ErrSessionExpired", err)
+		}
+		if got, want := nonHeartbeats(sv.rec.take()), []string{"open()", "snapshot(instance:apps/blog)", "expired()unauthenticated"}; !slices.Equal(got, want) {
+			t.Errorf("events = %v, want %v", got, want)
+		}
+	})
+}
+
+// A resumed stream ends when its session does at the resume, so a renewed
+// session keeps it open past the end the stream was opened with.
+func TestAResumedStreamEndsWithItsRenewedSession(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		e.prod.seed(blog, "blog", instItem("apps", "blog", 1))
+		sess := session("alice")
+		sess.Expires = time.Now().Add(time.Minute)
+		sv := e.open(sess, "instance:apps/blog")
+		last := sv.rec.lastID()
+		if err := sv.disconnect(); !errors.Is(err, context.Canceled) {
+			t.Fatalf("Serve after disconnect = %v", err)
+		}
+
+		renewed := sess
+		renewed.Expires = time.Now().Add(time.Hour)
+		again := e.resume(renewed, last, "instance:apps/blog")
+		if again.ID() != sv.ID() {
+			t.Fatalf("resumed stream id %s, want %s", again.ID(), sv.ID())
+		}
+		again.rec.take()
+		time.Sleep(2 * time.Minute)
+		synctest.Wait()
+		if err := again.ended(); err != nil {
+			t.Fatalf("the resumed stream ended at the old session's end: %v", err)
+		}
+		e.prod.upsert(t, blog, instItem("apps", "blog", 2))
+		synctest.Wait()
+		if got := eventNames(again.rec.take()); !slices.Contains(got, "upsert(instance:apps/blog)") {
+			t.Errorf("events after the old end = %v, want the update", got)
+		}
+		time.Sleep(time.Hour)
+		synctest.Wait()
+		if err := again.ended(); !errors.Is(err, ErrSessionExpired) {
+			t.Fatalf("Serve at the renewed end = %v, want ErrSessionExpired", err)
 		}
 	})
 }

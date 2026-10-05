@@ -322,6 +322,12 @@ stream's own fields, never topic data.
 - **AND** the connection ends
 - **AND** a reconnect with that stream's `Last-Event-ID` resumes nothing
 
+#### Scenario: A message in progress at the session's end is not written
+
+- **WHEN** a snapshot, render or review for a stream's message is still running when its session expires
+- **THEN** that message is not written, and neither is any message queued behind it
+- **AND** the stream's last message is the `expired` event
+
 #### Scenario: An expired session opens no stream
 
 - **WHEN** a request whose session has already expired asks to open a stream
