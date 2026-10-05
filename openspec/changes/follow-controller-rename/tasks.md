@@ -26,3 +26,8 @@
 - [x] 4.2 `docs/design/evidence` prose renamed; the two event samples renamed `events-controller-*.yaml`; captured sample content stays as captured, with one note line in `docs/design/evidence/README.md`
 - [x] 4.3 `health-evaluation` main spec Purpose line (a delta cannot carry it)
 - [x] 4.4 `task check` and `task docs:bundle:check` green, ROADMAP updated, then commit `docs: call the product the controller`
+
+## 5. Pin the wire reads (internal/readmodel)
+
+- [x] 5.1 `TestOwnerOf` (cli, controller, absent) and `TestPlatformViewWithoutControllerVersion` (no `status.controllerVersion` shows none), found missing by verification
+- [x] 5.2 `task check` green, then commit `test(readmodel): pin the owner and controller version reads`

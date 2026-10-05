@@ -28,6 +28,38 @@ func TestStartRefusesASecondStart(t *testing.T) {
 	}
 }
 
+// TestPlatformViewWithoutControllerVersion: a Platform whose status names
+// no controllerVersion shows none.
+func TestPlatformViewWithoutControllerVersion(t *testing.T) {
+	objs := loadF1(t)
+	unstructured.RemoveNestedField(find(t, objs, "Platform", "cluster").Object, "status", "controllerVersion")
+	e := newEnv(t, objs, allowAll, allowAll)
+	v, err := e.m.Platform(t.Context(), alice, e.grant(t, "get", platforms, "", "cluster"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.ControllerVersion != "" {
+		t.Errorf("controller version = %q, want none", v.ControllerVersion)
+	}
+}
+
+// TestOwnerOf: cli is the CLI's; controller and an absent owner are the
+// controller's.
+func TestOwnerOf(t *testing.T) {
+	for _, tc := range []struct {
+		owner string
+		want  Owner
+	}{{"cli", OwnerCLI}, {"controller", OwnerController}, {"", OwnerController}} {
+		u := &unstructured.Unstructured{Object: map[string]any{"spec": map[string]any{}}}
+		if tc.owner != "" {
+			u.Object["spec"].(map[string]any)["owner"] = tc.owner
+		}
+		if got := ownerOf(u); got != tc.want {
+			t.Errorf("spec.owner %q: owner = %q, want %q", tc.owner, got, tc.want)
+		}
+	}
+}
+
 func TestPlatformView(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	v, err := e.m.Platform(t.Context(), alice, e.grant(t, "get", platforms, "", "cluster"))
