@@ -2,6 +2,13 @@
 # `task enhancements:delivery:log` at archive time. Whole decisions only.
 #
 # Claimed:
+# - 0030:D2 (the UI is the API's first consumer): R2 landed with
+#   add-read-api. This change lands R1 (the UI reads only through the API,
+#   in-process, and imports only api/v1alpha1 of this module, enforced by
+#   TestTheUIImportsOnlyTheWireTypes) and R3 (unknown enums render as
+#   unknown, TestUnknownValuesReadUnknown). The meaning and next step the
+#   pages show come from the API's Condition, so no reading logic lives in
+#   the UI.
 # - 0030:D5 (local mode): R1 to R6 landed in add-local-mode, which deferred
 #   the claim to the UI for R7. Every object, row, node and list the identity
 #   may not read now renders locked from the API's per-item access, without
@@ -20,9 +27,7 @@
 #   still Applied (design.md, "Evidence").
 #
 # Whole after this change but not claimed here, because the task scoped the
-# claims to D3, D4 and D5 (raised with the supervisor):
-# - 0030:D2: R1 (the UI reads only through the API, in-process, with a lint
-#   test) and R3 (unknown enums render as unknown) were the remaining parts.
+# claims to D2, D3, D4 and D5 (raised with the supervisor):
 # - 0030:D7: R4 for YAML views (the object resource refuses an object no
 #   inventory reaches with the forbidden problem) was the remaining part.
 # - 0030:D8: R4 (the README states that values rendered into non-Secret
@@ -33,5 +38,5 @@
 # Before logging, diff this list against proposal.md's Impact section.
 implements:
   - enhancement: "0030"
-    decisions: [D3, D4, D5]
+    decisions: [D2, D3, D4, D5]
     resolves: []

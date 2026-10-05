@@ -72,8 +72,8 @@ the web UI as its first consumer (0030:D2); this change is that consumer.
 
 ## Impact
 
-- Packages: new `internal/ui` (imports `api/v1alpha1` and the standard library only; reads go
-  through an `http.Handler`, the read API); `internal/api` gains two routes and the `Object`
+- Packages: new `internal/ui` (imports `api/v1alpha1` of this module, `sigs.k8s.io/yaml` for the
+  YAML view and the standard library; reads go through an `http.Handler`, the read API); `internal/api` gains two routes and the `Object`
   document; `internal/readmodel` gains `Object` and Pod containers; `internal/auth` serves the
   landing in place; `cmd/opm-portal` mounts the UI beside `/api/`.
 - API: additive only (two resources, one wire type, one optional field); `task api:breaking`
