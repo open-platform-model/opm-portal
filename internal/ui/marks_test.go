@@ -26,30 +26,12 @@ func TestGraphKeepsTheAxesApart(t *testing.T) {
 	}
 }
 
-// TestEdgeToALockedProviderIsUnconfirmed (portal:D5:R7): an edge the portal
-// cannot confirm because the provider is locked is not drawn as broken;
-// the refused claim's missing provider still is.
-func TestEdgeToALockedProviderIsUnconfirmed(t *testing.T) {
-	s := newSite(t, apitest.F1(t), apitest.DenyResources("moduleinstances"))
-	main := mainOf(s.get(t, "/").body)
-	if !strings.Contains(main, `class="edge edge-providedBy unconfirmed"`) {
-		t.Errorf("no unconfirmed providedBy edge:\n%s", between(main, `<g class="viewport">`, "</g>"))
-	}
-	if strings.Contains(main, `edge-providedBy unverified`) {
-		t.Error("an edge to a locked provider is drawn as unverified")
-	}
-	open := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
-	if !strings.Contains(open, `class="edge edge-providedBy unverified"`) {
-		t.Error("the refused claim's missing provider is not drawn as unverified")
-	}
-}
-
 // TestConfigComponentsFoldAsInTheGraph (portal:D4:R5): cert-manager's
 // configuration components are one closed group in the list, and the
 // selected node is marked.
 func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
-	main := mainOf(s.get(t, "/instances/cert-manager/cert-manager?node=mi%3Acert-manager%2Fcert-manager").body)
+	main := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
 	if !strings.Contains(main, `<details id="config-components">`) || !strings.Contains(main, "17 configuration components") {
 		t.Error("the configuration components are not one closed group of 17")
 	}
@@ -57,7 +39,8 @@ func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
 	if strings.Contains(comps, `<h3 class="component-name">crds</h3>`) {
 		t.Error("a configuration component is listed outside the group")
 	}
-	if !regexp.MustCompile(`data-node="mi:cert-manager/cert-manager"[^>]*aria-current="true"`).MatchString(main) {
+	graph := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=graph&focus=mi%3Acert-manager%2Fcert-manager").body)
+	if !regexp.MustCompile(`data-node="mi:cert-manager/cert-manager"[^>]*aria-current="true"`).MatchString(graph) {
 		t.Error("the selected node is not marked")
 	}
 }

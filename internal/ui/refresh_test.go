@@ -37,10 +37,12 @@ func TestALatePodGetsALogPane(t *testing.T) {
 	if strings.Contains(before, late) {
 		t.Fatalf("%s is already on the page before the rollout", late)
 	}
-	after := mainOf(newSite(t, apitest.F1Broken(t), apitest.AllowAll).get(t, "/instances/default/podinfo").body)
+	broken := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
+	after := mainOf(broken.get(t, "/instances/default/podinfo?tab=logs").body)
+	resources := mainOf(broken.get(t, "/instances/default/podinfo?tab=resources").body)
 
 	follows := map[string]string{}
-	for _, m := range followAttr.FindAllStringSubmatch(after, -1) {
+	for _, m := range followAttr.FindAllStringSubmatch(after+resources, -1) {
 		follows[m[1]] = m[2]
 	}
 	if follows["logs"] == "" || follows["logs"] != follows["components"] {
@@ -52,7 +54,7 @@ func TestALatePodGetsALogPane(t *testing.T) {
 	for _, m := range idAttr.FindAllStringSubmatch(logs, -1) {
 		ids[m[1]] = true
 	}
-	links := logLinkRe.FindAllStringSubmatch(between(after, `id="components"`, "</section>"), -1)
+	links := logLinkRe.FindAllStringSubmatch(between(resources, `id="components"`, "</section>"), -1)
 	if len(links) == 0 {
 		t.Fatal("no Pod row offers its logs")
 	}
@@ -146,7 +148,7 @@ func TestOldRevisionsFoldHasAnID(t *testing.T) {
 		}
 	}
 	objs = append(objs, old)
-	res := newSite(t, objs, apitest.AllowAll).get(t, "/instances/default/podinfo")
+	res := newSite(t, objs, apitest.AllowAll).get(t, "/instances/default/podinfo?tab=resources")
 	if res.status != http.StatusOK {
 		t.Fatalf("GET = %d\n%s", res.status, res.body)
 	}
@@ -174,15 +176,15 @@ func TestStampedLabelsLeaveRoomForTheStamp(t *testing.T) {
 	}
 }
 
-// TestCatalogSubLineShowsTheHost: two catalogs that share their path's
-// tail but not its host read apart on the sub-line.
-func TestCatalogSubLineShowsTheHost(t *testing.T) {
+// TestModuleSubLineShowsTheHost: two modules that share their path's tail
+// but not its host read apart on the sub-line.
+func TestModuleSubLineShowsTheHost(t *testing.T) {
 	for _, tc := range []struct{ label, want string }{
-		{"opmodel.dev/catalogs/operator", "Catalog · opmodel.dev/…"},
-		{"testing.opmodel.dev/catalogs/operator", "Catalog · testing.opmodel.d…"},
-		{"opmodel.dev/operator", "Catalog · opmodel.dev"},
+		{"opmodel.dev/modules/podinfo", "Module · opmodel.dev/…"},
+		{"testing.opmodel.dev/modules/podinfo", "Module · testing.opmodel.de…"},
+		{"opmodel.dev/podinfo", "Module · opmodel.dev"},
 	} {
-		_, sub := displayLabel(&v1.GraphNode{Kind: "catalog", Label: tc.label}, "Catalog", false)
+		_, sub := displayLabel(&v1.GraphNode{Kind: "module", Label: tc.label}, "Module", false)
 		if sub != tc.want {
 			t.Errorf("%s: sub-line %q, want %q", tc.label, sub, tc.want)
 		}
@@ -216,11 +218,11 @@ func TestLogsRegionShape(t *testing.T) {
 		path  string
 		panes bool
 	}{
-		{f1, "/instances/default/podinfo", true},
-		{f1, "/instances/cert-manager/cert-manager", true},
-		{f1, "/instances/web/web", true},
-		{broken, "/instances/default/podinfo", true},
-		{f1, "/packages/pkg/podinfo", false},
+		{f1, "/instances/default/podinfo?tab=logs", true},
+		{f1, "/instances/cert-manager/cert-manager?tab=logs", true},
+		{f1, "/instances/web/web?tab=logs", true},
+		{broken, "/instances/default/podinfo?tab=logs", true},
+		{f1, "/packages/pkg/podinfo?tab=logs", false},
 	} {
 		doc, err := html.Parse(strings.NewReader(c.s.get(t, c.path).body))
 		if err != nil {
@@ -300,4 +302,44 @@ func findByID(n *html.Node, id string) *html.Node {
 
 func hasClass(n *html.Node, class string) bool {
 	return slices.Contains(strings.Fields(attr(n, "class")), class)
+}
+
+// TestARefreshKeepsTheTabAndTheFocus: a refresh fetches the page's own
+// address, which carries the tab and the focus, so the fresh render holds
+// every region the open page follows, with the same ids, the same tab and
+// the same spotlight; regions of other tabs are not in it.
+func TestARefreshKeepsTheTabAndTheFocus(t *testing.T) {
+	s := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
+	followed := regexp.MustCompile(`<[a-z]+ [^>]*id="([^"]+)"[^>]*data-follow="([^"]+)"`)
+	for _, path := range []string{
+		"/instances/default/podinfo?tab=graph&focus=obj:apps/Deployment/default/podinfo-podinfo",
+		"/instances/default/podinfo?tab=resources&reason=ImagePullBackOff",
+		"/instances/default/podinfo?tab=events&type=Warning",
+		"/instances/default/podinfo?tab=logs",
+	} {
+		page := mainOf(s.get(t, path).body)
+		fresh := mainOf(s.get(t, path).body)
+		regions := followed.FindAllStringSubmatch(page, -1)
+		if len(regions) < 4 {
+			t.Errorf("%s: %d followed regions; want the cards and the tab's", path, len(regions))
+		}
+		for _, m := range regions {
+			if !strings.Contains(fresh, `id="`+m[1]+`"`) {
+				t.Errorf("%s: the fresh render lacks region %s", path, m[1])
+			}
+		}
+		for _, card := range []string{"applied-card", "health-card"} {
+			if !strings.Contains(page, `id="`+card+`"`) {
+				t.Errorf("%s: no %s to refresh", path, card)
+			}
+		}
+	}
+	focused := mainOf(s.get(t, "/instances/default/podinfo?tab=graph&focus=obj:apps/Deployment/default/podinfo-podinfo").body)
+	if !regexp.MustCompile(`data-node="obj:apps/Deployment/default/podinfo-podinfo"[^>]*aria-current="true"`).MatchString(focused) ||
+		!strings.Contains(focused, `class="node kind-object health-degraded dim"`) && !strings.Contains(focused, " dim\"") {
+		t.Error("the focused render does not mark the node or dim the rest")
+	}
+	if !strings.Contains(focused, `data-clear-selection>Clear selection</a>`) {
+		t.Error("the focused render offers no Clear selection")
+	}
 }

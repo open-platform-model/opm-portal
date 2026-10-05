@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -72,6 +73,17 @@ func TestClusterTextIsEscapedEverywhere(t *testing.T) {
 		}
 		escaped += strings.Count(res.body, "&lt;script&gt;alert(1)&lt;/script&gt;")
 	}
+	// A hostile query is the viewer's own text: it is shown escaped too.
+	q := url.Values{"q": {hostile}, "health": {hostile}, "uses": {hostile}, "pq": {hostile}, "eresource": {hostile}, "reason": {hostile}}.Encode()
+	for _, path := range []string{"/installed?" + q, "/?" + q, "/?tab=catalogs&cq=" + url.QueryEscape(hostile),
+		"/instances/default/podinfo?tab=resources&" + q, "/instances/default/podinfo?tab=events&resource=" + url.QueryEscape(hostile) + "&" + q} {
+		body := s.get(t, path).body
+		for _, raw := range []string{"<script>alert", "<img src=x"} {
+			if strings.Contains(body, raw) {
+				t.Errorf("%s renders the query as markup: %q", path, raw)
+			}
+		}
+	}
 	if escaped == 0 {
 		t.Fatal("no page showed the hostile text at all, so the test checks nothing")
 	}
@@ -99,11 +111,18 @@ func TestNoTrustedMarkupInTheUI(t *testing.T) {
 			t.Errorf("%s uses %s, which bypasses escaping", name, m)
 		}
 	}
-	js, err := os.ReadFile("static/portal.js")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if m := regexp.MustCompile(`\.(innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML\s*\(|document\.write(ln)?\s*\(`).FindString(string(js)); m != "" {
-		t.Errorf("portal.js uses %s; untrusted text goes in as textContent only", m)
+	markup := regexp.MustCompile(`\.(innerHTML|outerHTML)\s*\+?=|insertAdjacentHTML\s*\(|document\.write(ln)?\s*\(`)
+	style := regexp.MustCompile(`setAttribute\(\s*["']style["']`)
+	for _, name := range []string{"static/portal.js", "static/prefs.js"} {
+		js, err := os.ReadFile(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if m := markup.FindString(string(js)); m != "" {
+			t.Errorf("%s uses %s; untrusted text goes in as textContent only", name, m)
+		}
+		if m := style.FindString(string(js)); m != "" {
+			t.Errorf("%s uses %s; the page policy forbids style attributes, so positions go through CSSOM", name, m)
+		}
 	}
 }

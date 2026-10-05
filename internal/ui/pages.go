@@ -45,6 +45,9 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 	}})
 }
 
+// unauthenticated reports whether a read was refused for want of a session.
+func unauthenticated(p *v1.Problem) bool { return p != nil && p.Code == v1.CodeUnauthenticated }
+
 // problemStatus is the page status a main document's problem gives. A
 // forbidden document renders as a locked region of a page that was served
 // as asked, so it is 200, as the read API answers a list the caller may
@@ -59,132 +62,181 @@ func problemStatus(p *v1.Problem) int {
 	return http.StatusServiceUnavailable
 }
 
-// --- Platform ---
+// --- Installed ---
 
-type platformView struct {
-	Problem  *v1.Problem
-	Platform v1.Platform
-	// Conditions are the Platform's conditions less the ones the contracts
-	// banner already shows.
-	Conditions   []v1.Condition
-	Accepted     int
-	Refused      int
-	Graph        svgGraph
-	GraphProblem *v1.Problem
-	Events       eventsView
-	Panel        *nodePanel
-}
+// ownerController is the owner the pages name for the read API's operator,
+// and for every package (portal:D17:R2).
+const ownerController = "controller"
 
-func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
-	var v platformView
-	v.Problem = h.fetch(r, "/platform", nil, &v.Platform)
-	if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
-		h.signIn(w, r)
-		return
-	}
-	if v.Problem == nil {
-		for i := range v.Platform.Registrations {
-			switch v.Platform.Registrations[i].Verdict {
-			case "Accepted", "RemovalBlocked":
-				v.Accepted++
-			case "Refused":
-				v.Refused++
-			}
-		}
-		var g v1.Graph
-		if v.GraphProblem = h.fetch(r, "/platform/graph", graphQuery(r), &g); v.GraphProblem == nil {
-			v.Graph = buildGraph(g, "platform-graph", "/", "/platform/node", r.URL.Query().Get("node"))
-			if id := r.URL.Query().Get("node"); id != "" {
-				v.Panel = h.panel(r, &g, id, panelContext{})
-			}
-		}
-		v.Events = h.events(r, "/platform/events", nil, "events:platform")
-		v.Conditions = withoutNotes(v.Platform.Conditions, v.Platform.Reconcile.Notes)
-	}
-	h.render(w, r, problemStatus(v.Problem), "platform", page{
-		Title:  "Platform",
-		Nav:    "platform",
-		Topics: []string{"platform", "events:platform"},
-		Main:   v,
-	})
-}
+// verdictAccepted is a registration's accepted verdict on the wire.
+const verdictAccepted = "Accepted"
 
-// withoutNotes drops the conditions the page already shows as notes
-// beside the applied state.
-func withoutNotes(cs, notes []v1.Condition) []v1.Condition {
-	out := make([]v1.Condition, 0, len(cs))
-	for i := range cs {
-		if !slices.ContainsFunc(notes, func(n v1.Condition) bool { return n.Type == cs[i].Type }) {
-			out = append(out, cs[i])
-		}
-	}
-	return out
-}
-
-func (h *Handler) platformNode(w http.ResponseWriter, r *http.Request) {
-	var g v1.Graph
-	if p := h.fetch(r, "/platform/graph", graphQuery(r), &g); p != nil {
-		h.renderProblemFragment(w, r, p)
-		return
-	}
-	h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), panelContext{}))
-}
-
-func (h *Handler) registrationEvents(w http.ResponseWriter, r *http.Request) {
-	name := r.PathValue("name")
-	ev := h.events(r, "/platform/registrations/"+url.PathEscape(name)+"/events", nil, "")
-	ev.About = "TransformerRegistration " + name
-	h.renderFragment(w, r, problemStatus(ev.Problem), "events", page{Title: "Events", Nav: "platform", Main: ev})
-}
-
-// --- Lists ---
-
-type listView struct {
-	Kind      ownerKind
+// installedRow is one instance or package of the Installed list.
+type installedRow struct {
+	Kind      string // instance or package
+	Href      string
 	Namespace string
-	Problem   *v1.Problem
-	Forbidden bool
-	Instances []v1.InstanceSummary
-	Packages  []v1.PackageSummary
-	// Namespaces are the namespaces the listed items live in, for the
-	// filter's suggestions.
+	Name      string
+	// Module is the module path and version of an instance; Source and
+	// Path the source and path of a package.
+	Module    v1.Module
+	Source    v1.SourceRef
+	Path      string
+	Reconcile v1.Reconcile
+	Health    v1.Health
+	Objects   int64
+	// Owner is controller or cli in the page's words: the read API's
+	// owner operator is the controller, and a package's is the controller.
+	Owner      string
+	ProviderOf []v1.ProviderClaim
+	// RenderContracts are an instance's; a package records none.
+	RenderContracts []string
+}
+
+// installedView is the Installed list: instances and packages in one
+// table, each kind locked on its own (portal:D17:R1, portal:D7:R2).
+type installedView struct {
+	Filters filters
+	// Query is the page's query, whose other parameters the form keeps.
+	Query url.Values
+	// InstancesProblem and PackagesProblem are a list that failed;
+	// InstancesLocked and PackagesLocked a list the caller may not read.
+	InstancesProblem *v1.Problem
+	PackagesProblem  *v1.Problem
+	InstancesLocked  bool
+	PackagesLocked   bool
+	Rows             []installedRow
+	// Total is the number of rows before the filters.
+	Total int
+	// UsesSet and ModuleSet: the uses or module filter leaves packages
+	// out, and the page says so.
+	UsesSet   bool
+	ModuleSet bool
+	// Suggestions for the free-text filters, from the rows the caller may
+	// read.
 	Namespaces []string
+	Modules    []string
+	Contracts  []string
 }
 
-func (h *Handler) instancesPage(w http.ResponseWriter, r *http.Request) {
-	v := listView{Kind: instanceKind, Namespace: strings.TrimSpace(r.URL.Query().Get("namespace"))}
-	var doc v1.InstanceList
-	v.Problem = h.fetch(r, "/instances", nsQuery(v.Namespace), &doc)
-	if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
-		h.signIn(w, r)
-		return
+func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
+	v := installedView{Filters: parseFilters(&installedFilters, r.URL.Query()), Query: r.URL.Query()}
+	fv := v.Filters.Values
+	ns := fv["namespace"]
+	// A namespace no object can have matches nothing, and is not asked of
+	// the read API, which would refuse it.
+	query, readable := nsQuery(ns), ns == "" || dnsLabel(ns)
+
+	var instances v1.InstanceList
+	var packages v1.PackageList
+	if readable {
+		v.InstancesProblem = h.fetch(r, "/instances", query, &instances)
+		v.PackagesProblem = h.fetch(r, "/packages", query, &packages)
+		if unauthenticated(v.InstancesProblem) || unauthenticated(v.PackagesProblem) {
+			h.signIn(w, r)
+			return
+		}
+		v.InstancesLocked = v.InstancesProblem == nil && instances.Access != v1.AccessOK
+		v.PackagesLocked = v.PackagesProblem == nil && packages.Access != v1.AccessOK
 	}
-	v.Forbidden = v.Problem == nil && doc.Access != v1.AccessOK
-	v.Instances = doc.Items
-	for i := range doc.Items {
-		v.Namespaces = appendUnique(v.Namespaces, doc.Items[i].Ref.Namespace)
+	all := make([]installedRow, 0, len(instances.Items)+len(packages.Items))
+	for i := range instances.Items {
+		all = append(all, instanceRow(&instances.Items[i]))
 	}
+	for i := range packages.Items {
+		all = append(all, packageRow(&packages.Items[i]))
+	}
+	slices.SortStableFunc(all, func(a, b installedRow) int {
+		return strings.Compare(a.Namespace+"/"+a.Name+"/"+a.Kind, b.Namespace+"/"+b.Name+"/"+b.Kind)
+	})
+	v.Total = len(all)
+	for i := range all {
+		v.Namespaces = appendUnique(v.Namespaces, all[i].Namespace)
+		v.Modules = appendUnique(v.Modules, all[i].Module.Path)
+		for _, c := range all[i].RenderContracts {
+			v.Contracts = appendUnique(v.Contracts, c)
+		}
+		if matchesInstalled(&all[i], fv) {
+			v.Rows = append(v.Rows, all[i])
+		}
+	}
+	slices.Sort(v.Contracts)
+	slices.Sort(v.Modules)
+	slices.Sort(v.Namespaces)
+	v.UsesSet, v.ModuleSet = fv["uses"] != "", fv["module"] != ""
+
+	// The topic names the namespace only when the read API could be asked
+	// for it, so a malformed one never reaches the stream.
 	topic := "instances"
-	if v.Namespace != "" {
-		topic += ":" + v.Namespace
+	if ns != "" && readable {
+		topic += ":" + ns
 	}
-	h.render(w, r, problemStatus(v.Problem), "instances", page{Title: "Instances", Nav: "instances", Topics: []string{topic}, Main: v})
+	status := max(problemStatus(v.InstancesProblem), problemStatus(v.PackagesProblem))
+	h.render(w, r, status, "installed", page{Title: "Installed", Nav: "installed", Topics: []string{topic}, Main: v})
 }
 
-func (h *Handler) packagesPage(w http.ResponseWriter, r *http.Request) {
-	v := listView{Kind: packageKind, Namespace: strings.TrimSpace(r.URL.Query().Get("namespace"))}
-	var doc v1.PackageList
-	v.Problem = h.fetch(r, "/packages", nsQuery(v.Namespace), &doc)
-	if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
-		h.signIn(w, r)
-		return
+func instanceRow(it *v1.InstanceSummary) installedRow {
+	owner := ownerText(it.Owner)
+	return installedRow{
+		Kind: instanceKind.Topic, Href: instanceKind.base(it.Ref.Namespace, it.Ref.Name),
+		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Module: it.Module,
+		Reconcile: it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: owner,
+		ProviderOf: it.ProviderOf, RenderContracts: it.RenderContracts,
 	}
-	v.Forbidden = v.Problem == nil && doc.Access != v1.AccessOK
-	v.Packages = doc.Items
-	for i := range doc.Items {
-		v.Namespaces = appendUnique(v.Namespaces, doc.Items[i].Ref.Namespace)
+}
+
+func packageRow(it *v1.PackageSummary) installedRow {
+	return installedRow{
+		Kind: "package", Href: packageKind.base(it.Ref.Namespace, it.Ref.Name),
+		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Source: it.Source, Path: it.Path,
+		Reconcile: it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: ownerController,
+		ProviderOf: it.ProviderOf,
 	}
-	h.render(w, r, problemStatus(v.Problem), "packages", page{Title: "Packages", Nav: "packages", Main: v})
+}
+
+// matchesInstalled applies the Installed filters to one row. Free text
+// and names are matched as given. uses names what an instance's render
+// used, which a package does not record (portal:D16:R2), and module what
+// an instance was rendered from, where a package records a source; a
+// package matches neither.
+func matchesInstalled(row *installedRow, f map[string]string) bool {
+	if q := strings.ToLower(f["q"]); q != "" {
+		hay := strings.ToLower(strings.Join([]string{row.Namespace, row.Name, row.Module.Path, row.Source.Kind, row.Source.Name, row.Path}, " "))
+		if !strings.Contains(hay, q) {
+			return false
+		}
+	}
+	checks := []struct {
+		param string
+		ok    func(string) bool
+	}{
+		{"kind", func(want string) bool { return row.Kind == want }},
+		{"provider", func(want string) bool { return (len(row.ProviderOf) > 0) == (want == "yes") }},
+		{"uses", func(want string) bool { return slices.Contains(row.RenderContracts, want) }},
+		{"namespace", func(want string) bool { return row.Namespace == want }},
+		{"health", func(want string) bool { return row.Health.State == want }},
+		{"applied", func(want string) bool { return row.Reconcile.State == want }},
+		{"owner", func(want string) bool { return row.Owner == want }},
+		{"module", func(want string) bool { return row.Kind == instanceKind.Topic && row.Module.Path == want }},
+	}
+	for _, c := range checks {
+		if want := f[c.param]; want != "" && !c.ok(want) {
+			return false
+		}
+	}
+	return true
+}
+
+// listRedirect answers a former list page with 308 to Installed filtered
+// by its kind, keeping its namespace (portal:D17:R1).
+func listRedirect(kind string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		q := url.Values{"kind": {kind}}
+		if ns := r.URL.Query().Get("namespace"); ns != "" {
+			q.Set("namespace", ns)
+		}
+		http.Redirect(w, r, "/installed?"+q.Encode(), http.StatusPermanentRedirect)
+	}
 }
 
 func nsQuery(ns string) url.Values {
@@ -192,6 +244,20 @@ func nsQuery(ns string) url.Values {
 		return nil
 	}
 	return url.Values{"namespace": {ns}}
+}
+
+// dnsLabel reports whether s could be a namespace: a DNS-1123 label.
+func dnsLabel(s string) bool {
+	if s == "" || len(s) > 63 {
+		return false
+	}
+	for i, c := range s {
+		alnum := c >= 'a' && c <= 'z' || c >= '0' && c <= '9'
+		if !alnum && (c != '-' || i == 0 || i == len(s)-1) {
+			return false
+		}
+	}
+	return true
 }
 
 func appendUnique(list []string, s string) []string {
@@ -202,34 +268,6 @@ func appendUnique(list []string, s string) []string {
 }
 
 // --- Owner pages ---
-
-// ownerView is an instance or package page.
-type ownerView struct {
-	Kind      ownerKind
-	Namespace string
-	Name      string
-	Base      string // the page's path
-	Problem   *v1.Problem
-
-	Instance *v1.Instance
-	Package  *v1.Package
-
-	Reconcile   v1.Reconcile
-	Health      v1.Health
-	Conditions  []v1.Condition
-	History     []v1.HistoryEntry
-	LastApplied v1.Digests
-	Components  []componentView
-	// Config is the configuration components the graph folds into one
-	// group, listed folded the same way; nil when the graph does not fold.
-	Config *configGroup
-
-	Graph        svgGraph
-	GraphProblem *v1.Problem
-	Events       eventsView
-	Logs         []logPane
-	Panel        *nodePanel
-}
 
 type componentView struct {
 	Name    string
@@ -248,6 +286,8 @@ type configGroup struct {
 
 type objectView struct {
 	v1.InventoryObject
+	// Focus opens the Graph tab focused on the node that shows the object.
+	Focus     string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -260,11 +300,14 @@ type objectView struct {
 
 type childView struct {
 	v1.RuntimeChild
+	Focus     string
 	Text      string
 	YAML      string
 	EventsURL string
-	// LogID is the id of the Pod's first container's log pane.
-	LogID string
+	// LogID is the id of the Pod's first container's log pane, and LogHref
+	// the Logs tab opened at it.
+	LogID   string
+	LogHref string
 }
 
 // logPane is one container's log, followed on its log topic.
@@ -278,52 +321,6 @@ type logPane struct {
 
 func (k ownerKind) base(ns, name string) string {
 	return "/" + k.Path + "/" + url.PathEscape(ns) + "/" + url.PathEscape(name)
-}
-
-func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ns, name := r.PathValue("namespace"), r.PathValue("name")
-		v := ownerView{Kind: k, Namespace: ns, Name: name, Base: k.base(ns, name)}
-		api := v.Base
-		if k == instanceKind {
-			var doc v1.Instance
-			if v.Problem = h.fetch(r, api, nil, &doc); v.Problem == nil {
-				v.Instance = &doc
-				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
-				v.Components = h.components(v.Base, doc.Components)
-			}
-		} else {
-			var doc v1.Package
-			if v.Problem = h.fetch(r, api, nil, &doc); v.Problem == nil {
-				v.Package = &doc
-				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
-				v.Components = h.components(v.Base, doc.Components)
-			}
-		}
-		if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
-			h.signIn(w, r)
-			return
-		}
-		topic := k.Topic + ":" + ns + "/" + name
-		if v.Problem == nil {
-			var g v1.Graph
-			if v.GraphProblem = h.fetch(r, api+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
-				v.Graph = buildGraph(g, k.Topic+"-graph", v.Base, v.Base+"/node", r.URL.Query().Get("node"))
-				v.Components, v.Config = foldConfig(v.Components, &g)
-				if id := r.URL.Query().Get("node"); id != "" {
-					v.Panel = h.panel(r, &g, id, panelContext{owner: k, base: v.Base})
-				}
-			}
-			v.Events = h.events(r, api+"/events", nil, "events:"+topic)
-			v.Logs = logPanes(v.Components)
-		}
-		h.render(w, r, problemStatus(v.Problem), "owner", page{
-			Title:  k.Title + " " + ns + "/" + name,
-			Nav:    k.Path,
-			Topics: []string{topic, "events:" + topic},
-			Main:   v,
-		})
-	}
 }
 
 // foldConfig moves the components the graph folds into its configuration
@@ -393,6 +390,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 		cv := childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q}
 		if isPod(ch.Ref) && len(ch.Containers) > 0 {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
+			cv.LogHref = base + "?tab=" + tabLogs + "#" + cv.LogID
 		}
 		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)
@@ -450,8 +448,46 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 			h.renderProblemFragment(w, r, p)
 			return
 		}
-		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), panelContext{owner: k, base: base}))
+		ctx := panelContext{owner: k, base: base}
+		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && isPod(*n.Ref) {
+			ctx.firstContainer = h.firstContainers(r, k, base)
+		}
+		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), ctx))
 	}
+}
+
+// firstContainers reads the owner's document for its Pods' containers,
+// for a Pod panel's Logs link.
+func (h *Handler) firstContainers(r *http.Request, k ownerKind, base string) func(string) string {
+	var comps []v1.Component
+	if k == instanceKind {
+		var doc v1.Instance
+		if h.fetch(r, base, nil, &doc) == nil {
+			comps = doc.Components
+		}
+	} else {
+		var doc v1.Package
+		if h.fetch(r, base, nil, &doc) == nil {
+			comps = doc.Components
+		}
+	}
+	return containersOf(comps)
+}
+
+// containersOf maps each Pod below cs to its first container.
+func containersOf(cs []v1.Component) func(string) string {
+	first := map[string]string{}
+	for i := range cs {
+		for j := range cs[i].Objects {
+			for k := range cs[i].Objects[j].Children {
+				ch := &cs[i].Objects[j].Children[k]
+				if isPod(ch.Ref) && len(ch.Containers) > 0 {
+					first[ch.Ref.Name] = ch.Containers[0]
+				}
+			}
+		}
+	}
+	return func(pod string) string { return first[pod] }
 }
 
 // objectYAML is the YAML view of one object.
@@ -475,11 +511,11 @@ func (h *Handler) ownerObject(k ownerKind) http.HandlerFunc {
 			}
 			v.YAML = string(out)
 		}
-		if v.Problem != nil && v.Problem.Code == v1.CodeUnauthenticated {
+		if unauthenticated(v.Problem) {
 			h.signIn(w, r)
 			return
 		}
-		h.renderFragment(w, r, problemStatus(v.Problem), "object", page{Title: "Object", Nav: k.Path, Main: v})
+		h.renderFragment(w, r, problemStatus(v.Problem), "object", page{Title: "Object", Nav: "installed", Main: v})
 	}
 }
 
@@ -491,11 +527,11 @@ func (h *Handler) ownerEvents(k ownerKind) http.HandlerFunc {
 		if q.Get("kind") != "" {
 			ev.About = refText(v1.ObjectRef{Group: q.Get("group"), Kind: q.Get("kind"), Namespace: q.Get("namespace"), Name: q.Get("name")})
 		}
-		if ev.Problem != nil && ev.Problem.Code == v1.CodeUnauthenticated {
+		if unauthenticated(ev.Problem) {
 			h.signIn(w, r)
 			return
 		}
-		h.renderFragment(w, r, problemStatus(ev.Problem), "events", page{Title: "Events", Nav: k.Path, Main: ev})
+		h.renderFragment(w, r, problemStatus(ev.Problem), "events", page{Title: "Events", Nav: "installed", Main: ev})
 	}
 }
 
@@ -528,4 +564,12 @@ func (h *Handler) renderProblemFragment(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	h.renderFragment(w, r, problemStatus(p), "problem", page{Title: "Unavailable", Main: p})
+}
+
+// FilterForm returns the Installed filter form.
+func (v installedView) FilterForm() filterForm {
+	return newFilterForm(v.Filters, "Filter what is installed", keepHidden(v.Query, installedFilters.paramNames()...),
+		map[string][]string{"namespace": v.Namespaces, "uses": v.Contracts, "module": v.Modules},
+		map[string]string{"q": "Name, namespace, module or source", "uses": "a contract the render used", "namespace": "all namespaces", "module": "a module path"},
+	)
 }

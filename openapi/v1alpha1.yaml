@@ -25,17 +25,39 @@ info:
     event notes are served exactly as the operator and the API server wrote them; the portal
     shows nothing the caller's own kubeconfig could not read with kubectl. In-cluster the text
     the operator wrote is absent, because the operator does not remove secret values from it:
-    every condition, reconcile, history and registration message, the note of every event the
-    operator reported (reportingController opm-controller, or none on an event about an
-    opmodel.dev object), the health message of an opmodel.dev object and the messages in an
-    opmodel.dev Object's status are left out. Reasons, states, tone, meaning and nextStep stay,
-    and so does other writers' text: the kubelet's and other controllers' event notes, and the
-    health message of a rendered workload.
+    every condition (a registration's included), reconcile, history and registration message,
+    the note of every event the operator reported (reportingController opm-controller, or none
+    on an event about an opmodel.dev object), the health message of an opmodel.dev object and
+    the messages in an opmodel.dev Object's status are left out. Reasons, states, tone, meaning,
+    nextStep, history outcomes and provider standings stay, and so does other writers' text:
+    the kubelet's and other controllers' event notes, and the health message of a rendered
+    workload.
 
     Errors are RFC 9457 problem documents (application/problem+json) with a code.
 servers:
   - url: /api/v1alpha1
 paths:
+  /clusters/{cluster}:
+    get:
+      operationId: getCluster
+      summary: The connection the portal reads the cluster with
+      description: |
+        The kubeconfig context and the name of its cluster entry (or the in-cluster source), the
+        requesting caller's own username, and the API server's Kubernetes version, read once at
+        start. Never a server URL, a kubeconfig user entry or a credential. Nothing is read from
+        the cluster per request, so no access review is sent; a request without a session is
+        refused with unauthenticated.
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+      responses:
+        '200':
+          description: The connection.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+        default:
+          $ref: '#/components/responses/Problem'
   /clusters/{cluster}/instances:
     get:
       operationId: listInstances
@@ -315,6 +337,10 @@ paths:
         package:<namespace>/<name>, and events:<platform | instance:... | package:... |
         registration:<name>>. Each topic carries one document, the one its GET returns:
         Platform, InstanceList, Instance, Package or EventList, rendered for the caller. A
+        registration's change reaches the instance and package topics (and, for instances, the
+        instance lists) of the owners whose inventory holds it, so their providerOf follows it;
+        a change to an owner that holds or held a registration reaches platform, so heldBy
+        follows it. A
         snapshot event carries {topic, items: [document]}; upsert, delete and k8sevent events
         carry {topic, item: document}. A delete, and a snapshot of an object that does not
         exist, carry a Removed document. A topic the caller may not follow is closed with a
@@ -601,11 +627,18 @@ components:
           type: string
     HistoryEntry:
       type: object
-      required: [action, sequence, inventoryCount, digests]
+      required: [action, outcome, sequence, inventoryCount, digests]
       properties:
         action:
           type: string
         phase:
+          type: string
+        outcome:
+          description: >-
+            How the attempt ended, read from the shape the operator wrote the entry in:
+            Succeeded for phase complete, Failed for no phase and a message, Unknown otherwise.
+            Decided before the in-cluster omission of the message, so it is served in both modes.
+          x-extensible-enum: [Succeeded, Failed, Unknown]
           type: string
         sequence:
           type: integer
@@ -678,7 +711,7 @@ components:
             type: string
     InstanceSummary:
       type: object
-      required: [ref, module, owner, reconcile, health, inventoryCount]
+      required: [ref, module, owner, reconcile, health, inventoryCount, renderContracts]
       properties:
         ref:
           $ref: '#/components/schemas/ObjectRef'
@@ -699,6 +732,39 @@ components:
         lastAppliedAt:
           type: string
           format: date-time
+        renderContracts:
+          description: "Every contract the instance's last successful render used (status.requiredContracts), most fulfilled by the catalog itself. Not the provider contracts the instance demands."
+          type: array
+          items:
+            type: string
+        providerOf:
+          description: "The TransformerRegistrations the instance's inventory holds; absent when it holds none."
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderClaim'
+    ProviderClaim:
+      type: object
+      description: "One TransformerRegistration an instance's or package's inventory holds. The standing is the registration's own; a claim the caller may not read carries its name and access only."
+      required: [registration, access]
+      properties:
+        registration:
+          type: string
+        access:
+          description: "The caller's access to the registrations. The standing and providerRefMatches are present only when it is ok."
+          x-extensible-enum: [ok, forbidden, notReadable]
+          type: string
+        accepted:
+          type: boolean
+        active:
+          type: boolean
+        verdict:
+          x-extensible-enum: [Accepted, Refused, Pending, RemovalBlocked, Unknown]
+          type: string
+        reason:
+          type: string
+        providerRefMatches:
+          description: "True when the owner is a ModuleInstance whose namespace and name the registration's spec.providerRef names. Always false for a ModulePackage, since the reference names a ModuleInstance. Absent when the inventory names a registration the cluster does not hold."
+          type: boolean
     InstanceList:
       type: object
       required: [apiVersion, kind, access, items]
@@ -743,6 +809,11 @@ components:
         lastAppliedAt:
           type: string
           format: date-time
+        providerOf:
+          description: "The TransformerRegistrations the instance's inventory holds; absent when it holds none."
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderClaim'
         serviceAccountName:
           type: string
         conditions:
@@ -787,6 +858,11 @@ components:
           type: string
         source:
           $ref: '#/components/schemas/SourceRef'
+        interval:
+          description: "spec.interval as written; absent when the package sets none."
+          type: string
+        sourceArtifact:
+          $ref: '#/components/schemas/SourceArtifact'
         dependsOn:
           type: array
           items:
@@ -802,6 +878,19 @@ components:
         lastAppliedAt:
           type: string
           format: date-time
+        providerOf:
+          description: "The TransformerRegistrations the package's inventory holds; absent when it holds none."
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderClaim'
+    SourceArtifact:
+      type: object
+      description: "What a ModulePackage's last reconcile fetched, as the controller recorded it in status.source. The fetch URL is not served."
+      properties:
+        revision:
+          type: string
+        digest:
+          type: string
     PackageList:
       type: object
       required: [apiVersion, kind, access, items]
@@ -835,6 +924,11 @@ components:
           type: string
         source:
           $ref: '#/components/schemas/SourceRef'
+        interval:
+          description: "spec.interval as written; absent when the package sets none."
+          type: string
+        sourceArtifact:
+          $ref: '#/components/schemas/SourceArtifact'
         dependsOn:
           type: array
           items:
@@ -850,6 +944,14 @@ components:
         lastAppliedAt:
           type: string
           format: date-time
+        providerOf:
+          description: "The TransformerRegistrations the package's inventory holds; absent when it holds none."
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderClaim'
+        serviceAccountName:
+          description: "The ServiceAccount the controller applies the package's objects as; absent means the controller's own."
+          type: string
         conditions:
           type: array
           items:
@@ -930,6 +1032,19 @@ components:
           type: string
         reconcile:
           $ref: '#/components/schemas/Reconcile'
+        conditions:
+          description: "The registration's own status conditions. Their messages are absent in-cluster."
+          type: array
+          items:
+            $ref: '#/components/schemas/Condition'
+        heldBy:
+          description: "The ModuleInstances and ModulePackages the caller may read whose inventory holds this registration, whatever their kind. provider still names the ModuleInstance spec.providerRef names."
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectRef'
+        heldByPartial:
+          description: "True when the caller could not list every ModuleInstance and ModulePackage, or the portal does not hold every namespace, so heldBy may lack a holder, even when it is empty."
+          type: boolean
     Platform:
       type: object
       required: [apiVersion, kind, name, reconcile, conditions, subscriptions, catalogs, registrations, registrationsAccess]
@@ -968,6 +1083,45 @@ components:
         registrationsAccess:
           description: "Whether registrations holds every registration."
           x-extensible-enum: [ok, forbidden, notReadable, withheld]
+          type: string
+    Cluster:
+      type: object
+      description: "The connection the portal reads one path cluster with. Never a server URL, a kubeconfig user entry or a credential, and no identity but the caller's own."
+      required: [apiVersion, kind, name, mode, source, readingAs]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        name:
+          description: The path cluster.
+          type: string
+        mode:
+          description: Where the portal runs.
+          x-extensible-enum: [local, in-cluster]
+          type: string
+        source:
+          description: "Where the reader's client configuration came from: a kubeconfig context, or a Pod's in-cluster credentials."
+          x-extensible-enum: [kubeconfig, in-cluster]
+          type: string
+        context:
+          description: "The kubeconfig context; absent when source is in-cluster."
+          type: string
+        clusterEntry:
+          description: "The name of the context's cluster entry; absent when source is in-cluster."
+          type: string
+        readingAs:
+          $ref: '#/components/schemas/ReadingAs'
+        kubernetesVersion:
+          description: "The API server's gitVersion, read once from /version when the portal started; absent when that read failed."
+          type: string
+    ReadingAs:
+      type: object
+      required: [username]
+      properties:
+        username:
+          description: The requesting caller's own username.
           type: string
     Event:
       type: object

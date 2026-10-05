@@ -16,6 +16,7 @@ const (
 	KindGraph        = "Graph"
 	KindRemoved      = "Removed"
 	KindObject       = "Object"
+	KindCluster      = "Cluster"
 )
 
 // Access values: how reading an object or a list went for the caller.
@@ -24,6 +25,12 @@ const (
 	AccessForbidden   = "forbidden"
 	AccessNotReadable = "notReadable"
 	AccessWithheld    = "withheld"
+)
+
+// Cluster sources: where the reader's client configuration came from.
+const (
+	SourceKubeconfig = "kubeconfig"
+	SourceInCluster  = "in-cluster"
 )
 
 // TypeMeta names a document's version and kind.
@@ -125,8 +132,12 @@ type Digests struct {
 // HistoryEntry is one entry of the operator's status history, newest
 // first.
 type HistoryEntry struct {
-	Action          string     `json:"action"`
-	Phase           string     `json:"phase,omitempty"`
+	Action string `json:"action"`
+	Phase  string `json:"phase,omitempty"`
+	// Outcome is Succeeded for an entry the operator wrote with phase
+	// complete, Failed for one with no phase and a message, and Unknown
+	// otherwise. It is decided before any omission of the message.
+	Outcome         string     `json:"outcome"`
 	Sequence        int64      `json:"sequence"`
 	StartedAt       *time.Time `json:"startedAt,omitempty"`
 	FinishedAt      *time.Time `json:"finishedAt,omitempty"`
@@ -184,6 +195,33 @@ type InstanceSummary struct {
 	Health         Health     `json:"health"`
 	InventoryCount int64      `json:"inventoryCount"`
 	LastAppliedAt  *time.Time `json:"lastAppliedAt,omitempty"`
+	// RenderContracts are every contract the instance's render used, most
+	// fulfilled by the catalog itself; they are not the provider contracts
+	// it demands.
+	RenderContracts []string `json:"renderContracts"`
+	// ProviderOf are the TransformerRegistrations the instance's inventory
+	// holds; absent when it holds none.
+	ProviderOf []ProviderClaim `json:"providerOf,omitempty"`
+}
+
+// ProviderClaim is one TransformerRegistration an instance's or package's
+// inventory holds, with the controller's standing when the caller may read
+// it. A claim the caller may not read carries its name and access only.
+type ProviderClaim struct {
+	Registration string `json:"registration"`
+	// Access is ok, forbidden or notReadable.
+	Access   string `json:"access"`
+	Accepted bool   `json:"accepted,omitempty"`
+	Active   bool   `json:"active,omitempty"`
+	Verdict  string `json:"verdict,omitempty"`
+	Reason   string `json:"reason,omitempty"`
+	// ProviderRefMatches is set only when Access is ok and the registration
+	// was read: true when the owner is a ModuleInstance and the
+	// registration's spec.providerRef names its namespace and name. Always
+	// false for a ModulePackage, since the reference names a ModuleInstance.
+	// Absent for a registration the inventory names but the cluster does
+	// not hold.
+	ProviderRefMatches *bool `json:"providerRefMatches,omitempty"`
 }
 
 // InstanceList is the instances the caller may list. Access is forbidden,
@@ -202,11 +240,7 @@ type Instance struct {
 	Conditions         []Condition    `json:"conditions"`
 	History            []HistoryEntry `json:"history"`
 	LastApplied        Digests        `json:"lastApplied"`
-	// RenderContracts are every contract the instance's render used, most
-	// fulfilled by the catalog itself; they are not the provider contracts
-	// it demands.
-	RenderContracts []string    `json:"renderContracts"`
-	Components      []Component `json:"components"`
+	Components         []Component    `json:"components"`
 }
 
 // SourceRef is the source a ModulePackage reads.
@@ -217,11 +251,23 @@ type SourceRef struct {
 	Name       string `json:"name"`
 }
 
+// SourceArtifact is what a ModulePackage's last reconcile fetched.
+type SourceArtifact struct {
+	Revision string `json:"revision,omitempty"`
+	Digest   string `json:"digest,omitempty"`
+}
+
 // PackageSummary is one ModulePackage in a list.
 type PackageSummary struct {
 	Ref    ObjectRef `json:"ref"`
 	UID    string    `json:"uid,omitempty"`
 	Source SourceRef `json:"source"`
+	// Interval is spec.interval as written; absent when the package sets
+	// none.
+	Interval string `json:"interval,omitempty"`
+	// SourceArtifact is the revision and digest the controller recorded in
+	// status.source; absent when it recorded none.
+	SourceArtifact *SourceArtifact `json:"sourceArtifact,omitempty"`
 	// DependsOn are the packages spec.dependsOn names; an absent namespace
 	// is the package's own.
 	DependsOn      []ObjectRef `json:"dependsOn,omitempty"`
@@ -230,6 +276,9 @@ type PackageSummary struct {
 	Health         Health      `json:"health"`
 	InventoryCount int64       `json:"inventoryCount"`
 	LastAppliedAt  *time.Time  `json:"lastAppliedAt,omitempty"`
+	// ProviderOf are the TransformerRegistrations the package's inventory
+	// holds; absent when it holds none.
+	ProviderOf []ProviderClaim `json:"providerOf,omitempty"`
 }
 
 // PackageList is the packages the caller may list.
@@ -243,10 +292,13 @@ type PackageList struct {
 type Package struct {
 	TypeMeta
 	PackageSummary
-	Conditions  []Condition    `json:"conditions"`
-	History     []HistoryEntry `json:"history"`
-	LastApplied Digests        `json:"lastApplied"`
-	Components  []Component    `json:"components"`
+	// ServiceAccountName is the ServiceAccount the controller applies the
+	// package's objects as; absent means the controller's own.
+	ServiceAccountName string         `json:"serviceAccountName,omitempty"`
+	Conditions         []Condition    `json:"conditions"`
+	History            []HistoryEntry `json:"history"`
+	LastApplied        Digests        `json:"lastApplied"`
+	Components         []Component    `json:"components"`
 }
 
 // Subscription is one catalog the Platform's spec subscribes to.
@@ -288,6 +340,14 @@ type Registration struct {
 	ActiveReason  string     `json:"activeReason,omitempty"`
 	ActiveMessage string     `json:"activeMessage,omitempty"`
 	Reconcile     Reconcile  `json:"reconcile"`
+	// Conditions are the registration's own status conditions.
+	Conditions []Condition `json:"conditions,omitempty"`
+	// HeldBy are the ModuleInstances and ModulePackages the caller may read
+	// whose inventory holds the registration, whatever their kind.
+	HeldBy []ObjectRef `json:"heldBy,omitempty"`
+	// HeldByPartial: the caller could not list every instance and package,
+	// so HeldBy may lack a holder, even when it is empty.
+	HeldByPartial bool `json:"heldByPartial,omitempty"`
 }
 
 // Platform is the Platform with its subscriptions, resolved catalogs and
@@ -305,6 +365,33 @@ type Platform struct {
 	Registrations   []Registration `json:"registrations"`
 	// RegistrationsAccess says whether Registrations is all of them.
 	RegistrationsAccess string `json:"registrationsAccess"`
+}
+
+// Cluster is the connection the portal reads one path cluster with. It
+// names the kubeconfig context and its cluster entry, never a server URL, a
+// user entry or a credential, and the caller's own username.
+type Cluster struct {
+	TypeMeta
+	// Name is the path cluster.
+	Name string `json:"name"`
+	// Mode is where the portal runs: local or in-cluster.
+	Mode string `json:"mode"`
+	// Source is kubeconfig or in-cluster.
+	Source string `json:"source"`
+	// Context and ClusterEntry are the kubeconfig context and the name of
+	// its cluster entry; absent when Source is in-cluster.
+	Context      string    `json:"context,omitempty"`
+	ClusterEntry string    `json:"clusterEntry,omitempty"`
+	ReadingAs    ReadingAs `json:"readingAs"`
+	// KubernetesVersion is the API server's gitVersion, read once at start;
+	// absent when that read failed.
+	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
+}
+
+// ReadingAs is the requesting caller's own identity, as the portal reads
+// for it.
+type ReadingAs struct {
+	Username string `json:"username"`
 }
 
 // Event is one line of a recent-activity feed: repeats with the same type,

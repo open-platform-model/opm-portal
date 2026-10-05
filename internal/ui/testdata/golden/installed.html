@@ -1,0 +1,91 @@
+<main id="main" tabindex="-1" data-topics="instances" data-canonical="/installed">
+<header class="page-head reveal">
+  <h1>Installed</h1>
+  <p class="lede">Every module this cluster runs under OPM, as a ModuleInstance or a ModulePackage. <strong>Applied</strong> is what the controller applied, <strong>Health</strong> what the portal sees running; one never stands for the other.</p>
+</header>
+<form class="filters" method="get" action="/installed" role="search" aria-label="Filter what is installed" hx-swap="outerHTML show:none" data-filters="installed">
+  
+  <div class="filter-fields">
+    <div class="field field-search"><label for="f-q">Search</label><input id="f-q" name="q" type="search" value="" placeholder="Name, namespace, module or source" autocomplete="off" spellcheck="false"></div>
+    
+    <div class="field"><label for="f-kind">Kind</label><select id="f-kind" name="kind"><option value="" selected>Any</option><option value="instance">Instance</option><option value="package">Package</option></select></div>
+    <div class="field"><label for="f-provider">Provider</label><select id="f-provider" name="provider"><option value="" selected>Any</option><option value="yes">Provider</option><option value="no">Not a provider</option></select></div>
+    <div class="field"><label for="f-health">Health</label><select id="f-health" name="health"><option value="" selected>Any</option><option value="Healthy">Healthy</option><option value="Progressing">Progressing</option><option value="Degraded">Degraded</option><option value="Missing">Missing</option><option value="Unknown">Unknown</option></select></div>
+    <div class="field"><label for="f-applied">Applied</label><select id="f-applied" name="applied"><option value="" selected>Any</option><option value="Applied">Applied</option><option value="Reconciling">Reconciling</option><option value="Failed">Failed</option><option value="Stalled">Stalled</option><option value="Suspended">Suspended</option><option value="ManagedExternally">Managed externally</option><option value="Unknown">Unknown</option></select></div>
+    <div class="field"><label for="f-owner">Owner</label><select id="f-owner" name="owner"><option value="" selected>Any</option><option value="controller">controller</option><option value="cli">cli</option></select></div>
+    
+    <div class="field"><label for="f-uses">Uses</label><input id="f-uses" name="uses" value="" placeholder="a contract the render used" list="f-uses-list" autocomplete="off" spellcheck="false"><datalist id="f-uses-list"><option value="opmodel.dev/catalogs/opm/resources/container@v1beta1"><option value="opmodel.dev/catalogs/opm/resources/crds@v1beta1"><option value="opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1"><option value="opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1"><option value="opmodel.dev/catalogs/opm/resources/role@v1beta1"><option value="opmodel.dev/catalogs/opm/resources/service-account@v1beta1"><option value="opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"><option value="opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1"><option value="opmodel.dev/catalogs/opm/resources/volumes@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"><option value="opmodel.dev/catalogs/opm/traits/expose@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/init-containers@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/scaling@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/security-context@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1"><option value="opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"></datalist></div>
+    <div class="field"><label for="f-namespace">Namespace</label><input id="f-namespace" name="namespace" value="" placeholder="all namespaces" list="f-namespace-list" autocomplete="off" spellcheck="false"><datalist id="f-namespace-list"><option value="cert-manager"><option value="default"><option value="pkg"><option value="web"></datalist></div>
+    <div class="field"><label for="f-module">Module</label><input id="f-module" name="module" value="" placeholder="a module path" list="f-module-list" autocomplete="off" spellcheck="false"><datalist id="f-module-list"><option value="opmodel.dev/modules/cert_manager@v2"><option value="opmodel.dev/modules/web_app@v1"><option value="testing.opmodel.dev/modules/operator/backup_consumer@v0"><option value="testing.opmodel.dev/modules/operator/backup_provider@v0"><option value="testing.opmodel.dev/modules/operator/podinfo@v0"></datalist></div>
+    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+  </div>
+  
+</form>
+<section class="panel panel-wide reveal" id="list" aria-label="Installed" data-follow="instances">
+  <p class="shown">Showing <strong>6</strong> of 6</p>
+  
+  
+  
+  <div class="table-wrap">
+  <table class="table rows installed">
+    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Module or source</th><th scope="col">Applied</th><th scope="col">Health</th><th scope="col">Objects</th><th scope="col">Owner</th></tr></thead>
+    <tbody>
+    <tr>
+      <th scope="row" data-label="Name"><a href="/instances/cert-manager/cert-manager">cert-manager</a><span class="row-ns mono">cert-manager</span></th>
+      <td data-label="Kind"><span class="kind kind-instance">Instance</span></td>
+      <td data-label="Module or source"><span class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>cert_manager@v2</span> <span class="ver">v2.0.5</span></td>
+      <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+      <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+      <td data-label="Objects" class="num">42</td>
+      <td data-label="Owner">controller</td>
+    </tr>
+    <tr>
+      <th scope="row" data-label="Name"><a href="/instances/default/backup-consumer">backup-consumer</a><span class="row-ns mono">default</span></th>
+      <td data-label="Kind"><span class="kind kind-instance">Instance</span></td>
+      <td data-label="Module or source"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>backup_consumer@v0</span> <span class="ver">v0.1.0</span></td>
+      <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+      <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+      <td data-label="Objects" class="num">1</td>
+      <td data-label="Owner">controller</td>
+    </tr>
+    <tr>
+      <th scope="row" data-label="Name"><a href="/instances/default/backup-provider">backup-provider</a><span class="row-ns mono">default</span></th>
+      <td data-label="Kind"><span class="kind kind-instance">Instance</span> <span class="prov prov-active" title="default.backup-provider: Accepted">Provider, active</span></td>
+      <td data-label="Module or source"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>backup_provider@v0</span> <span class="ver">v0.1.0</span></td>
+      <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+      <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+      <td data-label="Objects" class="num">1</td>
+      <td data-label="Owner">controller</td>
+    </tr>
+    <tr>
+      <th scope="row" data-label="Name"><a href="/instances/default/podinfo">podinfo</a><span class="row-ns mono">default</span></th>
+      <td data-label="Kind"><span class="kind kind-instance">Instance</span></td>
+      <td data-label="Module or source"><span class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>podinfo@v0</span> <span class="ver">v0.1.11</span></td>
+      <td data-label="Applied"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></td>
+      <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+      <td data-label="Objects" class="num">2</td>
+      <td data-label="Owner">controller</td>
+    </tr>
+    <tr>
+      <th scope="row" data-label="Name"><a href="/packages/pkg/podinfo">podinfo</a><span class="row-ns mono">pkg</span></th>
+      <td data-label="Kind"><span class="kind kind-package">Package</span></td>
+      <td data-label="Module or source"><span class="mono">OCIRepository podinfo-release</span> <span class="ver">path .</span></td>
+      <td data-label="Applied"><span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span></td>
+      <td data-label="Health"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Unknown (not live)</span></td>
+      <td data-label="Objects" class="num">0</td>
+      <td data-label="Owner">controller</td>
+    </tr>
+    <tr>
+      <th scope="row" data-label="Name"><a href="/instances/web/web">web</a><span class="row-ns mono">web</span></th>
+      <td data-label="Kind"><span class="kind kind-instance">Instance</span></td>
+      <td data-label="Module or source"><span class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>web_app@v1</span> <span class="ver">v1.0.5</span></td>
+      <td data-label="Applied"><span class="applied applied-managedexternally"><span class="axis">Applied axis</span>Managed externally</span></td>
+      <td data-label="Health"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></td>
+      <td data-label="Objects" class="num">2</td>
+      <td data-label="Owner">cli</td>
+    </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+</main>

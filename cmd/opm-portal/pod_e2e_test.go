@@ -77,6 +77,7 @@ func TestPod(t *testing.T) {
 		t.Fatalf("instances through the Pod = %v; the fixture cluster holds %v", got, want)
 	}
 	t.Logf("read as %s through port-forward %s:%s: %v", podIdentity, podPort, podPort, got)
+	checkPodCluster(ctx, t, browser)
 	// The token is spent: a second browser is refused.
 	if res := get(ctx, t, &http.Client{Timeout: 30 * time.Second}, link.String(), nil); res.status != http.StatusForbidden {
 		t.Fatalf("second launch: %d; want 403", res.status)
@@ -180,4 +181,16 @@ func clusterInstances(ctx context.Context, t *testing.T, kubeconfig, kubeContext
 	}
 	slices.Sort(names)
 	return names
+}
+
+// checkPodCluster: the Cluster document names the in-cluster source, no
+// context, the ServiceAccount as the reader, and a version: /version is
+// open to it through system:public-info-viewer, with no rule in the role.
+func checkPodCluster(ctx context.Context, t *testing.T, browser *http.Client) {
+	t.Helper()
+	var c v1.Cluster
+	getJSON(ctx, t, browser, "http://127.0.0.1:"+podPort+"/api/v1alpha1/clusters/default", &c)
+	if c.Source != v1.SourceInCluster || c.Context != "" || c.ReadingAs.Username != podIdentity || !strings.HasPrefix(c.KubernetesVersion, "v1.") {
+		t.Fatalf("cluster document through the Pod = %+v; want source in-cluster, no context, %s, a v1.x version", c, podIdentity)
+	}
 }

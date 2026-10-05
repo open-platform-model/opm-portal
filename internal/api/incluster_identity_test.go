@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 	"github.com/open-platform-model/opm-portal/internal/authz"
@@ -54,6 +55,7 @@ func TestEmptyIdentityNeverReachesTheClusterInCluster(t *testing.T) {
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
+		Connection: api.Connection{Source: v1.SourceInCluster},
 		Authenticate: func(*http.Request) (api.Principal, error) {
 			mu.Lock()
 			defer mu.Unlock()

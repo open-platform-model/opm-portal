@@ -66,6 +66,25 @@ type Config struct {
 	Refresh time.Duration
 	// Logger receives operational logs. Default: discarded.
 	Logger *slog.Logger
+	// Connection names what the read model reads the cluster with, for the
+	// Cluster document. Required: its Source is v1.SourceKubeconfig or
+	// v1.SourceInCluster.
+	Connection Connection
+}
+
+// Connection names a mode's client configuration by its kubeconfig names
+// only: never a server URL, a user entry or a credential (portal:D18:R1).
+type Connection struct {
+	// Source is v1.SourceKubeconfig or v1.SourceInCluster.
+	Source string
+	// Context and ClusterEntry are the kubeconfig context loaded and the
+	// name of its cluster entry; ignored when Source is in-cluster.
+	Context      string
+	ClusterEntry string
+}
+
+func (c Connection) valid() bool {
+	return c.Source == v1.SourceKubeconfig || c.Source == v1.SourceInCluster
 }
 
 // Server serves the read API. It is an http.Handler; Close stops its
@@ -88,6 +107,7 @@ type route struct {
 }
 
 var routes = []route{
+	{"/clusters/{cluster}", v1.Cluster{}, (*Server).getCluster},
 	{"/clusters/{cluster}/instances", v1.InstanceList{}, (*Server).listInstances},
 	{"/clusters/{cluster}/instances/{namespace}/{name}", v1.Instance{}, (*Server).getInstance},
 	{"/clusters/{cluster}/instances/{namespace}/{name}/graph", v1.Graph{}, (*Server).instanceGraph},
@@ -125,6 +145,8 @@ func New(cfg Config) (*Server, error) {
 		return nil, errors.New("read api: no authorizer")
 	case cfg.Authenticate == nil:
 		return nil, errors.New("read api: no authenticator")
+	case !cfg.Connection.valid():
+		return nil, fmt.Errorf("read api: connection source %q is neither %q nor %q", cfg.Connection.Source, v1.SourceKubeconfig, v1.SourceInCluster)
 	}
 	if cfg.Coalesce <= 0 {
 		cfg.Coalesce = 250 * time.Millisecond

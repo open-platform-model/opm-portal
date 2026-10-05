@@ -98,7 +98,38 @@
         "reason": "Accepted",
         "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
         "since": "2026-10-04T18:04:22Z"
-      }
+      },
+      "conditions": [
+        {
+          "type": "Ready",
+          "status": "True",
+          "reason": "Accepted",
+          "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
+          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "observedGeneration": 1,
+          "tone": "normal",
+          "meaning": "The registration passed every check. Whether it is active is shown separately."
+        },
+        {
+          "type": "Active",
+          "status": "True",
+          "reason": "ProviderReady",
+          "message": "Provider ModuleInstance default/backup-provider is Ready",
+          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "observedGeneration": 1,
+          "tone": "normal",
+          "meaning": "The provider is ready, so the registration is active."
+        }
+      ],
+      "heldBy": [
+        {
+          "group": "opmodel.dev",
+          "version": "v1alpha1",
+          "kind": "ModuleInstance",
+          "namespace": "default",
+          "name": "backup-provider"
+        }
+      ]
     },
     {
       "name": "default.refused-claim-fixture",
@@ -121,7 +152,31 @@
         "reason": "CatalogUnresolved",
         "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found",
         "since": "2026-10-04T18:04:26Z"
-      }
+      },
+      "conditions": [
+        {
+          "type": "Stalled",
+          "status": "True",
+          "reason": "CatalogUnresolved",
+          "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found",
+          "lastTransitionTime": "2026-10-04T18:04:26Z",
+          "observedGeneration": 1,
+          "tone": "abnormal",
+          "meaning": "The registered catalog and version resolve to nothing.",
+          "nextStep": "Check the catalog path and version, including the version's format, and the registry."
+        },
+        {
+          "type": "Ready",
+          "status": "False",
+          "reason": "CatalogUnresolved",
+          "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found",
+          "lastTransitionTime": "2026-10-04T18:04:26Z",
+          "observedGeneration": 1,
+          "tone": "abnormal",
+          "meaning": "The registered catalog and version resolve to nothing.",
+          "nextStep": "Check the catalog path and version, including the version's format, and the registry."
+        }
+      ]
     }
   ],
   "registrationsAccess": "ok"

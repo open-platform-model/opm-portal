@@ -13,6 +13,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
@@ -25,6 +26,10 @@ const (
 	SessionCookie = "opm-portal-test"
 	SessionValue  = "session-alice"
 )
+
+// Context is the kubeconfig context, and the name of its cluster entry, a
+// local-mode server says it reads with: the e2e fixture cluster's.
+const Context = "kind-opm-portal-e2e"
 
 var (
 	// Caller is who an authenticated request reads as.
@@ -84,6 +89,13 @@ func F1Broken(t testing.TB) []*unstructured.Unstructured {
 	return append(out, replace...)
 }
 
+// F1PackageHolder is F1 with a package holding a refused claim, as
+// readmodeltest.WithPackageHolder constructs it (not captured).
+func F1PackageHolder(t testing.TB) []*unstructured.Unstructured {
+	t.Helper()
+	return readmodeltest.WithPackageHolder(t, F1(t))
+}
+
 // New serves the read API in local mode over objs. Reviews for Caller
 // follow rule; the reader may read everything. A request is Caller's when
 // it carries SessionCookie with SessionValue.
@@ -119,11 +131,16 @@ func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode 
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
+	conn := api.Connection{Source: v1.SourceKubeconfig, Context: Context, ClusterEntry: Context}
+	if mode == api.ModeInCluster {
+		conn = api.Connection{Source: v1.SourceInCluster}
+	}
 	srv, err := api.New(api.Config{
 		Mode:       mode,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
+		Connection: conn,
 		Authenticate: func(r *http.Request) (api.Principal, error) {
 			c, err := r.Cookie(SessionCookie)
 			if err != nil || c.Value != SessionValue {

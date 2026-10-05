@@ -1,0 +1,118 @@
+<main id="main" tabindex="-1" data-topics="platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture" data-canonical="/">
+<div class="pf-summary reveal">
+  <section class="card pf-identity" id="platform-head" aria-label="Identity" data-follow="platform">
+    <p class="kicker">Platform</p>
+    <h1>cluster</h1>
+    <dl class="facts">
+      <dt>Type</dt><dd>kubernetes</dd>
+      <dt>Controller version</dt><dd class="mono">v1.0.0-beta.6</dd>
+    </dl>
+  </section>
+  <section class="card pf-status" id="platform-status" aria-labelledby="status-h" data-follow="platform">
+    <h2 id="status-h">Status <span class="h-note">what the controller reports</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></div>
+    <p class="pf-line">2 catalogs resolved from 1 subscription · 1 claim active</p>
+    <ul class="reason-links">
+      <li><a href="#cond-Ready"><span class="label">Ready</span> <span class="mono">Generated</span></a> <span class="muted">The platform module was generated and built.</span></li>
+      <li class="reason-info"><a href="#cond-ContractsFulfilled"><span class="label">Contracts</span> <span class="mono">UnfulfilledContracts</span></a> <span class="muted">information, not a failure</span></li>
+    </ul>
+  </section>
+</div>
+<section class="panel panel-wide reveal" id="installed-card" aria-labelledby="installed-h" data-follow="instances">
+  <div class="card-headline"><h2 id="installed-h">Installed</h2><a href="/installed">Open the full list</a></div>
+  <div class="count-groups">
+    <div class="count-group"><span class="label">Health</span><a class="count health health-healthy" href="/installed?health=Healthy">Healthy <span class="count-n">5</span></a><a class="count health health-unknown" href="/installed?health=Unknown">Unknown <span class="count-n">1</span></a></div>
+    <div class="count-group"><span class="label">Applied</span><a class="count applied applied-applied" href="/installed?applied=Applied">Applied <span class="count-n">4</span></a><a class="count applied applied-failed" href="/installed?applied=Failed">Failed <span class="count-n">1</span></a><a class="count applied applied-managedexternally" href="/installed?applied=ManagedExternally">Managed externally <span class="count-n">1</span></a></div>
+  </div>
+  <p class="pf-line">6 installed: 5 instances, 1 package; 1 of them holds a registration.</p>
+  
+  
+</section>
+<section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
+  <nav class="tabs" aria-label="Platform parts" hx-swap="outerHTML show:none">
+    <a href="/?eresource=registration%3Adefault.refused-claim-fixture&amp;pstatus=refused&amp;tab=providers" aria-current="page">Providers</a>
+    <a href="/?eresource=registration%3Adefault.refused-claim-fixture&amp;pstatus=refused&amp;tab=catalogs">Catalogs</a>
+  </nav>
+  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" hx-swap="outerHTML show:none" data-filters="providers">
+  <input type="hidden" name="eresource" value="registration:default.refused-claim-fixture">
+  <div class="filter-fields">
+    <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
+    
+    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="">Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused" selected>refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
+    
+    <div class="field"><label for="f-provides">Provides</label><input id="f-provides" name="provides" value="" placeholder="a contract" list="f-provides-list" autocomplete="off" spellcheck="false"><datalist id="f-provides-list"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"></datalist></div>
+    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+  </div>
+  
+  <div class="filter-chips">
+    <a class="fchip" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit aria-label="Remove the filter Status: refused"><span class="fchip-label">Status</span> refused<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+    <a class="fclear" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit data-clear-filters="providers">Clear filters</a>
+  </div>
+</form>
+  <div id="providers" data-follow="platform">
+  <p class="shown">Showing <strong>1</strong> of 2</p>
+  <div class="table-wrap">
+  <table class="table rows providers">
+    <thead><tr><th scope="col">Provider</th><th scope="col">Catalog</th><th scope="col">Provides</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+    <tr class="reg reg-Refused">
+      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>refused-claim-fixture</span></th>
+      <td data-label="Catalog"><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</a> <span class="ver">0.1.0</span></td>
+      <td data-label="Provides"><span class="muted">nothing</span></td>
+      <td data-label="Installed as"><span class="muted">held by nothing you may read</span><p class="muted holder-note">spec.providerRef names ModuleInstance <span class="mono">default/refused-claim-fixture</span>.</p></td>
+      <td data-label="Status">
+        <p class="pills">
+          <span class="pill pill-no">not accepted</span>
+          <span class="pill pill-no">inactive</span>
+        </p>
+        <p class="verdict-why"><span class="verdict verdict-refused">Refused</span> <span class="mono">CatalogUnresolved</span><span class="msg">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</span></p>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  </div>
+  
+  </div>
+</section>
+<section class="panel panel-wide reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
+  <h2 id="conditions-h">Conditions</h2>
+  <ol class="conditions">
+    <li class="condition tone-normal" id="cond-Ready">
+      <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">Generated</span><span class="cond-time"><time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC">6m ago</time></span></div>
+    <p class="cond-message">Platform module generated and built for generation 1</p>
+    <p class="cond-meaning">The platform module was generated and built.</p>
+    </li>
+    <li class="condition tone-informational" id="cond-ContractsFulfilled">
+      <div class="cond-head"><span class="cond-type">ContractsFulfilled</span><span class="cond-status">False</span><span class="cond-reason">UnfulfilledContracts</span><span class="cond-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <p class="cond-message">1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:
+  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)</p>
+    <p class="cond-meaning">Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers.</p>
+    </li>
+  </ol>
+</section>
+<section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
+  <h2 id="events-h">Recent events</h2>
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
+    <input type="hidden" name="pstatus" value="refused">
+    <div class="filter-fields">
+      <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="">Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture" selected>default.refused-claim-fixture</option></optgroup></select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+    </div>
+    <div class="filter-chips">
+      <a class="fchip" href="/?pstatus=refused" data-filters-explicit aria-label="Remove the filter Resource: default.refused-claim-fixture"><span class="fchip-label">Resource</span> default.refused-claim-fixture<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+    </div>
+  </form>
+  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
+  <div id="events" data-follow="events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture">
+    <p class="shown">Showing <strong>1</strong> of 2, newest first, repeats folded</p>
+    
+<ol class="events">
+  <li class="event ev-warning">
+    <div class="ev-head"><span class="ev-type">Warning</span><span class="ev-reason">CatalogUnresolved</span><span class="ev-time"><time datetime="2026-10-04T18:04:26Z" title="2026-10-04 18:04:26 UTC">5m ago</time></span></div>
+    <p class="ev-note">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</p>
+    <p class="ev-meta mono">TransformerRegistration.opmodel.dev default.refused-claim-fixture · opm-controller</p>
+  </li>
+</ol>
+  </div>
+</section>
+</main>

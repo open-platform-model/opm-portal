@@ -10,6 +10,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
 // PagePolicy is the Content-Security-Policy of every page: the front door's
@@ -89,10 +91,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) routes() {
 	h.mux.HandleFunc("/{$}", h.platformPage)
-	h.mux.HandleFunc("/platform/node", h.platformNode)
-	h.mux.HandleFunc("/platform/registrations/{name}/events", h.registrationEvents)
-	h.mux.HandleFunc("/instances", h.instancesPage)
-	h.mux.HandleFunc("/packages", h.packagesPage)
+	h.mux.HandleFunc("/installed", h.installedPage)
+	h.mux.HandleFunc("/catalog", h.catalogPage)
+	h.mux.HandleFunc("/instances", listRedirect(instanceKind.Topic))
+	h.mux.HandleFunc("/packages", listRedirect("package"))
 	for _, k := range []ownerKind{instanceKind, packageKind} {
 		h.mux.HandleFunc("/"+k.Path+"/{namespace}/{name}", h.ownerPage(k))
 		h.mux.HandleFunc("/"+k.Path+"/{namespace}/{name}/node", h.ownerNode(k))
@@ -125,6 +127,8 @@ func (h *Handler) render(w http.ResponseWriter, r *http.Request, status int, nam
 		p.Canonical = r.URL.Path
 	}
 	p.StreamURL = h.cfg.APIBase + "/stream"
+	p.Header = h.header(r)
+	p.FilterSpec = filterSpec()
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, "layout", p); err != nil {
 		h.log.Error("rendering a page", "page", name, "error", err)
@@ -173,9 +177,13 @@ func writeHTML(w http.ResponseWriter, status int, body []byte, log *slog.Logger)
 // page is what the layout renders.
 type page struct {
 	Title string
-	// Nav names the active navigation entry: platform, instances or
-	// packages.
+	// Nav names the active navigation entry: platform or installed.
 	Nav string
+	// Header is what the page header says about the connection.
+	Header header
+	// FilterSpec is the remembered views' filter parameters, for the page
+	// scripts.
+	FilterSpec string
 	// Topics are the stream topics the page follows.
 	Topics []string
 	// Canonical is the page's own address; after a launch the page script
@@ -184,6 +192,39 @@ type page struct {
 	Path      string
 	StreamURL string
 	Main      any
+}
+
+// header is the connection the page header names: the cluster, the reader
+// and the version, from the read API's Cluster document, the one place
+// they show (portal:D18). OK is false when that document could not be
+// read; the header then says unknown in the degraded style and the page
+// still renders.
+type header struct {
+	OK bool
+	// Cluster is the kubeconfig context, or "in cluster".
+	Cluster string
+	// Context keys what the browser remembers: the context name, or
+	// in-cluster.
+	Context  string
+	Username string
+	Version  string
+}
+
+// header reads the Cluster document for the caller of r.
+func (h *Handler) header(r *http.Request) header {
+	var c v1.Cluster
+	if p := h.fetch(r, "", nil, &c); p != nil {
+		return header{}
+	}
+	hd := header{OK: true, Cluster: c.Context, Context: c.Context, Username: c.ReadingAs.Username, Version: c.KubernetesVersion}
+	switch {
+	case c.Source == v1.SourceInCluster:
+		hd.Cluster, hd.Context = "in cluster", v1.SourceInCluster
+	case c.Context == "":
+		// No context to key remembered filters by: the browser keeps none.
+		hd.Cluster = unknownWord
+	}
+	return hd
 }
 
 // message is a page that only says something: not found, sign in.

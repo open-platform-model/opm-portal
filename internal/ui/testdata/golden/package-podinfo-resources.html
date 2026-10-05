@@ -1,0 +1,91 @@
+<main id="main" tabindex="-1" data-topics="package:pkg/podinfo events:package:pkg/podinfo" data-canonical="/packages/pkg/podinfo">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=package">Installed</a> <span aria-hidden="true">/</span> <span class="mono">pkg</span> <span aria-hidden="true">/</span> <span>podinfo</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="package:pkg/podinfo">
+    <p class="kicker">Package</p>
+    <h1>podinfo</h1>
+    
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">pkg</dd>
+      <dt>Source</dt><dd class="mono">OCIRepository podinfo-release</dd>
+      <dt>Path</dt><dd class="mono">.</dd>
+      <dt>Interval</dt><dd><span class="mono">1m</span></dd>
+      <dt>Revision</dt><dd><span class="muted">not recorded</span></dd>
+      <dt>Depends on</dt><dd><span class="muted">nothing</span></dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this package's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
+      <dt>Objects</dt><dd>0</dd>
+      <dt>Last applied</dt><dd><span class="muted">never</span></dd>
+    </dl>
+    
+  </section>
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="package:pkg/podinfo events:package:pkg/podinfo">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes"><span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span><span class="mono">SourceNotReady</span></div>
+    <p class="card-meaning">The package&#39;s source is not ready or does not exist.</p>
+    <p class="card-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
+    <p class="reconciling"><span class="label">Reconciling</span> <span class="mono">Progressing</span> since <time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></p>
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><a class="count count-warning" href="/packages/pkg/podinfo?reason=SourceNotReady&amp;tab=events&amp;type=Warning">SourceNotReady <span class="count-n">3</span></a></div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-failed" role="img" tabindex="0" title="#1 reconcile: failed, 2026-10-04 18:03:54 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;" aria-label="#1 reconcile: failed, 2026-10-04 18:03:54 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;"></span><span class="adot dot-failed" role="img" tabindex="0" title="#2 reconcile: failed, 2026-10-04 18:04:23 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;" aria-label="#2 reconcile: failed, 2026-10-04 18:04:23 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;"></span><span class="adot dot-failed" role="img" tabindex="0" title="#3 reconcile: failed, 2026-10-04 18:04:23 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;" aria-label="#3 reconcile: failed, 2026-10-04 18:04:23 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;"></span></span></div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>
+<ol class="timeline">
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#3</span><span class="tl-action">reconcile</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <p class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
+    <p class="tl-meta mono">0 objects</p>
+  </li>
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#2</span><span class="tl-action">reconcile</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <p class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
+    <p class="tl-meta mono">0 objects</p>
+  </li>
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <p class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
+    <p class="tl-meta mono">0 objects</p>
+  </li>
+</ol>
+</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="package:pkg/podinfo">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Unknown (not live)</span></div>
+    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
+  </section>
+  
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="package:pkg/podinfo">
+  <summary><h2 id="conditions-h">Conditions</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-progressing">
+    <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <p class="cond-message">Reconciliation in progress</p>
+    <p class="cond-meaning">The operator is working on the latest change.</p>
+  </li>
+  <li class="condition tone-abnormal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <p class="cond-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
+    <p class="cond-meaning">The package&#39;s source is not ready or does not exist.</p><p class="cond-next"><span class="label">Next step</span> Check the source object the package names; the operator retries.</p>
+  </li>
+</ol>
+  
+</details>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph">Graph</a><a href="/packages/pkg/podinfo?tab=resources" aria-current="page">Resources</a><a href="/packages/pkg/podinfo?tab=events">Events</a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
+<section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="package:pkg/podinfo">
+  <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
+  <form class="filters" method="get" action="/packages/pkg/podinfo" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
+  <input type="hidden" name="tab" value="resources">
+  <div class="filter-fields">
+    
+    <div class="field"><label for="f-reason">Health reason</label><input id="f-reason" name="reason" value="" placeholder="a reason, such as ImagePullBackOff" autocomplete="off" spellcheck="false"></div>
+    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+  </div>
+  
+</form>
+  <p class="muted">The inventory names no objects yet.</p>
+</section>
+<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+</aside>
+</main>

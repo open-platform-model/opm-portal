@@ -52,7 +52,7 @@ func TestM1(t *testing.T) {
 	kubeconfig, kubeContext := fixtureCluster(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 12*time.Minute)
 	defer cancel()
-	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", kubeconfig, "--context", kubeContext)
+	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", kubeconfig, "--context", kubeContext, "--addr", "127.0.0.1:0")
 	defer p.stop(t)
 	browser, _ := launch(ctx, t, p.launch)
 	s := m1Session{ctx: ctx, browser: browser, base: p.launch.Scheme + "://" + p.launch.Host}
@@ -60,6 +60,7 @@ func TestM1(t *testing.T) {
 	t.Run("platform shows the accepted and the refused claim", s.platformClaims)
 	t.Run("instance list keeps applied and health apart", s.instanceAxes)
 	t.Run("CLI-owned instance reads managed externally", s.cliOwned)
+	t.Run("the cluster document and Installed name what is read", func(t *testing.T) { s.clusterAndInstalled(t, kubeContext) })
 	t.Run("image break turns health degraded while applied stays", func(t *testing.T) {
 		s.imageBreak(t, restConfig(t, kubeconfig, kubeContext))
 	})
@@ -73,7 +74,7 @@ func TestM1NamespaceReader(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
 	scoped := namespaceReader(ctx, t, kubeconfig, kubeContext)
-	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", scoped, "--namespaces", "default")
+	p := startPortal(ctx, t, buildPortal(ctx, t), "serve", "--kubeconfig", scoped, "--namespaces", "default", "--addr", "127.0.0.1:0")
 	defer p.stop(t)
 	browser, _ := launch(ctx, t, p.launch)
 	s := m1Session{ctx: ctx, browser: browser, base: p.launch.Scheme + "://" + p.launch.Host}
@@ -178,6 +179,35 @@ func (s m1Session) cliOwned(t *testing.T) {
 	}
 }
 
+// clusterAndInstalled: the Cluster document names the fixture's context,
+// the kubeconfig's user and a Kubernetes version (portal:D18), and
+// Installed lists instances and packages together with the provider badge
+// on backup-provider (portal:D17:R1).
+func (s m1Session) clusterAndInstalled(t *testing.T, kubeContext string) {
+	var c v1.Cluster
+	getJSON(s.ctx, t, s.browser, s.api(""), &c)
+	if c.Source != v1.SourceKubeconfig || c.Context != kubeContext || c.ClusterEntry == "" || c.ReadingAs.Username == "" ||
+		!strings.HasPrefix(c.KubernetesVersion, "v1.") {
+		t.Errorf("cluster document = %+v; want source kubeconfig, context %s, a cluster entry, a user and a v1.x version", c, kubeContext)
+	}
+	page := get(s.ctx, t, s.browser, s.base+"/installed", nil)
+	for _, want := range []string{`href="/instances/default/podinfo"`, `href="/packages/pkg/podinfo"`, `href="/instances/web/web"`,
+		`class="prov prov-active"`, "<td data-label=\"Owner\">cli</td>", c.KubernetesVersion} {
+		if !strings.Contains(page.body, want) {
+			t.Errorf("/installed lacks %s", want)
+		}
+	}
+	// The old list redirects to Installed filtered by kind and namespace;
+	// the session's client does not follow redirects, so it reads the 308.
+	if res := get(s.ctx, t, s.browser, s.base+"/instances?namespace=default", nil); res.status != http.StatusPermanentRedirect {
+		t.Errorf("/instances?namespace=default: %d; want 308 to Installed", res.status)
+	}
+	filtered := get(s.ctx, t, s.browser, s.base+"/installed?kind=instance&namespace=default", nil)
+	if !strings.Contains(filtered.body, `<span class="fchip-label">Kind</span> Instance`) || strings.Contains(filtered.body, `href="/packages/pkg/podinfo"`) {
+		t.Errorf("/installed?kind=instance&namespace=default is not filtered")
+	}
+}
+
 func (s m1Session) onlyDefault(t *testing.T) {
 	var list v1.InstanceList
 	getJSON(s.ctx, t, s.browser, s.api("/instances?namespace=default"), &list)
@@ -210,8 +240,8 @@ func (s m1Session) restForbidden(t *testing.T) {
 			t.Errorf("%s: %d %.200s; want 403 forbidden", path, res.status, res.body)
 		}
 	}
-	if page := get(s.ctx, t, s.browser, s.base+"/instances", nil); !strings.Contains(page.body, "Locked: you may not list") {
-		t.Errorf("the cluster-wide instance page is not a locked list")
+	if page := get(s.ctx, t, s.browser, s.base+"/installed", nil); !strings.Contains(page.body, "You may not list ModuleInstances in every namespace") {
+		t.Errorf("the cluster-wide Installed list does not lock its instances")
 	}
 }
 
@@ -233,9 +263,15 @@ func (s m1Session) lockedObjects(t *testing.T) {
 	if objects == 0 || !mi.Health.Partial {
 		t.Errorf("podinfo: %d objects, partial %t; want its objects listed and its health partial", objects, mi.Health.Partial)
 	}
-	page := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo", nil)
+	// Object rows live on the Resources tab and nodes on the Graph tab;
+	// each renders what the reader may not read locked.
+	page := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=resources", nil)
 	if rows := strings.Count(page.body, `<li class="object locked">`); page.status != http.StatusOK || rows != objects {
-		t.Errorf("the podinfo page: %d with %d locked object rows; want 200 with %d", page.status, rows, objects)
+		t.Errorf("podinfo's Resources tab: %d with %d locked object rows; want 200 with %d", page.status, rows, objects)
+	}
+	graph := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=graph", nil)
+	if nodes := strings.Count(graph.body, `class="node kind-object locked`); graph.status != http.StatusOK || nodes != objects {
+		t.Errorf("podinfo's Graph tab: %d with %d locked object nodes; want 200 with %d", graph.status, nodes, objects)
 	}
 }
 

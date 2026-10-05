@@ -5,7 +5,7 @@ type: explanation
 weight: 10
 ---
 
-The OPM portal is a read-only view of what a cluster runs under OPM. It starts at the Platform, with its catalogs and transformer registrations, and goes down through every ModuleInstance and ModulePackage to the objects each one applied and the Pods those objects run. Everything it shows comes from what the OPM operator and the Kubernetes API server already record. The portal adds two things of its own: an access check before every read, and a health value computed from live objects.
+The OPM portal is a read-only view of what a cluster runs under OPM. It starts at the Platform, with its catalogs and the providers that claim them, lists everything installed (every ModuleInstance and ModulePackage) in one place, and goes down through each of them to the objects it applied and the Pods those objects run. Every page's header names the cluster context the portal reads, the user it reads as and the cluster's Kubernetes version. Everything it shows comes from what the OPM operator and the Kubernetes API server already record. The portal adds two things of its own: an access check before every read, and a health value computed from live objects.
 
 Where `kubectl get` shows one kind at a time, the portal joins the kinds OPM spreads a deployment over: the instance, its inventory, the workloads in the inventory and the Pods below them. The comparison stops at the edge of OPM. The portal shows only objects an OPM inventory reaches, so it is not a general cluster browser, and it never edits, restarts or deletes anything.
 
@@ -25,9 +25,17 @@ Each instance and package carries two values side by side, and the portal never 
 
 **Health** is the portal's own computation from live objects. Each object in the inventory is judged by the standard Kubernetes status rules, the ones `kstatus` implements. One rule is added: a Pod whose container is waiting with `ErrImagePull`, `ImagePullBackOff`, `CrashLoopBackOff`, `CreateContainerConfigError` or `InvalidImageName` marks the workload that owns it Degraded. The results roll up worst first, from objects to components to the instance, as Healthy, Progressing, Degraded, Missing or Unknown.
 
+### The Platform page, Installed and providers
+
+The Platform page shows the Platform's identity, its status as the operator reports it, counts of what is installed by health and by applied state, and two tabs. **Providers** lists the transformer registrations: each claim, its catalog, what it provides, the instance or package that holds it and the operator's verdict, accepted and active shown apart. **Catalogs** lists the catalogs the Platform subscribes to, holds in its resolved registry, or a provider claims. Each count, provider and catalog links on: to **Installed** filtered by it, to the holder's **Provider** tab, or to a page for the catalog.
+
+A provider is any instance or package whose inventory holds a TransformerRegistration. The portal shows the operator's verdict on the claim as it is. Today the operator accepts a claim only from the ModuleInstance its `providerRef` names, so a package that ships one shows as a refused provider, with the operator's reason.
+
+Filters live in the page address, so a filtered view is a link you can share. Your browser also remembers the theme you pick and the filters you last used on Installed and the Platform's two tabs, per cluster context; see [The portal's security model](/docs/operating/portal/portal-security/).
+
 ### Every graph edge comes from a recorded field
 
-The portal draws two graphs. The Platform graph joins the Platform's catalogs, the transformer registrations and the instances that provide them. An instance graph runs from the module through the instance and its components to the inventory objects, then to the ReplicaSets, Pods and Jobs found through the owner references below those objects. Each kind of edge has exactly one source field. The portal never renders a module to find an edge, and where two sources disagree, such as a registration's provider and the provider's inventory, the graph shows the disagreement.
+Each instance and package page draws a graph. It runs from the module through the instance and its components to the inventory objects, then to the ReplicaSets, Pods and Jobs found through the owner references below those objects. Each kind of edge has exactly one source field. The portal never renders a module to find an edge. The read API also serves a Platform graph of catalogs, registrations and the instances that provide them; the Platform page shows the same joins as rows instead, and where a registration's provider and the provider's inventory disagree, both are shown.
 
 ### Events and logs are read when you look
 

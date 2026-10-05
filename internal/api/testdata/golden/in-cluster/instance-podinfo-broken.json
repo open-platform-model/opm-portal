@@ -37,6 +37,15 @@
   },
   "inventoryCount": 2,
   "lastAppliedAt": "2026-10-04T13:46:57Z",
+  "renderContracts": [
+    "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+    "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1"
+  ],
   "serviceAccountName": "podinfo-applier",
   "conditions": [
     {
@@ -62,6 +71,7 @@
     {
       "action": "reconcile",
       "phase": "complete",
+      "outcome": "Succeeded",
       "sequence": 2,
       "startedAt": "2026-10-04T13:46:57Z",
       "finishedAt": "2026-10-04T13:46:57Z",
@@ -79,15 +89,6 @@
     "config": "sha256:7762dfb2bba4b6f65f4ba8e65abc4d21fd3569ec78f991659d14d83d7d6b63ce",
     "render": "sha256:93b855d0afa2bb6cb914f1fb9763e5758d2f6b39092cb2be84dfa6b0507686b7"
   },
-  "renderContracts": [
-    "opmodel.dev/catalogs/opm/resources/container@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
-    "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1"
-  ],
   "components": [
     {
       "name": "podinfo",

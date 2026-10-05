@@ -39,7 +39,24 @@
         "live": true
       },
       "inventoryCount": 42,
-      "lastAppliedAt": "2026-10-04T18:04:05Z"
+      "lastAppliedAt": "2026-10-04T18:04:05Z",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1",
+        "opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1",
+        "opmodel.dev/catalogs/opm/resources/role@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/service-account@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1",
+        "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/security-context@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"
+      ]
     },
     {
       "ref": {
@@ -77,7 +94,11 @@
         "live": true
       },
       "inventoryCount": 1,
-      "lastAppliedAt": "2026-10-04T18:04:24Z"
+      "lastAppliedAt": "2026-10-04T18:04:24Z",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/volumes@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
+      ]
     },
     {
       "ref": {
@@ -115,7 +136,21 @@
         "live": true
       },
       "inventoryCount": 1,
-      "lastAppliedAt": "2026-10-04T18:04:21Z"
+      "lastAppliedAt": "2026-10-04T18:04:21Z",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
+      ],
+      "providerOf": [
+        {
+          "registration": "default.backup-provider",
+          "access": "ok",
+          "accepted": true,
+          "active": true,
+          "verdict": "Accepted",
+          "reason": "Accepted",
+          "providerRefMatches": true
+        }
+      ]
     },
     {
       "ref": {
@@ -153,7 +188,16 @@
         "live": true
       },
       "inventoryCount": 2,
-      "lastAppliedAt": "2026-10-04T18:04:06Z"
+      "lastAppliedAt": "2026-10-04T18:04:06Z",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1"
+      ]
     },
     {
       "ref": {
@@ -191,7 +235,8 @@
         "live": true
       },
       "inventoryCount": 2,
-      "lastAppliedAt": "2026-10-04T18:04:30Z"
+      "lastAppliedAt": "2026-10-04T18:04:30Z",
+      "renderContracts": []
     }
   ]
 }

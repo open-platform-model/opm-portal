@@ -23,6 +23,148 @@
   }
   window.setTimeout(function () { body.classList.add("loaded"); }, 900);
 
+  // ---- Theme ----
+  // prefs.js applied the stored theme before first paint; the menu changes
+  // it for this page and keeps it in the browser when storage allows.
+  var prefs = window.opmPortalPrefs || null;
+
+  var themeNames = { light: "Light", dark: "Dark", system: "System" };
+
+  function markTheme() {
+    var cur = document.documentElement.getAttribute("data-theme") || "system";
+    document.querySelectorAll("[data-theme-choice]").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-theme-choice") === cur ? "true" : "false");
+    });
+    document.querySelectorAll("[data-theme-summary]").forEach(function (s) {
+      s.setAttribute("aria-label", "Theme: " + (themeNames[cur] || "System"));
+    });
+  }
+
+  // A click outside closes the theme menu; Escape closes it too (the one
+  // Escape handler, under Graph view).
+  document.addEventListener("click", function (evt) {
+    var open = document.querySelector("details.theme[open]");
+    if (open && !open.contains(evt.target)) {
+      open.open = false;
+    }
+  });
+  markTheme();
+
+  document.addEventListener("click", function (evt) {
+    var b = evt.target.closest && evt.target.closest("[data-theme-choice]");
+    if (!b) {
+      return;
+    }
+    var choice = b.getAttribute("data-theme-choice");
+    if (prefs) {
+      prefs.setTheme(choice);
+    } else if (choice === "light" || choice === "dark") {
+      document.documentElement.setAttribute("data-theme", choice);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    markTheme();
+    var menu = b.closest("details");
+    if (menu) {
+      menu.open = false;
+    }
+  });
+
+  // ---- Header ----
+  // The header slims once a sentinel 48 px down the page leaves the
+  // viewport; the transition is off under reduced motion (portal.css).
+  var sentinel = document.getElementById("top-sentinel");
+  var masthead = document.getElementById("masthead");
+  if (sentinel && masthead && "IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      masthead.classList.toggle("compact", !entries[entries.length - 1].isIntersecting);
+    }).observe(sentinel);
+  }
+
+  // ---- Remembered filters ----
+  // A boosted link to a remembered list view whose URL carries none of the
+  // view's filters is requested, and pushed, with the filters the browser
+  // remembers for it; htmx requests and pushes the path left in
+  // htmx:configRequest (design.md, the boosted filter restore spike). Only
+  // a boosted link is rewritten: a form submit, a chip or "Clear filters"
+  // (data-filters-explicit), a region refresh, a panel fetch and the
+  // topic change never are.
+  document.addEventListener("htmx:configRequest", function (evt) {
+    var d = evt.detail;
+    if (d && d.verb === "get" && d.elt && d.elt.matches && d.elt.matches("form[data-filters]")) {
+      dropEmpty(d);
+      return;
+    }
+    if (!prefs || !d || !d.boosted || d.verb !== "get" || !d.elt || d.elt.tagName !== "A" ||
+        d.elt.hasAttribute("data-filters-explicit")) {
+      return;
+    }
+    var u;
+    try {
+      u = new URL(d.path, location.href);
+    } catch (e) {
+      return;
+    }
+    if (u.origin !== location.origin) {
+      return;
+    }
+    var next = prefs.restored(u.pathname, u.search);
+    if (next !== null) {
+      d.path = next + u.hash;
+    }
+  });
+
+  // dropEmpty leaves the fields a filter form submits empty out of its
+  // request, so the address shows only the filters that apply.
+  function dropEmpty(d) {
+    var empty = [];
+    if (d.formData && d.formData.forEach) {
+      d.formData.forEach(function (v, k) {
+        if (v === "") {
+          empty.push(k);
+        }
+      });
+    }
+    empty.forEach(function (k) {
+      try {
+        d.formData.delete(k);
+        delete d.parameters[k];
+      } catch (e) {
+        // The request keeps the empty field; it filters nothing.
+      }
+    });
+  }
+
+  // After each render, a remembered view stores the filters it shows;
+  // a document prefs.js is replacing stores nothing.
+  function rememberFilters() {
+    if (prefs && !prefs.restoring) {
+      prefs.remember(location.pathname, location.search);
+    }
+  }
+  rememberFilters();
+  document.addEventListener("htmx:pushedIntoHistory", rememberFilters);
+  document.addEventListener("htmx:historyRestore", function () {
+    rememberFilters();
+    markTheme();
+  });
+
+  // "Clear filters" forgets the view first, so nothing restores them.
+  document.addEventListener("click", function (evt) {
+    var a = evt.target.closest && evt.target.closest("a[data-clear-filters]");
+    if (a && prefs) {
+      prefs.forget(a.getAttribute("data-clear-filters"));
+    }
+  }, true);
+
+  // A filter form's selects apply at once; without script its button does.
+  document.addEventListener("change", function (evt) {
+    var sel = evt.target;
+    if (sel && sel.matches && sel.matches("form[data-filters] select") && sel.form && sel.form.requestSubmit) {
+      sel.form.requestSubmit();
+    }
+  });
+
   // ---- Stream topics ----
   var streamID = "";
   var expired = false;
@@ -155,11 +297,18 @@
       }
       return res.text();
     }).then(function (text) {
-      if (text === null || url !== location.pathname + location.search) {
+      if (text === null) {
+        return;
+      }
+      if (url !== location.pathname + location.search) {
+        // The page moved on while this render was read: what changed
+        // still has to reach the page now open.
+        topics.forEach(function (t) { dirty.add(t); });
         return;
       }
       var doc = new DOMParser().parseFromString(text, "text/html");
       var views = [];
+      var focused = focusKey(regions);
       regions.forEach(function (el) {
         var next = el.id && doc.getElementById(el.id);
         if (!next || !el.isConnected) {
@@ -183,6 +332,7 @@
       });
       restoreGraphs();
       restoreViews(views);
+      refocus(focused);
     }).catch(function () {
       setLive(false, "offline");
     }).then(function () {
@@ -194,12 +344,42 @@
   // keepOpen carries the open state of details groups with an id from the
   // region on the page to its replacement.
   function keepOpen(from, to) {
+    if (from.matches("details[id]") && to.matches("details[id]") && from.id === to.id) {
+      to.open = from.open;
+    }
     from.querySelectorAll("details[id]").forEach(function (d) {
       var twin = to.querySelector("#" + CSS.escape(d.id));
       if (twin) {
         twin.open = d.open;
       }
     });
+  }
+
+  // focusKey names the focused element when a refreshed region holds it:
+  // by id, or a graph node by its graph and node ids; refocus focuses its
+  // twin in the fresh render, so keyboard focus survives a refresh.
+  function focusKey(regions) {
+    var a = document.activeElement;
+    if (!a || a === document.body || !regions.some(function (r) { return r.contains(a); })) {
+      return null;
+    }
+    var g = a.closest && a.closest(".graph[data-graph]");
+    return { id: a.id || "", graph: g ? g.getAttribute("data-graph") : "", node: a.getAttribute("data-node") || "" };
+  }
+
+  function refocus(key) {
+    if (!key) {
+      return;
+    }
+    var el = null;
+    if (key.node && key.graph) {
+      el = document.querySelector('.graph[data-graph="' + CSS.escape(key.graph) + '"] .node[data-node="' + CSS.escape(key.node) + '"]');
+    } else if (key.id) {
+      el = document.getElementById(key.id);
+    }
+    if (el && el.focus) {
+      el.focus({ preventScroll: true });
+    }
   }
 
   // keepViews records where each graph frame in a region is scrolled to,
@@ -379,6 +559,7 @@
   document.addEventListener("htmx:afterSettle", function () {
     sync();
     restoreGraphs();
+    rememberFilters();
   });
 
   // ---- Logs ----
@@ -487,12 +668,36 @@
     }
   });
   // Panes swapped away with their page stop following.
+  var mainSwapped = false;
+  var tabClicked = false;
+  // A swap a tab link started puts focus on the new current tab; any other
+  // puts it on the page.
+  document.addEventListener("click", function (evt) {
+    tabClicked = !!(evt.target.closest && evt.target.closest(".tabs a"));
+  }, true);
   document.addEventListener("htmx:beforeSwap", function (evt) {
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
       logTopics.clear();
       selected.clear();
       zooms.clear();
+      hovered = null;
+      mainSwapped = true;
+    }
+  });
+  // After a page swap, focus moves to the current tab, or to the page, so
+  // keyboard users are not left on a detached element.
+  document.addEventListener("htmx:afterSettle", function () {
+    if (!mainSwapped) {
+      return;
+    }
+    mainSwapped = false;
+    var m = document.getElementById("main");
+    var tab = tabClicked && m && m.querySelector(".tabs a[aria-current]");
+    tabClicked = false;
+    var target = tab || m;
+    if (target && target.focus) {
+      target.focus({ preventScroll: true });
     }
   });
 
@@ -501,15 +706,74 @@
   // that replaces the graph keeps the mark.
   var selected = new Map();
 
+  // markSelected marks the selected node and spotlights it: every node
+  // and edge not next to it is dimmed by a class.
   function markSelected(g) {
     var want = selected.get(g.getAttribute("data-graph"));
+    if (want && !g.querySelector('.node[data-node="' + CSS.escape(want) + '"]')) {
+      // The focused node is gone (the object was deleted): nothing dims,
+      // and the panel no longer describes it.
+      selected.delete(g.getAttribute("data-graph"));
+      setFocusParam("");
+      resetDetail();
+      want = "";
+    }
+    var near = new Set();
+    if (want) {
+      near.add(want);
+      g.querySelectorAll("path[data-from]").forEach(function (e) {
+        var from = e.getAttribute("data-from"), to = e.getAttribute("data-to");
+        if (from === want || to === want) {
+          near.add(from);
+          near.add(to);
+        }
+        e.classList.toggle("dim", from !== want && to !== want);
+      });
+    } else {
+      g.querySelectorAll("path[data-from]").forEach(function (e) { e.classList.remove("dim"); });
+    }
     g.querySelectorAll(".node").forEach(function (n) {
-      if (want && n.getAttribute("data-node") === want) {
+      var id = n.getAttribute("data-node");
+      if (want && id === want) {
         n.setAttribute("aria-current", "true");
       } else {
         n.removeAttribute("aria-current");
       }
+      n.classList.toggle("dim", !!want && !near.has(id));
     });
+    var clear = g.querySelector("[data-clear-selection]");
+    if (clear) {
+      clear.hidden = !want;
+    }
+  }
+
+  // setFocusParam keeps the focus parameter in the address, so a refresh,
+  // a reload and a shared link show the same spotlight.
+  function setFocusParam(id) {
+    var u = new URL(location.href);
+    if (id) {
+      u.searchParams.set("focus", id);
+    } else {
+      u.searchParams.delete("focus");
+    }
+    history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+  }
+
+  function resetDetail() {
+    var target = document.getElementById("detail");
+    if (target) {
+      var p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
+      target.replaceChildren(p);
+    }
+  }
+
+  function clearSelection(g) {
+    selected.delete(g.getAttribute("data-graph"));
+    markSelected(g);
+    setFocusParam("");
+    resetDetail();
   }
 
   function intoView(el) {
@@ -529,6 +793,7 @@
     if (g) {
       selected.set(g.getAttribute("data-graph"), a.getAttribute("data-node"));
       markSelected(g);
+      setFocusParam(a.getAttribute("data-node"));
     }
     htmx.ajax("GET", panel, { source: a, target: "#detail", swap: "innerHTML" }).then(function () {
       intoView(target);
@@ -536,33 +801,60 @@
     return true;
   }
 
-  // A Pod's Logs link opens and shows its first container's pane.
-  document.addEventListener("click", function (evt) {
-    var l = evt.target.closest && evt.target.closest("a[data-log-link]");
-    if (!l) {
+  // The Logs tab opened at a pane (a Pod row's Logs link from Resources)
+  // opens that pane.
+  function openHashedPane() {
+    if (!location.hash) {
       return;
     }
-    var d = document.getElementById(l.getAttribute("data-log-link"));
-    if (d && d.matches("details.log")) {
-      evt.preventDefault();
+    var d = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (d && d.matches("details.log") && !d.open) {
       d.open = true;
-      d.scrollIntoView({ block: "start", behavior: "smooth" });
+      d.scrollIntoView({ block: "start" });
     }
-  });
+  }
+  openHashedPane();
+  document.addEventListener("htmx:afterSettle", openHashedPane);
+
+  // A group node expands in place: the page is loaded with the group in
+  // its expand parameter and the view fitted to the group's members.
+  function expandGroup(a) {
+    if (typeof htmx === "undefined") {
+      return false;
+    }
+    var href = a.getAttribute("href");
+    htmx.ajax("GET", href, { source: document.getElementById("main"), target: "#main", select: "#main", swap: "outerHTML", push: href });
+    return true;
+  }
 
   document.addEventListener("click", function (evt) {
-    var a = evt.target.closest && evt.target.closest(".graph .node");
-    if (!a) {
+    var clear = evt.target.closest && evt.target.closest("[data-clear-selection]");
+    if (clear) {
+      var cg = clear.closest(".graph[data-graph]");
+      if (cg) {
+        evt.preventDefault();
+        clearSelection(cg);
+      }
       return;
     }
-    if (moved || openNode(a)) {
+    var a = evt.target.closest && evt.target.closest(".graph .node");
+    if (!a) {
+      // A click on the empty graph clears the selection; a drag does not.
+      var empty = evt.target.closest && evt.target.closest(".graph-frame");
+      var eg = empty && empty.closest(".graph[data-graph]");
+      if (eg && !moved && selected.has(eg.getAttribute("data-graph"))) {
+        clearSelection(eg);
+      }
+      return;
+    }
+    if (moved || (a.hasAttribute("data-group") ? expandGroup(a) : openNode(a))) {
       // A drag that ends on a node is a pan, not a selection.
       evt.preventDefault();
     }
   });
   document.addEventListener("keydown", function (evt) {
     var a = evt.target.closest && evt.target.closest(".graph .node");
-    if (a && (evt.key === "Enter" || evt.key === " ") && openNode(a)) {
+    if (a && (evt.key === "Enter" || evt.key === " ") && (a.hasAttribute("data-group") ? expandGroup(a) : openNode(a))) {
       evt.preventDefault();
     }
   });
@@ -591,6 +883,43 @@
     var s = zooms.get(g.getAttribute("data-graph")) || fitScale(g);
     svg.setAttribute("width", String(Math.round(vb.width * s)));
     svg.setAttribute("height", String(Math.round(vb.height * s)));
+    var range = g.querySelector("[data-zoom-range]");
+    var out = g.querySelector("[data-zoom-value]");
+    if (range) {
+      range.value = String(Math.round(s * 100));
+    }
+    if (out) {
+      out.textContent = Math.round(s * 100) + "%";
+    }
+  }
+
+  // fitGroup fits the view to the members of the group just expanded,
+  // once per render, unless the user zoomed.
+  function fitGroup(g) {
+    var group = g.getAttribute("data-fit-group");
+    var frame = frameOf(g);
+    var svg = g.querySelector("svg");
+    if (!group || !frame || !svg || g.hasAttribute("data-fitted") || zooms.has(g.getAttribute("data-graph"))) {
+      return;
+    }
+    g.setAttribute("data-fitted", "");
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    g.querySelectorAll('.node[data-member-of="' + CSS.escape(group) + '"] .node-box').forEach(function (r) {
+      var x = r.x.baseVal.value, y = r.y.baseVal.value;
+      x0 = Math.min(x0, x);
+      y0 = Math.min(y0, y);
+      x1 = Math.max(x1, x + r.width.baseVal.value);
+      y1 = Math.max(y1, y + r.height.baseVal.value);
+    });
+    if (x0 === Infinity) {
+      return;
+    }
+    var pad = 24;
+    var s = Math.max(0.2, Math.min(1.5, (frame.clientWidth - 2) / (x1 - x0 + 2 * pad)));
+    zooms.set(g.getAttribute("data-graph"), s);
+    apply(g);
+    frame.scrollLeft = Math.max(0, (x0 - pad) * s);
+    frame.scrollTop = Math.max(0, (y0 - pad) * s);
   }
 
   // fitScale fits the graph's width to its frame, never above 1:1 and
@@ -616,7 +945,10 @@
       }
       apply(g);
       markSelected(g);
+      fitGroup(g);
     });
+    markFull();
+    showHovered();
   }
   restoreGraphs();
 
@@ -627,8 +959,6 @@
     var s = zooms.get(id) || fitScale(g);
     if (how === "fit") {
       s = Math.max(0.2, Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
-    } else if (how === "reset") {
-      s = 1;
     } else {
       s = how === "in" ? s * 1.25 : s * 0.8;
     }
@@ -640,6 +970,189 @@
     var b = evt.target.closest && evt.target.closest(".graph-tools button[data-zoom]");
     if (b) {
       zoom(b.closest(".graph"), b.getAttribute("data-zoom"));
+    }
+  });
+
+  document.addEventListener("input", function (evt) {
+    var r = evt.target;
+    if (r && r.matches && r.matches("[data-zoom-range]")) {
+      var g = r.closest(".graph[data-graph]");
+      zooms.set(g.getAttribute("data-graph"), Math.min(3, Math.max(0.2, Number(r.value) / 100)));
+      apply(g);
+    }
+  });
+
+  // ---- Full screen ----
+  // The Fullscreen API on the graph, or a class that fills the window where
+  // the API is missing or refused. A navigation leaves full screen.
+  // The stage is the element that goes full screen: it holds the graph's
+  // region but is not itself refreshed, so a live refresh replaces the
+  // graph inside it and the view stays full screen.
+  function stageOf(g) {
+    return (g.closest && g.closest("[data-graph-stage]")) || g;
+  }
+
+  function isFull(stage) {
+    return document.fullscreenElement === stage || stage.classList.contains("graph-full");
+  }
+
+  // markFull sets every Full screen button to what its stage is, and
+  // resizes the graphs: after entering, leaving, and every refresh.
+  function markFull() {
+    document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
+      var b = g.querySelector("[data-graph-full]");
+      if (b) {
+        b.setAttribute("aria-pressed", isFull(stageOf(g)) ? "true" : "false");
+      }
+      apply(g);
+    });
+  }
+
+  function leaveFull() {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(function () {});
+    }
+    document.querySelectorAll(".graph-full").forEach(function (el) { el.classList.remove("graph-full"); });
+    markFull();
+  }
+
+  function anyFull() {
+    return !!document.fullscreenElement || !!document.querySelector(".graph-full");
+  }
+
+  document.addEventListener("click", function (evt) {
+    var b = evt.target.closest && evt.target.closest("[data-graph-full]");
+    if (!b) {
+      return;
+    }
+    var stage = stageOf(b.closest(".graph[data-graph]"));
+    if (isFull(stage)) {
+      leaveFull();
+      return;
+    }
+    var fallback = function () {
+      stage.classList.add("graph-full");
+      markFull();
+    };
+    if (stage.requestFullscreen) {
+      stage.requestFullscreen().then(markFull, fallback);
+    } else {
+      fallback();
+    }
+  });
+  document.addEventListener("fullscreenchange", markFull);
+  document.addEventListener("htmx:beforeSwap", function (evt) {
+    var t = evt.detail && evt.detail.target;
+    if (t && t.id === "main") {
+      leaveFull();
+    }
+  });
+
+  // Escape steps back one thing per press: the theme menu, then an open
+  // hover card, then full screen, then the selection.
+  document.addEventListener("keydown", function (evt) {
+    if (evt.key !== "Escape" || evt.defaultPrevented) {
+      return;
+    }
+    var menu = document.querySelector("details.theme[open]");
+    if (menu) {
+      menu.open = false;
+      var s = menu.querySelector("summary");
+      if (s) {
+        s.focus();
+      }
+      evt.preventDefault();
+      return;
+    }
+    if (document.querySelector(".node-card:not([hidden])")) {
+      hideCards();
+      hovered = null;
+      evt.preventDefault();
+      return;
+    }
+    if (anyFull()) {
+      leaveFull();
+      evt.preventDefault();
+      return;
+    }
+    document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
+      if (selected.has(g.getAttribute("data-graph"))) {
+        clearSelection(g);
+        evt.preventDefault();
+      }
+    });
+  });
+
+  // ---- Hover cards ----
+  // The server renders each node's card hidden beside the graph; the card
+  // shows on pointer hover and on keyboard focus, placed by CSSOM
+  // properties, never a style attribute.
+  var hovered = null; // {graph, node}
+
+  function cardFor(n) {
+    var id = n.getAttribute("aria-describedby");
+    return id ? document.getElementById(id) : null;
+  }
+
+  function showCard(n) {
+    var card = cardFor(n);
+    var g = n.closest(".graph[data-graph]");
+    if (!card || !g) {
+      return;
+    }
+    hideCards();
+    var box = g.getBoundingClientRect();
+    var r = n.getBoundingClientRect();
+    card.hidden = false;
+    var left = r.left - box.left;
+    var top = r.bottom - box.top + 6;
+    var max = g.clientWidth - card.offsetWidth - 4;
+    card.style.left = Math.max(4, Math.min(left, max)) + "px";
+    card.style.top = top + "px";
+    hovered = { graph: g.getAttribute("data-graph"), node: n.getAttribute("data-node") };
+  }
+
+  function hideCards() {
+    document.querySelectorAll(".node-card:not([hidden])").forEach(function (c) { c.hidden = true; });
+  }
+
+  function showHovered() {
+    if (!hovered) {
+      return;
+    }
+    var g = document.querySelector('.graph[data-graph="' + CSS.escape(hovered.graph) + '"]');
+    var n = g && g.querySelector('.node[data-node="' + CSS.escape(hovered.node) + '"]');
+    if (n) {
+      showCard(n);
+    } else {
+      hovered = null;
+    }
+  }
+
+  document.addEventListener("pointerover", function (evt) {
+    var n = evt.target.closest && evt.target.closest(".graph .node");
+    if (n && !drag) {
+      showCard(n);
+    }
+  });
+  document.addEventListener("pointerout", function (evt) {
+    var n = evt.target.closest && evt.target.closest(".graph .node");
+    if (n && !(evt.relatedTarget && n.contains(evt.relatedTarget))) {
+      hideCards();
+      hovered = null;
+    }
+  });
+  document.addEventListener("focusin", function (evt) {
+    var n = evt.target.closest && evt.target.closest(".graph .node");
+    if (n) {
+      showCard(n);
+    }
+  });
+  document.addEventListener("focusout", function (evt) {
+    var n = evt.target.closest && evt.target.closest(".graph .node");
+    if (n) {
+      hideCards();
+      hovered = null;
     }
   });
 

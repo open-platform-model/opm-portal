@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -21,6 +23,8 @@ import (
 	k8stesting "k8s.io/client-go/testing"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
+	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
@@ -30,34 +34,49 @@ func TestConfigSource(t *testing.T) {
 	complete := func(current string) clientcmdapi.Config {
 		return clientcmdapi.Config{
 			CurrentContext: current,
-			Clusters:       map[string]*clientcmdapi.Cluster{"c": {Server: "https://127.0.0.1:6443"}},
-			AuthInfos:      map[string]*clientcmdapi.AuthInfo{"u": {Token: "t"}},
+			Clusters: map[string]*clientcmdapi.Cluster{
+				"dev-cluster":  {Server: "https://127.0.0.1:6443"},
+				"prod-cluster": {Server: "https://prod.example:6443"},
+			},
+			AuthInfos: map[string]*clientcmdapi.AuthInfo{"u": {Token: "secret-token"}},
 			Contexts: map[string]*clientcmdapi.Context{
-				"kind-dev": {Cluster: "c", AuthInfo: "u"},
-				"prod":     {Cluster: "c", AuthInfo: "u"},
+				"kind-dev": {Cluster: "dev-cluster", AuthInfo: "u"},
+				"prod":     {Cluster: "prod-cluster", AuthInfo: "u"},
 			},
 		}
 	}
+	inPod := api.Connection{Source: v1.SourceInCluster}
+	dev := api.Connection{Source: v1.SourceKubeconfig, Context: "kind-dev", ClusterEntry: "dev-cluster"}
+	prod := api.Connection{Source: v1.SourceKubeconfig, Context: "prod", ClusterEntry: "prod-cluster"}
 	tests := []struct {
 		name      string
 		raw       clientcmdapi.Config
 		asked     string
 		inCluster bool
-		wantKey   string
-		wantValue string
+		want      api.Connection
+		wantLog   string
 	}{
-		{"no kubeconfig in a Pod", clientcmdapi.Config{}, "", true, "source", "in-cluster"},
-		{"contexts but no current context, in a Pod", complete(""), "", true, "source", "in-cluster"},
-		{"the current context, in a Pod", complete("kind-dev"), "", true, "context", "kind-dev"},
-		{"the current context", complete("kind-dev"), "", false, "context", "kind-dev"},
-		{"the context asked for", complete("kind-dev"), "prod", false, "context", "prod"},
-		{"the context asked for, in a Pod", complete(""), "prod", true, "context", "prod"},
+		{"no kubeconfig in a Pod", clientcmdapi.Config{}, "", true, inPod, "source=in-cluster"},
+		{"contexts but no current context, in a Pod", complete(""), "", true, inPod, "source=in-cluster"},
+		{"the current context, in a Pod", complete("kind-dev"), "", true, dev, "context=kind-dev"},
+		{"the current context", complete("kind-dev"), "", false, dev, "context=kind-dev"},
+		{"the context asked for", complete("kind-dev"), "prod", false, prod, "context=prod"},
+		{"the context asked for, in a Pod", complete(""), "prod", true, prod, "context=prod"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := configSource(tt.raw, tt.asked, tt.inCluster)
-			if got.Key != tt.wantKey || got.Value.String() != tt.wantValue {
-				t.Fatalf("configSource() = %s=%s; want %s=%s", got.Key, got.Value, tt.wantKey, tt.wantValue)
+			if got != tt.want {
+				t.Fatalf("configSource() = %+v; want %+v", got, tt.want)
+			}
+			if attr := sourceAttr(got); attr.String() != tt.wantLog {
+				t.Errorf("log attribute = %s; want %s", attr, tt.wantLog)
+			}
+			// The user entry's name, the server URL and the token are
+			// nowhere in it.
+			named := fmt.Sprintf("%+v", got)
+			if strings.Contains(named, "https://") || strings.Contains(named, "secret-token") || got.Context == "u" || got.ClusterEntry == "u" {
+				t.Fatalf("the connection names a server, user entry or credential: %s", named)
 			}
 		})
 	}
@@ -100,14 +119,72 @@ func TestServeRefusesBeforeReadingTheKubeconfig(t *testing.T) {
 	}
 }
 
+// TestServeFailsOnAMissingKubeconfig also shows that port 0 still binds a
+// free port: serve gets past the listen to the kubeconfig.
 func TestServeFailsOnAMissingKubeconfig(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	missing := filepath.Join(t.TempDir(), "no-such-kubeconfig")
-	if code := run(t.Context(), []string{"serve", "--kubeconfig", missing}, &stdout, &stderr); code != exitFailure {
+	if code := run(t.Context(), []string{"serve", "--kubeconfig", missing, "--addr", "127.0.0.1:0"}, &stdout, &stderr); code != exitFailure {
 		t.Fatalf("exit code = %d; want %d (stderr %q)", code, exitFailure, stderr.String())
 	}
 	if stdout.Len() != 0 {
 		t.Fatalf("stdout = %q; want nothing printed before startup succeeds", stdout.String())
+	}
+	if !strings.Contains(stderr.String(), "loading the kubeconfig") {
+		t.Fatalf("stderr = %q; want the kubeconfig error", stderr.String())
+	}
+}
+
+// TestServeRefusesATakenPort: an address another process holds stops serve
+// with exit 1 and a message naming it and --addr, before the kubeconfig is
+// read, so no request reaches a cluster.
+func TestServeRefusesATakenPort(t *testing.T) {
+	var lc net.ListenConfig
+	// The default port: held here, or already held by another process,
+	// which takes it just the same.
+	if held, err := lc.Listen(t.Context(), "tcp", defaultAddr); err == nil {
+		t.Cleanup(func() { _ = held.Close() })
+	} else if !errors.Is(err, syscall.EADDRINUSE) {
+		t.Skipf("cannot hold %s: %v", defaultAddr, err)
+	}
+	other, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = other.Close() })
+	missing := filepath.Join(t.TempDir(), "no-such-kubeconfig")
+	for _, tt := range []struct {
+		name string
+		args []string
+		addr string
+	}{
+		{"the default address", nil, defaultAddr},
+		{"an address passed with --addr", []string{"--addr", other.Addr().String()}, other.Addr().String()},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			args := append([]string{"serve", "--kubeconfig", missing}, tt.args...)
+			if code := run(t.Context(), args, &stdout, &stderr); code != exitFailure {
+				t.Fatalf("exit code = %d; want %d (stderr %q)", code, exitFailure, stderr.String())
+			}
+			if want := tt.addr + " is in use; pass --addr 127.0.0.1:<port> to use another port"; !strings.Contains(stderr.String(), want) {
+				t.Fatalf("stderr = %q; want it to contain %q", stderr.String(), want)
+			}
+			if strings.Contains(stderr.String(), "kubeconfig") || stdout.Len() != 0 {
+				t.Fatalf("the kubeconfig was read or a link was printed: stdout %q stderr %q", stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+func TestListenOnPortZeroPicksAFreePort(t *testing.T) {
+	ln, bound, err := listen(t.Context(), "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = ln.Close() }()
+	if bound.Port() == 0 || !bound.Addr().IsLoopback() {
+		t.Fatalf("bound = %s; want a loopback address and a chosen port", bound)
 	}
 }
 
@@ -127,6 +204,9 @@ func TestParseServe(t *testing.T) {
 	o, err := parseServe([]string{"--context", "kind-x", "--namespaces", " team-a, ,team-b", "--open"}, &bytes.Buffer{})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if defaultAddr != "127.0.0.1:7878" {
+		t.Fatalf("defaultAddr = %q; want the fixed 127.0.0.1:7878", defaultAddr)
 	}
 	if o.addr != defaultAddr || o.context != "kind-x" || !o.open || !slices.Equal(o.namespaces, []string{"team-a", "team-b"}) {
 		t.Fatalf("options = %+v", o)

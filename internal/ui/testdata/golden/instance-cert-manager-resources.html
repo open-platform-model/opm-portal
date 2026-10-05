@@ -1,0 +1,690 @@
+<main id="main" tabindex="-1" data-topics="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager" data-canonical="/instances/cert-manager/cert-manager">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=instance">Installed</a> <span aria-hidden="true">/</span> <span class="mono">cert-manager</span> <span aria-hidden="true">/</span> <span>cert-manager</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:cert-manager/cert-manager">
+    <p class="kicker">Instance</p>
+    <h1>cert-manager</h1>
+    
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">cert-manager</dd>
+      <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>cert_manager@v2 <span class="ver">v2.0.5</span></dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="mono">cert-manager-applier</span></dd>
+      <dt>Objects</dt><dd>42</dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></dd>
+    </dl>
+    
+  </section>
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
+    <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+    <p class="card-message">Reconciliation succeeded</p>
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:05 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:05 UTC"></span></span></div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>
+<ol class="timeline">
+  <li class="tl-item" data-phase="complete">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-phase">complete</span><span class="tl-time"><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></span></div>
+    <p class="tl-meta mono">42 objects · render <span title="sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c">ca57c7de56c2</span> · source <span title="sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7">1070cfa34f2c</span></p>
+  </li>
+</ol>
+</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:cert-manager/cert-manager">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
+  </section>
+  
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:cert-manager/cert-manager">
+  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></span></div>
+    <p class="cond-message">Reconciliation succeeded</p>
+    <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+  </li>
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:03Z" title="2026-10-04 18:04:03 UTC">5m ago</time></span></div>
+    <p class="cond-message">module resolved: opmodel.dev/modules/cert_manager@v2@v2.0.5</p>
+    <p class="cond-meaning">The module version was found in the registry.</p>
+  </li>
+</ol>
+  
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/crds@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/role@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/service-account@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/security-context@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1</li></ul>
+</details>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/cert-manager/cert-manager?tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=resources" aria-current="page">Resources</a><a href="/instances/cert-manager/cert-manager?tab=events">Events</a><a href="/instances/cert-manager/cert-manager?tab=logs">Logs</a><a href="/instances/cert-manager/cert-manager?tab=yaml">YAML</a></nav>
+<section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="instance:cert-manager/cert-manager">
+  <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
+  <form class="filters" method="get" action="/instances/cert-manager/cert-manager" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
+  <input type="hidden" name="tab" value="resources">
+  <div class="filter-fields">
+    
+    <div class="field"><label for="f-reason">Health reason</label><input id="f-reason" name="reason" value="" placeholder="a reason, such as ImagePullBackOff" autocomplete="off" spellcheck="false"></div>
+    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+  </div>
+  
+</form>
+  <ol class="components">
+  <li class="component">
+  <div class="component-head"><h3 class="component-name">controller</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ServiceAccount cert-manager/<wbr>cert-manager</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?kind=ServiceAccount&amp;name=cert-manager&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=ServiceAccount&amp;name=cert-manager&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=ServiceAccount&amp;name=cert-manager&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=ServiceAccount&amp;name=cert-manager&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Deployment.<wbr>apps cert-manager/<wbr>cert-manager-controller</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-controller&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Deployment is available. Replicas: 1</p>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-controller-7c9bddd644-cr5qm</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-cr5qm&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-controller-7c9bddd644-cr5qm_cert-manager-controller" data-log-link="log_cert-manager-controller-7c9bddd644-cr5qm_cert-manager-controller">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-controller-7c9bddd644</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">webhook</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ServiceAccount cert-manager/<wbr>cert-manager-webhook</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?kind=ServiceAccount&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=ServiceAccount&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=ServiceAccount&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=ServiceAccount&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Deployment.<wbr>apps cert-manager/<wbr>cert-manager-webhook</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Deployment is available. Replicas: 1</p>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-webhook-6c5bb576f5-slp22</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-slp22&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-webhook-6c5bb576f5-slp22_cert-manager-webhook" data-log-link="log_cert-manager-webhook-6c5bb576f5-slp22_cert-manager-webhook">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-webhook-6c5bb576f5</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Service cert-manager/<wbr>cert-manager-webhook</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FService%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?kind=Service&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Service&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Service&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Service&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Service is ready</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">cainjector</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ServiceAccount cert-manager/<wbr>cert-manager-cainjector</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?kind=ServiceAccount&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=ServiceAccount&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=ServiceAccount&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=ServiceAccount&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Deployment.<wbr>apps cert-manager/<wbr>cert-manager-cainjector</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Deployment is available. Replicas: 1</p>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-cainjector-5d69c59bd-htjjq</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-htjjq&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-cainjector-5d69c59bd-htjjq_cert-manager-cainjector" data-log-link="log_cert-manager-cainjector-5d69c59bd-htjjq_cert-manager-cainjector">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-cainjector-5d69c59bd</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
+    </li>
+  
+  </ul>
+</li>
+    <li class="component component-group">
+      <details id="config-components">
+        <summary class="component-head"><h3 class="component-name">17 configuration components</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="muted group-note">RBAC, CRDs, webhooks and other objects with no workload</span></summary>
+        <ol class="components"><li class="component">
+  <div class="component-head"><h3 class="component-name">namespace</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Namespace cert-manager</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3A_%2FNamespace%2F_%2Fcert-manager&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?kind=Namespace&amp;name=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Namespace&amp;name=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Namespace&amp;name=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Namespace&amp;name=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">crds</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io certificaterequests.<wbr>cert-manager.<wbr>io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aapiextensions.k8s.io%2FCustomResourceDefinition%2F_%2Fcertificaterequests.cert-manager.io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificaterequests.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificaterequests.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificaterequests.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificaterequests.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">CRD is established</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io certificates.<wbr>cert-manager.<wbr>io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aapiextensions.k8s.io%2FCustomResourceDefinition%2F_%2Fcertificates.cert-manager.io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificates.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificates.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificates.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=certificates.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">CRD is established</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io clusterissuers.<wbr>cert-manager.<wbr>io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aapiextensions.k8s.io%2FCustomResourceDefinition%2F_%2Fclusterissuers.cert-manager.io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=clusterissuers.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=clusterissuers.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=clusterissuers.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=clusterissuers.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">CRD is established</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io issuers.<wbr>cert-manager.<wbr>io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aapiextensions.k8s.io%2FCustomResourceDefinition%2F_%2Fissuers.cert-manager.io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=issuers.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=issuers.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=issuers.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=issuers.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">CRD is established</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io orders.<wbr>acme.<wbr>cert-manager.<wbr>io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aapiextensions.k8s.io%2FCustomResourceDefinition%2F_%2Forders.acme.cert-manager.io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=orders.acme.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=orders.acme.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=orders.acme.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=orders.acme.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">CRD is established</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io challenges.<wbr>acme.<wbr>cert-manager.<wbr>io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aapiextensions.k8s.io%2FCustomResourceDefinition%2F_%2Fchallenges.acme.cert-manager.io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=challenges.acme.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=challenges.acme.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=challenges.acme.cert-manager.io" hx-get="/instances/cert-manager/cert-manager/events?group=apiextensions.k8s.io&amp;kind=CustomResourceDefinition&amp;name=challenges.acme.cert-manager.io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">CRD is established</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">webhook-validating</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ValidatingWebhookConfiguration.<wbr>admissionregistration.<wbr>k8s.<wbr>io cert-manager-webhook</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aadmissionregistration.k8s.io%2FValidatingWebhookConfiguration%2F_%2Fcert-manager-webhook&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=admissionregistration.k8s.io&amp;kind=ValidatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-get="/instances/cert-manager/cert-manager/object?group=admissionregistration.k8s.io&amp;kind=ValidatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=admissionregistration.k8s.io&amp;kind=ValidatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-get="/instances/cert-manager/cert-manager/events?group=admissionregistration.k8s.io&amp;kind=ValidatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">webhook-mutating</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">MutatingWebhookConfiguration.<wbr>admissionregistration.<wbr>k8s.<wbr>io cert-manager-webhook</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Aadmissionregistration.k8s.io%2FMutatingWebhookConfiguration%2F_%2Fcert-manager-webhook&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=admissionregistration.k8s.io&amp;kind=MutatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-get="/instances/cert-manager/cert-manager/object?group=admissionregistration.k8s.io&amp;kind=MutatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=admissionregistration.k8s.io&amp;kind=MutatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-get="/instances/cert-manager/cert-manager/events?group=admissionregistration.k8s.io&amp;kind=MutatingWebhookConfiguration&amp;name=cert-manager-webhook" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">cainjector-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-cainjector</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-cainjector&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-cainjector" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-cainjector" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-cainjector" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-cainjector" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-cainjector</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-cainjector&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-cainjector" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-cainjector" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-cainjector" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-cainjector" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-issuers-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-issuers</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-issuers&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-issuers" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-issuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-issuers" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-issuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-issuers</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-issuers&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-issuers" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-issuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-issuers" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-issuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-clusterissuers-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-clusterissuers</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-clusterissuers&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-clusterissuers" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-clusterissuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-clusterissuers" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-clusterissuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-clusterissuers</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-clusterissuers&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-clusterissuers" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-clusterissuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-clusterissuers" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-clusterissuers" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-certificates-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificates</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-certificates&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificates" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificates" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificates" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificates" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificates</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-certificates&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificates" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificates" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificates" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificates" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-orders-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-orders</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-orders&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-orders" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-orders" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-orders" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-orders" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-orders</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-orders&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-orders" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-orders" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-orders" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-orders" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-challenges-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-challenges</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-challenges&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-challenges" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-challenges" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-challenges" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-challenges" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-challenges</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-challenges&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-challenges" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-challenges" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-challenges" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-challenges" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-ingress-shim-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-ingress-shim</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-ingress-shim&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-ingress-shim" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-ingress-shim" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-ingress-shim" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-ingress-shim" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-ingress-shim</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-ingress-shim&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-ingress-shim" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-ingress-shim" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-ingress-shim" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-ingress-shim" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-approve-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-approve:cert-manager-io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-approve%253Acert-manager-io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-approve:cert-manager-io</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-approve%253Acert-manager-io&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-approve%3Acert-manager-io" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-csr-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificatesigningrequests</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-controller-certificatesigningrequests&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificatesigningrequests" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificatesigningrequests" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificatesigningrequests" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-controller-certificatesigningrequests" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificatesigningrequests</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-controller-certificatesigningrequests&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificatesigningrequests" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificatesigningrequests" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificatesigningrequests" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-controller-certificatesigningrequests" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">webhook-sar-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-webhook:subjectaccessreviews</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRole%2F_%2Fcert-manager-webhook%253Asubjectaccessreviews&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRole&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-webhook:subjectaccessreviews</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FClusterRoleBinding%2F_%2Fcert-manager-webhook%253Asubjectaccessreviews&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=ClusterRoleBinding&amp;name=cert-manager-webhook%3Asubjectaccessreviews" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">cainjector-leaderelection-role</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Role.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-cainjector:leaderelection</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FRole%2Fcert-manager%2Fcert-manager-cainjector%253Aleaderelection&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">RoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-cainjector:leaderelection</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FRoleBinding%2Fcert-manager%2Fcert-manager-cainjector%253Aleaderelection&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-cainjector%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">controller-leaderelection-role</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Role.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager:leaderelection</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FRole%2Fcert-manager%2Fcert-manager%253Aleaderelection&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">RoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager:leaderelection</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FRoleBinding%2Fcert-manager%2Fcert-manager%253Aleaderelection&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager%3Aleaderelection&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li><li class="component">
+  <div class="component-head"><h3 class="component-name">webhook-dynamic-serving-role</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <ul class="objects">
+    
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">Role.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-webhook:dynamic-serving</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FRole%2Fcert-manager%2Fcert-manager-webhook%253Adynamic-serving&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=Role&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+    <li class="object">
+      <div class="object-row">
+        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="mono object-ref">RoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-webhook:dynamic-serving</span>
+        <span class="origin">in the inventory</span>
+        <span class="mono obj-reason">Current</span>
+        <span class="object-actions"><a href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;focus=obj%3Arbac.authorization.k8s.io%2FRoleBinding%2Fcert-manager%2Fcert-manager-webhook%253Adynamic-serving&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=rbac.authorization.k8s.io&amp;kind=RoleBinding&amp;name=cert-manager-webhook%3Adynamic-serving&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
+      </div>
+      <p class="object-why">Resource is current</p>
+      
+    </li>
+  
+  </ul>
+</li></ol>
+      </details>
+    </li>
+  </ol>
+</section>
+<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+</aside>
+</main>

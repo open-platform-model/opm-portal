@@ -32,6 +32,13 @@ func (m *Model) Platform(ctx context.Context, who authz.Identity, g authz.Grant)
 		Subscriptions:   subscriptions(u),
 	}
 	view.Registrations, view.RegistrationsAccess = m.readableRegistrations(ctx, who)
+	if len(view.Registrations) > 0 {
+		held := m.holders(ctx, who)
+		for i := range view.Registrations {
+			r := &view.Registrations[i]
+			r.HeldBy, r.HeldByPartial = held.byName[r.Name], held.partial
+		}
+	}
 	view.Catalogs = catalogs(u, view.Registrations)
 	return view, nil
 }
@@ -77,8 +84,9 @@ func registrationView(u *unstructured.Unstructured) RegistrationView {
 			Namespace: str(u.Object, "spec", "providerRef", "namespace"),
 			Name:      str(u.Object, "spec", "providerRef", "name"),
 		},
-		Standing: health.ReadRegistration(u),
-		Applied:  health.ReadApplied(u),
+		Standing:   health.ReadRegistration(u),
+		Applied:    health.ReadApplied(u),
+		Conditions: conditions(u),
 	}
 }
 

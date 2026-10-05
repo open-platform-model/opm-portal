@@ -1,0 +1,98 @@
+<main id="main" tabindex="-1" data-topics="instance:default/podinfo events:instance:default/podinfo" data-canonical="/instances/default/podinfo">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=instance">Installed</a> <span aria-hidden="true">/</span> <span class="mono">default</span> <span aria-hidden="true">/</span> <span>podinfo</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:default/podinfo">
+    <p class="kicker">Instance</p>
+    <h1>podinfo</h1>
+    
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">default</dd>
+      <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>podinfo@v0 <span class="ver">v0.1.11</span></dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="mono">podinfo-applier</span></dd>
+      <dt>Objects</dt><dd>2</dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></dd>
+    </dl>
+    
+  </section>
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:default/podinfo events:instance:default/podinfo">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
+    <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+    <p class="card-message">Reconciliation succeeded</p>
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:06 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:06 UTC"></span></span></div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>
+<ol class="timeline">
+  <li class="tl-item" data-phase="complete">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-phase">complete</span><span class="tl-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="tl-meta mono">2 objects · render <span title="sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e">2ee385ae7832</span> · source <span title="sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969">20f3bd71e576</span></p>
+  </li>
+</ol>
+</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:default/podinfo">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
+  </section>
+  
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">
+  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="cond-message">Reconciliation succeeded</p>
+    <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+  </li>
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="cond-message">module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11</p>
+    <p class="cond-meaning">The module version was found in the registry.</p>
+  </li>
+</ol>
+  
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
+</details>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources</a><a href="/instances/default/podinfo?tab=events" aria-current="page">Events</a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:instance:default/podinfo">
+  <h2 id="events-h">Events</h2>
+  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
+    <input type="hidden" name="tab" value="events">
+    <div class="filter-fields">
+      <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource"><option value="" selected>This instance</option><optgroup label="Deployment"><option value="apps/Deployment/default/podinfo-podinfo">podinfo-podinfo</option></optgroup><optgroup label="ModuleInstance"><option value="opmodel.dev/ModuleInstance/default/podinfo">podinfo</option></optgroup><optgroup label="Pod"><option value="/Pod/default/podinfo-podinfo-d9585d794-4lg6h">podinfo-podinfo-d9585d794-4lg6h</option><option value="/Pod/default/podinfo-podinfo-d9585d794-kp2jx">podinfo-podinfo-d9585d794-kp2jx</option></optgroup><optgroup label="ReplicaSet"><option value="apps/ReplicaSet/default/podinfo-podinfo-d9585d794">podinfo-podinfo-d9585d794</option></optgroup><optgroup label="Service"><option value="/Service/default/podinfo-podinfo">podinfo-podinfo</option></optgroup></select></div>
+      <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any</option><option value="Normal" selected>Normal</option><option value="Warning">Warning</option></select></div>
+      <div class="field"><label for="f-reason">Reason</label><input id="f-reason" name="reason" value="" placeholder="an event reason" autocomplete="off" spellcheck="false"></div>
+      <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    </div>
+    <div class="filter-chips">
+      <a class="fchip" href="/instances/default/podinfo?tab=events" data-filters-explicit aria-label="Remove the filter Type: Normal"><span class="fchip-label">Type</span> Normal<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+      <a class="fclear" href="/instances/default/podinfo?tab=events" data-filters-explicit>Clear filters</a>
+    </div>
+  </form>
+  <p class="shown">Showing <strong>3</strong> of 3, newest first, repeats folded</p>
+  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
+  <p class="note">Render warnings are recorded only as events, so a warning older than about an hour is gone.</p>
+<ol class="events">
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">NoOp</span><span class="ev-time"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m ago</time></span></div>
+    <p class="ev-note">No changes detected</p>
+    <p class="ev-meta mono">ModuleInstance.opmodel.dev default/podinfo · opm-controller</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">ReconciliationSucceeded</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Reconciliation succeeded</p>
+    <p class="ev-meta mono">ModuleInstance.opmodel.dev default/podinfo · opm-controller</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Applied</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Applied 2 resources (2 created, 0 updated, 0 unchanged)</p>
+    <p class="ev-meta mono">ModuleInstance.opmodel.dev default/podinfo · opm-controller</p>
+  </li>
+</ol>
+</section>
+</main>

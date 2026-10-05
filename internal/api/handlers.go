@@ -113,6 +113,25 @@ func (s *Server) listGrant(ctx context.Context, who authz.Identity, resource sch
 	return g, false, err
 }
 
+// getCluster serves the Cluster document. It reads nothing from the
+// cluster and sends no review: the connection's names come from the mode's
+// configuration, the username from the request's own principal and the
+// version from what the read model read once at start (portal:D18).
+func (s *Server) getCluster(_ context.Context, p Principal, _ *http.Request) (any, error) {
+	doc := v1.Cluster{
+		TypeMeta:          meta(v1.KindCluster),
+		Name:              DefaultCluster,
+		Mode:              string(s.cfg.Mode),
+		Source:            s.cfg.Connection.Source,
+		ReadingAs:         v1.ReadingAs{Username: p.Identity.Username},
+		KubernetesVersion: s.cfg.Model.ServerVersion(),
+	}
+	if doc.Source == v1.SourceKubeconfig {
+		doc.Context, doc.ClusterEntry = s.cfg.Connection.Context, s.cfg.Connection.ClusterEntry
+	}
+	return doc, nil
+}
+
 func (s *Server) listInstances(ctx context.Context, p Principal, r *http.Request) (any, error) {
 	ns, err := listScope(r)
 	if err != nil {

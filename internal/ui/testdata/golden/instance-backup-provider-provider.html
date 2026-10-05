@@ -1,0 +1,99 @@
+<main id="main" tabindex="-1" data-topics="instance:default/backup-provider events:instance:default/backup-provider platform instances" data-canonical="/instances/default/backup-provider">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=instance">Installed</a> <span aria-hidden="true">/</span> <span class="mono">default</span> <span aria-hidden="true">/</span> <span>backup-provider</span></nav>
+<div class="summary reveal">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:default/backup-provider">
+    <p class="kicker">Instance <span class="prov prov-active" title="default.backup-provider: Accepted">Provider, active</span></p>
+    <h1>backup-provider</h1>
+    
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">default</dd>
+      <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>backup_provider@v0 <span class="ver">v0.1.0</span></dd>
+      <dt>Applied by</dt><dd>the controller</dd>
+      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="mono">backup-provider-applier</span></dd>
+      <dt>Objects</dt><dd>1</dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></dd>
+    </dl>
+    
+  </section>
+  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:default/backup-provider events:instance:default/backup-provider">
+    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
+    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
+    <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+    <p class="card-message">Reconciliation succeeded</p>
+    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
+    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:21 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:21 UTC"></span></span></div>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    <details class="history-fold" id="history-fold"><summary>Show history</summary>
+<ol class="timeline">
+  <li class="tl-item" data-phase="complete">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-phase">complete</span><span class="tl-time"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></span></div>
+    <p class="tl-meta mono">1 objects · render <span title="sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b">43a9e76157da</span> · source <span title="sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1">b21e617a3429</span></p>
+  </li>
+</ol>
+</details>
+  </section>
+  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:default/backup-provider">
+    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
+    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
+  </section>
+  <section class="card owner-card" id="provider-card" aria-labelledby="provider-h" data-follow="instance:default/backup-provider">
+    <h2 id="provider-h">Provider <span class="h-note">the controller's verdict on what this holds</span></h2>
+    <ul class="claims">
+      <li><span class="prov prov-active" title="default.backup-provider: Accepted">Active</span> <a class="mono" href="/instances/default/backup-provider?tab=provider">default.<wbr>backup-provider</a> <span class="mono muted">Accepted</span></li>
+    </ul>
+  </section>
+  
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/backup-provider">
+  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></span></div>
+    <p class="cond-message">Reconciliation succeeded</p>
+    <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
+  </li>
+  <li class="condition tone-normal">
+    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:21Z" title="2026-10-04 18:04:21 UTC">5m ago</time></span></div>
+    <p class="cond-message">module resolved: testing.opmodel.dev/modules/operator/backup_provider@v0@v0.1.0</p>
+    <p class="cond-meaning">The module version was found in the registry.</p>
+  </li>
+</ol>
+  
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1</li></ul>
+</details>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/backup-provider?tab=graph">Graph</a><a href="/instances/default/backup-provider?tab=resources">Resources</a><a href="/instances/default/backup-provider?tab=events">Events</a><a href="/instances/default/backup-provider?tab=logs">Logs</a><a href="/instances/default/backup-provider?tab=yaml">YAML</a><a href="/instances/default/backup-provider?tab=provider" aria-current="page">Provider</a></nav>
+<section class="panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="instance:default/backup-provider platform instances">
+  <h2 id="provider-tab-h">Provider <span class="h-note">the registrations this instance's inventory holds, as the controller judged them</span></h2>
+  
+  
+  <article class="claim" aria-label="Registration default.backup-provider">
+    <h3 class="mono">default.<wbr>backup-provider</h3>
+    <p class="pills"><span class="prov prov-active" title="default.backup-provider: Accepted">Active</span>
+      <span class="pill pill-yes">accepted</span>
+      <span class="pill pill-yes">active</span> <span class="mono">Accepted</span></p>
+    <dl class="facts">
+      <dt>Catalog</dt><dd><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</a> <span class="ver">0.1.0</span></dd>
+      <dt>Registry</dt><dd>In the Platform's resolved registry, contributed by this registration.</dd>
+      <dt>providerRef</dt><dd>names ModuleInstance <span class="mono">default/backup-provider</span></dd>
+      <dt>Controller says</dt><dd>Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</dd>
+    </dl>
+    <h4 class="sub-h">Conditions</h4>
+    <div class="table-wrap"><table class="table rows">
+      <thead><tr><th scope="col">Condition</th><th scope="col">Status</th><th scope="col">Reason</th><th scope="col">Meaning</th><th scope="col">Since</th></tr></thead>
+      <tbody><tr class="tone-normal"><th scope="row" data-label="Condition">Ready</th><td data-label="Status">True</td><td data-label="Reason" class="mono">Accepted</td><td data-label="Meaning">The registration passed every check. Whether it is active is shown separately.<p class="cond-message">Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:22Z" title="2026-10-04 18:04:22 UTC">5m ago</time></td></tr><tr class="tone-normal"><th scope="row" data-label="Condition">Active</th><td data-label="Status">True</td><td data-label="Reason" class="mono">ProviderReady</td><td data-label="Meaning">The provider is ready, so the registration is active.<p class="cond-message">Provider ModuleInstance default/backup-provider is Ready</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:22Z" title="2026-10-04 18:04:22 UTC">5m ago</time></td></tr></tbody>
+    </table></div>
+    <h4 class="sub-h">What it provides</h4>
+    <ul class="provides">
+      <li><span class="mono chip" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span>
+        <span class="used-by"><span class="label">Used by</span><a class="mono" href="/instances/default/backup-consumer">default/backup-consumer</a> 
+        <a href="/installed?uses=opmodel.dev%2Fcatalogs%2Fopm%2Ftraits%2Fbackup%40v1alpha1">All 1 in Installed</a></span></li>
+    </ul>
+    
+    
+  </article>
+  
+</section>
+</main>

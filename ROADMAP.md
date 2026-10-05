@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-05 (web UI redesign planned).
+Last updated: 2026-10-05 (web UI redesign in review).
 
 ## Where it stands
 
@@ -68,15 +68,14 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 1. **First release, 0.1.0** (PR 18), held until the portal's part of the opm-operator to
    opm-controller rename merges (it renames `operatorVersion` and the owner value `operator` in the
    read API).
-2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, planned): Platform and Installed views,
-   a theme choice and remembered filters, summary cards and tabs on instance and package pages,
-   the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); local mode
-   moves to a fixed default port. Left as future work: a Platform health (portal:OQ22) and catalog
-   contents, definitions and transformers (portal:OQ25). Controller follow-ups it uncovered:
-   package providers (portal:OQ23,
-   [opm-operator#254](https://github.com/open-platform-model/opm-operator/issues/254)) and package
-   render contracts (portal:OQ24).
-3. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
+2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, in review, PR 39): Platform
+   and Installed views, a theme choice and remembered filters, summary cards and tabs on instance
+   and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to
+   D18); the `Cluster` document, provider holders and package sources in the read API; local mode
+   on the fixed default port `127.0.0.1:7878`.
+3. **A `packages` stream topic**, so the Installed list follows package changes live as it
+   follows instances; until then package rows refresh on navigation.
+4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
    graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
    item 4 (the loopback cookie risk, accepted and documented).
 
@@ -178,6 +177,15 @@ What it would take, in order, each step gated:
 | Order | Dry run and submit as the user, review and status pages, edit and delete | 0027:OQ24 to OQ27 answered; write identity decided (portal:OQ1) |
 
 ### 3. Advanced features
+
+Left out of the web UI redesign until a source exists, not ranked below:
+
+- **A Platform health** (portal:OQ22): the Platform page shows no health for the Platform itself.
+- **Catalog contents** (portal:OQ25): definitions, their descriptions and documentation links,
+  and the transformers a catalog ships, on the Catalog page and the Provider tab.
+- **Controller follow-ups**: the operator accepting a ModulePackage as a provider (portal:OQ23,
+  [opm-operator#254](https://github.com/open-platform-model/opm-operator/issues/254)), and
+  packages recording the contracts their render used (portal:OQ24).
 
 Beyond the marketplace, ranked by value per effort:
 

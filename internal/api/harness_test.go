@@ -15,6 +15,7 @@ import (
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	dynfake "k8s.io/client-go/dynamic/fake"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
 	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
@@ -105,11 +106,17 @@ func newEnv(t testing.TB, objs []*unstructured.Unstructured, callerRule readmode
 // readerRule.
 func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule readmodeltest.Rule, opts ...func(*Config)) *env {
 	t.Helper()
+	return newEnvWithDiscovery(t, objs, callerRule, readerRule, readmodeltest.Discovery(readmodeltest.Kinds...), opts...)
+}
+
+// newEnvWithDiscovery is newEnvWithReader over the given discovery client.
+func newEnvWithDiscovery(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule readmodeltest.Rule,
+	disc *fakediscovery.FakeDiscovery, opts ...func(*Config)) *env {
+	t.Helper()
 	caller, _ := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
 	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, reader.Username: readerChecker}}
 	client := readmodeltest.Dynamic(objs...)
-	disc := readmodeltest.Discovery(readmodeltest.Kinds...)
 	m, err := readmodel.New(readmodel.Config{
 		Dynamic:     client,
 		Discovery:   disc,
@@ -131,6 +138,7 @@ func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRul
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
+		Connection: f1Connection,
 		Authenticate: func(*http.Request) (Principal, error) {
 			if e.principal.Session == "" && e.principal.Identity.Username == "" {
 				return Principal{}, errors.New("no session")
@@ -207,3 +215,7 @@ func f1Broken(t testing.TB) []*unstructured.Unstructured {
 }
 
 const base = Prefix + "/clusters/default"
+
+// f1Connection is the kubeconfig context and cluster entry F1 was read
+// with.
+var f1Connection = Connection{Source: v1.SourceKubeconfig, Context: "kind-opm-portal-e2e", ClusterEntry: "kind-opm-portal-e2e"}

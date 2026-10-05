@@ -1,0 +1,13 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Cluster",
+  "name": "default",
+  "mode": "local",
+  "source": "kubeconfig",
+  "context": "kind-opm-portal-e2e",
+  "clusterEntry": "kind-opm-portal-e2e",
+  "readingAs": {
+    "username": "alice"
+  },
+  "kubernetesVersion": "v1.36.1"
+}

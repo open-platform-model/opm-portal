@@ -98,6 +98,7 @@ func historyEntries(hs []readmodel.HistoryEntry) []v1.HistoryEntry {
 		out = append(out, v1.HistoryEntry{
 			Action:          h.Action,
 			Phase:           h.Phase,
+			Outcome:         string(h.Outcome),
 			Sequence:        h.Sequence,
 			StartedAt:       timePtr(h.StartedAt),
 			FinishedAt:      timePtr(h.FinishedAt),
@@ -150,23 +151,45 @@ func inventoryObject(o *readmodel.InventoryObject) v1.InventoryObject {
 }
 
 func instanceSummary(it readmodel.InstanceItem) v1.InstanceSummary {
-	return v1.InstanceSummary{
-		Ref:            objectRef(it.Ref),
-		UID:            it.UID,
-		Module:         v1.Module{Path: it.Module.Path, Version: it.Module.Version},
-		Owner:          string(it.Owner),
-		Reconcile:      reconcile(it.Applied),
-		Health:         healthSummary(it.Health),
-		InventoryCount: it.InventoryCount,
-		LastAppliedAt:  timePtr(it.LastAppliedAt),
-	}
-}
-
-func instanceDoc(d readmodel.InstanceDetail) v1.Instance {
-	contracts := d.RenderContracts
+	contracts := it.RenderContracts
 	if contracts == nil {
 		contracts = []string{}
 	}
+	return v1.InstanceSummary{
+		Ref:             objectRef(it.Ref),
+		UID:             it.UID,
+		Module:          v1.Module{Path: it.Module.Path, Version: it.Module.Version},
+		Owner:           string(it.Owner),
+		Reconcile:       reconcile(it.Applied),
+		Health:          healthSummary(it.Health),
+		InventoryCount:  it.InventoryCount,
+		LastAppliedAt:   timePtr(it.LastAppliedAt),
+		RenderContracts: contracts,
+		ProviderOf:      providerClaims(it.ProviderOf),
+	}
+}
+
+// providerClaims carries a claim's standing and whether its providerRef
+// names the owner only when the caller may read the registrations.
+func providerClaims(cs []readmodel.ProviderClaim) []v1.ProviderClaim {
+	if len(cs) == 0 {
+		return nil
+	}
+	out := make([]v1.ProviderClaim, 0, len(cs))
+	for i := range cs {
+		c := &cs[i]
+		pc := v1.ProviderClaim{Registration: c.Registration, Access: string(c.Access)}
+		if c.Access == health.AccessOK {
+			pc.Accepted, pc.Active = c.Standing.Accepted, c.Standing.Active
+			pc.Verdict, pc.Reason = string(c.Standing.Verdict), c.Standing.Reason
+			pc.ProviderRefMatches = c.ProviderRefMatches
+		}
+		out = append(out, pc)
+	}
+	return out
+}
+
+func instanceDoc(d readmodel.InstanceDetail) v1.Instance {
 	return v1.Instance{
 		TypeMeta:           meta(v1.KindInstance),
 		InstanceSummary:    instanceSummary(d.InstanceItem),
@@ -174,7 +197,6 @@ func instanceDoc(d readmodel.InstanceDetail) v1.Instance {
 		Conditions:         conditions(d.Conditions),
 		History:            historyEntries(d.History),
 		LastApplied:        digests(d.LastApplied),
-		RenderContracts:    contracts,
 		Components:         components(d.Components),
 	}
 }
@@ -189,11 +211,16 @@ func packageSummary(it readmodel.PackageItem) v1.PackageSummary {
 			Namespace:  it.Source.Namespace,
 			Name:       it.Source.Name,
 		},
+		Interval:       it.Interval,
 		Path:           it.Path,
 		Reconcile:      reconcile(it.Applied),
 		Health:         healthSummary(it.Health),
 		InventoryCount: it.InventoryCount,
 		LastAppliedAt:  timePtr(it.LastAppliedAt),
+		ProviderOf:     providerClaims(it.ProviderOf),
+	}
+	if a := it.SourceArtifact; a != nil {
+		out.SourceArtifact = &v1.SourceArtifact{Revision: a.Revision, Digest: a.Digest}
 	}
 	for _, d := range it.DependsOn {
 		out.DependsOn = append(out.DependsOn, objectRef(d))
@@ -203,12 +230,13 @@ func packageSummary(it readmodel.PackageItem) v1.PackageSummary {
 
 func packageDoc(d readmodel.PackageDetail) v1.Package {
 	return v1.Package{
-		TypeMeta:       meta(v1.KindPackage),
-		PackageSummary: packageSummary(d.PackageItem),
-		Conditions:     conditions(d.Conditions),
-		History:        historyEntries(d.History),
-		LastApplied:    digests(d.LastApplied),
-		Components:     components(d.Components),
+		TypeMeta:           meta(v1.KindPackage),
+		PackageSummary:     packageSummary(d.PackageItem),
+		ServiceAccountName: d.ServiceAccountName,
+		Conditions:         conditions(d.Conditions),
+		History:            historyEntries(d.History),
+		LastApplied:        digests(d.LastApplied),
+		Components:         components(d.Components),
 	}
 }
 
@@ -263,6 +291,13 @@ func registration(r *readmodel.RegistrationView) v1.Registration {
 		ActiveReason:  r.Standing.ActiveReason,
 		ActiveMessage: r.Standing.ActiveMessage,
 		Reconcile:     reconcile(r.Applied),
+		HeldByPartial: r.HeldByPartial,
+	}
+	if len(r.Conditions) > 0 {
+		out.Conditions = conditions(r.Conditions)
+	}
+	for _, h := range r.HeldBy {
+		out.HeldBy = append(out.HeldBy, objectRef(h))
 	}
 	if r.Provider.Name != "" {
 		p := objectRef(r.Provider)

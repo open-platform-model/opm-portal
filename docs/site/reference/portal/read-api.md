@@ -12,10 +12,10 @@ This page lists every resource of the OPM portal's read API, version `v1alpha1`,
 - Every resource lives below `/api/v1alpha1`, and every method is `GET`, except the request that changes an open stream's topics, which is `POST`. Any other method is refused with `method_not_allowed`.
 - Every path names the cluster. The portal serves one cluster, `default`; any other is answered with `not_found`.
 - Every document carries `apiVersion: portal.opmodel.dev/v1alpha1` and a `kind`.
-- Every request is authorized for the caller before anything is looked up. A caller who may not make a read receives the same `forbidden` problem whether or not the object exists. A list the caller may not read is empty, its `access` field is `forbidden`, and it carries no count.
+- Every request is authorized for the caller before anything is looked up. A caller who may not make a read receives the same `forbidden` problem whether or not the object exists. A list the caller may not read is empty, its `access` field is `forbidden`, and it carries no count. The `Cluster` document is the one resource that sends no access review: it reads nothing from the cluster.
 - An item the caller may not read inside a readable document is marked by its `access` field: `forbidden` (the caller may not read it), `notReadable` (the portal could not read it: the access review or the read failed, or the kind is not served) or `withheld` (a Secret, never read).
 - Within `v1alpha1` fields and enumerated values are only added. Clients ignore fields they do not know and treat every enumerated string as open, showing an unknown value as unknown.
-- No document carries an instance's or package's `spec.values`, Secret data or the `kubectl.kubernetes.io/last-applied-configuration` annotation. In local mode, condition and history messages and event notes are served exactly as the operator and the API server wrote them. In-cluster, the text the operator wrote is left out: condition, reconcile, history and registration messages, the notes of the events it reports (`reportingController` `opm-controller`), and the health and status messages of `opmodel.dev` objects. The kubelet's and other controllers' event notes, and the health messages of the workloads a module renders, are served as written.
+- No document carries an instance's or package's `spec.values`, Secret data or the `kubectl.kubernetes.io/last-applied-configuration` annotation. In local mode, condition and history messages and event notes are served exactly as the operator and the API server wrote them. In-cluster, the text the operator wrote is left out: condition messages (a registration's conditions included), reconcile, history and registration messages, the notes of the events it reports (`reportingController` `opm-controller`), and the health and status messages of `opmodel.dev` objects. History outcomes and provider standings stay. The kubelet's and other controllers' event notes, and the health messages of the workloads a module renders, are served as written.
 - Every condition carries a `tone`, how it reads for its type, because its status alone does not say it: `Stalled=True` is `abnormal`, `Reconciling=True` `progressing`, `ContractsFulfilled=False` `informational`, and an `Unknown` status or a type the portal does not know is `unknown`. A condition whose reason the portal knows also carries its `meaning` and, when you can act on it, its `nextStep`.
 
 ## Resources
@@ -24,22 +24,39 @@ Paths are below `/api/v1alpha1`.
 
 | Resource | Returns |
 | --- | --- |
-| `GET /clusters/{cluster}/instances` | `InstanceList`: the ModuleInstances the caller may list, each with its applied state and health. `?namespace=` lists one namespace. |
+| `GET /clusters/{cluster}` | `Cluster`: the connection the portal reads with: its `mode`, its `source` (`kubeconfig` or `in-cluster`), the kubeconfig `context` and the name of its `clusterEntry`, `readingAs` with your own username, and the API server's `kubernetesVersion`, read once when the portal started and absent when that read failed. It never names a server URL, a kubeconfig user entry or a credential. |
+| `GET /clusters/{cluster}/instances` | `InstanceList`: the ModuleInstances the caller may list, each with its applied state, health, render contracts and provider claims. `?namespace=` lists one namespace. |
 | `GET /clusters/{cluster}/instances/{namespace}/{name}` | `Instance`: one ModuleInstance with its components and inventory. |
 | `GET /clusters/{cluster}/instances/{namespace}/{name}/graph` | `Graph`: the instance's relationship graph. `?expand=` opens a group node, `?showScaledDown=true` shows ReplicaSets scaled to zero. |
 | `GET /clusters/{cluster}/instances/{namespace}/{name}/events` | `EventList`: recent events about the instance, or, with `?group=&kind=&namespace=&name=`, about one object it reaches. |
 | `GET /clusters/{cluster}/instances/{namespace}/{name}/object` | `Object`: one object the instance reaches, named by `?group=&kind=&namespace=&name=`, as the cluster serves it, without managed fields, the last-applied annotation or values. A Secret, and an object no inventory reaches, are refused with `forbidden`. |
-| `GET /clusters/{cluster}/packages` | `PackageList`: the ModulePackages the caller may list. `?namespace=` lists one namespace. |
+| `GET /clusters/{cluster}/packages` | `PackageList`: the ModulePackages the caller may list, each with its interval, source artifact and provider claims. `?namespace=` lists one namespace. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}` | `Package`: one ModulePackage with its components and inventory. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}/graph` | `Graph`: the package's relationship graph. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}/events` | `EventList`: recent events about the package, or about one object it reaches. |
 | `GET /clusters/{cluster}/packages/{namespace}/{name}/object` | `Object`: one object the package reaches, as for an instance. |
-| `GET /clusters/{cluster}/platform` | `Platform`: the Platform, its catalogs and its transformer registrations. |
+| `GET /clusters/{cluster}/platform` | `Platform`: the Platform, its catalogs and its transformer registrations, each with its conditions and the instances and packages that hold it. |
 | `GET /clusters/{cluster}/platform/graph` | `Graph`: catalogs, registrations and the instances that provide them. |
 | `GET /clusters/{cluster}/platform/events` | `EventList`: recent events about the Platform. |
 | `GET /clusters/{cluster}/platform/registrations/{name}/events` | `EventList`: recent events about one TransformerRegistration. |
 | `GET /clusters/{cluster}/stream` | A server-sent-events stream of the topics named in `?topics=`. |
 | `POST /clusters/{cluster}/stream/{stream}/topics` | Adds and removes topics on an open stream of this session, named by the id its `open` event carries. The body is JSON, `{"add": [topic], "remove": [topic]}`, with `Content-Type: application/json`; the answer is `204`. An added topic the caller may not follow is closed on the stream. |
+
+## Providers, sources and outcomes
+
+These fields join objects the portal already reads, or read fields of them; none needs a read of its own.
+
+| Field | On | Holds |
+| --- | --- | --- |
+| `providerOf` | `Instance`, `Package` and their list items | One entry per TransformerRegistration the inventory holds: its `registration` name and your `access` to the registrations (`ok`, `forbidden` or `notReadable`). With `access: ok`, the registration's own `accepted`, `active`, `verdict` and `reason`, and `providerRefMatches`: true only when the owner is a ModuleInstance that the registration's `spec.providerRef` names. It is always false for a package, because the reference names a ModuleInstance, and absent for a registration the inventory names but the cluster does not hold, whose `verdict` is `Unknown`. `providerOf` is absent when the inventory holds no registration. |
+| `heldBy` | each registration of a `Platform` | The ModuleInstances and ModulePackages you may read whose inventory holds the registration, whatever their kind. `provider` still names the ModuleInstance `spec.providerRef` names, so the two can differ. |
+| `heldByPartial` | each registration of a `Platform` | `true` when you may not list every ModuleInstance and ModulePackage, or the portal does not hold every namespace (it was started with `--namespaces`), so `heldBy` may lack a holder, even when it is empty. |
+| `conditions` | each registration of a `Platform` | The registration's own status conditions, with `tone`, `meaning` and `nextStep` as on every condition. |
+| `renderContracts` | `InstanceList` items, as on `Instance` | The contracts the instance's last successful render used. Not what it demands of a provider. Packages record none. |
+| `interval` | `Package` and its list items | `spec.interval` as written; absent when the package sets none. |
+| `serviceAccountName` | `Instance`, `Package` | The ServiceAccount the controller applies the objects as (`spec.serviceAccountName`); absent when the controller applies as its own identity. |
+| `sourceArtifact` | `Package` and its list items | The `revision` and `digest` the controller recorded for the fetched source; absent when it recorded none. The fetch URL is not served. |
+| `outcome` | every history entry | `Succeeded` when the controller wrote phase `complete`, `Failed` when it wrote no phase and a message, `Unknown` otherwise. Served in both modes, also where the message is left out. |
 
 ## Change stream topics
 
@@ -58,6 +75,8 @@ Paths are below `/api/v1alpha1`.
 | `events:registration:<name>` | `EventList` of a registration |
 | `log:<namespace>/<pod>/<container>` | The log of one container of a Pod an OPM inventory reaches |
 | `log:<namespace>/<pod>/<container>/previous` | The log of that container's previous, terminated instance |
+
+A change to a TransformerRegistration also reaches the `instance:` or `package:` topic of every owner whose inventory holds it, and the `instances` topics for an instance holder, so their `providerOf` follows it. A change to an instance or package that holds, or held, a registration reaches `platform`, so `heldBy` follows it.
 
 A `snapshot` event carries `{topic, items: [document]}`; `upsert`, `delete` and `k8sevent` events carry `{topic, item: document}`. A `delete`, and a snapshot of an object that does not exist, carry a `Removed` document. An `upsert` or `k8sevent` event is sent only when the document rendered for the caller differs from the last one sent on that topic, so a change the caller cannot see sends nothing; a `delete` is always sent. A reconnect with the `Last-Event-ID` of the last event received sends only what differs from what the caller already holds. A topic the caller may not follow is closed with a `closed` event naming a problem code. When the caller's session ends, the stream's last event is `expired`, carrying `{code: unauthenticated}`, and the response ends; the stream cannot be resumed, so a client stops and signs in again. To resume after a disconnect, reconnect with the `Last-Event-ID` header.
 

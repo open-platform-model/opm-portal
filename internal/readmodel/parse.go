@@ -119,13 +119,15 @@ func history(u *unstructured.Unstructured) []HistoryEntry {
 	raw := maps(u.Object, "status", "history")
 	out := make([]HistoryEntry, 0, len(raw))
 	for _, h := range raw {
+		phase, message := str(h, "phase"), str(h, "message")
 		out = append(out, HistoryEntry{
 			Action:          str(h, "action"),
-			Phase:           str(h, "phase"),
+			Phase:           phase,
+			Outcome:         outcomeOf(phase, message),
 			Sequence:        num(h, "sequence"),
 			StartedAt:       timestamp(h, "startedAt"),
 			FinishedAt:      timestamp(h, "finishedAt"),
-			Message:         str(h, "message"),
+			Message:         message,
 			InventoryCount:  num(h, "inventoryCount"),
 			InventoryDigest: str(h, "inventoryDigest"),
 			Digests: Digests{
@@ -136,6 +138,22 @@ func history(u *unstructured.Unstructured) []HistoryEntry {
 		})
 	}
 	return out
+}
+
+// historyPhaseComplete is the phase the operator writes on a success entry.
+const historyPhaseComplete = "complete"
+
+// outcomeOf reads an entry's outcome from the operator's two entry shapes:
+// a success entry has phase complete, a failure entry a message and no
+// phase. Anything else is unknown, never a guess.
+func outcomeOf(phase, message string) Outcome {
+	switch {
+	case phase == historyPhaseComplete:
+		return OutcomeSucceeded
+	case phase == "" && message != "":
+		return OutcomeFailed
+	}
+	return OutcomeUnknown
 }
 
 func lastApplied(u *unstructured.Unstructured) Digests {

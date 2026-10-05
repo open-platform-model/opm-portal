@@ -108,19 +108,33 @@ type goldenPage struct {
 
 var f1Pages = []goldenPage{
 	{"platform", "/", false},
-	{"platform-node-registration", "/?node=treg:default.refused-claim-fixture", false},
-	{"instances", "/instances", false},
-	{"instances-default", "/instances?namespace=default", false},
+	{"platform-catalogs", "/?tab=catalogs", false},
+	{"platform-providers-refused", "/?pstatus=refused&eresource=registration:default.refused-claim-fixture", false},
+	{"installed", "/installed", false},
+	{"installed-default", "/installed?namespace=default", false},
+	{"installed-packages", "/installed?kind=package", false},
+	{"installed-uses", "/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1", false},
+	{"installed-ignored", "/installed?health=Bogus&q=pod", false},
 	{"instance-podinfo", "/instances/default/podinfo", false},
+	{"instance-podinfo-focus", "/instances/default/podinfo?tab=graph&focus=obj:apps/Deployment/default/podinfo-podinfo", false},
+	{"instance-podinfo-resources", "/instances/default/podinfo?tab=resources", false},
+	{"instance-podinfo-events", "/instances/default/podinfo?tab=events&type=Normal", false},
+	{"instance-podinfo-logs", "/instances/default/podinfo?tab=logs", false},
+	{"instance-podinfo-yaml", "/instances/default/podinfo?tab=yaml&object=apps/Deployment/default/podinfo-podinfo", false},
+	{"instance-backup-provider", "/instances/default/backup-provider", false},
+	{"instance-backup-provider-provider", "/instances/default/backup-provider?tab=provider", false},
+	{"catalog-backup", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0", false},
+	{"catalog-refused-claim", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0", false},
+	{"catalog-opm-events", "/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events", false},
+	{"instance-cert-manager-resources", "/instances/cert-manager/cert-manager?tab=resources", false},
 	{"instance-cert-manager", "/instances/cert-manager/cert-manager", false},
 	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager", false},
 	{"instance-web-cli-owned", "/instances/web/web", false},
-	{"packages", "/packages", false},
 	{"package-podinfo", "/packages/pkg/podinfo", false},
+	{"package-podinfo-resources", "/packages/pkg/podinfo?tab=resources", false},
 	{"fragment-object-deployment", "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo", true},
 	{"fragment-node-deployment", "/instances/default/podinfo/node?id=obj:apps/Deployment/default/podinfo-podinfo", true},
 	{"fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
-	{"fragment-registration-events", "/platform/registrations/default.refused-claim-fixture/events", true},
 }
 
 // TestGoldenPages renders every page over the F1 capture and compares its
@@ -136,9 +150,14 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	s := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
 	checkGoldens(t, s, []goldenPage{{"instance-podinfo-broken", "/instances/default/podinfo", false}})
 	body := s.get(t, "/instances/default/podinfo").body
-	head := between(body, `id="owner-head"`, "</header>")
-	if !strings.Contains(head, `class="applied applied-applied"`) || !strings.Contains(head, `class="health health-degraded"`) {
-		t.Errorf("the broken rollout's head does not show Applied and Degraded apart:\n%s", head)
+	applied := between(body, `id="applied-card"`, "</section>")
+	health := between(body, `id="health-card"`, "</section>")
+	if !strings.Contains(applied, `class="applied applied-applied"`) || !strings.Contains(health, `class="health health-degraded"`) {
+		t.Errorf("the broken rollout's cards do not show Applied and Degraded apart:\n%s\n%s", applied, health)
+	}
+	if !strings.Contains(health, `href="/instances/default/podinfo?reason=ImagePullBackOff&amp;tab=resources"`) &&
+		!strings.Contains(health, `reason=ErrImagePull`) {
+		t.Errorf("the Health card does not count the Pod's waiting reason:\n%s", health)
 	}
 }
 
@@ -146,19 +165,23 @@ func TestGoldenBrokenRollout(t *testing.T) {
 // caller may not read, render locked (portal:D5:R7).
 func TestGoldenLocked(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.DenyResources("services"))
-	checkGoldens(t, s, []goldenPage{{"instance-podinfo-services-locked", "/instances/default/podinfo", false}})
-	main := mainOf(s.get(t, "/instances/default/podinfo").body)
+	checkGoldens(t, s, []goldenPage{{"instance-podinfo-services-locked", "/instances/default/podinfo?tab=resources", false}})
+	main := mainOf(s.get(t, "/instances/default/podinfo?tab=resources").body)
 	if !strings.Contains(main, `<li class="object locked">`) || !strings.Contains(main, "Service default/<wbr>podinfo-podinfo") {
 		t.Error("the forbidden Service is not rendered locked")
 	}
-	if !strings.Contains(main, `class="node kind-object locked"`) {
+	if main := mainOf(s.get(t, "/instances/default/podinfo").body); !strings.Contains(main, `class="node kind-object locked"`) {
 		t.Error("the forbidden Service's graph node is not locked")
 	}
 
 	lists := newSite(t, apitest.F1(t), apitest.DenyResources("moduleinstances"))
-	checkGoldens(t, lists, []goldenPage{{"instances-locked", "/instances", false}})
-	if main := mainOf(lists.get(t, "/instances").body); !strings.Contains(main, "locked-panel") || strings.Contains(main, "<table") {
-		t.Errorf("a forbidden list is not a locked panel without rows:\n%s", main)
+	checkGoldens(t, lists, []goldenPage{{"installed-instances-locked", "/installed", false}})
+	main = mainOf(lists.get(t, "/installed").body)
+	if !strings.Contains(main, "Module instances</strong>: locked") || strings.Contains(main, "/instances/default/podinfo") {
+		t.Errorf("a forbidden instance list is not a locked group without its rows:\n%s", main)
+	}
+	if !strings.Contains(main, "/packages/pkg/podinfo") || strings.Contains(main, "Module packages</strong>: locked") {
+		t.Errorf("the readable package list does not show beside the locked instances:\n%s", main)
 	}
 }
 
@@ -416,12 +439,13 @@ func text(n *html.Node) string {
 func TestPagesDeclareTheirTopics(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for path, want := range map[string]string{
-		"/":                          "platform events:platform",
-		"/instances":                 "instances",
-		"/instances?namespace=web":   "instances:web",
-		"/instances/default/podinfo": "instance:default/podinfo events:instance:default/podinfo",
-		"/packages/pkg/podinfo":      "package:pkg/podinfo events:package:pkg/podinfo",
-		"/packages":                  "",
+		"/":                                "platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture",
+		"/installed":                       "instances",
+		"/installed?namespace=web":         "instances:web",
+		"/installed?namespace=Not_A_Label": "instances",
+		"/instances/default/backup-provider?tab=provider": "instance:default/backup-provider events:instance:default/backup-provider platform instances",
+		"/instances/default/podinfo":                      "instance:default/podinfo events:instance:default/podinfo",
+		"/packages/pkg/podinfo":                           "package:pkg/podinfo events:package:pkg/podinfo",
 	} {
 		body := s.get(t, path).body
 		main := between(body, "<main ", ">")
@@ -442,7 +466,7 @@ func TestPagesDeclareTheirTopics(t *testing.T) {
 // page with 401, and asks for no review.
 func TestSignInWithoutASession(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
-	for _, path := range []string{"/", "/instances", "/instances/default/podinfo", "/packages/pkg/podinfo/object?kind=Pod&name=x&namespace=pkg"} {
+	for _, path := range []string{"/", "/installed", "/instances/default/podinfo", "/packages/pkg/podinfo/object?kind=Pod&name=x&namespace=pkg"} {
 		res := s.get(t, path, anonymous)
 		if res.status != http.StatusUnauthorized || !strings.Contains(res.body, "You are not signed in") {
 			t.Errorf("GET %s without a session = %d", path, res.status)

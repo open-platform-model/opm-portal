@@ -37,13 +37,21 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
    Without `--kubeconfig`, the portal reads `$KUBECONFIG`, then `~/.kube/config`. Without `--context`, it uses the kubeconfig's current context.
 
-   The portal listens on `127.0.0.1` on a free port and prints a link to open once:
+   The portal listens on `127.0.0.1:7878` and prints a link to open once:
 
    ```text
-   Open this link once to sign in: http://127.0.0.1:<port>/launch?token=<token>
+   Open this link once to sign in: http://127.0.0.1:7878/launch?token=<token>
    ```
 
-   `--open` opens that link in your default browser. Without `--open`, copy the link into a browser on the same machine. To pick the port or another loopback address, pass `--addr`, such as `--addr 127.0.0.1:8080`. The portal refuses to start on an address that is not loopback.
+   `--open` opens that link in your default browser. Without `--open`, copy the link into a browser on the same machine. The address stays the same from one start to the next, so the browser keeps the theme and filters you chose for it. To pick another port or loopback address, pass `--addr`, such as `--addr 127.0.0.1:8080`, or `--addr 127.0.0.1:0` for a free port. The portal refuses to start on an address that is not loopback.
+
+   If another program already listens on the address, the portal stops before it reads your kubeconfig and says so:
+
+   ```text
+   opm-portal serve: 127.0.0.1:7878 is in use; pass --addr 127.0.0.1:<port> to use another port
+   ```
+
+   Stop the other program, or start the portal again with `--addr` and another port.
 
    The link gives the browser a session cookie and answers with the Platform page. The token works only once: the browser that opened it may open it again while its session lasts, and any other browser is refused. To open the portal in another browser, stop the portal and start it again.
 
@@ -65,9 +73,9 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 ## Check that it worked
 
-After the launch, the browser shows the Platform page at `http://127.0.0.1:<port>/`: the catalogs the Platform subscribes to, the transformer registrations, and the platform graph. A **live** mark in the page header says the page follows changes.
+After the launch, the browser shows the Platform page at `http://127.0.0.1:7878/`: the Platform's status, the counts of what is installed, and its Providers and Catalogs. The page header names the context the portal reads, the user it reads as and the Kubernetes version; check that they are the cluster and the identity you meant. A **live** mark in the header says the page follows changes.
 
-Open **Instances**. Each instance shows two values: **Applied**, what the operator applied, and **Health**, what is running. In a graph the node's outline and left rail show its health, and the small square in its corner shows its applied state. A locked list means your identity may not list ModuleInstances in that scope: check your access with:
+Open **Installed**. Each instance and package shows two values: **Applied**, what the operator applied, and **Health**, what is running. On an instance's page, the node's outline and left rail in the graph show its health, and the small square in its corner shows its applied state. A locked group means your identity may not list ModuleInstances, or ModulePackages, in that scope: check your access with:
 
 ```sh
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-namespaces
@@ -76,8 +84,10 @@ kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-n
 If you started the portal with `--namespaces`, the list of every namespace stays locked even when the portal works. Filter the list by one of your namespaces instead, which opens:
 
 ```text
-http://127.0.0.1:<port>/instances?namespace=team-a
+http://127.0.0.1:7878/installed?namespace=team-a
 ```
+
+The browser remembers that filter, for this cluster context, the next time you open Installed.
 
 Check your access in that namespace with:
 

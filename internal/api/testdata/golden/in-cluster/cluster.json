@@ -1,0 +1,11 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Cluster",
+  "name": "default",
+  "mode": "in-cluster",
+  "source": "in-cluster",
+  "readingAs": {
+    "username": "alice"
+  },
+  "kubernetesVersion": "v1.36.1"
+}

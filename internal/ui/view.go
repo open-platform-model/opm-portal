@@ -11,33 +11,50 @@ import (
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
+// unknownWord stands in wherever a value is missing or not one the portal knows.
+const unknownWord = "unknown"
+
 // badge is one rendered status value: its CSS class, its words and, for a
 // value the UI does not know, the raw value as a tooltip.
 type badge struct {
 	Class string
 	Text  string
 	Title string
+	// Locked: the caller may not read what the badge is about.
+	Locked bool
 }
 
-// appliedText names the applied states the UI knows. Any other value is
-// shown as unknown, never as an error (portal:D2:R3).
-var appliedText = map[string]string{
-	"Applied":           "Applied",
-	"Reconciling":       "Reconciling",
-	"Failed":            "Failed",
-	"Stalled":           "Stalled",
-	"Suspended":         "Suspended",
-	"ManagedExternally": "Managed externally",
-	"Unknown":           "Unknown",
+// state is one value of an axis the UI knows, with its words.
+type state struct{ Value, Text string }
+
+// appliedStates are the applied states the UI knows, in the order the
+// pages list them. Any other value is shown as unknown, never as an error
+// (portal:D2:R3).
+var appliedStates = []state{
+	{"Applied", "Applied"}, {"Reconciling", "Reconciling"}, {"Failed", "Failed"}, {"Stalled", "Stalled"},
+	{"Suspended", "Suspended"}, {"ManagedExternally", "Managed externally"}, {"Unknown", "Unknown"},
 }
 
-// healthText names the health states the UI knows.
-var healthText = map[string]string{
-	"Healthy":     "Healthy",
-	"Progressing": "Progressing",
-	"Degraded":    "Degraded",
-	"Missing":     "Missing",
-	"Unknown":     "Unknown",
+// healthStates are the health states the UI knows, in order.
+var healthStates = []state{
+	{"Healthy", "Healthy"}, {"Progressing", "Progressing"}, {"Degraded", "Degraded"}, {"Missing", "Missing"}, {"Unknown", "Unknown"},
+}
+
+// appliedText and healthText name each state; appliedValues and
+// healthValues list them in order. All four come from the tables above.
+var (
+	appliedText, appliedValues = stateTable(appliedStates)
+	healthText, healthValues   = stateTable(healthStates)
+)
+
+func stateTable(states []state) (text map[string]string, values []string) {
+	text = make(map[string]string, len(states))
+	values = make([]string, 0, len(states))
+	for _, s := range states {
+		text[s.Value] = s.Text
+		values = append(values, s.Value)
+	}
+	return text, values
 }
 
 // verdictText names the registration verdicts the UI knows.
@@ -55,7 +72,7 @@ func known(prefix string, table map[string]string, value string) badge {
 	if text, ok := table[value]; ok {
 		return badge{Class: prefix + " " + prefix + "-" + slug(value), Text: text}
 	}
-	b := badge{Class: prefix + " " + prefix + "-unknown", Text: "unknown"}
+	b := badge{Class: prefix + " " + prefix + "-" + unknownWord, Text: unknownWord}
 	if value != "" {
 		b.Title = "The portal does not know the value " + value
 	}
@@ -98,6 +115,79 @@ func healthBadge(h v1.Health) badge {
 func stateBadge(state string) badge { return known("health", healthText, state) }
 
 func verdictBadge(v string) badge { return known("verdict", verdictText, v) }
+
+// providerBadge is the standing of one registration an instance or
+// package holds, as the controller wrote it (portal:D15:R2/R4): never one
+// the portal computed, and locked when the caller may not read it.
+func providerBadge(c v1.ProviderClaim) badge {
+	b := badge{Class: "prov", Text: "Provider", Title: c.Registration}
+	if c.Access != v1.AccessOK {
+		b.Locked = true
+		b.Class += " prov-locked"
+		b.Text = "Provider, locked"
+		b.Title = c.Registration + ": " + accessText(c.Access)
+		return b
+	}
+	switch {
+	case c.Verdict == verdictRemovalBlocked:
+		b.Class += " prov-blocked"
+		b.Text = "Provider, removal blocked"
+	case c.Verdict == verdictAccepted && c.Active:
+		b.Class += " prov-active"
+		b.Text = "Provider, active"
+	case c.Verdict == verdictAccepted:
+		b.Class += " prov-inactive"
+		b.Text = "Provider, not active"
+	case c.Verdict == verdictRefused:
+		b.Class += " prov-refused"
+		b.Text = "Provider, refused"
+	case c.Verdict == verdictPending:
+		b.Class += " prov-pending"
+		b.Text = "Provider, pending"
+	default:
+		b.Class += " prov-unknown"
+		b.Text = "Provider, unknown"
+	}
+	if c.Reason != "" {
+		b.Title += ": " + c.Reason
+	}
+	return b
+}
+
+// claimBadge is a held registration's standing on the Provider card, in
+// the card's words; the classes are providerBadge's.
+func claimBadge(c v1.ProviderClaim) badge {
+	b := providerBadge(c)
+	switch {
+	case c.Access != v1.AccessOK:
+		b.Text = "Locked"
+	case c.Verdict == verdictRemovalBlocked:
+		b.Text = "Removal blocked"
+	case c.Verdict == verdictAccepted && c.Active:
+		b.Text = "Active"
+	case c.Verdict == verdictAccepted:
+		b.Text = "Accepted, not active"
+	case c.Verdict == verdictRefused:
+		b.Text = "Refused"
+	case c.Verdict == verdictPending:
+		b.Text = "Pending"
+	default:
+		b.Text = "Unknown"
+	}
+	return b
+}
+
+// ownerText is an owner as the pages say it: the read API's operator is
+// the controller (portal:D17:R2).
+func ownerText(owner string) string {
+	switch owner {
+	case "operator", ownerController:
+		return ownerController
+	case "cli":
+		return "cli"
+	}
+	return owner
+}
 
 // accessText says why something is locked.
 func accessText(access string) string {
@@ -221,19 +311,39 @@ func plural(n int, one, many string) string {
 func isSecret(r v1.ObjectRef) bool { return r.Group == "" && r.Kind == "Secret" }
 
 var funcs = template.FuncMap{
-	"appliedBadge": appliedBadge,
-	"healthBadge":  healthBadge,
-	"stateBadge":   stateBadge,
-	"verdictBadge": verdictBadge,
-	"accessText":   accessText,
-	"toneClass":    toneClass,
-	"short":        short,
-	"refText":      refText,
-	"isSecret":     isSecret,
-	"join":         strings.Join,
-	"segments":     segments,
-	"plural":       plural,
+	"appliedBadge":  appliedBadge,
+	"healthBadge":   healthBadge,
+	"stateBadge":    stateBadge,
+	"verdictBadge":  verdictBadge,
+	"providerBadge": providerBadge,
+	"claimBadge":    claimBadge,
+	"ownerText":     ownerText,
+	"accessText":    accessText,
+	"toneClass":     toneClass,
+	"short":         short,
+	"contractShort": contractShort,
+	"catalogHref":   catalogHref,
+	"refText":       refText,
+	"isSecret":      isSecret,
+	"join":          strings.Join,
+	"segments":      segments,
+	"plural":        plural,
+	"add":           func(a, b int) int { return a + b },
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK
 	},
+}
+
+// newestFirst orders two event times newest first, an event with no time
+// last.
+func newestFirst(x, y *time.Time) int {
+	switch {
+	case x == nil && y == nil:
+		return 0
+	case x == nil:
+		return 1
+	case y == nil:
+		return -1
+	}
+	return y.Compare(*x)
 }
