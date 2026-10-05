@@ -242,9 +242,11 @@ ServiceAccount. Source: portal:D6:R3.
 In-cluster the read model's informers, polls and on-demand lists SHALL read only under a grant
 issued from a SubjectAccessReview naming the portal's own ServiceAccount, with the groups the API
 server gives it. The review SHALL be sent when the reader first needs the grant (at startup for
-the watched kinds) and again once the cached decision expires, so a revoked role is seen within
-one time-to-live. The ServiceAccount SHALL be named by the deployment or read from the mounted
-ServiceAccount token's subject.
+the watched kinds) and, for polls and on-demand lists, again once the cached decision expires, so
+a revoked role reaches them within one time-to-live plus one review. Stopping a running informer
+when its review expires, as portal:D6:R10 requires, is deferred to the change that builds the
+in-cluster command. The ServiceAccount SHALL be named by the deployment or read from the mounted
+ServiceAccount token's subject. Source: portal:D6:R10 (partial).
 
 #### Scenario: The ServiceAccount is reviewed by name
 

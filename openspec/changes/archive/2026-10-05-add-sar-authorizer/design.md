@@ -98,9 +98,9 @@ people and the reader.
 1. One `Checker`, routed on a reader mark only `ServiceAccountIdentity` sets, with people barred
    from system names and groups (chosen). An identity built from claims never carries the mark,
    so one with the ServiceAccount's exact username and groups takes the person route and is
-   refused there (0030:D6:R3). Routing on the key alone was the first draft; review found that
-   such claims matched it, were answered with the ServiceAccount's access and left out of the
-   access log.
+   refused there (0030:D6:R3). The first draft's key lacked the mark; review found that such
+   claims matched it, were answered with the ServiceAccount's access and left out of the access
+   log. The key now includes the mark, so routing on the key alone is safe.
 2. A second `Authorizer` field for the reader in three packages' configs. Stronger separation,
    but it touches the read model, the logs producer and the read API, while the mark gives the
    same guarantee inside one package.
