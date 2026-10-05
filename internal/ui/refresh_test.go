@@ -5,8 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/html"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -198,4 +201,103 @@ func TestContractsBannerIsNeutral(t *testing.T) {
 	if !strings.Contains(rule, "var(--neutral)") || regexp.MustCompile(`--(healthy|degraded|progressing|unknown)`).MatchString(rule) {
 		t.Errorf("the contracts banner is not neutral: %s", rule)
 	}
+}
+
+// TestLogsRegionShape holds the owner page's logs region to the shape the
+// page script's refresh and TestBrowserLogs' page rely on: the region's
+// direct child .logs holds every pane as its direct child, and each pane
+// carries its summary, its tools and its pre. A pane moved off .logs is
+// replaced on refresh instead of kept, which resets its scroll.
+func TestLogsRegionShape(t *testing.T) {
+	f1 := newSite(t, apitest.F1(t), apitest.AllowAll)
+	broken := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
+	for _, c := range []struct {
+		s     *site
+		path  string
+		panes bool
+	}{
+		{f1, "/instances/default/podinfo", true},
+		{f1, "/instances/cert-manager/cert-manager", true},
+		{f1, "/instances/web/web", true},
+		{broken, "/instances/default/podinfo", true},
+		{f1, "/packages/pkg/podinfo", false},
+	} {
+		doc, err := html.Parse(strings.NewReader(c.s.get(t, c.path).body))
+		if err != nil {
+			t.Fatalf("GET %s: %v", c.path, err)
+		}
+		region := findByID(doc, "logs")
+		if region == nil || region.Data != "section" {
+			t.Errorf("GET %s: no section#logs", c.path)
+			continue
+		}
+		lists := children(region, func(n *html.Node) bool { return hasClass(n, "logs") })
+		if len(lists) != 1 {
+			t.Errorf("GET %s: #logs has %d .logs direct children; want 1", c.path, len(lists))
+			continue
+		}
+		direct := children(lists[0], isPane)
+		for _, d := range direct {
+			checkPane(t, c.path, d)
+		}
+		all := descendants(region, isPane)
+		if len(all) != len(direct) || (len(direct) > 0) != c.panes {
+			t.Errorf("GET %s: %d log panes, %d of them direct children of .logs; want all direct, panes %t", c.path, len(all), len(direct), c.panes)
+		}
+	}
+}
+
+func isPane(n *html.Node) bool { return n.Data == "details" && hasClass(n, "log") }
+
+// checkPane: a pane has an id and a log topic, and its summary, its tools
+// (the previous-instance box and the state) and its pre as direct children.
+func checkPane(t *testing.T, path string, d *html.Node) {
+	t.Helper()
+	if attr(d, "id") == "" || attr(d, "data-log-topic") == "" {
+		t.Errorf("GET %s: a log pane lacks its id or data-log-topic", path)
+	}
+	summary := children(d, func(n *html.Node) bool { return n.Data == "summary" })
+	pre := children(d, func(n *html.Node) bool { return n.Data == "pre" && hasClass(n, "log-pane") })
+	var tools bool
+	for _, k := range children(d, func(n *html.Node) bool { return n.Data == "div" && hasClass(n, "log-tools") }) {
+		previous := descendants(k, func(n *html.Node) bool { return n.Data == "input" && attr(n, "data-log-previous") != "" })
+		state := descendants(k, func(n *html.Node) bool { return hasClass(n, "log-state") })
+		tools = tools || (len(previous) == 1 && len(state) == 1)
+	}
+	if len(summary) != 1 || !tools || len(pre) != 1 {
+		t.Errorf("GET %s: pane %s: %d summaries, tools %t, %d pres; want one of each", path, attr(d, "id"), len(summary), tools, len(pre))
+	}
+}
+
+// children returns n's element children that match.
+func children(n *html.Node, match func(*html.Node) bool) []*html.Node {
+	var out []*html.Node
+	for k := range n.ChildNodes() {
+		if k.Type == html.ElementNode && match(k) {
+			out = append(out, k)
+		}
+	}
+	return out
+}
+
+// descendants returns n's element descendants that match.
+func descendants(n *html.Node, match func(*html.Node) bool) []*html.Node {
+	var out []*html.Node
+	for d := range n.Descendants() {
+		if d.Type == html.ElementNode && match(d) {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+func findByID(n *html.Node, id string) *html.Node {
+	if found := descendants(n, func(d *html.Node) bool { return attr(d, "id") == id }); len(found) > 0 {
+		return found[0]
+	}
+	return nil
+}
+
+func hasClass(n *html.Node, class string) bool {
+	return slices.Contains(strings.Fields(attr(n, "class")), class)
 }

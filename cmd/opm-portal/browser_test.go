@@ -21,11 +21,12 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/ui"
 )
 
-// playwrightImage pins the browsers; the Python package installed in it
-// must match its version.
+// playwrightImage pins the browsers by the image index's digest. The
+// Python packages installed in it are hash-locked in playwrightRequirements,
+// whose playwright version must match the image tag's.
 const (
-	playwrightImage   = "mcr.microsoft.com/playwright/python:v1.63.0-noble"
-	playwrightPackage = "playwright==1.63.0"
+	playwrightImage        = "mcr.microsoft.com/playwright/python:v1.63.0-noble@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0"
+	playwrightRequirements = "../../test/browser/requirements.txt"
 )
 
 // TestBrowserLaunch opens the launch page openLaunch writes, as a file://
@@ -73,20 +74,37 @@ func browserScript(t *testing.T, name string) []byte {
 }
 
 // playwright runs script with args in the Playwright image, on the host
-// network, with each of mounts mounted read-only at its own path.
+// network, with each of mounts mounted read-only at its own path. When
+// OPM_PORTAL_BROWSER_SHOTS names a directory, it is mounted writable and
+// the script saves a screenshot there, named after the test, on failure.
 func playwright(ctx context.Context, t *testing.T, script []byte, mounts []string, args ...string) error {
 	engine := os.Getenv("OPM_PORTAL_CONTAINER_ENGINE")
 	if engine == "" {
 		engine = "podman"
 	}
-	cargs := make([]string, 0, 10+2*len(mounts)+len(args))
-	cargs = append(cargs, "run", "--rm", "-i", "--network", "host")
+	cargs := make([]string, 0, 16+2*len(mounts)+len(args))
+	requirements, err := filepath.Abs(playwrightRequirements)
+	if err != nil {
+		return err
+	}
+	cargs = append(cargs, "run", "--rm", "-i", "--network", "host", "-v", requirements+":/requirements.txt:ro,Z")
 	for _, dir := range mounts {
 		cargs = append(cargs, "-v", dir+":"+dir+":ro,Z")
 	}
+	if shots := os.Getenv("OPM_PORTAL_BROWSER_SHOTS"); shots != "" {
+		dir, err := filepath.Abs(shots)
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+		name := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+		cargs = append(cargs, "-v", dir+":/shots:Z", "-e", "OPM_PORTAL_BROWSER_SHOTS=/shots", "-e", "OPM_PORTAL_BROWSER_SHOT="+name)
+	}
 	cargs = append(cargs, playwrightImage, "bash", "-c",
-		`pip install -q --root-user-action=ignore "$0" >/dev/null && python3 - "$@"`,
-		playwrightPackage)
+		`pip install -q --root-user-action=ignore --require-hashes -r /requirements.txt >/dev/null && python3 - "$@"`,
+		"playwright")
 	cargs = append(cargs, args...)
 	cmd := exec.CommandContext(ctx, engine, cargs...)
 	cmd.Stdin = bytes.NewReader(script)
