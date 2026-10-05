@@ -83,6 +83,22 @@ header badge, the component rows, the graph's runtime nodes and the read API's i
    axis that already knows these types.
 **Decision**: option 2.
 
+## Evidence: the image break on the open page
+
+On the throwaway cluster `opm-portal-e2e-ui2` (operator v1.0.0-beta.6, F1), 2026-10-05, with
+`/instances/default/podinfo` open in Chromium and the page polled every 0.5 s for the header
+badge, the component rows, the graph's runtime nodes and the read API's instance document:
+
+- **Before** (`c9b78a1`'s parent): the API document held the new ReplicaSet and the
+  `ErrImagePull` Pod 0.67 s after the patch, and the header read Degraded at 1.28 s, but for the
+  next 60 s the component rows and the graph kept only the old ReplicaSet and its two Pods. Each
+  change sent two page GETs for five followed regions.
+- **After**: one page GET per change. The new ReplicaSet and its Pod appeared in the components
+  and the graph at 1.66 s (Progressing); kubectl saw `ErrImagePull` at 2.5 s; at 3.28 s the
+  header, the component rows and the graph all showed the Pod Degraded, the instance Degraded and
+  still Applied (0030:D3:R3). The earlier rollout's ReplicaSet, scaled to zero, sat folded under
+  "1 old revision".
+
 ## Risks / Trade-offs
 
 - [A full page per refresh] → one per change instead of one per region; the API answers from held

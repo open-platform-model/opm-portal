@@ -26,6 +26,6 @@
 
 ## 5. Live evidence and docs (test, docs/site)
 
-- [ ] 5.1 Throwaway cluster `opm-portal-e2e-ui2`: re-run the scripted image break on the open page, record when each region shows it, re-take every screenshot light, dark and at phone width, delete the cluster
-- [ ] 5.2 Record the evidence in design.md; update the portal pages under `docs/site/` where they describe what changed
-- [ ] 5.3 `task check` green, then commit `docs(ui): record the image break on the open page`
+- [x] 5.1 Throwaway cluster `opm-portal-e2e-ui2`: re-run the scripted image break on the open page, record when each region shows it, re-take every screenshot light, dark and at phone width, delete the cluster
+- [x] 5.2 Record the evidence in design.md; update the portal pages under `docs/site/` where they describe what changed
+- [x] 5.3 `task check` green, then commit `docs(ui): record the image break on the open page`
