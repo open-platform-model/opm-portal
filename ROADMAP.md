@@ -10,8 +10,8 @@ Last updated: 2026-10-05.
 
 | Milestone | State |
 | --- | --- |
-| V1 M1: local mode | Done; hardening in review, first release (0.1.0) pending |
-| V1 M2: in-cluster | In progress: authorizer, OIDC sign-in and in-cluster safeguards in review |
+| V1 M1: local mode | Done; hardening merged, first release (0.1.0) pending |
+| V1 M2: in-cluster | In progress: wave 1 (authorizer, OIDC sign-in, message hiding) merged; next the in-cluster command and manifests |
 | V2: marketplace | Not started; waits on enhancement 0027 |
 | Beyond V2 | Ideas, ranked |
 
@@ -46,13 +46,16 @@ Exit evidence shown: every page renders from the read API over the F1 capture; t
 break turns health Degraded while Applied stays (portal:D3:R2/R3); goldens come from captured
 cluster state; F1 holds an accepted, active registration on a released operator (v1.0.0-beta.6).
 
-### M1 hardening (in review)
+### M1 hardening
 
-| Change | PR | Gate |
-| --- | --- | --- |
-| Run the M1 e2e suite and browser tests nightly (issue 21 item 1, issue 23 item 2) | 25 | nightly E2E green |
-| Bound stream revalidation by time; end streams at session expiry; delete the spent launch page (issue 13, issue 21 items 2 and 5) | 26 | `task check`, `task test:browser`, `task e2e:local` |
-| First release, 0.1.0 | 18 | release PR merged after the two above |
+Merged:
+
+| PR | What landed |
+| --- | --- |
+| 25 | The M1 e2e suite and browser tests run nightly (issue 21 item 1, issue 23 item 2) |
+| 26 | Stream revalidation bounded by time; streams end at session expiry; the spent launch page is deleted (issue 13, issue 21 items 2 and 5) |
+
+Open: the first release, 0.1.0 (PR 18), now unblocked.
 
 Still open: issue 23 items 1 and 3 (provider health on the Platform page, graph defaults from real
 use), issue 13 items 3 and 4.
@@ -62,18 +65,22 @@ use), issue 13 items 3 and 4.
 The same binary runs in-cluster: OIDC sign-in, a SubjectAccessReview for the signed-in user before
 every read, reads as the portal's own read-only ServiceAccount (portal:D6, portal:D11).
 
-In review:
+Wave 1, merged:
 
-| Change | PR | Decisions |
+| PR | What landed | Decisions |
 | --- | --- | --- |
-| In-cluster authorizer behind the seam: people and the portal's own reader, no self review | 24 | portal:D6:R1/R3/R7/R9/R10 |
-| Hide operator message text in-cluster; diff the stream per subscriber | 27 | portal:D8:R5, portal:D2:R7 |
-| OIDC sign-in, sessions and bearer tokens, fail closed on empty or `system:` identity, prefixes required | 28 | portal:D6:R2/R3/R5/R6/R8 |
+| 24 | In-cluster authorizer behind the seam: people and the portal's own reader, no self review | portal:D6:R1/R3/R7/R9/R10 |
+| 27 | Operator message text hidden in-cluster; the stream diffed per subscriber | portal:D8:R5, portal:D2:R7 |
+| 28 | OIDC sign-in, sessions and bearer tokens, fail closed on empty or `system:` identity, prefixes required | portal:D6:R2/R3/R5/R6/R8 |
+
+Also merged: the design and this plan moved into the repo when enhancement 0030 was withdrawn
+(PR 29), and every `0030:` citation outside archived changes rewritten as `portal:` (issues 31
+and 32).
 
 Next, in order:
 
 1. **In-cluster `serve`**: the mode wired end to end, health endpoints, per-user access log
-   (portal:D6:R7).
+   (portal:D6:R7), with a Dex issuer on kind for the e2e suite.
 2. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
    (portal:D11:R1/R2/R3).
 3. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before M2
