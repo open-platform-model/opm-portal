@@ -333,8 +333,8 @@ func TestGrantIsBoundToItsIdentity(t *testing.T) {
 }
 
 // TestGrantExpiresWithItsDecision: a held grant (a stream, a long request)
-// stops covering reads when the decision behind it expires, so a revocation
-// reaches it within one TTL.
+// stops covering reads when the decision behind it expires, one TTL after
+// its review answered.
 func TestGrantExpiresWithItsDecision(t *testing.T) {
 	c, clk := checkerWithClock(&fakeDecider{allowed: true}, Options{TTL: 10 * time.Second})
 	req := getDeployment("team-a", "web")
@@ -378,7 +378,7 @@ func TestUncachedGrantStillExpires(t *testing.T) {
 	if n := c.cache.len(); n != 1 {
 		t.Fatalf("cache holds %d entries, want 1 (the second decision not stored)", n)
 	}
-	clk.advance(defaultTTL)
+	clk.advance(DefaultTTL)
 	if err := g.Covers(alice, req); !errors.Is(err, ErrNoGrant) {
 		t.Fatalf("uncached grant Covers after the TTL = %v, want ErrNoGrant", err)
 	}

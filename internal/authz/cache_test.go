@@ -50,7 +50,7 @@ func TestCacheReusesDecisionsWithinTheTTL(t *testing.T) {
 			if n := backend.calls.Load(); n != 1 {
 				t.Fatalf("backend asked %d times within the TTL, want 1", n)
 			}
-			clk.advance(defaultTTL - time.Second)
+			clk.advance(DefaultTTL - time.Second)
 			_, _ = c.Check(t.Context(), alice, req)
 			if n := backend.calls.Load(); n != 1 {
 				t.Fatalf("backend asked again before the TTL ran out")
@@ -173,7 +173,7 @@ func TestCacheBound(t *testing.T) {
 		t.Fatalf("backend asked %d times, want 4 (the uncached request asks again)", n)
 	}
 
-	clk.advance(defaultTTL)
+	clk.advance(DefaultTTL)
 	check("four") // expired entries make room
 	if n := c.cache.len(); n != 1 {
 		t.Fatalf("cache holds %d entries after expiry, want 1", n)

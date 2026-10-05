@@ -141,8 +141,12 @@ cluster call. Source: 0030:D5:R1.
 ### Requirement: Decisions are cached briefly per identity and request
 
 The portal SHALL reuse an allow or a deny for the same identity and the same attributes for at
-most a short time-to-live (30 seconds by default), SHALL treat identities that differ only in the
-order of their groups or extra values as the same, and SHALL NOT cache an unavailable outcome.
+most a short time-to-live (30 seconds by default), counted from when the access review answers,
+SHALL treat identities that differ only in the order of their groups or extra values as the same,
+and SHALL NOT cache an unavailable outcome. A grant SHALL expire with the decision it was issued
+from, so a revocation is seen by new checks and by grants already held within one time-to-live
+plus one review (about 35 seconds with the defaults: a 30 s time-to-live and a 5 s review
+timeout).
 
 #### Scenario: Repeat within the time-to-live
 

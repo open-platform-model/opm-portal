@@ -93,7 +93,7 @@ func (s *Server) changeTopics(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, s.log, err)
 		return
 	}
-	session := stream.Session{Key: p.Session, Identity: p.Identity}
+	session := stream.Session{Key: p.Session, Identity: p.Identity, Expires: p.Expires}
 	id := r.PathValue("stream")
 	if len(change.add) > 0 {
 		if err := s.broker.Subscribe(r.Context(), session, id, change.add...); err != nil {

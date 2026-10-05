@@ -73,12 +73,17 @@
 //     item's own, and the single writer of topic data asks again for any
 //     that expired during a slow snapshot, render or review, then checks
 //     them all with Grant.Covers in memory, repeating until a pass needs no
-//     review (at most three rounds of reviews, or the topic closes with
-//     upstream_unavailable). Every message is written right after an
-//     in-memory pass confirms that every decision it used is unexpired;
-//     decisions are cached for at most 30 s, so revocation reaches the
-//     stream within that TTL. An item that is now forbidden is left out (a
-//     snapshot is written without it, an item event not at all); a topic
+//     review. Re-validating one message takes at most
+//     Options.RevalidateTimeout, one decision lifetime by default: no
+//     review starts after it, one running at it is canceled, and the topic
+//     closes with upstream_unavailable. Every message is written right after
+//     an in-memory pass confirms that every decision it used is unexpired.
+//     A decision lives one TTL (30 s by default) from when its review
+//     answers, so a revocation reaches the stream within the TTL plus one
+//     review: about 35 s with the default 5 s review timeout, and on a
+//     quiet topic one heartbeat later. An item that is now forbidden is
+//     left out (a snapshot is written without it, an item event not at
+//     all); a topic
 //     denial or any other error closes the topic, so a snapshot never
 //     arrives cut short by the topic's own grants.
 //   - An authorization error is never a delivery: it closes the topic with
@@ -97,7 +102,11 @@
 //
 // A stream whose client falls behind, so its queue fills, loses its
 // connection without delaying anyone else and stays resumable. A stream with
-// no topics for the idle timeout is closed. Session and process caps refuse
-// a new stream only after the oldest disconnected stream in that scope has
-// been discarded.
+// no topics for the idle timeout is closed. A stream ends when the session
+// that opened it expires (Session.Expires): its last message is an expired
+// event, and no message whose snapshot, render or review is still running at
+// that moment is written after it. It is discarded, not kept for resume, and
+// a stream does not open for a session that has already expired. Session and
+// process caps refuse a new stream only after the oldest disconnected stream
+// in that scope has been discarded.
 package stream

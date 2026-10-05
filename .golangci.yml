@@ -1,6 +1,10 @@
 version: "2"
 run:
   modules-download-mode: readonly
+  # The nightly e2e and browser tests sit behind these tags; lint them on every pull request too.
+  build-tags:
+    - e2e
+    - browser
 linters:
   enable:
     - bodyclose

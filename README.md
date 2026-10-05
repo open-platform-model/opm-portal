@@ -11,11 +11,10 @@ reading the cluster as your kubeconfig's user. To install a release, download it
 [the how-to for running the portal locally](docs/site/operating/portal/run-the-portal-locally.md)
 describes.
 
-The design is enhancement
-[0030](https://github.com/open-platform-model/enhancements/tree/main/0030) in the OPM
-enhancements repo.
+The design and its decisions are in [docs/DESIGN.md](docs/DESIGN.md); the plan and progress
+are in [ROADMAP.md](ROADMAP.md).
 
-> **Direction (enhancement 0030).** The first version is read-only. It shows what a cluster runs
+> **Direction ([docs/DESIGN.md](docs/DESIGN.md)).** The first version is read-only. It shows what a cluster runs
 > under OPM, from the Platform down to Pods: status as the operator reports it, events, pod logs
 > and a relationship graph. It first runs on your machine with your kubeconfig, then in-cluster
 > with OIDC login, where every read is authorized as the signed-in user. It creates, edits and
@@ -82,8 +81,8 @@ What it does with your access:
   nothing loads from the internet.
 - **Logs** go to standard error and never hold the link's token, the cookie or kubeconfig
   content. The link is printed to standard output only. `--open` hands it to the browser through
-  a private file, not a command line other local users could read, and removes that file when
-  the portal stops.
+  a private file, not a command line other local users could read, and removes that file as soon
+  as the link's token is spent, or when the portal stops if it never is.
 
 The session cookie is `opm-portal-<port>` with `HttpOnly`, `SameSite=Strict`, `Path=/`, no
 `Domain` and a 12-hour `Max-Age`. The portal serves plain HTTP on loopback, so the cookie has no
@@ -107,7 +106,9 @@ task check              # fmt, vet, lint, openspec, test, capture check
 
 `task e2e:up` builds a throwaway kind cluster with the released opm-operator and a set of test
 modules, `task e2e:capture` snapshots it into `testdata/clusters/f1/`, `task e2e:local` runs the
-built binary in local mode against it, and `task e2e:down` deletes it. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
+built binary in local mode against it, `task e2e:m1` checks the milestone 1 views through it
+(including a scripted image break it reverts), and `task e2e:down` deletes it. The `E2E`
+workflow runs them, and the browser tests, every night. They need kind (podman by default, `E2E_PROVIDER=docker` otherwise), kubectl, yq and
 jq, and never touch a cluster other than `opm-portal-e2e` (or the `opm-portal-e2e-<suffix>`
 cluster `E2E_CLUSTER` names).
 
