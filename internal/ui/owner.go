@@ -536,10 +536,16 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 		if v.Problem == nil {
 			h.ownerTabsOf(r, &v)
 		}
+		topics := []string{v.Topic, "events:" + v.Topic}
+		if v.Tab == tabProvider {
+			// The tab joins the Platform's registrations and the instances
+			// that use what they provide.
+			topics = append(topics, "platform", "instances")
+		}
 		h.render(w, r, problemStatus(v.Problem), "owner", page{
 			Title:  k.Title + " " + ns + "/" + name,
 			Nav:    "installed",
-			Topics: []string{v.Topic, "events:" + v.Topic},
+			Topics: topics,
 			Main:   v,
 		})
 	}

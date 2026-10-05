@@ -54,6 +54,7 @@ These fields join objects the portal already reads, or read fields of them; none
 | `conditions` | each registration of a `Platform` | The registration's own status conditions, with `tone`, `meaning` and `nextStep` as on every condition. |
 | `renderContracts` | `InstanceList` items, as on `Instance` | The contracts the instance's last successful render used. Not what it demands of a provider. Packages record none. |
 | `interval` | `Package` and its list items | `spec.interval` as written; absent when the package sets none. |
+| `serviceAccountName` | `Instance`, `Package` | The ServiceAccount the controller applies the objects as (`spec.serviceAccountName`); absent when the controller applies as its own identity. |
 | `sourceArtifact` | `Package` and its list items | The `revision` and `digest` the controller recorded for the fetched source; absent when it recorded none. The fetch URL is not served. |
 | `outcome` | every history entry | `Succeeded` when the controller wrote phase `complete`, `Failed` when it wrote no phase and a message, `Unknown` otherwise. Served in both modes, also where the message is left out. |
 

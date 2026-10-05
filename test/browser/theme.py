@@ -13,10 +13,11 @@ first failure:
    about what was painted.
 2. A stored Installed filter opens filtered on a full load: /installed becomes
    /installed?kind=package and lists only packages. A MutationObserver records each document
-   when its <body> appears. The replaced /installed document either never reached <body> (the
-   head script replaced it first) or reached it marked opm-restoring, whose stylesheet rule hides
-   the body; the output says which. The final document must have a record, not marked
-   restoring.
+   when its <body> appears, with whether <html> carries the opm-restoring class (the stylesheet's
+   rule for that class hides the body; the check reads the class, not the computed visibility,
+   which depends on the stylesheet having loaded). The replaced /installed document either never
+   reached <body> (the head script replaced it first) or reached it with the class; the output
+   says which. The final document must have a record, without the class.
 3. A boosted navigation restores it too: from the Platform page, the header's Installed link
    requests /installed?kind=package (an htmx request) and pushes that URL.
 4. A stale stored value is dropped: health=Bogus&namespace=default opens

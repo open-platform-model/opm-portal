@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	authorizationv1 "k8s.io/api/authorization/v1"
+
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
@@ -96,5 +98,36 @@ func TestPlatformLinksToTheNewPages(t *testing.T) {
 	}
 	if !strings.Contains(mainOf(s.get(t, "/?tab=catalogs").body), `href="/catalog?path=opmodel.dev%2Fcatalogs%2Fopm%40v4"`) {
 		t.Error("the catalog row does not open the Catalog page")
+	}
+}
+
+// TestUsedByForANamespaceReader: a caller who may list instances only in
+// default still sees backup-consumer use the backup trait, marked as
+// possibly incomplete; one who may list none sees the list locked, with no
+// incomplete note under it.
+func TestUsedByForANamespaceReader(t *testing.T) {
+	onlyDefault := func(_ string, ra authorizationv1.ResourceAttributes) bool {
+		return ra.Resource != "moduleinstances" || ra.Verb != "list" || ra.Namespace == "default"
+	}
+	tab := between(mainOf(newSite(t, apitest.F1(t), onlyDefault).get(t, "/instances/default/backup-provider?tab=provider").body), `id="provider"`, "</section>")
+	if !strings.Contains(tab, `href="/instances/default/backup-consumer"`) || !strings.Contains(tab, "may be incomplete") {
+		t.Errorf("namespace reader's Used by:\n%s", tab)
+	}
+	noList := func(_ string, ra authorizationv1.ResourceAttributes) bool {
+		return ra.Resource != "moduleinstances" || ra.Verb != "list"
+	}
+	locked := between(mainOf(newSite(t, apitest.F1(t), noList).get(t, "/instances/default/backup-provider?tab=provider").body), `id="provider"`, "</section>")
+	if !strings.Contains(locked, "you may not list instances") || strings.Contains(locked, "may be incomplete") {
+		t.Errorf("no instance listable: Used by:\n%s", locked)
+	}
+}
+
+// TestCatalogClaimsLockedWithRegistrations: the Claims tab is locked, not
+// empty, when the caller may not list registrations.
+func TestCatalogClaimsLockedWithRegistrations(t *testing.T) {
+	main := mainOf(newSite(t, apitest.F1(t), apitest.DenyResources("transformerregistrations")).get(t, "/catalog?path=opmodel.dev/catalogs/opm@v4").body)
+	claims := between(main, `id="claims"`, "</section>")
+	if !strings.Contains(claims, "locked-panel") || strings.Contains(claims, "No registration you may read") {
+		t.Errorf("Claims tab:\n%s", claims)
 	}
 }

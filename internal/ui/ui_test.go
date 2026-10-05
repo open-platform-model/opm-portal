@@ -443,8 +443,9 @@ func TestPagesDeclareTheirTopics(t *testing.T) {
 		"/installed":                       "instances",
 		"/installed?namespace=web":         "instances:web",
 		"/installed?namespace=Not_A_Label": "instances",
-		"/instances/default/podinfo":       "instance:default/podinfo events:instance:default/podinfo",
-		"/packages/pkg/podinfo":            "package:pkg/podinfo events:package:pkg/podinfo",
+		"/instances/default/backup-provider?tab=provider": "instance:default/backup-provider events:instance:default/backup-provider platform instances",
+		"/instances/default/podinfo":                      "instance:default/podinfo events:instance:default/podinfo",
+		"/packages/pkg/podinfo":                           "package:pkg/podinfo events:package:pkg/podinfo",
 	} {
 		body := s.get(t, path).body
 		main := between(body, "<main ", ">")

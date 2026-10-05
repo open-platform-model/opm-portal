@@ -30,9 +30,15 @@ type catalogView struct {
 	NotResolvedWhy    string
 	Contracts         *v1.Condition
 	Claims            []catalogClaim
-	Tab               string
-	Tabs              []tabLink
-	Events            platformEvents
+	// ClaimsLocked: the caller may not list the registrations, so the
+	// claims, and whether there are any, are locked (portal:D7:R2/R3).
+	ClaimsLocked string
+	// ContributorHolders are the holders of the registration that
+	// contributed the catalog, linked to their Provider tab.
+	ContributorHolders []holderLink
+	Tab                string
+	Tabs               []tabLink
+	Events             platformEvents
 }
 
 // catalogClaim is one registration claiming the catalog.
@@ -97,15 +103,12 @@ func (h *Handler) catalogPage(w http.ResponseWriter, r *http.Request) {
 // claims.
 func catalogViewOf(p *v1.Platform, row catalogRow) catalogView {
 	v := catalogView{Row: row, Tab: tabClaims, Origin: originOf(row)}
-	var ready *v1.Condition
-	for j := range p.Conditions {
-		switch c := &p.Conditions[j]; c.Type {
-		case conditionReady:
-			ready = c
-		case conditionContracts:
-			v.Contracts = c
-		}
+	if p.RegistrationsAccess != v1.AccessOK {
+		v.ClaimsLocked = p.RegistrationsAccess
 	}
+	st := statusOf(p)
+	ready := st.Ready
+	v.Contracts = st.Contracts
 	for j := range p.Registrations {
 		reg := p.Registrations[j]
 		if reg.Catalog != row.Path {
@@ -116,12 +119,15 @@ func catalogViewOf(p *v1.Platform, row catalogRow) catalogView {
 			cl.Holders = append(cl.Holders, holderOf(ref))
 		}
 		v.Claims = append(v.Claims, cl)
+		if reg.Name == row.ContributedBy {
+			v.ContributorHolders = cl.Holders
+		}
 		if !row.Resolved && v.NotResolvedReason == "" && !reg.Accepted && reg.Reason != "" {
-			v.NotResolvedReason, v.NotResolvedWhy = reg.Reason, "the claim of "+reg.Name
+			v.NotResolvedReason, v.NotResolvedWhy = reg.Reason, "From the claim "+reg.Name+"."
 		}
 	}
-	if !row.Resolved && v.NotResolvedReason == "" && ready != nil {
-		v.NotResolvedReason, v.NotResolvedWhy = ready.Reason, "the Platform's Ready condition"
+	if !row.Resolved && v.NotResolvedReason == "" && ready != nil && ready.Status != "True" {
+		v.NotResolvedReason, v.NotResolvedWhy = ready.Reason, "From the Platform's Ready condition."
 	}
 	return v
 }

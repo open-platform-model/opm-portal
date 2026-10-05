@@ -81,9 +81,11 @@ with `get`, `list` and `watch` on them to the `opm-portal-reader` ClusterRole in
 
 | Page | Shows |
 | --- | --- |
-| `/` Platform | catalog subscriptions and the resolved registry with versions, registrations with separate *accepted* and *active* pills and their verdicts, contracts without a provider (information, not a failure), conditions with what each reason means and what to do, the platform graph, recent events |
-| `/instances`, `/packages` | every ModuleInstance or ModulePackage you may list, filterable by namespace, each with two badges: **Applied** (what the operator applied) and **Health** (what the portal sees running) |
-| `/instances/<ns>/<name>`, `/packages/<ns>/<name>` | the relationship graph, components with their objects and Pods, conditions, the contracts the render used (as text: they are not the instance's provider demand), the operator's history, recent events, live logs per container, and a YAML view of any object |
+| every page | a header naming the kubeconfig context, the user the portal reads as and the Kubernetes version, the live mark, and a Light, Dark or System theme menu |
+| `/` Platform | identity and the controller version, the status with its `Ready` and `ContractsFulfilled` reasons (unfulfilled contracts are information, not a failure), counts of what is installed by health and applied state that open Installed filtered, a **Providers** tab (each registration, its catalog, what it provides, the instance or package holding it, *accepted* and *active* apart, the verdict) and a **Catalogs** tab (subscribed, from a provider, or claimed only), conditions, and the recent events of the Platform and its providers |
+| `/installed` | every ModuleInstance and ModulePackage you may list in one table, filterable by search, kind, provider, uses, namespace, health, applied state, owner and module; filters stay in the address and your browser remembers them per cluster context. `/instances` and `/packages` redirect here |
+| `/instances/<ns>/<name>`, `/packages/<ns>/<name>` | cards for identity (with the applier ServiceAccount, and a package's interval and revision), **Applied** (reason, Reconciling, warnings of the last hour, one dot per recorded attempt, the history) and **Health** (counts by reason), then tabs: **Graph** (hover cards, spotlight, zoom, full screen, groups), **Resources** (objects and what the cluster made below them, filterable by reason), **Events**, **Logs** per container and **YAML** of any object; a **Provider** card and tab when the inventory holds a TransformerRegistration |
+| `/catalog?path=<catalog>` | one catalog as the Platform records it: origin, source, whether it resolved and why not, the registrations claiming it with their holders, recent events |
 
 Applied and Health are never merged: an instance whose rollout is broken shows **Applied** and
 **Degraded** side by side. Anything you may not read shows **locked**, with nothing about it

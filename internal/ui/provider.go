@@ -26,9 +26,11 @@ type providerTabView struct {
 	PlatformLocked  bool
 	PlatformProblem *v1.Problem
 	// UsedByIncomplete: the caller may not list every instance, so "Used
-	// by" may lack some; UsedByLocked: it may list none.
+	// by" may lack some; UsedByLocked: it may list none; UsedByProblem: a
+	// list failed for another reason.
 	UsedByIncomplete bool
 	UsedByLocked     bool
+	UsedByProblem    *v1.Problem
 	Claims           []claimView
 }
 
@@ -68,10 +70,7 @@ func (h *Handler) providerTab(r *http.Request, v *ownerView) providerTabView {
 			t.PlatformProblem = prob
 		}
 	}
-	var instances v1.InstanceList
-	if prob := h.fetch(r, "/instances", nil, &instances); prob != nil || instances.Access != v1.AccessOK {
-		t.UsedByLocked = true
-	}
+	items := h.usedByInstances(r, &t, v, &p)
 	for _, c := range v.ProviderOf {
 		cv := claimView{Claim: c}
 		if t.PlatformProblem == nil && !t.PlatformLocked {
@@ -91,12 +90,46 @@ func (h *Handler) providerTab(r *http.Request, v *ownerView) providerTabView {
 				}
 			}
 			for _, contract := range cv.Reg.Provides {
-				cv.Contracts = append(cv.Contracts, usedByOf(contract, instances.Items, t.UsedByLocked))
+				cv.Contracts = append(cv.Contracts, usedByOf(contract, items, t.UsedByLocked))
 			}
 		}
 		t.Claims = append(t.Claims, cv)
 	}
 	return t
+}
+
+// usedByInstances lists the instances "Used by" reads: every instance the
+// caller may list cluster-wide, or, when it may not, those of each
+// namespace it may list among the owner's and the holders' (portal:D7:R2,
+// portal:D16:R3).
+func (h *Handler) usedByInstances(r *http.Request, t *providerTabView, v *ownerView, p *v1.Platform) []v1.InstanceSummary {
+	var all v1.InstanceList
+	prob := h.fetch(r, "/instances", nil, &all)
+	switch {
+	case prob == nil && all.Access == v1.AccessOK:
+		return all.Items
+	case prob != nil && prob.Code != v1.CodeForbidden:
+		t.UsedByProblem = prob
+		return nil
+	}
+	namespaces := []string{v.Namespace}
+	for i := range p.Registrations {
+		for _, ref := range p.Registrations[i].HeldBy {
+			namespaces = appendUnique(namespaces, ref.Namespace)
+		}
+	}
+	var items []v1.InstanceSummary
+	listed := false
+	for _, ns := range namespaces {
+		var list v1.InstanceList
+		if h.fetch(r, "/instances", nsQuery(ns), &list) == nil && list.Access == v1.AccessOK {
+			listed = true
+			items = append(items, list.Items...)
+		}
+	}
+	t.UsedByLocked = !listed
+	t.UsedByIncomplete = listed
+	return items
 }
 
 func usedByOf(contract string, items []v1.InstanceSummary, locked bool) usedBy {

@@ -80,7 +80,7 @@
 {{if .Empty}}<p class="muted">Nothing to draw.</p>{{else}}
 <div class="graph" data-graph="{{.ID}}"{{with .FitGroup}} data-fit-group="{{.}}"{{end}}>
   <div class="graph-tools" role="group" aria-label="Graph view">
-    <span class="hint">drag to pan · Ctrl + wheel to zoom · Esc clears the selection · outline and rail: health · square: applied</span>
+    <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
     {{with .Whole}}<a class="tool-link" href="{{.}}" data-whole-graph>Whole graph</a>{{end}}
     <a class="tool-link" href="{{.Clear}}" hx-boost="false" data-clear-selection{{if not .Focused}} hidden{{end}}>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>

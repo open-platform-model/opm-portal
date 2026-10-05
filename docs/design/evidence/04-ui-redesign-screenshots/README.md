@@ -19,8 +19,13 @@ the light and dark themes and the phone width. They show the F1 capture
   Each page was opened, left until the network was idle, and captured full page; the hover card
   was captured after hovering the first graph node, and the scrolled header after a 1200 px wheel
   scroll.
-- The run covered twelve pages in each of the three modes (38 shots). The twelve here are the set
-  the change cites; the rest were not committed.
+- The run covered twelve pages in each of the three modes, 36 page shots, plus the hover card and
+  the scrolled header: 38 in all. The twelve pages were `/`, `/?tab=catalogs`, `/installed`,
+  `/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1`, `/instances/default/podinfo`
+  on its Graph, Resources, Events and YAML tabs, `/instances/cert-manager/cert-manager`,
+  `/instances/default/backup-provider?tab=provider`, `/packages/pkg/podinfo` and
+  `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0`. The twelve files here are the
+  set the change cites; the other 26 were not committed.
 
 | File | Page |
 | --- | --- |

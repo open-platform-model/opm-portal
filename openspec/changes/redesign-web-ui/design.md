@@ -642,7 +642,9 @@ kind) and over F1:
   version in the `Cluster` document read as the ServiceAccount, so `system:public-info-viewer`
   gives it `/version` with no rule in the `deploy/` role (portal:D18:R3).
 - **Browsers**: `task test:browser` passes in Chromium, Firefox and WebKit: `TestBrowserLaunch`,
-  `TestBrowserLogs`, `TestBrowserExpired` and `TestBrowserTheme`. In all three, the document a
+  `TestBrowserLogs`, `TestBrowserExpired`, `TestBrowserTheme` and `TestBrowserGraph` (Clear
+  selection, the Resources hand-off, a group's fit and Whole graph, and the focus, zoom and full
+  screen a live refresh keeps). In all three, the document a
   remembered filter replaces is aborted before its `<body>` exists, so the unfiltered Installed
   list is never painted.
 - **Image break on an open page**: the cluster reported the broken Pod 2.008 s after the patch,

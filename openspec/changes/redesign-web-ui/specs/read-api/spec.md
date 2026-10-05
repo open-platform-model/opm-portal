@@ -39,12 +39,19 @@ portal:D18:R1/R2/R3.
 A package document and a package list item SHALL carry `interval`, the package's `spec.interval`
 as written, when it is set, and `sourceArtifact` with the `revision` and `digest` the controller
 recorded in `status.source`, when it recorded them. Neither SHALL be filled with a default or a
-guess. The source artifact's fetch URL SHALL not be served. Source: portal:D2:R4.
+guess. The source artifact's fetch URL SHALL not be served. A package document SHALL also carry
+`serviceAccountName`, the package's `spec.serviceAccountName`, when it is set; absent, the
+controller applies as its own identity. Source: portal:D2:R4.
 
 #### Scenario: The F1 package
 
 - **WHEN** a client reads package `pkg/podinfo` from the F1 capture
-- **THEN** it has `interval` `1m` and no `sourceArtifact`
+- **THEN** it has `interval` `1m`, no `sourceArtifact` and no `serviceAccountName`
+
+#### Scenario: A package with an applier
+
+- **WHEN** a package sets `spec.serviceAccountName` to `podinfo-applier`
+- **THEN** its document carries `serviceAccountName` `podinfo-applier`
 
 ### Requirement: Registrations carry their conditions and holders
 

@@ -157,7 +157,7 @@
   {{else}}<p class="muted">Pick an object. Every object is shown as the cluster serves it, without managed fields, the last-applied annotation or values.</p>{{end}}
 </section>
 {{else if eq .Tab "provider"}}
-<section class="panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform">
+<section class="panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">
   <h2 id="provider-tab-h">Provider <span class="h-note">the registrations this {{.Kind.Topic}}'s inventory holds, as the controller judged them</span></h2>
   {{with .Provider}}
   {{if .PlatformLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not read the Platform, so each claim's conditions, catalog and registry state are not shown. The standing below is the registration's own.</p></div>{{end}}
@@ -192,10 +192,11 @@
         <a href="{{.All}}">All {{if not $v.Provider.UsedByLocked}}{{.Total}} {{end}}in Installed</a></span></li>
     {{end}}
     </ul>
-    {{if $v.Provider.UsedByLocked}}<p class="note">The list may be incomplete: you may not list every instance.</p>{{end}}
+    {{if $v.Provider.UsedByIncomplete}}<p class="note">The list may be incomplete: you may not list every instance.</p>{{end}}
+    {{with $v.Provider.UsedByProblem}}{{template "problem-region" .}}{{end}}
     {{else}}<p class="muted">The registration provides no contract.</p>{{end}}
     {{end}}
-    {{else if not $v.Provider.PlatformLocked}}<p class="muted">The Platform names no such registration you may read.</p>{{end}}
+    {{else if not (or $v.Provider.PlatformLocked $v.Provider.PlatformProblem)}}<p class="muted">The Platform names no such registration you may read.</p>{{end}}
   </article>
   {{end}}
   {{end}}

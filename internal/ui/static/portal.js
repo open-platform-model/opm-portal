@@ -669,6 +669,12 @@
   });
   // Panes swapped away with their page stop following.
   var mainSwapped = false;
+  var tabClicked = false;
+  // A swap a tab link started puts focus on the new current tab; any other
+  // puts it on the page.
+  document.addEventListener("click", function (evt) {
+    tabClicked = !!(evt.target.closest && evt.target.closest(".tabs a"));
+  }, true);
   document.addEventListener("htmx:beforeSwap", function (evt) {
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
@@ -687,7 +693,8 @@
     }
     mainSwapped = false;
     var m = document.getElementById("main");
-    var tab = m && m.querySelector(".tabs a[aria-current]");
+    var tab = tabClicked && m && m.querySelector(".tabs a[aria-current]");
+    tabClicked = false;
     var target = tab || m;
     if (target && target.focus) {
       target.focus({ preventScroll: true });
@@ -704,9 +711,11 @@
   function markSelected(g) {
     var want = selected.get(g.getAttribute("data-graph"));
     if (want && !g.querySelector('.node[data-node="' + CSS.escape(want) + '"]')) {
-      // The focused node is gone (the object was deleted): nothing dims.
+      // The focused node is gone (the object was deleted): nothing dims,
+      // and the panel no longer describes it.
       selected.delete(g.getAttribute("data-graph"));
       setFocusParam("");
+      resetDetail();
       want = "";
     }
     var near = new Set();
@@ -750,10 +759,7 @@
     history.replaceState(history.state, "", u.pathname + u.search + u.hash);
   }
 
-  function clearSelection(g) {
-    selected.delete(g.getAttribute("data-graph"));
-    markSelected(g);
-    setFocusParam("");
+  function resetDetail() {
     var target = document.getElementById("detail");
     if (target) {
       var p = document.createElement("p");
@@ -761,6 +767,13 @@
       p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
       target.replaceChildren(p);
     }
+  }
+
+  function clearSelection(g) {
+    selected.delete(g.getAttribute("data-graph"));
+    markSelected(g);
+    setFocusParam("");
+    resetDetail();
   }
 
   function intoView(el) {
