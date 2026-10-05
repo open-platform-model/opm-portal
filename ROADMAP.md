@@ -68,7 +68,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 1. **First release, 0.1.0** (PR 18), held until the portal's part of the opm-operator to
    opm-controller rename merges (it renames `operatorVersion` and the owner value `operator` in the
    read API).
-2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, in review, PR PR_NUMBER): Platform
+2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, in review, PR 39): Platform
    and Installed views, a theme choice and remembered filters, summary cards and tabs on instance
    and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to
    D18); the `Cluster` document, provider holders and package sources in the read API; local mode
