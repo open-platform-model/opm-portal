@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OPM Portal: cert-manager</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<style>
+.opm-hdr{transition:padding .2s ease,box-shadow .2s ease}
+.opm-hdr > a{transition:font-size .2s ease}
+.opm-hdr.is-compact{padding-top:5px!important;padding-bottom:5px!important;box-shadow:0 8px 20px -12px rgb(0 0 0 / 55%)}
+.opm-hdr.is-compact > a{font-size:15px!important}
+.opm-hdr.is-compact > a svg{width:18px;height:18px}
+.opm-hdr.is-compact nav a{padding-top:4px!important;padding-bottom:4px!important}
+.opm-hdr.is-compact button[aria-haspopup]{width:30px!important;height:30px!important}
+@media (prefers-reduced-motion: reduce){.opm-hdr,.opm-hdr > a{transition:none}}
+.opm-tip{position:relative;display:inline-flex;outline-offset:2px}
+.opm-tip .opm-tipbox{display:none;position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:300px;padding:10px 12px;border-radius:8px;background:#1d2430;color:#ebe6da;font-size:13px;line-height:1.45;font-weight:400;letter-spacing:normal;text-transform:none;z-index:50;box-shadow:0 10px 24px -10px rgb(0 0 0 / 55%)}
+.opm-tip:hover .opm-tipbox,.opm-tip:focus .opm-tipbox,.opm-tip:focus-within .opm-tipbox{display:block}
+.opm-menu button:hover{background:#2a3240}
+:root{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-8a5a00: #8a5a00; --fg-8f96a3: #8f96a3; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-f0a08f: #f0a08f; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-2458b8: #2458b8; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #6a6f7a; --pt-8a5a00: #8a5a00; --pt-a3967c: #a3967c; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-c4c0b5: #c4c0b5; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dde6f7: #dde6f7; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eaf5ee: #eaf5ee; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f1f8f3: #f1f8f3; --pt-f4efe4: #f4efe4; --pt-f8e0da: #f8e0da; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb0: rgb(176 120 20 / 13%); --rgb1: rgb(176 120 20 / 18%); --rgb2: rgb(176 120 20 / 5%); --rgb3: rgb(20 24 32 / 55%); --rgb4: rgb(20 24 32 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; color-scheme: light;}
+@media (prefers-color-scheme: dark){:root{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-8a5a00: #e3b45c; --fg-8f96a3: #8f96a3; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-f0a08f: #f0a08f; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-2458b8: #7ea6f2; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #8f96a3; --pt-8a5a00: #e3b45c; --pt-a3967c: #5f6a7c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-c4c0b5: #c4c0b5; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dde6f7: #17233d; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eaf5ee: #102019; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f1f8f3: #0f1d17; --pt-f4efe4: #181e28; --pt-f8e0da: #3a1712; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb0: rgb(227 180 92 / 16%); --rgb1: rgb(227 180 92 / 28%); --rgb2: rgb(227 180 92 / 6%); --rgb3: rgb(0 0 0 / 60%); --rgb4: rgb(235 230 218 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; color-scheme: dark;}}
+[data-theme="light"]{--fg-0f5c3d: #0f5c3d; --fg-141820: #141820; --fg-1b2a44: #1b2a44; --fg-3a4150: #3a4150; --fg-5e3d00: #5e3d00; --fg-6a6f7a: #6a6f7a; --fg-6b4500: #6b4500; --fg-8a5a00: #8a5a00; --fg-8f96a3: #8f96a3; --fg-a3260f: #a3260f; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #efe9dc; --fg-f0a08f: #f0a08f; --pt-141820: #141820; --pt-157a52: #157a52; --pt-1b2a44: #1b2a44; --pt-2458b8: #2458b8; --pt-3a4150: #3a4150; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #6a6f7a; --pt-8a5a00: #8a5a00; --pt-a3967c: #a3967c; --pt-b9ad94: #b9ad94; --pt-c3311b: #c3311b; --pt-c4c0b5: #c4c0b5; --pt-d6ccb8: #d6ccb8; --pt-dcefe5: #dcefe5; --pt-dde6f7: #dde6f7; --pt-dfe5ef: #dfe5ef; --pt-e5dccb: #e5dccb; --pt-e7e3da: #e7e3da; --pt-eaf5ee: #eaf5ee; --pt-eef1f7: #eef1f7; --pt-efe9dc: #efe9dc; --pt-f1f8f3: #f1f8f3; --pt-f4efe4: #f4efe4; --pt-f8e0da: #f8e0da; --pt-fbf8f1: #fbf8f1; --pt-fcefeb: #fcefeb; --pt-fdf3f0: #fdf3f0; --pt-fff6e3: #fff6e3; --pt-fffdf8: #fffdf8; --rgb0: rgb(176 120 20 / 13%); --rgb1: rgb(176 120 20 / 18%); --rgb2: rgb(176 120 20 / 5%); --rgb3: rgb(20 24 32 / 55%); --rgb4: rgb(20 24 32 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #141820; --logbg: #141820; --tipbg: #141820; color-scheme: light;}
+[data-theme="dark"]{--fg-0f5c3d: #6fd3a2; --fg-141820: #ebe6da; --fg-1b2a44: #9db3e0; --fg-3a4150: #c4c0b5; --fg-5e3d00: #f0c879; --fg-6a6f7a: #8f96a3; --fg-6b4500: #f0c879; --fg-8a5a00: #e3b45c; --fg-8f96a3: #8f96a3; --fg-a3260f: #ff9d88; --fg-c4c0b5: #c4c0b5; --fg-e3b45c: #e3b45c; --fg-ebe6da: #ebe6da; --fg-efe9dc: #ebe6da; --fg-f0a08f: #f0a08f; --pt-141820: #3a4352; --pt-157a52: #4cc38a; --pt-1b2a44: #9db3e0; --pt-2458b8: #7ea6f2; --pt-3a4150: #c4c0b5; --pt-3a4352: #3a4352; --pt-3fbf86: #3fbf86; --pt-6a6f7a: #8f96a3; --pt-8a5a00: #e3b45c; --pt-a3967c: #5f6a7c; --pt-b9ad94: #3a4352; --pt-c3311b: #f0806b; --pt-c4c0b5: #c4c0b5; --pt-d6ccb8: #2a3240; --pt-dcefe5: #12261c; --pt-dde6f7: #17233d; --pt-dfe5ef: #1a2436; --pt-e5dccb: #222a35; --pt-e7e3da: #262c36; --pt-eaf5ee: #102019; --pt-eef1f7: #141c2b; --pt-efe9dc: #0c0f14; --pt-f1f8f3: #0f1d17; --pt-f4efe4: #181e28; --pt-f8e0da: #3a1712; --pt-fbf8f1: #131820; --pt-fcefeb: #2a1310; --pt-fdf3f0: #24110e; --pt-fff6e3: #2a2210; --pt-fffdf8: #161c26; --rgb0: rgb(227 180 92 / 16%); --rgb1: rgb(227 180 92 / 28%); --rgb2: rgb(227 180 92 / 6%); --rgb3: rgb(0 0 0 / 60%); --rgb4: rgb(235 230 218 / 7%); --rgb5: rgb(227 180 92 / 18%); --hdr: #07090c; --logbg: #07090c; --tipbg: #262e3a; color-scheme: dark;}
+body{margin:0;background:var(--pt-efe9dc);color:var(--fg-141820);font-family:"Space Grotesk","Avenir Next",sans-serif}
+a{color:var(--fg-8a5a00)}a:hover{color:var(--fg-5e3d00)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px}
+</style>
+</helmet>
+<div data-theme="{{themeAttr}}" style="min-height: 100vh; color: var(--fg-141820); background: var(--pt-efe9dc);">
+  <header class="opm-hdr {{hdrCompact}}" style="position: sticky; top: 0; z-index: 800; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding: 14px 40px; background: var(--hdr); color: var(--fg-efe9dc);">
+    <a href="Main.dc.html" onClick="{{leaveView}}" style="display: flex; align-items: center; gap: 10px; color: var(--fg-efe9dc); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: 0.02em;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e3b45c" stroke-width="2"><path d="M12 2 21 7v10l-9 5-9-5V7z"></path><path d="M12 22V12M21 7l-9 5-9-5"></path></svg>
+      OPM Portal
+    </a>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap;">
+      <a href="Main.dc.html" onClick="{{leaveView}}" style="padding: 8px 14px; border-radius: 8px; color: var(--fg-c4c0b5); text-decoration: none;">Platform</a>
+      <a href="Instances.dc.html" onClick="{{leaveView}}" aria-current="page" style="padding: 8px 14px; border-radius: 8px; background: var(--rgb5); color: var(--fg-e3b45c); text-decoration: none; font-weight: 600;">Installed</a>
+    </nav>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--fg-c4c0b5); flex-wrap: wrap;">
+      <span class="mono" style="padding: 4px 10px; border: 1px solid var(--pt-3a4352); border-radius: 999px;">kind-opm-portal-e2e</span>
+      <span>reading as <span class="mono" style="color: var(--fg-ebe6da);">kubernetes-admin</span></span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--pt-3fbf86);"></span>Live</span>
+      <span style="position: relative; display: inline-flex;">
+        <button type="button" onClick="{{toggleThemeMenu}}" aria-haspopup="menu" aria-expanded="{{themeMenuOpenAttr}}" aria-label="{{themeLabel}}" title="{{themeLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: #ebe6da; cursor: pointer;">
+          <sc-if value="{{themeIsSystem}}" hint-placeholder-val="{{true}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"></path></svg></sc-if>
+          <sc-if value="{{themeIsDark}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"></path></svg></sc-if>
+          <sc-if value="{{themeIsLight}}" hint-placeholder-val="{{false}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></sc-if>
+        </button>
+        <sc-if value="{{themeMenuOpen}}" hint-placeholder-val="{{false}}">
+          <div class="opm-menu" role="menu" aria-label="Theme" style="position: absolute; right: 0; top: 44px; z-index: 1100; min-width: 160px; display: flex; flex-direction: column; padding: 6px; border-radius: 10px; border: 1px solid #3a4352; background: #1d2430; box-shadow: 0 12px 28px -10px rgb(0 0 0 / 60%);">
+            <sc-for list="{{themeOptions}}" as="t" hint-placeholder-count="3">
+              <button type="button" role="menuitemradio" aria-checked="{{t.checkedAttr}}" onClick="{{t.pick}}" style="{{t.style}}"><span>{{t.label}}</span><sc-if value="{{t.checked}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12.5 10 17l9-10"></path></svg></sc-if></button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </span>
+    </div>
+  </header>
+
+  <main style="max-width: 1840px; margin: 0 auto; padding: 24px 40px 56px; display: flex; flex-direction: column; gap: 20px;">
+    <nav aria-label="Breadcrumb" style="font-size: 14px; color: var(--fg-6a6f7a); display: flex; gap: 8px;">
+      <a href="Instances.dc.html" onClick="{{leaveView}}">Installed</a><span>/</span><span class="mono">cert-manager</span><span>/</span><span style="color: var(--fg-141820);">cert-manager</span>
+    </nav>
+
+    <section aria-label="Summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; align-items: stretch;">
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 12px;">
+        <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">ModuleInstance</span>
+        <h1 style="margin: 0; font-size: 40px; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em;">cert-manager</h1>
+        <span class="mono" style="color: var(--fg-3a4150);">opmodel.dev/modules/cert_manager@v2 · v2.0.5</span>
+        <dl style="margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+          <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a);">Namespace</dt><dd class="mono" style="margin: 0;">cert-manager</dd></div>
+          <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a); display: flex; align-items: center; gap: 5px;">Owner<span class="opm-tip" tabindex="0" aria-label="Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone." style="color: var(--fg-8a5a00); cursor: help;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg><span class="opm-tipbox" role="tooltip">Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.</span></span></dt><dd style="margin: 0;">controller</dd></div>
+          <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px;"><dt style="color: var(--fg-6a6f7a); display: flex; align-items: center; gap: 5px;">Applier<span class="opm-tip" tabindex="0" aria-label="The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount." style="color: var(--fg-8a5a00); cursor: help;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg><span class="opm-tipbox" role="tooltip">The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount.</span></span></dt><dd class="mono" style="margin: 0;">ServiceAccount cert-manager-applier</dd></div>
+        </dl>
+      </div>
+      <sc-for list="{{blocks}}" as="b" hint-placeholder-count="2">
+        <section aria-label="{{b.aria}}" style="display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 18px; border: 2px solid {{b.border}}; border-radius: 12px; background: {{b.tint}};">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-3a4150);">{{b.eyebrow}}</span>
+            <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{b.when}}</span>
+          </div>
+          <span style="font-size: 26px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; color: {{b.ink}};">{{b.state}}</span>
+          <span style="font-size: 15px; color: var(--fg-3a4150);">{{b.summary}}</span>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 28px;">
+            <sc-for list="{{b.reasons}}" as="r" hint-placeholder-count="0">
+              <button type="button" onClick="{{r.go}}" style="display: inline-flex; align-items: baseline; gap: 6px; min-height: 28px; padding: 2px 0; border: none; background: none; font: inherit; cursor: pointer; color: {{b.ink}}; text-decoration: underline; text-underline-offset: 3px;"><strong style="font-size: 16px;">{{r.count}}</strong><span class="mono" style="font-size: 14px;">{{r.type}}</span></button>
+            </sc-for>
+            <sc-if value="{{b.noReasons}}" hint-placeholder-val="{{true}}"><span style="font-size: 14px; color: var(--fg-6a6f7a);">{{b.noReasonText}}</span></sc-if>
+          </div>
+          <sc-if value="{{b.hasHistory}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--pt-d6ccb8);">
+              <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6a6f7a);">History</span>
+              <span style="display: inline-flex; align-items: center; gap: 5px;">
+                <sc-for list="{{b.dots}}" as="t" hint-placeholder-count="3">
+                  <span class="opm-tip" tabindex="0" aria-label="{{t.title}}" style="cursor: help;"><span style="{{t.style}}">{{t.mark}}</span><span class="opm-tipbox" role="tooltip">{{t.title}}</span></span>
+                </sc-for>
+              </span>
+              <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{b.historyCount}}</span>
+              <button type="button" onClick="{{b.toggleHistory}}" aria-expanded="{{b.historyOpenAttr}}" style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-3a4150); font: inherit; font-size: 13px; cursor: pointer;">{{b.historyLabel}}</button>
+            </div>
+            <sc-if value="{{b.historyOpen}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; flex-direction: column; border-top: 1px solid var(--pt-e5dccb);">
+                <sc-for list="{{b.rows}}" as="a" hint-placeholder-count="3">
+                  <div style="display: grid; grid-template-columns: 34px 92px minmax(0, 1fr) 76px; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 13px;">
+                    <span class="mono" style="color: var(--fg-6a6f7a);">#{{a.seq}}</span>
+                    <span style="{{a.badge}}">{{a.result}}</span>
+                    <span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{a.message}}</span>
+                    <span style="color: var(--fg-6a6f7a); font-size: 12px; text-align: right;">{{a.age}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </sc-if>
+        </section>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+      <div style="flex: 999 1 900px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+        <div role="tablist" aria-label="Views" style="display: flex; gap: 4px; border-bottom: 1px solid var(--pt-d6ccb8); flex-wrap: wrap;">
+          <sc-for list="{{tabs}}" as="t" hint-placeholder-count="2">
+            <button type="button" role="tab" aria-selected="{{t.selected}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{showGraph}}" hint-placeholder-val="{{true}}">
+          <section aria-label="Graph" style="{{graphSectionStyle}}">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0;">
+                <button type="button" onClick="{{toggleGrouping}}" aria-pressed="{{groupingPressed}}" style="{{groupingStyle}}">Group configuration</button>
+                <button type="button" onClick="{{expandAll}}" style="min-height: 32px; padding: 4px 12px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-141820);">Expand all</button>
+                <button type="button" onClick="{{collapseAll}}" style="min-height: 32px; padding: 4px 12px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-141820);">Collapse all</button>
+                <span style="font-size: 13px; color: var(--fg-6a6f7a);">{{shownCount}}</span>
+                <sc-if value="{{anyOpen}}" hint-placeholder-val="{{false}}">
+                  <button type="button" onClick="{{backOut}}" title="Close {{openLabel}} and go back to the overview" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Overview <span style="font-weight: 400; color: var(--fg-8a5a00);">Esc</span></button>
+                </sc-if>
+              </div>
+              <div role="group" aria-label="Graph zoom" style="display: flex; align-items: center; gap: 10px; flex: none;">
+                <button type="button" onClick="{{fitZoom}}" aria-pressed="{{isFit}}" style="{{fitStyle}}">Fit</button>
+                <label for="zoom" title="Or hold Ctrl and scroll over the graph" style="font-size: 13px; color: var(--fg-6a6f7a);">Zoom</label>
+                <input id="zoom" type="range" min="30" max="200" step="5" value="{{zoomPct}}" onChange="{{onZoom}}" style="width: 180px; accent-color: var(--pt-8a5a00); cursor: pointer;">
+                <span class="mono" style="min-width: 44px; text-align: right; color: var(--fg-3a4150);">{{zoomPct}}%</span>
+                <button type="button" onClick="{{toggleFull}}" aria-pressed="{{fullPressed}}" aria-label="{{fullLabel}}" title="{{fullLabel}}" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 32px; border-radius: 6px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-141820); cursor: pointer;">
+                  <sc-if value="{{notFull}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg></sc-if>
+                  <sc-if value="{{isFull}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"></path></svg></sc-if>
+                </button>
+              </div>
+            </div>
+            <div ref="{{setPane}}" onKeyDown="{{onPaneKey}}" onClick="{{onPaneClick}}" style="overflow: auto; height: {{paneHeight}}px; border: 1px solid var(--pt-e5dccb); border-radius: 8px; background-color: var(--pt-fbf8f1); background-image: linear-gradient(to right, var(--rgb4) 1px, transparent 1px), linear-gradient(to bottom, var(--rgb4) 1px, transparent 1px); background-size: {{gridPx}}px {{gridPx}}px; background-position: {{offX}}px {{offY}}px; background-attachment: local;">
+              <div style="position: relative; width: {{sizeW}}px; height: {{sizeH}}px; margin-left: {{offX}}px; margin-top: {{offY}}px; transition: {{zoomAnim}};">
+                <div style="position: absolute; left: 0; top: 0; width: {{canvasW}}px; height: {{canvasH}}px; transform: scale({{zoom}}); transform-origin: 0 0; transition: {{scaleAnim}};">
+                  <sc-for list="{{colHeads}}" as="c" hint-placeholder-count="5">
+                    <span style="{{c.style}}">{{c.label}}</span>
+                  </sc-for>
+                  <sc-for list="{{frames}}" as="f" hint-placeholder-count="0">
+                    <div aria-hidden="{{f.hidden}}" style="{{f.style}}">
+                      <div style="{{f.headStyle}}">
+                        <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-6b4500);">{{f.label}}</span>
+                        <button type="button" onClick="{{f.close}}" tabindex="{{f.tab}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--pt-fff6e3); color: var(--fg-6b4500); font: inherit; font-size: 12px; cursor: pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>Collapse</button>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <sc-for list="{{edges}}" as="e" hint-placeholder-count="0">
+                    <div aria-hidden="true" style="{{e.style}}"></div>
+                  </sc-for>
+                  <sc-for list="{{nodeList}}" as="g" hint-placeholder-count="12">
+                    <button type="button" onClick="{{g.pick}}" onMouseEnter="{{g.enter}}" onMouseLeave="{{g.leave}}" onFocus="{{g.enter}}" onBlur="{{g.leave}}" aria-pressed="{{g.pressed}}" tabindex="{{g.tab}}" aria-hidden="{{g.hidden}}" style="{{g.style}}">
+                      <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: {{g.kindInk}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{g.kind}}</span>
+                      <span style="{{g.nameStyle}}">{{g.name}}</span>
+                      <span style="font-size: 12px; color: {{g.statusInk}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{g.status}}</span>
+                    </button>
+                  </sc-for>
+  
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{hasHover}}" hint-placeholder-val="{{false}}">
+                    <div role="tooltip" style="{{h.style}}">
+                      <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-8f96a3);">{{h.kind}}</span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--fg-efe9dc); overflow-wrap: anywhere;">{{h.name}}</span>
+                      <span style="font-size: 13px; color: var(--fg-ebe6da);">{{h.line}}</span>
+                      <span style="font-size: 12px; color: var(--fg-8f96a3);">{{h.origin}}</span>
+                      <span style="font-size: 12px; color: var(--fg-e3b45c);">{{h.hint}}</span>
+                    </div>
+                  </sc-if>
+            <div aria-label="Legend" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; font-size: 13px; color: var(--fg-3a4150);">
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><span aria-hidden="true" style="display: inline-block; width: 26px; height: 16px; border-radius: 4px; flex: none; border: 1.5px solid var(--pt-157a52); background: var(--pt-f1f8f3);"></span>Applied by the controller</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><span aria-hidden="true" style="display: inline-block; width: 26px; height: 16px; border-radius: 4px; flex: none; border: 1.5px dashed var(--pt-b9ad94); background: var(--pt-f4efe4);"></span>Made by the cluster</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><span aria-hidden="true" style="display: inline-block; width: 26px; height: 16px; border-radius: 4px; flex: none; border: 1px solid var(--pt-b9ad94); background: repeating-linear-gradient(135deg, var(--pt-fffdf8) 0 4px, var(--pt-f4efe4) 4px 8px); box-shadow: 2px 2px 0 -1px var(--pt-fbf8f1), 2px 2px 0 0 var(--pt-b9ad94);"></span>Group of configuration-only components (CRDs, RBAC, webhooks). Click to open; one opens at a time</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><kbd style="display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--pt-b9ad94); border-bottom-width: 2px; border-radius: 4px; background: var(--pt-fffdf8); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-141820); text-align: center;">Ctrl</kbd> + scroll to zoom</span>
+              <span style="display: inline-flex; align-items: center; gap: 8px;"><kbd style="display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--pt-b9ad94); border-bottom-width: 2px; border-radius: 4px; background: var(--pt-fffdf8); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--fg-141820); text-align: center;">Esc</kbd> to step back</span>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showResources}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Resources" style="background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow-x: auto;">
+            <div style="min-width: 900px;">
+              <div style="display: grid; grid-template-columns: 210px minmax(0, 2fr) minmax(0, 1.2fr) 130px 110px; gap: 14px; padding: 12px 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);">
+                <span>Kind</span><span>Name</span><span>Component</span><span>Namespace</span><span>Health</span>
+              </div>
+              <sc-for list="{{resources}}" as="r" hint-placeholder-count="8">
+                <button type="button" onClick="{{r.pick}}" style="{{r.rowStyle}}">
+                  <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{r.kind}}</span>
+                  <span class="mono" style="overflow-wrap: anywhere;">{{r.name}}</span>
+                  <span class="mono" style="color: var(--fg-3a4150); overflow-wrap: anywhere;">{{r.component}}</span>
+                  <span class="mono" style="color: var(--fg-6a6f7a);">{{r.ns}}</span>
+                  <span style="{{r.badge}}">{{r.state}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showAttempts}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Attempts" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+            <sc-for list="{{attempts}}" as="a" hint-placeholder-count="2">
+              <div style="display: grid; grid-template-columns: 44px 120px minmax(0, 1fr) 90px; gap: 14px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                <span class="mono" style="color: var(--fg-6a6f7a);">#{{a.seq}}</span>
+                <span style="{{a.badge}}">{{a.result}}</span>
+                <span class="mono" style="font-size: 12px; color: var(--fg-3a4150); overflow-wrap: anywhere;">{{a.message}}</span>
+                <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{a.age}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showEvents}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Events" style="display: flex; flex-direction: column; padding: 8px 24px 16px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+            <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb);">
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 240px;"><label for="ev-obj" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Resource</label><select id="ev-obj" value="{{evObj}}" onChange="{{onEvObj}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><optgroup label="Everything"><option value="">{{evAllLabel}}</option></optgroup><sc-for list="{{evObjOptions}}" as="g" hint-placeholder-count="2"><optgroup label="{{g.label}}"><sc-for list="{{g.options}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for></optgroup></sc-for></select></div>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 240px;"><label for="ev-type" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Type</label><select id="ev-type" value="{{evType}}" onChange="{{onEvType}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{evTypeOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+              <sc-if value="{{hasCause}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{clearCause}}" style="display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--pt-8a5a00); background: var(--rgb0); color: var(--fg-5e3d00); font: inherit; font-size: 13px; cursor: pointer;">Reason: <span class="mono">{{cause}}</span> ✕</button></sc-if>
+              <span style="margin-left: auto; align-self: center; font-size: 14px; color: var(--fg-3a4150);">Showing <strong>{{evShown}}</strong> of {{evTotal}}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 88px 190px 300px minmax(0, 1fr) 56px; gap: 14px; padding: 12px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a); border-bottom: 1px solid var(--pt-d6ccb8);"><span>Type</span><span>Reason</span><span>Resource</span><span>Message</span><span style="text-align: right;">Age</span></div>
+            <sc-for list="{{events}}" as="e" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: 88px 190px 300px minmax(0, 1fr) 56px; gap: 14px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--pt-e5dccb); font-size: 14px;">
+                <span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: {{e.typeColor}}; padding-top: 2px;">{{e.type}}</span>
+                <span class="mono" style="overflow-wrap: anywhere;">{{e.reason}}</span>
+                <button type="button" onClick="{{e.pick}}" title="Show only this resource's events" style="display: flex; flex-direction: column; gap: 2px; padding: 0; border: none; background: none; text-align: left; font: inherit; cursor: pointer; min-width: 0;"><span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-6a6f7a);">{{e.kind}}</span><span class="mono" style="font-size: 13px; color: var(--fg-8a5a00); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere;">{{e.name}}</span></button>
+                <span style="color: var(--fg-3a4150);">{{e.note}}</span>
+                <span style="color: var(--fg-6a6f7a); font-size: 13px; text-align: right;">{{e.age}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showLogs}}" hint-placeholder-val="{{false}}">
+          <section aria-label="Logs" style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 240px;"><label for="log-pod" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Pod</label><select id="log-pod" value="{{logPod}}" onChange="{{onLogPod}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{podOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.value}}">{{o.label}}</option></sc-for></select></div>
+              <span style="font-size: 13px; color: var(--fg-6a6f7a); align-self: center;">last 200 lines, following</span>
+            </div>
+            <div style="padding: 18px 20px; background: var(--logbg); color: var(--fg-c4c0b5); border-radius: 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; overflow-x: auto;">
+              <sc-for list="{{logLines}}" as="l" hint-placeholder-count="4"><div style="color: {{l.color}}; white-space: pre;">{{l.text}}</div></sc-for>
+            </div>
+          </section>
+        </sc-if>
+
+        <sc-if value="{{showYaml}}" hint-placeholder-val="{{false}}">
+          <section aria-label="YAML" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px; overflow-x: auto;">
+            <div style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--pt-e5dccb);">
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 240px;"><label for="yaml-obj" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--fg-6a6f7a);">Resource</label><select id="yaml-obj" value="{{yamlSel}}" onChange="{{onYamlObj}}" style="min-height: 40px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 14px; color: var(--fg-141820); cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8);"><sc-for list="{{yamlOptions}}" as="g" hint-placeholder-count="2"><optgroup label="{{g.label}}"><sc-for list="{{g.options}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for></optgroup></sc-for></select></div>
+              <span style="font-size: 13px; color: var(--fg-6a6f7a); align-self: center;">Secrets and values are never shown.</span>
+            </div>
+            <pre class="mono" style="margin: 0; line-height: 1.6; white-space: pre;">{{yaml}}</pre>
+          </section>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{showPanel}}" hint-placeholder-val="{{true}}">
+      <aside aria-label="Selected object" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); border-radius: 10px;">
+        <sc-if value="{{hasSel}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{clearSel}}" title="Or click an empty part of the graph, or press Esc" style="align-self: flex-end; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin: -8px -8px -4px 0; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--pt-b9ad94); background: var(--pt-fffdf8); color: var(--fg-3a4150); font: inherit; font-size: 13px; cursor: pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>Clear selection</button>
+        </sc-if>
+        <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6a6f7a);">{{d.kind}}</span>
+        <span class="mono" style="font-size: 16px; font-weight: 500; overflow-wrap: anywhere;">{{d.name}}</span>
+        <span style="{{d.badgeStyle}}">{{d.state}}</span>
+        <sc-if value="{{d.hasMsg}}" hint-placeholder-val="{{false}}"><div style="{{d.msgStyle}}">{{d.msg}}</div></sc-if>
+        <dl style="margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+          <sc-for list="{{d.facts}}" as="f" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px;">
+              <dt style="color: var(--fg-6a6f7a);">{{f.k}}</dt>
+              <dd style="{{f.style}}">{{f.v}}</dd>
+            </div>
+          </sc-for>
+        </dl>
+        <sc-if value="{{d.isObject}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <sc-if value="{{d.isPod}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{goLogs}}" style="min-height: 40px; padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--pt-141820); background: var(--pt-141820); color: var(--fg-efe9dc);">Logs</button></sc-if>
+            <button type="button" onClick="{{goEvents}}" style="min-height: 40px; padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fbf8f1); color: var(--fg-141820);">Events</button>
+            <button type="button" onClick="{{goYaml}}" style="min-height: 40px; padding: 8px 14px; border-radius: 8px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid var(--pt-b9ad94); background: var(--pt-fbf8f1); color: var(--fg-141820);">YAML</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{d.isGroup}}" hint-placeholder-val="{{false}}">
+          <button type="button" onClick="{{d.toggle}}" style="align-self: flex-start; min-height: 40px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--pt-141820); background: var(--pt-141820); color: var(--fg-efe9dc); font: inherit; font-size: 14px; cursor: pointer;">{{d.toggleLabel}}</button>
+        </sc-if>
+      </aside>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme": {"editor": "enum", "options": ["System", "Light", "Dark"], "default": "System", "section": "Theme"}, "scenario": {"editor": "enum", "options": ["All good", "Webhook crashlooping"], "default": "All good", "section": "Mock state"}, "$preview": {"width": 1920, "height": 1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Filters survive tab switches and visits: kept per device and browser in localStorage.
+    const FILTER_KEYS = ['evObj', 'evType', 'cause'], FILTER_STORE = 'opm-portal:filters:CertManager';
+    if (!this.__filtersLoaded) {
+      this.__filtersLoaded = true;
+      if (!this.__handoff) {
+        try { const saved = JSON.parse(window.localStorage.getItem(FILTER_STORE) || 'null'); if (saved) FILTER_KEYS.forEach((k) => { if (saved[k] !== undefined) this.state[k] = saved[k]; }); } catch (e) { /* no storage: start with no filters */ }
+      }
+    }
+    // Slim, sticky top bar once the page scrolls past it.
+    if (!this.__scrollHooked && typeof window !== 'undefined' && window.addEventListener) {
+      this.__scrollHooked = true;
+      const onScroll = () => { const c = (window.scrollY || 0) > 48; if (c !== !!this.state.__compact) this.setState({ __compact: c }); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+    }
+    const v = this.__renderVals();
+    try {
+      const snap = {}; FILTER_KEYS.forEach((k) => { snap[k] = this.state[k]; });
+      const text = JSON.stringify(snap);
+      if (text !== this.__filtersSaved) { window.localStorage.setItem(FILTER_STORE, text); this.__filtersSaved = text; }
+    } catch (e) { /* storage blocked: filters last for this visit only */ }
+    let stored = '';
+    try { stored = window.localStorage.getItem('opm-portal-theme') || ''; } catch (e) { stored = ''; }
+    const choice = (this.state && this.state.themeChoice) || stored || this.props.theme || 'System';
+    const menu = !!(this.state && this.state.themeMenu);
+    const pick = (c) => () => { try { window.localStorage.setItem('opm-portal-theme', c); } catch (e) { /* storage blocked: keep it for this view */ } this.setState({ themeChoice: c, themeMenu: false }); };
+    v.hdrCompact = this.state && this.state.__compact ? 'is-compact' : '';
+    v.themeAttr = ({ Light: 'light', Dark: 'dark' })[choice] || 'auto';
+    v.themeIsSystem = choice === 'System'; v.themeIsDark = choice === 'Dark'; v.themeIsLight = choice === 'Light';
+    v.themeMenuOpen = menu; v.themeMenuOpenAttr = menu ? 'true' : 'false';
+    v.themeLabel = 'Theme: ' + choice;
+    v.toggleThemeMenu = () => this.setState({ themeMenu: !menu });
+    v.themeOptions = ['Light', 'Dark', 'System'].map((c) => ({ label: c, checked: c === choice, checkedAttr: c === choice ? 'true' : 'false', pick: pick(c),
+      style: 'display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; padding: 6px 12px; border: none; border-radius: 6px; background: ' + (c === choice ? '#2a3240' : 'transparent') + '; color: #ebe6da; font: inherit; font-size: 15px; text-align: left; cursor: pointer;' }));
+    return v;
+  }
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'graph', zoom: 'fit', sel: 'mi', hover: '', grouping: true, open: [], paneW: 0 };
+    this.onWheel = (ev) => {
+      // Plain scrolling scrolls; Ctrl (or Cmd, or a trackpad pinch) + scroll zooms.
+      if (!this._zoom || !this.pane || !(ev.ctrlKey || ev.metaKey)) return;
+      ev.preventDefault();
+      const el = this.pane, r = el.getBoundingClientRect();
+      const mx = ev.clientX - r.left, my = ev.clientY - r.top;
+      const oz = this._zoom, nz = Math.max(0.3, Math.min(2, oz * Math.exp(-ev.deltaY * 0.0015)));
+      if (Math.abs(nz - oz) < 0.001) return;
+      this._anchor = { cx: (el.scrollLeft + mx - this._offX) / oz, cy: (el.scrollTop + my - this._offY) / oz, mx, my };
+      this.setState({ zoom: nz, wheel: true });
+    };
+    this.setPane = (el) => {
+      if (this._wheelEl && this._wheelEl !== el) { this._wheelEl.removeEventListener('wheel', this.onWheel); this._wheelEl = null; }
+      this.pane = el;
+      if (el && this._wheelEl !== el) { el.addEventListener('wheel', this.onWheel, { passive: false }); this._wheelEl = el; }
+      if (el && this.ro) this.ro.observe(el);
+      // Leaving the page (the graph goes out of view) drops full screen, so it never comes back on its own.
+      if (el && this._ioEl !== el && typeof IntersectionObserver !== 'undefined') {
+        if (this.io) this.io.disconnect();
+        this.io = new IntersectionObserver((entries) => { if (!entries[0].isIntersecting && this.state.full) this.setState({ full: false, zoom: 'fit' }); });
+        this.io.observe(el);
+        this._ioEl = el;
+      }
+      if (el) this.measure();
+    };
+  }
+  measure() {
+    const el = this.pane;
+    if (!el) return;
+    const w = el.clientWidth;
+    if (w && w !== this.state.paneW) this.setState({ paneW: w });
+  }
+  componentDidMount() {
+    if (typeof ResizeObserver !== 'undefined') { this.ro = new ResizeObserver(() => this.measure()); if (this.pane) this.ro.observe(this.pane); }
+    this.measure();
+  }
+  componentDidUpdate() {
+    const g = this._groupAt;
+    // First zoom so the whole dotted frame fits, but never below MIN_GROUP_ZOOM:
+    // a very long group (RBAC) stays readable and is shown from its top instead.
+    const MIN_GROUP_ZOOM = 0.6;
+    if (g && g.id !== this._zoomedFor) {
+      this._zoomedFor = g.id;
+      const want = Math.max(MIN_GROUP_ZOOM, Math.min(g.fitW, (g.paneH - 32) / g.frameH));
+      if (Math.abs(want - (this._zoom || 0)) > 0.01) { this.setState({ zoom: want, wheel: false }); return; }
+    }
+    if (!g) this._zoomedFor = '';
+    if (g && g.id !== this._centeredFor && this.pane) {
+      this._centeredFor = g.id;
+      const el = this.pane;
+      setTimeout(() => {
+        const h = el.clientHeight, w = el.clientWidth, tall = g.bottom - g.top > h - 24;
+        el.scrollTo({ left: Math.max(0, g.x - w / 2), top: Math.max(0, tall ? g.top - 12 : (g.top + g.bottom) / 2 - h / 2), behavior: 'smooth' });
+      }, 460);
+    }
+    if (!g) this._centeredFor = '';
+    if (this._anchor && this.pane) {
+      const a = this._anchor;
+      this._anchor = null;
+      this.pane.scrollLeft = a.cx * this._zoom + this._offX - a.mx;
+      this.pane.scrollTop = a.cy * this._zoom + this._offY - a.my;
+    }
+    const f = this._focusAt;
+    if (!f) { this._scrolledFor = ''; return; }
+    if (f.id === this._scrolledFor || !this.pane) return;
+    this._scrolledFor = f.id;
+    const el = this.pane;
+    setTimeout(() => el.scrollTo({ left: Math.max(0, f.x - el.clientWidth / 2), top: Math.max(0, f.y - el.clientHeight / 2), behavior: 'smooth' }), 450);
+  }
+  componentWillUnmount() { if (this.ro) this.ro.disconnect(); if (this.io) this.io.disconnect(); }
+  __renderVals() {
+    const ENTRIES = [{"component": "namespace", "kind": "Namespace", "name": "cert-manager", "ns": "", "group": ""}, {"component": "crds", "kind": "CustomResourceDefinition", "name": "certificaterequests.cert-manager.io", "ns": "", "group": "apiextensions.k8s.io"}, {"component": "crds", "kind": "CustomResourceDefinition", "name": "certificates.cert-manager.io", "ns": "", "group": "apiextensions.k8s.io"}, {"component": "crds", "kind": "CustomResourceDefinition", "name": "clusterissuers.cert-manager.io", "ns": "", "group": "apiextensions.k8s.io"}, {"component": "crds", "kind": "CustomResourceDefinition", "name": "issuers.cert-manager.io", "ns": "", "group": "apiextensions.k8s.io"}, {"component": "crds", "kind": "CustomResourceDefinition", "name": "orders.acme.cert-manager.io", "ns": "", "group": "apiextensions.k8s.io"}, {"component": "crds", "kind": "CustomResourceDefinition", "name": "challenges.acme.cert-manager.io", "ns": "", "group": "apiextensions.k8s.io"}, {"component": "controller", "kind": "ServiceAccount", "name": "cert-manager", "ns": "cert-manager", "group": ""}, {"component": "controller", "kind": "Deployment", "name": "cert-manager-controller", "ns": "cert-manager", "group": "apps"}, {"component": "webhook", "kind": "ServiceAccount", "name": "cert-manager-webhook", "ns": "cert-manager", "group": ""}, {"component": "webhook", "kind": "Deployment", "name": "cert-manager-webhook", "ns": "cert-manager", "group": "apps"}, {"component": "webhook", "kind": "Service", "name": "cert-manager-webhook", "ns": "cert-manager", "group": ""}, {"component": "cainjector", "kind": "ServiceAccount", "name": "cert-manager-cainjector", "ns": "cert-manager", "group": ""}, {"component": "cainjector", "kind": "Deployment", "name": "cert-manager-cainjector", "ns": "cert-manager", "group": "apps"}, {"component": "webhook-validating", "kind": "ValidatingWebhookConfiguration", "name": "cert-manager-webhook", "ns": "", "group": "admissionregistration.k8s.io"}, {"component": "webhook-mutating", "kind": "MutatingWebhookConfiguration", "name": "cert-manager-webhook", "ns": "", "group": "admissionregistration.k8s.io"}, {"component": "cainjector-rbac", "kind": "ClusterRole", "name": "cert-manager-cainjector", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "cainjector-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-cainjector", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-issuers-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-issuers", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-issuers-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-issuers", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-clusterissuers-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-clusterissuers", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-clusterissuers-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-clusterissuers", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-certificates-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-certificates", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-certificates-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-certificates", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-orders-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-orders", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-orders-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-orders", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-challenges-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-challenges", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-challenges-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-challenges", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-ingress-shim-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-ingress-shim", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-ingress-shim-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-ingress-shim", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-approve-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-approve:cert-manager-io", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-approve-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-approve:cert-manager-io", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-csr-rbac", "kind": "ClusterRole", "name": "cert-manager-controller-certificatesigningrequests", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "controller-csr-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-controller-certificatesigningrequests", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "webhook-sar-rbac", "kind": "ClusterRole", "name": "cert-manager-webhook:subjectaccessreviews", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "webhook-sar-rbac", "kind": "ClusterRoleBinding", "name": "cert-manager-webhook:subjectaccessreviews", "ns": "", "group": "rbac.authorization.k8s.io"}, {"component": "cainjector-leaderelection-role", "kind": "Role", "name": "cert-manager-cainjector:leaderelection", "ns": "cert-manager", "group": "rbac.authorization.k8s.io"}, {"component": "cainjector-leaderelection-role", "kind": "RoleBinding", "name": "cert-manager-cainjector:leaderelection", "ns": "cert-manager", "group": "rbac.authorization.k8s.io"}, {"component": "controller-leaderelection-role", "kind": "Role", "name": "cert-manager:leaderelection", "ns": "cert-manager", "group": "rbac.authorization.k8s.io"}, {"component": "controller-leaderelection-role", "kind": "RoleBinding", "name": "cert-manager:leaderelection", "ns": "cert-manager", "group": "rbac.authorization.k8s.io"}, {"component": "webhook-dynamic-serving-role", "kind": "Role", "name": "cert-manager-webhook:dynamic-serving", "ns": "cert-manager", "group": "rbac.authorization.k8s.io"}, {"component": "webhook-dynamic-serving-role", "kind": "RoleBinding", "name": "cert-manager-webhook:dynamic-serving", "ns": "cert-manager", "group": "rbac.authorization.k8s.io"}];
+    const scenario = this.props.scenario ?? 'All good';
+    const broken = scenario === 'Webhook crashlooping';
+    const TONE = {
+      navy:  { border: 'var(--pt-1b2a44)', ink: 'var(--fg-1b2a44)', bg: 'var(--pt-dfe5ef)', tint: 'var(--pt-eef1f7)', soft: 'var(--pt-eef1f7)' },
+      green: { border: 'var(--pt-157a52)', ink: 'var(--fg-0f5c3d)', bg: 'var(--pt-dcefe5)', tint: 'var(--pt-eaf5ee)', soft: 'var(--pt-f1f8f3)' },
+      red:   { border: 'var(--pt-c3311b)', ink: 'var(--fg-a3260f)', bg: 'var(--pt-f8e0da)', tint: 'var(--pt-fcefeb)', soft: 'var(--pt-fdf3f0)' },
+      plain: { border: 'var(--pt-b9ad94)', ink: 'var(--fg-3a4150)', bg: 'var(--pt-e7e3da)', tint: 'var(--pt-fffdf8)', soft: 'var(--pt-fffdf8)' }
+    };
+    const badge = (t, size) => 'padding: 4px 10px; border: 1.5px solid ' + TONE[t].border + '; border-radius: 5px; color: ' + TONE[t].ink + '; background: ' + TONE[t].bg + '; font-size: ' + (size || 12) + 'px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; align-self: flex-start; justify-self: start;';
+    const mono = "margin: 0; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; overflow-wrap: anywhere;";
+
+    // Which components fold into which group.
+    const GROUP_OF = (c) => c === 'crds' ? 'crds' : (/-rbac$|-role$/.test(c) ? 'rbac' : (c.startsWith('webhook-') && c !== 'webhook' && !c.endsWith('-rbac') && !c.endsWith('-role') ? 'webhookcfg' : ''));
+    const GROUP_LABEL = { crds: 'CRDs', rbac: 'RBAC', webhookcfg: 'Webhook configuration' };
+    const ORDER = ['namespace', 'crds', 'controller', 'webhook', 'cainjector', 'webhookcfg', 'rbac'];
+    const comps = [];
+    ENTRIES.forEach((e) => { if (!comps.includes(e.component)) comps.push(e.component); });
+    const groups = { crds: [], rbac: [], webhookcfg: [] };
+    comps.forEach((c) => { const g = GROUP_OF(c); if (g) groups[g].push(c); });
+    const open = this.state.open;
+    const grouping = this.state.grouping;
+    const isOpen = (g) => !grouping || open.includes(g);
+    const CHILDREN = {
+      'cert-manager-controller': ['cert-manager-controller-6b9f7d', 'cert-manager-controller-6b9f7d-r2x8k'],
+      'cert-manager-webhook': ['cert-manager-webhook-7c5d8f', 'cert-manager-webhook-7c5d8f-m4q9t'],
+      'cert-manager-cainjector': ['cert-manager-cainjector-5f6c4b', 'cert-manager-cainjector-5f6c4b-z7v3p']
+    };
+
+    // Every box that can ever appear, in a fixed order, so each keeps its element
+    // across expand and collapse and can animate to its new place.
+    const C = 24, NW = 9 * C, NH = 3 * C, STEP = 4, COLW = 11;
+    const px = (col) => (1 + col * COLW) * C, py = (row) => (2 + row * STEP) * C;
+    const nodes = {}, order = [], edges = [];
+    const reg = (id, nd) => { nodes[id] = nd; order.push(id); };
+    reg('mi', { kind: 'ModuleInstance', name: 'cert-manager', t: 'navy', status: '● Ready' });
+    const membersOf = (item) => groups[item] ? groups[item] : (comps.includes(item) ? [item] : []);
+    ORDER.forEach((item) => {
+      const g = groups[item] ? item : '';
+      if (g) {
+        const objs = ENTRIES.filter((e) => groups[g].includes(e.component));
+        const kinds = Array.from(new Set(objs.map((e) => e.kind)));
+        reg('grp:' + g, { kind: 'Group · ' + groups[g].length + ' components', name: GROUP_LABEL[g], t: 'plain', group: g, status: '▸ ' + objs.length + ' objects: ' + kinds.length + ' kinds' });
+        edges.push(['mi', 'grp:' + g]);
+      }
+      membersOf(item).forEach((c) => {
+        const objs = ENTRIES.filter((e) => e.component === c);
+        const bad = broken && c === 'webhook';
+        reg('comp:' + c, { kind: 'Component', name: c, t: bad ? 'red' : 'plain', status: objs.length + (objs.length === 1 ? ' object' : ' objects'), inGroup: g });
+        edges.push(['mi', 'comp:' + c]);
+        objs.forEach((e, i) => {
+          const id = 'obj:' + c + ':' + i;
+          const unhealthy = broken && e.name === 'cert-manager-webhook' && e.kind === 'Deployment';
+          const health = ['Deployment', 'Service'].includes(e.kind) ? (unhealthy ? 'red' : 'green') : 'plain';
+          reg(id, { kind: e.kind, name: e.name, t: health, status: e.kind === 'Deployment' ? (unhealthy ? '● 0/1 ready' : '● 1/1 ready') : (e.kind === 'Service' ? '● Healthy' : (e.ns ? e.ns : 'cluster-scoped')), entry: e, inGroup: g, objOf: c });
+          edges.push(['comp:' + c, id]);
+          if (CHILDREN[e.name] && e.kind === 'Deployment') {
+            const [rs, pod] = CHILDREN[e.name];
+            reg('rs:' + rs, { kind: 'ReplicaSet', name: rs, t: unhealthy ? 'red' : 'plain', dashed: true, status: unhealthy ? '● 0/1 ready' : '● 1/1 ready', child: true, inGroup: g, under: id });
+            reg('pod:' + pod, { kind: 'Pod', name: pod, t: unhealthy ? 'red' : 'green', dashed: true, status: unhealthy ? '● CrashLoopBackOff' : '● Running', child: true, inGroup: g, under: id });
+            edges.push([id, 'rs:' + rs], ['rs:' + rs, 'pod:' + pod]);
+          }
+        });
+      });
+    });
+
+    // Where each box sits now. A box in a closed group sits on its group box,
+    // hidden, so opening the group makes it fly out of there.
+    const visible = (id) => {
+      const nd = nodes[id];
+      if (nd.group) return grouping && !open.includes(nd.group);
+      return !nd.inGroup || isOpen(nd.inGroup);
+    };
+    const pos = {}, span = {};
+    let row = 0;
+    ORDER.forEach((item) => {
+      const g = groups[item] ? item : '';
+      if (g && !isOpen(g)) { pos['grp:' + g] = { col: 1, row }; row += 1; return; }
+      if (g && grouping) row += 0.5;
+      const start = row;
+      membersOf(item).forEach((c) => {
+        const first = row;
+        order.filter((id) => nodes[id].objOf === c).forEach((id) => {
+          pos[id] = { col: 2, row };
+          order.filter((x) => nodes[x].under === id).forEach((x) => { pos[x] = { col: nodes[x].kind === 'Pod' ? 4 : 3, row }; });
+          row += 1;
+        });
+        pos['comp:' + c] = { col: 1, row: (first + row - 1) / 2 };
+      });
+      if (g) { pos['grp:' + g] = { col: 1, row: (start + row - 1) / 2 }; span[g] = [start, row - 1]; }
+      if (g && grouping) row += 0.5;
+    });
+    order.forEach((id) => {
+      const g = nodes[id].inGroup;
+      if (!pos[id] || (g && !isOpen(g))) pos[id] = pos['grp:' + g];
+    });
+    pos.mi = { col: 0, row: (row - 1) / 2 };
+
+    const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const MOVE = reduce ? '' : ' transition: left 420ms cubic-bezier(0.2, 0.8, 0.2, 1), top 420ms cubic-bezier(0.2, 0.8, 0.2, 1), width 420ms cubic-bezier(0.2, 0.8, 0.2, 1), height 420ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 260ms ease;';
+
+    // Selection and the hovered chain.
+    const ids = order.filter(visible);
+    const sel = nodes[this.state.sel] && visible(this.state.sel) ? this.state.sel : 'mi';
+    const hover = nodes[this.state.hover] && visible(this.state.hover) ? this.state.hover : '';
+    const liveEdges = edges.filter(([a, b]) => visible(a) && visible(b));
+    const focus = nodes[this.state.focus] && visible(this.state.focus) ? this.state.focus : '';
+    const base = hover || focus;
+    const chain = new Set();
+    if (base) {
+      const walk = (id, dir) => { chain.add(id); liveEdges.forEach(([a, b]) => { if (dir > 0 && a === id) walk(b, 1); if (dir < 0 && b === id) walk(a, -1); }); };
+      walk(base, 1); walk(base, -1);
+    }
+    const clearSel = () => this.setState({ sel: 'mi', focus: '' });
+    // One group open at a time: opening a group closes the others.
+    const openOnly = (g) => this.setState({ open: [g], sel: 'grp:' + g, wheel: false, centerOn: g });
+    const closeGroup = (g) => this.setState({ open: open.filter((x) => x !== g), zoom: 'fit', centerOn: '' });
+    const toggleGroup = (g) => (open.includes(g) ? closeGroup(g) : openOnly(g));
+    const nodeList = order.map((id) => {
+      const nd = nodes[id];
+      const on = id === sel;
+      const shown = visible(id);
+      const P = pos[id];
+      return {
+        kind: nd.kind, name: nd.name, status: nd.status,
+        pick: () => { if (nd.group) openOnly(nd.group); else this.setState({ sel: id, focus: '' }); },
+        enter: (ev) => this.setState({ hover: id, hoverRect: ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect ? ev.currentTarget.getBoundingClientRect() : null }), leave: () => this.setState({ hover: '' }),
+        pressed: on ? 'true' : 'false', tab: shown ? '0' : '-1', hidden: shown ? 'false' : 'true',
+        kindInk: nd.t === 'plain' ? 'var(--fg-6a6f7a)' : TONE[nd.t].ink,
+        statusInk: nd.t === 'plain' ? 'var(--fg-3a4150)' : TONE[nd.t].ink,
+        nameStyle: 'font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' + (nd.child || nd.entry ? " font-family: 'JetBrains Mono', monospace; font-size: 12px;" : ''),
+        style: 'position: absolute; left: ' + px(P.col) + 'px; top: ' + py(P.row) + 'px; width: ' + NW + 'px; height: ' + NH + 'px; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 6px 10px; border-radius: 8px; text-align: left; font: inherit; color: var(--fg-141820); cursor: pointer; border: ' + (nd.t === 'plain' ? '1px' : '1.5px') + (nd.dashed ? ' dashed ' : ' solid ') + TONE[nd.t].border + '; background: ' + (nd.group ? 'repeating-linear-gradient(135deg, var(--pt-fffdf8) 0 8px, var(--pt-f4efe4) 8px 16px)' : (nd.dashed && nd.t === 'plain' ? 'var(--pt-f4efe4)' : TONE[nd.t].soft)) + ';' + (nd.group ? ' box-shadow: 4px 4px 0 -1px var(--pt-fbf8f1), 4px 4px 0 0 var(--pt-b9ad94);' : '') + (id === focus && shown ? ' outline: 3px solid var(--pt-8a5a00); outline-offset: 4px; box-shadow: 0 0 0 10px var(--rgb1);' : (on && shown ? ' outline: 2px solid var(--pt-8a5a00); outline-offset: 3px;' : '')) + ' opacity: ' + (!shown ? 0 : (base && !chain.has(id) ? 0.3 : 1)) + ';' + (shown ? '' : ' pointer-events: none;') + ' z-index: ' + (shown ? 2 : 1) + ';' + MOVE
+      };
+    });
+    // Each possible edge always draws three segments, so they animate with the boxes.
+    const seg = (x, y, w, h, on) => ({ style: 'position: absolute; left: ' + x + 'px; top: ' + y + 'px; width: ' + Math.max(0, w) + 'px; height: ' + Math.max(0, h) + 'px; background: var(--pt-a3967c); opacity: ' + (on ? 1 : 0) + ';' + MOVE });
+    const edgeSegs = [];
+    edges.forEach(([a, b]) => {
+      const A = pos[a], B = pos[b], on = visible(a) && visible(b);
+      const x1 = px(A.col) + NW, y1 = py(A.row) + NH / 2, x2 = px(B.col), y2 = py(B.row) + NH / 2, xm = x1 + C;
+      edgeSegs.push(seg(x1, y1 - 1, xm - x1, 2, on), seg(xm, y2 - 1, x2 - xm, 2, on), seg(xm - 1, Math.min(y1, y2) - 1, 2, Math.abs(y2 - y1) + 2, on && y1 !== y2));
+    });
+    const frames = ['crds', 'webhookcfg', 'rbac'].map((g) => {
+      const on = grouping && open.includes(g) && span[g];
+      const G = pos['grp:' + g];
+      const top = on ? py(span[g][0]) - 2 * C + 4 : py(G.row), bottom = on ? py(span[g][1]) + NH + C - 4 : py(G.row) + NH;
+      const left = px(1) - C / 2, width = on ? px(4) + NW + C / 2 - left : NW + C;
+      const objs = ENTRIES.filter((e) => groups[g].includes(e.component)).length;
+      return {
+        label: GROUP_LABEL[g] + ' · ' + groups[g].length + ' components · ' + objs + ' objects',
+        close: () => closeGroup(g), tab: on ? '0' : '-1', hidden: on ? 'false' : 'true',
+        style: 'position: absolute; left: ' + left + 'px; top: ' + top + 'px; width: ' + width + 'px; height: ' + (bottom - top) + 'px; box-sizing: border-box; border: 1.5px dashed var(--pt-8a5a00); border-radius: 12px; background: var(--rgb2); opacity: ' + (on ? 1 : 0) + '; z-index: 0;' + MOVE,
+        headStyle: 'position: absolute; left: 10px; top: 8px; display: flex; align-items: center; gap: 10px; pointer-events: ' + (on ? 'auto' : 'none') + ';'
+      };
+    });
+    const openNow = grouping ? open.filter((g) => groups[g]) : [];
+    const heads = ['Instance', 'Components', 'Objects', 'ReplicaSets', 'Pods'];
+    const colHeads = heads.map((label, i) => ({ label, style: 'position: absolute; left: ' + px(i) + 'px; top: ' + (C / 2) + 'px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-6a6f7a);' }));
+    const canvasW = px(4) + NW + 2 * C, canvasH = py(row - 1) + NH + C;
+
+    // Zoom: Fit fills the pane width; the pane grows up to 760 px, then the graph scrolls.
+    const paneW = this.state.paneW || 1240;
+    const fitW = (paneW - 4) / canvasW;
+    const paneHeightNormal = Math.min(760, Math.max(320, Math.round(canvasH * Math.min(1.5, fitW)) + 6));
+    const full = !!this.state.full;
+    const paneHeight = full ? Math.max(320, (typeof window !== 'undefined' ? window.innerHeight : 1080) - 110) : paneHeightNormal;
+    const fitBoth = Math.min(1.5, fitW, (paneHeight - 6) / canvasH);
+    // Fit the whole graph when it stays readable; otherwise fill the width and scroll down.
+    const fit = fitBoth >= 0.6 ? fitBoth : Math.min(1.5, fitW);
+    const zoom = this.state.zoom === 'fit' ? fit : this.state.zoom;
+    this._zoom = zoom;
+    const zoomPct = Math.round(zoom * 100);
+    // After a group opens, bring its dotted frame to the middle of the pane.
+    const cg = this.state.centerOn && grouping && open.includes(this.state.centerOn) && span[this.state.centerOn] ? this.state.centerOn : '';
+    if (cg) {
+      const ox = Math.max(0, Math.floor((paneW - canvasW * zoom) / 2)), oy = Math.max(0, Math.floor((paneHeight - 2 - canvasH * zoom) / 2));
+      const top = py(span[cg][0]) - 2 * C + 4, bottom = py(span[cg][1]) + NH + C - 4, left = px(1) - C / 2, right = px(4) + NW + C / 2;
+      this._groupAt = { id: cg + ':' + open.join(','), x: ox + ((left + right) / 2) * zoom, top: oy + top * zoom, bottom: oy + bottom * zoom, frameH: bottom - top, fitW: Math.min(1.5, fitW), paneH: paneHeight };
+    } else { this._groupAt = null; }
+    this._focusAt = focus ? { x: Math.max(0, Math.floor((paneW - canvasW * zoom) / 2)) + (px(pos[focus].col) + NW / 2) * zoom, y: Math.max(0, Math.floor((paneHeight - 2 - canvasH * zoom) / 2)) + (py(pos[focus].row) + NH / 2) * zoom, id: focus } : null;
+
+    // Details.
+    const nd = nodes[sel];
+    let d;
+    if (nd.group) {
+      const objs = ENTRIES.filter((e) => groups[nd.group].includes(e.component));
+      const byKind = {};
+      objs.forEach((e) => { byKind[e.kind] = (byKind[e.kind] || 0) + 1; });
+      d = { kind: 'Group', name: nd.name, state: 'Applied', badgeStyle: badge('plain'), hasMsg: true, msgStyle: 'padding: 12px 14px; border-radius: 8px; border: 1px solid var(--pt-d6ccb8); background: var(--pt-fffdf8); color: var(--fg-3a4150); font-size: 14px; line-height: 1.5;',
+        msg: 'A display group, not a Kubernetes object. It folds ' + groups[nd.group].length + ' configuration-only components so the workloads stay readable.',
+        facts: Object.keys(byKind).map((k) => ({ k, v: String(byKind[k]), style: 'margin: 0;' })).concat([{ k: 'Health', v: 'configuration has no runtime health', style: 'margin: 0;' }]),
+        isObject: false, isPod: false, isGroup: true, toggle: () => toggleGroup(nd.group), toggleLabel: isOpen(nd.group) ? 'Collapse group' : 'Expand group' };
+    } else {
+      const t = nd.t === 'plain' ? 'green' : nd.t;
+      const e = nd.entry;
+      const facts = [];
+      if (e) { facts.push(['Component', e.component, true], ['API group', e.group || 'core', true], ['Scope', e.ns ? 'namespace ' + e.ns : 'cluster']); }
+      if (nd.kind === 'Component') facts.push(['Renders', nd.status]);
+      if (sel === 'mi') facts.push(['Inventory', '42 objects in 20 components'], ['Revision', '1']);
+      const bad = nd.t === 'red';
+      d = { kind: nd.kind, name: (e && e.ns ? e.ns + '/' : '') + nd.name, state: bad ? 'Degraded' : (nd.kind === 'ModuleInstance' ? 'Ready' : (nd.t === 'plain' ? 'Applied' : 'Healthy')), badgeStyle: badge(nd.kind === 'ModuleInstance' ? 'navy' : (nd.t === 'plain' ? 'plain' : t)),
+        hasMsg: bad, msgStyle: 'padding: 12px 14px; border-radius: 8px; border: 1px solid var(--pt-c3311b); background: var(--pt-fcefeb); color: var(--fg-3a4150); font-size: 14px; line-height: 1.5;',
+        msg: nd.kind === 'Pod' ? 'Container cert-manager-webhook keeps exiting: CrashLoopBackOff, 7 restarts.' : 'Its Pod is crashlooping, so it has 0 of 1 replicas available.',
+        facts: facts.map(([k, v, m]) => ({ k, v, style: m ? mono : 'margin: 0;' })), isObject: nd.kind !== 'Component', isPod: nd.kind === 'Pod', isGroup: false, toggle: () => {}, toggleLabel: '' };
+    }
+
+    // Hover card.
+    let h = {};
+    if (hover) {
+      const hn = nodes[hover];
+      const W = 300, H = 140;
+      h = { kind: hn.kind, name: hn.name, line: hn.group ? hn.status.replace('▸ ', '') : hn.status.replace('● ', ''),
+        origin: hn.group ? 'Display group' : (hn.child ? 'Created by the cluster' : (hover === 'mi' ? 'Reconciled by the controller' : (hn.kind === 'Component' ? 'Part of the module' : 'Applied by the controller · 2 h ago'))),
+        hint: hn.group ? 'Click to expand' : 'Click for details',
+        style: (() => {
+        const r = this.state.hoverRect, W = 300, H = 140;
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 1920, vh = typeof window !== 'undefined' ? window.innerHeight : 1080;
+        const left = !r ? 0 : (r.right + 12 + W <= vw ? r.right + 12 : Math.max(8, r.left - W - 12));
+        const top = !r ? 0 : Math.max(8, Math.min(r.top, vh - H - 8));
+        return 'position: fixed; z-index: 1000; pointer-events: none; left: ' + left + 'px; top: ' + top + 'px; width: ' + W + 'px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px; background: var(--tipbg); box-shadow: 0 12px 28px -10px var(--rgb3);';
+      })() };
+    }
+
+    const blocks = [
+      { eyebrow: 'Applied · the controller', aria: 'Applied status', state: 'Ready', summary: '42 objects applied in 20 components', when: 'reconciled 2 h ago', ...TONE.navy, reasons: [], noReasons: true, noReasonText: 'No reconcile errors' },
+      broken
+        ? { eyebrow: 'Health · everything it runs', aria: 'Health status', state: 'Degraded', summary: '3 of 51 resources unhealthy', when: 'checked live', ...TONE.red, reasons: [{ count: 1, type: 'CrashLoopBackOff', go: () => this.setState({ tab: 'events', cause: 'CrashLoopBackOff', evObj: '', evType: '' }) }], noReasons: false, noReasonText: '' }
+        : { eyebrow: 'Health · everything it runs', aria: 'Health status', state: 'Healthy', summary: 'All workloads healthy; configuration has no runtime health', when: 'checked live', ...TONE.green, reasons: [], noReasons: true, noReasonText: 'No unhealthy resources' }
+    ];
+
+    const all = ENTRIES.map((e, i) => ({ e, i }));
+    const resources = all.map(({ e }) => {
+      const bad = broken && e.name === 'cert-manager-webhook' && e.kind === 'Deployment';
+      const t = ['Deployment', 'Service'].includes(e.kind) ? (bad ? 'red' : 'green') : 'plain';
+      const id = order.find((x) => nodes[x].entry === e);
+      return { kind: e.kind, name: e.name, component: e.component, ns: e.ns || 'cluster', state: t === 'plain' ? 'Applied' : (bad ? 'Degraded' : 'Healthy'), badge: badge(t, 11),
+        pick: () => { const g = GROUP_OF(e.component); const s = { tab: 'graph', sel: id, focus: id }; if (g && grouping) s.open = [g]; this.setState(s); },
+        rowStyle: 'width: 100%; display: grid; grid-template-columns: 210px minmax(0, 2fr) minmax(0, 1.2fr) 130px 110px; gap: 14px; align-items: center; padding: 10px 20px; border: none; border-bottom: 1px solid var(--pt-e5dccb); text-align: left; font: inherit; color: var(--fg-141820); cursor: pointer; background: ' + (bad ? 'var(--pt-fdf3f0)' : 'transparent') + ';' };
+    });
+    // Events, attempts, logs and YAML for every real object.
+    const objIdOf = (comp, kind) => order.find((id) => nodes[id].objOf === comp && nodes[id].kind === kind);
+    const depIds = { controller: objIdOf('controller', 'Deployment'), webhook: objIdOf('webhook', 'Deployment'), cainjector: objIdOf('cainjector', 'Deployment') };
+    const childId = (dep, kind) => order.find((id) => nodes[id].under === dep && nodes[id].kind === kind);
+    const ev = (type, reason, obj, note, age, cause) => ({ type, reason, obj, note, age, cause: cause || '' });
+    let allEv = [];
+    if (broken) allEv.push(ev('Warning', 'BackOff', childId(depIds.webhook, 'Pod'), 'Back-off restarting failed container cert-manager-webhook. Seen 7 times.', '30s', 'CrashLoopBackOff'));
+    ['controller', 'webhook', 'cainjector'].forEach((c) => {
+      const dep = depIds[c], rs = childId(dep, 'ReplicaSet'), pod = childId(dep, 'Pod');
+      allEv.push(ev('Normal', 'Started', pod, 'Started container cert-manager-' + c + '.', '2h'), ev('Normal', 'Scheduled', pod, 'Successfully assigned cert-manager/' + nodes[pod].name + ' to opm-portal-e2e-control-plane.', '2h'),
+        ev('Normal', 'SuccessfulCreate', rs, 'Created pod: ' + nodes[pod].name + '.', '2h'), ev('Normal', 'ScalingReplicaSet', dep, 'Scaled up replica set ' + nodes[rs].name + ' to 1.', '2h'));
+    });
+    allEv.push(ev('Normal', 'ReconciliationSucceeded', 'mi', 'Applied 42 objects.', '2h'), ev('Normal', 'ModuleResolved', 'mi', 'Resolved opmodel.dev/modules/cert_manager@v2 v2.0.5.', '2h'));
+    const fullName = (id) => { const n = nodes[id]; const e = n.entry; return id === 'mi' ? 'cert-manager/cert-manager' : (n.child ? 'cert-manager/' + n.name : (e && e.ns ? e.ns + '/' : '') + n.name); };
+    allEv = allEv.map((e) => ({ ...e, kind: nodes[e.obj].kind, name: fullName(e.obj), typeColor: e.type === 'Warning' ? 'var(--fg-a3260f)' : 'var(--pt-3a4150)', pick: () => this.setState({ evObj: e.obj, cause: '' }) }));
+    const evObj = this.state.evObj || '', evType = this.state.evType || '', cause = this.state.cause || '';
+    const events = allEv.filter((e) => (!evObj || e.obj === evObj) && (!evType || e.type === evType) && (!cause || e.cause === cause));
+    const evIds = order.filter((id) => allEv.some((e) => e.obj === id));
+    const groupBy = (ids, kindOf, labelOf) => { const out = []; ids.forEach((id) => { const k = kindOf(id); let g = out.find((x) => x.label === k); if (!g) { g = { label: k, options: [] }; out.push(g); } g.options.push({ value: id, label: labelOf(id) }); }); return out; };
+    const evAllLabel = 'All resources (' + allEv.length + ')';
+    const evObjOptions = groupBy(evIds, (id) => nodes[id].kind, (id) => fullName(id) + ' (' + allEv.filter((e) => e.obj === id).length + ')');
+    const evTypeOptions = [{ value: '', label: 'Any type' }].concat(['Warning', 'Normal'].map((t) => ({ value: t, label: t + ' (' + allEv.filter((e) => e.type === t).length + ')' })));
+    const attempts = [
+      { seq: 2, result: 'Applied', message: 'applied 42 objects, nothing pruned', age: '2 h ago', badge: badge('navy', 11) },
+      { seq: 1, result: 'Applied', message: 'applied 42 objects (first install)', age: '2 h ago', badge: badge('navy', 11) }
+    ];
+
+    // The controller's attempt history lives in the Applied block: a dot per run, oldest on the left.
+    {
+      const TONE_OF = { Applied: 'navy', Failed: 'red', Running: 'blue' };
+      const MARK = { Applied: '✓', Failed: '✕', Running: '…' };
+      const hist = attempts.slice(0, 10);
+      const open = !!this.state.historyOpen;
+      const col = { navy: ['var(--pt-1b2a44)', 'var(--pt-dfe5ef)'], red: ['var(--pt-c3311b)', 'var(--pt-f8e0da)'], blue: ['var(--pt-2458b8)', 'var(--pt-dde6f7)'] };
+      blocks[0] = { ...blocks[0], hasHistory: true, historyOpen: open, historyOpenAttr: open ? 'true' : 'false',
+        historyLabel: open ? 'Hide history ▴' : 'Show history ▾', toggleHistory: () => this.setState({ historyOpen: !open }),
+        historyCount: hist.length === 1 ? '1 attempt' : 'last ' + hist.length + ' attempts',
+        rows: hist,
+        dots: hist.slice().reverse().map((a) => { const t = col[TONE_OF[a.result] || 'navy']; return {
+          mark: MARK[a.result] || '✓', title: '#' + a.seq + ' ' + a.result + ' · ' + a.age + ' · ' + a.message,
+          style: 'display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid ' + t[0] + '; background: ' + t[1] + '; color: ' + t[0] + '; font-size: 11px; font-weight: 700; line-height: 1;' }; }) };
+      blocks[1] = { ...blocks[1], hasHistory: false };
+    }
+    const pods = ['controller', 'webhook', 'cainjector'].map((c) => childId(depIds[c], 'Pod'));
+    const logPod = pods.includes(this.state.logPod) ? this.state.logPod : (pods.includes(sel) ? sel : pods[0]);
+    const podOptions = pods.map((id) => ({ value: id, label: nodes[id].name + ' / ' + nodes[id].name.split('-').slice(0, -2).join('-') }));
+    const crashing = broken && logPod === childId(depIds.webhook, 'Pod');
+    const logLines = (crashing
+      ? ['I1005 10:41:02 webhook.go:128 "starting webhook server" port=10250', 'E1005 10:41:03 webhook.go:212 "failed to load serving certificate" err="secret cert-manager/cert-manager-webhook-ca not found"', 'E1005 10:41:03 main.go:41 "exiting" code=1']
+      : ['I1005 08:40:11 start.go:94 "starting controller" version="v2.0.5"', 'I1005 08:40:12 leaderelection.go:258 "successfully acquired lease"', 'I1005 08:40:12 controller.go:112 "starting workers" count=5'])
+      .map((text) => ({ text, color: text.startsWith('E') ? 'var(--fg-f0a08f)' : 'var(--pt-c4c0b5)' }));
+    const isReal = (id) => !nodes[id].group && nodes[id].kind !== 'Component';
+    const yamlIds = order.filter((id) => visible(id) && isReal(id));
+    const yamlSel = yamlIds.includes(sel) ? sel : 'mi';
+    const apiOf = (e) => (e.group ? e.group + '/' : '') + 'v1';
+    const yamlOf = (id) => {
+      const n = nodes[id];
+      if (id === 'mi') return 'apiVersion: opmodel.dev/v1alpha1\nkind: ModuleInstance\nmetadata:\n  name: cert-manager\n  namespace: cert-manager\nspec:\n  module:\n    path: opmodel.dev/modules/cert_manager@v2\n    version: v2.0.5\n  serviceAccountName: cert-manager-applier\n  values: (hidden: values can hold secrets)\nstatus:\n  conditions:\n  - type: Ready\n    status: "True"\n    reason: ReconciliationSucceeded\n  inventory:\n    count: 42\n    revision: 1';
+      const labels = '  labels:\n    module-instance.opmodel.dev/name: cert-manager\n' + (n.entry ? '    component.opmodel.dev/name: ' + n.entry.component + '\n' : '');
+      if (n.child) {
+        const pod = n.kind === 'Pod', bad = n.t === 'red';
+        return 'apiVersion: ' + (pod ? 'v1' : 'apps/v1') + '\nkind: ' + n.kind + '\nmetadata:\n  name: ' + n.name + '\n  namespace: cert-manager\n' + labels + (pod ? 'status:\n  phase: Running\n  containerStatuses:\n  - name: ' + n.name.split('-').slice(0, -2).join('-') + '\n    restartCount: ' + (bad ? 7 : 0) + '\n    state:\n' + (bad ? '      waiting:\n        reason: CrashLoopBackOff' : '      running: {}') : 'status:\n  readyReplicas: ' + (bad ? 0 : 1));
+      }
+      const e = n.entry;
+      const head = 'apiVersion: ' + apiOf(e) + '\nkind: ' + e.kind + '\nmetadata:\n  name: ' + e.name + (e.ns ? '\n  namespace: ' + e.ns : '') + '\n' + labels;
+      const body = {
+        CustomResourceDefinition: 'spec:\n  group: ' + e.name.split('.').slice(1).join('.') + '\n  names:\n    plural: ' + e.name.split('.')[0] + '\n  scope: Namespaced\n  versions: [v1]',
+        Deployment: 'spec:\n  replicas: 1\n  template:\n    spec:\n      serviceAccountName: ' + e.name.replace('-controller', '') + '\n      containers:\n      - name: ' + e.name.replace('cert-manager-', '') + '\n        image: quay.io/jetstack/' + e.name + ':<module default>\nstatus:\n  availableReplicas: ' + (n.t === 'red' ? 0 : 1),
+        Service: 'spec:\n  type: ClusterIP\n  ports:\n  - name: https\n    port: 443\n    targetPort: 10250',
+        ServiceAccount: '',
+        Namespace: 'status:\n  phase: Active'
+      }[e.kind];
+      return head + (body === undefined ? (e.kind.includes('Role') ? 'rules: (' + (e.kind.endsWith('Binding') ? 'roleRef and subjects' : 'rules') + ' omitted in the mockup)' : 'webhooks: (omitted in the mockup)') : body);
+    };
+    const yamlOptions = groupBy(yamlIds, (id) => nodes[id].kind, fullName);
+    const tabDefs = [{ id: 'graph', label: 'Graph' }, { id: 'resources', label: 'Resources 42' }, { id: 'events', label: 'Events ' + allEv.length }, { id: 'logs', label: 'Logs' }, { id: 'yaml', label: 'YAML' }];
+    const tabs = tabDefs.map((x) => {
+      const on = x.id === this.state.tab;
+      return { label: x.label, selected: on ? 'true' : 'false', pick: () => this.setState({ tab: x.id }),
+        style: 'min-height: 44px; padding: 10px 18px; font: inherit; font-size: 15px; cursor: pointer; background: none; border: none; border-bottom: 3px solid ' + (on ? 'var(--pt-8a5a00)' : 'transparent') + '; color: ' + (on ? 'var(--fg-141820)' : 'var(--pt-6a6f7a)') + '; font-weight: ' + (on ? '600' : '400') + '; margin-bottom: -1px;' };
+    });
+    const btn = (on) => 'min-height: 32px; padding: 4px 12px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid ' + (on ? 'var(--pt-141820)' : 'var(--pt-b9ad94)') + '; background: ' + (on ? 'var(--pt-141820)' : 'var(--pt-fffdf8)') + '; color: ' + (on ? 'var(--fg-efe9dc)' : 'var(--pt-141820)') + ';';
+    return {
+      blocks, tabs, nodeList, edges: edgeSegs, colHeads, frames,
+      anyOpen: openNow.length > 0, openLabel: openNow.map((g) => GROUP_LABEL[g]).join(', '), backOut: () => this.setState({ open: [], sel: 'mi', zoom: 'fit', centerOn: '' }),
+      onPaneKey: (ev) => { if (ev.key !== 'Escape') return; if (focus || sel !== 'mi') { ev.preventDefault(); clearSel(); } else if (openNow.length) { ev.preventDefault(); this.setState({ open: [], sel: 'mi', zoom: 'fit', centerOn: '' }); } else if (this.state.full) { ev.preventDefault(); this.setState({ full: false, zoom: 'fit' }); } },
+      onPaneClick: (ev) => { if (ev.target && ev.target.closest && ev.target.closest('button')) return; if (focus || sel !== 'mi') clearSel(); },
+      hasSel: !!focus || sel !== 'mi', clearSel, d, h, hasHover: !!hover, resources,
+      showGraph: this.state.tab === 'graph', showResources: this.state.tab === 'resources',
+      showAttempts: this.state.tab === 'attempts', showEvents: this.state.tab === 'events', showLogs: this.state.tab === 'logs', showYaml: this.state.tab === 'yaml',
+      attempts, events, evObj, evType, evObjOptions, evAllLabel, evTypeOptions, evShown: events.length, evTotal: allEv.length,
+      onEvObj: (ev2) => this.setState({ evObj: ev2.target.value }), onEvType: (ev2) => this.setState({ evType: ev2.target.value }),
+      hasCause: !!cause, cause, clearCause: () => this.setState({ cause: '' }),
+      logPod, podOptions, logLines, onLogPod: (ev2) => this.setState({ logPod: ev2.target.value }),
+      yaml: yamlOf(yamlSel), yamlSel, yamlOptions, onYamlObj: (ev2) => this.setState({ sel: ev2.target.value }),
+      goLogs: () => this.setState({ tab: 'logs', logPod: sel }), goEvents: () => this.setState({ tab: 'events', evObj: allEv.some((e) => e.obj === sel) ? sel : '', evType: '', cause: '' }), goYaml: () => this.setState({ tab: 'yaml' }),
+      shownCount: ids.length + ' of ' + order.length + ' boxes',
+      toggleGrouping: () => this.setState({ grouping: !grouping, open: [] }), groupingPressed: grouping ? 'true' : 'false', groupingStyle: btn(grouping),
+      expandAll: () => this.setState({ open: ['crds', 'rbac', 'webhookcfg'] }), collapseAll: () => this.setState({ open: [], grouping: true }),
+      graphSectionStyle: 'display: flex; flex-direction: column; gap: 12px; padding: 14px 20px 18px; background: var(--pt-fbf8f1); border: 1px solid var(--pt-d6ccb8); ' + (full ? 'position: fixed; inset: 0; z-index: 900; border-radius: 0;' : 'border-radius: 10px;'),
+      isFull: full, notFull: !full, fullPressed: full ? 'true' : 'false', fullLabel: full ? 'Exit full screen (Esc)' : 'Show the graph full screen',
+      toggleFull: () => this.setState({ full: !full, zoom: 'fit' }),
+      leaveView: () => this.setState({ full: false, zoom: 'fit', focus: '' }),
+      // The details panel belongs to the views where you pick a box or a row; the other tabs use the full width.
+      showPanel: ['graph', 'resources'].includes(this.state.tab || 'graph'),
+      setPane: this.setPane, paneHeight, canvasW, canvasH,
+      sizeW: Math.round(canvasW * zoom), sizeH: Math.round(canvasH * zoom),
+      offX: (this._offX = Math.max(0, Math.floor((paneW - canvasW * zoom) / 2))), offY: (this._offY = Math.max(0, Math.floor((paneHeight - 2 - canvasH * zoom) / 2))),
+      gridPx: C * zoom, zoom, zoomPct, isFit: this.state.zoom === 'fit' ? 'true' : 'false',
+      zoomAnim: this.state.wheel || reduce ? 'none' : 'width 420ms, height 420ms, margin 420ms', scaleAnim: this.state.wheel || reduce ? 'none' : 'transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+      fitZoom: () => this.setState({ zoom: 'fit', wheel: false }), onZoom: (ev) => this.setState({ zoom: Number(ev.target.value) / 100 }),
+      fitStyle: 'min-width: 52px; ' + btn(this.state.zoom === 'fit')
+    };
+  }
+}
+</script>
+</body>
+</html>
