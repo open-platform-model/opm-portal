@@ -1,4 +1,4 @@
-package auth_test
+package api_test
 
 import (
 	"context"
@@ -13,33 +13,18 @@ import (
 
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
-	"github.com/open-platform-model/opm-portal/internal/auth"
-	"github.com/open-platform-model/opm-portal/internal/auth/oidctest"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
 	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
 )
 
-// TestEmptyClaimsNeverReachTheCluster is the regression test for
-// CVE-2026-23990, where requests with empty OIDC claims ran as the server's
-// own identity. A correctly signed token for the configured audience whose
-// claims map to no user must be refused by the read API with no access
-// review and no read, for the user or the portal's own reader.
-func TestEmptyClaimsNeverReachTheCluster(t *testing.T) {
-	iss := oidctest.New(t, oidctest.Options{})
-	o, err := auth.NewOIDC(t.Context(), auth.OIDCConfig{
-		IssuerURL:      iss.URL,
-		ClientID:       iss.ClientID(),
-		RedirectURL:    "https://portal.example.com" + auth.CallbackPath,
-		UsernamePrefix: "oidc:",
-		GroupsClaim:    "groups",
-		GroupsPrefix:   "oidc:",
-		HTTPClient:     iss.Client(),
-	})
-	if err != nil {
-		t.Fatalf("NewOIDC: %v", err)
-	}
-	alice := authz.Identity{Username: "oidc:alice", Groups: []string{"oidc:dev", "system:authenticated"}}
+// TestEmptyIdentityNeverReachesTheClusterInCluster guards the class of bug
+// where a request whose identity names no one runs as the server's own
+// identity. In in-cluster mode, an identity with an empty, blank or
+// anonymous username must be refused by the read API with no access review
+// and no read, for the caller or the portal's own reader.
+func TestEmptyIdentityNeverReachesTheClusterInCluster(t *testing.T) {
+	alice := authz.Identity{Username: "alice", Groups: []string{"dev", "system:authenticated"}}
 	reader := authz.Identity{Username: "portal-reader", Groups: []string{"system:authenticated"}}
 	aliceChecker, aliceReviews := readmodeltest.NewChecker(t, alice, readmodeltest.AllowAll, authz.Options{})
 	readerChecker, readerReviews := readmodeltest.NewChecker(t, reader, readmodeltest.AllowAll, authz.Options{})
@@ -59,14 +44,20 @@ func TestEmptyClaimsNeverReachTheCluster(t *testing.T) {
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
+
+	var (
+		mu      sync.Mutex
+		current authz.Identity
+	)
 	srv, err := api.New(api.Config{
 		Mode:       api.ModeInCluster,
 		Model:      m,
 		Authorizer: az,
 		Reader:     reader,
-		Authenticate: func(r *http.Request) (api.Principal, error) {
-			id, session, err := o.Authenticate(r)
-			return api.Principal{Identity: id, Session: session}, err
+		Authenticate: func(*http.Request) (api.Principal, error) {
+			mu.Lock()
+			defer mu.Unlock()
+			return api.Principal{Identity: current, Session: "session"}, nil
 		},
 	})
 	if err != nil {
@@ -74,29 +65,22 @@ func TestEmptyClaimsNeverReachTheCluster(t *testing.T) {
 	}
 	t.Cleanup(srv.Close)
 
-	get := func(t *testing.T, claims map[string]any) (int, string) {
+	get := func(t *testing.T, id authz.Identity) (int, string) {
 		t.Helper()
-		token := iss.Sign(claims)
+		mu.Lock()
+		current = id
+		mu.Unlock()
 		r := httptest.NewRequestWithContext(t.Context(), http.MethodGet, api.Prefix+"/clusters/"+api.DefaultCluster+"/instances", http.NoBody)
-		r.Header.Set("Authorization", "Bearer "+token)
 		w := httptest.NewRecorder()
 		srv.ServeHTTP(w, r)
 		body, _ := io.ReadAll(w.Result().Body)
 		return w.Code, string(body)
 	}
-	claims := func(edit func(map[string]any)) map[string]any {
-		c := iss.Claims("alice", iss.ClientID())
-		edit(c)
-		return c
-	}
-	refused := map[string]map[string]any{
-		"empty username":            claims(func(c map[string]any) { c["sub"] = "" }),
-		"missing username":          claims(func(c map[string]any) { delete(c, "sub") }),
-		"blank username":            claims(func(c map[string]any) { c["sub"] = "   " }),
-		"empty username and groups": claims(func(c map[string]any) { c["sub"] = ""; c["groups"] = []string{"dev", "system:masters"} }),
-		"only system groups":        claims(func(c map[string]any) { delete(c, "sub"); c["groups"] = []string{"system:masters"} }),
-		"username not a string":     claims(func(c map[string]any) { c["sub"] = []string{"alice"} }),
-		"system username":           claims(func(c map[string]any) { c["sub"] = "system:admin" }),
+	refused := map[string]authz.Identity{
+		"empty username":            {Groups: []string{"dev", "system:authenticated"}},
+		"blank username":            {Username: "   ", Groups: []string{"system:authenticated"}},
+		"empty username and groups": {Groups: []string{"dev", "system:masters"}},
+		"anonymous username":        {Username: "system:anonymous", Groups: []string{"system:masters"}},
 	}
 	reads := func() []string {
 		return slices.DeleteFunc(readmodeltest.Actions(dyn), func(a string) bool { return strings.HasPrefix(a, "watch ") })
@@ -105,9 +89,9 @@ func TestEmptyClaimsNeverReachTheCluster(t *testing.T) {
 		alice, reader, checks int
 		reads                 []string
 	}{aliceReviews.Count(), readerReviews.Count(), len(az.asked()), reads()}
-	for name, c := range refused {
+	for name, id := range refused {
 		t.Run(name, func(t *testing.T) {
-			status, body := get(t, c)
+			status, body := get(t, id)
 			if status != http.StatusUnauthorized || !strings.Contains(body, "unauthenticated") {
 				t.Fatalf("status %d, body %s; want 401 unauthenticated", status, body)
 			}
@@ -124,13 +108,13 @@ func TestEmptyClaimsNeverReachTheCluster(t *testing.T) {
 		})
 	}
 
-	// The same token shape with a username reaches the cluster as that user.
-	status, body := get(t, claims(func(c map[string]any) { c["groups"] = []string{"dev"} }))
+	// A named user reaches the cluster as that user.
+	status, body := get(t, alice)
 	if status != http.StatusOK {
-		t.Fatalf("a mapped user: status %d, body %s", status, body)
+		t.Fatalf("a named user: status %d, body %s", status, body)
 	}
 	if aliceReviews.Count() == before.alice {
-		t.Fatal("a mapped user's read sent no review")
+		t.Fatal("a named user's read sent no review")
 	}
 }
 

@@ -100,10 +100,7 @@ can reword them.
   `portal:Dn`. Plan and progress: [ROADMAP.md](ROADMAP.md). `opm-portal serve` runs local
   mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`
   (under `/api/v1alpha1`) and `internal/ui` (every other path), reading as the kubeconfig's user.
-  `opm-portal version` only prints the version. `internal/auth` also holds milestone 2's OIDC
-  authenticator (`NewOIDC`: code flow with PKCE, in-memory sessions, bearer tokens, fail-closed
-  identity mapping); no command wires it yet. `internal/auth/oidctest` is an in-process issuer
-  for its tests.
+  `opm-portal version` only prints the version.
 
 ## Entrypoint
 
@@ -122,7 +119,7 @@ Read these first, in order:
 .
 ├── cmd/opm-portal/   # main: version, and serve (local mode's flags and wiring)
 ├── api/v1alpha1/     # wire types of the read API (no logic)
-├── internal/         # auth (local front door, OIDC), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
+├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
 ├── docs/DESIGN.md    # the design record: decisions (portal:Dn), open questions, risks
 ├── docs/design/      # evidence/: the live captures and research DESIGN.md cites (snapshots)
