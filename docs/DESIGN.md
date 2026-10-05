@@ -21,7 +21,7 @@ nothing outside this file. Inside this file, decisions refer to one another with
 head.
 
 Citations of `0030:Dn` already in the repo keep their meaning and are rewritten to `portal:Dn` in a
-separate sweep. Write `portal:Dn` in anything new.
+separate sweep ([issue 31](https://github.com/open-platform-model/opm-portal/issues/31)). Write `portal:Dn` in anything new.
 
 ## How this file is maintained
 
