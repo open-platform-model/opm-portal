@@ -312,7 +312,9 @@ paths:
         snapshot event carries {topic, items: [document]}; upsert, delete and k8sevent events
         carry {topic, item: document}. A delete, and a snapshot of an object that does not
         exist, carry a Removed document. A topic the caller may not follow is closed with a
-        closed event naming a problem code. Reconnect with Last-Event-ID to resume.
+        closed event naming a problem code. When the caller's session ends, the stream's last
+        event is expired, carrying {code: unauthenticated}, and the response ends; that stream
+        cannot be resumed. Reconnect with Last-Event-ID to resume.
 
         Where the serving mode routes them (local mode does), log:<namespace>/<pod>/<container>
         and log:<namespace>/<pod>/<container>/previous follow one container's log, for a Pod an

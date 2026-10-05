@@ -6,6 +6,7 @@ import (
 	"errors"
 	"go/ast"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"maps"
 	"path/filepath"
@@ -248,8 +249,11 @@ func TestAnItemGrantThatExpiresDuringRevalidateIsAskedAgain(t *testing.T) {
 }
 
 // A message whose grants keep expiring while the others are asked again
-// does not settle: after revalidateRounds rounds of reviews its topic is
-// closed with upstream_unavailable and nothing is written.
+// does not settle: once one decision lifetime has passed since its
+// re-validation began, no review starts, its topic is closed with
+// upstream_unavailable and nothing is written. The review count pins the
+// bound: a round cap, or a deadline longer or shorter by one review, sends
+// a different number.
 func TestAMessageWhoseGrantsNeverSettleClosesTheTopic(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
@@ -276,6 +280,65 @@ func TestAMessageWhoseGrantsNeverSettleClosesTheTopic(t *testing.T) {
 		if got, want := nonHeartbeats(sv.rec.take()), []string{"open()", "closed(instance:team-a/blog)upstream_unavailable"}; !slices.Equal(got, want) {
 			t.Errorf("events = %v, want %v", got, want)
 		}
+		// At open: the topic and the eight packages, all answered at t=0.
+		// Re-validation starts at t=31 with every decision expired and a
+		// deadline at t=61: the topic, then packages starting at t=31,
+		// 35.5, 40, 44.5, 49, 53.5 and 58, and none after.
+		if got, want := e.policy.count(), 9+1+7; got != want {
+			t.Errorf("%d reviews sent, want %d", got, want)
+		}
+	})
+}
+
+// Re-validation takes as many rounds as it needs within its deadline: a
+// message whose decisions expire one after another, each during the review
+// of the one before, settles in its fifth round, past the three rounds the
+// broker once allowed, and is written.
+func TestAMessageThatSettlesWithinTheDeadlineIsWritten(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{HeartbeatInterval: time.Hour}, "alice")
+		e.policy.set("alice", allowNamespaces("team-a"))
+		// Other streams cache pkg4 at t=0, pkg3 at 4.5, ... pkg0 at 18, so
+		// they expire at 30, 34.5, 39, 43.5 and 48: each one just before the
+		// review of the one after it ends.
+		for i := 4; i >= 0; i-- {
+			e.open(Session{Key: "session-pkg" + strconv.Itoa(i), Identity: user("alice")}, "package:team-a/pkg"+strconv.Itoa(i))
+			if i > 0 {
+				time.Sleep(4500 * time.Millisecond)
+			}
+		}
+		blog := mustTopic(t, "instance:team-a/blog")
+		for i := range 5 {
+			e.prod.seed(blog, "a"+strconv.Itoa(i), pkgNamed("pkg"+strconv.Itoa(i)))
+		}
+		e.prod.seed(blog, "b", Item{
+			Event: EventUpsert,
+			Attrs: authz.Attributes{Verb: "get", Resource: instancesGVR, Namespace: "team-a", Name: "blog"},
+			Render: func(context.Context, authz.Identity) (json.RawMessage, error) {
+				// Package reviews take 4.5 s from here on; the render
+				// ends at t=31.
+				e.policy.set("alice", slowPackages(4500*time.Millisecond))
+				time.Sleep(13 * time.Second)
+				return json.RawMessage(`{"name":"blog"}`), nil
+			},
+		})
+		// t=18: the topic's grant lasts until t=48; the packages ride the
+		// cached decisions.
+		sv := e.open(session("alice"), "instance:team-a/blog")
+		time.Sleep(5 * time.Minute)
+		synctest.Wait()
+
+		evs := sv.rec.take()
+		want := `{"topic":"instance:team-a/blog","items":[{"name":"pkg0"},{"name":"pkg1"},{"name":"pkg2"},{"name":"pkg3"},{"name":"pkg4"},{"name":"blog"}]}`
+		if got := nonHeartbeats(evs); !slices.Equal(got, []string{"open()", "snapshot(instance:team-a/blog)"}) || evs[1].Data != want {
+			t.Fatalf("events = %v, snapshot = %s; want %s", got, evs[1].Data, want)
+		}
+		// Five package topics and the blog topic at their opens; then
+		// pkg4, pkg3, pkg2 and pkg1 one round each, and the topic with
+		// pkg0 in the fifth, which ends at t=53.5.
+		if got, want := e.policy.count(), 5+1+4+2; got != want {
+			t.Errorf("%d reviews sent, want %d", got, want)
+		}
 	})
 }
 
@@ -286,11 +349,25 @@ func TestAMessageWhoseGrantsNeverSettleClosesTheTopic(t *testing.T) {
 func TestOnlySendWritesTopicData(t *testing.T) {
 	allowed := map[string][]string{
 		"eventID": {"send"},
-		"event":   {"run", "heartbeat", "closed", "send"},
+		"event":   {"run", "heartbeat", "closed", "expired", "send"},
 		// send re-validates, and only send.
 		"revalidate": {"send"},
 	}
-	controlEvents := map[string]string{"run": "EventOpen", "heartbeat": "EventHeartbeat", "closed": "EventClosed"}
+	// Each control event write, argument by argument (prefix, id, name,
+	// data), so no topic data can ride one past revalidate.
+	controlEvents := map[string][]string{
+		"run":       {`"retry: " + strconv.Itoa(retryMillis) + "\n"`, `""`, "EventOpen", "open"},
+		"heartbeat": {`""`, `""`, "EventHeartbeat", `[]byte("{}")`},
+		"closed":    {`""`, `""`, "EventClosed", "body"},
+		"expired":   {`""`, `""`, "EventExpired", "body"},
+	}
+	// The one assignment of each control event's data variable: the
+	// stream's own fields, never an item.
+	controlBodies := map[string][2]string{
+		"run":     {"open", "json.Marshal(struct { Stream string `json:\"stream\"` }{s.st.id})"},
+		"closed":  {"body", "json.Marshal(struct { Topic string `json:\"topic\"` Code string `json:\"code\"` }{t.String(), code})"},
+		"expired": {"body", "json.Marshal(struct { Code string `json:\"code\"` }{CodeUnauthenticated})"},
+	}
 
 	found := map[string][]string{}
 	// Where send calls revalidate, eventID and event, in source order.
@@ -303,9 +380,19 @@ func TestOnlySendWritesTopicData(t *testing.T) {
 		if c.fn == "send" {
 			inSend = append(inSend, c.name)
 		}
-		if want, ok := controlEvents[c.fn]; ok && c.name == "event" &&
-			(len(c.call.Args) != 4 || exprString(c.call.Args[2]) != want) {
-			t.Errorf("%s writes an event other than %s", c.fn, want)
+		if want, ok := controlEvents[c.fn]; ok && c.name == "event" {
+			if got := nodeSources(c.call.Args); !slices.Equal(got, want) {
+				t.Errorf("%s writes event(%s), want event(%s)", c.fn, strings.Join(got, ", "), strings.Join(want, ", "))
+			}
+		}
+	}
+	for _, fn := range packageFuncs(t) {
+		want, ok := controlBodies[fn.Name.Name]
+		if !ok {
+			continue
+		}
+		if got := assignmentsTo(fn, want[0]); !slices.Equal(got, []string{want[1]}) {
+			t.Errorf("%s assigns %s from %q, want only %q", fn.Name.Name, want[0], got, want[1])
 		}
 	}
 	if want := []string{"revalidate", "eventID", "event"}; !slices.Equal(inSend, want) {
@@ -493,6 +580,44 @@ func packageCalls(t *testing.T) []methodCall {
 			return true
 		})
 	}
+	return out
+}
+
+// nodeSources returns each node's source, printed on one line.
+func nodeSources[N ast.Node](nodes []N) []string {
+	out := make([]string, 0, len(nodes))
+	for _, n := range nodes {
+		var b strings.Builder
+		if err := printer.Fprint(&b, token.NewFileSet(), n); err != nil {
+			return nil
+		}
+		out = append(out, strings.Join(strings.Fields(b.String()), " "))
+	}
+	return out
+}
+
+// assignmentsTo returns the source of every value fn assigns to the local
+// variable name, by = or :=.
+func assignmentsTo(fn *ast.FuncDecl, name string) []string {
+	var out []string
+	ast.Inspect(fn.Body, func(n ast.Node) bool {
+		as, ok := n.(*ast.AssignStmt)
+		if !ok {
+			return true
+		}
+		for i, lhs := range as.Lhs {
+			if id, ok := lhs.(*ast.Ident); !ok || id.Name != name {
+				continue
+			}
+			switch {
+			case len(as.Rhs) == len(as.Lhs):
+				out = append(out, nodeSources(as.Rhs[i:i+1])...)
+			case len(as.Rhs) == 1:
+				out = append(out, nodeSources(as.Rhs)...)
+			}
+		}
+		return true
+	})
 	return out
 }
 

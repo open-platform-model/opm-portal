@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
-const (
-	defaultTTL        = 30 * time.Second
-	defaultMaxEntries = 4096
-)
+// DefaultTTL is how long a decision is reused when Options.TTL is zero.
+// A package that bounds its work by one decision lifetime derives its
+// default from it, so the two cannot drift apart.
+const DefaultTTL = 30 * time.Second
+
+const defaultMaxEntries = 4096
 
 // decisionCache remembers allow and deny decisions for a short time. It
 // stores only what a backend decided; failures never reach it.
@@ -27,7 +29,7 @@ type cachedDecision struct {
 
 func newDecisionCache(ttl time.Duration, maxEntries int) *decisionCache {
 	if ttl <= 0 {
-		ttl = defaultTTL
+		ttl = DefaultTTL
 	}
 	if maxEntries <= 0 {
 		maxEntries = defaultMaxEntries
@@ -74,7 +76,7 @@ func (c *decisionCache) get(key string) (cachedDecision, bool) {
 // gives the decision the default TTL.
 func (c *decisionCache) put(key string, allowed bool) cachedDecision {
 	if c == nil {
-		return cachedDecision{allowed: allowed, expires: time.Now().Add(defaultTTL)}
+		return cachedDecision{allowed: allowed, expires: time.Now().Add(DefaultTTL)}
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()

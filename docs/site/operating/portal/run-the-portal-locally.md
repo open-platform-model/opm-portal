@@ -61,7 +61,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
    `--namespaces` limits the ModuleInstances and ModulePackages the portal reads to those namespaces. A warning about a kind in a namespace you named means your user may not read that kind there either. A warning about a cluster-scoped kind, such as Platform or TransformerRegistration, stays after the restart, and that kind reads as forbidden unless your user may list it cluster-wide.
 
-1. Leave the command running while you use the portal. Press Ctrl-C to stop it; the session ends with it. A session also ends 12 hours after the launch. To get a new link, restart the portal.
+1. Leave the command running while you use the portal. Press Ctrl-C to stop it; the session ends with it. A session also ends 12 hours after the launch; an open page then stops updating and says the session expired. To get a new link, restart the portal.
 
 ## Check that it worked
 

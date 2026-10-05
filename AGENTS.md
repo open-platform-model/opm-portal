@@ -262,7 +262,8 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   browser withholds. Run it after any change to `internal/auth` or `openLaunch`. It also runs
   `TestBrowserLogs`, which refreshes a logs region under a tailed, focused pane and checks the
   pane keeps its scroll offset, focus and tail; run it after any change to the page script's
-  refresh or log code.
+  refresh or log code. `TestBrowserExpired` ends a page's stream with the `expired` event and
+  checks the page says so and does not reconnect.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,
