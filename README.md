@@ -16,9 +16,9 @@ are in [ROADMAP.md](ROADMAP.md).
 
 > **Direction ([docs/DESIGN.md](docs/DESIGN.md)).** The first version is read-only. It shows what a cluster runs
 > under OPM, from the Platform down to Pods: status as the operator reports it, events, pod logs
-> and a relationship graph. It first runs on your machine with your kubeconfig, then in-cluster
-> with OIDC login, where every read is authorized as the signed-in user. It creates, edits and
-> deletes nothing.
+> and a relationship graph. It runs on your machine with your kubeconfig. An in-cluster mode
+> with OIDC login, where every read is authorized as the signed-in user, is a future plan. It
+> creates, edits and deletes nothing.
 
 ## Run it locally
 

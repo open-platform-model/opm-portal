@@ -95,7 +95,8 @@ can reword them.
   UI as its first consumer.
 - V1 is read-only: status as the operator reports it, events, pod logs and a relationship graph,
   from the Platform down to Pods. Milestone 1 runs locally with the user's kubeconfig;
-  milestone 2 runs in-cluster with OIDC and SubjectAccessReview-as-user.
+  milestone 2, in-cluster with OIDC and SubjectAccessReview-as-user, is a future plan
+  (ROADMAP.md): its authorizer and safeguards are on main, unwired, and OIDC was removed.
 - Design: [docs/DESIGN.md](docs/DESIGN.md), the decisions every change follows, cited as
   `portal:Dn`. Plan and progress: [ROADMAP.md](ROADMAP.md). `opm-portal serve` runs local
   mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`

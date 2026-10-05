@@ -8,7 +8,7 @@
 
 ## 2. Keep in-cluster mode with OIDC as a future plan (docs)
 
-- [ ] 2.1 `docs/DESIGN.md`: portal:D6 status (OIDC sign-in and mapping a future plan, text and numbers kept, owner decision recorded); summary, approach and risks say so
-- [ ] 2.2 `ROADMAP.md`: M2 becomes "Future plans: in-cluster mode with OIDC sign-in" (dormant on main, removed, issue 33's open items)
-- [ ] 2.3 `AGENTS.md`, `CONSTITUTION.md`, `openspec/config.yaml`, `README.md`: in-cluster mode with OIDC described as a future plan
-- [ ] 2.4 `task check` green, then commit `docs: keep in-cluster mode with OIDC sign-in as a future plan`
+- [x] 2.1 `docs/DESIGN.md`: portal:D6 status (OIDC sign-in and mapping a future plan, text and numbers kept, owner decision recorded); summary, approach and risks say so
+- [x] 2.2 `ROADMAP.md`: M2 becomes "Future plans: in-cluster mode with OIDC sign-in" (dormant on main, removed, issue 33's open items)
+- [x] 2.3 `AGENTS.md`, `CONSTITUTION.md`, `openspec/config.yaml`, `README.md`: in-cluster mode with OIDC described as a future plan
+- [x] 2.4 `task check` green, then commit `docs: keep in-cluster mode with OIDC sign-in as a future plan`
