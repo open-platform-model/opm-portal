@@ -226,9 +226,14 @@ func (o *OIDC) serveLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 // localPath returns p when it is a path on this portal, and "/" for
-// anything that could leave it: a scheme, a host, "//" or "/\".
+// anything that could leave it: a scheme, a host, "//", or a backslash
+// anywhere. A backslash is refused wherever it stands because
+// http.Redirect cleans the path before writing Location, so a dot segment
+// moves it to the front: "/a/../\evil" becomes "/\evil", which a browser
+// reads as "//evil". Cleaning collapses repeated slashes, so a "//" past
+// the first character cannot reach the front the same way.
 func localPath(p string) string {
-	if p == "" || p[0] != '/' || strings.HasPrefix(p, "//") || strings.HasPrefix(p, "/\\") || strings.ContainsAny(p, "\r\n\t") {
+	if p == "" || p[0] != '/' || strings.HasPrefix(p, "//") || strings.ContainsAny(p, "\\\r\n\t") {
 		return "/"
 	}
 	u, err := url.Parse(p)

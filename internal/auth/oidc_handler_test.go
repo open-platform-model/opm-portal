@@ -361,6 +361,9 @@ func TestReturnPathStaysOnThePortal(t *testing.T) {
 		"/instances?namespace=default": "/instances?namespace=default",
 		"//evil.example":               "/",
 		"/\\evil.example":              "/",
+		"/a/../\\evil.example":         "/",
+		"/a/..//evil.example":          "/evil.example",
+		"/ok\\":                        "/",
 		"https://evil.example/":        "/",
 		"evil.example":                 "/",
 		"":                             "/",
@@ -369,9 +372,16 @@ func TestReturnPathStaysOnThePortal(t *testing.T) {
 	for ret, want := range tests {
 		t.Run(ret, func(t *testing.T) {
 			f := newOIDCFixture(t, nil, oidctest.Options{})
-			res := newBrowser(t, f).signIn(ret)
+			b := newBrowser(t, f)
+			res := b.signIn(ret)
 			if res.status != http.StatusSeeOther || res.header.Get("Location") != want {
 				t.Fatalf("landed %d at %q, want %q", res.status, res.header.Get("Location"), want)
+			}
+			// A browser already signed in is redirected at once, with no
+			// round trip to the issuer.
+			res = b.do(http.MethodGet, LoginPath+"?"+url.Values{"return": {ret}}.Encode(), nil)
+			if res.status != http.StatusSeeOther || res.header.Get("Location") != want {
+				t.Fatalf("signed in: landed %d at %q, want %q", res.status, res.header.Get("Location"), want)
 			}
 		})
 	}
