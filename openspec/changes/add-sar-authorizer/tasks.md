@@ -10,3 +10,8 @@
 
 - [x] 2.1 Add `Options.AccessLog` and log one line per decision in `Checker.Check` (allow, deny, cached, every denial code), skipping the in-cluster reader; verify with a JSON slog handler that lines carry the user, the attributes, the decision, the code and `cached`, and never groups, extra values or a review error's text
 - [x] 2.2 `task check` green, then commit `feat(authz): log each in-cluster access decision per user`
+
+## 3. Verify fixes (internal/readmodel)
+
+- [x] 3.1 Run the read model on the in-cluster authorizer: Start reviews the portal's ServiceAccount by name (with its groups) for list and watch of the OPM kinds, the reads inside a person's view are reviewed as the person, and the cluster sees only `subjectaccessreviews`; verify `go test ./internal/readmodel -run TestInCluster`
+- [x] 3.2 `task check` green, then commit `test(readmodel): run the read model on the in-cluster authorizer`
