@@ -14,7 +14,7 @@ The portal SHALL compute each readable object's health from the standard Kuberne
 rules (kstatus) as one of Healthy, Progressing, Degraded, Missing or Unknown: current is
 Healthy, in progress and terminating are Progressing, failed is Degraded, an object the reader
 found absent is Missing, and anything the rules cannot decide is Unknown, never a guess.
-Source: 0030:D3.
+Source: portal:D3.
 
 #### Scenario: Healthy instance objects
 
@@ -44,7 +44,7 @@ A Pod with a container or init container waiting with reason `ErrImagePull`,
 be Degraded, and the inventory object that owns it through its chain of controller owner
 references SHALL be Degraded with the Pod's reason, even while that object's own status reports
 it available. An owner reference not marked controller SHALL NOT be followed.
-Source: 0030:D3:R2/R3.
+Source: portal:D3:R2/R3.
 
 #### Scenario: Image break one minute in
 
@@ -80,7 +80,7 @@ readable workload that can own Pods SHALL be marked as having unread children, a
 component and the instance SHALL be partial. A Secret SHALL never be evaluated, SHALL be excluded, and SHALL NOT mark the result
 partial. A result with nothing counted SHALL be Unknown. Each result SHALL carry the oldest
 evaluation time among the objects it counts, and SHALL say it is not live when any counted
-object was refreshed by polling. Source: 0030:D3:R4/R5.
+object was refreshed by polling. Source: portal:D3:R4/R5.
 
 #### Scenario: Forbidden object
 
@@ -122,7 +122,7 @@ a CLI owner or `ManagedExternally` reason is ManagedExternally; suspension is Su
 Applied; anything else is Unknown. `Ready=True` SHALL be Applied and never Healthy, and the
 applied state SHALL NOT be derived from health nor health from it. Failure counters SHALL never
 change either axis. `ContractsFulfilled=False` and `Drifted=True` SHALL be informational notes
-that never change the state. Source: 0030:D3:R1/R6/R7/R8.
+that never change the state. Source: portal:D3:R1/R6/R7/R8.
 
 #### Scenario: Ready instance with a broken rollout
 
@@ -174,7 +174,7 @@ of Accepted, Refused, Pending, RemovalBlocked or Unknown. A registration whose `
 `DependentsRemain` SHALL be RemovalBlocked and keep its accepted and active values, never
 Refused. For a TransformerRegistration the verdict, not the applied state, SHALL decide how it
 is shown: a refusal and a blocked removal are both Stalled on the applied axis.
-Source: 0030:D4:R4/R7.
+Source: portal:D4:R4/R7.
 
 #### Scenario: Refused claim
 

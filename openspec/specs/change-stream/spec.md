@@ -75,7 +75,7 @@ nothing; a closed message not written before its connection ends, including one 
 denied while the stream is disconnected, SHALL be sent first thing on the stream's next
 connection; an authorization error SHALL close the topic with an `upstream_unavailable` code and
 SHALL deliver nothing. A stream SHALL NOT open for an unauthenticated identity, and no
-authorization review SHALL be sent for one. Source: 0030:D7:R2, 0030:D5:R5, 0030:D6:R4.
+authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
 
 #### Scenario: A subscriber receives only what it may read
 
@@ -177,7 +177,7 @@ made after the snapshot was taken SHALL be missed; a change MAY repeat state the
 carried, and clients apply upserts and deletes idempotently. Every snapshot and change SHALL carry
 an event identifier, and identifiers SHALL strictly increase along a stream. Identifiers SHALL
 count only the events delivered on that stream, so their gaps reveal nothing about items left out
-for the subscriber, other topics or other streams. Source: 0030:D2:R5, 0030:D7:R2.
+for the subscriber, other topics or other streams. Source: portal:D2:R5, portal:D7:R2.
 
 #### Scenario: A change racing the snapshot is not lost
 
@@ -201,7 +201,7 @@ deliver every change after that identifier that its buffer still holds. When the
 covers the gap, or the client had not yet received a topic's snapshot, the portal SHALL send that
 topic a fresh snapshot, which replaces the client's state for the topic. An identifier from
 another session, another process lifetime, or past the resume window SHALL open a new stream with
-fresh snapshots. Source: 0030:D2:R5.
+fresh snapshots. Source: portal:D2:R5.
 
 #### Scenario: Resume within the buffer
 

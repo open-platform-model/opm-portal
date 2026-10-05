@@ -13,7 +13,7 @@ may read, in the inventory of a ModuleInstance or ModulePackage the caller may g
 Pod no inventory reaches, a Pod reached only through objects the caller may not read (the
 inventory object or its owner), and a Pod that does not exist SHALL each be closed with the same `forbidden` code
 a missing permission gives, and SHALL deliver nothing. No upstream log stream SHALL be opened for
-a topic that did not attach. Source: 0030:D10:R1, 0030:D7:R1.
+a topic that did not attach. Source: portal:D10:R1, portal:D7:R1.
 
 #### Scenario: A Pod of an instance
 
@@ -41,7 +41,7 @@ every delivery once the decision behind it has expired, and authorized again, wi
 reachability, on every reconnect. A revoked permission SHALL close the topic with `forbidden`
 within one decision lifetime plus one heartbeat interval, and no line SHALL be delivered after the
 closing. The reading identity SHALL also be allowed the read before the upstream stream opens.
-Source: 0030:D10:R2.
+Source: portal:D10:R2.
 
 #### Scenario: No permission, no upstream read
 
@@ -75,7 +75,7 @@ delay after its latest line when the container is quiet. A stream SHALL never en
 byte limit. The stamps are the node's clock and the stream's opening is the portal's, so clock skew
 can count a tail line as live or an early live line as tail; either way the line SHALL stay bounded
 and, when dropped, counted. Log lines SHALL NOT appear in the portal's own logs. Source:
-0030:D10:R3.
+portal:D10:R3.
 
 #### Scenario: An oversize line
 
@@ -113,7 +113,7 @@ containers or ephemeral containers; a container the Pod does not have SHALL end 
 instance of the container once, without following, so a crash-looping container's last output
 can be read. When the followed container stops, or the previous output has been read, the topic
 SHALL deliver a `logend` message with its reason. A live topic for a container that has not started
-yet SHALL end with a `logend` whose reason says it is waiting, distinct from a read failure. Source: 0030:D10:R4.
+yet SHALL end with a `logend` whose reason says it is waiting, distinct from a read failure. Source: portal:D10:R4.
 
 #### Scenario: A container that stops
 

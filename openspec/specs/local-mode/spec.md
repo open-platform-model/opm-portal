@@ -12,7 +12,7 @@ identity every read is made as, and what the process writes and how it stops.
 `opm-portal serve` SHALL listen on the address `--addr` names, `127.0.0.1:0` by default. It SHALL
 refuse, with exit code 2 and before it reads the kubeconfig, an address whose host is empty, a
 name other than `localhost`, or an IP address outside the loopback ranges, and SHALL check the
-bound address again after listening. Source: 0030:D5:R2.
+bound address again after listening. Source: portal:D5:R2.
 
 #### Scenario: Default address
 
@@ -34,7 +34,7 @@ that review fails or names an empty, blank or anonymous user. Every read SHALL b
 SelfSubjectAccessReview for that identity and the read's exact attributes, and every client SHALL
 be built from the kubeconfig with no credential of the portal's own. In local mode the only
 create requests the portal sends SHALL be `selfsubjectreviews` and `selfsubjectaccessreviews`.
-Source: 0030:D5:R1/R6/R7, 0030:D6:R2.
+Source: portal:D5:R1/R6/R7, portal:D6:R2.
 
 #### Scenario: An anonymous kubeconfig
 
@@ -55,7 +55,7 @@ Source: 0030:D5:R1/R6/R7, 0030:D6:R2.
 user who may not list them cluster-wide can still read them in the namespaces they may. At
 startup the portal SHALL log one warning on standard error for each OPM kind, and each namespace
 `--namespaces` names, that the identity may not list and watch; a warning for a namespaced kind
-read cluster-wide SHALL name `--namespaces`. Source: 0030:D5:R5.
+read cluster-wide SHALL name `--namespaces`. Source: portal:D5:R5.
 
 #### Scenario: A namespace-scoped user
 
@@ -87,7 +87,7 @@ navigation started from the `--open` page (a `file://` document) it withholds th
 be refused with `403` and the same body for each. A request that does not carry a live session
 SHALL be refused before any authorization review or read: the read API answers it `401` with code
 `unauthenticated`. `--open` SHALL open the launch URL in the default browser without putting the
-token on any process's command line. Source: 0030:D5:R3.
+token on any process's command line. Source: portal:D5:R3.
 
 #### Scenario: Launch and read
 
@@ -137,7 +137,7 @@ appear in a log line, an error or an API response.
 
 The portal SHALL refuse with `403`, before any other step, every request whose `Host` header is
 not exactly `127.0.0.1:<port>`, `localhost:<port>`, `[::1]:<port>` or `<ip>:<port>` for the
-loopback IP `<ip>` and the port it listens on. Source: 0030:D5:R4.
+loopback IP `<ip>` and the port it listens on. Source: portal:D5:R4.
 
 #### Scenario: DNS rebinding
 
