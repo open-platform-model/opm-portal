@@ -41,7 +41,7 @@ Hiding the values does not hide what they became. A value a module renders into 
 
 ### Messages are shown as written
 
-Condition messages, status history and event notes are shown exactly as the operator and the API server wrote them. The portal does not remove secret values from them. In local mode this reveals nothing new: anyone who can open the portal can read the same text with `kubectl` and your kubeconfig. All cluster text, log lines included, is treated as untrusted and escaped before it reaches a page.
+In local mode, condition messages, status history and event notes are shown exactly as the operator and the API server wrote them. The portal does not remove secret values from them. This reveals nothing new: anyone who can open the portal can read the same text with `kubectl` and your kubeconfig. All cluster text, log lines included, is treated as untrusted and escaped before it reaches a page.
 
 ## Why it is built this way
 
@@ -78,4 +78,4 @@ The portal reads as you. If `kubectl auth can-i` says no, the portal shows the r
 > [!NOTE]
 > **Direction**
 >
-> An in-cluster mode, with OIDC sign-in and a SubjectAccessReview for the signed-in user before every read, is designed in [enhancement 0030](/enhancements/0030/), a draft, and is not built. It would swap the self review for a review of the signed-in user in the one place access is decided, without changing a read path. It would send no self review: inside a cluster, a SelfSubjectAccessReview answers for the portal's own ServiceAccount, and a check that answers for the portal would let anyone read what the portal may read. Whether the operator removes secret values from condition and event messages is an open question there, to be answered before that mode is released.
+> An in-cluster mode, with OIDC sign-in and a SubjectAccessReview for the signed-in user before every read, is designed in [enhancement 0030](/enhancements/0030/), a draft, and is not built. It would swap the self review for a review of the signed-in user in the one place access is decided, without changing a read path. It would send no self review: inside a cluster, a SelfSubjectAccessReview answers for the portal's own ServiceAccount, and a check that answers for the portal would let anyone read what the portal may read. The operator does not remove secret values from its messages, so that mode will show the reason of every condition, history entry and event, with the portal's explanation of it, and never the message text, until the operator does.

@@ -20,5 +20,5 @@
 
 ## 4. Documentation (docs/site)
 
-- [ ] 4.1 `portal-security.md` and `reference/portal/read-api.md`: messages are shown as written in local mode; the in-cluster mode, when built, shows reasons only
-- [ ] 4.2 `task docs:bundle:check` and `task check` green, then commit `docs(api): say where operator messages are shown`
+- [x] 4.1 `portal-security.md` and `reference/portal/read-api.md`: messages are shown as written in local mode; the in-cluster mode, when built, shows reasons only
+- [x] 4.2 `task docs:bundle:check` and `task check` green, then commit `docs(api): say where operator messages are shown`
