@@ -36,6 +36,7 @@ type keySet struct {
 	client   *http.Client
 	algs     []jose.SignatureAlgorithm
 	interval time.Duration
+	timeout  time.Duration // bounds one fetch, whatever the caller's context
 	now      func() time.Time
 	log      *slog.Logger
 
@@ -116,7 +117,12 @@ func (k *keySet) refresh(ctx context.Context, seen int) ([]jose.JSONWebKey, erro
 		return nil, errKeyRefreshTooSoon
 	}
 	k.attempted = now
-	keys, err := k.fetch(ctx)
+	// The fetch outlives the caller's request: a caller that hangs up must
+	// not fail the fetch and so use up the interval, which would let anyone
+	// stop the cache from learning rotated keys or dropping withdrawn ones.
+	fetchCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), k.timeout)
+	defer cancel()
+	keys, err := k.fetch(fetchCtx)
 	if err != nil {
 		return nil, err
 	}

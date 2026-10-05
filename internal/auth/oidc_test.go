@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
@@ -321,6 +322,24 @@ func TestRotatedKeyIsAcceptedAfterTheInterval(t *testing.T) {
 	}
 	if got := f.iss.KeyFetches(); got != 2 {
 		t.Fatalf("key fetches = %d, want 2", got)
+	}
+}
+
+func TestACancelledRequestDoesNotUseUpTheKeyRefresh(t *testing.T) {
+	f := newOIDCFixture(t, nil, oidctest.Options{})
+	f.iss.Rotate()
+	f.clk.Advance(defaultKeyRefreshInterval)
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	r := httptest.NewRequestWithContext(ctx, http.MethodGet, portalURL+"/", http.NoBody)
+	r.Header.Set("Authorization", "Bearer "+f.iss.Sign(f.iss.Claims("mallory", f.iss.ClientID())))
+	_, _, _ = f.o.Authenticate(r) // the caller hung up before the answer
+	if got := f.iss.KeyFetches(); got != 2 {
+		t.Fatalf("key fetches after the cancelled request = %d, want 2", got)
+	}
+	token := f.iss.Sign(f.iss.Claims("alice", f.iss.ClientID()))
+	if _, _, err := f.o.Authenticate(bearerRequest(t, token)); err != nil {
+		t.Fatalf("a key rotated in is refused after a cancelled request: %v", err)
 	}
 }
 

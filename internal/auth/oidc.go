@@ -154,6 +154,7 @@ func NewOIDC(ctx context.Context, cfg OIDCConfig) (*OIDC, error) {
 		url:      meta.JWKSURL,
 		client:   cfg.HTTPClient,
 		interval: cfg.KeyRefreshInterval,
+		timeout:  defaultIssuerTimeout,
 		now:      cfg.Now,
 		log:      cfg.Logger,
 	}
