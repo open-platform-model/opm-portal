@@ -1,7 +1,7 @@
 name: E2E
 
 # Builds the e2e fixture cluster from released artifacts on GHCR and GitHub releases, captures
-# it, and runs the local-mode and milestone 1 tests against it; a parallel job runs the browser
+# it, and runs the local-mode, milestone 1 and Pod tests against it; a parallel job runs the browser
 # tests. Never on pull requests: it depends on registries outside this repo and a multi-gigabyte
 # browser image, so it must not gate a merge. A capture that differs from testdata/clusters/f1 is
 # uploaded for review, not committed; one whose verdicts or versions differ fails the run.
@@ -115,6 +115,14 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/e2e-logs"
           task e2e:m1 2>&1 | tee "$RUNNER_TEMP/e2e-logs/m1.log"
+
+      # Builds the image from this checkout and runs it in the cluster from deploy/, after
+      # e2e:m1 so podinfo has settled again.
+      - name: Run the Pod test
+        if: ${{ !cancelled() && steps.up.outcome == 'success' }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/e2e-logs"
+          task e2e:pod 2>&1 | tee "$RUNNER_TEMP/e2e-logs/pod.log"
 
       # Best effort: when e2e:up failed before writing the kubeconfig there is nothing to dump.
       - name: Dump the fixture cluster

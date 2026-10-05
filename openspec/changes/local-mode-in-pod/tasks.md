@@ -19,12 +19,12 @@
 
 ## 4. End to end on the fixture cluster (test/e2e, cmd/opm-portal, Taskfile.yml, .github/workflows/e2e.yml)
 
-- [ ] 4.1 `test/e2e/pod/kustomization.yaml`: overlay of `../../../deploy` with image `localhost/opm-portal:e2e` and `imagePullPolicy: Never`
-- [ ] 4.2 `test/e2e/pod.sh` and `task e2e:pod`: build the image with `$E2E_PROVIDER`, save it, `kind load image-archive`, apply the overlay, wait for the rollout, run `TestPod`
-- [ ] 4.3 `cmd/opm-portal/pod_e2e_test.go` (build tag `e2e`): the Pod log names the ServiceAccount with `source=in-cluster` and holds the launch URL; `kubectl port-forward 8090:8090` launches and lists the same instances as the cluster; a launch through `8091:8090` gets `403`
-- [ ] 4.4 `.github/workflows/e2e.yml`: run `task e2e:pod` after `e2e:m1`; `actionlint` green
-- [ ] 4.5 Run against a throwaway cluster (`task e2e:up`, `task e2e:pod`, `task e2e:down`)
-- [ ] 4.6 `task check` green, then commit `test(e2e): run the portal image in a Pod on the fixture cluster`
+- [x] 4.1 `test/e2e/pod/kustomization.yaml`: overlay of `../../../deploy` with image `localhost/opm-portal:e2e` and `imagePullPolicy: Never`
+- [x] 4.2 `test/e2e/pod.sh` and `task e2e:pod`: build the image with `$E2E_PROVIDER`, save it, `kind load image-archive`, apply the overlay, wait for the rollout, run `TestPod`
+- [x] 4.3 `cmd/opm-portal/pod_e2e_test.go` (build tag `e2e`): the Pod log names the ServiceAccount with `source=in-cluster` and holds the launch URL; `kubectl port-forward 8090:8090` launches and lists the same instances as the cluster; a launch through `8091:8090` gets `403`
+- [x] 4.4 `.github/workflows/e2e.yml`: run `task e2e:pod` after `e2e:m1`; `actionlint` green
+- [x] 4.5 Run against a throwaway cluster (`task e2e:up`, `task e2e:pod`, `task e2e:down`)
+- [x] 4.6 `task check` green, then commit `test(e2e): run the portal image in a Pod on the fixture cluster`
 
 ## 5. Docs and roadmap (README.md, AGENTS.md, ROADMAP.md)
 

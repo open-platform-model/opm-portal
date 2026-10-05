@@ -124,6 +124,14 @@ tasks:
     cmds:
       - test/e2e/m1.sh
 
+  e2e:pod:
+    desc: Build the portal image, run it in the fixture cluster from deploy/, and read through kubectl port-forward (needs e2e:up)
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/pod.sh
+
   e2e:dump:
     desc: 'Dump the fixture cluster''s OPM objects, Pods, events and operator log for a failed run, without Secrets or values (DIR=<directory>, default .e2e/dump/<cluster>)'
     env:
