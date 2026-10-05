@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: opm-portal-reader
+  labels:
+    app.kubernetes.io/name: opm-portal
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: opm-portal-reader
+subjects:
+  - kind: ServiceAccount
+    name: opm-portal
+    namespace: opm-portal

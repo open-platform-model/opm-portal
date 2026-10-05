@@ -12,10 +12,10 @@
 
 ## 3. The manifest, its role and its tests (deploy/, release-please-config.json)
 
-- [ ] 3.1 `deploy/`: `kustomization.yaml`, `namespace.yaml`, `serviceaccount.yaml`, `clusterrole.yaml` (the explicit rule list in design.md), `clusterrolebinding.yaml`, `deployment.yaml` (1 replica, `serve --addr 127.0.0.1:8090`, restricted security context, requests and limits, no probes, image line with the release-please marker naming `v` + `internal/version`)
-- [ ] 3.2 `release-please-config.json`: add `{"type": "generic", "path": "deploy/deployment.yaml"}` to `extra-files`
-- [ ] 3.3 `deploy/manifest_test.go`: parse every `deploy/*.yaml`; `checkRole`, `checkObjects`, `checkDeployment` over the shipped files and over a table of denied inputs that must each fail; the image tag equals `"v" + version.Version` on the marked line
-- [ ] 3.4 `task check` green (and `kubectl kustomize deploy` renders), then commit `feat(deploy): ship a manifest that runs local mode in a Pod`
+- [x] 3.1 `deploy/`: `kustomization.yaml`, `namespace.yaml`, `serviceaccount.yaml`, `clusterrole.yaml` (the explicit rule list in design.md), `clusterrolebinding.yaml`, `deployment.yaml` (1 replica, `serve --addr 127.0.0.1:8090`, restricted security context, requests and limits, no probes, image line with the release-please marker naming `v` + `internal/version`)
+- [x] 3.2 `release-please-config.json`: add `{"type": "generic", "path": "deploy/deployment.yaml"}` to `extra-files`
+- [x] 3.3 `deploy/manifest_test.go`: parse every `deploy/*.yaml`; `checkRole`, `checkObjects`, `checkDeployment` over the shipped files and over a table of denied inputs that must each fail; the image tag equals `"v" + version.Version` on the marked line
+- [x] 3.4 `task check` green (and `kubectl kustomize deploy` renders), then commit `feat(deploy): ship a manifest that runs local mode in a Pod`
 
 ## 4. End to end on the fixture cluster (test/e2e, cmd/opm-portal, Taskfile.yml, .github/workflows/e2e.yml)
 
