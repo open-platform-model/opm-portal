@@ -846,8 +846,14 @@ Pod, client-go loads the in-cluster configuration, so the identity is the Pod's 
 bound to a read-only role. The manifest has no Service, Ingress or probe: the only way in is
 `kubectl port-forward` to the bound port, and the launch link is in the Pod's log. Everyone who
 holds the launch token reads what that ServiceAccount may read, not what they themselves may
-read. This is a tool for trying the portal on a cluster, not D6's in-cluster mode, which stays a
-future plan: no OIDC, no SubjectAccessReview for a signed-in user, no per-user access.
+read. The token reaches more people than the port-forward grant suggests: the built-in `view`
+role includes `pods/log`, so any viewer of the namespace, or of the whole cluster, can take an
+unspent token; log shippers and the node's `/var/log/pods` copy it; and anyone who may patch the
+Deployment can mint a new one with a rollout restart. The docs therefore advise opening the link
+right after deploying, since a spent token is useless, and keeping log, port-forward and patch
+access in the namespace to the people meant to use it. This is a tool for trying the portal on a
+cluster, not D6's in-cluster mode, which stays a future plan: no OIDC, no SubjectAccessReview for
+a signed-in user, no per-user access.
 
 **Requirements:**
 
@@ -860,8 +866,10 @@ future plan: no OIDC, no SubjectAccessReview for a signed-in user, no per-user a
   no Secrets and no wildcard, and a test fails on any of them.
 - R4: The portal's documentation states the trust model plainly: everyone who holds the token sees
   what the ServiceAccount sees; getting the token needs `pods/log` and reaching the portal needs
-  `pods/portforward` in the portal's namespace; and it is a test tool, not the in-cluster mode of
-  D6.
+  `pods/portforward` in the portal's namespace, `view` includes `pods/log`, log shippers and the
+  node keep copies, and patching the Deployment mints a new token; open the link right after
+  deploying and keep that access to the intended users; and it is a test tool, not the
+  in-cluster mode of D6.
 
 **Alternatives considered:**
 

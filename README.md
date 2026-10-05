@@ -64,7 +64,11 @@ log again.
 
 Everyone who holds the link sees what the ServiceAccount may read, not what they may read
 themselves. Getting the link takes `pods/log`, and reaching the portal takes `pods/portforward`,
-in the `opm-portal` namespace, so whoever holds those holds the portal.
+in the `opm-portal` namespace, so whoever holds those holds the portal. The built-in `view` role
+includes `pods/log`, so any namespace or cluster viewer can take an unspent token, log shippers
+and the node's `/var/log/pods` keep copies, and anyone who may patch the Deployment can mint a new
+token with a rollout restart: open the link right after deploying (a spent token is useless) and
+keep log, port-forward and patch access in `opm-portal` to the people meant to use it.
 
 This is a test tool, not the planned in-cluster mode with sign-in. Kinds outside the OPM catalog,
 such as cert-manager's Certificate, show as not readable; to see them in the graph, add a rule
