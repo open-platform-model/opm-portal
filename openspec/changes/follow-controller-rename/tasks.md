@@ -22,7 +22,7 @@
 
 ## 4. Docs and specs (docs, README, ROADMAP, AGENTS, CONSTITUTION, openspec)
 
-- [ ] 4.1 `docs/site` pages, `docs/DESIGN.md`, README, AGENTS, CONSTITUTION and `openspec/config.yaml` say "controller"; human and upstream "operator" stay
-- [ ] 4.2 `docs/design/evidence` prose renamed; the two `events-operator-*.yaml` samples renamed `events-controller-*.yaml`; captured sample content stays as captured, with one note line in `docs/design/evidence/README.md`
-- [ ] 4.3 `health-evaluation` main spec Purpose line (a delta cannot carry it)
-- [ ] 4.4 `task check` and `task docs:bundle:check` green, ROADMAP updated, then commit `docs: call the product the controller`
+- [x] 4.1 `docs/site` pages, `docs/DESIGN.md`, README, AGENTS, CONSTITUTION and `openspec/config.yaml` say "controller"; human and upstream "operator" stay
+- [x] 4.2 `docs/design/evidence` prose renamed; the two event samples renamed `events-controller-*.yaml`; captured sample content stays as captured, with one note line in `docs/design/evidence/README.md`
+- [x] 4.3 `health-evaluation` main spec Purpose line (a delta cannot carry it)
+- [x] 4.4 `task check` and `task docs:bundle:check` green, ROADMAP updated, then commit `docs: call the product the controller`

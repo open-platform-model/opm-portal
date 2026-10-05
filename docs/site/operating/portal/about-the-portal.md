@@ -5,11 +5,11 @@ type: explanation
 weight: 10
 ---
 
-The OPM portal is a read-only view of what a cluster runs under OPM. It starts at the Platform, with its catalogs and the providers that claim them, lists everything installed (every ModuleInstance and ModulePackage) in one place, and goes down through each of them to the objects it applied and the Pods those objects run. Every page's header names the cluster context the portal reads, the user it reads as and the cluster's Kubernetes version. Everything it shows comes from what the OPM operator and the Kubernetes API server already record. The portal adds two things of its own: an access check before every read, and a health value computed from live objects.
+The OPM portal is a read-only view of what a cluster runs under OPM. It starts at the Platform, with its catalogs and the providers that claim them, lists everything installed (every ModuleInstance and ModulePackage) in one place, and goes down through each of them to the objects it applied and the Pods those objects run. Every page's header names the cluster context the portal reads, the user it reads as and the cluster's Kubernetes version. Everything it shows comes from what the OPM controller and the Kubernetes API server already record. The portal adds two things of its own: an access check before every read, and a health value computed from live objects.
 
 Where `kubectl get` shows one kind at a time, the portal joins the kinds OPM spreads a deployment over: the instance, its inventory, the workloads in the inventory and the Pods below them. The comparison stops at the edge of OPM. The portal shows only objects an OPM inventory reaches, so it is not a general cluster browser, and it never edits, restarts or deletes anything.
 
-This page assumes you know what a ModuleInstance is and that you run the operator or the `opm` CLI. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
+This page assumes you know what a ModuleInstance is and that you run the controller or the `opm` CLI. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
 ## How it works
 
@@ -21,15 +21,15 @@ The portal's contract is a versioned read API under `/api/v1alpha1`: JSON docume
 
 Each instance and package carries two values side by side, and the portal never merges them.
 
-**Applied** comes from the operator's conditions. The operator sets `Ready=True` when every object of the render was applied; it does not wait for the workloads to come up. The portal therefore shows `Ready=True` as Applied, never as healthy. Other applied states are Reconciling, Failed, Stalled and Suspended. An instance the `opm` CLI owns shows Managed externally, because the operator leaves it alone; that is not a fault.
+**Applied** comes from the controller's conditions. The controller sets `Ready=True` when every object of the render was applied; it does not wait for the workloads to come up. The portal therefore shows `Ready=True` as Applied, never as healthy. Other applied states are Reconciling, Failed, Stalled and Suspended. An instance the `opm` CLI owns shows Managed externally, because the controller leaves it alone; that is not a fault.
 
 **Health** is the portal's own computation from live objects. Each object in the inventory is judged by the standard Kubernetes status rules, the ones `kstatus` implements. One rule is added: a Pod whose container is waiting with `ErrImagePull`, `ImagePullBackOff`, `CrashLoopBackOff`, `CreateContainerConfigError` or `InvalidImageName` marks the workload that owns it Degraded. The results roll up worst first, from objects to components to the instance, as Healthy, Progressing, Degraded, Missing or Unknown.
 
 ### The Platform page, Installed and providers
 
-The Platform page shows the Platform's identity, its status as the operator reports it, counts of what is installed by health and by applied state, and two tabs. **Providers** lists the transformer registrations: each claim, its catalog, what it provides, the instance or package that holds it and the operator's verdict, accepted and active shown apart. **Catalogs** lists the catalogs the Platform subscribes to, holds in its resolved registry, or a provider claims. Each count, provider and catalog links on: to **Installed** filtered by it, to the holder's **Provider** tab, or to a page for the catalog.
+The Platform page shows the Platform's identity, its status as the controller reports it, counts of what is installed by health and by applied state, and two tabs. **Providers** lists the transformer registrations: each claim, its catalog, what it provides, the instance or package that holds it and the controller's verdict, accepted and active shown apart. **Catalogs** lists the catalogs the Platform subscribes to, holds in its resolved registry, or a provider claims. Each count, provider and catalog links on: to **Installed** filtered by it, to the holder's **Provider** tab, or to a page for the catalog.
 
-A provider is any instance or package whose inventory holds a TransformerRegistration. The portal shows the operator's verdict on the claim as it is. Today the operator accepts a claim only from the ModuleInstance its `providerRef` names, so a package that ships one shows as a refused provider, with the operator's reason.
+A provider is any instance or package whose inventory holds a TransformerRegistration. The portal shows the controller's verdict on the claim as it is. Today the controller accepts a claim only from the ModuleInstance its `providerRef` names, so a package that ships one shows as a refused provider, with the controller's reason.
 
 Filters live in the page address, so a filtered view is a link you can share. Your browser also remembers the theme you pick and the filters you last used on Installed and the Platform's two tabs, per cluster context; see [The portal's security model](/docs/operating/portal/portal-security/).
 
@@ -39,13 +39,13 @@ Each instance and package page draws a graph. It runs from the module through th
 
 ### Events and logs are read when you look
 
-Events about an object are read when you open it, and repeats are folded into one entry with a count. The API server deletes events after a while, an hour by default, so the event list is a recent feed, not a history; the operator's conditions and status history are the record. Pod logs follow one container at a time, only for Pods an inventory reaches, and the portal bounds each log stream itself.
+Events about an object are read when you open it, and repeats are folded into one entry with a count. The API server deletes events after a while, an hour by default, so the event list is a recent feed, not a history; the controller's conditions and status history are the record. Pod logs follow one container at a time, only for Pods an inventory reaches, and the portal bounds each log stream itself.
 
 ## Why it is built this way
 
 ### Why Applied is not healthy
 
-The operator's `Ready` is correct for what it says: the apply succeeded. A rollout can still be broken. When an instance's image tag does not exist, the new Pod cannot pull it while the old replicas keep serving. The Deployment stays available, and the standard status rules call it in progress until its progress deadline passes, about ten minutes later. A single status badge would show green for those ten minutes. The Pod rule makes the instance Degraded within seconds of the Pod reporting its waiting reason, while it still shows Applied.
+The controller's `Ready` is correct for what it says: the apply succeeded. A rollout can still be broken. When an instance's image tag does not exist, the new Pod cannot pull it while the old replicas keep serving. The Deployment stays available, and the standard status rules call it in progress until its progress deadline passes, about ten minutes later. A single status badge would show green for those ten minutes. The Pod rule makes the instance Degraded within seconds of the Pod reporting its waiting reason, while it still shows Applied.
 
 ### Why the API comes first
 
@@ -59,7 +59,7 @@ Answering one instance page by reading each inventory object on request took sev
 
 ### Applied does not mean it is running
 
-Applied says the operator applied every object. Read Health to learn whether the workloads run.
+Applied says the controller applied every object. Read Health to learn whether the workloads run.
 
 ### An empty list is not an empty cluster
 

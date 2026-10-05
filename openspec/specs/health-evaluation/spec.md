@@ -2,7 +2,7 @@
 
 ## Purpose
 How the portal derives workload health from live objects, how it reads applied state and
-registration verdicts from the operator's status, and how it explains an operator reason, kept
+registration verdicts from the controller's status, and how it explains a controller reason, kept
 as two axes that never merge.
 
 ## Requirements

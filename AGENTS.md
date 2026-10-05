@@ -93,7 +93,7 @@ can reword them.
 
 - Go web portal over OPM clusters: a versioned JSON/SSE read API (`/api/v1alpha1`) with an HTMX
   UI as its first consumer.
-- V1 is read-only: status as the operator reports it, events, pod logs and a relationship graph,
+- V1 is read-only: status as the controller reports it, events, pod logs and a relationship graph,
   from the Platform down to Pods. Milestone 1 runs locally with the user's kubeconfig;
   milestone 2, in-cluster with OIDC and SubjectAccessReview-as-user, is a future plan
   (ROADMAP.md): its authorizer and safeguards are on main, unwired, and OIDC was removed.
@@ -248,7 +248,7 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   `TestReadAPIReferenceListsEveryPath` fails until `reference/portal/read-api.md` lists every
   path of `openapi/v1alpha1.yaml`.
 - `task e2e:up` / `task e2e:down`: create or delete the throwaway kind cluster `opm-portal-e2e`
-  with the released operator and fixture set F1 (podman by default, `E2E_PROVIDER=docker`
+  with the released controller and fixture set F1 (podman by default, `E2E_PROVIDER=docker`
   otherwise, remembered in `.e2e/provider` for capture and down; needs kubectl, curl and the
   kind release `test/e2e/versions.env` pins). Its kubeconfig is `.e2e/kubeconfig`; the scripts
   never use another context. `E2E_CLUSTER=opm-portal-e2e-<suffix>` runs a second cluster with its
@@ -272,7 +272,7 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   (release-please rewrites the marked image line). A rule added to the role is a reviewed
   widening of what every token holder sees.
 - `task e2e:dump` (`DIR=<directory>`): the fixture cluster's OPM objects (no values), Pods,
-  events and operator log, for reading a failed run.
+  events and controller log, for reading a failed run.
 - The nightly `E2E` workflow runs `e2e:up`, `e2e:capture`, `e2e:local`, `e2e:m1` and `e2e:pod` on docker
   kind, and `test:browser` in a parallel `Browser` job; on failure it uploads the test logs, the
   cluster dump and the browser screenshots. Dispatch it on a branch with
@@ -363,7 +363,7 @@ Default is none: a comment says what the code does and why, in its own words.
 
 - Table-driven tests with the standard `testing` package.
 - Default to the lightest tier that proves the behavior: unit, then envtest, then kind e2e.
-- Claims about operator output are tested against live cluster captures, not hand-written YAML.
+- Claims about controller output are tested against live cluster captures, not hand-written YAML.
 
 ## Verification Checklist For Agents
 

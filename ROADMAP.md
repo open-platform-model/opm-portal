@@ -44,7 +44,7 @@ A binary on the user's machine reads with their kubeconfig behind a loopback lau
 
 Exit evidence shown: every page renders from the read API over the F1 capture; the scripted image
 break turns health Degraded while Applied stays (portal:D3:R2/R3); goldens come from captured
-cluster state; F1 holds an accepted, active registration on a released operator (v1.0.0-beta.6).
+cluster state; F1 holds an accepted, active registration on a released controller (v1.0.0-beta.6).
 
 ### V1 M1 hardening (done)
 
@@ -65,9 +65,11 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 
 ### Next in V1
 
-1. **First release, 0.1.0** (PR 18), held until the portal's part of the opm-operator to
-   opm-controller rename merges (it renames `operatorVersion` and the owner value `operator` in the
-   read API).
+1. **First release, 0.1.0** (PR 18), held until OpenSpec change `follow-controller-rename` (in
+   review) merges: the read API names the controller (owner `controller`, `controllerVersion`),
+   pages and docs say "controller", and the e2e cluster installs with `opm controller install`.
+   Before the release, F1 is recaptured on the released controller and cli, which moves the
+   captured fixture paths and goldens to `testing.opmodel.dev/*/controller/*`.
 2. **Web UI redesign** (OpenSpec change `redesign-web-ui`, in review, PR 39): Platform
    and Installed views, a theme choice and remembered filters, summary cards and tabs on instance
    and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to
@@ -96,7 +98,7 @@ Dormant on main (merged, constructed by no command):
 | PR | What | Decisions |
 | --- | --- | --- |
 | 24 | In-cluster authorizer behind the seam: people and the portal's own reader, no self review | portal:D6:R1/R3/R7/R9/R10 |
-| 27 | Hide operator message text in-cluster; diff the stream per subscriber (local mode uses the diff too) | portal:D8:R5, portal:D2:R7 |
+| 27 | Hide controller message text in-cluster; diff the stream per subscriber (local mode uses the diff too) | portal:D8:R5, portal:D2:R7 |
 
 Removed: OIDC sign-in, sessions and bearer tokens with the fail-closed identity mapping (PR 28,
 portal:D6:R2/R3/R5/R6/R8 on the authentication side), by the change `remove-oidc-sessions`. The code,
@@ -121,12 +123,12 @@ What it would take, in order:
    (portal:D6:R7).
 3. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
    (portal:D11:R1/R2/R3).
-4. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before
+4. **Controller viewer roles** in opm-controller, unaggregated (portal:D11:R4/R6); released before
    in-cluster mode ships.
 5. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
    selectors, and the floor documented (portal:D12). Cross-repo: the owner's 1.34 answer also puts
-   opm-operator on that floor, declared, with its own CI job on 1.34; tracked here until an
-   operator issue carries it.
+   opm-controller on that floor, declared, with its own CI job on 1.34; tracked here until an
+   controller issue carries it.
 
 Exit gate:
 
@@ -141,7 +143,7 @@ Exit gate:
 - A workspace `security-audit` pass with no critical finding.
 
 Evidence still missing from the design (not blocking this plan): a ModulePackage reconciling from a
-real Flux source, and a removal-blocked registration on a released operator.
+real Flux source, and a removal-blocked registration on a released controller.
 
 ### 2. The marketplace (V2)
 
@@ -183,8 +185,8 @@ Left out of the web UI redesign until a source exists, not ranked below:
 - **A Platform health** (portal:OQ22): the Platform page shows no health for the Platform itself.
 - **Catalog contents** (portal:OQ25): definitions, their descriptions and documentation links,
   and the transformers a catalog ships, on the Catalog page and the Provider tab.
-- **Controller follow-ups**: the operator accepting a ModulePackage as a provider (portal:OQ23,
-  [opm-operator#254](https://github.com/open-platform-model/opm-operator/issues/254)), and
+- **Controller follow-ups**: the controller accepting a ModulePackage as a provider (portal:OQ23,
+  [opm-controller#254](https://github.com/open-platform-model/opm-controller/issues/254)), and
   packages recording the contracts their render used (portal:OQ24).
 
 Beyond the marketplace, ranked by value per effort:
@@ -193,7 +195,7 @@ Beyond the marketplace, ranked by value per effort:
    adapter.
 2. **`opm module preview`**: renders card, detail page and form locally, with a completeness score.
 3. **Contract fulfilment matrix**: per Platform, demanded versus provided versus active. Needs the
-   operator to record demand (portal:OQ18). The first step of "define a platform".
+   controller to record demand (portal:OQ18). The first step of "define a platform".
 4. **Upgrade assistant**: consumer-schema diff, change class, values that would break, render diff.
 5. **Provider ecosystem view**: registrations, contracts, dependants. Cheap after item 3.
 6. **Platform builder**: compose a Platform from catalogs, pick providers, see fulfilment, apply or
@@ -202,7 +204,7 @@ Beyond the marketplace, ranked by value per effort:
    impersonation.
 8. **Headlamp plugin**, and 9. **Backstage adapter**: always adapters over the read API, never a
    base.
-10. **Drift view** (needs per-entry content hashes from the operator); 11. **quota and cost
+10. **Drift view** (needs per-entry content hashes from the controller); 11. **quota and cost
     hints**; 12. **multi-cluster hub** (portal:OQ15).
 
 Not planned: a bespoke package format, a central OPM-hosted marketplace, multi-page wizards.
