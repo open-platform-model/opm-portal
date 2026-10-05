@@ -10,6 +10,7 @@ to an old one.
 | [01-live-cluster-capture](01-live-cluster-capture/) | Live status, inventory, label and event shapes of a released operator, trimmed to secret-free samples: healthy, apply-failed, image-broken, CLI-owned, refused, accepted, active and removal-blocked states. Fourteen observations. | Concluded |
 | [02-live-graph-spike](02-live-graph-spike/) | A throwaway status-only graph prototype run against the same cluster: sizes, latency, health and contract findings. | Concluded |
 | [03-ui-canvas](03-ui-canvas/) | The eight board sources of the owner-reviewed design canvas for the web UI redesign. Mock data: a layout reference, never evidence of controller output. | Snapshot |
+| [04-ui-redesign-screenshots](04-ui-redesign-screenshots/) | Twelve screenshots of the redesigned web UI over F1 (light, dark, 360 px), how they were made. | Snapshot |
 | [prior-art-and-access.md](prior-art-and-access.md) | Prior art (portals and dashboards), the access and identity model, and the operator surface, read from primary sources. | Snapshot |
 
 Every sample has `managedFields`, the `kubectl.kubernetes.io/last-applied-configuration`

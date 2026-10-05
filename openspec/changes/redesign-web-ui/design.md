@@ -631,6 +631,31 @@ Additive API; old UI paths redirect. Local mode's default address changes from a
 `127.0.0.1:7878`; a script that parsed the printed URL keeps working, and one that needs a random
 port passes `--addr 127.0.0.1:0`. Rollback is reverting the PR.
 
+## Live checks (section 5)
+
+Run by the supervisor on 2026-10-05 against the throwaway fixture cluster `opm-portal-e2e` (podman
+kind) and over F1:
+
+- **e2e**: `task e2e:local` (`TestLocalMode` on `127.0.0.1:7878`, `TestLocalModeNamespaces` on a
+  free port), `task e2e:m1` (`TestM1`, including the `Cluster` document, Installed and the image
+  break, and `TestM1NamespaceReader`) and `task e2e:pod` pass. `TestPod` found a Kubernetes
+  version in the `Cluster` document read as the ServiceAccount, so `system:public-info-viewer`
+  gives it `/version` with no rule in the `deploy/` role (portal:D18:R3).
+- **Browsers**: `task test:browser` passes in Chromium, Firefox and WebKit: `TestBrowserLaunch`,
+  `TestBrowserLogs`, `TestBrowserExpired` and `TestBrowserTheme`. In all three, the document a
+  remembered filter replaces is aborted before its `<body>` exists, so the unfiltered Installed
+  list is never painted.
+- **Image break on an open page**: the cluster reported the broken Pod 2.008 s after the patch,
+  and the stream delivered Degraded 104 ms later, with Applied unchanged.
+- **Screenshots**: twelve pages in light and dark at 1440 px and light at 360 px, over F1 with
+  Chromium; [evidence 04](../../../docs/design/evidence/04-ui-redesign-screenshots/) keeps twelve
+  of the 38 shots. No page scrolls horizontally at either width (`scrollWidth` equals the
+  viewport on all 36 page shots). The Platform page, the instance graph, the Provider tab and the
+  phone-width Installed list match the canvas closely.
+- **Follow-up, not fixed here**: an instance graph opens fitted to its frame at about 55%, so its
+  nodes and labels are small; the fitted scale, or a larger minimum, needs a decision from real
+  use.
+
 ## Open Questions
 
 Recorded in `docs/DESIGN.md`: portal:OQ22 (Platform health), portal:OQ23 (controller accepts
