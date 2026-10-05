@@ -1,0 +1,14 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# - 0030:D6 (milestone 2 identity) is not claimed: this change lands the
+#   authentication side (R2, R3, R6, R8, and R5 for the identity a bearer
+#   client and a browser map to), but R1, R4, R7 and R9 need the
+#   SubjectAccessReview authorizer and the in-cluster command. A delivery log
+#   entry claims whole decisions only.
+#
+# Before logging, diff this list against proposal.md's Impact section.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []

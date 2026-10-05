@@ -8,6 +8,14 @@
 // Authenticate, every request without the session. Every response carries
 // a strict Content-Security-Policy and the other security headers.
 //
-// The token and the cookie value are never logged and are kept only as
-// digests.
+// In-cluster (milestone 2) OIDC signs browsers in through an issuer with
+// the authorization code flow and PKCE, holds their sessions in memory, and
+// accepts the issuer's bearer tokens for the configured audience. Both map
+// to an identity that fails closed: an empty username is refused before
+// any Kubernetes call, system: names never come from the issuer, and every
+// identity carries system:authenticated. Its Authenticate has the same
+// contract as Local's.
+//
+// Tokens, codes, cookie values and the client secret are never logged;
+// sessions and the launch token are kept only as digests.
 package auth
