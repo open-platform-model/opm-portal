@@ -71,7 +71,9 @@ func TestNoOperatorTextOnAnInClusterPage(t *testing.T) {
 
 // operatorTexts returns the operator-written strings of a read API
 // document: condition, reconcile, history and registration messages, and
-// event notes. A workload's health message is not the operator's.
+// the notes of events the operator reported. A workload's health message
+// and another controller's event note are not the operator's (supervisor
+// ruling on the scope of portal:D8:R5).
 func operatorTexts(t *testing.T, body string) []string {
 	t.Helper()
 	var doc any
@@ -85,7 +87,7 @@ func operatorTexts(t *testing.T, body string) []string {
 		case map[string]any:
 			for k, child := range x {
 				s, isText := child.(string)
-				operator := k == "note" || k == "activeMessage" ||
+				operator := (k == "note" && operatorEvent(x)) || k == "activeMessage" ||
 					(k == "message" && parentKey != "health" && parentKey != "")
 				if isText && s != "" && operator {
 					out = append(out, s)
@@ -100,4 +102,17 @@ func operatorTexts(t *testing.T, body string) []string {
 	}
 	walk("", doc)
 	return out
+}
+
+// operatorEvent reports whether an event the read API served was reported
+// by the operator, or names no reporter and regards an OPM object.
+func operatorEvent(ev map[string]any) bool {
+	switch ev["reportingController"] {
+	case "opm-controller":
+		return true
+	case nil, "":
+		ref, _ := ev["regarding"].(map[string]any)
+		return ref["group"] == "opmodel.dev"
+	}
+	return false
 }

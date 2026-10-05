@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 
@@ -135,7 +136,7 @@ func TestEveryDocumentInClusterCarriesNoOperatorText(t *testing.T) {
 			seen[f] = true
 		}
 	}
-	for _, f := range []string{"conditions[].message", "reconcile.message", "history[].message", "note", "registration.message", "health.message (OPM object)", "status.conditions[].message (OPM object)"} {
+	for _, f := range []string{"conditions[].message", "reconcile.message", "history[].message", "note (operator)", "registration.message", "health.message (OPM object)", "status.conditions[].message (OPM object)"} {
 		if !seen[f] {
 			t.Errorf("no local document carries %s: the in-cluster walk proves nothing for it", f)
 		}
@@ -191,6 +192,73 @@ func TestEveryRouteDocumentIsKnownToTheOmission(t *testing.T) {
 	if _, err := omitOperatorText(&v1.Instance{}); err == nil {
 		t.Error("a pointer to a document is not a document the omission knows; want an error")
 	}
+}
+
+// TestInClusterKeepsOtherWritersText: the omission is the operator's text
+// only (supervisor ruling on the scope of portal:D8:R5). The kubelet's
+// event notes and a rendered workload's health message carry the
+// remediation a user needs, are not kernel diagnostics, and are served
+// in-cluster as in local mode.
+func TestInClusterKeepsOtherWritersText(t *testing.T) {
+	for _, c := range []struct {
+		objs []*unstructured.Unstructured
+		path string
+	}{
+		// The broken rollout's Pod waits on an image it cannot pull.
+		{f1Broken(t), base + "/instances/default/podinfo"},
+		{f1Broken(t), base + "/instances/default/podinfo/graph"},
+		// The scheduler's and the kubelet's events about a Pod.
+		{loadF1(t), base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+	} {
+		in := newEnv(t, c.objs, readmodeltest.AllowAll, inCluster)
+		local := newEnv(t, c.objs, readmodeltest.AllowAll)
+		want := otherWritersText(t, local.get(t, c.path).body)
+		if len(want) == 0 {
+			t.Fatalf("%s: local mode serves no other writer's text, so this test proves nothing", c.path)
+		}
+		got := otherWritersText(t, in.get(t, c.path).body)
+		if !slices.Equal(got, want) {
+			t.Errorf("%s in-cluster serves\n%q\nwant local mode's\n%q", c.path, got, want)
+		}
+	}
+}
+
+// otherWritersText lists, sorted, the event notes no operator reported and
+// the health messages of objects outside the OPM group in a document.
+func otherWritersText(t *testing.T, body []byte) []string {
+	t.Helper()
+	var doc any
+	if err := json.Unmarshal(body, &doc); err != nil {
+		t.Fatal(err)
+	}
+	var out []string
+	var walk func(v any)
+	walk = func(v any) {
+		switch x := v.(type) {
+		case map[string]any:
+			if note, ok := x["note"].(string); ok && note != "" {
+				if c, _ := x["reportingController"].(string); c != "" && c != operatorController {
+					out = append(out, c+": "+note)
+				}
+			}
+			if h, ok := x["health"].(map[string]any); ok {
+				ref, _ := x["ref"].(map[string]any)
+				if msg, _ := h["message"].(string); msg != "" && ref["group"] != opmGroup {
+					out = append(out, "health: "+msg)
+				}
+			}
+			for _, child := range x {
+				walk(child)
+			}
+		case []any:
+			for _, child := range x {
+				walk(child)
+			}
+		}
+	}
+	walk(doc)
+	slices.Sort(out)
+	return out
 }
 
 func TestNewRefusesAMissingMode(t *testing.T) {
@@ -261,7 +329,16 @@ func objectStatusText(body []byte) []string {
 func classifyText(parentKey string, parent map[string]any, key string) string {
 	switch key {
 	case "note":
-		return "note"
+		ref, _ := parent["regarding"].(map[string]any)
+		switch parent["reportingController"] {
+		case operatorController:
+			return "note (operator)"
+		case nil, "":
+			if ref["group"] == opmGroup {
+				return "note (operator)"
+			}
+		}
+		return ""
 	case "activeMessage":
 		return "registration.message"
 	case "message":
