@@ -313,8 +313,9 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 }
 
 // isDocument reports whether an item event replaces the subscriber's
-// document for its topic, so an item equal to the last one written changes
-// nothing for the client. A log line is a record, not a document.
+// document for its topic, so a later item equal to it changes nothing for
+// the client. A log line is a record, not a document. A delete sets the
+// document but is never itself left out (eventID).
 func isDocument(event string) bool {
 	switch event {
 	case EventUpsert, EventDelete, EventK8sEvent:
@@ -556,7 +557,11 @@ func (s *Stream) writeClosed(wr *writer, topic Topic) error {
 // when it happened does not reach them either. doc is that document, or nil
 // for a message that is not one (a log line, or a snapshot of more or fewer
 // than one item); a snapshot is always written and sets the document an
-// item is compared with.
+// item is compared with. A delete is always written too, even when an
+// upsert already carried its Removed document: the client drops the topic's
+// object on the delete event, and the delete's timing is the object's own,
+// which every subscriber of the topic may see. A closing never reaches
+// here (closeTopic), so it is never compared either.
 //
 // The id encodes the broker epoch, the stream and a count of the stream's
 // own events, so a reconnect finds the stream and where it stopped without
@@ -568,7 +573,7 @@ func (s *Stream) eventID(m *message, doc []byte) (id string, ok bool) {
 	if s.st.conn != s.conn || s.st.subs[sub.topic] != sub {
 		return "", false
 	}
-	if !m.snapshot && doc != nil && sub.sent != nil && bytes.Equal(sub.sent, doc) {
+	if !m.snapshot && m.event != EventDelete && doc != nil && sub.sent != nil && bytes.Equal(sub.sent, doc) {
 		return "", false
 	}
 	local := b.nextIDLocked(s.st, m.seq)

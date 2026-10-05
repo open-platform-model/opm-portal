@@ -241,3 +241,84 @@ func TestTheComparisonIsPerSubscriber(t *testing.T) {
 		}
 	})
 }
+
+// TestADeleteIsAlwaysWritten: a delete is never left out, even when an
+// upsert already carried its Removed document. The client drops the topic's
+// object on the delete event, and when the object went is its own, which
+// every subscriber of the topic may see.
+func TestADeleteIsAlwaysWritten(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		e := newEnv(t, Options{}, "alice")
+		e.policy.set("alice", allowNamespaces("apps"))
+		blog := mustTopic(t, "instance:apps/blog")
+		e.prod.upsert(t, blog, instItem("apps", "blog", 1))
+		sv := e.open(session("alice"), "instance:apps/blog")
+		synctest.Wait()
+		sv.rec.take()
+
+		removed := json.RawMessage(`{"kind": "Removed", "name": "blog", "namespace": "apps"}`)
+		gone := Item{Event: EventUpsert, Attrs: instItem("apps", "blog", 0).Attrs, Data: removed}
+		e.prod.upsert(t, blog, gone)
+		synctest.Wait()
+		gone.Event = EventDelete
+		if err := e.b.Publish(blog, gone); err != nil {
+			t.Fatal(err)
+		}
+		synctest.Wait()
+		if got := eventNames(sv.rec.take()); !slices.Equal(got, []string{"upsert(instance:apps/blog)", "delete(instance:apps/blog)"}) {
+			t.Errorf("events = %v, want the upsert and the delete", got)
+		}
+	})
+}
+
+// TestAResumeThatFallsBackToASnapshotComparesWithIt: a resume the stream
+// cannot replay (the ring lost part of the gap, or the stream no longer
+// remembers the client's event id) writes a fresh snapshot, and later items
+// are compared with that snapshot's document: an equal one is not written,
+// a different one is.
+func TestAResumeThatFallsBackToASnapshotComparesWithIt(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		opts Options
+		// live reports whether the changes reach the stream before it
+		// disconnects (so its event ids move on) or only after.
+		live bool
+	}{
+		{name: "the ring lost the gap", opts: Options{RingSize: 2}},
+		{name: "the event id is forgotten", opts: Options{QueueSize: 2}, live: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			synctest.Test(t, func(t *testing.T) {
+				e := newEnv(t, tc.opts, "alice")
+				sv, blog := openBlog(t, e)
+				first := sv.rec.lastID()
+				if !tc.live {
+					_ = sv.disconnect()
+				}
+				for v := 2; v <= 4; v++ {
+					e.prod.upsert(t, blog, instItem("apps", "blog", v))
+					synctest.Wait()
+				}
+				if tc.live {
+					_ = sv.disconnect()
+				}
+				back := e.resume(session("alice"), first, "instance:apps/blog")
+				synctest.Wait()
+				if got := eventNames(back.rec.take()); !slices.Equal(got, []string{"open()", "snapshot(instance:apps/blog)"}) {
+					t.Fatalf("after the resume: %v, want a snapshot", got)
+				}
+
+				e.prod.upsert(t, blog, instItem("apps", "blog", 4))
+				synctest.Wait()
+				if got := back.rec.take(); len(got) != 0 {
+					t.Errorf("an item equal to the snapshot sent %v", eventNames(got))
+				}
+				e.prod.upsert(t, blog, instItem("apps", "blog", 5))
+				synctest.Wait()
+				if got := eventNames(back.rec.take()); !slices.Equal(got, []string{"upsert(instance:apps/blog)"}) {
+					t.Errorf("after a change: %v, want one upsert", got)
+				}
+			})
+		})
+	}
+}
