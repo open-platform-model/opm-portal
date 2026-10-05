@@ -17,7 +17,7 @@ const (
 	ChangeInstance     ChangeKind = "ModuleInstance"
 	ChangePackage      ChangeKind = "ModulePackage"
 	ChangePlatform     ChangeKind = "Platform"
-	ChangeRegistration ChangeKind = "TransformerRegistration"
+	ChangeRegistration ChangeKind = kindRegistration
 )
 
 // Change names an OPM object whose view may have changed. It carries no
@@ -100,10 +100,10 @@ func (m *Model) changeHandler() cache.ResourceEventHandler {
 
 // opmChangeKinds maps the OPM kinds to their change kinds.
 var opmChangeKinds = map[string]ChangeKind{
-	"ModuleInstance":          ChangeInstance,
-	"ModulePackage":           ChangePackage,
-	"Platform":                ChangePlatform,
-	"TransformerRegistration": ChangeRegistration,
+	"ModuleInstance": ChangeInstance,
+	"ModulePackage":  ChangePackage,
+	"Platform":       ChangePlatform,
+	kindRegistration: ChangeRegistration,
 }
 
 // changesFor returns the changes one informer event means; old is the

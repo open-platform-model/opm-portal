@@ -18,7 +18,7 @@ import (
 // inCluster serves as in-cluster mode would: with in-cluster credentials.
 func inCluster(cfg *Config) {
 	cfg.Mode = ModeInCluster
-	cfg.Connection = Connection{Source: "in-cluster"}
+	cfg.Connection = Connection{Source: v1.SourceInCluster}
 }
 
 // The backup-provider instance reaches a TransformerRegistration: an OPM

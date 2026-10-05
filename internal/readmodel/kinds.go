@@ -22,6 +22,10 @@ const (
 	opmGroup   = "opmodel.dev"
 	opmVersion = "v1alpha1"
 
+	// kindRegistration is the TransformerRegistration kind, as inventories
+	// and change kinds name it.
+	kindRegistration = "TransformerRegistration"
+
 	// platformName is the only name the Platform CRD admits.
 	platformName = "cluster"
 

@@ -180,10 +180,9 @@ func providerClaims(cs []readmodel.ProviderClaim) []v1.ProviderClaim {
 		c := &cs[i]
 		pc := v1.ProviderClaim{Registration: c.Registration, Access: string(c.Access)}
 		if c.Access == health.AccessOK {
-			matches := c.ProviderRefMatches
 			pc.Accepted, pc.Active = c.Standing.Accepted, c.Standing.Active
 			pc.Verdict, pc.Reason = string(c.Standing.Verdict), c.Standing.Reason
-			pc.ProviderRefMatches = &matches
+			pc.ProviderRefMatches = c.ProviderRefMatches
 		}
 		out = append(out, pc)
 	}

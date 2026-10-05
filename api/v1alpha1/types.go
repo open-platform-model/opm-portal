@@ -215,10 +215,12 @@ type ProviderClaim struct {
 	Active   bool   `json:"active,omitempty"`
 	Verdict  string `json:"verdict,omitempty"`
 	Reason   string `json:"reason,omitempty"`
-	// ProviderRefMatches is set only when Access is ok: true when the
-	// owner is a ModuleInstance and the registration's spec.providerRef
-	// names its namespace and name. Always false for a ModulePackage, since
-	// the reference names a ModuleInstance.
+	// ProviderRefMatches is set only when Access is ok and the registration
+	// was read: true when the owner is a ModuleInstance and the
+	// registration's spec.providerRef names its namespace and name. Always
+	// false for a ModulePackage, since the reference names a ModuleInstance.
+	// Absent for a registration the inventory names but the cluster does
+	// not hold.
 	ProviderRefMatches *bool `json:"providerRefMatches,omitempty"`
 }
 

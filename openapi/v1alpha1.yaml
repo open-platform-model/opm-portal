@@ -763,7 +763,7 @@ components:
         reason:
           type: string
         providerRefMatches:
-          description: "True when the owner is a ModuleInstance whose namespace and name the registration's spec.providerRef names. Always false for a ModulePackage, since the reference names a ModuleInstance."
+          description: "True when the owner is a ModuleInstance whose namespace and name the registration's spec.providerRef names. Always false for a ModulePackage, since the reference names a ModuleInstance. Absent when the inventory names a registration the cluster does not hold."
           type: boolean
     InstanceList:
       type: object
@@ -810,6 +810,7 @@ components:
           type: string
           format: date-time
         providerOf:
+          description: "The TransformerRegistrations the instance's inventory holds; absent when it holds none."
           type: array
           items:
             $ref: '#/components/schemas/ProviderClaim'
@@ -944,6 +945,7 @@ components:
           type: string
           format: date-time
         providerOf:
+          description: "The TransformerRegistrations the package's inventory holds; absent when it holds none."
           type: array
           items:
             $ref: '#/components/schemas/ProviderClaim'
@@ -1038,7 +1040,7 @@ components:
           items:
             $ref: '#/components/schemas/ObjectRef'
         heldByPartial:
-          description: "True when the caller could not list every ModuleInstance and ModulePackage, so heldBy may lack a holder, even when it is empty."
+          description: "True when the caller could not list every ModuleInstance and ModulePackage, or the portal does not hold every namespace, so heldBy may lack a holder, even when it is empty."
           type: boolean
     Platform:
       type: object

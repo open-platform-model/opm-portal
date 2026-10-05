@@ -15,6 +15,7 @@ import (
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	dynfake "k8s.io/client-go/dynamic/fake"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
 	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
@@ -217,4 +218,4 @@ const base = Prefix + "/clusters/default"
 
 // f1Connection is the kubeconfig context and cluster entry F1 was read
 // with.
-var f1Connection = Connection{Source: "kubeconfig", Context: "kind-opm-portal-e2e", ClusterEntry: "kind-opm-portal-e2e"}
+var f1Connection = Connection{Source: v1.SourceKubeconfig, Context: "kind-opm-portal-e2e", ClusterEntry: "kind-opm-portal-e2e"}

@@ -117,8 +117,10 @@ type ProviderClaim struct {
 	Standing health.Registration
 	// ProviderRefMatches: the owner is a ModuleInstance whose namespace and
 	// name the registration's spec.providerRef names. Always false for a
-	// ModulePackage, since the reference names a ModuleInstance.
-	ProviderRefMatches bool
+	// ModulePackage, since the reference names a ModuleInstance. Nil when
+	// no registration was read: the caller may not read it, or the model
+	// does not hold it.
+	ProviderRefMatches *bool
 }
 
 // Component is one component of an inventory with its objects, in

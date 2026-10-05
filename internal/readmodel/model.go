@@ -1,11 +1,16 @@
 package readmodel
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"reflect"
 	"sync"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
@@ -183,17 +188,19 @@ func (m *Model) ServerVersion() string {
 	return m.serverVersion
 }
 
-// readServerVersion reads /version once through discovery, as the reader,
-// without an access review: like the discovery documents, it is open to
-// every authenticated identity and says nothing about any object
-// (portal:D18:R3). A failed read holds nothing. The wait is bounded by
-// SyncTimeout so an API server that does not answer cannot hold Start; an
-// answer that arrives later is still kept.
-func (m *Model) readServerVersion() {
+// readServerVersion starts the one read of /version, through discovery, as
+// the reader, without an access review: like the discovery documents, it
+// is open to every authenticated identity and says nothing about any
+// object (portal:D18:R3). The request is bounded by SyncTimeout and ends
+// with ctx. A failed read holds nothing. The returned channel closes when
+// the read is over.
+func (m *Model) readServerVersion(ctx context.Context) <-chan struct{} {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		info, err := m.cfg.Discovery.ServerVersion()
+		ctx, cancel := context.WithTimeout(ctx, m.cfg.SyncTimeout)
+		defer cancel()
+		info, err := serverVersion(ctx, m.cfg.Discovery)
 		if err != nil || info == nil {
 			return
 		}
@@ -201,10 +208,24 @@ func (m *Model) readServerVersion() {
 		m.serverVersion = info.GitVersion
 		m.mu.Unlock()
 	}()
-	timer := time.NewTimer(m.cfg.SyncTimeout)
-	defer timer.Stop()
-	select {
-	case <-done:
-	case <-timer.C:
+	return done
+}
+
+// serverVersion reads /version with ctx through d's REST client. A client
+// without one, such as the fake discovery of the tests, is asked through
+// ServerVersion, which takes no context.
+func serverVersion(ctx context.Context, d discovery.DiscoveryInterface) (*version.Info, error) {
+	rc := d.RESTClient()
+	if rc == nil || reflect.ValueOf(rc).IsNil() {
+		return d.ServerVersion()
 	}
+	body, err := rc.Get().AbsPath("/version").Do(ctx).Raw()
+	if err != nil {
+		return nil, fmt.Errorf("reading the server version: %w", err)
+	}
+	var info version.Info
+	if err := json.Unmarshal(body, &info); err != nil {
+		return nil, fmt.Errorf("decoding the server version: %w", err)
+	}
+	return &info, nil
 }

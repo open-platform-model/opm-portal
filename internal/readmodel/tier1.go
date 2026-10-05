@@ -80,8 +80,12 @@ func (m *Model) Start(ctx context.Context) error {
 		m.opm[k.resource] = kind
 		m.mu.Unlock()
 	}
+	versionRead := m.readServerVersion(ctx)
 	waitSynced(ctx, m.cfg.SyncTimeout, started...)
-	m.readServerVersion()
+	select {
+	case <-versionRead:
+	case <-ctx.Done():
+	}
 	go m.janitor()
 	return nil
 }

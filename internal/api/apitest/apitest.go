@@ -13,6 +13,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel"
@@ -123,9 +124,9 @@ func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode 
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
-	conn := api.Connection{Source: "kubeconfig", Context: Context, ClusterEntry: Context}
+	conn := api.Connection{Source: v1.SourceKubeconfig, Context: Context, ClusterEntry: Context}
 	if mode == api.ModeInCluster {
-		conn = api.Connection{Source: "in-cluster"}
+		conn = api.Connection{Source: v1.SourceInCluster}
 	}
 	srv, err := api.New(api.Config{
 		Mode:       mode,

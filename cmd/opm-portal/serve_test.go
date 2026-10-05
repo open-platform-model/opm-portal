@@ -23,6 +23,7 @@ import (
 	k8stesting "k8s.io/client-go/testing"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
@@ -44,9 +45,9 @@ func TestConfigSource(t *testing.T) {
 			},
 		}
 	}
-	inPod := api.Connection{Source: "in-cluster"}
-	dev := api.Connection{Source: "kubeconfig", Context: "kind-dev", ClusterEntry: "dev-cluster"}
-	prod := api.Connection{Source: "kubeconfig", Context: "prod", ClusterEntry: "prod-cluster"}
+	inPod := api.Connection{Source: v1.SourceInCluster}
+	dev := api.Connection{Source: v1.SourceKubeconfig, Context: "kind-dev", ClusterEntry: "dev-cluster"}
+	prod := api.Connection{Source: v1.SourceKubeconfig, Context: "prod", ClusterEntry: "prod-cluster"}
 	tests := []struct {
 		name      string
 		raw       clientcmdapi.Config

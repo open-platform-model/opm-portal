@@ -52,7 +52,8 @@ Each registration in the platform document SHALL carry its `conditions` with `to
 and `nextStep` as every condition does, and `heldBy`: the ModuleInstances and ModulePackages the
 caller may read whose inventory holds a TransformerRegistration of that name, whatever their
 kind. `heldByPartial` SHALL be true whenever the caller lacks a cluster-wide list of
-ModuleInstances or of ModulePackages, whether or not `heldBy` is empty. `provider` SHALL keep naming the ModuleInstance `spec.providerRef` names. Source:
+ModuleInstances or of ModulePackages, or the portal does not hold every namespace, whether or not
+`heldBy` is empty. `provider` SHALL keep naming the ModuleInstance `spec.providerRef` names. Source:
 portal:D15:R1/R2, portal:D4:R2.
 
 #### Scenario: The accepted claim's holder
@@ -85,7 +86,8 @@ per TransformerRegistration its inventory holds, with the registration's name, t
 `access` to it, and, when readable, its `accepted`, `active`, `verdict` and `reason`, and
 `providerRefMatches`: true only when the owner is a ModuleInstance whose namespace and name the
 registration's `spec.providerRef` names, false otherwise (always false for a ModulePackage, since
-the reference names a ModuleInstance). A registration the caller may not read SHALL carry its name
+the reference names a ModuleInstance). A registration the inventory names but the cluster does not
+hold SHALL carry verdict `Unknown` and no `providerRefMatches`. A registration the caller may not read SHALL carry its name
 and `access: forbidden` only, with no `providerRefMatches`. Source:
 portal:D15:R1/R2/R4.
 

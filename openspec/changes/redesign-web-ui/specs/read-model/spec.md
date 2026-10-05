@@ -7,7 +7,8 @@ ModuleInstances and ModulePackages hold a TransformerRegistration of a given nam
 `status.inventory`, whatever the owner's kind, and which registrations a given owner's inventory
 holds. For a caller it SHALL include an owner only when the caller may list that owner's kind in
 its namespace, and SHALL mark the answer incomplete whenever the caller lacks a cluster-wide list of
-ModuleInstances or of ModulePackages, whether or not a holder was found. A registration's standing SHALL
+ModuleInstances or of ModulePackages, or the portal does not hold every namespace, whether or not a
+holder was found. A registration's standing SHALL
 be attached only when the caller may list TransformerRegistrations, and SHALL be the
 registration's own `status.accepted`, `status.active` and verdict reason. Source:
 portal:D15:R1/R2/R4, portal:D7:R2.
@@ -32,6 +33,13 @@ portal:D15:R1/R2/R4, portal:D7:R2.
 
 - **WHEN** the caller may list ModuleInstances cluster-wide but ModulePackages only in namespace
   `default`
+- **THEN** the holders of `default.backup-provider` name `default/backup-provider` and are marked
+  incomplete
+
+#### Scenario: A portal limited to namespaces
+
+- **WHEN** the portal was started with `--namespaces default,pkg` and the caller may list
+  everything
 - **THEN** the holders of `default.backup-provider` name `default/backup-provider` and are marked
   incomplete
 

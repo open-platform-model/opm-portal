@@ -18,10 +18,6 @@ import (
 // read nothing of their own; the registration's standing is its own status,
 // never one the portal computes (portal:D15:R2).
 
-// kindRegistration is the TransformerRegistration kind as inventories name
-// it.
-const kindRegistration = "TransformerRegistration"
-
 // heldRegistrations returns the names of the TransformerRegistrations
 // owner's status.inventory holds, in inventory order.
 func heldRegistrations(owner *unstructured.Unstructured) []string {
@@ -69,12 +65,14 @@ func (c *claims) of(owner *unstructured.Unstructured) []ProviderClaim {
 			switch {
 			case err == nil:
 				pc.Standing = health.ReadRegistration(u)
-				pc.ProviderRefMatches = owner.GetKind() == "ModuleInstance" &&
+				matches := owner.GetKind() == "ModuleInstance" &&
 					str(u.Object, "spec", "providerRef", "namespace") == owner.GetNamespace() &&
 					str(u.Object, "spec", "providerRef", "name") == owner.GetName()
+				pc.ProviderRefMatches = &matches
 			case errors.Is(err, ErrNotFound):
 				// The inventory names a registration the cluster does not
-				// hold (yet, or any more): there is no verdict to read.
+				// hold (yet, or any more): there is no verdict and no
+				// reference to read.
 				pc.Standing = health.Registration{Verdict: health.VerdictUnknown}
 			default:
 				pc.Access = health.AccessNotReadable
@@ -120,6 +118,9 @@ func (m *Model) holders(ctx context.Context, who authz.Identity) holderIndex {
 				if len(names) == 0 {
 					continue
 				}
+				// One review per namespace that holds a holder, and only for a
+				// caller without a cluster-wide list; the authorizer caches them,
+				// so a refresh costs next to nothing.
 				ns := o.GetNamespace()
 				may, seen := allowed[ns]
 				if !seen {

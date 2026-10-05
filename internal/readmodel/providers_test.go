@@ -2,14 +2,19 @@ package readmodel
 
 import (
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"slices"
+	"sync/atomic"
 	"testing"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/discovery"
 	fakediscovery "k8s.io/client-go/discovery/fake"
+	"k8s.io/client-go/rest"
 	k8stesting "k8s.io/client-go/testing"
 
 	"github.com/open-platform-model/opm-portal/internal/health"
@@ -21,6 +26,17 @@ var (
 	packageHolderRef  = ObjectRef{Group: opmGroup, Version: opmVersion, Kind: "ModulePackage",
 		Namespace: readmodeltest.PackageHolderNamespace, Name: readmodeltest.PackageHolderName}
 )
+
+// sameClaims compares claims field by field, following ProviderRefMatches.
+func sameClaims(a, b []ProviderClaim) bool {
+	return slices.EqualFunc(a, b, func(x, y ProviderClaim) bool {
+		px, py := x.ProviderRefMatches, y.ProviderRefMatches
+		x.ProviderRefMatches, y.ProviderRefMatches = nil, nil
+		return x == y && (px == nil) == (py == nil) && (px == nil || *px == *py)
+	})
+}
+
+func ptr[T any](v T) *T { return &v }
 
 func (e *env) platform(t *testing.T) PlatformView {
 	t.Helper()
@@ -65,10 +81,10 @@ func TestF1ProviderJoin(t *testing.T) {
 		Access:       health.AccessOK,
 		Standing:     accepted.Standing,
 		// spec.providerRef names default/backup-provider, the holder.
-		ProviderRefMatches: true,
+		ProviderRefMatches: ptr(true),
 	}}
 	d := e.instance(t, "default", "backup-provider")
-	if !slices.Equal(d.ProviderOf, want) {
+	if !sameClaims(d.ProviderOf, want) {
 		t.Errorf("backup-provider providerOf = %+v; want %+v", d.ProviderOf, want)
 	}
 	if s := d.ProviderOf[0].Standing; !s.Accepted || !s.Active || s.Verdict != health.VerdictAccepted {
@@ -81,7 +97,7 @@ func TestF1ProviderJoin(t *testing.T) {
 func TestF1InstanceListJoin(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	accepted := registrationNamed(t, e.platform(t), "default.backup-provider")
-	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessOK, Standing: accepted.Standing, ProviderRefMatches: true}}
+	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessOK, Standing: accepted.Standing, ProviderRefMatches: ptr(true)}}
 	list, err := e.m.ListInstances(t.Context(), alice, e.grant(t, "list", moduleInstances, "", ""), "")
 	if err != nil {
 		t.Fatal(err)
@@ -89,7 +105,7 @@ func TestF1InstanceListJoin(t *testing.T) {
 	for _, it := range list {
 		switch it.Ref.Name {
 		case "backup-provider":
-			if !slices.Equal(it.ProviderOf, want) {
+			if !sameClaims(it.ProviderOf, want) {
 				t.Errorf("list item providerOf = %+v; want %+v", it.ProviderOf, want)
 			}
 		default:
@@ -202,8 +218,8 @@ func TestPackageHolder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []ProviderClaim{{Registration: readmodeltest.PackageHolderClaim, Access: health.AccessOK, Standing: claim.Standing}}
-	if !slices.Equal(p.ProviderOf, want) {
+	want := []ProviderClaim{{Registration: readmodeltest.PackageHolderClaim, Access: health.AccessOK, Standing: claim.Standing, ProviderRefMatches: ptr(false)}}
+	if !sameClaims(p.ProviderOf, want) {
 		t.Errorf("pkg/provider providerOf = %+v; want %+v (providerRefMatches false: the reference names a ModuleInstance)", p.ProviderOf, want)
 	}
 }
@@ -214,7 +230,7 @@ func TestProviderOfWhenRegistrationsAreForbidden(t *testing.T) {
 	e := newEnv(t, loadF1(t), denyResources("transformerregistrations"), allowAll)
 	d := e.instance(t, "default", "backup-provider")
 	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessForbidden}}
-	if !slices.Equal(d.ProviderOf, want) {
+	if !sameClaims(d.ProviderOf, want) {
 		t.Errorf("providerOf = %+v; want %+v", d.ProviderOf, want)
 	}
 }
@@ -237,6 +253,8 @@ func TestHoldersForACallerWhoCannotLookEverywhere(t *testing.T) {
 		{"instances listable only in web", listOnlyIn("moduleinstances", "web"), nil},
 		// A holder found is no proof that none is missing.
 		{"packages listable only in default", listOnlyIn("modulepackages", "default"), []ObjectRef{backupProviderRef}},
+		// A holder in a namespace the caller may list is included.
+		{"instances listable only in default", listOnlyIn("moduleinstances", "default"), []ObjectRef{backupProviderRef}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			e := newEnv(t, loadF1(t), tt.rule, allowAll)
@@ -334,4 +352,91 @@ func TestChangesFollowTheProviderJoins(t *testing.T) {
 	}
 	rec.wait(t, Change{Kind: ChangeInstance, Namespace: "default", Name: "backup-provider"})
 	rec.wait(t, Change{Kind: ChangePlatform, Name: "cluster", Joined: true})
+}
+
+// TestProviderOfARegistrationTheClusterDoesNotHold: the inventory names a
+// registration there is none of; the claim is readable, its verdict
+// Unknown, and nothing is said about its providerRef.
+func TestProviderOfARegistrationTheClusterDoesNotHold(t *testing.T) {
+	objs := loadF1(t)
+	kept := objs[:0]
+	for _, o := range objs {
+		if o.GetKind() != "TransformerRegistration" || o.GetName() != "default.backup-provider" {
+			kept = append(kept, o)
+		}
+	}
+	e := newEnv(t, kept, allowAll, allowAll)
+	d := e.instance(t, "default", "backup-provider")
+	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessOK,
+		Standing: health.Registration{Verdict: health.VerdictUnknown}}}
+	if !sameClaims(d.ProviderOf, want) {
+		t.Errorf("providerOf = %+v; want %+v with no providerRefMatches", d.ProviderOf, want)
+	}
+}
+
+// TestProviderOfWhenTheReaderMayNotWatchRegistrations: the caller may list
+// them, but the model holds none, so the claim is not readable.
+func TestProviderOfWhenTheReaderMayNotWatchRegistrations(t *testing.T) {
+	e := newEnv(t, loadF1(t), allowAll, denyResources("transformerregistrations"))
+	d := e.instance(t, "default", "backup-provider")
+	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessNotReadable}}
+	if !sameClaims(d.ProviderOf, want) {
+		t.Errorf("providerOf = %+v; want %+v", d.ProviderOf, want)
+	}
+}
+
+// TestHoldersWhenTheModelCannotListOwners: the reader may not watch
+// ModulePackages, so their list fails and the answer is partial, while
+// the instance holder is still found.
+func TestHoldersWhenTheModelCannotListOwners(t *testing.T) {
+	e := newEnv(t, loadF1(t), allowAll, denyResources("modulepackages"))
+	r := registrationNamed(t, e.platform(t), "default.backup-provider")
+	if !slices.Equal(r.HeldBy, []ObjectRef{backupProviderRef}) || !r.HeldByPartial {
+		t.Errorf("held by %+v (partial %v); want backup-provider, partial", r.HeldBy, r.HeldByPartial)
+	}
+}
+
+// TestHoldersWithConfiguredNamespaces: a model that holds only some
+// namespaces cannot say nobody else holds a registration.
+func TestHoldersWithConfiguredNamespaces(t *testing.T) {
+	e := newEnv(t, loadF1(t), allowAll, allowAll, func(c *Config) { c.Namespaces = []string{"default", "pkg"} })
+	r := registrationNamed(t, e.platform(t), "default.backup-provider")
+	if !slices.Equal(r.HeldBy, []ObjectRef{backupProviderRef}) || !r.HeldByPartial {
+		t.Errorf("held by %+v (partial %v); want backup-provider, partial", r.HeldBy, r.HeldByPartial)
+	}
+}
+
+// TestServerVersionThroughTheRESTClient: a real discovery client reads
+// /version once with the request's context, and a failed answer holds
+// nothing.
+func TestServerVersionThroughTheRESTClient(t *testing.T) {
+	for _, tt := range []struct {
+		status int
+		want   string
+	}{{http.StatusOK, "v1.36.1"}, {http.StatusInternalServerError, ""}} {
+		var reads atomic.Int32
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/version" {
+				http.NotFound(w, r)
+				return
+			}
+			reads.Add(1)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(tt.status)
+			_, _ = w.Write([]byte(`{"major":"1","minor":"36","gitVersion":"v1.36.1"}`))
+		}))
+		d, err := discovery.NewDiscoveryClientForConfig(&rest.Config{Host: srv.URL})
+		if err != nil {
+			t.Fatal(err)
+		}
+		info, err := serverVersion(t.Context(), d)
+		got := ""
+		if err == nil {
+			got = info.GitVersion
+		}
+		if got != tt.want || reads.Load() != 1 {
+			t.Errorf("status %d: version %q (%v) after %d reads; want %q after one", tt.status, got, err, reads.Load(), tt.want)
+		}
+		srv.Close()
+	}
 }

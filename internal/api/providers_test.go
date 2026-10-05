@@ -53,18 +53,18 @@ func registrationIn(t *testing.T, p v1.Platform, name string) v1.Registration {
 // username and the version, read with no review and no cluster read.
 func TestClusterDocument(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.AllowAll)
-	before, reads := e.az.callerChecks(), len(e.client.Actions())
+	before, reads, versions := e.az.callerChecks(), len(e.client.Actions()), versionReads(e)
 	c := decode[v1.Cluster](t, e.get(t, base))
 	want := v1.Cluster{
-		TypeMeta: meta(v1.KindCluster), Name: "default", Mode: "local", Source: "kubeconfig",
+		TypeMeta: meta(v1.KindCluster), Name: "default", Mode: string(ModeLocal), Source: v1.SourceKubeconfig,
 		Context: "kind-opm-portal-e2e", ClusterEntry: "kind-opm-portal-e2e",
 		ReadingAs: v1.ReadingAs{Username: "alice"}, KubernetesVersion: readmodeltest.ServerVersion,
 	}
 	if c != want {
 		t.Errorf("cluster = %+v; want %+v", c, want)
 	}
-	if e.az.callerChecks() != before || len(e.client.Actions()) != reads {
-		t.Error("serving the cluster document sent a review or read the cluster")
+	if e.az.callerChecks() != before || len(e.client.Actions()) != reads || versionReads(e) != versions {
+		t.Error("serving the cluster document sent a review, read the cluster or read /version again")
 	}
 
 	// The username is the requesting caller's, whoever that is.
@@ -78,6 +78,17 @@ func TestClusterDocument(t *testing.T) {
 	e.principal = Principal{Identity: alice, Session: "session-alice"}
 	expectProblem(t, e.get(t, Prefix+"/clusters/prod"), http.StatusNotFound, v1.CodeNotFound)
 	expectProblem(t, e.do(t, http.MethodPost, base), http.StatusMethodNotAllowed, v1.CodeMethodNotAllowed)
+}
+
+// versionReads counts the /version reads the fake discovery served.
+func versionReads(e *env) int {
+	n := 0
+	for _, a := range e.disc.Actions() {
+		if a.GetVerb() == "get" && a.GetResource().Resource == "version" {
+			n++
+		}
+	}
+	return n
 }
 
 func TestClusterDocumentWithoutAVersion(t *testing.T) {
