@@ -22,7 +22,7 @@ func TestGraphKeepsTheAxesApart(t *testing.T) {
 		t.Errorf("instance node classes %q, stamp present %v", node[1], strings.Contains(node[0], "node-stamp"))
 	}
 	if strings.Contains(main, `class="node kind-`) && regexp.MustCompile(`class="node [^"]*applied-`).MatchString(main) {
-		t.Error("a node carries an applied-* class, which the badge styles colour")
+		t.Error("a node carries an applied-* class, which the badge styles paint")
 	}
 }
 

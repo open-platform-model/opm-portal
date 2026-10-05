@@ -20,9 +20,9 @@
 
 ## 4. Escaping held by tests (internal/ui)
 
-- [ ] 4.1 Render every F1 page and fragment over a capture whose free text is hostile and assert no raw markup
-- [ ] 4.2 Source check: no trusted-type conversion in `internal/ui`, no markup assignment in `portal.js`
-- [ ] 4.3 `task check` green, then commit `test(ui): fail when a page stops escaping cluster text`
+- [x] 4.1 Render every F1 page and fragment over a capture whose free text is hostile and assert no raw markup
+- [x] 4.2 Source check: no trusted-type conversion in `internal/ui`, no markup assignment in `portal.js`
+- [x] 4.3 `task check` green, then commit `test(ui): fail when a page stops escaping cluster text`
 
 ## 5. Live evidence and docs (test, docs/site)
 
