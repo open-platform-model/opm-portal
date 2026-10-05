@@ -24,25 +24,41 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
+
+// fixtureCluster returns the fixture cluster's kubeconfig and context that
+// test/e2e/local.sh and test/e2e/m1.sh name, and skips the test without them.
+func fixtureCluster(t *testing.T) (kubeconfig, kubeContext string) {
+	t.Helper()
+	kubeconfig, kubeContext = os.Getenv("OPM_PORTAL_E2E_KUBECONFIG"), os.Getenv("OPM_PORTAL_E2E_CONTEXT")
+	if kubeconfig == "" || kubeContext == "" {
+		t.Skip("OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT are not set: run task e2e:local or task e2e:m1")
+	}
+	return kubeconfig, kubeContext
+}
+
+// buildPortal builds the binary into a temporary directory.
+func buildPortal(ctx context.Context, t *testing.T) string {
+	t.Helper()
+	bin := filepath.Join(t.TempDir(), "opm-portal")
+	if out, err := exec.CommandContext(ctx, "go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+		t.Fatalf("go build: %v\n%s", err, out)
+	}
+	return bin
+}
 
 // TestLocalMode runs the built binary against the kind fixture cluster
 // (task e2e:up) through test/e2e/local.sh, which names its kubeconfig and
 // context in OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT.
 func TestLocalMode(t *testing.T) {
-	kubeconfig, kubeContext := os.Getenv("OPM_PORTAL_E2E_KUBECONFIG"), os.Getenv("OPM_PORTAL_E2E_CONTEXT")
-	if kubeconfig == "" || kubeContext == "" {
-		t.Skip("OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT are not set: run task e2e:local")
-	}
+	kubeconfig, kubeContext := fixtureCluster(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
 
-	bin := filepath.Join(t.TempDir(), "opm-portal")
-	if out, err := exec.CommandContext(ctx, "go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
-		t.Fatalf("go build: %v\n%s", err, out)
-	}
+	bin := buildPortal(ctx, t)
 	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", kubeconfig, "--context", kubeContext)
 	base := p.launch.Scheme + "://" + p.launch.Host
 	instances := base + "/api/v1alpha1/clusters/default/instances"
@@ -84,16 +100,10 @@ func TestLocalMode(t *testing.T) {
 // the OPM kinds only in default, with --namespaces default: the namespace
 // is served and the cluster-wide list is forbidden, not failed.
 func TestLocalModeNamespaces(t *testing.T) {
-	kubeconfig, kubeContext := os.Getenv("OPM_PORTAL_E2E_KUBECONFIG"), os.Getenv("OPM_PORTAL_E2E_CONTEXT")
-	if kubeconfig == "" || kubeContext == "" {
-		t.Skip("OPM_PORTAL_E2E_KUBECONFIG and OPM_PORTAL_E2E_CONTEXT are not set: run task e2e:local")
-	}
+	kubeconfig, kubeContext := fixtureCluster(t)
 	ctx, cancel := context.WithTimeout(t.Context(), 3*time.Minute)
 	defer cancel()
-	bin := filepath.Join(t.TempDir(), "opm-portal")
-	if out, err := exec.CommandContext(ctx, "go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
-		t.Fatalf("go build: %v\n%s", err, out)
-	}
+	bin := buildPortal(ctx, t)
 	scoped := namespaceReader(ctx, t, kubeconfig, kubeContext)
 	p := startPortal(ctx, t, bin, "serve", "--kubeconfig", scoped, "--namespaces", "default")
 	instances := p.launch.Scheme + "://" + p.launch.Host + "/api/v1alpha1/clusters/default/instances"
@@ -131,13 +141,7 @@ const scopedReader = "opm-portal-e2e-reader"
 // deleted when the test ends.
 func namespaceReader(ctx context.Context, t *testing.T, kubeconfig, kubeContext string) string {
 	t.Helper()
-	loader := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
-		&clientcmd.ConfigOverrides{CurrentContext: kubeContext})
-	cfg, err := loader.ClientConfig()
-	if err != nil {
-		t.Fatal(err)
-	}
+	cfg := restConfig(t, kubeconfig, kubeContext)
 	cs, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -183,6 +187,19 @@ func namespaceReader(ctx context.Context, t *testing.T, kubeconfig, kubeContext 
 		t.Fatal(err)
 	}
 	return path
+}
+
+// restConfig loads the fixture cluster's client configuration, from the
+// kubeconfig file alone.
+func restConfig(t *testing.T, kubeconfig, kubeContext string) *rest.Config {
+	t.Helper()
+	cfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{CurrentContext: kubeContext}).ClientConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cfg
 }
 
 // holdStream opens a stream on topic and returns a channel closed when the
@@ -375,13 +392,7 @@ func get(ctx context.Context, t *testing.T, c *http.Client, target string, heade
 // logTopic returns the log topic of a podinfo Pod's first container.
 func logTopic(ctx context.Context, t *testing.T, kubeconfig, kubeContext string) string {
 	t.Helper()
-	cfg, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
-		&clientcmd.ConfigOverrides{CurrentContext: kubeContext}).ClientConfig()
-	if err != nil {
-		t.Fatal(err)
-	}
-	cs, err := kubernetes.NewForConfig(cfg)
+	cs, err := kubernetes.NewForConfig(restConfig(t, kubeconfig, kubeContext))
 	if err != nil {
 		t.Fatal(err)
 	}

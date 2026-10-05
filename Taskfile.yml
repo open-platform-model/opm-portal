@@ -115,6 +115,14 @@ tasks:
     cmds:
       - test/e2e/local.sh
 
+  e2e:m1:
+    desc: Check the milestone 1 reads end to end on the fixture cluster, including a scripted image break it reverts (needs e2e:up)
+    env:
+      E2E_PROVIDER: '{{.E2E_PROVIDER}}'
+      E2E_CLUSTER: '{{.E2E_CLUSTER}}'
+    cmds:
+      - test/e2e/m1.sh
+
   e2e:capture:
     desc: Snapshot the opm-portal-e2e cluster into testdata/clusters/f1 (no Secrets, no values)
     env:
