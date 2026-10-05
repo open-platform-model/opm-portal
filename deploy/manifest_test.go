@@ -23,6 +23,14 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/version"
 )
 
+const kustomizationFile = "kustomization.yaml"
+
+// shippedArgs are the container's arguments, exactly.
+var shippedArgs = []string{"serve", "--addr", "127.0.0.1:8090"}
+
+// portalSubject is the only subject the binding may name.
+var portalSubject = rbacv1.Subject{Kind: "ServiceAccount", Name: "opm-portal", Namespace: "opm-portal"}
+
 // object is one YAML document of the manifest.
 type object struct {
 	file string
@@ -30,17 +38,29 @@ type object struct {
 	raw  []byte
 }
 
-// readManifest returns every object in deploy/*.yaml, the kustomization
-// excepted.
-func readManifest(t *testing.T) []object {
+// manifestFiles returns every YAML file in deploy/, the kustomization
+// included.
+func manifestFiles(t *testing.T) []string {
 	t.Helper()
-	files, err := filepath.Glob("*.yaml")
-	if err != nil {
-		t.Fatal(err)
+	var files []string
+	for _, pattern := range []string{"*.yaml", "*.yml"} {
+		m, err := filepath.Glob(pattern)
+		if err != nil {
+			t.Fatal(err)
+		}
+		files = append(files, m...)
 	}
+	slices.Sort(files)
+	return files
+}
+
+// readObjects returns every object in the manifest files, the kustomization
+// excepted.
+func readObjects(t *testing.T, files []string) []object {
+	t.Helper()
 	var objects []object
 	for _, f := range files {
-		if f == "kustomization.yaml" {
+		if f == kustomizationFile {
 			continue
 		}
 		b, err := os.ReadFile(f)
@@ -56,7 +76,7 @@ func readManifest(t *testing.T) []object {
 				t.Fatalf("%s: %v", f, err)
 			}
 			if tm.Kind == "" {
-				continue
+				t.Fatalf("%s holds a document with no kind", f)
 			}
 			objects = append(objects, object{file: f, kind: tm.Kind, raw: doc})
 		}
@@ -67,10 +87,52 @@ func readManifest(t *testing.T) []object {
 	return objects
 }
 
+// kustomizationKeys are the only fields the kustomization may carry: no
+// patches, generators, images or remote bases that would change what the
+// tests here read.
+var kustomizationKeys = []string{"apiVersion", "kind", "resources"}
+
+// checkKustomization refuses a kustomization with any other field, a
+// resource that is not a file beside it, or a manifest file it does not
+// list, so the files these tests read are exactly what kubectl applies.
+func checkKustomization(raw []byte, files []string) error {
+	var k map[string]any
+	if err := yaml.Unmarshal(raw, &k); err != nil {
+		return fmt.Errorf("%s: %w", kustomizationFile, err)
+	}
+	var errs []error
+	for key := range k {
+		if !slices.Contains(kustomizationKeys, key) {
+			errs = append(errs, fmt.Errorf("%s carries the field %q; only %v are allowed", kustomizationFile, key, kustomizationKeys))
+		}
+	}
+	list, _ := k["resources"].([]any)
+	listed := map[string]bool{}
+	for _, r := range list {
+		name, ok := r.(string)
+		switch {
+		case !ok:
+			errs = append(errs, fmt.Errorf("%s lists a resource that is not a file name: %v", kustomizationFile, r))
+		case name != filepath.Base(name) || strings.Contains(name, ":") || name == "..":
+			errs = append(errs, fmt.Errorf("%s lists %q, which is not a file in deploy/", kustomizationFile, name))
+		case !slices.Contains(files, name):
+			errs = append(errs, fmt.Errorf("%s lists %q, which does not exist in deploy/", kustomizationFile, name))
+		default:
+			listed[name] = true
+		}
+	}
+	for _, f := range files {
+		if f != kustomizationFile && !listed[f] {
+			errs = append(errs, fmt.Errorf("%s is not listed in %s, so the tests read a file kubectl does not apply", f, kustomizationFile))
+		}
+	}
+	return errors.Join(errs...)
+}
+
 var readVerbs = []string{"get", "list", "watch"}
 
-// checkRole refuses a role that could write, read Secrets, impersonate, or
-// grant more than it names.
+// checkRole refuses a role that could write, read Secrets, impersonate,
+// reach into a node or Pod, or grant more than it names.
 func checkRole(r rbacv1.ClusterRole) error {
 	var errs []error
 	if r.AggregationRule != nil {
@@ -106,62 +168,91 @@ func checkRule(at string, rule *rbacv1.PolicyRule) []error {
 		}
 	}
 	for _, res := range rule.Resources {
-		base, _, _ := strings.Cut(res, "/")
-		switch {
-		case strings.Contains(res, "*"):
-			errs = append(errs, fmt.Errorf("%s names the resource %q", at, res))
-		case base == "secrets":
-			errs = append(errs, fmt.Errorf("%s grants %q: the portal never reads Secrets", at, res))
-		case res == "pods/log" && !slices.Equal(rule.Verbs, []string{"get"}):
-			errs = append(errs, fmt.Errorf("%s grants %v on pods/log; only get is needed", at, rule.Verbs))
-		}
+		errs = append(errs, checkResource(at, res, rule.Verbs)...)
 	}
 	return errs
+}
+
+// checkResource refuses a wildcard, Secrets, and every subresource but
+// pods/log: proxy, exec, attach and portforward reach past the API into a
+// node or a Pod, even with get.
+func checkResource(at, res string, verbs []string) []error {
+	base, sub, isSub := strings.Cut(res, "/")
+	switch {
+	case strings.Contains(res, "*"):
+		return []error{fmt.Errorf("%s names the resource %q", at, res)}
+	case base == "secrets":
+		return []error{fmt.Errorf("%s grants %q: the portal never reads Secrets", at, res)}
+	case isSub && res != "pods/log":
+		return []error{fmt.Errorf("%s grants the subresource %q; only pods/log is allowed", at, base+"/"+sub)}
+	case res == "pods/log" && !slices.Equal(verbs, []string{"get"}):
+		return []error{fmt.Errorf("%s grants %v on pods/log; only get is needed", at, verbs)}
+	}
+	return nil
 }
 
 // exposing are the kinds that would open a network path to the portal.
 var exposing = []string{"Service", "Ingress", "IngressClass", "Gateway", "HTTPRoute", "GRPCRoute", "TCPRoute", "TLSRoute", "Route"}
 
-// checkObjects refuses any object that opens a network path, and a binding
-// of the portal to a built-in role.
+// checkObjects refuses any object that opens a network path, a binding that
+// names another role or another subject, and a Namespace that does not
+// enforce the restricted Pod Security Standard.
 func checkObjects(objects []object) error {
 	var errs []error
 	for _, o := range objects {
 		if slices.Contains(exposing, o.kind) {
 			errs = append(errs, fmt.Errorf("%s holds kind %s: the portal is reached only through kubectl port-forward", o.file, o.kind))
 		}
-		if o.kind == "ClusterRoleBinding" || o.kind == "RoleBinding" {
+		switch o.kind {
+		case "ClusterRoleBinding", "RoleBinding":
 			var b rbacv1.ClusterRoleBinding
 			if err := yaml.Unmarshal(o.raw, &b); err != nil {
 				errs = append(errs, fmt.Errorf("%s: %w", o.file, err))
 				continue
 			}
-			if b.RoleRef.Name != "opm-portal-reader" {
-				errs = append(errs, fmt.Errorf("%s binds %s %q; only opm-portal-reader is allowed", o.file, b.RoleRef.Kind, b.RoleRef.Name))
+			errs = append(errs, checkBinding(o.file, &b)...)
+		case "Namespace":
+			var ns corev1.Namespace
+			if err := yaml.Unmarshal(o.raw, &ns); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", o.file, err))
+				continue
+			}
+			if ns.Labels["pod-security.kubernetes.io/enforce"] != "restricted" {
+				errs = append(errs, fmt.Errorf("%s: Namespace %s does not carry pod-security.kubernetes.io/enforce: restricted", o.file, ns.Name))
 			}
 		}
 	}
 	return errors.Join(errs...)
 }
 
-// checkDeployment refuses a Deployment that binds beyond loopback, carries a
-// probe, or loosens the restricted security context.
-func checkDeployment(d appsv1.Deployment) error {
+func checkBinding(file string, b *rbacv1.ClusterRoleBinding) []error {
+	var errs []error
+	if b.RoleRef.Name != "opm-portal-reader" {
+		errs = append(errs, fmt.Errorf("%s binds %s %q; only opm-portal-reader is allowed", file, b.RoleRef.Kind, b.RoleRef.Name))
+	}
+	if !slices.Equal(b.Subjects, []rbacv1.Subject{portalSubject}) {
+		errs = append(errs, fmt.Errorf("%s binds the subjects %+v; only the ServiceAccount opm-portal/opm-portal is allowed", file, b.Subjects))
+	}
+	return errs
+}
+
+// checkDeployment refuses a Deployment that binds beyond loopback, shares a
+// host namespace, mounts a volume, carries a probe, or loosens the
+// restricted security context.
+func checkDeployment(d *appsv1.Deployment) error {
 	var errs []error
 	if d.Spec.Replicas == nil || *d.Spec.Replicas != 1 {
 		errs = append(errs, errors.New("the Deployment must run exactly one replica: the launch link and session live in one process"))
 	}
-	pod := d.Spec.Template.Spec
-	if pod.HostNetwork {
-		errs = append(errs, errors.New("the Pod uses the host network"))
+	pod := &d.Spec.Template.Spec
+	if pod.HostNetwork || pod.HostPID || pod.HostIPC {
+		errs = append(errs, errors.New("the Pod shares a host namespace (hostNetwork, hostPID or hostIPC)"))
 	}
-	if pod.SecurityContext == nil || pod.SecurityContext.RunAsNonRoot == nil || !*pod.SecurityContext.RunAsNonRoot {
-		errs = append(errs, errors.New("the Pod does not set runAsNonRoot: true"))
+	if len(pod.Volumes) > 0 {
+		errs = append(errs, fmt.Errorf("the Pod mounts %d volumes; it needs none", len(pod.Volumes)))
 	}
-	if pod.SecurityContext == nil || pod.SecurityContext.SeccompProfile == nil || pod.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-		errs = append(errs, errors.New("the Pod does not set the RuntimeDefault seccomp profile"))
-	}
-	if len(pod.Containers) != 1 || len(pod.InitContainers) != 0 {
+	errs = append(errs, checkPodSecurityContext(pod.SecurityContext)...)
+	if len(pod.Containers) != 1 || len(pod.InitContainers) != 0 || len(pod.EphemeralContainers) != 0 {
 		errs = append(errs, fmt.Errorf("the Pod has %d containers and %d init containers; want one container", len(pod.Containers), len(pod.InitContainers)))
 	}
 	for i := range pod.Containers {
@@ -170,19 +261,36 @@ func checkDeployment(d appsv1.Deployment) error {
 	return errors.Join(errs...)
 }
 
+func checkPodSecurityContext(sc *corev1.PodSecurityContext) []error {
+	var errs []error
+	if sc == nil || sc.RunAsNonRoot == nil || !*sc.RunAsNonRoot {
+		errs = append(errs, errors.New("the Pod does not set runAsNonRoot: true"))
+	}
+	if sc == nil || sc.SeccompProfile == nil || sc.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		errs = append(errs, errors.New("the Pod does not set the RuntimeDefault seccomp profile"))
+	}
+	return errs
+}
+
 func checkContainer(c *corev1.Container) []error {
 	var errs []error
 	at := "container " + c.Name
-	if addr, ok := flagValue(c.Args, "--addr"); !ok {
-		errs = append(errs, fmt.Errorf("%s does not pass --addr; the default port would change on every start", at))
-	} else if host, _, err := net.SplitHostPort(addr); err != nil || host != "127.0.0.1" {
-		errs = append(errs, fmt.Errorf("%s binds %q; want 127.0.0.1", at, addr))
+	if addr, ok := flagValue(c.Args, "--addr"); ok {
+		if host, _, err := net.SplitHostPort(addr); err != nil || host != "127.0.0.1" {
+			errs = append(errs, fmt.Errorf("%s binds %q; want 127.0.0.1", at, addr))
+		}
 	}
-	if len(c.Args) == 0 || c.Args[0] != "serve" {
-		errs = append(errs, fmt.Errorf("%s does not run serve", at))
+	if !slices.Equal(c.Args, shippedArgs) {
+		errs = append(errs, fmt.Errorf("%s runs with args %q; want exactly %q", at, c.Args, shippedArgs))
+	}
+	if len(c.Command) > 0 {
+		errs = append(errs, fmt.Errorf("%s overrides the image's command with %q", at, c.Command))
 	}
 	if len(c.Ports) > 0 {
 		errs = append(errs, fmt.Errorf("%s declares ports; nothing reaches a loopback listener through them", at))
+	}
+	if len(c.VolumeMounts) > 0 {
+		errs = append(errs, fmt.Errorf("%s mounts volumes", at))
 	}
 	if c.LivenessProbe != nil || c.ReadinessProbe != nil || c.StartupProbe != nil {
 		errs = append(errs, fmt.Errorf("%s has a probe; a probe cannot reach a loopback listener", at))
@@ -229,7 +337,15 @@ func flagValue(args []string, name string) (string, bool) {
 }
 
 func TestManifest(t *testing.T) {
-	objects := readManifest(t)
+	files := manifestFiles(t)
+	raw, err := os.ReadFile(kustomizationFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := checkKustomization(raw, files); err != nil {
+		t.Error(err)
+	}
+	objects := readObjects(t, files)
 	kinds := make([]string, 0, len(objects))
 	for _, o := range objects {
 		kinds = append(kinds, o.kind)
@@ -247,7 +363,7 @@ func TestManifest(t *testing.T) {
 			if err := yaml.UnmarshalStrict(o.raw, &d); err != nil {
 				t.Fatalf("%s: %v", o.file, err)
 			}
-			if err := checkDeployment(d); err != nil {
+			if err := checkDeployment(&d); err != nil {
 				t.Errorf("%s: %v", o.file, err)
 			}
 		}
@@ -273,12 +389,15 @@ func TestCheckRoleAllowsAReadRule(t *testing.T) {
 	}
 }
 
-func TestChecksRefuse(t *testing.T) {
+func TestCheckRoleRefuses(t *testing.T) {
 	read := []string{"get", "list", "watch"}
 	role := func(rules ...rbacv1.PolicyRule) rbacv1.ClusterRole {
 		return rbacv1.ClusterRole{ObjectMeta: metav1.ObjectMeta{Name: "bad"}, Rules: rules}
 	}
-	roles := []struct {
+	sub := func(res string) rbacv1.ClusterRole {
+		return role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{res}, Verbs: []string{"get"}})
+	}
+	tests := []struct {
 		name string
 		role rbacv1.ClusterRole
 		want string
@@ -286,46 +405,95 @@ func TestChecksRefuse(t *testing.T) {
 		{"a write verb", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"pods"}, Verbs: []string{"create"}}), `verb "create"`},
 		{"delete", role(rbacv1.PolicyRule{APIGroups: []string{"opmodel.dev"}, Resources: []string{"moduleinstances"}, Verbs: []string{"delete"}}), `verb "delete"`},
 		{"secrets", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"secrets"}, Verbs: read}), "never reads Secrets"},
-		{"a secrets subresource", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"secrets/status"}, Verbs: []string{"get"}}), "never reads Secrets"},
+		{"a secrets subresource", sub("secrets/status"), "never reads Secrets"},
 		{"impersonate", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"users"}, Verbs: []string{"impersonate"}}), "impersonate"},
 		{"a wildcard resource", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"*"}, Verbs: read}), `resource "*"`},
+		{"a wildcard subresource", sub("pods/*"), `resource "pods/*"`},
 		{"a wildcard group", role(rbacv1.PolicyRule{APIGroups: []string{"*"}, Resources: []string{"pods"}, Verbs: read}), `API group "*"`},
 		{"a wildcard verb", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"pods"}, Verbs: []string{"*"}}), "wildcard verb"},
 		{"a non-resource URL", role(rbacv1.PolicyRule{NonResourceURLs: []string{"/metrics"}, Verbs: []string{"get"}}), "non-resource"},
+		{"nodes/proxy", sub("nodes/proxy"), `subresource "nodes/proxy"`},
+		{"pods/exec", sub("pods/exec"), `subresource "pods/exec"`},
+		{"pods/attach", sub("pods/attach"), `subresource "pods/attach"`},
+		{"pods/portforward", sub("pods/portforward"), `subresource "pods/portforward"`},
+		{"pods/proxy", sub("pods/proxy"), `subresource "pods/proxy"`},
+		{"services/proxy", sub("services/proxy"), `subresource "services/proxy"`},
+		{"deployments/scale", sub("deployments/scale"), `subresource "deployments/scale"`},
+		{"pods/log with list", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"pods/log"}, Verbs: read}), "only get is needed"},
 		{"an aggregation rule", func() rbacv1.ClusterRole {
 			r := role()
 			r.AggregationRule = &rbacv1.AggregationRule{}
 			return r
 		}(), "aggregation"},
 	}
-	for _, tt := range roles {
-		t.Run("role/"+tt.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			err := checkRole(tt.role)
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("checkRole() = %v; want an error naming %q", err, tt.want)
 			}
 		})
 	}
+}
 
-	objects := []struct {
+func TestCheckObjectsRefuses(t *testing.T) {
+	binding := func(role, subjects string) object {
+		return object{file: "b.yaml", kind: "ClusterRoleBinding", raw: []byte("kind: ClusterRoleBinding\nroleRef: {kind: ClusterRole, name: " + role + "}\nsubjects: " + subjects + "\n")}
+	}
+	sa := "[{kind: ServiceAccount, name: opm-portal, namespace: opm-portal}]"
+	tests := []struct {
 		name string
 		obj  object
 		want string
 	}{
 		{"a Service", object{file: "svc.yaml", kind: "Service"}, "holds kind Service"},
 		{"an Ingress", object{file: "ing.yaml", kind: "Ingress"}, "holds kind Ingress"},
-		{"a binding to view", object{file: "b.yaml", kind: "ClusterRoleBinding", raw: []byte("kind: ClusterRoleBinding\nroleRef: {kind: ClusterRole, name: view}\n")}, `"view"`},
+		{"a binding to view", binding("view", sa), `"view"`},
+		{"all authenticated users", binding("opm-portal-reader", "[{kind: Group, name: 'system:authenticated', apiGroup: rbac.authorization.k8s.io}]"), "only the ServiceAccount"},
+		{"anonymous users", binding("opm-portal-reader", "[{kind: Group, name: 'system:unauthenticated', apiGroup: rbac.authorization.k8s.io}]"), "only the ServiceAccount"},
+		{"a second subject", binding("opm-portal-reader", "[{kind: ServiceAccount, name: opm-portal, namespace: opm-portal}, {kind: User, name: alice}]"), "only the ServiceAccount"},
+		{"a ServiceAccount elsewhere", binding("opm-portal-reader", "[{kind: ServiceAccount, name: opm-portal, namespace: default}]"), "only the ServiceAccount"},
+		{"a Namespace without the restricted label", object{file: "ns.yaml", kind: "Namespace", raw: []byte("kind: Namespace\nmetadata: {name: opm-portal, labels: {pod-security.kubernetes.io/enforce: baseline}}\n")}, "enforce: restricted"},
 	}
-	for _, tt := range objects {
-		t.Run("object/"+tt.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			err := checkObjects([]object{tt.obj})
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("checkObjects() = %v; want an error naming %q", err, tt.want)
 			}
 		})
 	}
+	if err := checkObjects([]object{binding("opm-portal-reader", sa)}); err != nil {
+		t.Fatalf("checkObjects() refuses the shipped binding shape: %v", err)
+	}
+}
 
-	deployments := []struct {
+func TestCheckKustomizationRefuses(t *testing.T) {
+	files := []string{"a.yaml", "b.yaml", kustomizationFile}
+	tests := []struct {
+		name string
+		raw  string
+		want string
+	}{
+		{"a patch", "kind: Kustomization\nresources: [a.yaml, b.yaml]\npatches: []\n", `field "patches"`},
+		{"an images override", "kind: Kustomization\nresources: [a.yaml, b.yaml]\nimages: []\n", `field "images"`},
+		{"a remote base", "kind: Kustomization\nresources: [a.yaml, b.yaml, 'https://example.com/base']\n", "not a file in deploy/"},
+		{"a parent directory", "kind: Kustomization\nresources: [a.yaml, b.yaml, ../other]\n", "not a file in deploy/"},
+		{"a missing file", "kind: Kustomization\nresources: [a.yaml, b.yaml, c.yaml]\n", "does not exist"},
+		{"an unlisted file", "kind: Kustomization\nresources: [a.yaml]\n", "b.yaml is not listed"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := checkKustomization([]byte(tt.raw), files)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("checkKustomization() = %v; want an error naming %q", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestCheckDeploymentRefuses(t *testing.T) {
+	tests := []struct {
 		name   string
 		mutate func(d *appsv1.Deployment)
 		want   string
@@ -333,7 +501,11 @@ func TestChecksRefuse(t *testing.T) {
 		{"all interfaces", func(d *appsv1.Deployment) {
 			d.Spec.Template.Spec.Containers[0].Args = []string{"serve", "--addr", "0.0.0.0:8090"}
 		}, `binds "0.0.0.0:8090"`},
-		{"no --addr", func(d *appsv1.Deployment) { d.Spec.Template.Spec.Containers[0].Args = []string{"serve"} }, "does not pass --addr"},
+		{"no --addr", func(d *appsv1.Deployment) { d.Spec.Template.Spec.Containers[0].Args = []string{"serve"} }, "want exactly"},
+		{"an extra arg", func(d *appsv1.Deployment) {
+			d.Spec.Template.Spec.Containers[0].Args = append(slices.Clone(shippedArgs), "--namespaces", "default")
+		}, "want exactly"},
+		{"a command override", func(d *appsv1.Deployment) { d.Spec.Template.Spec.Containers[0].Command = []string{"/bin/sh"} }, "overrides the image's command"},
 		{"writable root", func(d *appsv1.Deployment) {
 			d.Spec.Template.Spec.Containers[0].SecurityContext.ReadOnlyRootFilesystem = nil
 		}, "readOnlyRootFilesystem"},
@@ -346,17 +518,25 @@ func TestChecksRefuse(t *testing.T) {
 		{"root allowed", func(d *appsv1.Deployment) { d.Spec.Template.Spec.SecurityContext.RunAsNonRoot = nil }, "runAsNonRoot"},
 		{"no seccomp", func(d *appsv1.Deployment) { d.Spec.Template.Spec.SecurityContext.SeccompProfile = nil }, "seccomp"},
 		{"a probe", func(d *appsv1.Deployment) { d.Spec.Template.Spec.Containers[0].ReadinessProbe = &corev1.Probe{} }, "probe"},
-		{"host network", func(d *appsv1.Deployment) { d.Spec.Template.Spec.HostNetwork = true }, "host network"},
+		{"host network", func(d *appsv1.Deployment) { d.Spec.Template.Spec.HostNetwork = true }, "host namespace"},
+		{"host PID", func(d *appsv1.Deployment) { d.Spec.Template.Spec.HostPID = true }, "host namespace"},
+		{"host IPC", func(d *appsv1.Deployment) { d.Spec.Template.Spec.HostIPC = true }, "host namespace"},
+		{"a hostPath volume", func(d *appsv1.Deployment) {
+			d.Spec.Template.Spec.Volumes = []corev1.Volume{{Name: "logs", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/log"}}}}
+		}, "mounts 1 volumes"},
+		{"a volume mount", func(d *appsv1.Deployment) {
+			d.Spec.Template.Spec.Containers[0].VolumeMounts = []corev1.VolumeMount{{Name: "logs", MountPath: "/logs"}}
+		}, "mounts volumes"},
 		{"two replicas", func(d *appsv1.Deployment) { d.Spec.Replicas = new(int32(2)) }, "one replica"},
 	}
-	for _, tt := range deployments {
-		t.Run("deployment/"+tt.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			d := shippedDeployment(t)
-			if err := checkDeployment(d); err != nil {
+			if err := checkDeployment(&d); err != nil {
 				t.Fatalf("the shipped Deployment fails before the change: %v", err)
 			}
 			tt.mutate(&d)
-			err := checkDeployment(d)
+			err := checkDeployment(&d)
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("checkDeployment() = %v; want an error naming %q", err, tt.want)
 			}
