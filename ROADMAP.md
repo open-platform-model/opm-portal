@@ -11,7 +11,7 @@ Last updated: 2026-10-05.
 | Milestone | State |
 | --- | --- |
 | V1 M1: local mode | Done; hardening in review, first release (0.1.0) pending |
-| V1 M2: in-cluster | In progress: authorizer and in-cluster safeguards in review |
+| V1 M2: in-cluster | In progress: authorizer, OIDC sign-in and in-cluster safeguards in review |
 | V2: marketplace | Not started; waits on enhancement 0027 |
 | Beyond V2 | Ideas, ranked |
 
@@ -68,19 +68,20 @@ In review:
 | --- | --- | --- |
 | In-cluster authorizer behind the seam: people and the portal's own reader, no self review | 24 | portal:D6:R1/R3/R7/R9/R10 |
 | Hide operator message text in-cluster; diff the stream per subscriber | 27 | portal:D8:R5, portal:D2:R7 |
+| OIDC sign-in, sessions and bearer tokens, fail closed on empty or `system:` identity, prefixes required | 28 | portal:D6:R2/R3/R5/R6/R8 |
 
 Next, in order:
 
-1. **OIDC sign-in, sessions and bearer tokens**, fail closed on empty or `system:` identity, with
-   prefixes required (portal:D6:R2/R3/R6/R8).
-2. **In-cluster `serve`**: the mode wired end to end, health endpoints, per-user access log
+1. **In-cluster `serve`**: the mode wired end to end, health endpoints, per-user access log
    (portal:D6:R7).
-3. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
+2. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
    (portal:D11:R1/R2/R3).
-4. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before M2
+3. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before M2
    exits.
-5. **Kubernetes floor**: verify the event field selectors on 1.34 and document the floor
-   (portal:D12).
+4. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
+   selectors, and the floor documented (portal:D12). Cross-repo: the owner's 1.34 answer also puts
+   opm-operator on that floor, declared, with its own CI job on 1.34; tracked here until an
+   operator issue carries it.
 
 M2 exit gate:
 
@@ -126,7 +127,7 @@ Milestones, each gated:
 | Milestone | Delivers | Gate |
 | --- | --- | --- |
 | V2.0 evidence | Experiments on secret encoding, field hints, unions, card and index | none |
-| M3 browse and preview | Card and asset gate, index module, admin registry browser, author preview | presentation contract accepted; core release |
+| M3 browse and preview | Card and asset gate, index module, admin registry browser, author preview | 0027:OQ17 answered; core release |
 | M4 tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | 0027 accepted with its OQ18 to OQ22 answered |
 | M5 order | Dry run and submit as the user, review and status pages, edit and delete | 0027:OQ24 to OQ27 answered; write identity decided (portal:OQ1) |
 
