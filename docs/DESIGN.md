@@ -9,7 +9,8 @@ enhancement 0030's numbers until that entry was withdrawn on 2026-10-05; the num
 so `0030:D7:R4` and `portal:D7:R4` name the same requirement. Numbers added here start at D12 and
 OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
 D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. D13 (2026-10-05) lets local mode run
-in a Pod as a test tool. The never-merged enhancements PR 101 drafted
+in a Pod as a test tool. D14 to D18 and OQ22 to OQ25 (2026-10-05) come with the web UI redesign
+(OpenSpec change `redesign-web-ui`), which also narrows OQ18. The never-merged enhancements PR 101 drafted
 the same answers under other numbers (OQ20 as 0030:D7:R5, the floor as 0030:D9:R6/R7); those
 numbers were never adopted, and this file's are the only ones.
 
@@ -65,6 +66,12 @@ is refused. Either way a missing object looks like a forbidden one.
 **Nothing secret is read (D8, D10, D11).** No Secret data, no instance values, a read-only role,
 logs only for OPM Pods. In-cluster, operator message text is hidden. Events are an expiring feed,
 never state (D9). Kubernetes 1.34 is the floor (D12).
+
+**The browser keeps only display preferences (D14).** A theme choice and remembered filters live
+in the browser; a link with filters in it always wins. **A provider is whoever holds the claim
+(D15)**, instance or package, and the controller's verdict on it is shown as it is. **"Uses" is
+what a render used (D16)**, never drawn as an edge. The redesigned pages show only what the
+cluster records (D17), and name the cluster, the reader and the server version (D18).
 
 ## Problem
 
@@ -211,9 +218,9 @@ relies on; `openapi/v1alpha1.yaml` holds the route table.
 
 - **opm-portal**: the read API and change stream, the web UI, local mode, in-cluster mode,
   binaries and an image, later an install manifest.
-- **opm-operator**: viewer roles a cluster administrator can bind (D11:R4). Two status additions
-  are follow-ups, not V1: provider-contract demand (OQ18) and a transformer per inventory entry
-  (OQ5).
+- **opm-operator**: viewer roles a cluster administrator can bind (D11:R4). Follow-ups, not V1:
+  provider-contract demand (OQ18), a transformer per inventory entry (OQ5), accepting a
+  ModulePackage as a provider (OQ23) and recording a package's render contracts (OQ24).
 - **opmodel.dev**: the portal's documentation bundle, published from `docs/site/`.
 
 ## Decisions
@@ -230,7 +237,7 @@ decision it rests on.
 only requests it creates are access reviews the API server evaluates and never stores: the self
 reviews of D5:R6 locally and the SubjectAccessReview of D6:R9 in-cluster, which D11 grants. It reads
 the four OPM kinds, the objects their inventories name, the runtime children below those objects,
-events and Pod logs. Writes, including ordering a module, arrive with the marketplace (V2), which
+events, Pod logs, and the API server's version (D18). Writes, including ordering a module, arrive with the marketplace (V2), which
 builds on the self-service kinds of enhancement 0027. A CLI-owned ModuleInstance is shown like any
 other instance and is equally read-only.
 
@@ -259,8 +266,8 @@ enhancements, and removes every write-side security question from the first rele
 **Decision:** The portal's contract is a read API under a versioned path, `/api/v1alpha1`, serving
 JSON documents over `GET` and a server-sent-events change stream. The web UI renders from that
 API's documents, in-process, under the caller's identity: it has no read path of its own. The
-documents are shaped for the portal (instance, package, platform, registration, contract, graph,
-event), never a passthrough of a custom resource's status. The API stays at `v1alpha1` until a
+documents are shaped for the portal (cluster, instance, package, platform, registration, contract,
+graph, event), never a passthrough of a custom resource's status. The API stays at `v1alpha1` until a
 declared stability point (OQ10); within the version, changes are additive and clients ignore what
 they do not know. The change stream writes a subscriber only what changed in the documents rendered
 for that subscriber, so one subscriber cannot time a change only another may see.
@@ -899,6 +906,233 @@ cluster. Still with only local auth but as a tool to test out?", then "go"). Man
 through `kubectl port-forward 8090:8090`, and `8091:8090` was refused by the `Host` check.
 Supervisor ruling 2026-10-05 on the manifest's shape, which waits for the owner's review.
 
+### D14: The browser keeps display preferences, and a link's filters always win
+
+**Kind:** policy
+
+**Decision:** The web UI may keep two kinds of state in the viewer's browser, in `localStorage`:
+a theme choice (Light, Dark or System) and, per list view, the filters last shown. Nothing else is
+stored in the browser: no read API document, no identity, no session, no authorization result.
+Filters live in the page's URL query, which is their source of truth: when a URL carries any
+filter, the view shows exactly those filters, whatever is stored; when it carries none, the view
+opens with the filters stored for it, if any, without first painting the unfiltered view, and the
+URL then shows them. A view always stores the filters it shows, so a hand-off link overwrites what
+was remembered. A link with filters in it therefore shows the same view in every browser. The
+theme is applied before first paint by a small script served from `/static` and loaded without
+`defer` in the page head; the page policy is unchanged (no inline script or style). When storage
+is unavailable or throws, the page works with the System theme and nothing remembered.
+
+**Requirements:**
+
+- R1: The browser holds only the theme choice and each view's filter query, under keys the portal
+  owns; no document field, identity, session or token is written to browser storage.
+- R2: A list view whose URL carries a filter parameter shows exactly the filters in the URL.
+- R3: A list view whose URL carries no filter parameter opens with the filters stored for it, the
+  URL shows them, and the unfiltered view is never painted first.
+- R4: System follows the operating system's light or dark preference; Light and Dark override it;
+  the choice is applied before first paint, under the unchanged page policy.
+- R5: With browser storage unavailable or throwing, every page renders and works, in the System
+  theme with no remembered filters.
+
+**Alternatives considered:**
+
+- **No browser state** (Principle VII as it stood: "no client-side component state in V1"). Every
+  visit starts unfiltered, and the theme can only follow the operating system.
+- **Preferences in a server-side store or a second cookie.** The portal keeps no state beyond
+  sessions, and in-cluster mode would need per-user storage; a cookie would send preferences with
+  every request for the server to parse.
+- **Filters only in browser storage.** A count on the Platform page could not hand off a filtered
+  view as a plain link, and a shared link would show the receiver's own filters.
+- **Filters only in the URL.** Nothing is remembered between visits.
+
+**Rationale:** Display preferences are not cluster state, so keeping them in the browser adds no
+new source of truth and nothing a server must protect. Making the URL win keeps every hand-off a
+plain link that means the same thing to everyone.
+
+**Source:** Owner decision 2026-10-05 ("Allow both in the browser"), asked whether the UI may
+remember filters per device and offer a Light, Dark or System theme stored per browser; it amends
+Principle VII in `openspec/config.yaml` and `CONSTITUTION.md`. The URL-wins rule and the
+write-what-you-show rule: supervisor ruling 2026-10-05, pending the owner.
+
+### D15: A provider is whoever holds the claim, instance or package
+
+**Kind:** contract
+
+**Depends:** 0015:D11
+
+**Decision:** The portal finds a TransformerRegistration's provider by inventory, not by kind:
+every ModuleInstance and every ModulePackage whose `status.inventory` holds a
+TransformerRegistration of that name is shown as a provider of it. Its standing (accepted, active,
+verdict, reason) is the controller's, read from the registration as D4:R4 says, and never
+computed by the portal. The registration's `spec.providerRef` is shown as the controller reads it;
+when it and the holder disagree, both are shown (D4:R2). The controller today judges a claim only
+against the ModuleInstance its `spec.providerRef` names: the catalog's transformer stamps
+`providerRef` from the rendering context's name and namespace, and acceptance gets a
+ModuleInstance by that reference and looks for the claim in its inventory. A claim a ModulePackage
+rendered is therefore refused with reason `ProviderMismatch` once its catalog and provides checks
+pass, with a message saying the named ModuleInstance does not exist (or, when an instance of the
+same name exists, that its inventory does not own the claim). The portal shows such a package as a
+refused provider with the controller's reason and message, as it shows any refusal, until the
+controller accepts package providers (OQ23).
+
+**Requirements:**
+
+- R1: An instance or package whose inventory holds a TransformerRegistration is shown as a
+  provider of it, whatever its kind.
+- R2: A provider's standing is the registration's own accepted, active, verdict and reason; the
+  portal does not compute or correct it.
+- R3: A package holding a claim the controller refused shows as a refused provider with the
+  controller's reason and, in local mode, its message.
+- R4: A provider whose registration the caller may not read shows that it holds a registration
+  whose standing is locked, never a guessed standing.
+
+**Alternatives considered:**
+
+- **Providers are instances only**, as the controller accepts today. Hides a package that ships a
+  claim, which the kernel renders the same way as an instance's.
+- **Label a refused package provider as a known controller gap.** The portal would be correcting
+  the controller's verdict (Principle IV).
+
+**Rationale:** The inventory is the record of what an owner applied, for instances and packages
+alike, so it answers "who ships this claim" without trusting the claim. Showing the controller's
+verdict unedited keeps the gap visible where it lives.
+
+**Source:** Owner decision 2026-10-05, asked "Can a ModulePackage be a provider? Today the
+controller only accepts a ModuleInstance as a TransformerRegistration's provider ...": "Yes it
+can. Both Instance and Package are rendered the same way in in the kernel. Meaning if both have
+TransformerRegistation both will render them." Controller behaviour read from source (opm-operator
+277ca18): `catalog_opm/src/transformers/transformer_registration_transformer.cue:80` stamps
+`providerRef`; `internal/controller/transformerregistration_controller.go:175-180` refuses with
+`ProviderMismatch`, and `checkProviderIdentity` (`:369-401`) gets a ModuleInstance by the reference
+(messages at `:380` and `:399`); `api/v1alpha1/common_types.go:48` documents the reference as
+naming a ModuleInstance.
+
+### D16: "Uses" is what an instance's render used, and is never an edge
+
+**Kind:** contract
+
+**Depends:** 0015:D3, 0015:D16
+
+**Decision:** The pages show, per ModuleInstance, the contracts its last successful render used,
+read from `status.requiredContracts` (served as `renderContracts`), under the label "Uses" with the
+explanation that these are the contracts the render used. They are a list and a filter, never an
+edge (D4:R3 holds). A ModulePackage records no such list, so it shows "not recorded"; a Uses filter
+leaves packages out and says so. For a contract a registration provides, "Used by" lists the
+readable instances whose `renderContracts` contain it: the intersection of their contracts with
+the registration's `spec.provides`, which is the rule the controller itself uses to count a
+claim's dependents before it lets the claim go. For provider contracts that list is therefore
+demand in the controller's own sense; for catalog-fulfilled contracts it stays usage.
+
+**Requirements:**
+
+- R1: An instance's render contracts are shown labelled as what its render used, never as an edge
+  and never as its provider demand in general.
+- R2: A package shows that it records no contracts; a Uses filter excludes packages and the view
+  says that packages are not included.
+- R3: "Used by" for a provided contract lists the readable instances whose render contracts
+  contain it, and says when the caller could not list instances everywhere.
+
+**Alternatives considered:**
+
+- **Wait for recorded provider demand** (OQ18). The owner wants instance usage now; the
+  intersection already matches the controller's dependents rule.
+- **Infer a package's usage from its inventory kinds.** A guess (Principle IV).
+
+**Rationale:** The field is recorded and the controller already relies on it for its removal
+guard; labelling it as usage keeps the catalog-fulfilled majority from reading as demand.
+
+**Source:** Owner decision 2026-10-05 ("Instances now, packages later"). opm-operator 277ca18:
+`api/v1alpha1/moduleinstance_types.go:168-185` (the field and its use by the removal guard);
+`internal/controller/transformerregistration_dependents.go:43-81` (dependents are the instances
+whose `requiredContracts` meet the claim's `spec.provides`). Packages recording contracts is OQ24.
+
+### D17: The redesigned UI shows what the cluster records, under the user's words
+
+**Kind:** scope
+
+**Decision:** The web UI has two top-level views, **Platform** and **Installed** (ModuleInstances
+and ModulePackages in one list), and a page per instance, package and catalog. Page text says
+"controller" for the opm-operator, "Providers" for TransformerRegistrations and the instances and
+packages that hold them, and "Installed" for instances and packages; read API names do not change
+here (`operatorVersion`, owner `operator`), because renaming them belongs to the controller
+rename's portal change. The redesign shows only what the cluster records. It leaves out, until a
+source exists: catalog contents (definitions, their descriptions and documentation links, and
+transformers; OQ25), a health for the Platform itself (OQ22), and the transformer behind each
+object (OQ5). The Platform page shows the registrations and catalogs as filterable rows instead of
+the platform graph; the read API keeps serving `platform/graph`.
+
+**Requirements:**
+
+- R1: The main navigation is Platform and Installed; the former `/instances` and `/packages` pages
+  redirect to Installed filtered by kind, keeping a namespace filter.
+- R2: Page text names the controller, Providers and Installed; read API field and enum names are
+  unchanged by this decision.
+- R3: The Catalog page shows only what the Platform and the registrations record: path, version,
+  source, enablement, claimants, the contributing registration, the claiming providers and the
+  Platform's conditions; it shows no definition, description or transformer.
+- R4: No page shows a Platform health until one has a source.
+
+**Alternatives considered:**
+
+- **Draw the reviewed canvas in full, with placeholders** where data is missing. Shows invented
+  facts (Principle IV).
+- **Keep Instances and Packages as two views.** Two lists answer one question, what is installed.
+- **Keep the platform graph on the Platform page.** At a handful of catalogs and registrations the
+  rows carry the same joins, with filters, and the graph remains in the API for any client.
+
+**Rationale:** The canvas the owner reviewed is the target; cutting it to recorded data keeps D3's
+and D4's promises. Words a platform team uses beat kind names on the page, while the API keeps its
+contract.
+
+**Source:** Owner decision 2026-10-05 on catalog contents ("Defer those tabs"). Navigation,
+vocabulary, the Platform health omission and the platform graph's removal from the Platform page:
+supervisor ruling 2026-10-05 from the owner-reviewed canvas
+([evidence 03](design/evidence/03-ui-canvas/)), pending the owner. The wire rename is the
+controller rename plan's portal change (PORTAL-1).
+
+### D18: Every page names the cluster, the reader and the server version
+
+**Kind:** contract
+
+**Decision:** The read API serves a `Cluster` document at `/api/v1alpha1/clusters/{cluster}`, and
+every page header shows it: the kubeconfig context and the name of its cluster entry (or that the
+portal runs with in-cluster credentials), the username the caller reads as, and the Kubernetes
+version of the API server. The version is read from the API server's `/version`, which is a
+non-resource read: the reader reads it at start after a review of `get` on the non-resource path
+`/version`, and the document serves it to a caller only after the same review for that caller;
+otherwise the field is absent and the document says the caller may not read it. The document names
+nothing else about the kubeconfig: no server URL, no user entry, no credential. The username is the
+caller's own, which the caller already holds.
+
+**Requirements:**
+
+- R1: The `Cluster` document carries the context name and the cluster entry's name, or the
+  in-cluster source, and never a server URL, kubeconfig user entry or credential.
+- R2: The document's username is the requesting caller's own identity, never another person's or
+  the portal's.
+- R3: The Kubernetes version is read and served only after a review allowed `get` on the
+  non-resource path `/version` for the identity concerned; a denied review leaves it out and says
+  so.
+
+**Alternatives considered:**
+
+- **Put these facts in the Platform document.** A caller who may not read the Platform still needs
+  to know which cluster and identity the portal reads with, and none of the facts come from the
+  Platform object.
+- **The kubelet version from Node objects.** A new kind to read, with a list grant on Nodes.
+- **No identity in the header.** A user with several kubeconfigs cannot tell which one the portal
+  reads with.
+
+**Rationale:** A read-only portal is trusted only as far as the reader knows what it is reading
+and as whom; three short facts in the header settle that on every page.
+
+**Source:** Supervisor ruling 2026-10-05 from the canvas's identity card and "reading as" mark
+([evidence 03](design/evidence/03-ui-canvas/)), pending the owner. The supervisor's brief placed
+the version and context in the Platform document; the separate document is the writer's proposal
+for the reason above. That `/version` is readable by every authenticated identity through the
+built-in `system:public-info-viewer` binding is unverified here and is the first spike of the
+change.
+
 ## Open questions
 
 Each question carries a status. An open one carries **Blocking:** `milestone 2` (must be answered
@@ -932,29 +1166,56 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
 - **OQ3: Should the operator report workload health, or does health stay a consumer concern?**
   Status: open. Blocking: deferrable. D3 computes health in the portal. An operator condition would
   let the CLI and other consumers share one answer; it would also be a health wait the operator has
-  deliberately not built.
+  deliberately not built. The redesign's canvas drew a health block for the Platform itself; it is
+  left out (D17:R4) and asked as OQ22.
 - **OQ9: Is a one-hour event feed enough, or should the portal or the operator persist events or
   extend status history?** Status: open. Blocking: deferrable. The operator keeps at most ten
-  history entries, so a run of failed retries pushes every earlier entry out.
+  history entries, so a run of failed retries pushes every earlier entry out. The redesign's
+  attempt dots show exactly those entries and say there are at most ten.
 - **OQ19: Should the operator record render warnings durably in status, not only as events?**
   Status: open. Blocking: deferrable. D9:R5 labels the gap on the instance page.
+- **OQ22: Should the Platform show a health of its own, and computed from what?** Status: open.
+  Blocking: deferrable. Nothing records one: the Platform's `Ready` is module generation and its
+  `ContractsFulfilled` is information (D3:R8), and a roll-up over installed workloads would be the
+  portal's invention. Until one is defined, D17:R4 leaves it out.
 
 ### Graph and data the operator does not record
 
 - **OQ4: What shape should the Platform's contract inventory take in its status?** Status: open.
   Blocking: deferrable. It would let the Platform view draw which catalog defines which contract and
-  which provider fulfils it.
+  which provider fulfils it. The Catalog page's deferred definitions and contracts views wait on it
+  or on OQ25.
 - **OQ5: Should each inventory entry record the transformer that produced it?** Status: open.
-  Blocking: deferrable. It would give a transformer-to-object provenance edge.
+  Blocking: deferrable. It would give a transformer-to-object provenance edge, and the transformers
+  a provider ships, which the redesign leaves out (D17).
 - **OQ12: Should rendered objects and pod templates carry the instance uuid and namespace labels?**
   Status: open. Blocking: deferrable. V1 walks ownerReferences instead (D10), so this is a
   convenience for other consumers.
 - **OQ16: Should the portal draw Flux Kustomization to ModuleInstance edges from Flux labels?**
   Status: open. Blocking: deferrable. Not observed on a live cluster; the capture had no Flux.
-- **OQ18: How should provider-contract demand be recorded, and for which owners?** Status: open.
-  Blocking: deferrable. `status.requiredContracts` lists every contract the render used, so it is
-  not demand. Candidates: per-entry fulfilment, or a separate provider-contract list. Until one
-  exists, D4:R3 holds.
+- **OQ18: How should provider-contract demand be recorded, and for which owners?** Status: open,
+  narrowed 2026-10-05. Blocking: deferrable. `status.requiredContracts` lists every contract the
+  render used, so on its own it is not demand. Intersected with a registration's `spec.provides`
+  it is: that intersection is how the controller counts a claim's dependents
+  (`internal/controller/transformerregistration_dependents.go:43-81` at opm-operator 277ca18), and
+  D16 shows it as "Used by" on a provider. What stays open: a record of demand an edge could be
+  drawn from (D4:R3 holds), and demand by ModulePackages, which record no contracts (OQ24).
+  Candidates: per-entry fulfilment, or a separate provider-contract list.
+- **OQ23: Should the controller accept a ModulePackage as a TransformerRegistration's provider?**
+  Status: open. Blocking: deferrable. A controller change, not a portal one. The owner's answer
+  that a package can be a provider (D15) meets an acceptance check that gets a ModuleInstance by
+  `spec.providerRef`, so a package's claim is refused with `ProviderMismatch`. Accepting it needs
+  the reference to name a kind, or acceptance to look for the claim in a package's inventory too,
+  and the activation gate to read a package's readiness. Until then D15:R3 shows the refusal.
+- **OQ24: Should ModulePackage status record the contracts its render used?** Status: open.
+  Blocking: deferrable. A controller change. The owner chose "instances now, packages later";
+  until packages record them, D16:R2 shows "not recorded", and the controller's removal guard
+  does not count packages as dependents either (it lists ModuleInstances only).
+- **OQ25: Where should the portal read a catalog's contents (definitions, their descriptions and
+  documentation links, transformers) from?** Status: open. Blocking: deferrable. The owner
+  deferred these views (D17). The portal may not fetch or evaluate CUE to get them (Principle I,
+  D4). Candidates: the Platform's contract inventory (OQ4), a catalog index the controller or the
+  publisher records, or the documentation bundle's catalog pages.
 
 ### Scope of what is shown
 

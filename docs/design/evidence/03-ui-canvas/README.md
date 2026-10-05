@@ -28,7 +28,7 @@ the design survives without access to the canvas.
   [01-live-cluster-capture](../01-live-cluster-capture/) and in the controller source.
 - **Not the shipped UI.** The boards show more than the change builds. What ships, and what was
   left out and why, is in the change's `proposal.md` and `design.md` and in
-  [DESIGN.md](../../../DESIGN.md) D14 to D17. Notably the boards draw catalog definitions,
+  [DESIGN.md](../../../DESIGN.md) D14 to D18. Notably the boards draw catalog definitions,
   descriptions, transformers and a Platform health block, which have no data source yet.
 - **Not served by the portal, and not loadable as they are.** The files are the canvas's own
   format: they load a `support.js` runtime that is not copied here and fonts from Google Fonts,

@@ -139,7 +139,10 @@ Start with the simplest implementation that satisfies the current requirement. N
 MUST be justified by a concrete need.
 
 - Standard library first: `net/http` routing, `html/template`, `log/slog`
-- No JavaScript build step and no client-side component state in V1
+- No JavaScript build step. In V1 the browser keeps only per-browser display preferences in
+  `localStorage`, a theme choice and each list view's last filters, with filters in the URL query
+  winning whenever present (portal:D14); no document, identity, session or authorization result
+  is kept client-side
 - A dependency earns its place in the change that adds it
 
 ---
