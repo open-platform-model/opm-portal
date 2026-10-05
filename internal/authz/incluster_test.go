@@ -95,7 +95,7 @@ func TestServiceAccountIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ServiceAccountIdentity: %v", err)
 	}
-	want := Identity{Username: portalSA, Groups: []string{"system:serviceaccounts", "system:serviceaccounts:opm-portal", "system:authenticated"}}
+	want := Identity{Username: portalSA, Groups: []string{"system:serviceaccounts", "system:serviceaccounts:opm-portal", "system:authenticated"}, reader: true}
 	if got.key() != want.key() {
 		t.Fatalf("ServiceAccountIdentity = %+v, want %+v", got, want)
 	}
@@ -146,7 +146,9 @@ func TestNewInClusterRefusesWhatCannotBeServed(t *testing.T) {
 	}
 	widened := reader.clone()
 	widened.Groups = append(widened.Groups, "system:masters")
-	for _, r := range []Identity{{}, {Username: "system:anonymous"}, person, {Username: portalSA}, widened} {
+	// The reader's exact claims, not built by ServiceAccountIdentity.
+	spelled := Identity{Username: portalSA, Groups: slices.Clone(reader.Groups)}
+	for _, r := range []Identity{{}, {Username: "system:anonymous"}, person, {Username: portalSA}, widened, spelled} {
 		if _, err := NewInCluster(reviews, r, Options{}); err == nil {
 			t.Errorf("NewInCluster accepted reader %+v", r)
 		}
@@ -311,6 +313,45 @@ func TestInClusterRefusesSystemIdentities(t *testing.T) {
 				t.Fatalf("cluster saw %d requests for a refused identity, want 0", n)
 			}
 		})
+	}
+}
+
+// TestInClusterClaimsSpellingTheReaderAreAPerson is the case identity
+// mapping could produce from claims that name the portal's ServiceAccount
+// with its exact groups: the identity was not built by
+// ServiceAccountIdentity, so it is a person, refused with no request, and
+// logged, even after the reader holds a cached allow for the same read.
+func TestInClusterClaimsSpellingTheReaderAreAPerson(t *testing.T) {
+	sc := newSARCluster(t)
+	log, buf := accessLogger()
+	c := sc.checker(t, Options{AccessLog: log})
+	req := Attributes{Verb: "list", Resource: deployments}
+	if _, err := c.Check(t.Context(), portalReader(t), req); err != nil {
+		t.Fatalf("Check(reader) = %v", err)
+	}
+	before := len(sc.Actions())
+
+	// The groups in another order, as claims might carry them.
+	spelled := Identity{Username: portalSA, Groups: []string{"system:authenticated", "system:serviceaccounts:opm-portal", "system:serviceaccounts"}}
+	g, err := c.Check(t.Context(), spelled, req)
+	requireDenial(t, g, err, CodeUnauthenticated)
+	if after := len(sc.Actions()); after != before {
+		t.Fatalf("cluster saw %d requests for claims spelling the reader, want 0", after-before)
+	}
+	if err := (Grant{}).Covers(spelled, req); err == nil {
+		t.Fatal("a zero grant covers the spelled identity")
+	}
+	rg, err := c.Check(t.Context(), portalReader(t), req)
+	if err != nil {
+		t.Fatalf("Check(reader) = %v", err)
+	}
+	if err := rg.Covers(spelled, req); err == nil {
+		t.Fatal("the reader's grant covers claims spelling the reader")
+	}
+
+	want := accessLine{Msg: "access", User: portalSA, Verb: "list", Group: "apps", Version: "v1", Resource: "deployments", Decision: "deny", Code: string(CodeUnauthenticated)}
+	if lines := accessLines(t, buf); len(lines) != 1 || lines[0] != want {
+		t.Fatalf("access log = %+v, want only %+v (no reader line)", lines, want)
 	}
 }
 

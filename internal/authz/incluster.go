@@ -26,12 +26,13 @@ const (
 // sends no self review and reads no object (0030:D6:R9).
 //
 // reader is the portal's ServiceAccount, the identity the read model reads
-// as, exactly as ServiceAccountIdentity returns it. Its own grants come from reviews naming it,
-// renewed when the cached decision expires. Every other identity is a
-// person, and a person with a system username or a system group other than
-// system:authenticated is refused before a review is sent, so a mapping
-// mistake cannot borrow the ServiceAccount's access or a privileged group
-// (0030:D6:R3).
+// as, exactly as ServiceAccountIdentity returns it. Its own grants come from
+// reviews naming it, renewed when the cached decision expires. Every other
+// identity is a person, including one whose fields equal the reader's but
+// that ServiceAccountIdentity did not build, and a person with a system
+// username or a system group other than system:authenticated is refused
+// before a review is sent, so a mapping mistake cannot borrow the
+// ServiceAccount's access or a privileged group (0030:D6:R3).
 func NewInCluster(reviews authorizationv1client.SubjectAccessReviewInterface, reader Identity, opts Options) (*Checker, error) {
 	if reviews == nil {
 		return nil, errors.New("in-cluster authorizer: no access review client")
@@ -58,9 +59,12 @@ type subjectReviewer struct {
 }
 
 func (s *subjectReviewer) decide(ctx context.Context, who Identity, req Attributes) (bool, error) {
-	if who.key() != s.readerKey && !isPerson(who) {
+	isReader := who.reader && who.key() == s.readerKey
+	if !isReader && !isPerson(who) {
 		// A person never carries a system name or group; one that does
 		// came through a broken mapping and is refused, not reviewed.
+		// Only ServiceAccountIdentity marks the reader, so claims that
+		// spell the ServiceAccount's name and groups still land here.
 		return false, &DenialError{Code: CodeUnauthenticated, Attributes: req}
 	}
 	review := &authorizationv1.SubjectAccessReview{
@@ -110,7 +114,11 @@ func extraValues(extra map[string][]string) map[string]authorizationv1.ExtraValu
 // ServiceAccountIdentity returns the identity the API server gives the
 // ServiceAccount username system:serviceaccount:<namespace>:<name>, with the
 // groups it is authenticated with, so a review naming it asks the question
-// the API server answers for the ServiceAccount's own reads.
+// the API server answers for the ServiceAccount's own reads. The identity is
+// marked as the reader, which no Identity literal can be: it is the only
+// value NewInCluster accepts as its reader and the only one the in-cluster
+// Checker reviews as the ServiceAccount. Call it only for the portal's own
+// ServiceAccount, never for a signed-in person.
 func ServiceAccountIdentity(username string) (Identity, error) {
 	ns, err := serviceAccountNamespace(username)
 	if err != nil {
@@ -119,6 +127,7 @@ func ServiceAccountIdentity(username string) (Identity, error) {
 	return Identity{
 		Username: username,
 		Groups:   []string{"system:serviceaccounts", "system:serviceaccounts:" + ns, authenticatedGroup},
+		reader:   true,
 	}, nil
 }
 

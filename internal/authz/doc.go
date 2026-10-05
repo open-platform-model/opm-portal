@@ -67,9 +67,11 @@
 // token's subject through ServiceAccountFromToken). The read model's
 // informers, polls and on-demand lists hold grants issued from reviews
 // naming it, asked for when first needed and again once the cached decision
-// expires. Every other identity is a person: a system username, or a system
-// group other than system:authenticated, is refused before any review, so
-// no person is ever answered with the ServiceAccount's access.
+// expires. Only ServiceAccountIdentity marks an identity as the reader, so
+// every other identity is a person, even one whose username and groups equal
+// the reader's: a system username, or a system group other than
+// system:authenticated, is refused before any review, so no person is ever
+// answered with the ServiceAccount's access.
 //
 // # Access log
 //
