@@ -57,8 +57,8 @@ Available for ten minutes.
 edges, because the recorded contracts are everything a render used, not what it demands.
 
 **Your access is the boundary (D5, D6, D7).** Locally, the portal reads with your kubeconfig.
-In-cluster, every read is checked for the signed-in user first, empty identity is refused, and a
-missing object looks like a forbidden one.
+In-cluster, a future plan, every read is checked for the signed-in user first and empty identity
+is refused. Either way a missing object looks like a forbidden one.
 
 **Nothing secret is read (D8, D10, D11).** No Secret data, no instance values, a read-only role,
 logs only for OPM Pods. In-cluster, operator message text is hidden. Events are an expiring feed,
@@ -164,9 +164,10 @@ API's first consumer.
 
 **Two milestones, one design.** Milestone 1 is a binary on the user's machine, bound to loopback,
 reading with the user's kubeconfig; each read is checked first with a SelfSubjectAccessReview, so a
-node the user may not read shows as locked before it is read. Milestone 2 runs the same binary
-in-cluster: users sign in with OIDC, every read is authorized by a SubjectAccessReview for that
-user, and the portal then reads with its own narrow, read-only ServiceAccount.
+node the user may not read shows as locked before it is read. Milestone 2, a future plan (D6,
+Status), runs the same binary in-cluster: users sign in with OIDC, every read is authorized by a
+SubjectAccessReview for that user, and the portal then reads with its own narrow, read-only
+ServiceAccount.
 
 **The portal keeps a watched view.** The four OPM kinds are watched. Inventory objects are watched
 per kind, selected by the OPM instance label, once an inventory names that kind. Pods and
@@ -482,6 +483,17 @@ backend without rewriting the seam).
 
 **Kind:** contract
 
+**Status:** in-cluster mode is a future plan, and its OIDC half is not implemented. Owner decision
+2026-10-05, asked about the merged OIDC sign-in after writing "I thought you only would add local
+auth, and not oidc?": "Remove OIDC, but keet it as future plans". The OIDC text below (sign-in with
+the authorization code flow and PKCE, bearer JWTs, the identity mapping and its prefixes) and R5,
+R6 and R8, with the claim-mapping parts of R2 and R3, are a future plan, kept with their numbers.
+Their implementation (PR 28) was removed by the change `remove-oidc-sessions`; it is preserved in
+the archived change `2026-10-05-add-oidc-sessions` and in git history at f5a8eaa. The review half
+stays on main, dormant: the SubjectAccessReview authorizer (R1, R3's review side, R4, R7, R9, R10)
+and the read API's refusal of an empty identity before any review (R2). No command constructs
+in-cluster mode yet.
+
 **Decision:** In-cluster, users sign in through OIDC (authorization code with PKCE); programmatic
 clients present a bearer JWT from the same issuer, naming the portal's configured audience. For
 every read the portal sends a SubjectAccessReview carrying the user's mapped name and groups for
@@ -544,7 +556,7 @@ confused deputy.
 
 **Source:** Owner decision 2026-10-04 (milestone 2: in-cluster Deployment, OIDC login,
 SubjectAccessReview-as-user, fail closed on empty identity). Owner decision 2026-10-04 ("Keep the
-seam"). R10: owner answer 2026-10-05 ("SAR for its own SA (Recommended)": at startup and per TTL
+seam"). Owner decision 2026-10-05 ("Remove OIDC, but keet it as future plans"; see Status). R10: owner answer 2026-10-05 ("SAR for its own SA (Recommended)": at startup and per TTL
 the portal sends a SubjectAccessReview naming its own ServiceAccount, background reads hold that
 grant, and every user-facing answer is still gated by a review as the user). [Research](design/evidence/prior-art-and-access.md),
 access model.

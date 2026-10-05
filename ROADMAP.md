@@ -10,8 +10,8 @@ Last updated: 2026-10-05.
 
 | Milestone | State |
 | --- | --- |
-| V1 M1: local mode | Done; hardening merged, first release (0.1.0) pending |
-| V1 M2: in-cluster | In progress: wave 1 (authorizer, OIDC sign-in, message hiding) merged; next the in-cluster command and manifests |
+| V1 M1: local mode | Done; hardening in review, first release (0.1.0) pending |
+| V1 M2: in-cluster | Future plan: OIDC removed; authorizer and safeguards dormant on main |
 | V2: marketplace | Not started; waits on enhancement 0027 |
 | Beyond V2 | Ideas, ranked |
 
@@ -46,46 +46,57 @@ Exit evidence shown: every page renders from the read API over the F1 capture; t
 break turns health Degraded while Applied stays (portal:D3:R2/R3); goldens come from captured
 cluster state; F1 holds an accepted, active registration on a released operator (v1.0.0-beta.6).
 
-### M1 hardening
+### M1 hardening (in review)
 
-Merged:
-
-| PR | What landed |
-| --- | --- |
-| 25 | The M1 e2e suite and browser tests run nightly (issue 21 item 1, issue 23 item 2) |
-| 26 | Stream revalidation bounded by time; streams end at session expiry; the spent launch page is deleted (issue 13, issue 21 items 2 and 5) |
-
-Open: the first release, 0.1.0 (PR 18), now unblocked.
+| Change | PR | Gate |
+| --- | --- | --- |
+| Run the M1 e2e suite and browser tests nightly (issue 21 item 1, issue 23 item 2) | 25 | nightly E2E green |
+| Bound stream revalidation by time; end streams at session expiry; delete the spent launch page (issue 13, issue 21 items 2 and 5) | 26 | `task check`, `task test:browser`, `task e2e:local` |
+| First release, 0.1.0 | 18 | release PR merged after the two above |
 
 Still open: issue 23 items 1 and 3 (provider health on the Platform page, graph defaults from real
 use), issue 13 items 3 and 4.
 
-### M2: in-cluster mode (in progress)
+### Future plans: in-cluster mode with OIDC sign-in
 
-The same binary runs in-cluster: OIDC sign-in, a SubjectAccessReview for the signed-in user before
-every read, reads as the portal's own read-only ServiceAccount (portal:D6, portal:D11).
+Not scheduled. The same binary would run in-cluster: OIDC sign-in, a SubjectAccessReview for the
+signed-in user before every read, reads as the portal's own read-only ServiceAccount (portal:D6,
+portal:D11). On 2026-10-05 the owner decided "Remove OIDC, but keet it as future plans"; portal:D6's
+Status says which parts are planned and which exist.
 
-Wave 1, merged:
+Dormant on main (merged, constructed by no command):
 
-| PR | What landed | Decisions |
+| PR | What | Decisions |
 | --- | --- | --- |
 | 24 | In-cluster authorizer behind the seam: people and the portal's own reader, no self review | portal:D6:R1/R3/R7/R9/R10 |
-| 27 | Operator message text hidden in-cluster; the stream diffed per subscriber | portal:D8:R5, portal:D2:R7 |
-| 28 | OIDC sign-in, sessions and bearer tokens, fail closed on empty or `system:` identity, prefixes required | portal:D6:R2/R3/R5/R6/R8 |
+| 27 | Hide operator message text in-cluster; diff the stream per subscriber (local mode uses the diff too) | portal:D8:R5, portal:D2:R7 |
 
-Also merged: the design and this plan moved into the repo when enhancement 0030 was withdrawn
-(PR 29), and every `0030:` citation outside archived changes rewritten as `portal:` (issues 31
-and 32).
+Removed: OIDC sign-in, sessions and bearer tokens with the fail-closed identity mapping (PR 28,
+portal:D6:R2/R3/R5/R6/R8 on the authentication side), by the change `remove-oidc-sessions`. The code,
+tests and spec are preserved in the archived change `2026-10-05-add-oidc-sessions` and in git
+history at f5a8eaa.
 
-Next, in order:
+Open items from the reviews of PRs 24 and 28 ([issue 33](https://github.com/open-platform-model/opm-portal/issues/33)),
+to settle when the plan resumes:
 
-1. **In-cluster `serve`**: the mode wired end to end, health endpoints, per-user access log
-   (portal:D6:R7), with a Dex issuer on kind for the e2e suite.
-2. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
+- End a session at the ID token's expiry, not a fixed 8 hours.
+- Make the per-user session bound configurable and state it in the spec.
+- Decide what the global session cap does when full: evict across users or refuse new sign-ins.
+- Bound the background grant's scope: a ClusterRole test pinning exactly the verbs and resources
+  the informers need.
+- Access log volume: one line per decision, cached ones included; deduplicate or sample.
+
+What it would take, in order:
+
+1. **OIDC sign-in**, re-applied from the archived change with the session items above settled
+   (portal:D6:R2/R3/R5/R6/R8).
+2. **In-cluster `serve`**: the mode wired end to end, health endpoints, per-user access log
+   (portal:D6:R7).
+3. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
    (portal:D11:R1/R2/R3).
-3. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before M2
+4. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before M2
    exits.
-4. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
+5. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
    selectors, and the floor documented (portal:D12). Cross-repo: the owner's 1.34 answer also puts
    opm-operator on that floor, declared, with its own CI job on 1.34; tracked here until an
    operator issue carries it.
