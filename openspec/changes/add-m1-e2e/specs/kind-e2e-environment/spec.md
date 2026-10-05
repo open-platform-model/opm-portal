@@ -14,7 +14,8 @@ sees podinfo's inventory objects as forbidden with a partial health and as locke
 page, and has the cluster-wide list topic closed as forbidden on the stream. It SHALL patch
 podinfo's image tag to one that does not exist and SHALL fail unless the stream reports podinfo
 Degraded within 10 seconds of the cluster first reporting a Pod that cannot pull its image, with
-its applied state Applied, and keeps it Applied and Degraded afterwards. It SHALL revert the
+its applied state Applied, and for 5 seconds afterwards never reports it Failed or Stalled or
+other than Degraded. It SHALL revert the
 patch and wait for podinfo to settle before it ends. Source: 0030:D3:R2/R3/R5, 0030:D4:R4,
 0030:D5:R5/R7.
 
@@ -35,7 +36,8 @@ patch and wait for podinfo to settle before it ends. Source: 0030:D3:R2/R3/R5, 0
 #### Scenario: Health stops following the stream
 
 - **WHEN** a change makes the portal stop delivering podinfo's Pod changes on the stream
-- **THEN** `task e2e:m1` fails, naming how long after the cluster the stream said Degraded
+- **THEN** `task e2e:m1` fails, either because no Degraded document arrives or because it
+  arrives more than 10 seconds after the cluster reported the broken Pod
 
 ## MODIFIED Requirements
 
