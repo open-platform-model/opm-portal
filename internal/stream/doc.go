@@ -55,7 +55,7 @@
 //     the stream gets a closed message for it. A list topic needs the list
 //     grant a GET list needs, cluster-wide for "instances" and on the
 //     namespace for "instances:<ns>", and is refused with the same denial
-//     (0030:D7:R2). A producer that names any other read for a list topic
+//     (portal:D7:R2). A producer that names any other read for a list topic
 //     does not serve it.
 //   - A producer that is an Admitter decides, after every read of a topic
 //     is allowed, whether the identity may follow it (a Pod log needs an

@@ -45,7 +45,7 @@ func expectProblem(t *testing.T, res response, status int, code string) v1.Probl
 	return p
 }
 
-// TestForbiddenReadsTheSameWhetherOrNotTheObjectExists (0030:D7:R1).
+// TestForbiddenReadsTheSameWhetherOrNotTheObjectExists (portal:D7:R1).
 func TestForbiddenReadsTheSameWhetherOrNotTheObjectExists(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.DenyResources("moduleinstances", "modulepackages", "platforms"))
 	for _, pair := range [][2]string{
@@ -79,7 +79,7 @@ func TestAllowedAndMissingIsNotFound(t *testing.T) {
 	}
 }
 
-// TestListsHoldOnlyWhatTheCallerMayList (0030:D7:R2, 0030:D5:R5).
+// TestListsHoldOnlyWhatTheCallerMayList (portal:D7:R2, portal:D5:R5).
 func TestListsHoldOnlyWhatTheCallerMayList(t *testing.T) {
 	onlyDefault := func(_ string, ra authorizationv1.ResourceAttributes) bool {
 		return ra.Resource != "moduleinstances" || ra.Namespace == "default"
@@ -115,7 +115,7 @@ func TestListsHoldOnlyWhatTheCallerMayList(t *testing.T) {
 	}
 }
 
-// TestPartialAccessIsMarkedPerItem (0030:D7:R3).
+// TestPartialAccessIsMarkedPerItem (portal:D7:R3).
 func TestPartialAccessIsMarkedPerItem(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.DenyResources("clusterroles"))
 	var doc v1.Instance
@@ -238,7 +238,7 @@ func TestRefusedBeforeAnyReview(t *testing.T) {
 	}
 }
 
-// TestEventsOnlyAboutReachedObjects (0030:D7:R4): an object no inventory
+// TestEventsOnlyAboutReachedObjects (portal:D7:R4): an object no inventory
 // reaches is refused with the forbidden problem itself, and only after the
 // caller's checks; its events are never listed.
 func TestEventsOnlyAboutReachedObjects(t *testing.T) {

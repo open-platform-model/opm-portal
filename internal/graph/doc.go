@@ -11,7 +11,7 @@
 // provider reference against the provider's inventory) the edge says
 // whether it does, rather than the graph picking one. No edge relates an
 // instance to a contract: the contracts an instance's render used are text
-// on its node (0030:D4).
+// on its node (portal:D4).
 //
 // # Ids
 //

@@ -78,7 +78,7 @@ type Producer interface {
 
 // Admitter is an optional extension of Producer, for topics that need more
 // than their reads: a Pod log topic, for example, is served only for a Pod an
-// OPM inventory the subscriber may read reaches (0030:D10:R1). The broker
+// OPM inventory the subscriber may read reaches (portal:D10:R1). The broker
 // calls Admit after every read Attributes names for t is allowed for who, and
 // before t attaches, whenever it authorizes a topic: on Open, Subscribe and
 // a reconnect. grants are those reads' grants, in Attributes order. Returning
@@ -246,7 +246,7 @@ type streamState struct {
 	expiry     *time.Timer
 	// lastID is the last event id the stream handed out. Ids count this
 	// stream's own events, so their gaps reveal nothing about other topics,
-	// other streams or the items left out of this one (0030:D7:R2).
+	// other streams or the items left out of this one (portal:D7:R2).
 	lastID uint64
 	// marks maps the stream's most recent event ids to the broker sequence
 	// each one delivered, oldest first, so a resume finds where it stopped.
@@ -371,7 +371,7 @@ func (b *Broker) checkTopics(topics []Topic) ([]Topic, map[Topic][]authz.Attribu
 		}
 		if t.Kind() == KindInstances && !isListRead(t, a) {
 			// A list topic is served under the list grant a GET list needs
-			// and nothing else (0030:D7:R2); a producer naming any other
+			// and nothing else (portal:D7:R2); a producer naming any other
 			// read is not trusted with it.
 			return nil, nil, fmt.Errorf("%w: %s (the producer names no list read for it)", ErrTopicNotServed, t)
 		}

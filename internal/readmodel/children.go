@@ -14,7 +14,7 @@ import (
 )
 
 // The runtime children below inventory workloads (tier 3), which the Pod
-// rule reads (0030:D3:R2).
+// rule reads (portal:D3:R2).
 var (
 	pods        = schema.GroupVersionResource{Version: "v1", Resource: "pods"}
 	replicaSets = schema.GroupVersionResource{Group: "apps", Version: "v1", Resource: "replicasets"}

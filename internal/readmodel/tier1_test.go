@@ -73,7 +73,7 @@ func checkCatalogs(t *testing.T, v PlatformView) {
 }
 
 // checkRegistrations: the accepted claim and the deliberate refusal of F1,
-// acceptance, activation and verdict read apart (0030:D4:R4).
+// acceptance, activation and verdict read apart (portal:D4:R4).
 func checkRegistrations(t *testing.T, v PlatformView) {
 	t.Helper()
 	if v.RegistrationsAccess != health.AccessOK || len(v.Registrations) != 2 {
@@ -260,7 +260,7 @@ func TestReadsRefuseUncoveredGrants(t *testing.T) {
 }
 
 // TestMissingAndExistingReadAlike: an uncovered read is refused the same
-// way whether or not the object exists (0030:D7:R1), and a covered read of a
+// way whether or not the object exists (portal:D7:R1), and a covered read of a
 // missing object is not found.
 func TestMissingAndExistingReadAlike(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
@@ -307,7 +307,7 @@ func TestConfiguredNamespacesBoundTheModel(t *testing.T) {
 
 // TestHeldInstancesCarryNoValues: a client-side applied instance arrives
 // with values, managed fields and the last-applied annotation; none of them
-// is held (0030:D8:R2/R3).
+// is held (portal:D8:R2/R3).
 func TestHeldInstancesCarryNoValues(t *testing.T) {
 	const secret = "s3cr3t-value"
 	podinfo := find(t, loadF1(t), "ModuleInstance", "podinfo").DeepCopy()

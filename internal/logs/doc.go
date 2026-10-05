@@ -1,7 +1,7 @@
 // Package logs streams Pod logs to the change stream as bounded log topics.
 //
 // A log topic, "log:<namespace>/<pod>/<container>" or the same with a
-// trailing "/previous", follows one container (0030:D10). Producer serves
+// trailing "/previous", follows one container (portal:D10). Producer serves
 // these topics to a stream.Broker, usually through a stream.Mux:
 //
 //   - The topic's read is get on the Pod's log subresource. The broker

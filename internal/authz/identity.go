@@ -29,7 +29,7 @@ type Identity struct {
 // Authenticated reports whether i names a principal. An empty or blank
 // username, or the anonymous user, is no principal, whatever groups it
 // carries: such an identity must never reach the cluster, because an empty
-// subject would be answered for someone other than the caller (0030:D6:R2).
+// subject would be answered for someone other than the caller (portal:D6:R2).
 func (i Identity) Authenticated() bool {
 	u := strings.TrimSpace(i.Username)
 	return u != "" && u != anonymousUser

@@ -10,7 +10,7 @@ import (
 // Node ids are `<prefix>:<part>[/<part>...]`, built from kinds, groups,
 // namespaces and names only. No id holds a UID, so a node keeps its id
 // across a portal restart and a delete and recreate of its object
-// (0030:D4:R6).
+// (portal:D4:R6).
 const (
 	prefixPlatform     = "plat"
 	prefixCatalog      = "cat"

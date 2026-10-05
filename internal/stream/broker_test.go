@@ -202,7 +202,7 @@ func TestActivateAndReleaseAreRefcounted(t *testing.T) {
 // A list topic follows the read model's list rule: it needs the list grant a
 // GET list needs, cluster-wide for "instances" and on the namespace for
 // "instances:<ns>", and carries only the items within that grant's scope,
-// with no review per item (0030:D7:R2).
+// with no review per item (portal:D7:R2).
 func TestAListTopicFollowsTheListGrant(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice", "bob")
@@ -454,7 +454,7 @@ func TestTopicsThatCannotAttach(t *testing.T) {
 
 // Event ids count the stream's own events only: items left out for the
 // reader, items a producer strays with, other topics and other streams leave
-// no gap (0030:D7:R2).
+// no gap (portal:D7:R2).
 func TestEventIDsRevealNothingPublishedElsewhere(t *testing.T) {
 	t.Run("items the reader may not read", func(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
@@ -574,7 +574,7 @@ func TestTheCapIsCheckedBeforeTheProducerIsAsked(t *testing.T) {
 
 // A reader allowed single instances by name, and not the list of their
 // namespace, is refused the list topic as a GET list refuses it: names are
-// not asked one by one (0030:D7:R2).
+// not asked one by one (portal:D7:R2).
 func TestAListTopicIsRefusedWithoutTheListGrant(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		e := newEnv(t, Options{}, "alice")

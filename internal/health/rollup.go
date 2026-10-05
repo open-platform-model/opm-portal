@@ -62,7 +62,7 @@ type Input struct {
 	// ChildrenAccess says how reading the children went. Anything but
 	// AccessOK, the zero value included, means the Pod rule could not run:
 	// every readable workload that can own Pods is marked ChildrenUnread and
-	// its component and the instance are partial (0030:D3:R4).
+	// its component and the instance are partial (portal:D3:R4).
 	ChildrenAccess Access
 }
 
@@ -124,7 +124,7 @@ type Result struct {
 const maxOwnerHops = 8
 
 // Evaluate computes an instance's health from its inventory entries and
-// the runtime children below them (0030:D3): per-object health, the Pod
+// the runtime children below them (portal:D3): per-object health, the Pod
 // rule carried up to the inventory workload that owns the Pod, and a
 // worst-of roll-up to components and the instance.
 func Evaluate(in Input) Result {
@@ -165,7 +165,7 @@ func evaluateEntry(e *Entry) ObjectResult {
 
 // propagatePodRule marks the inventory object owning a broken Pod Degraded.
 // The owning workload's own status can report it available for the whole
-// progress deadline while its new Pod cannot start (0030:D3:R2).
+// progress deadline while its new Pod cannot start (portal:D3:R2).
 func propagatePodRule(objects []ObjectResult, inventoryByUID map[types.UID]int, in Input) {
 	childByUID := make(map[types.UID]*unstructured.Unstructured, len(in.Children))
 	for _, c := range in.Children {

@@ -29,7 +29,7 @@ type claimMapper struct {
 	groupsPrefix   string
 }
 
-// identity maps claims, failing closed (0030:D6:R2/R3). The username claim
+// identity maps claims, failing closed (portal:D6:R2/R3). The username claim
 // is checked before its prefix is applied: a prefix would turn an empty
 // claim into a non-empty name such as "oidc:", the shape of the bug where
 // empty claims fell through to the server's own identity (CVE-2026-23990).
@@ -118,7 +118,7 @@ func (m claimMapper) rawGroups(claims map[string]any) ([]string, error) {
 // checkPrefixes refuses prefixes that would let an identity provider
 // choose a name the API server trusts on its own. A prefix may be empty
 // only when the API server trusts the same issuer with the same prefixes
-// (0030:D6:R6); the groups prefix matters only when groups are read. A
+// (portal:D6:R6); the groups prefix matters only when groups are read. A
 // prefix that is a prefix of "system:", or starts with it, is refused in
 // any case, so "sys" and a group "tem:masters" cannot form
 // "system:masters".

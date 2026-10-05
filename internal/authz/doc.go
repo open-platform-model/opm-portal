@@ -26,7 +26,7 @@
 // caller's identity, and the local implementation holds a client for access
 // reviews and nothing else. A caller without access therefore receives the
 // same denial for an object that exists and one that does not, and the
-// denial's message does not name the object (0030:D7).
+// denial's message does not name the object (portal:D7).
 //
 // # Fail closed
 //
@@ -42,7 +42,7 @@
 //
 // When the access review fails, times out, or reports an evaluation error
 // without allowing, Check denies with CodeUnavailable. An error is never an
-// allow and is never cached (0030:D6).
+// allow and is never cached (portal:D6).
 //
 // # Local mode
 //

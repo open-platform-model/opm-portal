@@ -98,7 +98,7 @@ func TestInstanceHealthFromHeldState(t *testing.T) {
 
 // TestCLIOwnedInstanceHealth: the CLI-owned instance is managed externally
 // on the applied axis, and its health is computed from its inventory
-// (0030:D3:R6).
+// (portal:D3:R6).
 func TestCLIOwnedInstanceHealth(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	d := e.instance(t, "web", "web")
@@ -215,7 +215,7 @@ func TestUnresolvableKindIsNotReadable(t *testing.T) {
 }
 
 // TestSecondReadMakesNoClusterRequest: once the kinds are held, the detail
-// is answered from memory (0030:D3:R9).
+// is answered from memory (portal:D3:R9).
 func TestSecondReadMakesNoClusterRequest(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	e.instance(t, "cert-manager", "cert-manager")

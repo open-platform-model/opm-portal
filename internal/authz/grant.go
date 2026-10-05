@@ -15,7 +15,7 @@ var ErrNoGrant = errors.New("no authorization grant covers this read")
 // the decision behind it lasts. Read paths take a Grant and call Covers, with
 // the caller's identity and the read they are about to make, before every
 // read; Covers is the enforcement. Grant's fields are unexported, so only
-// this package can fill one in, and only Checker.Check does (0030:D7). The
+// this package can fill one in, and only Checker.Check does (portal:D7). The
 // zero Grant is invalid and covers nothing.
 type Grant struct {
 	sealed *grantData
@@ -85,7 +85,7 @@ func (g Grant) Covers(who Identity, req Attributes) error {
 	}
 	if who.key() != g.sealed.idKey {
 		// A grant held in shared state must not lend one caller's access
-		// to another (0030:D7).
+		// to another (portal:D7).
 		return fmt.Errorf("grant was issued to another identity: %w", ErrNoGrant)
 	}
 	if !g.sealed.now().Before(g.sealed.expires) {

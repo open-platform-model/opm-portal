@@ -126,7 +126,7 @@ func compact(t *testing.T, raw []byte) string {
 	return b.String()
 }
 
-// TestSnapshotsAreTheGETDocuments (0030:D2:R5).
+// TestSnapshotsAreTheGETDocuments (portal:D2:R5).
 func TestSnapshotsAreTheGETDocuments(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.AllowAll, fastStream)
 	ts := newHTTPServer(t, e)
@@ -161,7 +161,7 @@ func TestSnapshotsAreTheGETDocuments(t *testing.T) {
 
 // TestInstanceTopicFollowsAPodBreaking: a Pod that starts waiting on
 // ErrImagePull reaches the instance topic as a Degraded upsert while the
-// instance stays Applied (0030:D3:R3).
+// instance stays Applied (portal:D3:R3).
 func TestInstanceTopicFollowsAPodBreaking(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.AllowAll, fastStream)
 	ts := newHTTPServer(t, e)

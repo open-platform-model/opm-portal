@@ -108,7 +108,7 @@ type OIDCConfig struct {
 
 // OIDC is the in-cluster front door: it signs browsers in through the
 // issuer and accepts the issuer's bearer tokens, mapping both to an
-// identity that fails closed (0030:D6:R2/R3/R8).
+// identity that fails closed (portal:D6:R2/R3/R8).
 type OIDC struct {
 	cfg        OIDCConfig
 	log        *slog.Logger
@@ -196,7 +196,7 @@ func NewOIDC(ctx context.Context, cfg OIDCConfig) (*OIDC, error) {
 }
 
 // checkOIDCConfig validates cfg and fills its defaults, before any network
-// call (0030:D6:R6).
+// call (portal:D6:R6).
 func checkOIDCConfig(cfg OIDCConfig) (OIDCConfig, claimMapper, error) {
 	issuer, err := url.Parse(cfg.IssuerURL)
 	if err != nil || issuer.Scheme != "https" || issuer.Host == "" {

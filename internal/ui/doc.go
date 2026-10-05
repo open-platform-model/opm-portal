@@ -6,7 +6,7 @@
 // fetched through the read API's handler chain, in-process, with the
 // caller's own session, so authentication, authorization and what is never
 // served are the API's alone, and a client of the API can read every fact a
-// page shows (0030:D2). A test fails when a file of this package imports
+// page shows (portal:D2). A test fails when a file of this package imports
 // the read model.
 //
 // Pages carry a Content-Security-Policy that allows scripts, styles, fonts,

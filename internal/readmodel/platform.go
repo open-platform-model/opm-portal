@@ -13,7 +13,7 @@ import (
 // Platform returns the Platform with its subscriptions, resolved catalogs
 // and registrations. g must cover get platforms cluster. The registrations
 // are authorized for the caller on their own: when the caller may not list
-// them the view says so instead of showing none (0030:D7:R3, 0030:D11:R5).
+// them the view says so instead of showing none (portal:D7:R3, portal:D11:R5).
 func (m *Model) Platform(ctx context.Context, who authz.Identity, g authz.Grant) (PlatformView, error) {
 	if err := covers(who, g, "get", platforms, "", platformName); err != nil {
 		return PlatformView{}, err

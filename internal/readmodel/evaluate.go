@@ -40,9 +40,9 @@ type evaluation struct {
 }
 
 // inventoryHealth reads every entry of owner's inventory the caller may
-// read, from held state, and evaluates the instance's health (0030:D3). An
+// read, from held state, and evaluates the instance's health (portal:D3). An
 // entry the caller may not read is forbidden and never looked up; a Secret
-// is withheld and never read (0030:D7:R3, 0030:D8:R1).
+// is withheld and never read (portal:D7:R3, portal:D8:R1).
 func (e *evaluator) inventoryHealth(ctx context.Context, owner *unstructured.Unstructured) evaluation {
 	refs := inventory(owner)
 	entries := make([]health.Entry, len(refs))

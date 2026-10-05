@@ -20,7 +20,7 @@ var podsGVR = schema.GroupVersionResource{Version: "v1", Resource: "pods"}
 
 // producer serves the broker's topics from the read model. Every topic
 // carries one document, the one its GET returns, rendered for each
-// subscriber by the GET's own code path (0030:D2:R5). Changes come from the
+// subscriber by the GET's own code path (portal:D2:R5). Changes come from the
 // read model's change feed, coalesced; topics the feed cannot see change
 // (events, polled objects) are rendered again every Refresh.
 type producer struct {

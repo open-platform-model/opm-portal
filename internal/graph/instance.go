@@ -33,7 +33,7 @@ const (
 )
 
 // workloadKinds are the inventory kinds that make a component a workload
-// component; every other component is configuration (0030:D4:R5).
+// component; every other component is configuration (portal:D4:R5).
 var workloadKinds = map[string]bool{
 	"apps/Deployment":  true,
 	"apps/StatefulSet": true,

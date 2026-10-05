@@ -53,7 +53,7 @@ type EdgeKind string
 
 // Edge kinds. No kind relates an instance to a contract: the contracts an
 // instance's render used are not the provider contracts it demands, so they
-// are text on the instance node (0030:D4).
+// are text on the instance node (portal:D4).
 const (
 	EdgeResolves     EdgeKind = "resolves"
 	EdgeContributes  EdgeKind = "contributes"
@@ -154,7 +154,7 @@ type Counts struct {
 }
 
 // Applied is an operator object's applied state, never merged with health
-// (0030:D3).
+// (portal:D3).
 type Applied struct {
 	State    health.AppliedState `json:"state"`
 	Reason   string              `json:"reason,omitempty"`
@@ -228,7 +228,7 @@ type Node struct {
 	Owner string `json:"owner,omitempty"`
 	// RenderContracts are every contract an instance's render used, most
 	// fulfilled by the catalog itself: not the provider contracts it
-	// demands, so no edge is drawn to them (0030:D4:R3).
+	// demands, so no edge is drawn to them (portal:D4:R3).
 	RenderContracts []string `json:"renderContracts,omitempty"`
 	// Version is a module's version.
 	Version string `json:"version,omitempty"`
@@ -266,7 +266,7 @@ type Edge struct {
 	// Source is the field the edge was drawn from (Sources).
 	Source string `json:"source"`
 	// Verified is set on edges a second source can confirm: true when it
-	// does, false with Reason when it does not (0030:D4:R2).
+	// does, false with Reason when it does not (portal:D4:R2).
 	Verified *bool  `json:"verified,omitempty"`
 	Reason   string `json:"reason,omitempty"`
 	// Route is a cubic Bézier: start, two control points, end.

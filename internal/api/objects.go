@@ -38,7 +38,7 @@ func (s *Server) packageObject(ctx context.Context, p Principal, r *http.Request
 // of one object are: get on the owner, then get on the object. A core
 // Secret is refused before anything is asked about it, and a kind the
 // cluster does not serve or an object the owner does not reach gets the
-// forbidden problem a forbidden caller gets (0030:D7:R4, 0030:D8:R1).
+// forbidden problem a forbidden caller gets (portal:D7:R4, portal:D8:R1).
 func (s *Server) ownerObject(ctx context.Context, who authz.Identity, o owner, r *http.Request) (v1.Object, error) {
 	about, named, err := regardingQuery(r)
 	if err != nil {

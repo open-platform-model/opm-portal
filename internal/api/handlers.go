@@ -123,7 +123,7 @@ func (s *Server) listInstances(ctx context.Context, p Principal, r *http.Request
 
 // instanceListDoc is the InstanceList the caller may list in namespace
 // ("" for cluster-wide). A caller who may not list gets no items and
-// access forbidden, with no count (0030:D7:R2).
+// access forbidden, with no count (portal:D7:R2).
 func (s *Server) instanceListDoc(ctx context.Context, who authz.Identity, namespace string) (v1.InstanceList, error) {
 	doc := v1.InstanceList{TypeMeta: meta(v1.KindInstanceList), Access: v1.AccessForbidden, Items: []v1.InstanceSummary{}}
 	g, ok, err := s.listGrant(ctx, who, instancesGVR, namespace)
@@ -383,7 +383,7 @@ func regardingQuery(r *http.Request) (ref readmodel.ObjectRef, named bool, err e
 // owner, get on the named object, list of events where they live. An object
 // the owner does not reach, or whose kind the cluster does not serve, is
 // refused with the forbidden problem, the same a forbidden caller gets
-// (0030:D7:R4).
+// (portal:D7:R4).
 func (s *Server) ownerEvents(ctx context.Context, who authz.Identity, o owner, r *http.Request) (v1.EventList, error) {
 	about, named, err := regardingQuery(r)
 	if err != nil {

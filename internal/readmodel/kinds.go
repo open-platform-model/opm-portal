@@ -40,7 +40,7 @@ const (
 )
 
 // isSecret reports whether resource is core Secrets, which the read model
-// never reads (0030:D8:R1).
+// never reads (portal:D8:R1).
 func isSecret(resource schema.GroupVersionResource) bool {
 	return resource.Group == "" && resource.Resource == "secrets"
 }

@@ -87,7 +87,7 @@ func parseServe(args []string, stderr io.Writer) (serveOptions, error) {
 
 // loopbackAddr checks that addr names a loopback address and returns it in
 // the form to listen on. "localhost" listens on 127.0.0.1. An empty host,
-// any other name and any other IP are refused (0030:D5:R2).
+// any other name and any other IP are refused (portal:D5:R2).
 func loopbackAddr(addr string) (string, error) {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -169,7 +169,7 @@ func loadKubeconfig(o serveOptions) (*rest.Config, string, error) {
 // selfIdentity asks the cluster who the kubeconfig authenticates as, with
 // one SelfSubjectReview. An identity that names no one (empty, blank or
 // anonymous) is refused, so nothing is ever read on its behalf
-// (0030:D6:R2).
+// (portal:D6:R2).
 func selfIdentity(ctx context.Context, reviews authenticationv1client.SelfSubjectReviewInterface) (authz.Identity, error) {
 	ctx, cancel := context.WithTimeout(ctx, identityTimeout)
 	defer cancel()
@@ -337,7 +337,7 @@ func build(ctx context.Context, c cluster, o serveOptions, bound netip.AddrPort,
 // logDenied warns once per OPM kind scope the kubeconfig's user may not
 // list and watch, so a user whose pages answer forbidden learns why, and,
 // for a namespaced kind read cluster-wide, that --namespaces can narrow it
-// to namespaces they may read (0030:D5:R5).
+// to namespaces they may read (portal:D5:R5).
 func logDenied(log *slog.Logger, denied []readmodel.DeniedScope) {
 	for _, d := range denied {
 		switch {

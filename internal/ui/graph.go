@@ -102,7 +102,7 @@ func buildGraph(g v1.Graph, id, page, panel, selected string) svgGraph {
 
 // nodeOf draws one node. Its box outline and rail carry health; its applied
 // state, when it has one, is a separate square stamp, so neither axis is
-// drawn through the other (0030:D3:R1). Its label keeps the part that
+// drawn through the other (portal:D3:R1). Its label keeps the part that
 // tells nodes apart; the whole label is its title.
 func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 	state := ""
@@ -210,7 +210,7 @@ func subLine(n *v1.GraphNode, kind string, locked bool) string {
 // source does not confirm is drawn as broken only when the portal could
 // read both ends; one whose end is locked, or whose provider the portal
 // could not read, is drawn as unconfirmed in the locked style, because
-// "cannot see" is not "broken" (0030:D5:R7).
+// "cannot see" is not "broken" (portal:D5:R7).
 func edgeOf(e *v1.GraphEdge, locked map[string]bool) (svgEdge, bool) {
 	if len(e.Route) != 4 {
 		return svgEdge{}, false

@@ -24,7 +24,7 @@ func (e *env) events(t *testing.T, about ObjectRef) []Event {
 }
 
 // TestClusterScopedEventsLiveInDefault: the Platform's and the
-// registrations' events are read from namespace default (0030:D9:R4), and
+// registrations' events are read from namespace default (portal:D9:R4), and
 // the Platform's two identical Generated events fold into one line.
 func TestClusterScopedEventsLiveInDefault(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
@@ -86,7 +86,7 @@ func TestKubeletEventsUseTheDeprecatedFields(t *testing.T) {
 	}
 }
 
-// TestFoldCountsEveryWayARepeatIsRecorded (0030:D9:R3): two separate
+// TestFoldCountsEveryWayARepeatIsRecorded (portal:D9:R3): two separate
 // events, a series of three and a deprecated count of four, all with the
 // same object, type, reason and note, fold into one line of nine.
 func TestFoldCountsEveryWayARepeatIsRecorded(t *testing.T) {

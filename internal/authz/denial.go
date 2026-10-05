@@ -27,7 +27,7 @@ type DenialError struct {
 }
 
 // Error never names the object or the identity: a caller receives the same
-// text whether or not the object exists (0030:D7:R1), and no principal is
+// text whether or not the object exists (portal:D7:R1), and no principal is
 // written into an error string. It leaves out the cause, whose text the
 // portal does not control (a transport error names the API server, a webhook
 // authorizer's evaluation error can name users, roles or objects).

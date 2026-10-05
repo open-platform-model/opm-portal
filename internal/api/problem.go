@@ -14,7 +14,7 @@ import (
 )
 
 // Problem details. None names an object, an identity or the check that
-// failed, so the forbidden one reads the same for every refusal (0030:D7:R1).
+// failed, so the forbidden one reads the same for every refusal (portal:D7:R1).
 const (
 	detailForbidden       = "The request was refused: you may not read this, or the portal does not serve it."
 	detailNotFound        = "The object does not exist."
@@ -101,7 +101,7 @@ func classify(err error) *apiError {
 // writeProblem writes err as a problem document. It sets no instance
 // member: echoing the path would make the refusal for an existing object
 // differ from the one for a missing object only by their names, and a
-// constant body is simpler to hold to that (0030:D7:R1). A server-side failure is
+// constant body is simpler to hold to that (portal:D7:R1). A server-side failure is
 // logged with its cause; the client sees only the code and detail.
 func writeProblem(w http.ResponseWriter, r *http.Request, log *slog.Logger, err error) {
 	e := classify(err)

@@ -17,7 +17,7 @@ import (
 // f1Dir is the committed capture of the e2e fixture cluster.
 const f1Dir = "../../testdata/clusters/f1"
 
-// The image-break samples from enhancement 0030 experiment 01: podinfo
+// The image-break samples from design evidence 01: podinfo
 // applied with an image tag that does not exist, one minute in. F1 holds
 // no broken rollout.
 const (

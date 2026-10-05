@@ -212,7 +212,7 @@ func principalFrom(ctx context.Context) (Principal, bool) {
 
 // ServeHTTP authenticates the request, then routes it. No principal, an
 // identity that names no one, or an empty session is refused before any
-// handler runs, so no review is sent for it (0030:D6:R2).
+// handler runs, so no review is sent for it (portal:D6:R2).
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	p, err := s.cfg.Authenticate(r)
 	if err != nil || !p.Identity.Authenticated() || strings.TrimSpace(p.Session) == "" {

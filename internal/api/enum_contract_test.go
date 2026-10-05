@@ -29,7 +29,7 @@ var passedThrough = map[string]bool{
 	"GraphCatalog/source": true,
 }
 
-// TestEnumsMatchTheGoConstants (0030:D2:R2): every x-extensible-enum in the
+// TestEnumsMatchTheGoConstants (portal:D2:R2): every x-extensible-enum in the
 // OpenAPI document lists exactly the values the Go code can put on the wire,
 // so a value added in Go is documented, and the API gate (hack/api-breaking.sh)
 // then refuses its later removal from the document.

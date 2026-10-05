@@ -5,7 +5,7 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 // Tone is how a condition reads: what its status means for its type. A
 // condition's status alone does not say it: Stalled=True and
 // Reconciling=True are true and not fine, and ContractsFulfilled=False is
-// information, not a failure (0030:D3:R8).
+// information, not a failure (portal:D3:R8).
 type Tone string
 
 // Tones.

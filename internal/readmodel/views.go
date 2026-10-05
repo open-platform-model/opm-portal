@@ -8,7 +8,7 @@ import (
 
 // The views below are what the read model hands to the read API and the UI:
 // portal-shaped Go values, never a raw custom resource, its status,
-// spec.values or an annotation map (0030:D2:R4, 0030:D8:R2). The read API
+// spec.values or an annotation map (portal:D2:R4, portal:D8:R2). The read API
 // maps them onto its wire types.
 
 // ObjectRef names one Kubernetes object.
@@ -27,7 +27,7 @@ type Owner string
 const (
 	OwnerOperator Owner = "operator"
 	// OwnerCLI: the CLI applied the instance and the operator only records
-	// it; its applied state is ManagedExternally (0030:D3:R6).
+	// it; its applied state is ManagedExternally (portal:D3:R6).
 	OwnerCLI Owner = "cli"
 )
 
@@ -45,7 +45,7 @@ type Digests struct {
 }
 
 // HistoryEntry is one entry of an operator object's status.history, the
-// durable record (0030:D9:R1).
+// durable record (portal:D9:R1).
 type HistoryEntry struct {
 	Action          string
 	Phase           string
@@ -59,7 +59,7 @@ type HistoryEntry struct {
 }
 
 // InstanceItem is one ModuleInstance in a list: the operator's axis and the
-// portal's axis side by side, never merged (0030:D3:R1).
+// portal's axis side by side, never merged (portal:D3:R1).
 type InstanceItem struct {
 	Ref            ObjectRef
 	UID            string
@@ -81,7 +81,7 @@ type InstanceDetail struct {
 	LastApplied        Digests
 	// RenderContracts are every contract the instance's render used, most
 	// of them fulfilled by the catalog itself. They are not the provider
-	// contracts the instance demands (0030:D4:R3).
+	// contracts the instance demands (portal:D4:R3).
 	RenderContracts []string
 	Components      []Component
 }
@@ -104,7 +104,7 @@ type InventoryObject struct {
 	// its health is the status rules alone.
 	ChildrenUnread bool
 	// EvaluatedAt is when the object was last read; Live is false when it
-	// is polled rather than watched (0030:D3:R5).
+	// is polled rather than watched (portal:D3:R5).
 	EvaluatedAt time.Time
 	Live        bool
 	// Children are the ReplicaSets, Pods and Jobs whose chain of controller
@@ -179,7 +179,7 @@ type Catalog struct {
 }
 
 // RegistrationView is one TransformerRegistration: acceptance, activation
-// and verdict as separate values (0030:D4:R4/R7).
+// and verdict as separate values (portal:D4:R4/R7).
 type RegistrationView struct {
 	Name     string
 	Catalog  string

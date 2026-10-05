@@ -12,13 +12,13 @@ import (
 )
 
 // ErrWithheld: the read names a kind the portal never reads, a core
-// Secret. It is refused before any review (0030:D8:R1).
+// Secret. It is refused before any review (portal:D8:R1).
 var ErrWithheld = errors.New("kind withheld from every read")
 
 // Object reads one object on demand, for a YAML view, and returns it with
 // what the portal never serves removed: managed fields, the last-applied
 // annotation and, on a ModuleInstance or ModulePackage, spec.values
-// (0030:D8:R2/R3). Fields the held copies drop for memory, such as a
+// (portal:D8:R2/R3). Fields the held copies drop for memory, such as a
 // Deployment's pod template, are kept. g must cover get on the object, and
 // the reader must be allowed the same get. Reaching the object from an
 // inventory is the caller's check, made before this read.
