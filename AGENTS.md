@@ -166,13 +166,17 @@ hold in every change; a change that bends one needs a decision in `docs/DESIGN.m
 - **Act as the user.** Milestone 1 uses the user's kubeconfig, so the user's RBAC is the
   boundary. Milestone 2 authorizes every read through a SubjectAccessReview for the signed-in
   user before the lookup, and returns the same denial for a missing object as for a forbidden
-  one.
+  one. Sole exception: local mode run from `deploy/` acts as its ServiceAccount for whoever holds
+  its launch token (portal:D13); in-cluster mode stays bound.
 - **Fail closed on an empty identity.** An empty or unmapped identity is denied, and an
   authorization error is a denial. Never fall back to the portal's own ServiceAccount. (A Pod
   running local mode from `deploy/` reads as its configured ServiceAccount per portal:D13; the
   rule still binds in-cluster mode.)
 - **No secrets in logs or errors.** Tokens, cookies, kubeconfig content and `Authorization`
-  headers never appear in a log line, an error message or an API response.
+  headers never appear in a log line, an error message or an API response. Sole exception:
+  local mode run from `deploy/` prints its single-use launch URL on standard output, which
+  becomes the container log (portal:D13); no other token is ever logged, and in-cluster mode
+  stays bound.
 - **Untrusted text everywhere.** Condition messages, event notes, labels, annotations and log
   lines are rendered through `html/template` only (never `text/template`), with no inline script
   or style, under a strict Content-Security-Policy.
