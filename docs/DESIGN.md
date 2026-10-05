@@ -278,7 +278,8 @@ for that subscriber, so one subscriber cannot time a change only another may see
   client can tell "you may not read this" from "the portal may not read this" from "not found".
 - R7: A subscriber receives a change event only when the document rendered for it differs from the
   last one sent to it on that stream; a change it cannot see produces no event, no event id and no
-  other observable signal. Log lines are exempt: they are only ever sent to a reader of that Pod.
+  other observable signal. A delete, a snapshot and a topic's closing are always sent. Log lines
+  are exempt: they are only ever sent to a reader of that Pod.
 
 **Alternatives considered:**
 
@@ -605,8 +606,10 @@ renders into a non-Secret object is shown in that object's YAML view to any user
 them read it, exactly as `kubectl` would show it. Keeping a value out of reach means rendering it
 into a Secret. The operator's embedded kernel does not redact secret paths in the text it writes,
 so in-cluster the portal shows the reason of every condition, history entry, registration verdict
-and event, and never the message text; local mode shows that text verbatim, because it reveals
-nothing the user's kubeconfig cannot read.
+and event the operator writes, and never the operator's message text; local mode shows that text
+verbatim, because it reveals nothing the user's kubeconfig cannot read. Text other writers wrote,
+the kubelet's and other controllers' event notes and the health messages of rendered workloads,
+is shown in both modes.
 
 **Requirements:**
 
@@ -618,8 +621,12 @@ nothing the user's kubeconfig cannot read.
 - R4: The portal's documentation states that values rendered into non-Secret objects are visible
   to anyone who may read those objects, in the portal as in `kubectl`.
 - R5: In-cluster, no API document, stream event or page carries message text the operator or the
-  kernel wrote (condition, history and registration messages, event notes, and the messages in an
-  OPM object's raw status); reasons are shown. This holds until the kernel redacts that text.
+  kernel wrote (condition, history and registration messages, the notes of events whose
+  `reportingController` is `opm-controller`, the reconcile message built from them, and the
+  messages in an OPM object's health and raw status); reasons are shown. An event that names no
+  reporting controller and regards an OPM object is treated as the operator's. The kubelet's and
+  other controllers' event notes and the kstatus health messages of rendered workloads are shown.
+  This holds until the kernel redacts that text.
 - R6: In local mode, condition, event and history messages are shown verbatim.
 
 **Alternatives considered:**
@@ -630,6 +637,9 @@ nothing the user's kubeconfig cannot read.
   into.** Still cannot find secret leaves without the module's schema walker. Left for later (OQ7).
 - **Show operator messages in-cluster** (OQ8's other answer). A message can carry a value the user
   could not otherwise read, and the portal cannot tell which.
+- **Hide every message and event note in-cluster, whoever wrote it.** Removes the kubelet's
+  image-pull and probe notes, the remediation users need most, to guard against a kernel that did
+  not write them. Rejected by the supervisor's scope ruling under R5.
 
 **Rationale:** A client-side apply copies every value into the annotation (observation 14). Hiding
 values and stripping the annotation is the only rule V1 can keep without reading module schemas.
@@ -640,6 +650,12 @@ mask on.
 marker shape and the plain-string password fields in the first-party modules, read from source. R5:
 owner answer 2026-10-05 to OQ8 ("Hide messages in-cluster"). R6: the local-mode half of the same
 answer, which the question's text recorded (local mode reveals nothing the kubeconfig cannot read).
+R5's scope: supervisor ruling 2026-10-05, not an owner decision. The question asked about operator
+messages, so in-cluster hides the text the operator writes (OPM resource condition messages,
+`status.history` messages, events whose `reportingController` is `opm-controller`, and the
+reconcile message built from them); the kubelet's and other controllers' event notes and the
+kstatus health messages of rendered workloads stay visible, because they are not kernel
+diagnostics and carry the remediation users need.
 
 ### D9: Conditions and history are the record; events are an expiring feed
 

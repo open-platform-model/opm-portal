@@ -1,9 +1,9 @@
 ## Context
 
 The portal's milestone 1 (local mode) is done. Before milestone 2 (in-cluster, many users behind
-one process) two answers from enhancement 0030's question register have to be built into the
-read path: 0030:OQ8 (the owner: hide operator message text in-cluster until the kernel redacts)
-and 0030:OQ20 (the supervisor: write a subscriber only a change to its own rendered document, in
+one process) two answers from the portal's question register have to be built into the
+read path: portal:OQ8 (the owner: hide operator message text in-cluster until the kernel redacts)
+and portal:OQ20 (the supervisor: write a subscriber only a change to its own rendered document, in
 every mode). Neither needs a new read, a new verb or a new identity.
 
 ## Goals / Non-Goals
@@ -29,14 +29,17 @@ switch {
 case m.snapshot:            // always written; sets the baseline
     sub.sent = doc          // the only item, or nil for 0 or 2+ items
 case doc == nil:            // a log line: a record, never compared
-case bytes.Equal(sub.sent, doc) && sub.sent != nil:
+case m.event != EventDelete && bytes.Equal(sub.sent, doc) && sub.sent != nil:
     return "", false        // nothing written, no id taken
 default:
-    sub.sent = doc
+    sub.sent = doc          // a delete is always written, and sets it too
 }
 ```
 
-`doc` is the item's data for `upsert`, `delete` and `k8sevent` events. An item that is not
+`doc` is the item's data for `upsert`, `delete` and `k8sevent` events. A `delete` is never left
+out: an upsert may already have carried the object's `Removed` document, and the client drops the
+object on the delete event itself (when the object went is its own, visible to every subscriber).
+A `closed` event never passes through `eventID`, so it is never compared either. An item that is not
 written takes no event id, so ids stay consecutive and no gap reveals it (as for a forbidden
 item today). Each subscription also records `sentID`, the
 stream event id `sent` was written under. `reattach` keeps `sent` when the client's
@@ -44,6 +47,9 @@ stream event id `sent` was written under. `reattach` keeps `sent` when the clien
 item equal to it is not written and the reconnect does not reveal when a change the client cannot
 see happened. Otherwise it sets `sent = nil`: the client may not hold what the old connection last
 wrote (a write can succeed on the server and be lost on the way), so the first item is written.
+When the resume cannot replay (the ring lost part of the gap, or the stream no longer remembers
+the client's id), it writes a fresh snapshot, which sets `sent` like any snapshot, so later items
+are compared with it.
 
 The comparison is on the rendered bytes. Every read API document is `json.Marshal` output of a
 struct with no wall-clock field (evaluation times come from the read model's clock and change
@@ -87,13 +93,16 @@ it over every route's document type. It omits:
 | `Reconcile` (summaries, details, graph nodes) | `message` |
 | `HistoryEntry` | `message` |
 | `Registration`, `GraphRegistration` | `message`, `activeMessage` |
-| `Event` | `note` |
+| `Event` the operator reported (`reportingController` `opm-controller`, or none on an event about an `opmodel.dev` object) | `note` |
 | `InventoryObject.health`, `GraphNode.health`, of an `opmodel.dev` object | `message` |
 | `Object` of an `opmodel.dev` kind | `status.conditions[].message`, `status.history[].message` |
 
 `reason`, `state`, `tone`, `meaning`, `nextStep` and every time stay. A non-OPM object's health
 message (a Pod's waiting reason, a Deployment's progress) is the API server's and kubelet's text
-about a workload, not the operator's, and stays.
+about a workload, not the operator's, and stays; so do the notes of events the kubelet or another
+controller reported. The owner's question was about the operator's messages, and the supervisor
+ruled the omission to that scope (recorded under portal:D8): other writers' text is not a kernel
+diagnostic, and it carries the remediation a user needs.
 
 ### Research & Decisions
 
@@ -132,7 +141,7 @@ what the two sentences say.
 
 **Options considered**:
 1. Redact secret-looking substrings. The portal does not know which paths are secret (the
-   markers live in the module schema, 0030:D8), so any pattern is a guess.
+   markers live in the module schema, portal:D8), so any pattern is a guess.
 2. Omit the text. The reason and the portal's explanation remain.
 **Decision**: option 2, per the owner's answer.
 **Rationale**: the portal cannot tell a secret from other text; the kernel can, and will.

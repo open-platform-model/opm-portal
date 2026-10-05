@@ -149,7 +149,8 @@ no authorization review and no read. Source: 0030:D6:R2.
 No document SHALL contain an instance's or package's `spec.values`, Secret data, or the
 `kubectl.kubernetes.io/last-applied-configuration` annotation. In `local` mode condition, history
 and event messages SHALL be served as the operator and the API server wrote them; in
-`in-cluster` mode they SHALL be omitted. Source: 0030:D8:R2/R3.
+`in-cluster` mode the text the operator wrote SHALL be omitted, as the in-cluster requirement
+lists. Source: portal:D8:R2/R3/R5/R6.
 
 #### Scenario: No values in any document
 
@@ -409,15 +410,20 @@ to start with no mode or any other value. `opm-portal serve` SHALL run it in `lo
 
 In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carry
 text the operator wrote: a condition's `message`, a reconcile `message`, a history entry's
-`message`, a registration's `message` or `activeMessage`, an event's `note`, the health
-`message` of an inventory object or graph node of an `opmodel.dev` kind, or, in an `Object` of
-an `opmodel.dev` kind, `status.conditions[].message` and `status.history[].message`. Every
-reason, state, `tone`, `meaning` and `nextStep` SHALL stay. Events left alike once their notes
-are dropped (same type, reason, reporting controller, regarded object and field path) SHALL be
-served as one line, their counts summed and its time the latest, so the number of lines does not
-tell how many distinct notes were dropped. A document type the omission does not
-know SHALL fail with `upstream_unavailable` rather than be served. The OpenAPI document SHALL say,
-on each of those fields, that it is absent in-cluster. Source: owner answer to 0030:OQ8.
+`message`, a registration's `message` or `activeMessage`, the `note` of an event the operator
+reported (its `reportingController` is `opm-controller`, or it names none and regards an
+`opmodel.dev` object), the health `message` of an inventory object or graph node of an
+`opmodel.dev` kind, or, in an `Object` of an `opmodel.dev` kind, `status.conditions[].message`
+and `status.history[].message`. Every reason, state, `tone`, `meaning` and `nextStep` SHALL stay.
+Text other writers wrote SHALL be served as written: the notes of events the kubelet or another
+controller reported, and the health `message` of an object outside `opmodel.dev`. Events the
+operator reported that are left alike once their notes are dropped (same type, reason, reporting
+controller, regarded object and field path) SHALL be served as one line, their counts summed and
+its time the latest, so the number of lines does not tell how many distinct notes were dropped. A
+document type the omission does not know SHALL fail with `upstream_unavailable` rather than be
+served. The OpenAPI document SHALL say, on each of those fields, that it is absent in-cluster.
+Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the supervisor ruling recorded
+under portal:D8.
 
 #### Scenario: A failed instance in-cluster
 
@@ -429,7 +435,14 @@ on each of those fields, that it is absent in-cluster. Source: owner answer to 0
 #### Scenario: Events in-cluster
 
 - **WHEN** a client of an in-cluster server reads an `EventList` or follows its `events:` topic
-- **THEN** every event carries its type, reason, count and times, and no `note`
+- **THEN** every event the operator reported carries its type, reason, count and times, and no
+  `note`
+
+#### Scenario: The kubelet's events in-cluster
+
+- **WHEN** a client of an in-cluster server reads the `EventList` of a Pod the kubelet reported
+  pulling an image for
+- **THEN** each of those events carries its `note` as the kubelet wrote it
 
 #### Scenario: Events differing only in their note in-cluster
 
