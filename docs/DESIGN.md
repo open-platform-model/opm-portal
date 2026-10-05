@@ -384,7 +384,11 @@ the objects that show the failure.
 and the CLI-owned instance addendum. 0015:D14 (readiness means apply success); 0015:D18 (an
 unfulfilled contract is reported, never refused), which R8 follows. Owner decision 2026-10-04 to
 capture a CLI-owned instance on the throwaway cluster. Configuration objects keep kstatus health on
-the graph and in group roll-ups: supervisor ruling 2026-10-06, pending the owner.
+the graph and in group roll-ups: supervisor ruling 2026-10-06, pending the owner. On instance and
+package graphs a TransformerRegistration node's fill and outline carry the claim's standing rather
+than its kstatus health, which its card and panel still show as a badge; the applied square stays
+the node's only applied mark, so R1 holds (planner, 2026-10-06, OpenSpec change `align-graph`,
+pending the supervisor and the owner).
 
 ### D4: Graphs derive only from operator- and API-server-written state
 
@@ -408,7 +412,7 @@ accepted, active claim whose removal is blocked by dependents. A blocked removal
 Configuration-only components are grouped by default per kind family: CRDs
 (`apiextensions.k8s.io`), RBAC (`rbac.authorization.k8s.io`), webhook configuration
 (`admissionregistration.k8s.io`) and other configuration, one expandable node per family that
-folds two or more objects, opened one at a time. A component that holds a TransformerRegistration
+folds two or more objects, opened one at a time unless the user opens them all. A component that holds a TransformerRegistration
 is never folded.
 
 **Requirements:**
@@ -424,8 +428,9 @@ is never folded.
   reason and message.
 - R5: Components that own no workload are grouped by default into one expandable node per kind
   family (CRDs, RBAC, webhook configuration, other configuration), sorted by the API group of
-  their objects, when the family holds two or more objects; one family group is open at a time,
-  and an open group's members and their objects are shown together, apart from every other node.
+  their objects, when the family holds two or more objects; opening a family group closes the
+  others, Expand all opens every family, and an open group's members and their objects are shown
+  together, apart from every other node.
 - R6: Graph node identifiers are stable across portal restarts and do not change when the
   underlying object is deleted and recreated.
 - R7: A registration that is being deleted while instances still demand its contracts is shown as
@@ -1245,9 +1250,10 @@ stays out, as D17 says.
   background.
 - R2: Every colour is a token defined for light and for dark. Each status tone has a border, ink,
   background and tint token.
-- R3: Applied and Health badges share one shape. Every badge names its axis in its accessible name
-  and stands where visible text names its axis. The Applied badge reads the controller's state
-  words, never "Ready" or "Not ready", and D3:R1 holds.
+- R3: Applied and Health badges share one shape. Every badge names its axis in its accessible name.
+  Where an applied and a health badge stand together, each stands where visible text names its
+  axis; a health stamp alone on a per-object line names its axis in its accessible name. The
+  Applied badge reads the controller's state words, never "Ready" or "Not ready", and D3:R1 holds.
 - R4: A tab count is shown only when the page holds it without another read and it covers everything
   the tab lists; otherwise the tab shows none.
 - R5: A summary block shows a time only when its source records one for that state.
@@ -1269,40 +1275,48 @@ D17's promises.
 
 **Source:** Owner decision 2026-10-06, asked about the global look: "Follow the canvas
 (Recommended)": flat panels, no grid background or shadows, plain headings, 1840 px column. The
-Applied words (R3), the tab-count rule (R4), the state block's recorded-time rule (R5), tables for
-Resources and Events, elbow edges and the conditions below the tab panels are supervisor rulings
-2026-10-06, pending the owner. Gaps measured in [evidence
-05](design/evidence/05-canvas-gap-report/).
+Applied words (R3), tables for Resources and Events, elbow edges and the conditions below the tab
+panels are supervisor rulings 2026-10-06, pending the owner, as is "everything else follows the
+canvas". R4 (the tab-count rule) and R5 (the state block's recorded-time rule) are not supervisor
+rulings: the planner derived them from Principle IV and D7 and D17 (2026-10-06), pending the
+supervisor and the owner. R4 departs from the canvas in one place, the uncounted Events tab of the
+Catalog page, which is listed as an open deviation in `ROADMAP.md` and the OpenSpec change
+`align-shell-and-tokens`. Gaps measured in [evidence 05](design/evidence/05-canvas-gap-report/).
 
 ### D20: A package's source is read as the caller, and its own state is shown
 
 **Kind:** contract
 
-**Depends:** D1, D4, D7, D11
+**Depends:** D1, D4, D7, D11, D18
 
 **Decision:** The portal reads the Flux source a ModulePackage's `spec.sourceRef` names, so the
 package's graph and page show what the cluster says about the source itself: its Ready condition,
 its artifact revision, and whether the cluster serves its kind at all. It reads only the kinds the
-controller reads (OCIRepository, GitRepository and Bucket in `source.toolkit.fluxcd.io`), in the
-sourceRef's namespace or else the package's, with one `get` per request for the caller after the
+controller reads (OCIRepository, GitRepository and Bucket in `source.toolkit.fluxcd.io`), chosen as
+the controller chooses them, by the sourceRef's kind alone, in the sourceRef's namespace or else
+the package's, with one `get` per request for the caller after the
 caller's access review and the reader's own, never with list or watch, and it does not follow the
 source's `secretRef`. A kind the cluster does not serve is found through discovery without a review
-and shown as not installed. The artifact's fetch URL is never served. The source is not watched: the
+and shown as not installed; the server re-checks that discovery on a timer, never on a request, so
+a Flux installed later is found. A Ready source with no artifact is shown as having none, since the
+controller does not use it. The artifact's fetch URL is never served. The source is not watched: the
 controller watches it and re-reconciles the package, which refreshes the package's page.
 
 **Requirements:**
 
 - R1: The source is read with `get` only, by name, only for OCIRepository, GitRepository and Bucket
-  in `source.toolkit.fluxcd.io`; any other kind named by `spec.sourceRef` is shown as not read,
-  without a review or a read, and a core Secret is refused before any review.
+  in `source.toolkit.fluxcd.io`, chosen by kind alone whatever `apiVersion` the sourceRef names;
+  any other kind is shown as not read, without a review or a read, and a core Secret is refused
+  before any review.
 - R2: A caller who may not get the source sees it locked, and a reader denied the get sees it as not
   readable by the portal; a failed source read never fails the package's page or document.
 - R3: A kind the cluster does not serve is shown as not installed, found through discovery without a
-  review (D18:R3).
+  review (D18:R3); the server re-checks that discovery on a timer of its own, never on a request.
 - R4: The served state carries the Ready condition's status, reason and message and
   `status.artifact.revision`, and never `status.artifact.url`.
-- R5: The portal's roles gain no rule for the source kinds in V1; where the portal reads as its own
-  ServiceAccount, the source shows as not readable by the portal (D11:R3).
+- R5: The portal's roles gain no rule for the source kinds in V1 (D11:R3). In a Pod run from
+  `deploy/` the ServiceAccount is the caller (D13), so the source shows locked; in-cluster, a user
+  the cluster allows to get the source sees it as not readable by the portal.
 
 **Alternatives considered:**
 
@@ -1328,7 +1342,9 @@ state, its revision, and "kind not installed" when the CRD is missing ([evidence
 default), `:60-73` (Ready condition and artifact),
 `internal/controller/modulepackage_controller.go:178-241` (the watches, guarded for a missing CRD).
 F1's package Ready message (`no matches for kind "OCIRepository"`) shows the not-installed case.
-The three-kind limit and R5: supervisor rulings 2026-10-06, pending the owner.
+The kind chosen by kind alone and the no-artifact case follow `resolve.go:52,64-69,84-95`. The
+three-kind limit and R5: supervisor rulings 2026-10-06, pending the owner. The discovery timer:
+planner, 2026-10-06, pending the supervisor and the owner.
 
 ## Open questions
 

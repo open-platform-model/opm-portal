@@ -29,14 +29,16 @@ same tokens, tabs and summary block, so this change lands them first, once.
   most 40 px, mono text is 13 px, and kickers, labels, table heads and fact labels are sans.
   Links are brass.
 - **Badges, tabs and the live mark** (section 3): Applied and Health share one square, uppercase
-  badge in their tone. The `APPLY |` prefix and the health dot go; each badge still names its axis
-  to assistive technology. Tabs on every page become underline tabs and carry counts the page
-  already holds. A region opened by a tab no longer shows its own heading, which stays for screen
+  badge in their tone, taken from the state class every badge already carries. The `APPLY |`
+  prefix and the health dot go; each badge still names its axis to assistive technology, and
+  where both axes stand together each is named in visible text. Tabs on every page become
+  underline tabs and carry counts the page already holds, refreshed live with the page. A region opened by a tab no longer shows its own heading, which stays for screen
   readers. The live mark reads "Live", "Not live", "Offline" and so on, with a steady dot.
-- **The state block** (section 4): one shared component for the summary cards: eyebrow, a
-  recorded time, a tone icon, a big uppercase state word, a summary line and reason count links,
-  with locked and degraded forms. This change builds and tests it. `align-platform-installed-catalog`
-  and `align-owner-pages` put it on their pages.
+- **The state block and the tooltip** (section 4): one shared component for the summary cards:
+  eyebrow, a recorded time, a tone icon, a big uppercase state word, a summary line, note lines, a
+  caption, reason count links and footer links, with locked and degraded forms; and one CSS-only
+  info tooltip. This change builds and tests both. `align-platform-installed-catalog` and
+  `align-owner-pages` put them on their pages.
 - **Docs and evidence** (section 5): screenshots of every page in light, dark and at 360 px;
   `docs/site/` pages that describe the old badge shapes or wording; `ROADMAP.md`.
 
@@ -45,6 +47,10 @@ flat look, with the badge ruling under it). It also opens one question and widen
 docs only. The new question, portal:OQ26, is whether the controller can record a per-catalog
 resolve time and digest (gap `catalog-09`, opm-operator#230). The widened one is portal:OQ25,
 which now also covers a catalog's own description (gap `catalog-03`).
+
+Open deviation for the owner's review: the Catalog page's Events tab carries no count, where the
+canvas shows "Events 2". The page reads events only on that tab, and a count would add a read on
+every tab. This follows the planner's reading of portal:D19:R4, not a supervisor ruling.
 
 Not in this change: anything one page owns, which the three follow-on changes rebuild. That
 includes the Platform status card, the Installed card, the Installed filters, the catalog
@@ -58,7 +64,8 @@ Applied axis keeps the controller's state words (portal:D3:R1; supervisor ruling
 align-shell-and-tokens. They use its tone classes, its tab component and its state block, and
 none of them starts before this change merges. This change edits `owner.html`, `catalog.html`,
 `platform.html`, `partials.html`, `panel-body.html` and `portal.js` only for shell-level markup:
-tab counts, region headings, badge markup and the panel request. That edit lands before the
+tab counts, region headings, badge markup (the hover card's marks in the `graph` define included)
+and the panel request. That edit lands before the
 follow-on changes start.
 
 ## Capabilities
@@ -77,8 +84,9 @@ None.
 
 - Packages: `internal/ui` only. That covers `static/portal.css`, `static/portal.js`, the
   templates, `view.go`, `owner.go`, `catalog.go` and `platform.go` (tab counts), and a new state
-  block view type and partial. Tests and goldens change too. `test/browser/graph.py` and
-  `test/browser/expired.py` change. `api/v1alpha1`, `internal/api`, `internal/readmodel`,
+  block view type and partial, and the tooltip partial. Tests and goldens change too.
+  `test/browser/graph.py`, `test/browser/expired.py`, `test/browser/theme.py` and the
+  `TestBrowserGraph` doc comment in `cmd/opm-portal/browser_test.go` change. `api/v1alpha1`, `internal/api`, `internal/readmodel`,
   `internal/graph` and `internal/health` do not change.
 - API: none. `task api:breaking` is unaffected.
 - Pages: every page, through the shell and the shared CSS; tab strips on the Platform, Catalog,
@@ -95,6 +103,9 @@ None.
 - Decisions: implements portal:D19 (the canvas's flat look) and
   keeps portal:D3 (two axes, the Applied words), portal:D14 (nothing new stored) and portal:D17
   as they are. portal:OQ25 is widened and portal:OQ26 is added, both docs only.
+- Shared pieces the follow-on changes take as they ship: the `stateBlock` fields (`When` is a
+  `*time.Time`), the `tip` partial, `tabLink.Count` and `Follow`, and the badge colours from the
+  state classes.
 - Main-spec requirements touched, so the parallel changes can avoid them: `web-ui`'s "Applied and
   health are two badges, never one" and "An expired session stops the page's stream" (MODIFIED).
   Five requirements are ADDED under new names.

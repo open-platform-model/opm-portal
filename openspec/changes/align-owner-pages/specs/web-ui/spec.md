@@ -26,8 +26,11 @@ warnings are kept only as events.
 The Logs tab SHALL offer each container of each Pod an inventory reaches through one Pod and
 container picker. It SHALL show the picked container, or the first one when none is picked, in
 one pane that follows its log topic as soon as the tab opens, and SHALL render log text as text
-only. Each Pod row SHALL link to its log. When the picked container's Pod reports a waiting
-reason, the tab SHALL say the container has not started and link to that Pod's events.
+only. The details panel of a Pod SHALL link to its log. When the picked container waits with a
+reason under which no instance of it has started (or, where the Pod does not say per container,
+its Pod does), the tab SHALL say the container has not started, so there are no logs yet, and
+link to that Pod's events. When the picked container is in `CrashLoopBackOff`, the tab SHALL say
+it is restarting and point to its previous instance's logs.
 
 The package page SHALL show the same for a ModulePackage, with its source, interval, prune
 setting, source revision and dependencies. Source: portal:D4:R3, portal:D9:R2/R3/R5/R6,
@@ -73,6 +76,12 @@ portal:D10, portal:D16:R1.
 - **THEN** the Logs tab says the container has not started, so there are no logs yet, and links
   to the Events tab filtered to that Pod
 
+#### Scenario: A crash-looping container
+
+- **WHEN** the picked container waits with `CrashLoopBackOff`
+- **THEN** the Logs tab says the container is restarting and points to its previous instance's
+  logs, and does not say it has not started
+
 ### Requirement: Instance and package pages summarize Applied, Health and Provider standing
 
 The page of an instance or package SHALL show an identity card. The card SHALL carry the kind,
@@ -93,7 +102,8 @@ The Applied card:
 - SHALL show the applied state as its word. It SHALL show "Reconciling" instead while the
   `Reconciling` condition is `True` on an applied item, with that condition's time.
 - SHALL compose its summary only from recorded facts: the inventory count, the fetched revision,
-  the run of failed attempts and whether the controller retries.
+  the run of failed attempts and whether the controller retries. It SHALL name a retry interval
+  only where the controller retries at that interval.
 - SHALL show the reason's meaning and, in local mode, the controller's message beneath the
   summary.
 - SHALL show a `Reconciling` mark with its reason and since time while that condition is `True`
@@ -111,8 +121,8 @@ The Health card:
 - SHALL show the health state as its word.
 - SHALL say how many resources are unhealthy or rolling out out of how many were counted, or that
   nothing was applied, so there is nothing to check.
-- SHALL show its partial mark, and when it is not live, the time it was evaluated. It SHALL not
-  call a health with no counted object "not live".
+- SHALL show its partial mark, and when it is not live, the time it was evaluated. A health with
+  no counted object SHALL show no time and SHALL not be called "not live".
 - SHALL count objects and runtime children by health reason, each linking to the Resources tab
   with `reason` set to it.
 
@@ -156,8 +166,8 @@ portal:D15:R2/R3/R4, portal:D8:R5/R6.
 #### Scenario: Nothing applied yet
 
 - **WHEN** a package whose inventory names no object is rendered
-- **THEN** its Health card reads Unknown with "Nothing applied yet, so nothing to check" and does
-  not say "not live"
+- **THEN** its Health card reads Unknown with "Nothing applied yet, so nothing to check", shows no
+  time, and does not say "not live"
 
 #### Scenario: A refused provider in-cluster
 
@@ -177,10 +187,11 @@ portal:D15:R2/R3/R4, portal:D8:R5/R6.
 
 Below the cards the page SHALL offer the tabs Graph, Provider when the item holds a registration,
 Resources, Events, Logs and YAML, in that order. Each tab SHALL be a link carrying `tab=` that the
-server renders, and SHALL keep the `focus` parameter.
+server renders, and SHALL keep the `node` and `focus` parameters.
 
 The details panel SHALL show only on Graph and Resources, beside the tab's region where the page
-is wide enough. With no node focused, it SHALL show the details of the node the graph rests on
+is wide enough. With neither `node` nor `focus` set, it SHALL show the details of the node the
+graph rests on
 (the item's own node, unless the graph's resting rule picks a held registration whose claim needs
 attention), without spotlighting it, and Clear selection SHALL return it there. The panel SHALL never be an empty placeholder.
 
@@ -199,23 +210,27 @@ The panel SHALL keep its Open, Expand, YAML and Events links, and SHALL add a Lo
 Resources SHALL be a table with one row per inventory object and runtime child: kind, name,
 component, origin (applied from the inventory, or made by the cluster below an inventory object),
 health, and details (the health reason or desired replicas and the message). A Degraded or
-Missing row SHALL be marked apart. Each row SHALL link to the Graph tab focused on its node.
+Missing row SHALL be marked apart, and the row of the `node` or `focus` object SHALL be marked as
+current. Each row SHALL link to the Graph tab focused on its node.
 Configuration components SHALL fold as in the graph. The table SHALL be filtered by a `reason`
 parameter shown as a removable chip. On a package page the first row SHALL be the package's
-source, with origin "source". With nothing applied, the tab SHALL say so in the canvas's words for
-the kind.
+source, with origin "source". With nothing applied, the tab SHALL read "Nothing applied yet. The
+graph fills in once an apply succeeds." on an instance, and "Nothing applied yet. The package has
+never fetched its source." on a package that has no source artifact.
 
 Events SHALL filter by resource (grouped by kind, with "All resources" and the item itself as
-choices), by type and by reason, each choice with its count. The reason SHALL be shown as a chip
+choices, and otherwise only objects that have events in the feed), by type and by reason, each
+choice with its count; on a feed that left objects out, "All resources" SHALL say its count
+covers what could be read. The reason SHALL be shown as a chip
 only when set. "Showing N of M" SHALL sit with the filters. The events SHALL be a table, and each
 line SHALL show type, reason, the regarded resource (a link that filters to it when the item
 reaches it), message and age.
 
 Logs SHALL pick a Pod and container and follow its log as the logs panel does today.
 
-YAML SHALL pick an object grouped by kind, open on the focused node's object or else the first
-readable object, and show no Secret and no values. Source: portal:D8:R2, portal:D9:R3/R6,
-portal:D10.
+YAML SHALL pick an object grouped by kind, open on the selected (`node`) object, else the
+focused (`focus`) object, else the first readable object, and show no Secret and no values.
+Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 
 #### Scenario: From Resources to the graph
 
@@ -272,6 +287,17 @@ portal:D10.
 - **WHEN** a browser opens podinfo's page with `tab=yaml&focus=<the Deployment's node>`
 - **THEN** the Deployment's YAML is shown without picking it
 
+#### Scenario: YAML follows a graph click
+
+- **WHEN** the user clicks podinfo's Deployment node on the Graph tab and then follows the YAML
+  tab
+- **THEN** the YAML tab opens on the Deployment's YAML
+
+#### Scenario: Only objects with events are offered
+
+- **WHEN** a browser opens podinfo's Events tab and one reached object has no event in the feed
+- **THEN** the Resource filter does not offer that object
+
 #### Scenario: A resource link filters the feed
 
 - **WHEN** the user follows the Deployment's name in a line of podinfo's Events tab
@@ -290,7 +316,8 @@ Per held registration, the tab SHALL show:
 - a grid of facts: the registration, its claimed catalog (linking to the Catalog page) and
   version, whether that catalog is in the Platform's resolved registry and contributed by this
   registration, how many contracts it provides and how many are in use (or "none" for a refused
-  claim), the `providerRef`, and in local mode the controller's message;
+  claim, and no in-use count when a list of users is incomplete or locked), the `providerRef`,
+  and in local mode the controller's message;
 - its "Registration conditions" (type, a status badge toned by the condition's tone, reason,
   meaning and since, and in local mode the message);
 - a table of what it provides, where each contract is a pill showing its short path, with the full
@@ -321,6 +348,12 @@ portal:D15:R2/R3.
   not get the Platform, and opens its Provider tab
 - **THEN** the tab names `default.backup-provider` with its standing, and its conditions and
   catalog render locked; the page is not an error
+
+#### Scenario: Users not fully readable
+
+- **WHEN** the caller may not list ModuleInstances in every namespace and opens backup-provider's
+  Provider tab
+- **THEN** the Contracts fact reads "1 provided; use not fully readable", not an in-use count
 
 #### Scenario: A contract nobody uses
 

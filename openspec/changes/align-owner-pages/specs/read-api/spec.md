@@ -11,12 +11,15 @@ caller may read, merged newest first. Core Secrets SHALL be left out.
 
 The server SHALL authorize in this order, before any lookup each review covers:
 
-1. get on the owner;
-2. the inventory, from held state;
-3. list of events in each namespace where those events live, one namespace at a time.
+1. get on the owner and list of events in the owner's own namespace, both before the owner is
+   looked up;
+2. the owner and its inventory, from held state;
+3. list of events in each other namespace where those events live, one namespace at a time.
 
 A denial of the owner get, or of the list of events in the owner's own namespace, SHALL be the
-same `403` document a forbidden read gets. An object the caller may not read, or whose events'
+same `403` document a forbidden read gets. A missing owner, when both are allowed, SHALL be `404`,
+and the portal's reader denied the list in the owner's namespace SHALL be `503`
+`not_readable_by_portal`, as for the owner's own feed. An object the caller may not read, or whose events'
 namespace the caller may not list or the server could not list, SHALL be left out, and the list
 SHALL carry `partial: true`. `scope` with any other value, or `scope=all` together with an object
 named by the `group`, `kind`, `namespace` and `name` parameters, SHALL be `400 bad_request`. The
@@ -49,7 +52,14 @@ portal:D7:R4, portal:D8:R5.
 
 - **WHEN** the caller may get instance `default/podinfo` but may not list events in `default`,
   and reads its events with `scope=all`
-- **THEN** the response is the same `403` document a forbidden read gets
+- **THEN** the response is the same `403` document a forbidden read gets, and the instance is not
+  looked up
+
+#### Scenario: A missing owner
+
+- **WHEN** a caller who may get instances and list events in `default` reads
+  `instances/default/nothing/events?scope=all`
+- **THEN** the response is `404` with a `not_found` problem, as for the owner's own feed
 
 #### Scenario: An unknown scope
 
@@ -66,7 +76,7 @@ portal:D7:R4, portal:D8:R5.
 ### Requirement: Packages carry their prune setting
 
 A package document and a package list item SHALL carry `prune`, the package's `spec.prune` as
-written, when it is set, and nothing when it is not, never a default. Source: portal:D2:R4.
+written, when it is set, and nothing when it is not, never a default. Source: portal:D2:R2.
 
 #### Scenario: The F1 package prunes
 

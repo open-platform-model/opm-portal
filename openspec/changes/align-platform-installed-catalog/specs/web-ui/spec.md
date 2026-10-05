@@ -29,8 +29,9 @@ object, the note with the repeat count and reporting controller, and the age. A 
 unfulfilled provider contracts SHALL show it as information, not as a failure. The page SHALL show
 no Platform health and no platform graph. When the registrations the caller may read are not all
 of them, or a list behind the Installed counts is forbidden, the page SHALL say so with the locked
-style, and SHALL never show a refusal count of zero for registrations it could not read. Source:
-portal:D4:R4/R7, portal:D3:R8, portal:D17, portal:D9:R2/R4.
+style, whatever other reasons the status block shows, and SHALL never show a refusal count or an
+active-claims count of zero for registrations it could not read. Source: portal:D4:R4/R7,
+portal:D3:R8, portal:D17, portal:D9:R2/R4, portal:D19:R3/R5.
 
 #### Scenario: The F1 platform
 
@@ -63,7 +64,15 @@ portal:D4:R4/R7, portal:D3:R8, portal:D17, portal:D9:R2/R4.
 #### Scenario: Registrations forbidden on the status block
 
 - **WHEN** the caller may get the Platform but may not list TransformerRegistrations
-- **THEN** the status block says the refusals are locked and shows no refusal count
+- **THEN** the status block says the refusals are locked and shows no refusal count, and its
+  summary shows no "0 claims"
+
+#### Scenario: Registrations forbidden while Ready is not True
+
+- **WHEN** the caller may get the Platform but may not list TransformerRegistrations, and the
+  Platform's `Ready` is `False`
+- **THEN** the status block shows the `Ready` reason and, in the locked style, that the refusals
+  are locked
 
 #### Scenario: Removal blocked keeps acceptance and activation
 
@@ -141,9 +150,10 @@ as a pill; its source ("Platform subscription", or the contributing registration
 claimed-only catalog the claiming registrations, each linking to its holder's Provider tab when it
 has one holder); its enablement, reading "no: not in the registry" for a catalog the registry does
 not hold; whether it is resolved, as a state block with the state word, a summary of what the
-registry records, and for an unresolved catalog the time since it was refused (from the claiming
-registration's condition, or the Platform's `Ready` for a subscription) and each reason (the
-Platform's `Ready` reason, or the claiming registrations' refusal reasons with their count)
+registry records, and for an unresolved catalog the time since it was refused (the earliest time
+a claiming registration's `Ready` condition turned `False`, or the Platform's `Ready` for a
+subscription) and each reason (the Platform's `Ready` reason without a count, or the claiming
+registrations' refusal reasons with their count)
 linking to the Events tab filtered by that reason; the Platform's `ContractsFulfilled` labelled as
 platform-wide; the registrations that claim it with their holders and standing; and the recent
 events of the Platform and its claimants as a table, filterable by type and reason, with how many
@@ -152,7 +162,7 @@ description, documentation link or transformer, and SHALL say these are not reco
 caller may not read the Platform, the page SHALL render locked with status `403`, saying nothing
 about whether the catalog exists. A path that a readable Platform and the readable registrations
 do not name SHALL render not found with status `404`. Source: portal:D17:R3, portal:D3:R8,
-portal:D7:R1, portal:D9:R2.
+portal:D7:R1, portal:D9:R2, portal:D19:R5.
 
 #### Scenario: The contributed backup catalog
 
@@ -192,6 +202,12 @@ portal:D7:R1, portal:D9:R2.
 - **WHEN** a browser opens the Events tab of a catalog with `type=Warning`
 - **THEN** the table holds only Warning events and says how many it shows of all the events
 
+#### Scenario: A Type choice keeps the reason
+
+- **WHEN** a browser opens a catalog's Events tab with `reason=CatalogUnresolved` and then picks
+  type Warning
+- **THEN** the address carries both `reason=CatalogUnresolved` and `type=Warning`
+
 #### Scenario: Claimants forbidden
 
 - **WHEN** the caller may get the Platform but may not list TransformerRegistrations and opens a
@@ -222,21 +238,26 @@ YAML view shows objects as the cluster serves them and is exempt. Source: portal
 
 ### Requirement: Filter forms offer the values present and apply as the user types
 
-A filter form SHALL draw its fields in its view's parameter order. A filter whose values are
+This requirement covers the filter forms of the Installed list, the Platform's Providers and
+Catalogs tabs, the Platform's recent events and the Catalog page's Events tab. Each SHALL draw its
+fields in its view's parameter order. A filter whose values are
 facts of the listed rows (Installed's namespace, uses and module; the Providers tab's provides)
 SHALL be a select of the values present in the rows the caller may read. Every select option
 SHALL carry its count over the rows before filtering, and the first option SHALL name the empty
-choice in words ("Any kind", "All namespaces", "Anyone", "Any status", "Either"). A contract SHALL
+choice in words ("Any kind", "All namespaces", "Anyone", "Any status", "Either"). An option whose
+rows come from a list the caller may not read, or that failed, SHALL carry no count, never a zero.
+A contract SHALL
 show by its last two path segments with its version, with the full contract as its value. A
 value in the URL that is not among the choices SHALL still apply and show as selected. When a
 list behind a form is locked or failed, the counts SHALL cover only what the caller may read and
 say so, and the namespace filter SHALL stay a field the user can type into, so a reader who may
 list only some namespaces can name one. Each active filter's chip SHALL read "Label: value", and
 the form SHALL always show how many rows it shows of how many, and "Clear all" when a filter is
-active. With script, a search or text field SHALL apply after a short pause in typing, with the
-user's focus and caret kept, and the Apply button SHALL be hidden. Without script, the button
-SHALL show and every filter SHALL work as a plain `GET`. The URL query SHALL stay the filters'
-source of truth. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2.
+active. Without script, the button SHALL show and every filter SHALL work as a plain `GET`. The URL
+query SHALL stay the filters' source of truth. On every page, with script, a search or text field
+of a `data-filters` form SHALL apply after a short pause in typing, with the user's focus, caret
+and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until it takes
+keyboard focus. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2, portal:D19.
 
 #### Scenario: Namespace choices with counts
 
@@ -269,6 +290,18 @@ source of truth. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2.
 - **THEN** both lists render locked, the Namespace filter is a field the user can type into, and
   no option count stands for the locked lists
 
+#### Scenario: Packages forbidden in the Kind filter
+
+- **WHEN** the caller may list ModuleInstances but not ModulePackages and opens `/installed`
+- **THEN** the Kind filter's Package option carries no count
+
+#### Scenario: Registrations forbidden in the Platform filters
+
+- **WHEN** the caller may get the Platform but may not list TransformerRegistrations and opens
+  `/?tab=providers`, then `/?tab=catalogs`
+- **THEN** the Status and Provides options carry no counts, and the Catalogs tab offers no Claimed
+  filter
+
 #### Scenario: Provider status choices
 
 - **WHEN** a signed-in browser opens `/?tab=providers` on the F1 capture
@@ -280,8 +313,10 @@ source of truth. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2.
 When the caller may list ModuleInstances and ModulePackages in every namespace, Installed SHALL
 apply its namespace filter to the full lists, so its total, its filter counts and its namespace
 choices cover every namespace. When a kind's full list is forbidden and a namespace filter is set,
-Installed SHALL list that kind in the filtered namespace only and SHALL label its total as within
-that namespace. Source: portal:D7:R2, portal:D14:R2/R7.
+Installed SHALL list that kind in the filtered namespace only, SHALL apply the namespace filter to
+the other kind's rows before counting, so that the total, the filter counts and the choices all
+cover that namespace only, and SHALL label its total as within that namespace. Source:
+portal:D7:R2, portal:D14:R2/R7.
 
 #### Scenario: The total under a namespace filter
 
@@ -293,6 +328,13 @@ that namespace. Source: portal:D7:R2, portal:D14:R2/R7.
 - **WHEN** the caller may list ModuleInstances only in namespace `default` and opens
   `/installed?namespace=default`
 - **THEN** the instances in `default` are listed and the total is labelled as within `default`
+
+#### Scenario: One kind scoped
+
+- **WHEN** the caller may list ModuleInstances in every namespace but ModulePackages only in
+  `default`, and opens `/installed?namespace=default`
+- **THEN** the page says "of N in default", where N counts only the instances and packages in
+  `default`
 
 ### Requirement: The module filter matches a package by its source
 

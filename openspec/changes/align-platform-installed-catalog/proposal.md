@@ -17,13 +17,14 @@ differently from what the owner reviewed. The large ones:
 - Events on the Platform and Catalog pages are stacked cards. The canvas draws a table whose
   Resource cell filters the feed.
 
-The owner chose on 2026-10-06 to follow the canvas's look (decision 1). The supervisor ruled that
-everything not decided otherwise follows the canvas, that events become tables, and that the
-Applied axis keeps today's words. This change applies that to the three list-and-summary pages.
+The owner chose on 2026-10-06 to follow the canvas's look (decision 1, portal:D19). The supervisor
+ruled that everything not decided otherwise follows the canvas, that events become tables, and that
+the Applied axis keeps today's words (portal:D19:R3). This change applies that to the three
+list-and-summary pages.
 
 **Gate:** depends on `align-shell-and-tokens`. That change lands the flat look, the 1840 px
-column, the tone ink and kind chip tokens, the square badges, the underline tabs with counts and
-the shared state block partial, and this change uses all of them. Start this change only after
+column, the tone ink and kind chip tokens, the square badges, the underline tabs with counts, the
+shared state block partial and the shared tooltip, and this change uses all of them. Start this change only after
 `align-shell-and-tokens` has merged.
 
 ## What Changes
@@ -32,8 +33,10 @@ the shared state block partial, and this change uses all of them. Start this cha
   wrapping row. A filter whose values are facts of the rows (namespace, uses, module, provides)
   becomes a select of the values present. Every select option carries its count over every row
   the caller may read, and the first option has a per-filter "any" word ("Any kind", "Anyone").
-  The search box gets a magnifier icon. Search and text fields apply as the user types (debounced),
-  and the Apply button is hidden when script runs. A row that is always shown holds
+  The search box gets a magnifier icon. Search and text fields apply as the user types (debounced,
+  keeping focus, caret and text typed meanwhile), a filter submit replaces the history entry
+  instead of pushing one, and the Apply button is hidden when script runs until it takes keyboard
+  focus. An option over a list the caller may not read carries no count. A row that is always shown holds
   "Showing N of M", chips reading "Label: value" and "Clear all". The URL contract is unchanged
   (portal:D14).
 - **Installed**: when the caller may list everywhere, the list is fetched unscoped and filtered by
@@ -62,8 +65,9 @@ the shared state block partial, and this change uses all of them. Start this cha
   filter, "Showing X of N" and the events table.
 - No read API change, no new read, no new route.
 
-Not in this change: the Applied axis words "Ready / Not ready" (platform-41; supervisor ruling:
-the canvas's words lose Failed, Stalled and Reconciling); the gaps assigned to the other three
+Not in this change: the Applied axis words "Ready / Not ready" (platform-41; supervisor ruling,
+portal:D19:R3: the canvas's words lose Failed, Stalled and Reconciling); per-catalog resolve time,
+registry and digest (catalog-06, catalog-09; portal:OQ26, opm-operator#230); the gaps assigned to the other three
 changes; and every section X gap (decided out, or needing the controller or the registry).
 
 ## Capabilities
@@ -96,8 +100,15 @@ None.
   it rather than redefining it. design.md gives the partial's shape so both build the same one.
   The two changes modify different `web-ui` requirements. This change does not touch owner
   pages, the details panel, the graph or `internal/ui/graph.go`.
+- Three edits reach pieces `align-owner-pages` owns or uses, each made so that its files keep
+  working whichever change lands first (design.md, "the pieces this change changes under C"):
+  `newFilterForm` keeps its signature as a wrapper, so `owner.go:588` is not edited here;
+  `providerBadge` stays as it is and the Installed pill is a new `providerPill`, so the owner
+  kicker keeps its standing word; the tooltip CSS comes from `align-shell-and-tokens`, not from
+  this change.
 - `align-shell-and-tokens`' `state-block` partial is used as it ships: it already gives a reason
-  its own class and lets a reason show without a count. This change does not edit it.
+  its own class, lets a reason show without a count, and carries note lines (the locked refusals
+  line). This change does not edit it.
 - Principle V: no new kind is read, no new verb, no new identity. Installed makes one extra
   `list` call per kind only when the unscoped read comes back forbidden and a namespace filter
   is set. That call is the scoped read the page makes today. Every new fact (registration
@@ -108,7 +119,11 @@ None.
 - SemVer: MINOR after 1.0 (UI behaviour and look, no API change). On the 0.x line it ships as one
   PR titled `feat(ui): align the Platform, Installed and Catalog pages with the canvas`, which
   cuts a minor release.
-- Decisions: implements portal:D17 (the canvas is the target, cut to recorded data) and keeps
+- In-cluster: the events tables, the contracts note's controller message and the provider rows'
+  messages are new places for operator-written text; the in-cluster suite covers each.
+- Decisions: implements portal:D17 (the canvas is the target, cut to recorded data) and portal:D19
+  (R1 the flat look, R3 the Applied words, R5 recorded times only), defers catalog-06 and
+  catalog-09 to portal:OQ26, and keeps
   portal:D3:R1/R8, portal:D4:R4/R7, portal:D7:R2, portal:D9:R2/R4, portal:D14:R1-R3 and
   portal:D16:R2 as they are. It adds portal:D14:R7 (filter choices come only from
   rows the caller may read), recorded by the planning PR.

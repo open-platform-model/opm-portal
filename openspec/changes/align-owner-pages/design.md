@@ -30,28 +30,38 @@ This change starts after `align-shell-and-tokens` merges. It uses these pieces f
 (its design.md, "The state block" and "Underline tabs with counts"):
 
 - **The `state-block` partial and its `stateBlock` value**: `ID`, `Label`, `Eyebrow`, `When`
-  (`*stamp`), `WhenText`, `Hue` (applied, healthy, progressing, degraded, unknown, neutral,
-  missing, locked), `State`, `Summary`, `Reasons`, `None`, `Follow` and `Problem`. The icon
-  follows the hue. The partial already shows `WhenText` as plain words when `When` is nil (moved
-  into `align-shell-and-tokens` by the integrator on 2026-10-06, so that this change and
-  `align-platform-installed-catalog` do not both edit the partial); only the Health block uses it,
-  for "checked live". This change makes one additive edit to the partial, and blocks that do not
-  set the field render as before:
+  (`*time.Time`, drawn by the `time` partial), `WhenText`, `Hue` (applied, healthy, progressing,
+  degraded, unknown, neutral, missing, locked), `State`, `Summary`, `Notes` (`[]sbNote{Text,
+  Class, Mono}`, secondary lines under the summary), `Caption` (over the reasons), `Reasons`,
+  `None`, `Links` (footer links), `Follow` and `Problem`. The icon follows the hue. The partial
+  already shows `WhenText` as plain words when `When` is nil, and already carries `Notes`,
+  `Caption` and `Links` (moved into `align-shell-and-tokens` by the integrator on 2026-10-06 and
+  after the plan review, so that this change and `align-platform-installed-catalog` do not both
+  edit the partial). This change uses them for the reason's meaning, the local-mode controller
+  message, the partial and `Reconciling` marks (`Notes`), the Applied card's "Warning events,
+  last hour" (`Caption`) and the Provider card's "Open the Provider tab" (`Links`). It makes one
+  additive edit to the partial, and blocks that do not set the field render as before:
   - A `History *historyStrip` field draws the Applied card's attempt strip inside the block's
     section, after the reasons. This change is the only follow-on change that edits the partial.
 - **The tone tokens** (border, ink, background, tint) in light and dark.
 - **Underline tabs and `tabLink.Count`.** The owner tabs' Resources and Events counts already come
   from that change: inventory objects plus runtime children, and the folded lines of the feed the
   Events tab opens with. A list the caller may not read in full gets no count.
-- **The square badges and the visually hidden region headings.**
+- **The square badges and the visually hidden region headings.** A health stamp alone on a
+  per-object line names its axis in its accessible name; the Resources table's "Health" column
+  head names it visibly.
+- **The `tip` partial and `.tipbox` CSS** for the Owner and Applier info tips.
 - **The `openNode` select fix (`instance-43`).**
 
 From `align-platform-installed-catalog`, which runs in parallel and owns the generic filter code:
 
 - **The `opm-js` class** that `prefs.js` sets, which hides an Apply button.
-- **The `.tipbox` tooltip CSS.**
-- **`providerBadge`'s pill**: the word "Provider", with the standing in hidden text and in a
-  tooltip.
+- **`providerPill`**: the word "Provider", with the standing in hidden text and in a tooltip.
+  That change leaves `providerBadge` as it is and adds `providerPill` beside it; if this change
+  lands first, it adds `providerPill` as that change's design.md gives it, and the other adopts
+  it. The kicker and `claimBadge` move to it here.
+- **`newFilterForm`** keeps its signature there, as a wrapper, so the Resources reason form
+  compiles until this change removes it.
 - **The `events-table` partial** with its `eventsTable` and `eventRow` input. Whichever of the two
   changes lands first adds it, and the other adopts it.
 
@@ -65,6 +75,15 @@ before `align-platform-installed-catalog`, the owner-page Apply and Show buttons
 `resetDetail` script (its `graph-23` and `provider-21`). This change's `instance-27` is the same
 behaviour: decision 5 builds it only if `align-graph` has not landed it, and whichever change
 lands second rebases.
+
+`align-graph` also splits selection from spotlight: a click, or a no-script node link, selects
+through a new `node` parameter, and `focus` stays the hand-off spotlight from Resources and the
+Health reasons. This change treats both as selection inputs from the start: tab links keep
+`node` and `focus`; YAML opens on the `node` object, else the `focus` object; the Resources row
+of either is marked; and the panel rests only when neither is set. If this change lands first,
+`node` is a reserved parameter it forwards across tabs and reads for YAML and the marked row,
+before anything writes it. The parsing of both parameters, the Clear and Overview links and
+`keepHidden` in `ownerTabsOf` are shared lines; both proposals' shared-file tables say so.
 
 ## Goals / Non-Goals
 
@@ -96,6 +115,9 @@ lands second rebases.
   view.
 - **Graph drawing, grouping, the source node read and registration node standing.** These belong
   to `align-graph`; the package source row here only shows what the graph document carries.
+- **The graph's root node drawn blue "Reconciling"** (the graph half of `instance-40`). A node's
+  fill and outline carry health only (portal:D3:R1), and its applied square shows the recorded
+  applied state; the Applied card here shows Reconciling. Left out, not handed on.
 
 ## Decisions
 
@@ -155,24 +177,28 @@ Problems:
 | Case | Response |
 | --- | --- |
 | Not signed in | `401 unauthenticated`, as today |
-| Get on the owner denied, or the owner missing | `403 forbidden`, the same document (portal:D7) |
+| Get on the owner denied | `403 forbidden`, the same document (portal:D7) |
 | List of events denied in the owner's own namespace | `403 forbidden`, as today's owner feed |
+| The owner missing, with get and list allowed | `404 not_found`, as today (`readmodel/instances.go:64-69`, `api/problem.go:82-83`) |
+| The portal's reader denied list events in the owner's namespace | `503 not_readable_by_portal`, as today |
 | List denied in another namespace | `200` with those objects left out and `partial: true` |
 | A list in some namespace fails | `200` with those objects left out and `partial: true` |
 | `scope` unknown, or `scope=all` with object parameters | `400 bad_request` |
 | The read model not yet synced for the owner | `503 not_readable_by_portal`, as today |
 
-Authorization, in order, each review before the lookup it covers:
+Authorization, in order, each review before the lookup it covers, keeping today's order
+(`handlers.go:422-435`, both reviews before any lookup):
 
-1. `get` on the ModuleInstance or ModulePackage, as today.
-2. The owner's inventory, read from held state under that grant (portal:D3:R9). Each object
-   carries the caller's `access`. Objects that are not `ok`, and every core Secret, are dropped.
-   Runtime children are kept as the inventory document carries them.
+1. `get` on the ModuleInstance or ModulePackage, and `list` on `events.k8s.io` `events` in the
+   owner's own namespace, as today. Either denied: `403`, the same document.
+2. The owner, then its inventory, read from held state under that grant (portal:D3:R9). A
+   missing owner is `404`, as today. Each object carries the caller's `access`. Objects that are
+   not `ok`, and every core Secret, are dropped. Runtime children are kept as the inventory
+   document carries them.
 3. The event namespace of every remaining object, from `readmodel.EventNamespace`: the object's
    own namespace, or `default` for a cluster-scoped object (portal:D9:R4).
-4. `list` on `events.k8s.io` `events` in each of those namespaces, reviewed one namespace at a
-   time so that one denial does not fail the whole feed. The owner's own namespace must be
-   allowed. A denial elsewhere sets `partial`.
+4. `list` on `events` in each other namespace, reviewed one namespace at a time so that one
+   denial does not fail the whole feed. A denial sets `partial`, and no list runs there.
 5. One list per (event namespace, regarded kind), with the field selector `regarding.kind=<Kind>`.
    The results are filtered in memory to the reached set by group, kind, namespace and name, as
    `regards` does today. They are folded per portal:D9:R3 and merged newest first.
@@ -180,7 +206,17 @@ Authorization, in order, each review before the lookup it covers:
 No new kind, verb or namespace pattern is read beyond what today's per-object feed reads. The
 in-cluster omission (portal:D8:R5) applies per item, exactly as for a one-object feed. The
 `events:` stream topic keeps carrying the owner's own feed. The page re-reads the merged feed on
-each refresh, and the stream's periodic refresh covers events about children.
+each refresh, but a refresh comes only when a topic the page follows changes: the owner document
+(which carries the health a child's state rolls up into) or the owner's own events. The producer
+re-renders `events:<owner>` from the owner-only feed (`internal/api/producer.go:317-321,
+386-405`), and the broker drops a document equal to the last one sent (portal:D2:R7,
+`internal/stream/stream.go:554`). So an event about a child alone, such as a repeated `BackOff`
+that changes no health, refreshes nothing; the merged list, its count and the Applied counts
+catch up on the next owner change or on navigation. This is a stated limit, not an oversight:
+re-rendering the merged feed per subscriber on every child event, or a new per-owner merged topic,
+costs a producer change this plan does not make. The docs page says so, a test pins it, and
+`ROADMAP.md` keeps it as a follow-up. The comment at `internal/ui/owner.go:391-392` is corrected to
+say the same.
 
 `internal/readmodel` gains:
 
@@ -234,14 +270,19 @@ secondary line.
   | --- | --- |
   | Applied, instance | "<InventoryCount> objects applied" |
   | Applied, package with a `SourceArtifact` | "Fetched <short revision or digest>, <InventoryCount> objects applied" |
-  | Failed or Stalled | "Failed on the last <N> attempts", where N is the trailing run of `History` entries with outcome Failed, plus ", retrying every <interval>" when `Retrying` and a package interval are set |
+  | Failed or Stalled | "Failed on the last <N> attempts", where N is the trailing run of `History` entries with outcome Failed (when N is 0, the clause is left out and the summary is the condition reason), plus ", retrying every <interval>" only when `Retrying`, a package interval is set and the Ready reason is `SourceNotReady`; otherwise ", retrying" with no cadence |
   | Reconciling | the Reconciling condition's reason |
   | Managed externally | "Applied by the opm CLI; the controller does not manage it" |
   | No history, no inventory | "Nothing applied yet" |
 
-- The reason's meaning and, in local mode, the controller's message stay visible on a smaller
-  line beneath the summary (portal:D8:R5/R6).
-- Reasons: Warning counts of the owner's own events, count first, under the caption "Warning
+  The cadence rule follows the controller: only source-resolution failures requeue at
+  `spec.interval`; apply-phase failures retry on the package backoff and stalled ones on the
+  stalled recheck interval (opm-operator `internal/reconcile/modulepackage.go:515,528,542`
+  against `:632,665,741,762`). Naming the interval for those would state a false cadence.
+- The reason's meaning and, in local mode, the controller's message stay visible as `Notes`
+  lines beneath the summary (portal:D8:R5/R6), as does the `Reconciling` mark with its reason and
+  time when the word is not Reconciling.
+- Reasons: Warning counts of the owner's own events, count first, under the `Caption` "Warning
   events, last hour" (portal:D9:R1/R2). They are filtered from the merged feed by `Regarding` ==
   owner, so the counts mean what they meant before. With no counts: "No reconcile errors".
 - History strip (`instance-06`), inside the card's section:
@@ -258,10 +299,12 @@ secondary line.
 **Health**:
 
 - Eyebrow "Health · everything it runs".
-- When: "checked live" (words, through `WhenText` with `When` nil) when `Health.Live`; otherwise
-  "not live, evaluated" and the `EvaluatedAt` stamp (portal:D3:R5).
-- A partial health adds "Partial: some objects could not be read and are left out." under the
-  summary (portal:D3:R4). The state word stays the bare state.
+- When, first match wins: no when at all when the counts total zero (nothing was counted, so
+  nothing is "checked live" or "not live"; `Health.Live` is false then, `internal/health/rollup.go:302`);
+  "checked live" (words, through `WhenText` with `When` nil) when `Health.Live`; otherwise "not
+  live, evaluated" and the `EvaluatedAt` time (portal:D3:R5).
+- A partial health adds the `Notes` line "Partial: some objects could not be read and are left
+  out." under the summary (portal:D3:R4). The state word stays the bare state.
 - Summary from `Health.Counts` (`instance-02`). With total = Healthy + Progressing + Degraded +
   Missing + Unknown:
 
@@ -295,7 +338,8 @@ secondary line.
   - The portal composes no verdict of its own.
 - Reasons (`provider-03`, `provider-22`): a non-success reason renders as "1 <Reason>", linking
   to `?tab=provider`. Success shows "No registration problems". The card carries one "Open the
-  Provider tab" link instead of linking each registration name.
+  Provider tab" link (`Links`) instead of linking each registration name. Further claims are
+  `Notes` lines (badge word and name).
 
 ### 3. Identity card and page frame (`instance-09`, `instance-10`, `instance-11`, `provider-04`, and `instance-12` from section X)
 
@@ -303,18 +347,23 @@ secondary line.
   Kind> <ns>/<name>" for a package, with the namespace resolved to the package's own when
   `sourceRef` names none (as `internal/graph/instance.go:89-94` does). The Module fact row goes.
 - **Facts**: Namespace; Owner ("controller" or "the opm CLI"); Applier ("ServiceAccount <name>",
-  or the controller's own). Owner and Applier each carry an info tip: a focusable span with an
-  inline SVG and a `.tipbox`, using the canvas wording. A package adds Source, Path, Interval
+  or the controller's own). Owner and Applier each carry an info tip through
+  `align-shell-and-tokens`' `tip` partial (a focusable span with an inline SVG and a `.tipbox`),
+  using the canvas wording. A package adds Source, Path, Interval
   ("every 1 min", humanized from the Go duration; "not set" when absent), Prune ("on" or "off"
   from `prune`; "not set" when absent), Revision ("not recorded" when absent) and Depends on.
   Objects and Last applied stay.
 - **Provider pill** in the kicker (`provider-04`): round, 11 px, 700, uppercase, body font. It
   reads "Provider", with the standing in a visually hidden span and the title, so colour is not
-  the only carrier. It uses `providerBadge` as `align-platform-installed-catalog` leaves it. The
-  kind word stays "Instance" or "Package" (portal:D17:R2).
-- **Frame** (`instance-11`): a `page-owner` class on `<main>` uses the 1840 px column. The summary
-  grid is `repeat(auto-fit, minmax(380px, 1fr))`. On Graph and Resources the tab panel and the
-  details panel sit in a flex row (`999 1 900px` and `1 1 420px`) that wraps below 1320 px.
+  the only carrier. It uses `providerPill`, which `align-platform-installed-catalog` adds beside
+  the unchanged `providerBadge`. The kind word stays "Instance" or "Package" (portal:D17:R2).
+- **Frame** (`instance-11`): the 1840 px column and the summary grid
+  (`repeat(auto-fit, minmax(min(380px, 100%), 1fr))`) are `align-shell-and-tokens`', so this
+  change adds no page class or grid rule. On Graph and Resources the tab panel and the details
+  panel sit in a flex row (`999 1 900px` and `1 1 420px`, both `min-width: 0` so neither overflows
+  at 360 px) that wraps below 1320 px.
+- **Panel padding** (`platform-28`, the padding half `align-shell-and-tokens` hands on): the owner
+  cards and tab panels lose their inner padding, and their sections pad themselves.
 - **Conditions** (`instance-12`, supervisor ruling): the "Conditions and render contracts" fold
   moves below the tab panels, so the tabs sit right under the cards. The fold is the record
   (portal:D9:R1), so it stays on the page.
@@ -345,18 +394,31 @@ secondary line.
   - The table is a `<table class="table rows resources-table">` with a header row, so the
     phone-width card fallback of `table.rows` applies.
   - Children follow their object, indented.
-  - Old ReplicaSets fold in a `<details>` row as today.
+  - Old ReplicaSets fold as a group, like configuration groups (below).
   - A Degraded or Missing row carries `row-degraded` and the tint token from
     `align-shell-and-tokens`.
-  - The row's name is the link to `?tab=graph&focus=<node>` (and `expand` when folded), with a
-    CSS stretched link so the whole row is a target and no script is needed.
-  - The focused row, when `focus` is set, is marked `aria-current` and tinted.
+  - The row's name is the link to `?tab=graph&focus=<node>` (and `expand` when folded; through
+    `align-graph`'s `graphHandoff` once it lands), with a CSS stretched link so the whole row is
+    a target and no script is needed.
+  - The row of the `node` object, else the `focus` object, is marked `aria-current` and tinted.
   - YAML, Events and Logs leave the row; the panel carries them.
   - The free-text reason input goes. `reason` stays a URL parameter, set by the Health card's
     hand-off and shown as a removable chip.
 - **Configuration groups**: `foldConfig` returns `[]configGroup`, one per group node in the graph
   document, each labelled by its node label, with count and worst health. Today that is one
   group; when `align-graph` adds per-kind groups they flow through with no template change.
+  - **Markup.** A `<details>` cannot wrap `<tr>` elements (the parser moves it out of the
+    table), so each group is its own `<tbody class="group">`. Its first row holds, in one
+    full-width cell, a `<details>` whose `<summary>` reads the group's label, count and worst
+    health; its member rows carry `class="member"`. CSS alone hides them while the group is
+    closed: `tbody.group:has(details:not([open])) > tr.member { display: none }`. No script and
+    no `style` attribute. The server renders `open` when any member is not healthy, or when a
+    `reason` filter is set. A test checks the HTML is valid and that a closed group's rows are
+    not displayed without script.
+  - **A deliberate deviation.** The canvas's Resources table has no fold: it lists every row flat
+    with a Component column (`CertManager.dc.html:203-218`). The fold stays because the main
+    spec's grouping requirement holds it (configuration grouped as the graph groups it,
+    portal:D4:R5); "Visual checks" records it.
 - **Package source row** (`instance-45`): the first row on a package page comes from the graph
   document's `source` node: Kind and `ns/name` from its `Ref`, origin "source", and its health
   when the node carries one (`align-graph`). Without that health it reads "not read". Details
@@ -365,25 +427,28 @@ secondary line.
 - **Empty text** (`instance-39`): with no inventory, "Nothing applied yet. The graph fills in
   once an apply succeeds." for an instance. For a package with no source artifact: "Nothing
   applied yet. The package has never fetched its source." With a filter set, the text stays
-  "No object or child reports this reason."
+  "No object or child reports this reason." The spec quotes the first two.
 
 ### 5. The details panel (`instance-27`, `instance-28`, `instance-29`, `instance-47`)
 
 - **At rest** (`instance-27`):
-  - With no `focus`, the Graph and Resources tabs render the panel of a resting node, with no
-    spotlight and no `aria-current`, so the panel is never an empty placeholder. Clear selection
-    returns the panel to that node.
+  - With neither `node` nor `focus`, the Graph and Resources tabs render the panel of a resting
+    node, with no spotlight and no `aria-current`, so the panel is never an empty placeholder.
+    Clear selection returns the panel to that node.
   - `align-graph` owns the choice of resting node: the owner's node by default, or the
     registration node when a claim needs attention (`graph-23`, `provider-21`). It also owns the
     reset in `resetDetail`.
   - When this change lands first, it builds the minimal form so that `instance-27` is closed
     either way:
-    - `defaultPanelNode(v *ownerView, g *v1.Graph) string` returns `g.Root`.
+    - `restingNode` in `internal/ui/graph.go` returns `g.Root`. This is the one function this
+      change adds to a file `align-graph` owns, under the name `align-graph` uses, so that change
+      replaces its body rather than renaming a caller.
     - `#detail` carries `data-root-panel="<panel URL>"`.
     - `resetDetail` fetches that URL with `select: 'unset'`.
     - Without script, Clear selection is a link without `focus`, so the server renders the
       resting panel.
-    `align-graph` then extends `defaultPanelNode` and rebases.
+    `align-graph` then extends `restingNode`, marks the resting node with its own attribute, and
+    rebases.
   - When `align-graph` lands first, this change only renders the resting panel on the Resources
     tab through that change's function, and adds its tests.
 - **Body** (`instance-28`):
@@ -420,13 +485,18 @@ secondary line.
 ### 6. Events, Logs and YAML tabs (`instance-44`, `instance-32`, `instance-33`, `instance-34`, `instance-35`, `instance-36`)
 
 - **Default scope** (`instance-44`):
-  - The Events tab shows the merged feed. The empty `resource` value means "All resources".
+  - The Events tab shows the merged feed (on every tab or only on Events, as section 1's
+    measurement settles). The empty `resource` value means "All resources".
   - `resource=<group/Kind/ns/name>` narrows the merged feed in the UI, with no second read,
     including to the owner itself: "This instance" or "This package" is an explicit option.
   - A `partial` feed adds the note "Some objects' events could not be read and are left out."
 - **Filter bar** (`instance-32`):
   - Resource: an "Everything" optgroup holding "All resources (N)" and "This <kind> (n)", then
-    one optgroup per kind with "<name> (n)".
+    one optgroup per kind with "<name> (n)". The options are the merged feed's `Regarding` set,
+    with the owner always included: a reached object with no events is not offered, as on the
+    canvas (`Instance.dc.html`, `objIds`) and as portal:D14:R7 asks (only values found in rows
+    the caller may read). On a `partial` feed, "All resources (N)" reads "All readable resources
+    (N)", since the counts cover only what could be read.
   - Type: "Any type", "Warning (n)" and "Normal (n)".
   - Every count is taken over the merged feed.
   - The Reason text input goes. `reason` stays a URL parameter, set by the Applied card's
@@ -458,24 +528,37 @@ secondary line.
     in mono, grouped by Pod, with the option value `log=<logID>`. The existing select handler
     submits it; a Show button appears without script.
   - One `details.log` is rendered `open` for the selected container, or the first container of
-    the first Pod. The existing script follows an open pane on load, so the pane streams at once.
+    the first Pod. Today the log script follows a pane only on its `toggle` event or through
+    `openHashedPane` (`portal.js:655-660,805-816`), and a server-rendered `<details open>` may
+    fire `toggle` before the deferred `portal.js` attaches its listener, depending on the engine.
+    So the log pane code changes: at init, and after every swap, it follows the open
+    `details.log` pane it finds, and the pane streams at once. `logs.py` checks it in all three
+    engines, on load and after a select change.
   - The Previous instance checkbox stays.
   - `.log-pane` uses a `--logbg` token that is dark in both themes.
-  - When the selected Pod's health reason is a waiting reason (`ImagePullBackOff`,
-    `ErrImagePull`, `ContainerCreating`, `CrashLoopBackOff`, `CreateContainerConfigError`,
-    `InvalidImageName`, or a Pod `Pending`), the pane is preceded by "The container has not
-    started, so there are no logs yet." and "See Events for why." This links to
-    `?tab=events&resource=<the Pod>`. The pane is still offered, since a crash loop has
-    previous-instance logs.
-  - Pod row and panel Logs links become `?tab=logs&log=<id>`.
+  - The hint is keyed to the picked container's own state where the Pod document carries it
+    (`status.containerStatuses[].state.waiting.reason`), else to the Pod's health reason:
+    - For a reason under which no instance of the container has started (`ContainerCreating`,
+      `ErrImagePull`, `ImagePullBackOff`, `InvalidImageName`, `CreateContainerConfigError`, or a
+      Pod `Pending`), the pane is preceded by "The container has not started, so there are no
+      logs yet." and "See Events for why.", linking to `?tab=events&resource=<the Pod>`.
+    - For `CrashLoopBackOff`, the container has started and has previous logs, so the line reads
+      "The container is restarting; its last run's logs are under Previous instance." with the
+      same Events link.
+    - A running container in the same Pod gets no hint.
+  - The panel's Logs link becomes `?tab=logs&log=<id>`. Pod rows carry no log link: YAML, Events
+    and Logs leave the row (decision 4), whose stretched link would cover a second link.
 - **YAML** (`instance-36`):
   - A GET form (`data-filters="owner-yaml"`, not remembered) holds one "Resource" select grouped
     by kind. Secrets are listed as disabled
     options reading "<name> (Secret data is never read)".
   - The line "Secrets and values are never shown." sits beside it.
-  - With no `object` parameter the tab preselects the focused node's object (`focus` maps to the
-    node's `Ref`), else the first readable inventory object, and shows its YAML on arrival.
-  - Tab links carry `focus` across tabs (`linkWith`), so YAML follows the graph selection.
+  - With no `object` parameter the tab preselects the `node` object, else the `focus` object
+    (each maps to the node's `Ref`), else the first readable inventory object, and shows its YAML
+    on arrival. This follows a graph click (`node`, canvas `Instance.dc.html:931`) as well as a
+    hand-off (`focus`).
+  - Tab links carry `node` and `focus` across tabs (`linkWith`), so YAML follows the graph
+    selection.
   - The panel is one wide region.
 
 ### 7. Provider tab (`provider-06`, `provider-07`, `provider-08`, `provider-09`, `provider-11`, `provider-20`)
@@ -492,7 +575,7 @@ secondary line.
   | Registration | "TransformerRegistration <name>", mono |
   | Claims catalog | link and version |
   | Registry | today's sentence |
-  | Contracts | "N provided, M in use", where M counts contracts whose Used by total > 0; or "none: the claim is refused" |
+  | Contracts | "N provided, M in use", where M counts contracts whose Used by total > 0; "N provided; use not fully readable" when any Used-by list is incomplete or locked, since M would be an undercount (portal:D7:R2, portal:D14:R7); or "none: the claim is refused" |
   | providerRef | as today (portal:D15) |
   | Controller says | local mode only |
 
@@ -516,10 +599,14 @@ secondary line.
 
 Every owner page render now reads the merged feed. For cert-manager (42 entries; F1) that is one
 list per (namespace, kind) pair rather than one per object. The pages already re-render on
-refresh from one fetch of the page. Section 5 measures the read on the e2e cluster's
-cert-manager. If it adds more than about 200 ms at the 95th percentile, the Events count shows
-only on the Events tab and the other tabs read the owner's own feed, as today. design.md records
-the measurement.
+refresh from one fetch of the page. Whether that is fast enough is an unverified assumption, so
+section 1 is a spike: it measures the list pattern for cert-manager on the e2e cluster and under
+realistic latency before anything is built on it. If it adds more than about 200 ms at the 95th
+percentile, the default is set before section 2: the Events tab reads the merged feed, its count
+shows only on the Events tab, and the other tabs read the owner's own feed, as today. Section 6
+re-measures the built read against section 1's figure.
+
+Measured (section 1): to be filled in.
 
 ## Research & Decisions
 
@@ -581,8 +668,10 @@ cheaper than a wire change, and a Platform the caller may not read degrades to "
 
 ## Risks / Trade-offs
 
-- [Merged feed slower than one list] → Concurrent lists, at most four. The section 1
-  measurement can fall back to counting only on the Events tab.
+- [Merged feed slower than one list] → Concurrent lists, at most four. The section 1 spike
+  measures it first and can set the default to counting only on the Events tab.
+- [Child events do not refresh the tab live] → Stated limit (decision 1): the tab follows the
+  owner's topics. The docs page says so, and `ROADMAP.md` keeps it as a follow-up.
 - [`partial` hides why] → The note says objects were left out. The per-object option still
   returns the precise `403` for one object.
 - [Shared files with `align-graph` and `align-platform-installed-catalog`] → The proposal lists
@@ -601,50 +690,54 @@ reviews them.
 
 ## Visual checks
 
-Filled in by sections 2 to 5: screenshots of each owner tab over the F1 capture
+Filled in by sections 3 to 6: screenshots of each owner tab over the F1 capture
 (`TestDevServe`) in light, dark and at 360 px, compared with the canvas boards. Record each
 remaining difference here and say why it stays.
+
+Known before the screenshots: the Resources table folds configuration groups and old
+ReplicaSets, where the canvas's table is flat (decision 4, held by portal:D4:R5).
 
 ## Gap map (section C of gaps.md)
 
 | Gap | Decision | Tasks |
 | --- | --- | --- |
-| instance-01 | 2 | 2.1, 2.3, 2.4 |
-| instance-02 | 2 | 2.1, 2.3 |
-| instance-03 | 2 | 2.1, 2.3 |
-| instance-04 | 2 | 2.1, 2.3 |
-| instance-06 | 2 | 2.3, 2.4 |
-| instance-07 | 2 | 2.3 |
-| instance-09 | 3 | 2.3 |
-| instance-10 | 3, 1 (`prune`) | 1.2, 2.3, 2.4 |
-| instance-11 | 3 | 2.3, 2.4, 3.2 |
-| instance-27 | 5 | 3.3, 3.6 |
-| instance-28 | 5 | 3.4 |
-| instance-29 | 5 | 3.4 |
-| instance-30 | 4 | 3.2 |
-| instance-32 | 6 | 4.1 |
-| instance-33 | 6 | 4.2 |
-| instance-34 | 6 | 4.2 |
-| instance-35 | 6 | 4.3 |
-| instance-36 | 6 | 4.4 |
-| instance-39 | 2, 4 | 2.2, 3.2 |
-| instance-40 | 2 | 2.1 |
-| instance-44 | 1, 6 | 1.1, 1.3, 4.1, 5.4 |
-| instance-45 | 4 | 3.2 |
-| instance-47 | 5 | 3.4 |
-| instance-48 | 2 | 2.1, 2.3 |
-| graph-10 | 4 | 3.2 |
-| graph-12 | 4 | 3.1 |
-| provider-01 | 2 | 2.1, 2.3 |
-| provider-02 | 2 | 2.1 |
-| provider-03 | 2 | 2.1 |
-| provider-04 | 3 | 2.3, 2.4 |
-| provider-05 | 4 | 3.1 |
-| provider-06 | 7 | 5.1 |
-| provider-07 | 7 | 5.1 |
-| provider-08 | 7 | 5.1 |
-| provider-09 | 7 | 5.1 |
-| provider-11 | 7 | 5.1 |
-| provider-20 | 7 | 5.1 |
-| provider-22 | 2 | 2.1 |
-| instance-12 (section X, supervisor ruling) | 3 | 2.3 |
+| instance-01 | 2 | 3.1, 3.3, 3.4 |
+| instance-02 | 2 | 3.1, 3.3 |
+| instance-03 | 2 | 3.1, 3.3 |
+| instance-04 | 2 | 3.1, 3.3 |
+| instance-06 | 2 | 3.3, 3.4 |
+| instance-07 | 2 | 3.3 |
+| instance-09 | 3 | 3.3 |
+| instance-10 | 3, 1 (`prune`) | 2.2, 3.3, 3.4 |
+| instance-11 | 3 | 3.3, 3.4, 4.2 |
+| instance-27 | 5 | 4.3, 4.6 |
+| instance-28 | 5 | 4.4 |
+| instance-29 | 5 | 4.4 |
+| instance-30 | 4 | 4.2 |
+| instance-32 | 6 | 5.1 |
+| instance-33 | 6 | 5.2 |
+| instance-34 | 6 | 5.2 |
+| instance-35 | 6 | 5.3 |
+| instance-36 | 6 | 5.4 |
+| instance-39 | 2, 4 | 3.2, 4.2 |
+| instance-40 | 2 | 3.1 |
+| instance-44 | 1, 6 | 1.2, 2.1, 2.3, 5.1, 6.4 |
+| instance-45 | 4 | 4.2 |
+| instance-47 | 5 | 4.4 |
+| instance-48 | 2 | 3.1, 3.3 |
+| graph-10 | 4 | 4.2 |
+| graph-12 | 4 | 4.1 |
+| provider-01 | 2 | 3.1, 3.3 |
+| provider-02 | 2 | 3.1 |
+| provider-03 | 2 | 3.1 |
+| provider-04 | 3 | 3.3, 3.4 |
+| provider-05 | 4 | 4.1 |
+| provider-06 | 7 | 6.1 |
+| provider-07 | 7 | 6.1 |
+| provider-08 | 7 | 6.1 |
+| provider-09 | 7 | 6.1 |
+| provider-11 | 7 | 6.1 |
+| provider-20 | 7 | 6.1 |
+| provider-22 | 2 | 3.1 |
+| instance-12 (section X, supervisor ruling) | 3 | 3.3 |
+| platform-28 (panel padding half, handed over by `align-shell-and-tokens`) | 3 | 3.4 |

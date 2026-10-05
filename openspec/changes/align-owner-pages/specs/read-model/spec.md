@@ -25,7 +25,7 @@ time. Source: portal:D9:R3/R4/R6.
 ### Requirement: Package views carry their prune setting
 
 A package view SHALL carry `spec.prune` as written when it is set, and nothing when it is not.
-Source: portal:D2:R4.
+Source: portal:D2:R2.
 
 #### Scenario: The F1 package
 

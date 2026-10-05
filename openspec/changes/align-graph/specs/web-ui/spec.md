@@ -8,15 +8,17 @@ accessible name, and a title with their full label, and SHALL be reachable with 
 document order. A node SHALL show three lines: its kind, its name, and a status line (its health
 reason or state, a ReplicaSet's desired count, a component's object count, a group's object and
 kind counts, a registration's standing or a source's state). A node's fill and outline SHALL carry
-its health only, and a separate square mark on the node SHALL carry its applied state; nodes the
-cluster made below an inventory object SHALL be drawn dashed. Edges SHALL be drawn as orthogonal
+its health, except that a TransformerRegistration node's fill and outline SHALL carry the claim's
+standing (a source node's health is mapped from the source's state); a separate square mark on the
+node SHALL carry its applied state, and is the only applied mark; nodes the cluster made below an
+inventory object SHALL be drawn dashed. Edges SHALL be drawn as orthogonal
 elbows through the document's route points, without arrowheads. A label too long for its node
 SHALL keep the part that tells nodes apart. Activating a node SHALL show its detail panel and mark
 the node as selected; activating a group node SHALL show it expanded. A graph SHALL open fitted to
 its frame, SHALL pan with the pointer and SHALL zoom with a zoom slider, Fit and Ctrl/Cmd-wheel.
 Graphs SHALL appear on instance and package pages; the Platform page SHALL not draw one. The
 instance page SHALL not draw the module node; the module's path and version stay on the page's
-identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17.
+identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17, portal:D19.
 
 #### Scenario: Keyboard focus
 
@@ -55,9 +57,11 @@ full screen and back, refitting to the space it has. It SHALL zoom with a zoom s
 and pan with the pointer; a fit SHALL use both the frame's width and height, and the frame's
 height SHALL follow the fitted graph. A group node SHALL expand in place through the graph's
 `expand` parameter and fit the view to the group's frame at no less than 60 %, and an "Overview"
-control and the Escape key SHALL collapse it and fit the whole graph again. Escape SHALL step back
-one thing per press: an open card, a selection, an open group, full screen. Motion SHALL stop under
-the reduced-motion preference. Source: portal:D4:R5.
+control and the Escape key SHALL collapse it and fit the whole graph again. Full screen SHALL cover
+the page's window and SHALL stay on while groups open and close. Escape SHALL step back one thing
+per press: an open card, a selection, an open group, full screen. Opening or closing a group, and
+the group controls, SHALL keep the page's scroll position. Wheel zoom SHALL not animate, and motion
+SHALL stop under the reduced-motion preference. Source: portal:D4:R5, portal:D19.
 
 #### Scenario: cert-manager's RBAC group
 
@@ -88,6 +92,12 @@ the reduced-motion preference. Source: portal:D4:R5.
 - **THEN** the first press clears the selection, the second collapses the group, and the third
   leaves full screen
 
+#### Scenario: Full screen survives a group
+
+- **WHEN** the user opens cert-manager's graph in full screen and opens, then collapses, its RBAC
+  group
+- **THEN** the graph is still in full screen
+
 #### Scenario: Wheel zoom at the pointer
 
 - **WHEN** the user zooms with Ctrl and the wheel over a node
@@ -100,12 +110,14 @@ the reduced-motion preference. Source: portal:D4:R5.
 A collapsed configuration group SHALL be drawn as a stacked, hatched node naming its family, its
 component count and its object and kind counts. Opening one configuration group SHALL close any
 other open configuration group, while open Pod groups stay open. An open configuration group SHALL
-be drawn inside a dotted frame whose header names the family and counts its components and objects
-and which carries a Collapse control; collapsing SHALL leave the group selected, with its panel
-showing the object kinds it folds and their counts, its health and a control to expand it again.
-The graph toolbar SHALL offer Expand all, Collapse all and a Group configuration toggle that is
-pressed while no configuration group is open, and SHALL say how many boxes are drawn of how many
-there are. Source: portal:D4:R5.
+be drawn inside a dotted frame, spanning from the components column to the last drawn column,
+whose header names the family and counts its components and objects and which carries a Collapse
+control; collapsing SHALL leave the group selected, with its panel showing the object kinds it
+folds and their counts, its health and a control to expand it again. The graph toolbar SHALL offer
+Expand all, which opens every family, Collapse all, and a Group configuration switch that says in
+visible text whether configuration is grouped: grouped, families fold and open as above; ungrouped,
+every configuration component is shown with no group node and no frame. The toolbar SHALL say how
+many boxes are drawn of how many there are. Source: portal:D4:R5.
 
 #### Scenario: Opening CRDs closes RBAC
 
@@ -121,8 +133,14 @@ there are. Source: portal:D4:R5.
 #### Scenario: Expand all
 
 - **WHEN** the user activates Expand all on cert-manager's graph
-- **THEN** all three groups are open, each inside its own frame, and the Group configuration toggle
-  is not pressed
+- **THEN** all three groups are open, each inside its own frame, and the Group configuration switch
+  still reads grouped
+
+#### Scenario: Ungrouped
+
+- **WHEN** the user turns the Group configuration switch off on cert-manager's graph
+- **THEN** all 20 components are shown with their objects, with no group node and no frame, and the
+  switch reads ungrouped
 
 ### Requirement: The graph explains its marks and an empty inventory
 
@@ -154,8 +172,8 @@ blocked, pending), its card SHALL show that standing with the claimed catalog an
 its panel SHALL show the standing, the controller's message in local mode, the catalog with its
 version linking to the Catalog page, and the provider and whether `spec.providerRef` names it. A
 claim the caller may not read SHALL render locked. A package's source node SHALL be toned and
-labelled by the source's state (ready with its revision, not ready with its reason, unknown, not
-found, kind not installed, kind not read), and its panel SHALL show the Ready reason, message and
+labelled by the source's state (ready with its revision, not ready with its reason, ready with no
+artifact, unknown, not found, kind not installed, kind not read), and its panel SHALL show the Ready reason, message and
 revision, and for a kind the cluster does not serve, that Flux source-controller is not installed
 or the package names a kind the cluster lacks. Source: portal:D15:R2/R3/R4, portal:D8:R5, portal:D20.
 
@@ -176,6 +194,13 @@ or the package names a kind the cluster lacks. Source: portal:D15:R2/R3/R4, port
 - **WHEN** a caller who may not list TransformerRegistrations opens backup-provider's Graph tab
 - **THEN** the registration node shows no standing and its panel says the standing is locked
 
+#### Scenario: Locked source
+
+- **WHEN** a caller who may get the package but not its OCIRepository opens the Graph tab of
+  `/packages/pkg/podinfo` on a cluster that serves the kind
+- **THEN** the source node is drawn locked with no state, and its panel says the source is
+  locked
+
 #### Scenario: In-cluster registration panel
 
 - **WHEN** backup-provider's registration panel is rendered over an in-cluster read API
@@ -186,8 +211,10 @@ or the package names a kind the cluster lacks. Source: portal:D15:R2/R3/R4, port
 On the Graph and Resources tabs, with neither `node` nor `focus` set, the details panel SHALL show
 the resting node without a spotlight: the node of the first held TransformerRegistration the caller
 may read whose claim is refused, pending, accepted but not active, or removal blocked, and
-otherwise the instance's or package's own node. Clearing a selection SHALL return the panel to the
-resting node. A panel other than the resting node's SHALL carry a Clear selection control.
+otherwise the instance's or package's own node. The resting node SHALL be marked apart from a
+selection, and Escape SHALL not clear it. Clearing a selection SHALL return the panel to the
+resting node. A panel other than the resting node's SHALL carry a Clear selection control. Source:
+portal:D4:R4, portal:D19.
 
 #### Scenario: cert-manager at rest
 

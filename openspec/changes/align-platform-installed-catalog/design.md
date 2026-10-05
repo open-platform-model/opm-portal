@@ -9,24 +9,28 @@ decision here and to a task.
 
 The change starts after `align-shell-and-tokens` (A) merges, and uses what A provides:
 
-- the flat look and the 1840 px column (platform-01, platform-28),
+- the flat look and the 1840 px column (platform-01, platform-28; the panel-padding half of
+  platform-28 is this change's for its three pages, see "Panel padding"),
 - the tone ink tokens `--<tone>-ink` and the dark tone values (platform-31),
 - the kind chip tokens (installed-10, platform-39),
 - square uppercase Applied and Health badges with no `APPLY` prefix (platform-38),
 - underline tabs with counts on the Platform and Catalog pages (platform-09, catalog-16),
 - sans field labels (`.facts dt`, catalog-04), kickers and table heads (platform-40),
 - hidden panel headings inside tabbed panels (catalog-27),
-- and the shared **state block** partial.
+- the shared **state block** partial,
+- and the shared **tooltip** (`tip` partial, `.tipbox` CSS).
 
 A defines the state block (its design.md, "The state block"): a `stateBlock` struct with
-`ID`, `Label`, `Eyebrow`, `When *stamp`, `WhenText`, `Hue`, `State`, `Summary`,
-`Reasons []countLink`, `None`, `Follow` and `Problem`, drawn by the `state-block` partial. The
+`ID`, `Label`, `Eyebrow`, `When *time.Time`, `WhenText`, `Hue`, `State`, `Summary`, `Notes`,
+`Caption`, `Reasons []countLink`, `None`, `Links`, `Follow` and `Problem`, drawn by the
+`state-block` partial. The
 icon follows the hue: a check for applied, healthy and neutral, a bang for degraded, turning arrows
 for progressing, a clock for unknown, the lock for locked. This change fills the struct and does
-not edit A's partial. The two forms it needs ship in A's partial from the start (integrator ruling
+not edit A's partial. The forms it needs ship in A's partial from the start (integrator ruling
 2026-10-06, so that B and C, running in parallel, do not both edit it): a reason anchor takes its
 `countLink.Class`, so each reason takes its own hue as the canvas does (a red refusal next to an
-amber contracts reason), and a reason with `N` zero shows only its reason, with no count.
+amber contracts reason); a reason with `N` zero shows only its reason, with no count; and a note
+line with the `locked` class carries the Platform block's locked refusals line.
 
 `align-owner-pages` (C) also starts after A, and runs in parallel with this change. Both changes
 draw events as a table and both depend on filter-form behaviour. The ownership split is in
@@ -53,14 +57,14 @@ redesign design.md, checked against opm-operator 277ca18 and the F1 capture
 **Non-Goals:**
 
 - **platform-41**, the Applied words "Ready / Not ready / Managed externally". The supervisor
-  ruled on 2026-10-06 that the Applied axis keeps today's words (Applied, Reconciling, Failed,
+  ruled on 2026-10-06 (portal:D19:R3) that the Applied axis keeps today's words (Applied, Reconciling, Failed,
   Stalled, Suspended, Managed externally, Unknown), because "Not ready" merges three states the
   user must tell apart. The Platform state block therefore says "Applied", not "Ready". The owner
   may overturn this in review; doing so changes only the text column of `appliedStates`.
 - Everything section X of the gap report lists for these pages, decided out or needing a
   source: catalog definitions, contracts, Used by and transformers (catalog-11, -14, -15, -22;
   portal:D17, portal:OQ25), description (catalog-03, portal:OQ25), registry and digest
-  (catalog-06), a per-catalog resolve time (catalog-09, the open question A adds for
+  (catalog-06, portal:OQ26), a per-catalog resolve time (catalog-09, portal:OQ26,
   opm-operator#230), remembered catalog tabs (catalog-17, portal:D14), Ready-shaped Applied and
   Health badges (installed-12, -13, portal:D3:R1), packages in the Uses filter (installed-20,
   portal:D16:R2), the Kubernetes and Context identity rows (platform-03, portal:D18), Platform
@@ -119,9 +123,17 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
 
 - **Order and row** (installed-02, platform-10): one loop over `Params` renders the search box
   first only because it is first in `Params`. Each view's `Params` order follows the canvas.
-  Installed: q, kind, provider, uses, namespace, health, applied, owner, module. The form is a
-  flat strip: no inset box, a bottom rule, and the Showing count right-aligned in the field
-  row.
+  Installed: q, kind, provider, uses, namespace, health, applied, owner, module. The canvas
+  draws the form two ways, and the partial has both variants, chosen by the view:
+  - `filters-card` on Installed (`Instances.dc.html:72-100`): its own card (background, 1 px
+    border, radius 10, padding 16/18), with "Showing", the chips and "Clear all" on a second row
+    of at least 32 px (installed-06).
+  - `filters-strip` inside the Platform's Providers and Catalogs panels (`Main.dc.html:146-151`):
+    no inset box, padding 14/24, a bottom rule, and "Showing" right-aligned in the field row.
+- **Constructor** (shared with `align-owner-pages`): `newFilterForm` keeps its current signature
+  and becomes a thin wrapper over the new constructor (`newChoiceForm`) with no choices, so its
+  caller in `owner.go` (the Resources reason form, `owner.go:588`), which this change does not
+  edit, compiles and renders as before through the new partial.
 - **Choices** (installed-01, platform-11): `namespace`, `uses` and `module` on Installed, and
   `provides` on Providers, become selects of the values found in the rows the caller may read,
   sorted. A `uses` or `provides` option shows `contractShort` text, and its value is the full
@@ -137,6 +149,16 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   readable rows, and the form says "counts cover what you may read" (portal:D7:R2: a count never
   stands for a list the caller may not read). The Platform tabs count over the registrations or
   catalogs the Platform document carries.
+- **No count over a locked list** (portal:D7:R2, portal:D14:R7): an option whose rows come from a
+  locked or failed list carries no count, never a zero. Concretely:
+  - Installed with ModulePackages forbidden: the Kind option reads "Package (locked)", not
+    "Package (0)"; likewise "Instance" when instances are forbidden.
+  - Registrations not readable (`RegistrationsAccess != ok`): the Providers tab's Status and
+    Provides selects carry no counts, and the Catalogs tab's Claimed select is omitted, as
+    `withoutFilter` already decides (`platform.go:429-434`), since "Unclaimed (N)" would assert
+    that every catalog is unclaimed. The Catalogs tab's Source option "Claimed only" carries no
+    count either.
+  - Platform events: a registration whose feed is in `Unread` is offered with no count.
 - **Any words** (installed-03, platform-11): Installed uses "Any kind", "Anything" (provider,
   uses), "All namespaces", "Any health", "Any state" (applied), "Anyone" (owner), "Any module".
   Providers uses "Any status" and "Anything" (provides). Catalogs uses "Any source" and
@@ -160,26 +182,50 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   allowed under the page policy (`img-src`/`style-src` are not involved).
 - **Apply as you type** (installed-22): in `portal.js`, a delegated `input` listener on
   `form[data-filters] input[type=search]` and a `change` listener on the form's other text
-  inputs call `form.requestSubmit()` after 300 ms without input. The form carries
+  inputs call `requestSubmit()` after 300 ms without input. The form carries
   `hx-sync="this:replace"`, so a newer submit aborts an older one in flight. The boosted `GET`
   keeps the URL as the source of truth, and the URL then stores the filters as today
-  (portal:D14:R1). Selects keep their immediate submit (`portal.js:161-166`). Focus and caret
-  must survive the swap; section 1's spike settles how (see Research & Decisions).
+  (portal:D14:R1). Selects keep their immediate submit (`portal.js:161-166`). Four edge cases
+  are handled:
+  - **Keystrokes in flight.** The swap re-renders `#f-q` with the value the server received, so
+    characters typed during the request would be overwritten, and htmx restores focus and
+    caret, never the value. Before the swap the script records the focused field's id, live
+    value and caret; after settle, if the rendered value differs, it restores the value and
+    caret and re-arms the debounce, so the newer text is applied next.
+  - **A timer across a swap.** The timer stores the form's id, not the element, and looks the
+    form up when it fires, so it never submits a detached form.
+  - **Enter.** A text input's `change` also fires on Enter, beside the native submit. A `submit`
+    event clears the pending timer, so the form submits once.
+  - **History.** Every filter-form submit replaces the history entry (`hx-replace-url="true"`)
+    instead of pushing one, so Back leaves the filtered view for the page before it, rather than
+    walking back through `q=b`, `q=ba`. That also changes selects, which push today; one rule for
+    the whole form is simpler than two, and every filter state stays a plain link.
+    `rememberFilters` listens to `htmx:replacedInHistory` as well as `htmx:pushedIntoHistory`
+    (`portal.js:142`), so the remembered filter is still stored.
+  Section 1's spike checks each case in the three engines (see Research & Decisions).
 - **Hide Apply when script runs** (installed-02, platform-10): `prefs.js`, which already runs in
   the head before paint, adds the class `opm-js` to `<html>`. The rule
   `.opm-js form[data-filters] .field-submit` hides the Apply button visually and keeps it
   reachable for Enter (the clip pattern, not `display:none`, so implicit submission still has a
-  submit button). Without script, the button shows as today. The Platform events form
+  submit button). The clip pattern keeps the button in the tab order, so it shows again on
+  `:focus-visible` (the skip-link pattern) and keyboard focus never lands on an invisible
+  control. Without script, the button shows as today. The Platform events form
   (`data-filters="events"`) and the Catalog events form get the same rule, which replaces their
-  "Show" buttons.
+  "Show" buttons. Accepted risk: `opm-js` comes from `prefs.js` in the head, while the select and
+  typing handlers live in the deferred `portal.js`. If `portal.js` fails to load, selects do not
+  apply on change and the button is hidden until focused, so the form still submits with Enter or
+  a focused button.
 
 ### Installed (installed-07, -08, -09, -11, -15, -17, -19, -23, -26)
 
 - **Counting every namespace** (installed-23): `installedPage` fetches `/instances` and
   `/packages` unscoped. When a list comes back `access: forbidden` and a `namespace` filter is
   set, the page refetches that kind scoped to the namespace, which is exactly the read the page
-  makes today. In that case the total is labelled with its scope ("of 4 in default") and the
-  namespace field is a text input. Otherwise the namespace filter is applied in
+  makes today. In that case the namespace filter is applied to the other kind's rows too, before
+  the total, the option counts and the choices are computed, so every number on the page covers
+  that namespace only; the total is labelled with its scope ("of 4 in default"), and the
+  namespace field is a text input. (Counting the other kind across every namespace beside one
+  kind in one namespace would label a mixed number "in default", which is false.) Otherwise the namespace filter is applied in
   `matchesInstalled`, like every other filter, so "of M", the counts and the choices cover
   everything the caller may read. The stream topic stays `instances:<ns>` only for the
   scoped fallback, and is `instances` otherwise.
@@ -206,12 +252,24 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   `icon-package` (box) are inline `aria-hidden` SVGs with the canvas paths, sized by
   `.kind svg`. They are used in every kind chip on the three pages: Installed, Platform
   "Installed as", and Catalog claims.
-- **Provider badge** (installed-11): `span.prov-tip` (`tabindex=0`, `aria-describedby`) wraps
-  `span.prov`, which holds a plug SVG and the word "Provider", 11 px/700 uppercase. Its border is
+- **Provider badge** (installed-11): a new `providerPill` in `view.go` builds it, and
+  `providerBadge` is left as it is, so the owner page's kicker (`owner.html:5`) and `claimBadge`,
+  which `align-owner-pages` owns, keep their standing word until that change moves them to
+  `providerPill`. The pill renders through `align-shell-and-tokens`' `tip` partial: the trigger
+  (`tabindex=0`, `aria-describedby`) wraps `span.prov`, which holds a plug SVG and the word
+  "Provider", 11 px/700 uppercase. Its border is
   coloured by standing: green when accepted and active, red when refused, amber when removal is
   blocked, the progressing blue when pending, neutral when accepted and inactive, the lock style
   when locked. Next
-  to it is `span.tipbox role=tooltip`, shown on `:hover` and `:focus-within` by CSS alone. The
+  to it is the `tip` partial's `span.tipbox role=tooltip`, shown on `:hover` and `:focus-within`
+  by CSS alone. **Placement**: the table sits in `.table-wrap { overflow-x:auto }`
+  (`portal.css:420`), and a non-visible `overflow-x` forces `overflow-y` to auto, so an absolutely
+  placed box would be clipped on the last rows or add a scrollbar; the canvas has the same flaw
+  (`Instances.dc.html:105`), so this does not copy it. From the viewport width where the 940 px
+  table fits without scrolling, `.table-wrap` on Installed overflows visibly and the box opens
+  below the badge, aligned to its end near the right edge. Below that width, where the wrap must
+  scroll and the rows are cards, the box opens in the row's flow (`position: static`), pushing the
+  row's content down, so it is never clipped. No script places it. The
   tooltip is composed in `view.go` from `ProviderClaim`: "Registration default.x is accepted and
   active.", "... is refused: <Reason>.", "... is pending: <Reason>.", "... is accepted, removal
   blocked: <Reason>.", "... is accepted and not active.", or "Holds a registration whose standing
@@ -219,8 +277,9 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   colour is never the only carrier. "Provides #X" is not added: it would need a provides list on
   `ProviderClaim`.
 - **Module or source cell** (installed-15): two block lines. An instance shows the module path,
-  then its version (`span.ver.block`). A package shows `<Kind> <ns>/<name>`, then the first 8 hex
-  characters of `sourceArtifact.digest` (with the revision in `title`). When `sourceArtifact` is
+  then its version (`span.ver.block`). A package shows `<Kind> <ns>/<name>`, then the digest as
+  the canvas shows it, `sha256:` and the first 8 hex characters of `sourceArtifact.digest` (with
+  the revision in `title`). When `sourceArtifact` is
   absent, the second line says "no revision recorded", the recorded fact, where the canvas says
   "no revision fetched". "path <p>" shows only when the path is neither empty nor `.`.
   `installedRow` gains `SourceArtifact`.
@@ -230,6 +289,9 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
 
 ### Platform page (platform-04, -05, -07, -12, -13, -15, -18, -21, -23, -24, -25, -26, -32, -36, -42)
 
+- **Panel padding** (platform-28, the padding half that `align-shell-and-tokens` leaves to this
+  change): the Platform, Installed and Catalog panels lose their 20 px inner padding, and their
+  sections (heading rows, filter strips, tables, notes) pad themselves, as the canvas does.
 - **Status state block** (platform-04): `#platform-status` renders A's state block.
   - Eyebrow: "Platform · the controller".
   - When: "since <relative time>" from `Platform.Reconcile.Since`. Nothing records a
@@ -238,7 +300,9 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   - Hue follows the reconcile state, and the icon follows the hue: Applied takes `applied` (navy,
     check), Reconciling `progressing`, Failed and Stalled `degraded`, Suspended and
     ManagedExternally `neutral`, and Unknown or a state the UI does not know `unknown`.
-  - Summary: today's line, "N catalogs resolved from M subscriptions · K claims active".
+  - Summary: today's line, "N catalogs resolved from M subscriptions · K claims active". When
+    registrations are not readable, the claims part reads "claims locked", never "0 claims
+    active" (portal:D7:R2).
   - No h2. The block's `aria-label` is "Platform status".
 - **Reason counts** (platform-05): `statusOf` builds the reason links. Each one is a bold count
   plus a mono reason.
@@ -253,8 +317,11 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     `hue-unknown` (A's amber) for removal blocked and the contracts reason, which is information
     (portal:D3:R8).
   - With no reasons, `None` reads "Nothing refused or unfulfilled".
-  - When the caller may not list registrations, `None` reads "Refusals not shown: you may not
-    list TransformerRegistrations", and no refusal count is drawn, never a zero.
+  - When the caller may not list registrations, a note line with the `locked` class (lock style)
+    reads "Refusals not shown: you may not list TransformerRegistrations", whatever the reasons:
+    a `Ready` reason can fill `Reasons` at the same time, and the locked line must still show.
+    No refusal count is drawn, never a zero. The note is A's `Notes` slot, so this change does
+    not edit the partial.
 - **Installed card** (platform-07): `.count-groups` becomes two columns, Health and Applied. Each
   column is a stack of 40 px rows with a bottom rule: the badge on the left and a 22 px/700 count
   in the tone ink on the right. Each row has the `title` "Show the N installed with health X" (or
@@ -288,7 +355,11 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   message", because the Conditions panel also carries it.
 - **Recent events** (platform-23, -24, -25, -26):
   - The heading row holds the h2, the Resource select (min 260 px) and the right-aligned
-    "Showing n of M, newest first, repeats folded".
+    "Showing n of M, newest first, repeats folded". The count sits in its own small region
+    `#events-shown`, carrying the same `data-follow` topics as `#events`
+    (`platform.html:153-158`), because the live refresh replaces only elements with an id and
+    `data-follow` (`portal.js:276-326`) and the heading row is outside `#events`. Without it the
+    rows would refresh and the count go stale.
   - The one-hour note becomes a footnote under the table (portal:D9:R2 keeps the label).
   - The feed renders through the `events-table` partial (below), with the Resource column.
   - Each row's Resource is a link to `/` with the current query and `eresource` set to that
@@ -296,7 +367,8 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     resource's events" and shows the Kind without its group over the name.
   - Options: an "Everything" optgroup holding "All resources (N)"; a "Platform" group whose option
     is the Platform's name with its count; and "Providers (TransformerRegistration)" with each
-    registration and its count. The counts come from the feeds the page already reads.
+    registration and its count. The counts come from the feeds the page already reads; a
+    registration whose feed was not read (`Unread`) is offered with no count.
   - Age is compact ("5m"), with `datetime` and the absolute time in `title`.
 - **Theme menu** (platform-32): each theme button holds an inline SVG check, shown only when
   `aria-pressed="true"` and drawn in `--hdr-strong`. It replaces the brass `::after` glyph. This
@@ -334,28 +406,37 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     pull, only the registry entry (Principle IV). For a claim, the summary adds "Claimed by <name>",
     replacing today's separate "From the claim" line.
   - Reasons: for an unresolved catalog, a count per refusal reason among the claiming
-    registrations (or 1 for the Platform's `Ready` reason when the catalog is a subscription). Each
+    registrations, or, when the catalog is a subscription, the Platform's `Ready` reason with no
+    count (`N` 0), as on the Platform's status block: the reason counts nothing recorded. Each
     count links to `?path=<path>&tab=events&reason=<Reason>`. A resolved catalog shows the quiet
     line "No resolution errors".
-  - When: for an unresolved catalog, "refused since <time>" from the claim's `Accepted`
-    condition's `lastTransitionTime` (falling back to `Reconcile.Since`), or "since <time>" from
-    the Platform's `Ready` for a subscription. A resolved catalog has no time (catalog-09 needs
-    the controller).
+  - When: for an unresolved claimed catalog, "refused since <time>" from the claiming
+    registration's `Ready` condition with status `False`, its `lastTransitionTime`. A
+    TransformerRegistration has no `Accepted` condition: acceptance is `status.accepted`, and the
+    refusal reason comes from the `Ready` condition (`internal/health/applied.go:236-255`; F1
+    `testdata/clusters/f1/transformerregistrations.yaml:73-78`, `Ready=False`,
+    `CatalogUnresolved`, 2026-10-04T18:04:26Z). With several refusing claimants, the earliest of
+    their times. When no claimant carries that condition, `Reconcile.Since` of the Platform. For a
+    subscription, "since <time>" from the Platform's `Ready`. A resolved catalog has no time
+    (catalog-09, portal:OQ26).
   - The platform-wide `ContractsFulfilled` line stays below the block.
 - **Events tab** (catalog-18, catalog-19): `catalogEvents` takes the view
   `filterView{Path:"/catalog", Params: type (Normal, Warning; Any "Any type"), reason}`, which
   is not remembered (portal:D14). The type options carry counts. `Total` stays the unfiltered
-  length. The tab renders a `filters-inline` form (hidden `path` and `tab`), the chips, "Showing X
-  of N" in the heading row, the `events-table` without the Resource column (as on the canvas), and
-  the filtered empty state "No events match this filter."
+  length. The tab renders a `filters-inline` form whose hidden fields are
+  `keepHidden(q, "type")`, so `path`, `tab` and a `reason` that came in on the Resolved block's
+  deep link survive a Type change; the chips; "Showing X of N" in the heading row, in its own
+  followed region `#events-shown` (topic `platform`); the `events-table` without the Resource
+  column (as on the canvas); and the filtered empty state "No events match this filter."
 
 ### Shared with align-owner-pages: the events table
 
 The `events-table` partial replaces `events-list` wherever an events feed is a page region. It is
-a `<table class="table rows events-table">` with these columns: Type (88 px, 12 px uppercase,
-red ink for Warning), Reason (mono), an optional Resource (kind over a linked name), Message
-(note; then "×N" when folded and the reporting controller, both muted), and Age (compact,
-right-aligned). At phone width it falls back to the card layout `table.rows` already has. Its
+a `<table class="table rows events-table">` with these columns, at the canvas's widths
+(`Main.dc.html`): Type (88 px, 12 px uppercase, red ink for Warning), Reason (mono; 180 px, 190 px
+on the Catalog page), an optional Resource (kind over a linked name; 280 px), Message (note; then
+"×N" when folded and the reporting controller, both muted; the rest), and Age (compact,
+right-aligned; 56 px). At phone width it falls back to the card layout `table.rows` already has. Its
 input is:
 
 ```go
@@ -373,11 +454,21 @@ type eventRow struct {
 ```
 
 Whichever of this change and `align-owner-pages` lands first adds the partial, and the other
-adopts it. `events-list` is removed by the change that moves its last caller (the details
-panel's Events view is C's). This change does not edit `owner.html`, `panel*.html`, `owner.go`,
-`graph.go` or the graph script. C does not edit `filters.go`, the `filter-form` partial or the
-filter code in `portal.js` and `prefs.js`, and its owner-page forms pick up the new behaviour
-through `data-filters`.
+adopts it. `events-list` is removed by whichever change moves its last caller, whichever lands
+last. This change does not edit `owner.html`, `panel*.html`, `owner.go`, `graph.go` or the graph
+script. C does not edit `filters.go`, the `filter-form` partial or the filter code in `portal.js`
+and `prefs.js`, and its owner-page forms pick up the new behaviour through `data-filters`.
+
+### Shared with align-owner-pages: the pieces this change changes under C
+
+Three of this change's edits reach code that `align-owner-pages` (C) owns or uses. Each is made so
+that C's files keep working whichever change lands first:
+
+| Piece | This change does | So C's side |
+| --- | --- | --- |
+| `newFilterForm` (`filters.go`), called from `owner.go:588` | keeps its signature as a wrapper over the new constructor | `owner.go` is not edited here; C removes that form when it drops the reason input |
+| `providerBadge` (`view.go:122`), used by `owner.html:5` and `claimBadge` | left unchanged; the Installed pill is the new `providerPill` | the owner kicker keeps its standing word until C moves it to `providerPill` |
+| the tooltip (`.tipbox`) | uses `align-shell-and-tokens`' `tip` partial and CSS, which the gate ships | C's Owner and Applier info tips have their CSS whichever change lands first |
 
 ### Spec deltas
 
@@ -388,7 +479,10 @@ types", "Installed counts every namespace the caller may list", "The module filt
 package by its source". The MODIFIED requirements keep every scenario of the main spec, and none
 of them is touched by `align-owner-pages` or `align-graph`. "List filters live in the URL and are
 remembered per browser" is left as it is: the new behaviour is additive and sits in the ADDED
-requirements.
+requirements. The ADDED filter-form requirement names the forms it covers (Installed, the
+Providers and Catalogs tabs, Platform events, Catalog events), so it does not bind the owner-page
+forms `align-owner-pages` specifies ("Clear filters", no count on the Resources reason form); only
+its last sentence, apply-as-you-type for every `data-filters` form, holds on every page.
 
 ### Design record
 
@@ -410,7 +504,7 @@ changes. `internal/ui` still reads only through the read API.
 
 ## Research & Decisions
 
-### Focus and caret across an apply-as-you-type swap (spike, section 1)
+### Focus, caret and value across an apply-as-you-type swap (spike, section 1)
 
 **Context**: a boosted `GET` of the filter form swaps `#main`, which replaces the search input
 while the user types. If focus or caret are lost, apply-as-you-type is worse than Enter.
@@ -423,9 +517,12 @@ preservation for an active element with an `id`, and `hx-sync`), and `portal.js:
    reset `selectionStart` and `selectionEnd`. A few lines, under our control.
 3. Keep the form out of the swap (target `#list` and `#shown` with `hx-select`). The form is
    stable, but chips and the "Clear all" link would go stale.
-**Decision**: Option 1 if the spike's browser run passes in Chromium, Firefox and WebKit,
-including characters typed while a request is in flight (`hx-sync="this:replace"`). Otherwise
-option 2. The finding goes here before section 2 starts.
+**Decision**: Option 1 for focus and caret if the spike's browser run passes in Chromium, Firefox
+and WebKit; otherwise option 2. Neither option restores the value, so the value restore of
+"Apply as you type" (record the live value before the swap, restore it and the caret after
+settle when they differ, re-arm the debounce) is built either way. The spike also checks the
+timer lookup by id, the single submit on Enter and Back after typing. The finding goes here
+before section 2 starts.
 **Rationale**: the least code that keeps the URL as the only state.
 
 ### Installed totals across namespaces (installed-23, installed-01)
@@ -471,6 +568,11 @@ recorded". The owner may prefer the canvas words in review.
   answered from held state (portal:D3:R9).
 - **Typing triggers requests.** Debounced to 300 ms, with older ones aborted. Every request is an
   ordinary read through the API, already rate-limited by the read model's held state.
+- **In-cluster text.** This change adds places that render operator-written text: the events
+  table's Message cell, the contracts note's "Controller message" `<details>` and the provider
+  row's "Reason: message". The in-cluster suite checks each one (tasks 4.9 and 5.4): the
+  operator's notes absent and the kubelet's kept, the `<details>` rendered only when a message is
+  served, and tooltip text built from reasons only.
 - **Whole-row links can capture clicks** meant for the tooltip or a holder link. Those elements
   sit above the stretched link (`position:relative; z-index:1`), and the browser test clicks the
   tooltip trigger to check it.
@@ -484,8 +586,9 @@ stored query never holds it. Goldens are regenerated and reviewed in each sectio
 
 ## Open Questions
 
-None that blocks this change. The per-catalog resolve time is the open question A adds
-(opm-operator#230). The Applied words follow the supervisor ruling unless the owner overturns it.
+None that blocks this change. The per-catalog resolve time and digest are portal:OQ26
+(opm-operator#230). The Applied words follow the supervisor ruling (portal:D19:R3) unless the owner
+overturns it.
 
 ## Gap map
 
@@ -524,7 +627,8 @@ None that blocks this change. The per-catalog resolve time is the open question 
 | platform-26 | Platform: Recent events | 4.6 |
 | platform-32 | Platform: Theme menu | 4.7 |
 | platform-36 | Platform: Identity facts | 4.2 |
-| platform-41 | Non-Goals (supervisor ruling) | none |
+| platform-41 | Non-Goals (supervisor ruling, portal:D19:R3) | none |
+| platform-28 (panel padding half, handed over by `align-shell-and-tokens`) | Platform: Panel padding | 3.4, 4.2, 5.1 |
 | platform-42 | Platform: Provider rows | 4.4 |
 | platform-43 | Filter forms: Value words, Counts | 2.2, 4.3 |
 | catalog-01 | Catalog: Headline | 5.1 |

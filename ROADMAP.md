@@ -77,7 +77,9 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      after a graph node is selected, and lands the flat look (no grid, shadows or heading marks,
      an 1840 px column), tone and kind chip tokens in light and dark, one square badge for both
      axes with the Applied words kept, underline tabs with counts, a worded live mark and the
-     shared state block (portal:D19).
+     shared state block and tooltip (portal:D19). Open deviation for the owner's review: the
+     Catalog page's Events tab carries no count where the canvas shows one, since counting it
+     would add a read on every tab (portal:D19:R4, a planner reading, not a ruling).
    - `align-platform-installed-catalog`, after the gate: Platform and Catalog state blocks with
      reason counts, filter selects that list the values present with counts and apply as you type
      (portal:D14:R7), Installed counted across namespaces with a package's source in the Module
@@ -89,8 +91,9 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    - `align-graph`, after the gate, beside `align-owner-pages`: configuration grouped per kind
      family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
      legend, selection apart from the spotlight, registration standing on its node, and the
-     package's source read as the caller (portal:D20). It and `align-owner-pages` share files but
-     no function or requirement; the split is in both proposals.
+     package's source read as the caller (portal:D20). It and `align-owner-pages` share files,
+     no requirement, and one function, `ownerTabsOf`, where both read the `node` and `focus`
+     parameters; the split is in both proposals.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,

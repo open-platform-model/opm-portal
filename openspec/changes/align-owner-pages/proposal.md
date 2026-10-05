@@ -44,9 +44,11 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   - Resources becomes a table: Kind, Name, Component, Origin, Health, Details. Degraded rows are
     tinted, each row links to Graph focused on its node, configuration groups fold as in the
     graph, and a package's source is the first row.
+  - Tab links keep `node` (the selection a graph click writes, `align-graph`) and `focus` (the
+    hand-off spotlight); YAML opens on the `node` object, else the `focus` object.
   - The details panel opens on the owner at rest and goes back to it on Clear selection. It shows
     a message box tinted by tone, 40 px buttons, per-kind facts read from the object document,
-    the component explanation, and Events and YAML links on the root.
+    the component explanation, and an Events link on the root.
 - **Events, Logs and YAML** (section 4):
   - Events opens on "All resources (N)" from the merged feed.
   - The filter bar shows counts on every option and a Reason chip only when one is set. "Showing
@@ -54,7 +56,8 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   - Events render as a table whose resource cell filters to that object. The notes fold into one
     line, and the empty text depends on whether a filter is set.
   - Logs pick a Pod and container with a select and show one dark pane that follows at once,
-    with a hint and an Events link when the container has not started.
+    with a hint and an Events link when the container has not started, and a "restarting" line
+    for a crash loop.
   - YAML picks with a select and opens on the focused node or the first object.
 - **Provider tab** (section 5):
   - An intro per kind and a facts grid (Registration, Claims catalog, Registry, Contracts,
@@ -70,18 +73,25 @@ endpoints, a version-transition sentence, the owner's own YAML), and the graph d
 grouping, source-node read and registration node standing, which belong to `align-graph`.
 
 **Shared-file rule with `align-graph`** (integrator, 2026-10-06; the same text stands in both
-proposals). The two changes run in parallel after `align-shell-and-tokens` and share files, never
-functions, defines or requirements:
+proposals). The two changes run in parallel after `align-shell-and-tokens` and share files,
+never defines or requirements, and one function only (`ownerTabsOf`, at the lines named below):
 
 | File | `align-graph` edits only | `align-owner-pages` edits only |
 | --- | --- | --- |
-| `internal/graph/*`, `internal/ui/graph.go` | everything | nothing |
-| `internal/ui/owner.go` | the `graphHandoff` call in `annotateResources` and the `restingNode` call in `ownerTabsOf` | the rest of `ownerTabsOf` (tab order, the `scope=all` fetch, counts) and the summary cards |
+| `internal/graph/*` | everything | nothing |
+| `internal/ui/graph.go` | everything | only a minimal `restingNode` returning the owner's node, if it lands first; `align-graph` replaces its body |
+| `internal/ui/owner.go` | the `graphHandoff` call in `annotateResources`; in `ownerTabsOf`, the `restingNode` call and the selection lines: parsing `node` beside `focus`, the Clear selection and Overview links (`linkWithout`, today's "Whole graph"), and `node` in `keepHidden` | the rest of `ownerTabsOf` (tab order, the `scope=all` fetch, counts, `node` and `focus` kept on tab links through `linkWith`, YAML's default object, the marked Resources row) and the summary cards |
 | `internal/ui/panel.go`, `panel-body.html` | the group, registration and source variant blocks and the Clear selection pill | the generic panel (message box, buttons, per-kind object facts, root facts) |
 | `internal/ui/pages.go` | nothing | `foldConfig` (returns one group per graph group node) |
 | `partials.html` | the `graph` define | `component`, `child`, `history`, `events-list`, `events-table` and the `state-block` `History` field |
 | `static/portal.js` | the graph functions and `resetDetail` | the log pane code (and the minimal `resetDetail` only if it lands first) |
 | `static/portal.css` | `.graph*`, `.gn*`, `.ge*`, the legend and the group frame | owner cards, tables, panel, logs and YAML rules |
+
+Both changes read `node` and `focus` the same way: `node` is the selection a click writes, `focus`
+the hand-off spotlight; tab links keep both, YAML opens on the `node` object, else the `focus`
+object, the Resources row of either is marked, and the panel rests only when neither is set. The
+selection lines in `ownerTabsOf` are the one place both changes edit the same function; whichever
+lands second rebases them.
 
 The resting node of the details panel is one behaviour (`graph-23`, `provider-21`, `instance-27`):
 `align-graph`'s ADDED requirement "The details panel rests on the node that needs attention" picks
@@ -144,26 +154,40 @@ None.
   - Per-kind panel facts: `instance-28` is this change's gap, and design.md decision 5 reads them
     from the object document in `panel.go`, with no `internal/graph` change (both proposals now
     say so).
-  - Shared files, in different functions:
-    - `owner.go` `ownerTabsOf`, where `align-graph` adds only the `restingNode` call.
+  - Shared files, in different functions except one:
+    - `owner.go` `ownerTabsOf`, where `align-graph` adds the `restingNode` call and the selection
+      lines (`node` beside `focus`, the Clear and Overview links, `keepHidden`), and this change
+      keeps `node` and `focus` on tab links and reads them for YAML and the Resources row.
+    - `graph.go`, where this change adds only a minimal `restingNode` if it lands first.
     - `panel.go` and `panel-body.html`, where `align-graph` adds the registration and group
       panel variants on top of this change's restyle.
     - `pages.go` `foldConfig`, which this change makes return a list of groups so per-kind groups
       flow through unchanged.
     - `partials.html`, where the `graph` define is `align-graph`'s.
     - `portal.js`, where the graph functions are `align-graph`'s.
-  - The package source row shows the source node's health once `align-graph` reads the source;
-    until then it says the source is not read.
+  - The package source row shows the source node's health, which `align-graph` sets from the
+    source's state (ready Healthy, not ready Degraded, and so on); until then it says the source
+    is not read.
 - Overlap with `align-platform-installed-catalog`:
   - That change owns the generic filter code (`filters.go`, the `filter-form` partial, and the
     filter code in `portal.js` and `prefs.js`) and the `opm-js` class. This change does not edit
     them.
   - The `events-table` partial is shared, with the input shape that change's design.md gives.
     Whichever change lands first adds it.
-  - This change uses that change's `.tipbox` CSS and its `providerBadge` pill.
+  - That change leaves `providerBadge` unchanged and adds `providerPill`; this change moves the
+    kicker and `claimBadge` to `providerPill` (adding it as that change's design.md gives it, if
+    this change lands first). That change keeps `newFilterForm`'s signature, so the Resources
+    reason form compiles until this change removes it.
+  - The tooltip (`tip` partial, `.tipbox`) ships in `align-shell-and-tokens`, so this change's
+    Owner and Applier tips do not wait on that change.
   - Only this change edits `align-shell-and-tokens`' `state-block` partial (a `History` field). The
-    per-reason class, the count-less reason and words-only `WhenText` ship in that change's
-    partial, so `align-platform-installed-catalog` does not edit it.
+    per-reason class, the count-less reason, words-only `WhenText`, note lines, the caption and
+    footer links ship in that change's partial, so `align-platform-installed-catalog` does not
+    edit it.
+- Live refresh: the merged Events tab refreshes when the owner or its own events change, not on
+  an event about a child alone; the docs say so, and `ROADMAP.md` keeps a follow-up.
+- Sections: six, one more than the usual five, because the merged feed's cost is an unverified
+  assumption and section 1 must be the spike that measures it (openspec/config.yaml).
 - SemVer: MINOR after 1.0 (additive API, changed pages). On the 0.x line it ships as one PR
   titled `feat(ui): align the instance and package pages with the canvas`.
 - Decisions: implements portal:D9:R6 (new, owner answer 2026-10-06) and keeps portal:D3,

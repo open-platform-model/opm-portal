@@ -22,16 +22,27 @@ group's `kind`, `members` and health. Source: portal:D4:R5.
 
 A `Package` document, and the source node of a package's `Graph` document, SHALL carry
 `sourceState`: the caller's `access` to the source object, its `state` (`ready`, `notReady`,
-`unknown`, `notFound`, `kindNotServed` or `unsupportedKind`, an extensible set), and, when the
-object was read, its Ready condition's `reason` and `message` and its artifact `revision`. A failed
-source lookup SHALL NOT fail the document. The source artifact's fetch URL SHALL NOT be served.
-Package list items SHALL NOT carry it. Source: portal:D4:R1, portal:D7:R3, portal:D20.
+`noArtifact`, `unknown`, `notFound`, `kindNotServed` or `unsupportedKind`, an extensible set), and,
+when the object was read, its Ready condition's `reason` and `message` and its artifact
+`revision`. The source's kind SHALL be chosen by `spec.sourceRef.kind` alone, in
+`source.toolkit.fluxcd.io`, as the controller chooses it. A kind the cluster does not serve SHALL
+be `kindNotServed`, found through discovery without an access review or a read of the object. A
+failed source lookup SHALL NOT fail the document. The source artifact's fetch URL SHALL NOT be served.
+Package list items SHALL NOT carry it. Source: portal:D4:R1, portal:D7:R3, portal:D18:R3,
+portal:D20.
 
 #### Scenario: The F1 package
 
 - **WHEN** a client reads package `pkg/podinfo` from the F1 capture
 - **THEN** its `sourceState` has `state` `kindNotServed`, and the document is served with status
   200
+
+#### Scenario: A sourceRef without an apiVersion
+
+- **WHEN** a package's `spec.sourceRef` names kind `OCIRepository` with no `apiVersion`, on a
+  cluster that serves it
+- **THEN** the source is read as an OCIRepository in `source.toolkit.fluxcd.io`, not reported as
+  unsupported
 
 #### Scenario: A source the caller may not read
 

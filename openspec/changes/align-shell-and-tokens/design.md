@@ -43,14 +43,20 @@ component and state block this change lands.
   tab panels, and Logs and YAML (`align-owner-pages`). The graph's drawing, groups and source node
   belong to `align-graph`. This change touches those templates only for shell-level markup (tab
   counts, region headings, badge markup).
-- Panel inner padding. The canvas pads sections, not panels. Moving the padding means rebuilding
-  each panel's content, so each follow-on change does it for its pages. Panels keep `20px` here.
+- Panel inner padding, the second half of `platform-28`. The canvas pads sections, not panels.
+  Moving the padding means rebuilding each panel's content, so the follow-on change that rebuilds
+  a panel moves its padding: `align-platform-installed-catalog` for the Platform, Installed and
+  Catalog panels, `align-owner-pages` for the owner cards and tab panels (each lists
+  `platform-28 (padding)` in its gap map). `align-graph` draws inside panels these two own. Panels
+  keep `20px` here.
 - The canvas's "Ready / Not ready" words for the Applied axis (`installed-12`, still decided out
   for the words): the Applied badge keeps the controller's state words (portal:D3:R1, supervisor
   ruling 2026-10-06).
 - An Events count on the Catalog page's tab (`catalog-16`). The page reads events only on the
   Events tab (`internal/ui/catalog.go:92-96`), and a count would cost a read on every tab, so the
-  Events tab stays uncounted there.
+  Events tab stays uncounted there. This departs from the canvas ("Events 2") on the planner's
+  reading of portal:D19:R4, not on a supervisor ruling, so it is an open deviation for the
+  supervisor and the owner to confirm in review (proposal and `ROADMAP.md` say so).
 - Per-catalog resolve time and digest (`catalog-09`) and a catalog's description (`catalog-03`):
   no source exists. The planning PR records them in `docs/DESIGN.md` as portal:OQ26
   (opm-operator#230) and the widened portal:OQ25; this change shows nothing for them.
@@ -115,9 +121,12 @@ htmx.ajax("GET", panel, { source: a, target: "#detail", swap: "innerHTML", selec
 ```
 
 `test/browser/graph.py` gains a check: on `/instances/default/podinfo`, activating the
-`podinfo-podinfo` Deployment node fills `#detail` with the kicker `Deployment` and the name. It
-drives the real F1 page under the page policy, so an inherited attribute shows as it would for a
-user.
+`podinfo-podinfo` Deployment node fills `#detail` so that `#detail .frag-h` reads
+`podinfo-podinfo` and the Object fact contains `Deployment`. (The panel's kicker for an inventory
+object is "Object", `graph.go:112`, and a Deployment node carries no Reconcile, so its panel shows
+a Health badge only; golden `fragment-node-deployment.html`.) Activating the instance's root node,
+which carries both axes, shows both badges beside their visible labels. It drives the real F1 page
+under the page policy, so an inherited attribute shows as it would for a user.
 
 ### Tone tokens (section 2, platform-31)
 
@@ -139,7 +148,9 @@ badge background (`--<tone>-bg`) and the block tint (`--<tone>-tint`). Each is r
 
 `--line` in dark becomes `#2a3240` (canvas `--pt-d6ccb8`). A new `--line-soft` (#e5dccb, dark
 #222a35) is the canvas's row divider. `missing` has no canvas value; it keeps today's border and
-background and gains an ink and tint in the same family. `locked` keeps its tokens.
+background and gains an ink and tint in the same family. `locked` keeps its tokens and gains
+`--locked-ink` (mapped to today's `--locked`) and `--locked-tint` (mapped to `--locked-bg`) in all
+three blocks, so `.hue-locked` sets all four variables and a locked state block is tinted.
 
 Components read tones through one set of classes, so the badge and the state block share them:
 
@@ -183,17 +194,19 @@ full width, as on the canvas.
 | --- | --- | --- |
 | `body` | 15 px | 16 px |
 | `h1` | `clamp(2rem, 5vw, 3.4rem)`, -0.03em | `clamp(2rem, 4vw, 40px)`, line-height 1.05, -0.02em |
-| `.mono`, `code`, `.ver`, `.chip` | 0.86em | 13 px |
+| `.mono`, `code`, `.ver`, `.chip`, `pre` (logs and YAML) | 0.86em | 13 px |
 | `.lede` | max 72ch | 15 px, `--ink-2`, no width cap |
 | `.kicker` | mono 0.74rem, brass, 0.14em | sans 12 px uppercase, 0.08em, `--ink-2` |
-| `.label`, `.table thead th`, `.stat-l` | mono 0.7rem, 0.1em | sans 12 px uppercase, 0.07em, `--muted` |
+| `.label`, `.table thead th`, `.stat-l`, the phone-width `.table td::before` labels | mono 0.7rem, 0.1em | sans 12 px uppercase, 0.07em, `--muted` |
 | `.facts dt` | mono 0.7rem uppercase | sans 14 px, sentence case, `--muted`; label column `minmax(96px, max-content)`, row gap 6 px |
-| `a` | ink, 2px brass underline, brass on hover | `--accent`, 1px underline in the current colour, offset 3 px; hover `--accent-deep` |
+| text links in the page body (`a` outside the header, tabs, chips, badges and graph nodes) | ink, 2px brass underline, brass on hover | `--accent`, 1px underline in the current colour, offset 3 px; hover `--accent-deep` |
 
 The `.facts dt` change is global: the Instance, Package, Provider and Catalog boards all draw
 sentence-case labels (`Instance.dc.html:80-84`, `Catalog.dc.html:80-90`), and every `dt` in the
 templates is already written in sentence case. The header sets its own link colours (`.brand`,
-`.nav a`, `.conn`) and keeps them. `.kicker a` stays without underline.
+`.nav a`, `.conn`) and keeps them. Tabs (muted and ink), badges and counts drawn as links, chips,
+state-block reason links (the tone's ink) and graph node links keep their own colours. `.kicker a`
+stays without underline.
 
 `h1.mono` on the Catalog page (`catalog-01`, section B) renders at 13 px once `.mono` is fixed at
 13 px, as it renders at 0.86em today: `align-platform-installed-catalog` fixes that heading, and
@@ -204,7 +217,23 @@ this change does not.
 `.applied` and `.health` both become the canvas's badge (`Main.dc.html:297`): `inline-flex`,
 `padding: 3px 9px`, `border: 1.5px solid var(--c)`, `border-radius: 5px`, `color: var(--c-ink)`,
 `background: var(--c-bg)`, sans 11 px, weight 600, uppercase, letter-spacing 0.05em. The tone
-comes from a `hue-*` class that `appliedBadge` and `healthBadge` (`internal/ui/view.go`) add:
+comes from the state class every badge already carries (`applied-<state>`, `health-<state>`),
+which `portal.css` maps to the hue variables:
+
+```css
+.applied-applied { --c: var(--applied); --c-ink: var(--applied-ink); --c-bg: var(--applied-bg); --c-tint: var(--applied-tint); }
+.applied-failed, .applied-stalled, .health-degraded { --c: var(--degraded); /* ...ink, bg, tint */ }
+/* and so on, one rule per row of the table below */
+```
+
+No Go or template site gains a class, so every badge built outside `appliedBadge`,
+`healthBadge` and `stateBadge` takes its tone too: the Installed card's count links
+(`platform.go:135,141`, classes `health health-x` and `applied applied-x`), the node card's literal
+Missing badge (`graph.go:238`, owned by `align-graph`, untouched here), the panel's literal Missing
+badge (`panel-body.html:8`) and the Catalog page's Resolved and Not resolved badges
+(`catalog.html:17-18`). `graph.go` reads the badge's second class word to build node classes
+(`graph.go:185,188`); since no class is added, that keeps working. The `hue-*` classes stay for
+components that are not badges (the state block, the tooltip's tone). The mapping:
 
 | Applied state | Hue | Health state | Hue |
 | --- | --- | --- | --- |
@@ -215,17 +244,28 @@ comes from a `hue-*` class that `appliedBadge` and `healthBadge` (`internal/ui/v
 | | | Missing | missing |
 
 The `APPLY` prefix (`.applied::before`) and the health dot (`<span class="dot">` in the
-`health` and `state` partials and the literal Missing badge in `panel-body.html`) are removed.
-What tells the axes apart is now:
+`health` and `state` partials, the hover card's health mark in the `graph` define, the literal
+Missing badge in `panel-body.html` and the Catalog page's Resolved badges) are removed. What tells
+the axes apart is now:
 
-- the accessible name each badge already carries (`<span class="axis">Applied axis</span>`,
-  `Health axis`, `templates/partials.html:1-7`), kept;
+- the accessible name each badge carries (`<span class="axis">Applied axis</span>`,
+  `Health axis`, `templates/partials.html:1-7`), kept, and added to the `state` partial
+  (`partials.html:10`), which today has none;
 - the place a badge stands, which names its axis in visible text: the Installed table's column
   heads, the Installed card's group labels, the summary cards' headings (eyebrows after the
   follow-on changes), and the details panel's fact labels. The details panel shows the two
   badges side by side in `.axes`; it gains visible "Applied" and "Health" labels before each
-  badge, so no badge stands without a named axis. The graph's node stamp and outline are
-  `align-graph`'s and are untouched.
+  badge. The hover card, which shows a health and an applied mark side by side
+  (`partials.html:116`), gains visible "Health" and "Applied" labels before its marks. The graph's
+  node stamp and outline are `align-graph`'s and are untouched.
+
+The visible-text rule covers every place an applied badge and a health badge stand together (the
+Installed table and card, the summary cards, the details panel, the hover card). A health stamp
+that stands alone on a per-object line (the Resources rows, `partials.html:140,164`; the
+configuration group summary, `owner.html:95`; the component head, `partials.html:132`) carries one
+axis only; it names it in its accessible name, and its column or group already concerns health.
+`align-owner-pages` inherits this: its Resources table puts these stamps under a "Health" column
+head. `align-graph` inherits the hover card's labels when it rebuilds the card.
 
 A partial health keeps its hatch and gains a dashed border, so it stays visibly apart from a full
 one without colour. Its text still says "(partial)". "(not live)" is unchanged. Managed
@@ -235,7 +275,8 @@ stalled and refused.
 
 ### Underline tabs with counts (section 3, platform-09, catalog-16, instance-13)
 
-One tab component for every strip (`.tabs`): no box, a 1px `--line` bottom rule, links with
+One tab component for every strip (`.tabs`; the Platform's literal strip in `platform.html:46-49`
+becomes a range over `tabLink`s built in `platform.go`, so it can carry counts): no box, a 1px `--line` bottom rule, links with
 `border-bottom: 3px solid transparent` and `margin-bottom: -1px`. The current link
 (`aria-current="page"`) takes `border-bottom-color: var(--accent)` and `color: var(--ink)`; the
 others take `--muted`. Base size from the owner and catalog boards (`Instance.dc.html:900`,
@@ -250,31 +291,46 @@ the page sideways.
 // tabLink is one tab. Count is shown after the label when set; nil means
 // the page holds no count it may show.
 type tabLink struct {
+	Name    string // the tab= value, for the count's id
 	Label   string
 	Href    string
 	Current bool
 	Count   *int
+	Follow  string // topics the count's region follows
 }
 ```
 
 ```html
-<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{with .Count}} <span class="tab-n">{{.}}</span>{{end}}</a>
+{{$t := .}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{with .Count}} <span class="tab-n" id="tab-n-{{$t.Name}}"{{with $t.Follow}} data-follow="{{.}}"{{end}}>{{.}}</span>{{end}}</a>
 ```
+
+`tabLink` also gains `Name` (the `tab=` value) and `Follow` (the topics). The live refresh
+(`portal.js:244-335`) replaces only elements that carry both an id and `data-follow`, and the tab
+strips carry neither. So the count, not the strip, is the followed region: when a new event, a new
+Pod during the image break or a registration change refreshes the page's regions, the count is
+swapped with them, and the strip keeps its links and their `hx-*` attributes. Topics: owner pages
+`<topic> events:<topic>`, the Platform and Catalog pages `platform`.
 
 A count is shown only when the page already holds it and it covers everything the tab lists:
 
 | Page | Tab | Count | Source (already fetched) | No count when |
 | --- | --- | --- | --- | --- |
 | Platform | Providers | registrations | `Platform.Registrations` (`platform.go:428`) | the Platform is not readable, or `registrationsAccess` is not `ok` |
-| Platform | Catalogs | catalog rows | `catalogRows` total (`platform.go:435`) | the Platform is not readable |
+| Platform | Catalogs | catalog rows | `catalogRows` total (`platform.go:435`) | the Platform is not readable, or `registrationsAccess` is not `ok` (the claim-only rows come from the registrations, so the total would be short; on F1 it would read 2 of 3) |
 | Catalog | Claims | claiming registrations | `catalogView.Claims` | claims are locked |
 | Catalog | Events | none | read only on its tab | always |
-| Instance, package | Resources | inventory objects plus runtime children, configuration group included | the owner document's components | the owner document is a problem |
-| Instance, package | Events | folded lines in the feed the Events tab opens with | `v.Events`, read on every tab (`owner.go:576`) | the feed is a problem |
+| Instance, package | Resources | inventory objects plus runtime children, configuration group included | the owner document's components, counted right after `foldConfig` | the owner document is a problem |
+| Instance, package | Events | folded lines in the feed the Events tab opens with | `v.Events`, read on every tab (`owner.go:576`), counted right after it is read | the feed is a problem |
 | Instance, package | Graph, Logs, YAML, Provider | none | | always |
 
 The total is the unfiltered total. A filter narrows the list, not the tab. The owner page builds
-its tabs before `ownerTabsOf` reads the feed (`owner.go:533-535`), so the counts are set after it.
+its tabs before `ownerTabsOf` reads the feed (`owner.go:533-535`), so `ownerTabsOf` sets the
+counts, at two points: Resources right after `foldConfig` and before the tab switch, because
+`annotateResources` drops rows that do not match `reason` and may set `v.Config` to nil
+(`owner.go:585-596`); Events right after `v.Events = h.events(...)`, because `ownerEventsTab`
+replaces `v.Events.Items` with the type- and reason-filtered items and, with a resource filter,
+replaces `v.Events` with another object's feed (`owner.go:356-410`). Counting after
+`ownerTabsOf` returns would count the filtered lists.
 When `align-owner-pages` changes what the Events tab opens with (all reached objects, merged), the
 same rule gives the merged count. The tab's count changes with its default scope, and that change
 owns it.
@@ -309,11 +365,18 @@ The canvas's summary block (`Main.dc.html:82-96`, `Instance.dc.html:88-107`,
 - an eyebrow (12 px uppercase, `--ink-2`) naming the axis and its source;
 - a "when" at the right, which reads a recorded time only;
 - a 36 px round icon in the tone's border colour: a check for applied, healthy and neutral, a
-  bang for degraded, turning arrows for progressing, a clock for unknown, the lock for locked;
+  bang for degraded and missing, turning arrows for progressing, a clock for unknown, the lock for
+  locked;
 - the state word, 26 px, weight 700, uppercase, in the tone's ink;
 - a summary line, 15 px, `--ink-2`;
+- optional note lines under the summary (13 px, `--ink-2`, or the locked style), for what a card
+  must say beside its state: a reason's meaning and, in local mode, the controller's message, a
+  partial mark, a `Reconciling` mark, a locked list;
+- an optional caption over the reasons, saying what they count (for example "Warning events, last
+  hour");
 - reason count links (a bold count and a mono reason, underlined, in the tone's ink), or a muted
-  "none" line.
+  "none" line;
+- optional footer links (for example "Open the Provider tab").
 
 The block has a 2 px border in `var(--c)`, `var(--c-tint)` as background, and radius 12 px.
 
@@ -325,17 +388,31 @@ type stateBlock struct {
 	ID      string // the section's id, for links and live refresh
 	Label   string // the accessible name, e.g. "Applied status"
 	Eyebrow string // e.g. "Applied · the controller"
-	When    *stamp // a recorded time, or nil: never invented
+	When    *time.Time // a recorded time, or nil: never invented; drawn by the "time" partial
 	WhenText string // the words before the time, e.g. "since", "reconciled"; with When nil, shown alone as words (e.g. "checked live"), never as a time
 	Hue     string // applied, healthy, progressing, degraded, unknown, neutral, missing
 	State   string // the word, e.g. "Applied", "Degraded"
 	Summary string
+	Notes   []sbNote    // secondary lines under the summary, in order
+	Caption string      // what the reasons count, shown above them; "" for none
 	Reasons []countLink // reuses countLink{Text, N, Href, Class}: Class gives a reason its own hue, N 0 shows the reason without a count
 	None    string      // shown when Reasons is empty, e.g. "No unhealthy resources"
+	Links   []link      // footer links, e.g. "Open the Provider tab"
 	Follow  string      // data-follow topics
 	Problem *v1.Problem // set: the block renders the problem region (locked or degraded) in place of the state
 }
+
+// sbNote is one secondary line of a state block.
+type sbNote struct {
+	Text  string
+	Class string // "" (muted ink), "locked" (the lock style), "partial", "reconciling"
+	Mono  bool   // a reason or other machine word
+}
 ```
+
+`When` is a `*time.Time` because the `time` partial calls `stamp .`, which is
+`h.stamp(t *time.Time)` (`view.go:223`, `templates.go:44`); a `*stamp` there would fail to
+execute. `link` is the existing `{Text, Href}` pair.
 
 ```html
 {{define "state-block"}}
@@ -344,7 +421,10 @@ type stateBlock struct {
   {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
   <div class="sb-state">{{template "sb-icon" .Hue}}<span class="sb-word">{{.State}}</span></div>
   {{with .Summary}}<p class="sb-summary">{{.}}</p>{{end}}
+  {{range .Notes}}<p class="sb-note{{with .Class}} {{.}}{{end}}">{{if .Mono}}<span class="mono">{{.Text}}</span>{{else}}{{.Text}}{{end}}</p>{{end}}
+  {{with .Caption}}<p class="sb-caption">{{.}}</p>{{end}}
   <div class="sb-reasons">{{range .Reasons}}<a href="{{.Href}}"{{with .Class}} class="{{.}}"{{end}}>{{if .N}}<strong>{{.N}}</strong> {{end}}<span class="mono">{{.Text}}</span></a>{{else}}<span class="muted">{{.None}}</span>{{end}}</div>
+  {{with .Links}}<p class="sb-links">{{range .}}<a href="{{.Href}}">{{.Text}}</a>{{end}}</p>{{end}}
   {{end}}
 </section>
 {{end}}
@@ -356,17 +436,32 @@ state word, so a locked source never reads as a state. Every text field is clust
 text through `html/template`. The icon partial is inline SVG with `aria-hidden="true"`; the state
 word is the non-colour cue. No `style` attribute is used.
 
-The partial carries, from the start, the three generic forms the two follow-on changes need, so
+The partial carries, from the start, every generic form the two follow-on changes need, so
 that only one change edits it while they run in parallel: a reason with its own hue (`Class`, a
 red refusal beside an amber contracts reason on the Platform page), a reason with no count (`N`
-zero, for the Platform's `Ready` and `ContractsFulfilled` reasons), and words in place of a time
-(`WhenText` with `When` nil, for the owner Health block's "checked live"). Words are not a time,
-so the rule that a block never borrows a time holds. The one block-specific addition, the Applied
-card's attempt strip, stays with `align-owner-pages`, which is the only change that edits the
-partial after this one.
+zero, for the Platform's `Ready` and `ContractsFulfilled` reasons), words in place of a time
+(`WhenText` with `When` nil, for the owner Health block's "checked live"), note lines (the
+Platform's locked refusals line, the owner cards' reason meaning, controller message, partial and
+`Reconciling` marks), a caption over the reasons (the Applied card's "Warning events, last hour")
+and footer links (the Provider card's "Open the Provider tab"). Words are not a time, so the rule
+that a block never borrows a time holds. The one block-specific addition, the Applied card's
+attempt strip, stays with `align-owner-pages`, which is the only change that edits the partial
+after this one.
 
-No page renders a state block in this change. A view test renders the partial for every hue,
-with and without `When`, reasons and a problem, and checks the escaping. The follow-on changes put
+### The tooltip (section 4)
+
+Two follow-on changes draw the canvas's info tooltip: `align-platform-installed-catalog` on the
+Installed provider badge, `align-owner-pages` on the identity card's Owner and Applier facts. It
+lands here, for the same reason as the state block: a `tip` partial (a focusable `span.tip` with
+`tabindex="0"` and `aria-describedby`, holding its trigger, and a `span.tipbox` with
+`role="tooltip"`) and its CSS, shown on `:hover` and `:focus-within` with no script. The box is 300
+px wide on the dark ink, opens below its trigger and aligns to the trigger's end near the right
+edge. Placement inside a scrolling table is the follow-on change's concern (see
+`align-platform-installed-catalog`, "Provider badge").
+
+No page renders a state block or a tooltip in this change. A view test renders the partials for
+every hue, with and without `When`, with notes, a caption, reasons, links and a problem, and checks
+the escaping. The follow-on changes put
 it on their pages: the Platform status and Catalog resolved blocks
 (`align-platform-installed-catalog`), and the Applied, Health and Provider blocks
 (`align-owner-pages`).
