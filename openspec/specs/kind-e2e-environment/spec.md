@@ -184,7 +184,7 @@ podinfo's image tag to one that does not exist and SHALL fail unless the stream 
 Degraded within 10 seconds of the cluster first reporting a Pod that cannot pull its image, with
 its applied state Applied, and for 5 seconds afterwards never reports it Failed or Stalled or
 other than Degraded. It SHALL revert the
-patch and wait for podinfo to settle before it ends. Source: 0030:D3:R2/R3/R5, 0030:D4:R4,
+patch and wait for podinfo to settle before it ends. Source: 0030:D3:R2/R3, 0030:D4:R4,
 0030:D5:R5/R7.
 
 #### Scenario: Image break

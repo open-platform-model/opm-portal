@@ -58,7 +58,9 @@ the nightly E2E workflow only builds and captures the cluster.
 ## Risks / Trade-offs
 
 - [The test writes to the fixture cluster] → only the throwaway `opm-portal-e2e*` cluster
-  through its own kubeconfig, which `lib.sh` checks is on loopback; the patch is reverted.
+  through its own kubeconfig. `lib.sh` checks it on the task path, and the test's
+  `fixtureCluster` refuses any context outside that family or off loopback, so a direct
+  `go test -tags e2e` cannot reach another cluster; the patch is reverted.
 - [A slow registry makes the pull failure late] → the bound is measured from the cluster's own
   report, so only the portal's lag can fail it.
 - [A failed revert leaves podinfo broken] → the cleanup fails the test; the cluster is

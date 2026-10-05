@@ -44,5 +44,5 @@ item 1). And `TestBrowserLogs` serves a hand-copied logs region, so a template c
   reverts); the portal never does.
 - Workflow: least-privilege `contents: read`, no secrets, still never on pull requests.
 - SemVer: none (test and CI only); ships as `test(e2e)`, which does not release.
-- Enhancement link: produces the milestone 1 delivery evidence of 0030 (0030:D3:R2/R3/R5,
+- Enhancement link: produces the milestone 1 delivery evidence of 0030 (0030:D3:R2/R3,
   0030:D4:R4, 0030:D5:R5/R7) without claiming a decision, so it carries no `enhancement.yaml`.
