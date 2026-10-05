@@ -1,0 +1,19 @@
+# Runs opm-portal in local mode inside the cluster, as a single-user test tool.
+#
+# The Pod reads the cluster as the opm-portal ServiceAccount through a read-only role. It listens
+# on 127.0.0.1:8090 inside the Pod and has no Service: reach it with
+#
+#   kubectl -n opm-portal logs deploy/opm-portal          # the one-time launch link
+#   kubectl -n opm-portal port-forward deploy/opm-portal 8090:8090
+#
+# and open the link. Use local port 8090: the portal refuses requests for any other port.
+# Everyone who holds the link sees what the ServiceAccount may read. Getting the link needs
+# pods/log, and reaching the portal needs pods/portforward, in the opm-portal namespace.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - clusterrole.yaml
+  - clusterrolebinding.yaml
+  - deployment.yaml

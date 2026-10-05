@@ -98,10 +98,16 @@ The portal reports what the cluster says, with its source.
   `kubectl.kubernetes.io/last-applied-configuration` annotation from every object it serves
   (portal:D8)
 - The portal acts as the user: in milestone 1 with the user's kubeconfig, in milestone 2 through
-  a SubjectAccessReview for the signed-in user
+  a SubjectAccessReview for the signed-in user. Sole exception: local mode run from the `deploy/`
+  manifest acts as its ServiceAccount for whoever holds its launch token (portal:D13); in-cluster
+  mode stays bound
 - An empty or unmapped identity MUST fail closed; the portal never falls back to its own
-  ServiceAccount
-- Tokens, kubeconfig content and `Authorization` headers MUST NOT appear in logs or errors
+  ServiceAccount (a Pod running local mode reads as its configured ServiceAccount per
+  portal:D13; the rule still binds in-cluster mode)
+- Tokens, kubeconfig content and `Authorization` headers MUST NOT appear in logs or errors. Sole
+  exception: local mode run from the `deploy/` manifest prints its single-use launch URL on
+  standard output, which becomes the container log (portal:D13); every other token still MUST
+  NOT be logged, and in-cluster mode stays bound
 
 `AGENTS.md`, "Security Rules", lists the working rules that follow from this principle.
 

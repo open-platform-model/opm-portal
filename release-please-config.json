@@ -12,7 +12,10 @@
       "package-name": "opm-portal",
       "changelog-path": "CHANGELOG.md",
       "initial-version": "0.1.0",
-      "extra-files": ["internal/version/version.go"],
+      "extra-files": [
+        "internal/version/version.go",
+        { "type": "generic", "path": "deploy/deployment.yaml" }
+      ],
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
         { "type": "fix", "section": "Bug Fixes" },

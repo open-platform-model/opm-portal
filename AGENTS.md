@@ -121,6 +121,7 @@ Read these first, in order:
 ├── cmd/opm-portal/   # main: version, and serve (local mode's flags and wiring)
 ├── api/v1alpha1/     # wire types of the read API (no logic)
 ├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
+├── deploy/           # kustomization running local mode in a Pod as a test tool (portal:D13), and its manifest tests
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
 ├── docs/DESIGN.md    # the design record: decisions (portal:Dn), open questions, risks
 ├── docs/design/      # evidence/: the live captures and research DESIGN.md cites (snapshots)
@@ -165,11 +166,17 @@ hold in every change; a change that bends one needs a decision in `docs/DESIGN.m
 - **Act as the user.** Milestone 1 uses the user's kubeconfig, so the user's RBAC is the
   boundary. Milestone 2 authorizes every read through a SubjectAccessReview for the signed-in
   user before the lookup, and returns the same denial for a missing object as for a forbidden
-  one.
+  one. Sole exception: local mode run from `deploy/` acts as its ServiceAccount for whoever holds
+  its launch token (portal:D13); in-cluster mode stays bound.
 - **Fail closed on an empty identity.** An empty or unmapped identity is denied, and an
-  authorization error is a denial. Never fall back to the portal's own ServiceAccount.
+  authorization error is a denial. Never fall back to the portal's own ServiceAccount. (A Pod
+  running local mode from `deploy/` reads as its configured ServiceAccount per portal:D13; the
+  rule still binds in-cluster mode.)
 - **No secrets in logs or errors.** Tokens, cookies, kubeconfig content and `Authorization`
-  headers never appear in a log line, an error message or an API response.
+  headers never appear in a log line, an error message or an API response. Sole exception:
+  local mode run from `deploy/` prints its single-use launch URL on standard output, which
+  becomes the container log (portal:D13); no other token is ever logged, and in-cluster mode
+  stays bound.
 - **Untrusted text everywhere.** Condition messages, event notes, labels, annotations and log
   lines are rendered through `html/template` only (never `text/template`), with no inline script
   or style, under a strict Content-Security-Policy.
@@ -254,9 +261,19 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   claims, Applied and Health apart, the CLI-owned instance, a namespace-scoped reader with locked
   objects), and a scripted image break that must read Degraded within 10 s of the cluster while
   Applied stays. It patches podinfo's image tag and reverts it before it ends.
+- `task e2e:pod`: build the image with the e2e provider, load it into the fixture cluster, apply
+  `deploy/` through the `test/e2e/pod/` overlay (local image, `imagePullPolicy: Never`), and run
+  `TestPod` (build tag `e2e`): the Pod log names the ServiceAccount, a launch through
+  `kubectl port-forward 8090:8090` lists the cluster's instances, and a forward from 8091 is
+  refused. It needs local ports 8090 and 8091 free.
+- `deploy/`: plain YAML users copy, so no `portal:` citations in its comments. `go test ./deploy`
+  holds the role read-only (get, list, watch; no Secrets, impersonate or wildcard), refuses a
+  Service, Ingress, probe or non-loopback bind, and holds the image tag to `internal/version`
+  (release-please rewrites the marked image line). A rule added to the role is a reviewed
+  widening of what every token holder sees.
 - `task e2e:dump` (`DIR=<directory>`): the fixture cluster's OPM objects (no values), Pods,
   events and operator log, for reading a failed run.
-- The nightly `E2E` workflow runs `e2e:up`, `e2e:capture`, `e2e:local` and `e2e:m1` on docker
+- The nightly `E2E` workflow runs `e2e:up`, `e2e:capture`, `e2e:local`, `e2e:m1` and `e2e:pod` on docker
   kind, and `test:browser` in a parallel `Browser` job; on failure it uploads the test logs, the
   cluster dump and the browser screenshots. Dispatch it on a branch with
   `gh workflow run e2e.yml --ref <branch>`.

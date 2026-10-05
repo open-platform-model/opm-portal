@@ -42,6 +42,41 @@ a new link.
 | `--namespaces` | all | read ModuleInstances and ModulePackages only in these namespaces, for users who cannot list them cluster-wide |
 | `--open` | off | open the link in the default browser |
 
+## Try it in a cluster
+
+To try the portal on a shared cluster without running it on your machine, apply `deploy/`. It
+runs the same local mode in a Pod, reading as the `opm-portal` ServiceAccount through a read-only
+role, listening on `127.0.0.1:8090` inside the Pod, with no Service or Ingress. Apply it from a
+release tag, so the image it names exists (replace `vX.Y.Z` with the
+[latest release](https://github.com/open-platform-model/opm-portal/releases)):
+
+```bash
+kubectl apply -k 'https://github.com/open-platform-model/opm-portal//deploy?ref=vX.Y.Z'
+kubectl -n opm-portal rollout status deploy/opm-portal
+# No probe, so a rolled-out Pod may not have started serving yet: wait for the link.
+until kubectl -n opm-portal logs deploy/opm-portal | grep 'Open this link once'; do sleep 2; done
+kubectl -n opm-portal port-forward deploy/opm-portal 8090:8090
+```
+
+Open the link from the log in a browser on the machine running `port-forward`. Forward local
+port 8090 to 8090: the portal refuses requests for any other port. The link works once; for a new
+one, restart the Pod with `kubectl -n opm-portal rollout restart deploy/opm-portal` and read the
+log again.
+
+Everyone who holds the link sees what the ServiceAccount may read, not what they may read
+themselves. Getting the link takes `pods/log`, and reaching the portal takes `pods/portforward`,
+in the `opm-portal` namespace, so whoever holds those holds the portal. The built-in `view` role
+includes `pods/log`, so any namespace or cluster viewer can take an unspent token, log shippers
+and the node's `/var/log/pods` keep copies, and anyone who may patch the Deployment can mint a new
+token with a rollout restart: open the link right after deploying (a spent token is useless) and
+keep log, port-forward and patch access in `opm-portal` to the people meant to use it.
+
+This is a test tool, not the planned in-cluster mode with sign-in. Kinds outside the OPM catalog,
+such as cert-manager's Certificate, show as not readable; to see them in the graph, add a rule
+with `get`, `list` and `watch` on them to the `opm-portal-reader` ClusterRole in
+`deploy/clusterrole.yaml`. Remove it all with
+`kubectl delete -k 'https://github.com/open-platform-model/opm-portal//deploy?ref=vX.Y.Z'`.
+
 ## Pages
 
 | Page | Shows |

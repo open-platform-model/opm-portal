@@ -1,0 +1,18 @@
+# The shipped manifest with the image task e2e:pod builds and loads into the fixture cluster.
+# Everything else, the role included, is deploy/ unchanged.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../deploy
+images:
+  - name: ghcr.io/open-platform-model/opm-portal
+    newName: localhost/opm-portal
+    newTag: e2e
+patches:
+  - target:
+      kind: Deployment
+      name: opm-portal
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never

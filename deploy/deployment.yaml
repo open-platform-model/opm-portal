@@ -1,0 +1,43 @@
+# One portal in local mode. It listens on loopback inside the Pod, so nothing outside the Pod can
+# reach it except kubectl port-forward, and it has no probe: a probe dials the Pod IP, which a
+# loopback listener does not answer, and the image has no shell for an exec probe.
+#
+# The launch link works once. For a new one, restart the Pod:
+#   kubectl -n opm-portal rollout restart deploy/opm-portal
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opm-portal
+  namespace: opm-portal
+  labels:
+    app.kubernetes.io/name: opm-portal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opm-portal
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opm-portal
+    spec:
+      serviceAccountName: opm-portal
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: opm-portal
+          image: ghcr.io/open-platform-model/opm-portal:v0.0.0 # x-release-please-version
+          args: [serve, --addr, "127.0.0.1:8090"]
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 512Mi

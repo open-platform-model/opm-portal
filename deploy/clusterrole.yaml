@@ -1,0 +1,72 @@
+# Read-only: get, list and watch only, never Secrets, never impersonate, no wildcard.
+#
+# The portal also sends SelfSubjectReviews and SelfSubjectAccessReviews, which every
+# authenticated identity may create through the built-in system:basic-user role, and reads API
+# discovery through system:discovery, so neither is granted here.
+#
+# A kind this role does not list shows in the portal as not readable. Add a rule here to read
+# objects of kinds your modules render beyond the ones below (provider kinds such as
+# cert-manager's Certificate, for example).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: opm-portal-reader
+  labels:
+    app.kubernetes.io/name: opm-portal
+rules:
+  # The OPM kinds.
+  - apiGroups: ["opmodel.dev"]
+    resources: [moduleinstances, modulepackages, platforms, transformerregistrations]
+    verbs: [get, list, watch]
+  # Recent events about an object; the portal only lists them.
+  - apiGroups: ["events.k8s.io"]
+    resources: [events]
+    verbs: [list]
+  # The runtime children below workloads, and container logs.
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [pods/log]
+    verbs: [get]
+  - apiGroups: ["apps"]
+    resources: [replicasets]
+    verbs: [get, list, watch]
+  - apiGroups: ["batch"]
+    resources: [jobs]
+    verbs: [get, list, watch]
+  # The kinds the OPM catalog renders into an instance's inventory, except Secrets.
+  - apiGroups: [""]
+    resources: [configmaps, namespaces, persistentvolumeclaims, serviceaccounts, services]
+    verbs: [get, list, watch]
+  - apiGroups: ["apps"]
+    resources: [daemonsets, deployments, statefulsets]
+    verbs: [get, list, watch]
+  - apiGroups: ["batch"]
+    resources: [cronjobs]
+    verbs: [get, list, watch]
+  - apiGroups: ["autoscaling"]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list, watch]
+  - apiGroups: ["policy"]
+    resources: [poddisruptionbudgets]
+    verbs: [get, list, watch]
+  - apiGroups: ["networking.k8s.io"]
+    resources: [networkpolicies]
+    verbs: [get, list, watch]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: [grpcroutes, httproutes, tcproutes, tlsroutes]
+    verbs: [get, list, watch]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: [clusterrolebindings, clusterroles, rolebindings, roles]
+    verbs: [get, list, watch]
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources:
+      - mutatingwebhookconfigurations
+      - validatingadmissionpolicies
+      - validatingadmissionpolicybindings
+      - validatingwebhookconfigurations
+    verbs: [get, list, watch]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: [customresourcedefinitions]
+    verbs: [get, list, watch]

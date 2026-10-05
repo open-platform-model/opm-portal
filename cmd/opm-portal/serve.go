@@ -27,6 +27,7 @@ import (
 	authenticationv1client "k8s.io/client-go/kubernetes/typed/authentication/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/open-platform-model/opm-portal/internal/api"
 	"github.com/open-platform-model/opm-portal/internal/auth"
@@ -143,9 +144,9 @@ func serve(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 }
 
 // loadKubeconfig returns the REST config of the kubeconfig and context o
-// names, and the context's name. Errors carry client-go's message and the
-// path, never the file's content.
-func loadKubeconfig(o serveOptions) (*rest.Config, string, error) {
+// names, and the log attribute naming where it came from. Errors carry
+// client-go's message and the path, never the file's content.
+func loadKubeconfig(o serveOptions) (*rest.Config, slog.Attr, error) {
 	rules := clientcmd.NewDefaultClientConfigLoadingRules()
 	if o.kubeconfig != "" {
 		rules.ExplicitPath = o.kubeconfig
@@ -153,17 +154,43 @@ func loadKubeconfig(o serveOptions) (*rest.Config, string, error) {
 	cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(rules, &clientcmd.ConfigOverrides{CurrentContext: o.context})
 	raw, err := cc.RawConfig()
 	if err != nil {
-		return nil, "", fmt.Errorf("loading the kubeconfig: %w", err)
-	}
-	name := o.context
-	if name == "" {
-		name = raw.CurrentContext
+		return nil, slog.Attr{}, fmt.Errorf("loading the kubeconfig: %w", err)
 	}
 	cfg, err := cc.ClientConfig()
 	if err != nil {
-		return nil, "", fmt.Errorf("loading the kubeconfig: %w", err)
+		return nil, slog.Attr{}, fmt.Errorf("loading the kubeconfig: %w", err)
 	}
-	return cfg, name, nil
+	return cfg, configSource(raw, o.context, inClusterPossible()), nil
+}
+
+// serviceAccountTokenFile is where a Pod's ServiceAccount token is mounted,
+// the file client-go's in-cluster configuration reads.
+const serviceAccountTokenFile = "/var/run/secrets/kubernetes.io/serviceaccount/token" //nolint:gosec // a path, not a credential
+
+// inClusterPossible reports what client-go's in-cluster fallback checks:
+// the API server's environment variables and the mounted token.
+func inClusterPossible() bool {
+	if os.Getenv("KUBERNETES_SERVICE_HOST") == "" || os.Getenv("KUBERNETES_SERVICE_PORT") == "" {
+		return false
+	}
+	_, err := os.Stat(serviceAccountTokenFile)
+	return err == nil
+}
+
+// configSource names where a loaded client configuration came from. It
+// repeats client-go's own decision: when the kubeconfig yields an empty
+// configuration (no file, no context, or no current context) and the
+// in-cluster configuration is possible, client-go falls back to it inside
+// a Pod; otherwise the kubeconfig context was used.
+func configSource(raw clientcmdapi.Config, contextName string, inCluster bool) slog.Attr {
+	_, err := clientcmd.NewDefaultClientConfig(raw, &clientcmd.ConfigOverrides{CurrentContext: contextName}).ClientConfig()
+	if inCluster && clientcmd.IsEmptyConfig(err) {
+		return slog.String("source", "in-cluster")
+	}
+	if contextName == "" {
+		contextName = raw.CurrentContext
+	}
+	return slog.String("context", contextName)
 }
 
 // selfIdentity asks the cluster who the kubeconfig authenticates as, with
@@ -267,7 +294,7 @@ type cluster struct {
 
 // connect loads the kubeconfig and learns its identity.
 func connect(ctx context.Context, o serveOptions, log *slog.Logger) (cluster, error) {
-	restCfg, contextName, err := loadKubeconfig(o)
+	restCfg, source, err := loadKubeconfig(o)
 	if err != nil {
 		return cluster{}, err
 	}
@@ -286,7 +313,7 @@ func connect(ctx context.Context, o serveOptions, log *slog.Logger) (cluster, er
 	if err != nil {
 		return cluster{}, err
 	}
-	log.Info("reading as the kubeconfig's user", "user", self.Username, "context", contextName)
+	log.Info("reading the cluster as this identity", "user", self.Username, source)
 	checker, err := authz.NewLocal(cs.AuthorizationV1().SelfSubjectAccessReviews(), self, authz.Options{})
 	if err != nil {
 		return cluster{}, err

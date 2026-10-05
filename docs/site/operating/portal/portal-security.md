@@ -5,7 +5,9 @@ type: explanation
 weight: 30
 ---
 
-The portal reads a cluster as you and shows you only what you could read yourself. In local mode, the only mode built, it runs on your machine and reads with your kubeconfig, so your RBAC is the whole boundary: the portal adds no credential, holds no role of its own and installs nothing in the cluster. What it adds is a set of rules about who may reach it on your machine, what it reads, and what it never shows, even to you.
+When you run the portal on your machine, it reads a cluster as you and shows you only what you could read yourself. In local mode, the only mode built, it reads with your kubeconfig, so your RBAC is the whole boundary: run that way, the portal adds no credential, holds no role of its own and installs nothing in the cluster. What it adds is a set of rules about who may reach it on your machine, what it reads, and what it never shows, even to you.
+
+To try the portal on a shared cluster, the same local mode can also run in a Pod, as the README's [Try it in a cluster](https://github.com/open-platform-model/opm-portal#try-it-in-a-cluster) section shows. There it reads as the Pod's ServiceAccount through a read-only role, not as you, and whoever holds its launch token sees what that ServiceAccount may read. Getting the token takes `pods/log`, and reaching the portal takes `pods/portforward`, in the portal's namespace, so whoever holds those grants holds the portal: treat it as a test tool, not as access checked per person. The built-in `view` role includes `pods/log`, so anyone who may view that namespace, or the whole cluster, can take a token that has not been used yet; log shippers and the node's `/var/log/pods` keep copies of it; and anyone who may patch the Deployment can get a new token with a rollout restart. Open the link right after deploying, since a used token opens nothing, and keep log, port-forward and patch access in that namespace to the people meant to use the portal.
 
 This page assumes you know Kubernetes RBAC. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 

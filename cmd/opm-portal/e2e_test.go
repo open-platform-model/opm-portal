@@ -120,7 +120,7 @@ func TestLocalMode(t *testing.T) {
 	if strings.Contains(stderr, p.launch.Query().Get("token")) || strings.Contains(stderr, cookie) {
 		t.Fatalf("stderr carries the token or the cookie:\n%s", stderr)
 	}
-	if !strings.Contains(stderr, "reading as the kubeconfig's user") {
+	if !strings.Contains(stderr, "reading the cluster as this identity") {
 		t.Fatalf("stderr does not log the identity:\n%s", stderr)
 	}
 }
