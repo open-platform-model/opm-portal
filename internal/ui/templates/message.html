@@ -1,0 +1,8 @@
+{{define "content"}}{{with .Main}}
+<section class="message reveal">
+  <p class="kicker">{{with .Code}}{{.}}{{else}}portal{{end}}</p>
+  <h1>{{.Heading}}</h1>
+  <p class="lede">{{.Text}}</p>
+  <p><a href="/">Go to the Platform</a></p>
+</section>
+{{end}}{{end}}

@@ -37,7 +37,8 @@ type LocalConfig struct {
 	// Port is the port the portal listens on. The Host allowlist, the
 	// launch URL and the cookie name use it.
 	Port int
-	// Landing is where a successful launch redirects. Default "/".
+	// Landing is the page a successful launch answers with, served by the
+	// next handler under the new session. Default "/".
 	Landing string
 	// SessionTTL is how long the session lasts from the launch. Default 12
 	// hours.

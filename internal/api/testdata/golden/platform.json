@@ -17,7 +17,9 @@
         "reason": "UnfulfilledContracts",
         "message": "1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:\n  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)",
         "lastTransitionTime": "2026-10-04T18:04:23Z",
-        "observedGeneration": 1
+        "observedGeneration": 1,
+        "tone": "informational",
+        "meaning": "Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers."
       }
     ]
   },
@@ -28,7 +30,9 @@
       "reason": "Generated",
       "message": "Platform module generated and built for generation 1",
       "lastTransitionTime": "2026-10-04T18:03:50Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "normal",
+      "meaning": "The platform module was generated and built."
     },
     {
       "type": "ContractsFulfilled",
@@ -36,7 +40,9 @@
       "reason": "UnfulfilledContracts",
       "message": "1 provider-fulfilled contract is defined by an enabled catalog and implemented by nothing on the platform; a module demanding one will not resolve until a provider registers:\n  opmodel.dev/catalogs/opm/traits/backup-command@v1alpha1 (defined by opmodel.dev/catalogs/opm@v4)",
       "lastTransitionTime": "2026-10-04T18:04:23Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "informational",
+      "meaning": "Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers."
     }
   ],
   "subscriptions": [

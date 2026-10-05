@@ -123,6 +123,9 @@ type RuntimeChild struct {
 	// Replicas is a ReplicaSet's spec.replicas; nil for other kinds or when
 	// unset.
 	Replicas *int64
+	// Containers are a Pod's init containers, then its containers, by name
+	// in spec order; nil for other kinds.
+	Containers []string
 }
 
 // SourceRef is the Flux source a ModulePackage reads.

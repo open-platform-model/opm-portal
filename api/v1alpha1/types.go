@@ -15,6 +15,7 @@ const (
 	KindEventList    = "EventList"
 	KindGraph        = "Graph"
 	KindRemoved      = "Removed"
+	KindObject       = "Object"
 )
 
 // Access values: how reading an object or a list went for the caller.
@@ -55,6 +56,14 @@ type Condition struct {
 	Message            string     `json:"message,omitempty"`
 	LastTransitionTime *time.Time `json:"lastTransitionTime,omitempty"`
 	ObservedGeneration int64      `json:"observedGeneration,omitempty"`
+	// Tone is how the condition reads for its type: normal, abnormal,
+	// progressing, informational or unknown. Status alone does not say it:
+	// Stalled=True is a fault and ContractsFulfilled=False is information.
+	Tone string `json:"tone"`
+	// Meaning and NextStep are the portal's explanation of Reason, absent
+	// for a reason the portal does not know.
+	Meaning  string `json:"meaning,omitempty"`
+	NextStep string `json:"nextStep,omitempty"`
 }
 
 // Reconcile is what the operator says it applied: Applied, Reconciling,
@@ -158,6 +167,9 @@ type RuntimeChild struct {
 	Health ObjectHealth `json:"health"`
 	// Replicas is a ReplicaSet's desired replica count.
 	Replicas *int64 `json:"replicas,omitempty"`
+	// Containers are a Pod's init containers, then its containers, by name:
+	// the names its log topics take.
+	Containers []string `json:"containers,omitempty"`
 }
 
 // InstanceSummary is one ModuleInstance in a list.
@@ -444,6 +456,22 @@ type GraphEdge struct {
 	Verified *bool        `json:"verified,omitempty"`
 	Reason   string       `json:"reason,omitempty"`
 	Route    []GraphPoint `json:"route"`
+}
+
+// Object is one object an inventory reaches, as the cluster serves it,
+// without managed fields, the last-applied annotation or, on a
+// ModuleInstance or ModulePackage, spec.values. It is the only document
+// that carries a raw object; a YAML view renders it.
+type Object struct {
+	TypeMeta
+	Ref    ObjectRef      `json:"ref"`
+	Object map[string]any `json:"object"`
+}
+
+// TopicChange adds topics to an open stream and removes topics from it.
+type TopicChange struct {
+	Add    []string `json:"add,omitempty"`
+	Remove []string `json:"remove,omitempty"`
 }
 
 // Removed says a followed object does not exist: it was deleted, or was

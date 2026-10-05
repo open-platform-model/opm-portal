@@ -6,11 +6,6 @@ weight: 60
 
 The OPM portal shows what a cluster runs under OPM in one place: the Platform, its catalogs and registrations, every ModuleInstance and ModulePackage, the objects each one applied, and the Pods below them, with events and logs beside them. It reads; it never changes anything in the cluster.
 
-> [!IMPORTANT]
-> **No web UI yet**
->
-> The portal's web UI is not built. `opm-portal serve` runs the read API on your machine, and a browser shows its JSON.
-
 ## How-to guides
 
 - [Run the portal locally](/docs/operating/portal/run-the-portal-locally/): start the portal on your machine with your kubeconfig and open it in your browser.

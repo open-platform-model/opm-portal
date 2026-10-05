@@ -1,0 +1,12 @@
+# SHA-256 of every vendored file, checked by internal/ui's tests. Each file was extracted from
+# the npm tarball named after it, after the tarball's sha512 matched the registry's integrity.
+# Upgrade one by replacing the file, its line here, and the name the templates load, in one diff.
+#
+# htmx.org@2.0.11 dist/htmx.min.js
+d6fdc75f204e6bdefa99b69bf1e6d4ac69b8a364f77929f45c13476b4000f717  htmx-2.0.11.min.js
+# htmx-ext-sse@2.2.4 dist/sse.min.js
+98a46496de0c3605fbffdce9167ba427bdd9553184f83f149c261891a92c0136  htmx-ext-sse-2.2.4.min.js
+# @fontsource-variable/space-grotesk@5.3.0 files/space-grotesk-latin-wght-normal.woff2 (OFL-1.1)
+0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d  space-grotesk-latin-wght-normal.woff2
+# @fontsource-variable/jetbrains-mono@5.3.0 files/jetbrains-mono-latin-wght-normal.woff2 (OFL-1.1)
+18be452724bfdc236c074ca94a249a7f41a86752c7d04ab258ce9ed5651f6a7e  jetbrains-mono-latin-wght-normal.woff2

@@ -5,9 +5,8 @@ server-sent-events read API (`/api/v1alpha1`) with an HTMX UI as its first consu
 
 ## Status
 
-Milestone 1 runs: `opm-portal serve` serves the read API on your machine, reading the cluster as
-your kubeconfig's user. There are no HTML pages yet; the browser shows the API's JSON documents.
-To install a release, download it from the
+Milestone 1 runs: `opm-portal serve` serves the web pages and the read API on your machine,
+reading the cluster as your kubeconfig's user. To install a release, download it from the
 [GitHub releases page](https://github.com/open-platform-model/opm-portal/releases) as
 [the how-to for running the portal locally](docs/site/operating/portal/run-the-portal-locally.md)
 describes.
@@ -33,8 +32,8 @@ task build
 
 `serve` prints one link, `Open this link once to sign in: http://127.0.0.1:<port>/launch?token=...`,
 and with `--open` opens it in your default browser. The link works once: it trades its token for
-a session cookie and sends the browser to `/api/v1alpha1/clusters/default/instances`. Stop the
-portal with Ctrl-C; restart it for a new link.
+a session cookie and answers with the Platform page. Stop the portal with Ctrl-C; restart it for
+a new link.
 
 | Flag | Default | Meaning |
 | --- | --- | --- |
@@ -43,6 +42,26 @@ portal with Ctrl-C; restart it for a new link.
 | `--addr` | `127.0.0.1:0` (a free port) | the address to listen on; only loopback addresses are accepted |
 | `--namespaces` | all | read ModuleInstances and ModulePackages only in these namespaces, for users who cannot list them cluster-wide |
 | `--open` | off | open the link in the default browser |
+
+## Pages
+
+| Page | Shows |
+| --- | --- |
+| `/` Platform | catalog subscriptions and the resolved registry with versions, registrations with separate *accepted* and *active* pills and their verdicts, contracts without a provider (information, not a failure), conditions with what each reason means and what to do, the platform graph, recent events |
+| `/instances`, `/packages` | every ModuleInstance or ModulePackage you may list, filterable by namespace, each with two badges: **Applied** (what the operator applied) and **Health** (what the portal sees running) |
+| `/instances/<ns>/<name>`, `/packages/<ns>/<name>` | the relationship graph, components with their objects and Pods, conditions, the contracts the render used (as text: they are not the instance's provider demand), the operator's history, recent events, live logs per container, and a YAML view of any object |
+
+Applied and Health are never merged: an instance whose rollout is broken shows **Applied** and
+**Degraded** side by side. Anything you may not read shows **locked**, with nothing about it
+beyond what the read API says. Events are recent activity: Kubernetes keeps them for about an
+hour. Pages update live over one stream per browser tab, and need no script to read (logs and
+live updates do).
+
+The YAML view shows an object as the cluster serves it, without managed fields, the
+`kubectl.kubernetes.io/last-applied-configuration` annotation or an instance's `spec.values`.
+**A value a module rendered into a non-Secret object (a ConfigMap entry, a container's
+environment) is visible there to anyone who may read that object, as it is in `kubectl`.** Keep
+a value out of reach by rendering it into a Secret; the portal never reads Secrets.
 
 What it does with your access:
 
@@ -57,7 +76,10 @@ What it does with your access:
   `localhost:<port>`, `[::1]:<port>` or the loopback IP `--addr` names, so a web page that
   rebinds its own name to 127.0.0.1 gets nothing.
 - **Admits one browser.** Requests without the session cookie get `401`. Cross-site writes are
-  refused, and every response carries a Content-Security-Policy that allows nothing to load.
+  refused. Every response carries a Content-Security-Policy that allows nothing to load; pages
+  widen it only to the portal's own scripts, styles, fonts and connections, with no inline script
+  or style. htmx, its SSE extension and the fonts are built into the binary at pinned versions;
+  nothing loads from the internet.
 - **Logs** go to standard error and never hold the link's token, the cookie or kubeconfig
   content. The link is printed to standard output only. `--open` hands it to the browser through
   a private file, not a command line other local users could read, and removes that file when

@@ -46,7 +46,9 @@
       "reason": "ReconciliationSucceeded",
       "message": "Reconciliation succeeded",
       "lastTransitionTime": "2026-10-04T18:04:06Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "normal",
+      "meaning": "Every object was applied. This says nothing about whether the workloads run; see Health."
     },
     {
       "type": "ModuleResolved",
@@ -54,7 +56,9 @@
       "reason": "ModuleResolved",
       "message": "module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11",
       "lastTransitionTime": "2026-10-04T18:04:06Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "normal",
+      "meaning": "The module version was found in the registry."
     }
   ],
   "history": [
@@ -142,7 +146,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {
@@ -162,7 +169,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "podinfo"
+              ]
             },
             {
               "ref": {

@@ -1,0 +1,7 @@
+{{define "content"}}{{with .Main}}
+<div class="fragment">
+<h2 class="frag-h">Recent events{{with .About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
+{{template "events-note"}}
+{{template "events-list" .}}
+</div>
+{{end}}{{end}}

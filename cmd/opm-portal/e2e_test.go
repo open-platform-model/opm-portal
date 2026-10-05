@@ -221,10 +221,10 @@ func launch(ctx context.Context, t *testing.T, link *url.URL) (browser *http.Cli
 	browser = &http.Client{Jar: jar, Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error {
 		return http.ErrUseLastResponse
 	}}
-	// The launch answers with a page that moves the browser on to the
-	// landing page (TestBrowserLaunch drives that in real browsers).
-	if res := get(ctx, t, browser, link.String(), nil); res.status != http.StatusOK || !strings.Contains(res.body, `http-equiv="refresh"`) {
-		t.Fatalf("launch: %d %s; want 200 with the hand-off page", res.status, res.body)
+	// The launch answers with the landing page itself, the Platform
+	// (TestBrowserLaunch drives that in real browsers).
+	if res := get(ctx, t, browser, link.String(), nil); res.status != http.StatusOK || !strings.Contains(res.body, "<title>Platform · OPM Portal</title>") {
+		t.Fatalf("launch: %d %.300s; want 200 with the Platform page", res.status, res.body)
 	}
 	cookies := jar.Cookies(link)
 	if len(cookies) != 1 || !strings.HasPrefix(cookies[0].Name, "opm-portal-") {
@@ -240,6 +240,10 @@ func readAsTheUser(ctx context.Context, t *testing.T, browser *http.Client, inst
 	res := get(ctx, t, browser, instances, nil)
 	if res.status != http.StatusOK || !strings.Contains(res.body, `"name":"podinfo"`) {
 		t.Fatalf("instances: %d %.300s; want 200 with podinfo", res.status, res.body)
+	}
+	page := strings.Replace(instances, "/api/v1alpha1/clusters/default/instances", "/instances/default/podinfo", 1)
+	if res := get(ctx, t, browser, page, nil); res.status != http.StatusOK || !strings.Contains(res.body, "podinfo-podinfo") {
+		t.Fatalf("instance page: %d %.300s; want 200 with podinfo's objects", res.status, res.body)
 	}
 	res = get(ctx, t, browser, instances+"/default/podinfo/graph", nil)
 	var graph struct {

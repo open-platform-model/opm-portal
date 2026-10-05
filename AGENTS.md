@@ -97,8 +97,9 @@ can reword them.
   from the Platform down to Pods. Milestone 1 runs locally with the user's kubeconfig;
   milestone 2 runs in-cluster with OIDC and SubjectAccessReview-as-user.
 - Design: enhancement 0030 in the sibling `enhancements/` repo. `opm-portal serve` runs local
-  mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`,
-  reading as the kubeconfig's user. `opm-portal version` only prints the version.
+  mode (milestone 1): `internal/auth`'s launch token and front door in front of `internal/api`
+  (under `/api/v1alpha1`) and `internal/ui` (every other path), reading as the kubeconfig's user.
+  `opm-portal version` only prints the version.
 
 ## Entrypoint
 
@@ -115,7 +116,7 @@ Read these first, in order:
 .
 ├── cmd/opm-portal/   # main: version, and serve (local mode's flags and wiring)
 ├── api/v1alpha1/     # wire types of the read API (no logic)
-├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), version
+├── internal/         # auth (local front door), authz, readmodel, health, graph, stream, logs, api (the /api/v1alpha1 handlers), ui (the pages), version
 ├── openapi/          # v1alpha1.yaml: the read API contract, held to the code by internal/api's tests
 ├── docs/site/        # site pages, published as the opm-portal docs bundle (docs-kit.cue)
 ├── hack/             # helper scripts (release-pin gate, API breaking-change gate)
@@ -212,6 +213,17 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   it on every pull request. Install the pinned `oasdiff` with `task api:install-oasdiff`.
 - Read API goldens: `go test ./internal/api -run TestGolden -update` rewrites
   `internal/api/testdata/golden/`; check the diff before committing.
+- UI goldens: `go test ./internal/ui -run TestGolden -update` rewrites
+  `internal/ui/testdata/golden/` (each page's `<main>`, or a fragment); check the diff.
+- Look at the pages without a cluster: `OPM_PORTAL_UI_DEV=127.0.0.1:18080 go test ./internal/ui
+  -run TestDevServe -timeout 0` serves them over the F1 capture (`OPM_PORTAL_UI_DEV_BROKEN=1` for
+  the image-break sample, `OPM_PORTAL_UI_DEV_DENY=<resource>` to see it locked).
+- `internal/ui` reads only through the read API (`fetch` runs the API handler in-process); a test
+  fails if it imports `internal/readmodel`. Its tests build the API with `internal/api/apitest`.
+  Pages run under a CSP with `'self'` only: no inline script or style attribute, no `hx-on`, no
+  htmx trigger filters (they need `eval`). Vendored assets live in `internal/ui/static/vendor`
+  with their SHA-256 in `CHECKSUMS`; upgrade one by replacing the file, its line and the name the
+  layout loads in one diff.
 - `task check`: fmt, vet, lint, openspec, test, capture check.
 - `task docs:bundle` / `task docs:bundle:check`: build, or build and lint, the `opm-portal` docs
   bundle from `docs/site/` with the docs-kit release `.opm-docs-version` pins (installed into
@@ -235,7 +247,10 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   `browser`) and the Playwright image (podman by default, `OPM_PORTAL_CONTAINER_ENGINE=docker`
   otherwise; pulls the image and installs the pinned Playwright package, so it needs the
   network). A Go client ignores SameSite, so only this test catches a launch whose cookie a
-  browser withholds. Run it after any change to `internal/auth` or `openLaunch`.
+  browser withholds. Run it after any change to `internal/auth` or `openLaunch`. It also runs
+  `TestBrowserLogs`, which refreshes a logs region under a tailed, focused pane and checks the
+  pane keeps its scroll offset, focus and tail; run it after any change to the page script's
+  refresh or log code.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,

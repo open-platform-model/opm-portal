@@ -1,0 +1,244 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Object",
+  "ref": {
+    "version": "v1",
+    "kind": "Pod",
+    "namespace": "default",
+    "name": "podinfo-podinfo-d9585d794-4lg6h"
+  },
+  "object": {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "creationTimestamp": "2026-10-04T18:04:06Z",
+      "generateName": "podinfo-podinfo-d9585d794-",
+      "generation": 1,
+      "labels": {
+        "app.kubernetes.io/name": "podinfo",
+        "component.opmodel.dev/name": "podinfo",
+        "core.opmodel.dev/workload-type": "stateless",
+        "module-instance.opmodel.dev/name": "podinfo",
+        "pod-template-hash": "d9585d794"
+      },
+      "name": "podinfo-podinfo-d9585d794-4lg6h",
+      "namespace": "default",
+      "ownerReferences": [
+        {
+          "apiVersion": "apps/v1",
+          "blockOwnerDeletion": true,
+          "controller": true,
+          "kind": "ReplicaSet",
+          "name": "podinfo-podinfo-d9585d794",
+          "uid": "7efbd610-c621-4812-af6f-6bd32edc4dc0"
+        }
+      ],
+      "resourceVersion": "889",
+      "uid": "a92a6999-61a3-41bc-8505-db9dc5cc54a0"
+    },
+    "spec": {
+      "containers": [
+        {
+          "image": "ghcr.io/stefanprodan/podinfo:6.7.1",
+          "imagePullPolicy": "IfNotPresent",
+          "livenessProbe": {
+            "failureThreshold": 3,
+            "httpGet": {
+              "path": "/healthz",
+              "port": 9898,
+              "scheme": "HTTP"
+            },
+            "periodSeconds": 10,
+            "successThreshold": 1,
+            "timeoutSeconds": 1
+          },
+          "name": "podinfo",
+          "ports": [
+            {
+              "containerPort": 9898,
+              "name": "http",
+              "protocol": "TCP"
+            }
+          ],
+          "readinessProbe": {
+            "failureThreshold": 3,
+            "httpGet": {
+              "path": "/readyz",
+              "port": 9898,
+              "scheme": "HTTP"
+            },
+            "periodSeconds": 10,
+            "successThreshold": 1,
+            "timeoutSeconds": 1
+          },
+          "resources": {},
+          "terminationMessagePath": "/dev/termination-log",
+          "terminationMessagePolicy": "File",
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-zgzp2",
+              "readOnly": true
+            }
+          ]
+        }
+      ],
+      "dnsPolicy": "ClusterFirst",
+      "enableServiceLinks": true,
+      "nodeName": "opm-portal-e2e-fix-control-plane",
+      "preemptionPolicy": "PreemptLowerPriority",
+      "priority": 0,
+      "restartPolicy": "Always",
+      "schedulerName": "default-scheduler",
+      "securityContext": {},
+      "serviceAccount": "default",
+      "serviceAccountName": "default",
+      "terminationGracePeriodSeconds": 30,
+      "tolerations": [
+        {
+          "effect": "NoExecute",
+          "key": "node.kubernetes.io/not-ready",
+          "operator": "Exists",
+          "tolerationSeconds": 300
+        },
+        {
+          "effect": "NoExecute",
+          "key": "node.kubernetes.io/unreachable",
+          "operator": "Exists",
+          "tolerationSeconds": 300
+        }
+      ],
+      "volumes": [
+        {
+          "name": "kube-api-access-zgzp2",
+          "projected": {
+            "defaultMode": 420,
+            "sources": [
+              {
+                "serviceAccountToken": {
+                  "expirationSeconds": 3607,
+                  "path": "token"
+                }
+              },
+              {
+                "configMap": {
+                  "items": [
+                    {
+                      "key": "ca.crt",
+                      "path": "ca.crt"
+                    }
+                  ],
+                  "name": "kube-root-ca.crt"
+                }
+              },
+              {
+                "downwardAPI": {
+                  "items": [
+                    {
+                      "fieldRef": {
+                        "apiVersion": "v1",
+                        "fieldPath": "metadata.namespace"
+                      },
+                      "path": "namespace"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "status": {
+      "conditions": [
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-10-04T18:04:07Z",
+          "observedGeneration": 1,
+          "status": "True",
+          "type": "PodReadyToStartContainers"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-10-04T18:04:06Z",
+          "observedGeneration": 1,
+          "status": "True",
+          "type": "Initialized"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-10-04T18:04:17Z",
+          "observedGeneration": 1,
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-10-04T18:04:17Z",
+          "observedGeneration": 1,
+          "status": "True",
+          "type": "ContainersReady"
+        },
+        {
+          "lastProbeTime": null,
+          "lastTransitionTime": "2026-10-04T18:04:06Z",
+          "observedGeneration": 1,
+          "status": "True",
+          "type": "PodScheduled"
+        }
+      ],
+      "containerStatuses": [
+        {
+          "containerID": "containerd://bb105c7615a8b7ec4a3e99c30a9bd192939a80149d15fc788346346ec2db4dca",
+          "image": "ghcr.io/stefanprodan/podinfo:6.7.1",
+          "imageID": "ghcr.io/stefanprodan/podinfo@sha256:862ca45e61b32392f7941a1bdfdbe5ff8b6899070135f1bdca1c287d0057fc94",
+          "lastState": {},
+          "name": "podinfo",
+          "ready": true,
+          "resources": {},
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-04T18:04:16Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 101,
+              "supplementalGroups": [
+                101
+              ],
+              "uid": 100
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-zgzp2",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ],
+      "hostIP": "10.89.0.9",
+      "hostIPs": [
+        {
+          "ip": "10.89.0.9"
+        }
+      ],
+      "observedGeneration": 1,
+      "phase": "Running",
+      "podIP": "10.244.0.10",
+      "podIPs": [
+        {
+          "ip": "10.244.0.10"
+        }
+      ],
+      "qosClass": "BestEffort",
+      "resources": {},
+      "startTime": "2026-10-04T18:04:06Z"
+    }
+  }
+}

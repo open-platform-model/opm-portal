@@ -11,11 +11,6 @@ Where `kubectl get` shows one kind at a time, the portal joins the kinds OPM spr
 
 This page assumes you know what a ModuleInstance is and that you run the operator or the `opm` CLI. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
-> [!IMPORTANT]
-> **No web UI yet**
->
-> The web UI this page mentions is not built. The read API carries every value this page describes.
-
 ## How it works
 
 ### A read API, with the web UI as its first client
@@ -80,4 +75,4 @@ An object no OPM inventory reaches, such as a Deployment you applied with `kubec
 > [!NOTE]
 > **Direction**
 >
-> The web UI, and an in-cluster mode in which people sign in with OIDC and every read is checked for the signed-in user, are designed in [enhancement 0030](/enhancements/0030/), a draft. Neither is built.
+> An in-cluster mode, in which people sign in with OIDC and every read is checked for the signed-in user, is designed in [enhancement 0030](/enhancements/0030/), a draft. It is not built.

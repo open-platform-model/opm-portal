@@ -73,8 +73,8 @@ type Server struct {
 }
 
 // route is one resource: its pattern below Prefix, the wire type its 200
-// returns (nil for the stream), and how it is served. The OpenAPI contract
-// test reads this table.
+// returns (nil for the stream and the topic change), and how it is served.
+// The OpenAPI contract test reads this table.
 type route struct {
 	pattern string
 	doc     any
@@ -86,18 +86,26 @@ var routes = []route{
 	{"/clusters/{cluster}/instances/{namespace}/{name}", v1.Instance{}, (*Server).getInstance},
 	{"/clusters/{cluster}/instances/{namespace}/{name}/graph", v1.Graph{}, (*Server).instanceGraph},
 	{"/clusters/{cluster}/instances/{namespace}/{name}/events", v1.EventList{}, (*Server).instanceEvents},
+	{"/clusters/{cluster}/instances/{namespace}/{name}/object", v1.Object{}, (*Server).instanceObject},
 	{"/clusters/{cluster}/packages", v1.PackageList{}, (*Server).listPackages},
 	{"/clusters/{cluster}/packages/{namespace}/{name}", v1.Package{}, (*Server).getPackage},
 	{"/clusters/{cluster}/packages/{namespace}/{name}/graph", v1.Graph{}, (*Server).packageGraph},
 	{"/clusters/{cluster}/packages/{namespace}/{name}/events", v1.EventList{}, (*Server).packageEvents},
+	{"/clusters/{cluster}/packages/{namespace}/{name}/object", v1.Object{}, (*Server).packageObject},
 	{"/clusters/{cluster}/platform", v1.Platform{}, (*Server).getPlatform},
 	{"/clusters/{cluster}/platform/graph", v1.Graph{}, (*Server).platformGraph},
 	{"/clusters/{cluster}/platform/events", v1.EventList{}, (*Server).platformEvents},
 	{"/clusters/{cluster}/platform/registrations/{name}/events", v1.EventList{}, (*Server).registrationEvents},
 	{streamPattern, nil, nil},
+	{topicsPattern, nil, nil},
 }
 
-const streamPattern = "/clusters/{cluster}/stream"
+const (
+	streamPattern = "/clusters/{cluster}/stream"
+	// topicsPattern is the one resource that takes POST: it changes the
+	// topics of an open stream and reads nothing.
+	topicsPattern = "/clusters/{cluster}/stream/{stream}/topics"
+)
 
 // New returns a Server over cfg. Model, Authorizer and Authenticate are
 // required.
@@ -148,9 +156,20 @@ func New(cfg Config) (*Server, error) {
 		writeProblem(w, r, s.log, err)
 	}})
 
+	s.mount(streamHandler)
+	return s, nil
+}
+
+// mount registers every route of the table, and the not-found answer for
+// every other path.
+func (s *Server) mount(streamHandler http.Handler) {
 	for _, rt := range routes {
-		if rt.pattern == streamPattern {
+		switch rt.pattern {
+		case streamPattern:
 			s.mux.HandleFunc(Prefix+rt.pattern, s.guard(streamHandler.ServeHTTP))
+			continue
+		case topicsPattern:
+			s.mux.HandleFunc(Prefix+rt.pattern, s.guardMethod(http.MethodPost, s.changeTopics))
 			continue
 		}
 		s.mux.HandleFunc(Prefix+rt.pattern, s.guard(s.document(rt.serve)))
@@ -158,7 +177,6 @@ func New(cfg Config) (*Server, error) {
 	s.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		writeProblem(w, r, s.log, notFound(detailUnknownPath))
 	})
-	return s, nil
 }
 
 // ownKinds are the topic kinds the read API's own producer serves.
@@ -199,9 +217,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // guard refuses a method other than GET and a cluster the portal does not
 // serve, before any review.
 func (s *Server) guard(next http.HandlerFunc) http.HandlerFunc {
+	return s.guardMethod(http.MethodGet, next)
+}
+
+// guardMethod refuses a method other than method and a cluster the portal
+// does not serve, before any review.
+func (s *Server) guardMethod(method string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			writeProblem(w, r, s.log, &apiError{status: http.StatusMethodNotAllowed, code: v1.CodeMethodNotAllowed, detail: detailMethod})
+		if r.Method != method {
+			writeProblem(w, r, s.log, &apiError{status: http.StatusMethodNotAllowed, code: v1.CodeMethodNotAllowed, detail: detailMethod, allow: method})
 			return
 		}
 		if r.PathValue("cluster") != DefaultCluster {

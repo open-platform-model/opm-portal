@@ -45,7 +45,9 @@
       "reason": "ManagedExternally",
       "message": "ModuleInstance is managed externally by the CLI",
       "lastTransitionTime": "2026-10-04T18:04:31Z",
-      "observedGeneration": 1
+      "observedGeneration": 1,
+      "tone": "unknown",
+      "meaning": "The CLI applied this instance; the operator only records it."
     }
   ],
   "history": [],
@@ -110,7 +112,10 @@
                 "state": "Healthy",
                 "reason": "Current",
                 "message": "Pod is Ready"
-              }
+              },
+              "containers": [
+                "web"
+              ]
             },
             {
               "ref": {

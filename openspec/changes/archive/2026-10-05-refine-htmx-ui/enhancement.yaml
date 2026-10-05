@@ -1,0 +1,17 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time. Whole decisions only.
+#
+# This change fixes how add-htmx-ui shows decisions it already claimed:
+# 0030:D3 (applied and health on separate graph marks, the image break shown
+# on the open page), 0030:D4 (configuration components grouped on the
+# components list as on the graph) and 0030:D5 (an edge to a locked node in
+# the locked style, not as broken).
+#
+# It also claims 0030:D2: with conditions' tone, meaning and next step now
+# served by the read API, the UI keeps no reading logic of its own and
+# imports only api/v1alpha1 of this module (TestTheUIImportsOnlyTheWireTypes),
+# so D2:R1 holds whole.
+implements:
+  - enhancement: "0030"
+    decisions: [D2, D3, D4, D5]
+    resolves: []

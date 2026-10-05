@@ -1,0 +1,42 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time. Whole decisions only.
+#
+# Claimed:
+# - 0030:D2 (the UI is the API's first consumer): R2 landed with
+#   add-read-api. This change lands R1 (the UI reads only through the API,
+#   in-process, and imports only api/v1alpha1 of this module, enforced by
+#   TestTheUIImportsOnlyTheWireTypes) and R3 (unknown enums render as
+#   unknown, TestUnknownValuesReadUnknown). The meaning and next step the
+#   pages show come from the API's Condition, so no reading logic lives in
+#   the UI.
+# - 0030:D5 (local mode): R1 to R6 landed in add-local-mode, which deferred
+#   the claim to the UI for R7. Every object, row, node and list the identity
+#   may not read now renders locked from the API's per-item access, without
+#   being read (tests: TestGoldenLocked; screenshots of a Service and the
+#   instance list denied).
+# - 0030:D4 (graphs): R1, R2, R5 and R6 landed with add-graph-model; this
+#   change shows R3 (render contracts as labelled text, no contract edge), R4
+#   (accepted and active as separate pills, refusal reason and message) and
+#   R7 (removal blocked shown as its own state, still accepted and active).
+# - 0030:D3 (two axes): R2, R4, R7 and R8 landed with add-health-evaluation,
+#   R9 with add-read-model. This change shows R1 (two badges of different
+#   shapes, Ready=True as Applied), R5 (not live, with the read and
+#   evaluation times), R6 (ManagedExternally neutral) and R8 (unfulfilled
+#   contracts as information), and measured R3 on the live UI: the open page
+#   showed Degraded 0.9 to 1.0 s after the new Pod reported ErrImagePull,
+#   still Applied (design.md, "Evidence").
+#
+# Whole after this change but not claimed here, because the task scoped the
+# claims to D2, D3, D4 and D5 (raised with the supervisor):
+# - 0030:D7: R4 for YAML views (the object resource refuses an object no
+#   inventory reaches with the forbidden problem) was the remaining part.
+# - 0030:D8: R4 (the README states that values rendered into non-Secret
+#   objects are visible) was the remaining part.
+# - 0030:D9: R2 (the feed is labelled as expiring) and R5 (render warnings
+#   kept only as events) were the remaining parts.
+#
+# Before logging, diff this list against proposal.md's Impact section.
+implements:
+  - enhancement: "0030"
+    decisions: [D2, D3, D4, D5]
+    resolves: []

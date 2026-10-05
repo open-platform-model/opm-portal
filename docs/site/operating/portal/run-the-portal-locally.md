@@ -7,11 +7,6 @@ weight: 20
 
 Run the portal locally to see what a cluster runs under OPM with your own access, without installing anything in the cluster. The portal reads as the identity your kubeconfig authenticates as, so it shows what your RBAC lets you read and nothing more.
 
-> [!IMPORTANT]
-> **No web UI yet**
->
-> The portal's web UI is not built. The browser shows the read API's JSON.
-
 ## Before you begin
 
 - A kubeconfig for a cluster that runs OPM: the operator, or instances applied with the `opm` CLI.
@@ -50,7 +45,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
    `--open` opens that link in your default browser. Without `--open`, copy the link into a browser on the same machine. To pick the port or another loopback address, pass `--addr`, such as `--addr 127.0.0.1:8080`. The portal refuses to start on an address that is not loopback.
 
-   The link answers with a short page that gives the browser a session cookie and moves it on to the read API. The token works only once: the browser that opened it may open it again while its session lasts, and any other browser is refused. To open the portal in another browser, stop the portal and start it again.
+   The link gives the browser a session cookie and answers with the Platform page. The token works only once: the browser that opened it may open it again while its session lasts, and any other browser is refused. To open the portal in another browser, stop the portal and start it again.
 
 1. If the portal warns at startup that your kubeconfig's user may not list and watch a kind cluster-wide, your access is limited to some namespaces. The warning's message reads:
 
@@ -70,22 +65,18 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 ## Check that it worked
 
-After the launch, the browser lands on the instance list of the read API:
+After the launch, the browser shows the Platform page at `http://127.0.0.1:<port>/`: the catalogs the Platform subscribes to, the transformer registrations, and the platform graph. A **live** mark in the page header says the page follows changes.
 
-```text
-http://127.0.0.1:<port>/api/v1alpha1/clusters/default/instances
-```
-
-The response is a JSON `InstanceList`. Its `access` field is `ok` when your identity may list ModuleInstances, and each item shows an instance's applied state and health. An `access` of `forbidden` with no items means your identity may not list ModuleInstances in that scope: check your access with:
+Open **Instances**. Each instance shows two values: **Applied**, what the operator applied, and **Health**, what is running. In a graph the node's outline and left rail show its health, and the small square in its corner shows its applied state. A locked list means your identity may not list ModuleInstances in that scope: check your access with:
 
 ```sh
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-namespaces
 ```
 
-If you started the portal with `--namespaces`, the cluster-wide list stays `forbidden` even when the portal works. Open the list for one of your namespaces instead:
+If you started the portal with `--namespaces`, the list of every namespace stays locked even when the portal works. Filter the list by one of your namespaces instead, which opens:
 
 ```text
-http://127.0.0.1:<port>/api/v1alpha1/clusters/default/instances?namespace=team-a
+http://127.0.0.1:<port>/instances?namespace=team-a
 ```
 
 Check your access in that namespace with:
@@ -94,7 +85,7 @@ Check your access in that namespace with:
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev -n team-a
 ```
 
-A request from a browser that never opened the launch link is refused with the problem code `unauthenticated`.
+A browser that never opened the launch link sees a page saying it is not signed in.
 
 ## Related
 

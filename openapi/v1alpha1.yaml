@@ -4,7 +4,9 @@ info:
   version: v1alpha1
   description: |
     The read API of the OPM Portal: what an OPM cluster runs, from the Platform down to Pods,
-    as JSON documents and a server-sent-events change stream. Read-only; every method is GET.
+    as JSON documents and a server-sent-events change stream. Read-only: every resource is GET,
+    except the request that changes an open stream's topics, which reads and writes nothing in
+    the cluster.
 
     Every request is authorized for the caller before anything is looked up. A caller who may
     not make a read receives the same forbidden problem whether or not the object exists. A
@@ -105,6 +107,35 @@ paths:
                 $ref: '#/components/schemas/EventList'
         default:
           $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/instances/{namespace}/{name}/object:
+    get:
+      operationId: getInstanceObject
+      summary: One object a instance's inventory reaches, for a YAML view
+      description: |
+        The object named by the query parameters, which must be in the instance's inventory or a
+        ReplicaSet, Pod or Job below an inventory object, as the cluster serves it, without
+        metadata.managedFields, the kubectl.kubernetes.io/last-applied-configuration annotation
+        or, on a ModuleInstance or ModulePackage, spec.values. Authorized like the events of one
+        object: get on the instance, then get on the object. Any object no inventory reaches, a
+        kind the cluster does not serve, and every core Secret are refused with the forbidden
+        problem.
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/objectGroup'
+        - $ref: '#/components/parameters/objectKind'
+        - $ref: '#/components/parameters/objectNamespace'
+        - $ref: '#/components/parameters/objectName'
+      responses:
+        '200':
+          description: The object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Object'
+        default:
+          $ref: '#/components/responses/Problem'
   /clusters/{cluster}/packages:
     get:
       operationId: listPackages
@@ -176,6 +207,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventList'
+        default:
+          $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/packages/{namespace}/{name}/object:
+    get:
+      operationId: getPackageObject
+      summary: One object a package's inventory reaches, for a YAML view
+      description: |
+        The object named by the query parameters, which must be in the package's inventory or a
+        ReplicaSet, Pod or Job below an inventory object, as the cluster serves it, without
+        metadata.managedFields, the kubectl.kubernetes.io/last-applied-configuration annotation
+        or, on a ModuleInstance or ModulePackage, spec.values. Authorized like the events of one
+        object: get on the package, then get on the object. Any object no inventory reaches, a
+        kind the cluster does not serve, and every core Secret are refused with the forbidden
+        problem.
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/objectGroup'
+        - $ref: '#/components/parameters/objectKind'
+        - $ref: '#/components/parameters/objectNamespace'
+        - $ref: '#/components/parameters/objectName'
+      responses:
+        '200':
+          description: The object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Object'
         default:
           $ref: '#/components/responses/Problem'
   /clusters/{cluster}/platform:
@@ -277,8 +337,39 @@ paths:
                 type: string
         default:
           $ref: '#/components/responses/Problem'
+  /clusters/{cluster}/stream/{stream}/topics:
+    post:
+      operationId: changeStreamTopics
+      summary: Add topics to an open stream and remove topics from it
+      description: |
+        Changes the topics of a stream this session opened; the stream id is the one its open
+        event carries. Added topics are authorized as at open, and a topic the caller may not
+        follow is closed on the stream with a closed event. Removed topics the stream does not
+        carry are ignored. The body must be application/json. Reads and creates nothing in the
+        cluster. A cross-origin request is refused before it reaches the read API.
+      parameters:
+        - $ref: '#/components/parameters/cluster'
+        - $ref: '#/components/parameters/stream'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TopicChange'
+      responses:
+        '204':
+          description: The topics were changed.
+        default:
+          $ref: '#/components/responses/Problem'
 components:
   parameters:
+    stream:
+      name: stream
+      in: path
+      required: true
+      description: The id of an open stream of this session, as its open event carries it.
+      schema:
+        type: string
     cluster:
       name: cluster
       in: path
@@ -329,28 +420,28 @@ components:
       name: group
       in: query
       required: false
-      description: The API group of the object whose events to read; empty for the core group.
+      description: The API group of the object the request names; empty for the core group.
       schema:
         type: string
     objectKind:
       name: kind
       in: query
       required: false
-      description: The kind of the object whose events to read. Names an object together with name.
+      description: The kind of the object the request names. Names an object together with name.
       schema:
         type: string
     objectNamespace:
       name: namespace
       in: query
       required: false
-      description: The namespace of the object whose events to read; empty for a cluster-scoped object.
+      description: The namespace of the object the request names; empty for a cluster-scoped object.
       schema:
         type: string
     objectName:
       name: name
       in: query
       required: false
-      description: The name of the object whose events to read.
+      description: The name of the object the request names.
       schema:
         type: string
   responses:
@@ -389,7 +480,7 @@ components:
           type: string
     Condition:
       type: object
-      required: [type, status]
+      required: [type, status, tone]
       properties:
         type:
           type: string
@@ -405,6 +496,19 @@ components:
           format: date-time
         observedGeneration:
           type: integer
+        tone:
+          description: >-
+            How the condition reads for its type, which its status alone does not say:
+            Stalled=True is abnormal, Reconciling=True progressing, ContractsFulfilled=False
+            informational. unknown for an Unknown status or a type the portal does not know.
+          type: string
+          x-extensible-enum: [normal, abnormal, progressing, informational, unknown]
+        meaning:
+          description: "What the reason means, in the portal's words; absent for a reason the portal does not know."
+          type: string
+        nextStep:
+          description: "What a person can do about the reason, when they can act on it."
+          type: string
     Reconcile:
       type: object
       required: [state]
@@ -557,6 +661,11 @@ components:
           $ref: '#/components/schemas/ObjectHealth'
         replicas:
           type: integer
+        containers:
+          type: array
+          description: A Pod's init containers, then its containers, by name; the names its log topics take.
+          items:
+            type: string
     InstanceSummary:
       type: object
       required: [ref, module, owner, reconcile, health, inventoryCount]
@@ -1124,6 +1233,34 @@ components:
           type: string
         ref:
           $ref: '#/components/schemas/ObjectRef'
+    Object:
+      type: object
+      description: One object an inventory reaches, stripped of managed fields, the last-applied annotation and spec.values.
+      required: [apiVersion, kind, ref, object]
+      properties:
+        apiVersion:
+          type: string
+          description: Always portal.opmodel.dev/v1alpha1.
+        kind:
+          type: string
+        ref:
+          $ref: '#/components/schemas/ObjectRef'
+        object:
+          type: object
+          description: The object as the cluster serves it, less what is never served.
+          additionalProperties: true
+    TopicChange:
+      type: object
+      description: Topics to add to an open stream and topics to remove from it.
+      properties:
+        add:
+          type: array
+          items:
+            type: string
+        remove:
+          type: array
+          items:
+            type: string
     Problem:
       type: object
       description: "An RFC 9457 problem document."

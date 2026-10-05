@@ -29,14 +29,19 @@ func objectRef(r readmodel.ObjectRef) v1.ObjectRef {
 }
 
 func condition(c health.Condition) v1.Condition {
-	return v1.Condition{
+	out := v1.Condition{
 		Type:               c.Type,
 		Status:             string(c.Status),
 		Reason:             c.Reason,
 		Message:            c.Message,
 		LastTransitionTime: timePtr(c.LastTransitionTime),
 		ObservedGeneration: c.ObservedGeneration,
+		Tone:               string(health.ConditionTone(c)),
 	}
+	if e, ok := health.Explain(c.Reason); ok {
+		out.Meaning, out.NextStep = e.Meaning, e.NextStep
+	}
+	return out
 }
 
 func conditions(cs []health.Condition) []v1.Condition {
@@ -134,10 +139,11 @@ func inventoryObject(o *readmodel.InventoryObject) v1.InventoryObject {
 	for i := range o.Children {
 		c := &o.Children[i]
 		out.Children = append(out.Children, v1.RuntimeChild{
-			Ref:      objectRef(c.Ref),
-			Owner:    objectRef(c.Owner),
-			Health:   objectHealth(c.Health),
-			Replicas: c.Replicas,
+			Ref:        objectRef(c.Ref),
+			Owner:      objectRef(c.Owner),
+			Health:     objectHealth(c.Health),
+			Replicas:   c.Replicas,
+			Containers: c.Containers,
 		})
 	}
 	return out

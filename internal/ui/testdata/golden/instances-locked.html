@@ -1,0 +1,16 @@
+<main id="main" tabindex="-1" data-topics="instances" data-canonical="/instances">
+<header class="page-head reveal">
+  <p class="kicker">Module instances</p>
+  <h1>Instances</h1>
+  <p class="lede">Each instance shows two separate values: <strong>Applied</strong>, what the operator applied, and <strong>Health</strong>, what the portal sees running. One never stands for the other.</p>
+</header>
+<form class="filter" method="get" action="/instances" role="search">
+  <label for="namespace">Namespace</label>
+  <input id="namespace" name="namespace" value="" list="namespaces" placeholder="all namespaces" autocomplete="off" spellcheck="false">
+  <datalist id="namespaces"></datalist>
+  <button type="submit">Filter</button>
+</form>
+<section class="panel panel-wide reveal" id="list" aria-label="Instances" data-follow="instances">
+<div class="locked-panel"><svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><p>Locked: you may not list instances in every namespace. Filter by a namespace you may read.</p></div>
+</section>
+</main>
