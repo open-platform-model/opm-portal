@@ -73,12 +73,17 @@
 //     item's own, and the single writer of topic data asks again for any
 //     that expired during a slow snapshot, render or review, then checks
 //     them all with Grant.Covers in memory, repeating until a pass needs no
-//     review (at most three rounds of reviews, or the topic closes with
-//     upstream_unavailable). Every message is written right after an
-//     in-memory pass confirms that every decision it used is unexpired;
-//     decisions are cached for at most 30 s, so revocation reaches the
-//     stream within that TTL. An item that is now forbidden is left out (a
-//     snapshot is written without it, an item event not at all); a topic
+//     review. Re-validating one message takes at most
+//     Options.RevalidateTimeout, one decision lifetime by default: no
+//     review starts after it, one running at it is canceled, and the topic
+//     closes with upstream_unavailable. Every message is written right after
+//     an in-memory pass confirms that every decision it used is unexpired.
+//     A decision lives one TTL (30 s by default) from when its review
+//     answers, so a revocation reaches the stream within the TTL plus one
+//     review: about 35 s with the default 5 s review timeout, and on a
+//     quiet topic one heartbeat later. An item that is now forbidden is
+//     left out (a snapshot is written without it, an item event not at
+//     all); a topic
 //     denial or any other error closes the topic, so a snapshot never
 //     arrives cut short by the topic's own grants.
 //   - An authorization error is never a delivery: it closes the topic with

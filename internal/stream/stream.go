@@ -278,33 +278,42 @@ func (s *Stream) send(ctx context.Context, wr *writer, m *message) error {
 	return wr.event("", id, m.event, body)
 }
 
-// revalidateRounds caps the rounds of reviews revalidate sends for one
-// message. A message whose grants keep expiring while others are asked
-// again does not settle, and its topic is closed instead of written.
-const revalidateRounds = 3
-
 // revalidate makes sure every grant m was built under covers its read, and
 // returns "" only right after a pass that confirms it in memory: the pass
 // (covered) makes no review call, and send does no I/O between it and the
 // write. Any other pass asks again for every grant that has expired, the
 // topic's first (gateTopic), then each part's own, and loops, since a slow
-// review can outlast a grant that covered when it was looked at. After
-// revalidateRounds rounds of reviews without a clean pass the topic is
-// closed with upstream_unavailable.
+// review can outlast a grant that covered when it was looked at.
+//
+// Re-validation is bounded by time, not by rounds: it runs for at most
+// Options.RevalidateTimeout (one decision lifetime by default), so however
+// many parts a message carries it cannot keep the stream silent for longer.
+// No review starts after the deadline, a review still running at it is
+// canceled, and a message not confirmed by then closes its topic with
+// upstream_unavailable. A fresh grant covers the read it was asked for, so
+// a pass that does not confirm either makes progress or meets the deadline.
 //
 // The guarantee is: every message is written right after an in-memory pass
-// confirms that every decision it used is unexpired; decisions are cached
-// for at most 30 s, so revocation reaches the stream within that TTL. The
-// moment between that pass and the write is inherent to check-then-write.
+// confirms that every decision it used is unexpired. A decision lives one
+// TTL (30 s by default) from when its review answers, so a revocation
+// reaches the stream within the TTL plus one review: about 35 s with the
+// default 5 s review timeout. The moment between that pass and the write
+// is inherent to check-then-write.
 //
 // A topic denial or error returns its closing code. A part reviewed on its
 // own that is now forbidden is dropped from m, so a snapshot is written
 // without it and an item event not at all, without a trace (0030:D7:R2); any
 // other code for it closes the topic. It returns a closing code, or "".
 func (s *Stream) revalidate(ctx context.Context, m *message) string {
-	for range revalidateRounds {
+	ctx, cancel := context.WithTimeout(ctx, s.b.opts.RevalidateTimeout)
+	defer cancel()
+	for {
 		if s.covered(m) {
 			return ""
+		}
+		if ctx.Err() != nil {
+			s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
+			return CodeUpstreamUnavailable
 		}
 		if code := s.gateTopic(ctx, m.sub); code != "" {
 			return code
@@ -313,11 +322,6 @@ func (s *Stream) revalidate(ctx context.Context, m *message) string {
 			return code
 		}
 	}
-	if s.covered(m) {
-		return ""
-	}
-	s.b.log.Warn("grants kept expiring while a message was re-validated", "topic", m.sub.topic.String())
-	return CodeUpstreamUnavailable
 }
 
 // covered reports whether every topic grant of m's subscription and every
@@ -349,6 +353,10 @@ func (s *Stream) recheckParts(ctx context.Context, m *message) string {
 	for i := range m.parts {
 		p := &m.parts[i]
 		if p.own && p.grant.Covers(who, p.attrs) != nil {
+			if ctx.Err() != nil {
+				// No review starts after the deadline or the connection's end.
+				return CodeUpstreamUnavailable
+			}
 			g, err := b.az.Check(ctx, who, p.attrs)
 			if err != nil {
 				if code := closeCode(err); code != CodeForbidden {
@@ -374,6 +382,10 @@ func (s *Stream) gateTopic(ctx context.Context, sub *subscription) string {
 		b.mu.Unlock()
 		if g.Covers(who, req) == nil {
 			continue
+		}
+		if ctx.Err() != nil {
+			// No review starts after the deadline or the connection's end.
+			return CodeUpstreamUnavailable
 		}
 		g, err := b.az.Check(ctx, who, req)
 		if err != nil {

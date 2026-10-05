@@ -6,11 +6,11 @@
 
 ## 2. Bound re-validation by time and pin the write guard (internal/stream, internal/authz)
 
-- [ ] 2.1 `internal/stream`: `Options.RevalidateTimeout` (default 30 s); `revalidate` runs under that deadline, `gateTopic` and `recheckParts` start no review after it; drop `revalidateRounds`
-- [ ] 2.2 `TestAMessageWhoseGrantsNeverSettleClosesTheTopic` asserts exactly 17 reviews
-- [ ] 2.3 `TestOnlySendWritesTopicData` pins every argument of each control event write and the bodies they carry
-- [ ] 2.4 Docs: the revocation bound as one decision lifetime plus one review (about 35 s) in `internal/authz` (`Check`, package doc) and `internal/stream` (package doc, `revalidate`)
-- [ ] 2.5 `task check` green, then commit `fix(stream): bound revalidation by one decision lifetime`
+- [x] 2.1 `internal/stream`: `Options.RevalidateTimeout` (default 30 s); `revalidate` runs under that deadline, `gateTopic` and `recheckParts` start no review after it; drop `revalidateRounds`
+- [x] 2.2 `TestAMessageWhoseGrantsNeverSettleClosesTheTopic` asserts exactly 17 reviews
+- [x] 2.3 `TestOnlySendWritesTopicData` pins every argument of each control event write and the bodies they carry
+- [x] 2.4 Docs: the revocation bound as one decision lifetime plus one review (about 35 s) in `internal/authz` (`Check`, package doc) and `internal/stream` (package doc, `revalidate`)
+- [x] 2.5 `task check` green, then commit `fix(stream): bound revalidation by one decision lifetime`
 
 ## 3. End a stream at session expiry (internal/stream, internal/auth, internal/api, internal/ui, cmd/opm-portal)
 

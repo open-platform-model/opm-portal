@@ -333,8 +333,8 @@ func TestGrantIsBoundToItsIdentity(t *testing.T) {
 }
 
 // TestGrantExpiresWithItsDecision: a held grant (a stream, a long request)
-// stops covering reads when the decision behind it expires, so a revocation
-// reaches it within one TTL.
+// stops covering reads when the decision behind it expires, one TTL after
+// its review answered.
 func TestGrantExpiresWithItsDecision(t *testing.T) {
 	c, clk := checkerWithClock(&fakeDecider{allowed: true}, Options{TTL: 10 * time.Second})
 	req := getDeployment("team-a", "web")
