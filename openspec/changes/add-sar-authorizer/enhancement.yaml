@@ -1,0 +1,17 @@
+# Declares which enhancement decisions this change implements. Consumed by
+# `task enhancements:delivery:log` at archive time.
+#
+# - 0030:D6 (in-cluster: authorize as the signed-in user) is not claimed. This
+#   change lands the authorizer side: R1 (a SubjectAccessReview for the user's
+#   identity before every read), R2 and R4 for the in-cluster backend, R7 (the
+#   per-user access log) and R9 (subjectaccessreviews is the only create), and
+#   refuses a system: username or group that reaches it (R3's last line of
+#   defence). OIDC sign-in, bearer tokens, identity mapping and the prefix
+#   rules (R3, R5, R6, R8) land with the in-cluster wiring. A delivery log
+#   entry claims whole decisions only.
+#
+# Before logging, diff this list against proposal.md's Impact section.
+implements:
+  - enhancement: "0030"
+    decisions: []
+    resolves: []
