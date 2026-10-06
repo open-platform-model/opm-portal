@@ -97,8 +97,8 @@ requirement is restated to match.
 
 ## Risks / Trade-offs
 
-- [Captured data keeps old names until the recapture] -> listed in the cutover notes with the
-  exact commands; the residue is confined to captured files and goldens derived from them.
+- [Captured data keeps old names until the recapture] -> the ROADMAP's first V1 step
+  recaptures F1 on the released controller and cli before 0.1.0; the residue is confined to captured files and goldens derived from them.
 - [The e2e scripts call `opm controller` while the pinned cli is still the old release] -> the e2e
   workflow runs on a schedule, never on pull requests; the cli pin moves at cutover before the
   recapture.

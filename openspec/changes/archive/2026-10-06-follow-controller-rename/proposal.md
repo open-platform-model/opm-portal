@@ -4,7 +4,8 @@ The OPM Kubernetes controller is renamed: repository, image, namespace `opm-cont
 Deployment `opm-controller-manager`, CLI noun `opm controller`, test fixtures under
 `testing.opmodel.dev/*/controller/*`. Its custom resources change two fields hard, with no alias:
 `spec.owner` takes `cli` or `controller`, and the Platform reports `status.controllerVersion`. The
-owner decided the rename leaves no migration path, no aliases and no traces. The portal reads
+owner decided the rename leaves no migration path, no aliases and no traces (enhancement 0032,
+"The operator becomes the controller"). The portal reads
 those fields, names the product on every page and in its read API, and installs it in its e2e
 cluster, so it must follow before its first release (0.1.0, held until this merges).
 
