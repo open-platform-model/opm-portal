@@ -7,7 +7,7 @@ vars:
   BINARY_NAME: opm-portal
   BUILD_DIR: bin
   # Kept in lockstep with the openspec install in .github/workflows/lint.yml.
-  OPENSPEC_VERSION: 1.14.1
+  OPENSPEC_VERSION: 1.12.0
   # Kept in lockstep with the oasdiff install in .github/workflows/lint.yml.
   OASDIFF_VERSION: v1.33.0
 
