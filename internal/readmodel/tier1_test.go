@@ -56,13 +56,14 @@ func TestPlatformViewControllerVersion(t *testing.T) {
 	}
 }
 
-// TestOwnerOf: cli is the CLI's; controller and an absent owner are the
-// controller's.
+// TestOwnerOf: cli is the CLI's; every other value, controller and an absent
+// owner included, is the controller's. A value the CRD of another release
+// allows therefore reads as controller-owned and is not shown as written.
 func TestOwnerOf(t *testing.T) {
 	for _, tc := range []struct {
 		owner string
 		want  Owner
-	}{{"cli", OwnerCLI}, {"controller", OwnerController}, {"", OwnerController}} {
+	}{{"cli", OwnerCLI}, {"controller", OwnerController}, {"", OwnerController}, {"another-value", OwnerController}} {
 		u := &unstructured.Unstructured{Object: map[string]any{"spec": map[string]any{}}}
 		if tc.owner != "" {
 			u.Object["spec"].(map[string]any)["owner"] = tc.owner
