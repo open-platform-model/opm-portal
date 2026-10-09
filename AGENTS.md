@@ -318,7 +318,7 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 ## Go Version And Tooling
 
 - Go: the `go` directive in `go.mod`; CI reads it through `go-version-file`.
-- `golangci-lint` v2 (CI pins v2.11.3) with the `gofmt` and `goimports` formatters.
+- `golangci-lint` v2 (CI pins v2.11.4) with the `gofmt` and `goimports` formatters.
 - Standard library first: `net/http` routing, `html/template`, `log/slog`. A dependency earns its
   place in the change that adds it.
 
