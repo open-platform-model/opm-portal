@@ -1,6 +1,6 @@
 ## Why
 
-The OPM Kubernetes controller is renamed: repository, image, namespace `opm-controller-system`,
+The OPM Kubernetes controller is renamed: repository, image, namespace `opm-system`,
 Deployment `opm-controller-manager`, CLI noun `opm controller`, test fixtures under
 `testing.opmodel.dev/*/controller/*`. Its custom resources change two fields hard, with no alias:
 `spec.owner` takes `cli` or `controller`, and the Platform reports `status.controllerVersion`. The

@@ -91,7 +91,7 @@ write events
 
 log "writing meta.yaml"
 k version -o json >"$TMP/version.json"
-k get deployment -n opm-controller-system opm-controller-manager -o json >"$TMP/controller.json"
+k get deployment -n opm-system opm-controller-manager -o json >"$TMP/controller.json"
 jq -n \
   --arg capturedAt "$(date -u +%FT%TZ)" \
   --arg cluster "$CLUSTER" \

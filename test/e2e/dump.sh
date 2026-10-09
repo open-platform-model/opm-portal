@@ -38,6 +38,6 @@ log "dumping $CLUSTER into $out"
 save opm.yaml opm_yaml
 save pods.txt k get pods -A -o wide
 save events.txt k get events -A --sort-by=.lastTimestamp
-save controller.log k logs -n opm-controller-system deployment/opm-controller-manager --tail=2000
+save controller.log k logs -n opm-system deployment/opm-controller-manager --tail=2000
 save portal.log portal_log
 log "dumped into $out"
