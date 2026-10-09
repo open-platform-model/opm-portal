@@ -15,7 +15,7 @@ import (
 
 // controllerConditionReasons is a copy of the reasons opm-controller writes into
 // conditions, from internal/status/conditions.go (constants ending in Reason)
-// at opm-controller main 8d34b6b. The controller keeps them in an internal
+// at opm-controller main 7ed45c3. The controller keeps them in an internal
 // package, so they cannot be imported. Update this list with the table.
 var controllerConditionReasons = []string{
 	"Suspended", "ResolutionFailed", "RenderFailed", "SkewRefused", "DuplicateIdentities",
@@ -29,6 +29,8 @@ var controllerConditionReasons = []string{
 	"Accepted", "CatalogUnresolved", "CatalogWrongKind", "ProvidesMismatch", "ProviderMismatch",
 	"ProviderInventoryPending", "BuildIncompatible", "ProviderReady", "ProviderNotReady",
 	"ContractSubscribed", "ContractClaimed", "DuplicateClaim", "DependentsRemain",
+	"ClaimConflict", "ReconcilePanic", "RenderTimedOut", "DriftCheckForbidden",
+	"RolledOut", "NotRolledOut", "ProgressDeadlineExceeded", "HealthUnknown",
 }
 
 // controllerLiteralReasons are condition reasons the controller writes as string
@@ -39,8 +41,10 @@ var controllerLiteralReasons = []string{"Progressing", "ModuleResolved"}
 // controllerEventOnlyReasons are reason constants the controller only uses on
 // events, never on a condition; they need no row.
 // OrphanedOnDeletion is declared among the condition reasons but is only
-// emitted as an event when a deletion orphans its objects.
-var controllerEventOnlyReasons = []string{"Applied", "Pruned", "Resumed", "NoOp", "RenderWarning", "OrphanedOnDeletion"}
+// emitted as an event when a deletion orphans its objects. ClaimsKept is the
+// event of a prune or a deletion cleanup that left PersistentVolumeClaims in
+// the cluster because spec.dataPolicy is not Delete.
+var controllerEventOnlyReasons = []string{"Applied", "Pruned", "Resumed", "NoOp", "RenderWarning", "OrphanedOnDeletion", "ClaimsKept"}
 
 func TestExplain_EveryControllerReasonHasARow(t *testing.T) {
 	want := map[string]bool{}

@@ -76,6 +76,22 @@ var reasonExplanations = map[string]Explanation{
 		Meaning:  "This instance deploys the controller itself, which the controller never manages.",
 		NextStep: "Set spec.owner to cli.",
 	},
+	"ClaimConflict": {
+		Meaning:  "The API server refused the update of a PersistentVolumeClaim, and the controller does not delete and recreate a claim unless spec.dataPolicy is Delete. Nothing was applied; the controller retries.",
+		NextStep: "Resolve the conflict on the claim the message names; the controller retries.",
+	},
+	"ReconcilePanic": {
+		Meaning:  "The controller hit an internal error while it reconciled this object, and recorded the attempt as failed.",
+		NextStep: "Read the controller log for the panic and report it; the controller retries.",
+	},
+	"RenderTimedOut": {
+		Meaning:  "The render did not finish within the controller's render timeout, or an earlier render that did not finish is still running. The controller retries.",
+		NextStep: "If it keeps happening, check the module for an expensive or unbounded definition, or raise the controller's render timeout.",
+	},
+	"DriftCheckForbidden": {
+		Meaning:  "The API server refused the dry run that detects drift for the identity that applies this instance, so whether an object drifted is not known.",
+		NextStep: "Grant the applying ServiceAccount the permissions the message names.",
+	},
 	"PlatformNotReady": {
 		Meaning:  "The Platform is not ready, so nothing can be rendered against it yet.",
 		NextStep: "Look at the Platform's status.",
@@ -83,6 +99,22 @@ var reasonExplanations = map[string]Explanation{
 	"DependentsRemain": {
 		Meaning:  "Removing this provider, or a contract it provides, is refused while instances still demand it.",
 		NextStep: "Remove the dependent instances the message names first.",
+	},
+
+	// Health of the applied objects, as the controller judges it.
+	"RolledOut": {
+		Meaning: "Every object of the inventory was read after the apply and judged healthy.",
+	},
+	"NotRolledOut": {
+		Meaning:  "An object of the inventory is not healthy yet, or does not exist.",
+		NextStep: "Open the objects that are not ready and read their conditions and events.",
+	},
+	"ProgressDeadlineExceeded": {
+		Meaning:  "A Deployment reports that its rollout stalled past its progress deadline.",
+		NextStep: "Open the Deployment's Pods and read their events and logs.",
+	},
+	"HealthUnknown": {
+		Meaning: "The controller could not judge the health: an object could not be read, or the inventory is empty.",
 	},
 
 	// ModulePackage.
