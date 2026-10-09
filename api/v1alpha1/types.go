@@ -189,7 +189,8 @@ type InstanceSummary struct {
 	UID    string    `json:"uid,omitempty"`
 	Module Module    `json:"module"`
 	// Owner is controller or cli; a cli instance's reconcile state is
-	// ManagedExternally.
+	// ManagedExternally. A spec.owner value the portal does not know is
+	// served as written.
 	Owner          string     `json:"owner"`
 	Reconcile      Reconcile  `json:"reconcile"`
 	Health         Health     `json:"health"`

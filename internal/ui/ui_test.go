@@ -584,3 +584,44 @@ func TestPlatformNamesTheControllerVersion(t *testing.T) {
 		t.Errorf("the platform page does not name the controller version:\n%s", main)
 	}
 }
+
+// TestUnknownOwnerIsShownAsWritten: a spec.owner the portal does not know,
+// here the value the CRD of an earlier release allowed, reaches the API
+// document as written and the pages mark it unknown. It never reads as the
+// controller.
+func TestUnknownOwnerIsShownAsWritten(t *testing.T) {
+	const old = "operator"
+	objs := apitest.F1(t)
+	found := false
+	for _, o := range objs {
+		if o.GetKind() == "ModuleInstance" && o.GetNamespace() == "default" && o.GetName() == "podinfo" {
+			if err := unstructured.SetNestedField(o.Object, old, "spec", "owner"); err != nil {
+				t.Fatal(err)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("F1 holds no ModuleInstance default/podinfo")
+	}
+	s := newSite(t, objs, apitest.AllowAll)
+	res := s.get(t, defaultAPIBase+"/instances/default/podinfo")
+	var doc v1.Instance
+	if err := json.Unmarshal([]byte(res.body), &doc); res.status != http.StatusOK || err != nil {
+		t.Fatalf("instance document: status %d, %v", res.status, err)
+	}
+	if doc.Owner != old {
+		t.Errorf("instance document owner = %q, want %q as written", doc.Owner, old)
+	}
+	marked := `<span class="mono">` + old + `</span> <span class="muted">(unknown)</span>`
+	if main := mainOf(s.get(t, "/installed?namespace=default").body); !strings.Contains(main, `<td data-label="Owner">`+marked+`</td>`) {
+		t.Errorf("the Installed list does not mark the owner unknown:\n%s", main)
+	}
+	main := mainOf(s.get(t, "/instances/default/podinfo").body)
+	if !strings.Contains(main, `<dt>Applied by</dt><dd>`+marked+`</dd>`) {
+		t.Errorf("the instance page does not mark the owner unknown:\n%s", main)
+	}
+	if strings.Contains(main, `<dt>Applied by</dt><dd>the controller</dd>`) {
+		t.Error("the instance page reads an unknown owner as the controller")
+	}
+}

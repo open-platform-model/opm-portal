@@ -10,7 +10,7 @@
   {{with .RefText}}<dt>Object</dt><dd class="mono">{{template "breakable" .}}</dd>{{end}}
   {{with .Health}}{{with .Reason}}<dt>Health reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Health</dt><dd>{{.}}</dd>{{end}}{{if .Partial}}<dt>Partial</dt><dd>Some objects could not be read and were left out.</dd>{{end}}{{if .NotLive}}<dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>{{end}}{{end}}
   {{with .Reconcile}}{{with .Reason}}<dt>Applied reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Controller says</dt><dd>{{.}}</dd>{{end}}{{end}}
-  {{with .Owner}}<dt>Applied by</dt><dd>{{if eq . "cli"}}the opm CLI{{else}}the controller{{end}}</dd>{{end}}
+  {{with .Owner}}<dt>Applied by</dt><dd>{{template "applied-by" .}}</dd>{{end}}
   {{with .Version}}<dt>Version</dt><dd class="ver">{{.}}</dd>{{end}}
   {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
   {{with .Replicas}}<dt>Desired replicas</dt><dd>{{.}}</dd>{{end}}

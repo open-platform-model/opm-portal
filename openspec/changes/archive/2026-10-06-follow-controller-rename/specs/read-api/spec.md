@@ -3,8 +3,9 @@
 ### Requirement: Owner and version fields use the controller's names
 
 An instance summary's `owner` SHALL be `cli` when the instance's `spec.owner` is `cli`, and
-`controller` otherwise; the read API SHALL serve no other owner value, and the OpenAPI document
-SHALL list the owner values as `[controller, cli]`. The Platform document and the platform of a
+`controller` when it is `controller` or absent. Any other `spec.owner` value SHALL be served as
+the instance holds it and SHALL NOT be mapped to `controller` or `cli`. The OpenAPI document
+SHALL list the known owner values as `[controller, cli]`. The Platform document and the platform of a
 graph SHALL carry `controllerVersion`, read from the Platform's `status.controllerVersion` and from
 no other field; when that field is absent, `controllerVersion` SHALL be absent.
 
@@ -13,6 +14,12 @@ no other field; when that field is absent, `controllerVersion` SHALL be absent.
 - **WHEN** a client lists instances and one has `spec.owner: controller`, and another has no
   `spec.owner`
 - **THEN** both summaries carry `owner: controller`
+
+#### Scenario: An owner value the portal does not know
+
+- **WHEN** a client lists instances and one has a `spec.owner` that is neither `controller` nor
+  `cli`
+- **THEN** its summary carries that value as written, and not `controller`
 
 #### Scenario: A CLI-owned instance
 

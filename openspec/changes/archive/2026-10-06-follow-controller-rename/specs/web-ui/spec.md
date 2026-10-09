@@ -72,13 +72,21 @@ Page text SHALL name kinds in the words a platform team uses: "Providers" for
 TransformerRegistrations and the instances and packages that hold them, "Installed" for
 ModuleInstances and ModulePackages, and "controller" for opm-controller. The read API's
 `controllerVersion` SHALL be labelled "Controller version", and its owner values `controller` and
-`cli` SHALL read as they are. The YAML view shows objects as the cluster serves them and is exempt. Source:
+`cli` SHALL read as they are. Any other owner value SHALL be shown as the read API serves it,
+marked as unknown, and SHALL NOT read as the controller or the CLI. The YAML view shows objects as the cluster serves them and is exempt. Source:
 portal:D17:R2.
 
 #### Scenario: The owner column
 
 - **WHEN** the Installed list shows an instance whose owner is `controller` in the read API
 - **THEN** its owner cell reads "controller"
+
+#### Scenario: An owner value the portal does not know
+
+- **WHEN** the Installed list and an instance page show an instance whose owner in the read API
+  is neither `controller` nor `cli`
+- **THEN** the owner cell and "Applied by" show that value marked "(unknown)", and neither names
+  the controller
 
 ## RENAMED Requirements
 

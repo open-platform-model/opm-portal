@@ -192,9 +192,14 @@ func inventoryCount(u *unstructured.Unstructured, entries []health.Ref) int64 {
 	return int64(len(entries))
 }
 
+// ownerOf reads spec.owner. An absent owner is the controller's, as the CRD
+// defaults it. A value that is neither known one is returned as written and
+// never mapped to a known one, so a reader sees that the portal does not know
+// it.
 func ownerOf(u *unstructured.Unstructured) Owner {
-	if str(u.Object, "spec", "owner") == string(OwnerCLI) {
-		return OwnerCLI
+	o := Owner(str(u.Object, "spec", "owner"))
+	if o == "" {
+		return OwnerController
 	}
-	return OwnerController
+	return o
 }

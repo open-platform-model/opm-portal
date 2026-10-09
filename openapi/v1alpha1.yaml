@@ -720,7 +720,7 @@ components:
         module:
           $ref: '#/components/schemas/Module'
         owner:
-          description: "Who applies the instance. A cli instance is read-only to the controller and its reconcile state is ManagedExternally."
+          description: "Who applies the instance. A cli instance is read-only to the controller and its reconcile state is ManagedExternally. An absent spec.owner is served as controller. A spec.owner value other than the two listed is served as written; a client shows it as unknown and maps it to neither."
           x-extensible-enum: [controller, cli]
           type: string
         reconcile:

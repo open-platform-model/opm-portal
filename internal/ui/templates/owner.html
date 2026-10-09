@@ -9,7 +9,7 @@
     <dl class="facts">
       <dt>Namespace</dt><dd class="mono">{{.Ref.Namespace}}</dd>
       <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
-      <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the controller{{end}}</dd>
+      <dt>Applied by</dt><dd>{{template "applied-by" .Owner}}</dd>
       <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}</dd>
       <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
       <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>

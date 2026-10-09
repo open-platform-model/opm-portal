@@ -20,7 +20,8 @@ type ObjectRef struct {
 	Name      string
 }
 
-// Owner says who applies an instance.
+// Owner says who applies an instance. A value other than the two below is
+// what the instance's spec.owner holds, unknown to the portal.
 type Owner string
 
 // Owners.

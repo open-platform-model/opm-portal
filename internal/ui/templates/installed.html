@@ -25,7 +25,7 @@
       <td data-label="Applied">{{template "applied" .Reconcile}}</td>
       <td data-label="Health">{{template "health" .Health}}</td>
       <td data-label="Objects" class="num">{{.Objects}}</td>
-      <td data-label="Owner">{{.Owner}}</td>
+      <td data-label="Owner">{{template "owner-value" .Owner}}</td>
     </tr>
     {{end}}
     </tbody>

@@ -224,7 +224,8 @@ type Node struct {
 	Health  *Health  `json:"health,omitempty"`
 	Applied *Applied `json:"applied,omitempty"`
 
-	// Owner is an instance's owner: controller or cli.
+	// Owner is an instance's owner: controller, cli, or the spec.owner value
+	// as written when the portal does not know it.
 	Owner string `json:"owner,omitempty"`
 	// RenderContracts are every contract an instance's render used, most
 	// fulfilled by the catalog itself: not the provider contracts it
