@@ -315,14 +315,14 @@ func TestPortalCSSHoldsAForcedColoursBorder(t *testing.T) {
 	}
 }
 
-// Forced colours paint a transparent border, so without this block every tab shows the 3 px
+// Forced colors paint a transparent border, so without this block every tab shows the 3 px
 // underline and only the font weight marks the current one.
 func TestPortalCSSMarksOnlyTheCurrentTabInForcedColours(t *testing.T) {
 	check := func(css string) []string {
 		var bad []string
 		rules := forcedColorsRules(css)
 		if d, ok := ruleFor(rules, ".tabs a"); !ok || d["border-bottom-color"] != "Canvas" {
-			bad = append(bad, ".tabs a does not take the page colour for its underline in the forced-colors block")
+			bad = append(bad, ".tabs a does not take the page color for its underline in the forced-colors block")
 		}
 		if d, ok := ruleFor(rules, `.tabs a[aria-current="page"]`); !ok || d["border-bottom-color"] != "CanvasText" {
 			bad = append(bad, "the current tab keeps no CanvasText underline in the forced-colors block")
