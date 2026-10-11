@@ -343,3 +343,57 @@ func TestARefreshKeepsTheTabAndTheFocus(t *testing.T) {
 		t.Error("the focused render offers no Clear selection")
 	}
 }
+
+// TestANewEventReplacesTheTabCountAndNothingElse (portal:D19:R3): the live
+// refresh replaces only elements that carry an id and data-follow, so a new
+// event on events:<topic> swaps the Events count and leaves the strip's
+// links, and their attributes, as they were.
+func TestANewEventReplacesTheTabCountAndNothingElse(t *testing.T) {
+	const path = "/instances/default/podinfo?tab=resources"
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		// An event of the ModuleInstance itself: the feed the Events tab opens with.
+		if name, _, _ := unstructured.NestedString(o.Object, "regarding", "name"); o.GetKind() != "Event" || o.GetNamespace() != "default" || name != "podinfo" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("podinfo.new-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e1e1")
+		if err := unstructured.SetNestedField(extra.Object, "BackOff", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		if err := unstructured.SetNestedField(extra.Object, "Back-off restarting failed container", "note"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of podinfo to copy")
+	}
+	before := mainOf(newSite(t, objs, apitest.AllowAll).get(t, path).body)
+	after := mainOf(newSite(t, more, apitest.AllowAll).get(t, path).body)
+
+	count := regexp.MustCompile(`<span class="tab-n" id="tab-n-events" data-follow="([^"]*)">(\d+)</span>`)
+	b, a := count.FindStringSubmatch(before), count.FindStringSubmatch(after)
+	if b == nil || a == nil {
+		t.Fatalf("no Events count in the strips:\n%s\n%s", tabsOf(before), tabsOf(after))
+	}
+	if !slices.Contains(strings.Fields(b[1]), "events:instance:default/podinfo") {
+		t.Errorf("the Events count follows %q, not events:instance:default/podinfo", b[1])
+	}
+	if b[2] == a[2] {
+		t.Errorf("the Events count stayed %s after a new event", b[2])
+	}
+	// The strip itself carries no id and no data-follow, so a refresh cannot
+	// replace it; with the counts taken out the two strips are identical.
+	nav := regexp.MustCompile(`<nav class="tabs[^>]*>`).FindString(before)
+	if strings.Contains(nav, "id=") || strings.Contains(nav, "data-follow") {
+		t.Errorf("the strip is a followed region: %s", nav)
+	}
+	strip := func(s string) string { return count.ReplaceAllString(tabsOf(s), "") }
+	if strip(before) != strip(after) {
+		t.Errorf("the strips differ beyond the count:\n%s\n%s", strip(before), strip(after))
+	}
+}
