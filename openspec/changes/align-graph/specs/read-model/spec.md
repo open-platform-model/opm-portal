@@ -4,11 +4,12 @@
 
 The read model SHALL read the source a ModulePackage's `spec.sourceRef` names only when its kind is
 OCIRepository, GitRepository or Bucket, always in `source.toolkit.fluxcd.io` whatever the
-sourceRef's `apiVersion` says, in the sourceRef's namespace or else the package's, with one `get` for a caller whose grant covers that `get`, after the reader
+sourceRef's `apiVersion` says, in the sourceRef's namespace or else the package's, with one `get` for a caller whose grant covers that `get` in that namespace, after the reader
 identity's own `get` review. It SHALL NOT list or watch source objects, follow a source's
 `secretRef`, or read a core Secret, which it SHALL refuse before any review or read. It SHALL return
 the source's Ready condition status, reason and message and `status.artifact.revision`, and SHALL
-NOT return `status.artifact.url`. A Ready source with no `status.artifact` SHALL be reported as
+NOT return `status.artifact.url`. It SHALL cut the message to at most 1024 characters before
+returning it, ending a cut message with an ellipsis, whatever the mode it serves. A Ready source with no `status.artifact` SHALL be reported as
 having no artifact, not as ready. A kind outside the three SHALL be reported as unsupported without
 a review or a read; an object that does not exist SHALL be reported as not found; a reader denied
 the `get` SHALL make the source not readable. Discovery of the source kinds SHALL be re-checked by
@@ -47,6 +48,19 @@ found. Source: portal:D1, portal:D7:R3, portal:D8:R1, portal:D20.
 
 - **WHEN** the OCIRepository has `Ready=True` and no `status.artifact`
 - **THEN** the result says the source has no artifact, not that it is ready
+
+#### Scenario: A source in another namespace
+
+- **WHEN** a package in `pkg-a` names the OCIRepository `pkg-b/podinfo-release` in its `sourceRef`,
+  and the caller's grant covers `get` in `pkg-a` only
+- **THEN** the grant does not cover the source, nothing is read, and the cluster receives no
+  `get` for it
+
+#### Scenario: A long Ready message
+
+- **WHEN** the OCIRepository's Ready condition carries a message of 5000 characters
+- **THEN** the result carries the first 1023 characters followed by an ellipsis, and a message of
+  exactly 1024 characters is returned unchanged
 
 #### Scenario: Flux installed after the portal starts
 

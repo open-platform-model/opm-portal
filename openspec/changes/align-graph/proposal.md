@@ -36,12 +36,15 @@ Ready state, its revision, and "kind not installed" when the CRD is missing).
   Bucket, chosen by kind alone and always read in `source.toolkit.fluxcd.io`, as the controller
   does. A Ready source with no artifact is shown as having none, as the controller treats it. The
   server re-checks discovery for those kinds on a timer, so a Flux installed after the portal
-  starts stops reading "Kind not installed" within minutes. The package graph's source node takes
+  starts stops reading "Kind not installed" within minutes. The Flux condition message is text a
+  controller wrote, so the read model cuts it to 1024 characters before anything serves it, in
+  local mode and in-cluster. The package graph's source node takes
   a health from the source's state, so the Resources tab's source row and the node's fill agree.
 - **Web UI, drawing** (`internal/ui`): three-line nodes (kind, name, status line) filled and
   outlined in their health tone, cluster-made nodes dashed, the applied square kept; elbow edges
   without arrowheads; group nodes hatched and stacked with "N objects: K kinds"; a dotted frame
-  with a Collapse pill around an open group; a legend under the pane; a ghost box when nothing was
+  with a Collapse pill around an open group; a legend under the pane, which names a package source's
+  origin; a ghost box when nothing was
   applied; source and registration nodes toned by their own state; hover cards beside the node
   with the message, a parent-aware origin and a hint. The instance page no longer draws the module
   node (its path and version are on the identity card).
@@ -64,7 +67,9 @@ Ready state, its revision, and "kind not installed" when the CRD is missing).
 
 Gate: depends on `align-shell-and-tokens`. This change uses its tone tokens (border, ink,
 background, tint), its square badge and its underline tabs, and the node-selection fix
-(`instance-43`) that change ships. It does not start before that change merges.
+(`instance-43`) that change ships. It does not start before that change merges. It adds its graph pages to
+`TestBrowserPhone`, which `fix-contrast-and-add-phone-check` adds and which merges before
+`align-shell-and-tokens`.
 
 Runs in parallel with `align-owner-pages`. Ownership: this change owns `internal/graph`,
 `internal/ui/graph.go`, the `graph` template in `partials.html`, the graph part of `portal.js` and
@@ -77,7 +82,8 @@ lines the shared-file table names) and
 the Clear selection pill; `align-owner-pages` restyles the generic panel). Gap `graph-23` (the
 panel at rest on the Graph tab) is the same behaviour as `align-owner-pages`'s `instance-27`: this
 change decides which node the panel rests on and resets the script to it; whichever change lands
-second rebases onto the other's markup. No main-spec requirement is modified by both changes.
+second merges `main` into its branch and resolves the overlap there (no history rewrite). No
+main-spec requirement is modified by both changes.
 `align-shell-and-tokens`' "Selecting a graph node fills the details panel" already says a
 no-script node link opens the page with the node selected, which covers this change's move from
 `focus` to `node` for a plain selection, so this change does not modify it.
@@ -86,6 +92,16 @@ Not in this change: gaps outside section D; the hover card's applied age and war
 every other item section X of the report lists (portal:D17); per-kind facts on the panel (Image,
 Node, Restarts), which `align-owner-pages` adds (`instance-28`); health for the Platform (portal:OQ22).
 Configuration objects keep their kstatus health (supervisor ruling 2026-10-06, gap `graph-26`).
+
+**Shared helper with `align-owner-pages`.** Both changes cut cluster text before the portal serves
+it: this change the Flux condition message, `align-owner-pages` the event notes. They use one helper,
+`capText(s string, n int) string` (at most `n` runes: `s` itself when it fits, else its first
+`n-1` runes and `…`; contract in design.md "Capping the served Flux message"). Whichever change
+merges first adds it; the second uses it as it stands. The ruling of 2026-10-11 names package
+`internal/ui` for it unless the code holds a better place. It does: `internal/ui` imports no
+`internal/` package and reads wire documents, so a cut there would leave the JSON document uncapped
+and `internal/api` could not call it. This change puts the helper in `internal/readmodel`, where the
+cluster's text enters the portal.
 
 **Shared-file rule with `align-owner-pages`** (integrator, 2026-10-06; the same text stands in both
 proposals). The two changes run in parallel after `align-shell-and-tokens` and share files,
@@ -106,14 +122,15 @@ Both changes read `node` and `focus` the same way: `node` is the selection a cli
 the hand-off spotlight; tab links keep both, YAML opens on the `node` object, else the `focus`
 object, the Resources row of either is marked, and the panel rests only when neither is set. The
 selection lines in `ownerTabsOf` are the one place both changes edit the same function; whichever
-lands second rebases them.
+lands second merges `main` into its branch and resolves them there.
 
 The resting node of the details panel is one behaviour (`graph-23`, `provider-21`, `instance-27`):
 `align-graph`'s ADDED requirement "The details panel rests on the node that needs attention" picks
 the node; `align-owner-pages`' tabs requirement only says the panel shows that node, never an empty
 placeholder. The per-kind object facts on the panel (Replicas, Image, Strategy, Node, Restarts,
 Started, Type, Ports; `instance-28`) are `align-owner-pages`', read from the object document in
-`panel.go`. Whichever change lands second rebases onto the other's markup.
+`panel.go`. Whichever change lands second merges `main` into its branch and adopts the other's
+markup.
 
 ## Capabilities
 
@@ -138,7 +155,8 @@ None.
   `internal/readmodel` (source read, claim catalog fields), `api/v1alpha1` and `internal/api`
   (fields, the source lookup, OpenAPI, goldens), `internal/ui` (`graph.go`, `panel.go`,
   `owner.go` at two named call sites, templates, `portal.css`, `portal.js`, tests),
-  `cmd/opm-portal` (`TestBrowserGraph`), `test/browser/graph.py`, `docs/site/`.
+  `cmd/opm-portal` (`TestBrowserGraph`, the graph pages in `TestBrowserPhone`), `test/browser/graph.py`,
+  `docs/site/`, `docs/DESIGN.md` (D20:R6).
   `internal/authz` and `internal/health` do not change.
 - API: additive only; `task api:breaking` stays green. Node ids of configuration groups change
   from `grp:configuration/<owner>` to `grp:configuration/<owner>/<family>`; ids are stable across
@@ -149,10 +167,12 @@ None.
   `source.toolkit.fluxcd.io` (the kinds the controller reads, opm-operator
   `internal/source/resolve.go:18-22`), after the caller's access review and the reader's own, never
   with list or watch, and never following the source's `secretRef`. It serves the Ready
-  condition's status, reason and message and `status.artifact.revision`; never the artifact URL.
+  condition's status, reason and message, the message cut to 1024 characters, and
+  `status.artifact.revision`; never the artifact URL.
   A Secret is still refused before any review. A caller who may not get the source sees it
-  locked; a kind the cluster does not serve is read from discovery without a review, as kinds are
-  resolved today. The `deploy/` role does not gain the Flux kinds: in a Pod run from `deploy/`
+  locked, also when the source sits in another namespace than its package, where the review is made
+  in that namespace; a kind the cluster does not serve is read from discovery without a review, as
+  kinds are resolved today. The `deploy/` role does not gain the Flux kinds: in a Pod run from `deploy/`
   the ServiceAccount is the caller, so the source shows locked; in-cluster, a user the cluster
   allows sees it as not readable by the portal (portal:D11:R3, portal:D13). No write, no new create, no values.
 - Principle VII: no dependency, no build step. The band layout and the frame are the one new
@@ -160,11 +180,13 @@ None.
 - SemVer: MINOR after 1.0 (additive API, changed pages). On the 0.x line it ships as one PR titled
   `feat(ui): draw and explore the graph as the canvas does`, which cuts a minor release.
 - Decisions: amends portal:D4 (R5: groups per kind family; opening one closes the others, and
-  Expand all opens every family) and portal:D1 (the source read), adds portal:D20 for the source
-  read, and records under portal:D3 the supervisor ruling that configuration objects keep kstatus
-  health and that a registration node's fill and outline carry its standing. Keeps portal:D3:R1 (outline
-  and fill carry health, a separate square carries applied), portal:D4:R1/R3, portal:D8 and
-  portal:D17.
+  Expand all opens every family) and portal:D1 (the source read), and adds portal:D20:R6 to the
+  D20 that records the source read (on `main` since PR 40): the served Flux message is cut to 1024
+  characters. The owner answered yes on 2026-10-11 to recording the cap; D20:R4 and the in-cluster
+  display stay as decided, and `docs/DESIGN.md` changes in this change's PR. It also records under
+  portal:D3 the supervisor ruling that configuration objects keep kstatus health and that a
+  registration node's fill and outline carry its standing. Keeps portal:D3:R1 (outline and fill
+  carry health, a separate square carries applied), portal:D4:R1/R3, portal:D8 and portal:D17.
 - Main-spec requirements touched: `graph-model` "Configuration components are grouped by default"
   (REMOVED, replaced by an ADDED requirement) and "Layout is deterministic" (MODIFIED: the band is
   the one exception to barycenter order); `web-ui` "Graphs are server-rendered, accessible SVG"

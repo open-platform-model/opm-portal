@@ -16,7 +16,8 @@ elbows through the document's route points, without arrowheads. A label too long
 SHALL keep the part that tells nodes apart. Activating a node SHALL show its detail panel and mark
 the node as selected; activating a group node SHALL show it expanded. A graph SHALL open fitted to
 its frame, SHALL pan with the pointer and SHALL zoom with a zoom slider, Fit and Ctrl/Cmd-wheel.
-Graphs SHALL appear on instance and package pages; the Platform page SHALL not draw one. The
+At a 360 px wide viewport the page SHALL NOT scroll sideways; the graph's frame SHALL take the
+graph's extra width. Graphs SHALL appear on instance and package pages; the Platform page SHALL not draw one. The
 instance page SHALL not draw the module node; the module's path and version stay on the page's
 identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17, portal:D19.
 
@@ -41,6 +42,12 @@ identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17, portal:D19.
 
 - **WHEN** any instance graph is rendered
 - **THEN** every edge path is made of horizontal and vertical segments and carries no arrowhead
+
+#### Scenario: A graph at phone width
+
+- **WHEN** a browser 360 px wide opens cert-manager's Graph tab
+- **THEN** the page does not scroll sideways, and the graph's frame scrolls to reach the part of
+  the graph beyond its width
 
 ### Requirement: Graphs can be explored without leaving the page
 
@@ -146,7 +153,8 @@ many boxes are drawn of how many there are. Source: portal:D4:R5.
 
 Below every graph a legend SHALL say what the marks mean: applied by the controller, made by the
 cluster, a configuration group and how it opens, that fill and outline carry health, and how to
-zoom and step back. When an instance or package has applied nothing (no inventory and no last
+zoom and step back. A graph that draws a source node SHALL also name its origin, read by the
+controller and owned by Flux, so the legend names every mark the graph draws. When an instance or package has applied nothing (no inventory and no last
 applied time), the graph SHALL show a dashed placeholder box beside its root saying nothing was
 applied yet and that the graph fills in once an apply succeeds, and, for a package with no
 recorded source artifact, that it has never fetched its source. The placeholder SHALL not be a
@@ -162,7 +170,13 @@ node: it has no panel and no link.
 
 - **WHEN** a browser opens podinfo's Graph tab
 - **THEN** the legend names the applied mark, the dashed cluster-made boxes, the group box, and the
-  Ctrl + scroll and Esc keys
+  Ctrl + scroll and Esc keys, and names no source
+
+#### Scenario: The legend of a package
+
+- **WHEN** a browser opens the Graph tab of `/packages/pkg/podinfo` on the F1 capture
+- **THEN** the legend also names the source's origin, "Read by the controller, owned by Flux",
+  beside the applied and cluster-made marks
 
 ### Requirement: Registration and source nodes show their own state
 

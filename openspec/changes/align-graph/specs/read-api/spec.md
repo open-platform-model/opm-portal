@@ -24,7 +24,8 @@ A `Package` document, and the source node of a package's `Graph` document, SHALL
 `sourceState`: the caller's `access` to the source object, its `state` (`ready`, `notReady`,
 `noArtifact`, `unknown`, `notFound`, `kindNotServed` or `unsupportedKind`, an extensible set), and,
 when the object was read, its Ready condition's `reason` and `message` and its artifact
-`revision`. The source's kind SHALL be chosen by `spec.sourceRef.kind` alone, in
+`revision`. A served `message` SHALL be at most 1024 characters, in local mode and in-cluster, and
+a longer message SHALL be cut and end with an ellipsis. The source's kind SHALL be chosen by `spec.sourceRef.kind` alone, in
 `source.toolkit.fluxcd.io`, as the controller chooses it. A kind the cluster does not serve SHALL
 be `kindNotServed`, found through discovery without an access review or a read of the object. A
 failed source lookup SHALL NOT fail the document. The source artifact's fetch URL SHALL NOT be served.
@@ -51,14 +52,30 @@ portal:D20.
 - **THEN** its `sourceState` has `access` `forbidden` and no state read from the object, and the
   source node of its graph carries `access` `forbidden`
 
+#### Scenario: A source in another namespace
+
+- **WHEN** a package in `pkg-a` names the OCIRepository `pkg-b/podinfo-release`, and a caller who
+  may get ModulePackages and OCIRepositories in `pkg-a` but not OCIRepositories in `pkg-b` reads
+  the package
+- **THEN** its `sourceState` has `access` `forbidden` and no state read from the object, the source
+  node of its graph carries `access` `forbidden`, and the cluster receives no `get` for the source
+
 #### Scenario: A source that is not ready
 
 - **WHEN** the package's OCIRepository has `Ready=False` with reason `GitOperationFailed` and a
   message
 - **THEN** `sourceState` has `state` `notReady`, that reason and that message, and no URL
 
+#### Scenario: A message longer than the cap
+
+- **WHEN** a client reads a package whose OCIRepository's Ready message is 5000 characters, from a
+  local server
+- **THEN** `sourceState.message` and the source node's health message hold the first 1023
+  characters and an ellipsis
+
 #### Scenario: In-cluster
 
 - **WHEN** a client of an in-cluster server reads the package
 - **THEN** `sourceState.message` is served as source-controller wrote it, since the operator did
-  not write it
+  not write it, up to the cap, and a message longer than 1024 characters is cut with an ellipsis as
+  in a local server
