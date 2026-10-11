@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -204,5 +205,88 @@ func TestPodPanelLogsOpenItsPane(t *testing.T) {
 	}
 	if frag := s.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape(pod), htmxRequest).body; !strings.Contains(frag, want) {
 		t.Error("the Pod panel fragment lacks its Logs link to the pane")
+	}
+}
+
+// TestOwnerTabsCarryTheirCounts (portal:D19:R3): Resources counts the
+// objects and the runtime children below them, Events the folded lines of
+// the owner's feed; both count the whole list when a filter narrows the tab,
+// and neither shows when the owner document is a problem.
+func TestOwnerTabsCarryTheirCounts(t *testing.T) {
+	follow := `instance:default/podinfo events:instance:default/podinfo`
+	count := func(name string, n int) string {
+		return `<span class="tab-n" id="tab-n-` + name + `" data-follow="` + follow + `">` + strconv.Itoa(n) + `</span>`
+	}
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	// The Service and the Deployment, the ReplicaSet and its two Pods.
+	tabs := tabsOf(mainOf(s.get(t, "/instances/default/podinfo").body))
+	for _, want := range []string{"Resources " + count("resources", 5), "Events " + count("events", 3), ">Graph</a>", ">Logs</a>", ">YAML</a>"} {
+		if !strings.Contains(tabs, want) {
+			t.Errorf("the instance tabs lack %s:\n%s", want, tabs)
+		}
+	}
+	// A package with an empty inventory counts zero resources.
+	pkg := tabsOf(mainOf(s.get(t, "/packages/pkg/podinfo").body))
+	if !strings.Contains(pkg, `id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">0</span>`) {
+		t.Errorf("the package tabs:\n%s", pkg)
+	}
+	// A filter narrows the list, not the tab: the unfiltered counts stay.
+	broken := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
+	unfiltered := tabsOf(mainOf(broken.get(t, "/instances/default/podinfo").body))
+	for _, path := range []string{"/instances/default/podinfo?tab=events&type=Warning", "/instances/default/podinfo?tab=resources&reason=ImagePullBackOff"} {
+		got := tabsOf(mainOf(broken.get(t, path).body))
+		for _, name := range []string{"tab-n-resources", "tab-n-events"} {
+			if between(got, `id="`+name+`"`, "</span>") != between(unfiltered, `id="`+name+`"`, "</span>") {
+				t.Errorf("%s: %s changed under a filter:\n%s\nunfiltered:\n%s", path, name, got, unfiltered)
+			}
+		}
+	}
+	if !strings.Contains(unfiltered, count("resources", 7)) {
+		t.Errorf("the broken rollout lists seven rows:\n%s", unfiltered)
+	}
+	// No count over a source that is a problem: the owner document itself.
+	denied := newSite(t, apitest.F1(t), apitest.DenyResources("moduleinstances")).get(t, "/instances/default/podinfo").body
+	if strings.Contains(denied, "tab-n") {
+		t.Error("a tab count shows while the owner document is a problem")
+	}
+}
+
+// TestATabOpensWithoutScript (portal:D19:R3): ?tab=resources renders the
+// Resources tab as the current one, from the server alone, and the region it
+// opens is named by a heading only a screen reader sees.
+func TestATabOpensWithoutScript(t *testing.T) {
+	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/instances/default/podinfo?tab=resources").body)
+	if !strings.Contains(tabsOf(main), `<a href="/instances/default/podinfo?tab=resources" aria-current="page">Resources`) {
+		t.Errorf("Resources is not the current tab:\n%s", tabsOf(main))
+	}
+	if strings.Contains(main, "<script") {
+		t.Error("the main region carries a script; the tab opens without one")
+	}
+	if !strings.Contains(main, `<h2 class="vh" id="components-h">Resources`) || !strings.Contains(main, `aria-labelledby="components-h"`) {
+		t.Error("the Resources region lost its hidden heading or its aria-labelledby")
+	}
+}
+
+// TestTabRegionsKeepTheirHeadingForScreenReaders (portal:D19:R3): every
+// region a tab opens keeps its h2 and its id, which the region names itself
+// by, and hides the heading from sight.
+func TestTabRegionsKeepTheirHeadingForScreenReaders(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	for path, ids := range map[string][]string{
+		"/instances/default/podinfo?tab=graph":                                     {"graph-h"},
+		"/instances/default/podinfo?tab=resources":                                 {"components-h"},
+		"/instances/default/podinfo?tab=events":                                    {"events-h"},
+		"/instances/default/podinfo?tab=logs":                                      {"logs-h"},
+		"/instances/default/podinfo?tab=yaml":                                      {"yaml-picker-h", "yaml-h"},
+		"/instances/default/backup-provider?tab=provider":                          {"provider-tab-h"},
+		"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0":            {"claims-h"},
+		"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events": {"events-h"},
+	} {
+		main := mainOf(s.get(t, path).body)
+		for _, id := range ids {
+			if !strings.Contains(main, `<h2 class="vh" id="`+id+`">`) || !strings.Contains(main, `aria-labelledby="`+id+`"`) {
+				t.Errorf("%s: the region named by %s lost its hidden heading", path, id)
+			}
+		}
 	}
 }

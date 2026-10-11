@@ -34,7 +34,7 @@
   </section>
   <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:default/podinfo">
     <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="axes"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
     <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
   </section>
   
@@ -58,9 +58,9 @@
   <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
   <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
 </details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources</a><a href="/instances/default/podinfo?tab=events">Events</a><a href="/instances/default/podinfo?tab=logs" aria-current="page">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">3</span></a><a href="/instances/default/podinfo?tab=logs" aria-current="page">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
 <section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="instance:default/podinfo">
-  <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
+  <h2 class="vh" id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   <div class="logs">
     <details class="log" id="log_podinfo-podinfo-d9585d794-4lg6h_podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo">
       <summary><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span> <span class="log-container">podinfo</span></summary>

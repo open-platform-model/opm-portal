@@ -7,6 +7,7 @@ import (
 	"time"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
+	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
 // renderMain executes one page template's content over a synthetic view,
@@ -93,5 +94,73 @@ func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 	out := b.String()
 	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "evaluated <time") || !strings.Contains(out, "Healthy (not live)") {
 		t.Errorf("polled object without its read time:\n%s", between(out, `id="health-card"`, `id="detail"`))
+	}
+}
+
+// renderPartial executes one named partial over data.
+func renderPartial(t *testing.T, name string, data any) string {
+	t.Helper()
+	h := &Handler{cfg: Config{Now: time.Now}}
+	pages, err := parsePages(h.templateFuncs())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var b bytes.Buffer
+	if err := pages["platform"].ExecuteTemplate(&b, name, data); err != nil {
+		t.Fatal(err)
+	}
+	return b.String()
+}
+
+// TestBadgesAreOneShapeAndNameTheirAxis (portal:D19:R3): the three badge
+// partials draw no dot, and each carries its axis in its accessible name,
+// the "state" partial included.
+func TestBadgesAreOneShapeAndNameTheirAxis(t *testing.T) {
+	for name, tc := range map[string]struct {
+		out  string
+		want string
+	}{
+		"applied": {renderPartial(t, "applied", v1.Reconcile{State: "Failed", Retrying: true}), `<span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span>`},
+		"health":  {renderPartial(t, "health", v1.Health{State: "Degraded", Live: true}), `<span class="health health-degraded"><span class="axis">Health axis</span>Degraded</span>`},
+		"state":   {renderPartial(t, "state", "Healthy"), `<span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>`},
+	} {
+		if !strings.Contains(tc.out, tc.want) {
+			t.Errorf("%s partial: got %q, want it to hold %q", name, tc.out, tc.want)
+		}
+		if strings.Contains(tc.out, `class="dot"`) {
+			t.Errorf("%s partial still draws a dot: %q", name, tc.out)
+		}
+	}
+	partial := renderPartial(t, "health", v1.Health{State: "Healthy", Partial: true, Live: false})
+	if !strings.Contains(partial, "health-partial") || !strings.Contains(partial, "Healthy (partial, not live)") {
+		t.Errorf("a partial health keeps its class and words: %q", partial)
+	}
+}
+
+// TestHoverCardAndPanelNameTheirAxes (portal:D19:R3): where an applied and a
+// health badge stand together, visible text names each axis.
+func TestHoverCardAndPanelNameTheirAxes(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	page := s.get(t, "/instances/default/podinfo").body
+	card := between(page, `data-card-for="mi:default/podinfo"`, "</div>")
+	for _, want := range []string{`<span class="label">Health</span> <span class="health health-healthy">Healthy</span>`, `<span class="label">Applied</span> <span class="applied applied-applied">Applied</span>`} {
+		if !strings.Contains(card, want) {
+			t.Errorf("the root node's hover card lacks %q:\n%s", want, card)
+		}
+	}
+	component := between(page, `data-card-for="comp:mi/default/podinfo/podinfo"`, "</div>")
+	if !strings.Contains(component, `<span class="label">Health</span>`) || strings.Contains(component, `<span class="label">Applied</span>`) {
+		t.Errorf("a component's hover card names Health only:\n%s", component)
+	}
+	if strings.Contains(page, `class="dot"`) {
+		t.Error("the instance page still draws a badge dot")
+	}
+	root := s.get(t, "/instances/default/podinfo/node?id=mi:default/podinfo").body
+	if !strings.Contains(root, `<span class="label">Applied</span> <span class="applied applied-applied">`) || !strings.Contains(root, `<span class="label">Health</span> <span class="health health-healthy">`) {
+		t.Errorf("the root node's panel lacks the visible Applied and Health labels:\n%s", root)
+	}
+	deploy := s.get(t, "/instances/default/podinfo/node?id=obj:apps/Deployment/default/podinfo-podinfo").body
+	if !strings.Contains(deploy, `<span class="label">Health</span> <span class="health health-healthy">`) || strings.Contains(deploy, `<span class="label">Applied</span>`) {
+		t.Errorf("the Deployment's panel names Health only:\n%s", deploy)
 	}
 }

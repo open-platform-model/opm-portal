@@ -218,6 +218,8 @@ var phonePages = []string{
 // is above 360. The body clips sideways overflow, so only a browser that
 // measures the layout shows content a phone would lose. The script first
 // proves the measure can fail with an element it adds that is 500 px wide.
+// A last step selects a graph node from the keyboard and measures again with
+// the details panel filled.
 func TestBrowserPhone(t *testing.T) {
 	script := browserScript(t, "phone.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {

@@ -34,7 +34,7 @@
   </section>
   <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:cert-manager/cert-manager">
     <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+    <div class="axes"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
     <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
   </section>
   
@@ -58,9 +58,9 @@
   <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
   <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/crds@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/role@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/service-account@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/security-context@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1</li></ul>
 </details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/cert-manager/cert-manager?tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=resources" aria-current="page">Resources</a><a href="/instances/cert-manager/cert-manager?tab=events">Events</a><a href="/instances/cert-manager/cert-manager?tab=logs">Logs</a><a href="/instances/cert-manager/cert-manager?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/cert-manager/cert-manager?tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=resources" aria-current="page">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">48</span></a><a href="/instances/cert-manager/cert-manager?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">3</span></a><a href="/instances/cert-manager/cert-manager?tab=logs">Logs</a><a href="/instances/cert-manager/cert-manager?tab=yaml">YAML</a></nav>
 <section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="instance:cert-manager/cert-manager">
-  <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
+  <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
   <form class="filters" method="get" action="/instances/cert-manager/cert-manager" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
   <input type="hidden" name="tab" value="resources">
   <div class="filter-fields">
@@ -72,12 +72,12 @@
 </form>
   <ol class="components">
   <li class="component">
-  <div class="component-head"><h3 class="component-name">controller</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ServiceAccount cert-manager/<wbr>cert-manager</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -89,24 +89,24 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Deployment.<wbr>apps cert-manager/<wbr>cert-manager-controller</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
         <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-controller&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-controller&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
       </div>
       <p class="object-why">Deployment is available. Replicas: 1</p>
-      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-controller-7c9bddd644-cr5qm</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-cr5qm&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-controller-7c9bddd644-cr5qm_cert-manager-controller" data-log-link="log_cert-manager-controller-7c9bddd644-cr5qm_cert-manager-controller">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-controller-7c9bddd644</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-controller-7c9bddd644-cr5qm</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-cr5qm&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-controller-7c9bddd644-cr5qm_cert-manager-controller" data-log-link="log_cert-manager-controller-7c9bddd644-cr5qm_cert-manager-controller">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-controller-7c9bddd644-cr5qm&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-controller-7c9bddd644</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-controller-7c9bddd644&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
     </li>
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">webhook</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">webhook</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ServiceAccount cert-manager/<wbr>cert-manager-webhook</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -118,19 +118,19 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Deployment.<wbr>apps cert-manager/<wbr>cert-manager-webhook</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
         <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-webhook&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
       </div>
       <p class="object-why">Deployment is available. Replicas: 1</p>
-      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-webhook-6c5bb576f5-slp22</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-slp22&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-webhook-6c5bb576f5-slp22_cert-manager-webhook" data-log-link="log_cert-manager-webhook-6c5bb576f5-slp22_cert-manager-webhook">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-webhook-6c5bb576f5</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-webhook-6c5bb576f5-slp22</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-slp22&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-webhook-6c5bb576f5-slp22_cert-manager-webhook" data-log-link="log_cert-manager-webhook-6c5bb576f5-slp22_cert-manager-webhook">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-webhook-6c5bb576f5-slp22&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-webhook-6c5bb576f5</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-webhook-6c5bb576f5&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
     </li>
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Service cert-manager/<wbr>cert-manager-webhook</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -142,12 +142,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">cainjector</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">cainjector</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ServiceAccount cert-manager/<wbr>cert-manager-cainjector</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -159,28 +159,28 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Deployment.<wbr>apps cert-manager/<wbr>cert-manager-cainjector</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
         <span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=Deployment&amp;name=cert-manager-cainjector&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
       </div>
       <p class="object-why">Deployment is available. Replicas: 1</p>
-      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-cainjector-5d69c59bd-htjjq</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-htjjq&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-cainjector-5d69c59bd-htjjq_cert-manager-cainjector" data-log-link="log_cert-manager-cainjector-5d69c59bd-htjjq_cert-manager-cainjector">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-cainjector-5d69c59bd</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
+      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">Pod cert-manager/<wbr>cert-manager-cainjector-5d69c59bd-htjjq</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-htjjq&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager?tab=logs#log_cert-manager-cainjector-5d69c59bd-htjjq_cert-manager-cainjector" data-log-link="log_cert-manager-cainjector-5d69c59bd-htjjq_cert-manager-cainjector">Logs</a><a href="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?kind=Pod&amp;name=cert-manager-cainjector-5d69c59bd-htjjq&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps cert-manager/<wbr>cert-manager-cainjector-5d69c59bd</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">1 desired</span><span class="object-actions"><a href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd&amp;tab=graph">Graph</a><a href="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/object?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-get="/instances/cert-manager/cert-manager/events?group=apps&amp;kind=ReplicaSet&amp;name=cert-manager-cainjector-5d69c59bd&amp;namespace=cert-manager" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 1</p></li></ul>
     </li>
   
   </ul>
 </li>
     <li class="component component-group">
       <details id="config-components">
-        <summary class="component-head"><h3 class="component-name">17 configuration components</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span><span class="muted group-note">RBAC, CRDs, webhooks and other objects with no workload</span></summary>
+        <summary class="component-head"><h3 class="component-name">17 configuration components</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="muted group-note">RBAC, CRDs, webhooks and other objects with no workload</span></summary>
         <ol class="components"><li class="component">
-  <div class="component-head"><h3 class="component-name">namespace</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">namespace</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Namespace cert-manager</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -192,12 +192,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">crds</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">crds</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io certificaterequests.<wbr>cert-manager.<wbr>io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -209,7 +209,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io certificates.<wbr>cert-manager.<wbr>io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -221,7 +221,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io clusterissuers.<wbr>cert-manager.<wbr>io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -233,7 +233,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io issuers.<wbr>cert-manager.<wbr>io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -245,7 +245,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io orders.<wbr>acme.<wbr>cert-manager.<wbr>io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -257,7 +257,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">CustomResourceDefinition.<wbr>apiextensions.<wbr>k8s.<wbr>io challenges.<wbr>acme.<wbr>cert-manager.<wbr>io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -269,12 +269,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">webhook-validating</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">webhook-validating</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ValidatingWebhookConfiguration.<wbr>admissionregistration.<wbr>k8s.<wbr>io cert-manager-webhook</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -286,12 +286,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">webhook-mutating</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">webhook-mutating</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">MutatingWebhookConfiguration.<wbr>admissionregistration.<wbr>k8s.<wbr>io cert-manager-webhook</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -303,12 +303,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">cainjector-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">cainjector-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-cainjector</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -320,7 +320,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-cainjector</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -332,12 +332,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-issuers-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-issuers-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-issuers</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -349,7 +349,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-issuers</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -361,12 +361,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-clusterissuers-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-clusterissuers-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-clusterissuers</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -378,7 +378,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-clusterissuers</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -390,12 +390,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-certificates-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-certificates-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificates</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -407,7 +407,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificates</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -419,12 +419,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-orders-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-orders-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-orders</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -436,7 +436,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-orders</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -448,12 +448,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-challenges-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-challenges-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-challenges</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -465,7 +465,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-challenges</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -477,12 +477,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-ingress-shim-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-ingress-shim-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-ingress-shim</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -494,7 +494,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-ingress-shim</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -506,12 +506,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-approve-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-approve-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-approve:cert-manager-io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -523,7 +523,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-approve:cert-manager-io</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -535,12 +535,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-csr-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-csr-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificatesigningrequests</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -552,7 +552,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-controller-certificatesigningrequests</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -564,12 +564,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">webhook-sar-rbac</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">webhook-sar-rbac</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRole.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-webhook:subjectaccessreviews</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -581,7 +581,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">ClusterRoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager-webhook:subjectaccessreviews</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -593,12 +593,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">cainjector-leaderelection-role</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">cainjector-leaderelection-role</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Role.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-cainjector:leaderelection</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -610,7 +610,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">RoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-cainjector:leaderelection</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -622,12 +622,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">controller-leaderelection-role</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">controller-leaderelection-role</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Role.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager:leaderelection</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -639,7 +639,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">RoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager:leaderelection</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -651,12 +651,12 @@
   
   </ul>
 </li><li class="component">
-  <div class="component-head"><h3 class="component-name">webhook-dynamic-serving-role</h3><span class="health health-healthy"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Healthy</span></div>
+  <div class="component-head"><h3 class="component-name">webhook-dynamic-serving-role</h3><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
   <ul class="objects">
     
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">Role.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-webhook:dynamic-serving</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>
@@ -668,7 +668,7 @@
   
     <li class="object">
       <div class="object-row">
-        <span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Healthy</span>
+        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
         <span class="mono object-ref">RoleBinding.<wbr>rbac.<wbr>authorization.<wbr>k8s.<wbr>io cert-manager/<wbr>cert-manager-webhook:dynamic-serving</span>
         <span class="origin">in the inventory</span>
         <span class="mono obj-reason">Current</span>

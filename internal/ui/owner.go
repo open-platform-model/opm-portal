@@ -35,11 +35,25 @@ const (
 	eventWarning = "Warning"
 )
 
-// tabLink is one tab.
+// tabLink is one tab. Count is shown after the label when set; nil means
+// the page holds no count it may show (portal:D19:R3, portal:D7).
 type tabLink struct {
+	Name    string // the tab= value, for the count's id
 	Label   string
 	Href    string
 	Current bool
+	Count   *int
+	Follow  string // the topics the count follows, so a live refresh swaps it
+}
+
+// setCount sets the count of the tab called name, following topics. The
+// strip keeps its links; only the count is a followed region.
+func setCount(tabs []tabLink, name string, n int, follow string) {
+	for i := range tabs {
+		if tabs[i].Name == name {
+			tabs[i].Count, tabs[i].Follow = &n, follow
+		}
+	}
 }
 
 // ownerView is an instance or package page.
@@ -531,7 +545,7 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 			}
 		}
 		for _, t := range tabs {
-			v.Tabs = append(v.Tabs, tabLink{Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab})
+			v.Tabs = append(v.Tabs, tabLink{Name: t.Name, Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab})
 		}
 		if v.Problem == nil {
 			h.ownerTabsOf(r, &v)
@@ -569,11 +583,18 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 		v.Graph.Clear = linkWithout(v.Base, q, "focus")
 		v.Graph.Focused = v.Panel != nil && !v.Panel.Missing
 	}
+	// The Resources count comes before the tab switch: annotateResources
+	// drops the rows a reason filter does not match, and the count is the
+	// tab's whole list (portal:D19:R3).
+	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Config), v.countFollow())
 	v.Logs = logPanes(v.Components)
 	if v.Config != nil {
 		v.Logs = append(v.Logs, logPanes(v.Config.Components)...)
 	}
 	v.Events = h.events(r, v.Base+"/events", nil, "events:"+v.Topic)
+	// The Events count comes before ownerEventsTab, which filters the feed
+	// by type and reason or replaces it with another object's.
+	v.countEvents()
 	v.Applied = appliedCardOf(v)
 	v.Healthc = healthCardOf(v)
 	switch v.Tab {
@@ -608,6 +629,37 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	case tabProvider:
 		v.Provider = h.providerTab(r, v)
 	}
+}
+
+// countFollow is the topics a tab count follows: the owner's own and its events.
+func (v *ownerView) countFollow() string { return v.Topic + " events:" + v.Topic }
+
+// countEvents counts the Events tab: the folded lines of the feed it opens
+// with, and no count when that feed is a problem.
+func (v *ownerView) countEvents() {
+	if v.Events.Problem == nil {
+		setCount(v.Tabs, tabEvents, len(v.Events.Items), v.countFollow())
+	}
+}
+
+// resourceCount counts the rows the Resources tab lists: each inventory
+// object and every runtime child below it, the scaled-down ReplicaSets and
+// the configuration group included.
+func resourceCount(cs []componentView, config *configGroup) int {
+	n := 0
+	count := func(cs []componentView) {
+		for i := range cs {
+			for j := range cs[i].Objects {
+				o := &cs[i].Objects[j]
+				n += 1 + len(o.Children) + len(o.Old)
+			}
+		}
+	}
+	count(cs)
+	if config != nil {
+		count(config.Components)
+	}
+	return n
 }
 
 // objectKind is the owner's Kubernetes kind.

@@ -314,9 +314,8 @@ a:hover { color: var(--accent-deep); }
 }
 .live { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--hdr-muted); }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hdr-muted); }
-body.is-live .live-dot { background: var(--live-ok); box-shadow: 0 0 0 0 var(--live-ok); animation: pulse 2.4s ease-out infinite; }
+body.is-live .live-dot { background: var(--live-ok); }
 body.is-offline .live-dot { background: var(--live-off); }
-@media (prefers-reduced-motion: reduce) { body.is-live .live-dot { animation: none; } }
 
 /* Theme menu: a details element, so it opens without script; the page
    script applies a pick. The icon follows the theme on the root. */
@@ -333,12 +332,6 @@ body.is-offline .live-dot { background: var(--live-off); }
 .theme-list button:hover { background: var(--hdr-menu-hover); color: var(--hdr-strong); }
 .theme-list button[aria-pressed="true"] { background: var(--hdr-menu-hover); }
 .theme-list button[aria-pressed="true"]::after { content: "✓"; color: var(--hdr-accent); }
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--healthy) 60%, transparent); }
-  70% { box-shadow: 0 0 0 8px transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
-}
 
 /* ---- Page grid ---- */
 
@@ -378,7 +371,9 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .sub-h { margin: 18px 0 8px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
 .lede { margin: 10px 0 0; font-size: 15px; color: var(--ink-2); overflow-wrap: anywhere; }
 .note { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted); max-width: 80ch; }
-.axes { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.axes { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.axis-pair { display: inline-flex; align-items: center; gap: 6px; }
+.axis-pair > .label { margin-right: 0; }
 
 /* ---- Panels ---- */
 
@@ -401,35 +396,43 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .stat-alert .stat-n { color: var(--degraded-ink); }
 @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-/* ---- Badges: two axes, two shapes ---- */
+/* ---- Badges: two axes, one shape (portal:D19:R3) ---- */
 
-.axis { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* A visually hidden text: the region headings of the tabs, and the axis a badge names. */
+.vh, .axis { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-.applied {
+/* The tone of a badge whose state class names none: an unknown Applied value reads neutral,
+   an unknown Health value reads unknown. Before the hue rules, so that they win. */
+.applied { --c: var(--neutral); --c-ink: var(--neutral-ink); --c-bg: var(--neutral-bg); }
+.health { --c: var(--unknown); --c-ink: var(--unknown-ink); --c-bg: var(--unknown-bg); }
+
+/* A hue sets the four variables a component draws its tone from: the border (--c),
+   the text ink (--c-ink), the badge fill (--c-bg) and the block tint (--c-tint). The
+   badge state classes every badge already carries map onto them, so no badge needs
+   another class. */
+.hue-applied, .applied-applied { --c: var(--applied); --c-ink: var(--applied-ink); --c-bg: var(--applied-bg); --c-tint: var(--applied-tint); }
+.hue-healthy, .health-healthy { --c: var(--healthy); --c-ink: var(--healthy-ink); --c-bg: var(--healthy-bg); --c-tint: var(--healthy-tint); }
+.hue-progressing, .applied-reconciling, .health-progressing { --c: var(--progressing); --c-ink: var(--progressing-ink); --c-bg: var(--progressing-bg); --c-tint: var(--progressing-tint); }
+.hue-degraded, .applied-failed, .applied-stalled, .health-degraded { --c: var(--degraded); --c-ink: var(--degraded-ink); --c-bg: var(--degraded-bg); --c-tint: var(--degraded-tint); }
+.hue-unknown, .health-unknown { --c: var(--unknown); --c-ink: var(--unknown-ink); --c-bg: var(--unknown-bg); --c-tint: var(--unknown-tint); }
+.hue-neutral, .applied-suspended, .applied-managedexternally, .applied-unknown { --c: var(--neutral); --c-ink: var(--neutral-ink); --c-bg: var(--neutral-bg); --c-tint: var(--neutral-tint); }
+.hue-missing, .health-missing { --c: var(--missing); --c-ink: var(--missing-ink); --c-bg: var(--missing-bg); --c-tint: var(--missing-tint); }
+.hue-locked { --c: var(--locked); --c-ink: var(--locked-ink); --c-bg: var(--locked-bg); --c-tint: var(--locked-tint); }
+
+.applied, .health {
   display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--font-mono); font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
-  padding: 3px 9px; border: 1.5px solid currentColor; border-radius: 3px;
-  color: var(--applied-ink); background: var(--applied-bg); white-space: nowrap;
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 3px 9px; border: 1.5px solid var(--c); border-radius: 5px;
+  color: var(--c-ink); background: var(--c-bg); white-space: nowrap;
 }
-.applied::before { content: "APPLY"; font-size: 0.62rem; opacity: 0.6; letter-spacing: 0.12em; border-right: 1px solid currentColor; padding-right: 6px; }
-.applied-failed, .applied-stalled { color: var(--degraded-ink); background: var(--degraded-bg); }
-.applied-reconciling { color: var(--progressing-ink); background: var(--progressing-bg); }
-.applied-managedexternally, .applied-suspended, .applied-unknown { color: var(--neutral-ink); background: var(--neutral-bg); border-style: dashed; }
-
-.health {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 0.86rem; font-weight: 600;
-  padding: 3px 11px 3px 8px; border-radius: 999px;
-  color: var(--unknown-ink); background: var(--unknown-bg); white-space: nowrap;
+/* Partial: some objects were left out, so the badge is drawn with a dashed border and a hatch. */
+.health-partial { border-style: dashed; background-image: repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, var(--c-ink) 12%, transparent) 5px 7px); }
+/* Forced colours drop the hue, the hatch (a background image) and box shadows. The words keep
+   the state; the border keeps the shape, and the dashed one tells a partial health from a full one. */
+@media (forced-colors: active) {
+  .applied, .health { border-color: CanvasText; }
+  .health-partial { border-color: CanvasText; border-style: dashed; }
 }
-.health .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
-.health-healthy { color: var(--healthy-ink); background: var(--healthy-bg); }
-.health-progressing { color: var(--progressing-ink); background: var(--progressing-bg); }
-.health-degraded { color: var(--degraded-ink); background: var(--degraded-bg); }
-.health-missing { color: var(--missing-ink); background: var(--missing-bg); }
-/* Partial: some objects were left out, so the badge is drawn open. */
-.health-partial { box-shadow: inset 0 0 0 1.5px currentColor; background-image: repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, currentColor 12%, transparent) 5px 7px); }
-.health-partial .dot { background: transparent; border: 2px solid currentColor; }
 
 .verdict { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; background: var(--neutral-bg); color: var(--neutral-ink); white-space: nowrap; }
 .verdict-accepted { background: var(--healthy-bg); color: var(--healthy-ink); }
@@ -552,10 +555,14 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .count:hover { box-shadow: inset 0 0 0 1.5px currentColor; color: inherit; }
 .count-n { font-family: var(--font-mono); font-weight: 700; }
 .health.count .count-n, .applied.count .count-n { margin-left: 2px; }
+/* Underline tabs (portal:D19:R3): no box; the current one is ink with a 3 px accent underline. */
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
-.tabs a { text-decoration: none; padding: 8px 14px; margin-bottom: -1px; border: 1px solid transparent; border-radius: 8px 8px 0 0; font-weight: 600; color: var(--ink-2); }
-.tabs a[aria-current="page"] { border-color: var(--line); border-bottom-color: var(--surface); background: var(--surface); color: var(--accent); }
-.tabs a:hover:not([aria-current]) { color: var(--ink); background: var(--accent-soft); }
+.tabs a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 18px; margin-bottom: -1px; border-bottom: 3px solid transparent; font-size: 15px; font-weight: 400; color: var(--muted); text-decoration: none; }
+.tabs a[aria-current="page"] { border-bottom: 3px solid var(--accent); font-weight: 600; color: var(--ink); }
+.tabs a:hover:not([aria-current]) { color: var(--ink); }
+.tabs-lg a { min-height: 48px; padding: 12px 18px; font-size: 18px; font-weight: 500; }
+.tabs-lg a[aria-current="page"] { font-weight: 700; }
+.tab-n { font-family: var(--font-mono); font-size: 12px; font-weight: 600; line-height: 1; padding: 3px 7px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--ink-2); }
 #parts .filters, #events-panel .filters { margin-bottom: 14px; background: var(--surface-2); }
 .holder, .claimant { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0; }
 .holder-note { margin: 4px 0 0; font-size: 0.8rem; }
@@ -617,6 +624,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .nc-name { flex-basis: 100%; overflow-wrap: anywhere; }
 .nc-origin, .nc-access { flex-basis: 100%; color: var(--hdr-muted); }
 .nc-marks .health, .nc-marks .applied { font-size: 11px; }
+.nc-marks .label { margin: 0 2px 0 6px; color: var(--hdr-strong); }
 .tool-link { font-size: 0.8rem; white-space: nowrap; }
 .tool-link[hidden] { display: none; }
 .zoom-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }

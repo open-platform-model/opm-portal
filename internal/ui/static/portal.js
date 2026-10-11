@@ -196,11 +196,11 @@
       body: JSON.stringify({ add: add, remove: remove })
     }).then(function (res) {
       if (!res.ok && !expired) {
-        setLive(false, "topics refused");
+        setLive(false, "Topics refused");
       }
     }).catch(function () {
       if (!expired) {
-        setLive(false, "offline");
+        setLive(false, "Offline");
       }
     });
   }
@@ -292,7 +292,7 @@
     var url = location.pathname + location.search;
     fetch(url, { credentials: "same-origin", headers: { "Accept": "text/html" } }).then(function (res) {
       if (res.status === 401) {
-        setLive(false, "signed out");
+        setLive(false, "Signed out");
         return null;
       }
       return res.text();
@@ -334,7 +334,7 @@
       restoreViews(views);
       refocus(focused);
     }).catch(function () {
-      setLive(false, "offline");
+      setLive(false, "Offline");
     }).then(function () {
       inflight = false;
       schedule();
@@ -480,7 +480,7 @@
         return;
       }
       streamID = data.stream;
-      setLive(true, "live");
+      setLive(true, "Live");
       var want = pageTopics();
       var remove = [];
       opened.forEach(function (t) { if (!want.has(t)) { remove.push(t); } });
@@ -544,16 +544,16 @@
     listener.addEventListener("sse:expired", function () {
       streamID = "";
       expired = true;
-      setLive(false, "session expired, reload");
+      setLive(false, "Session expired, reload");
     });
   }
 
   body.addEventListener("htmx:sseError", function () {
     if (!expired) {
-      setLive(false, "reconnecting");
+      setLive(false, "Reconnecting");
     }
   });
-  body.addEventListener("htmx:sseOpen", function () { setLive(true, "live"); });
+  body.addEventListener("htmx:sseOpen", function () { setLive(true, "Live"); });
 
   // A boosted navigation swaps #main: move the stream to the new page.
   document.addEventListener("htmx:afterSettle", function () {

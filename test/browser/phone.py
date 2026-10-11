@@ -16,6 +16,10 @@ Checks, each printing one line per page, then exiting 1 if any failed:
    measure to rise above 360, so a layout change that blinds the measure fails the test.
 2. Each page's measure is at most 360. A failing page lists up to six elements whose right edge is
    past 360 and that have no scrolling ancestor.
+3. The details panel filled by script (portal:D19): on /instances/default/podinfo the podinfo-podinfo
+   node is activated from the keyboard, the script waits until #detail .frag-h reads
+   podinfo-podinfo, and the measure with the panel filled is at most 360. The panel holds the
+   widest content a selection adds (kinds, long names, two badges with labels).
 
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
@@ -27,6 +31,10 @@ from playwright.sync_api import sync_playwright
 
 WIDTH = 360
 HEIGHT = 640
+
+# The page and node of the details-panel step.
+PANEL_PAGE = "/instances/default/podinfo"
+DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
 
 # The wider of the two scroll widths. The page policy forbids eval inside the page, but
 # page.evaluate runs through the browser's debugging protocol, as the other scripts use it.
@@ -119,9 +127,24 @@ def run(p, engine, base, paths):
             past = page.evaluate(PAST_EDGE, WIDTH)
             print(f"{engine}: FAIL {path} scrollWidth {width} over {WIDTH}; past the edge: {'; '.join(past) or 'none found'}")
             shoot(page, index)
+
+        open_page(page, base + PANEL_PAGE)
+        page.locator(f'.node[data-node="{DEPLOY}"]').first.focus()
+        page.keyboard.press("Enter")
+        page.wait_for_function(
+            "() => { const h = document.querySelector('#detail .frag-h'); return !!h && h.textContent.trim() === 'podinfo-podinfo'; }")
+        page.wait_for_timeout(300)
+        width = page.evaluate(MEASURE)
+        if width <= WIDTH:
+            print(f"{engine}: {PANEL_PAGE} with the details panel filled scrollWidth {width}")
+        else:
+            failed.append(PANEL_PAGE + " (details panel filled)")
+            past = page.evaluate(PAST_EDGE, WIDTH)
+            print(f"{engine}: FAIL {PANEL_PAGE} with the details panel filled scrollWidth {width} over {WIDTH}; past the edge: {'; '.join(past) or 'none found'}")
+            shoot(page, len(paths))
     finally:
         browser.close()
-    print(f"{engine}: {len(paths) - len(failed)} of {len(paths)} pages hold {WIDTH} px")
+    print(f"{engine}: {len(paths) + 1 - len(failed)} of {len(paths) + 1} checks hold {WIDTH} px")
     return not failed
 
 

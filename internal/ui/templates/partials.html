@@ -3,11 +3,18 @@
 {{- end}}
 
 {{define "health" -}}
-{{with healthBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
+{{with healthBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
 {{- end}}
 
 {{define "state" -}}
-{{with stateBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="dot" aria-hidden="true"></span>{{.Text}}</span>{{end}}
+{{with stateBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
+{{- end}}
+
+{{/* tab is one tab of a strip. The count, when the page holds one, is its own
+     element with an id and its topics, so a live refresh swaps it and leaves
+     the strip's links as they are. */}}
+{{define "tab" -}}
+{{$t := .}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{with .Count}} <span class="tab-n" id="tab-n-{{$t.Name}}"{{with $t.Follow}} data-follow="{{.}}"{{end}}>{{.}}</span>{{end}}</a>
 {{- end}}
 
 {{define "time" -}}
@@ -113,7 +120,7 @@
   </svg>
   </div>
   <div class="node-cards">
-  {{range .Nodes}}<div class="node-card" id="{{.Card.ID}}" role="tooltip" data-card-for="{{.ID}}" hidden>{{with .Card}}<span class="nc-kind">{{.Kind}}</span> <strong class="nc-name mono">{{.Name}}</strong>{{if or .Health .Applied}} <span class="nc-marks">{{with .Health}}<span class="{{.Class}}"><span class="dot" aria-hidden="true"></span>{{.Text}}</span>{{end}}{{with .Applied}} <span class="{{.Class}}">{{.Text}}</span>{{end}}</span>{{end}}{{with .Reason}} <span class="nc-reason mono">{{.}}</span>{{end}}{{with .Origin}} <span class="nc-origin">{{.}}</span>{{end}}{{with .Access}} <span class="nc-access">{{.}}</span>{{end}}{{end}}</div>
+  {{range .Nodes}}<div class="node-card" id="{{.Card.ID}}" role="tooltip" data-card-for="{{.ID}}" hidden>{{with .Card}}<span class="nc-kind">{{.Kind}}</span> <strong class="nc-name mono">{{.Name}}</strong>{{if or .Health .Applied}} <span class="nc-marks">{{with .Health}}<span class="label">Health</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}{{with .Applied}} <span class="label">Applied</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}</span>{{end}}{{with .Reason}} <span class="nc-reason mono">{{.}}</span>{{end}}{{with .Origin}} <span class="nc-origin">{{.}}</span>{{end}}{{with .Access}} <span class="nc-access">{{.}}</span>{{end}}{{end}}</div>
   {{end}}
   </div>
 </div>

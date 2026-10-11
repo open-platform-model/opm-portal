@@ -34,9 +34,9 @@ type platformView struct {
 	Problem  *v1.Problem
 	Platform v1.Platform
 	Tab      string
-	// TabLinks open each tab, keeping every filter.
-	ProvidersTab string
-	CatalogsTab  string
+	// Tabs open each tab, keeping every filter, with the counts the page
+	// holds.
+	Tabs []tabLink
 
 	Status    platformStatus
 	Installed installedCounts
@@ -410,8 +410,10 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 	if q.Get("tab") == tabCatalogs {
 		v.Tab = tabCatalogs
 	}
-	v.ProvidersTab = linkWith("/", q, "tab", tabProviders)
-	v.CatalogsTab = linkWith("/", q, "tab", tabCatalogs)
+	v.Tabs = []tabLink{
+		{Name: tabProviders, Label: "Providers", Href: linkWith("/", q, "tab", tabProviders), Current: v.Tab == tabProviders},
+		{Name: tabCatalogs, Label: "Catalogs", Href: linkWith("/", q, "tab", tabCatalogs), Current: v.Tab == tabCatalogs},
+	}
 	v.Problem = h.fetch(r, "/platform", nil, &v.Platform)
 	if unauthenticated(v.Problem) {
 		h.signIn(w, r)
@@ -434,6 +436,12 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		}
 		v.Catalogs.Rows, v.Catalogs.Total = catalogRows(plat, cf.Values)
 		v.Catalogs.Contracts = v.Status.Contracts
+		if v.Platform.RegistrationsAccess == v1.AccessOK {
+			// Both lists come from the registrations; without them a
+			// count would be short (portal:D7).
+			setCount(v.Tabs, tabProviders, v.Providers.Total, "platform")
+			setCount(v.Tabs, tabCatalogs, v.Catalogs.Total, "platform")
+		}
 	}
 	var provides []string
 	for i := range v.Platform.Registrations {

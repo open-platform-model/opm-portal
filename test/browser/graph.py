@@ -18,6 +18,8 @@ first failure:
    keyboard (and with a pointer click where the engine hit-tests the node) fills #detail with that
    node's name and its Object fact, and marks the node selected; the instance's own node fills it
    with an Applied and a Health badge. The panel request must not inherit the page's hx-select.
+   Each badge stands beside a visible label that names its axis (portal:D19:R3): "Applied" and
+   "Health" for the instance's node, "Health" alone for the Deployment's.
 """
 
 import json
@@ -26,6 +28,11 @@ import sys
 from playwright.sync_api import sync_playwright
 
 PODINFO = "/instances/default/podinfo"
+# The visible axis labels of the details panel, each with whether it has a box (a hidden one has none).
+LABELS = (
+    "Array.from(document.querySelectorAll('#detail .axes .axis-pair > .label'),"
+    " el => [el.textContent.trim(), el.offsetWidth > 1 && el.offsetHeight > 1])"
+)
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
 ROOT = "mi:default/podinfo"
 
@@ -138,6 +145,9 @@ def run(p, engine, base):
                      f"keyboard selection filled the panel: {name!r}, Object fact has Deployment {'Deployment' in facts}, "
                      f"node marked {cur}"):
             return False
+        labels = page.evaluate(LABELS)
+        if not check(engine, labels == [["Health", True]], f"the Deployment's panel shows a visible Health label: {labels}"):
+            return False
         if engine != "firefox":
             page.goto(base + PODINFO + "?tab=graph")
             page.locator(f'.node[data-node="{DEPLOY}"]').first.click()
@@ -152,6 +162,10 @@ def run(p, engine, base):
             "[document.querySelectorAll('#detail .axes .applied').length,"
             " document.querySelectorAll('#detail .axes .health').length]")
         if not check(engine, applied == 1 and health == 1, f"the instance node's panel: {applied} Applied badge, {health} Health badge"):
+            return False
+        labels = page.evaluate(LABELS)
+        if not check(engine, labels == [["Applied", True], ["Health", True]],
+                     f"the instance node's panel shows visible Applied and Health labels: {labels}"):
             return False
     finally:
         browser.close()

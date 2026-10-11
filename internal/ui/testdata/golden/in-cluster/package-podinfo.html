@@ -46,7 +46,7 @@
   </section>
   <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="package:pkg/podinfo">
     <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Unknown (not live)</span></div>
+    <div class="axes"><span class="health health-unknown"><span class="axis">Health axis</span>Unknown (not live)</span></div>
     <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
   </section>
   
@@ -65,10 +65,10 @@
 </ol>
   
 </details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph" aria-current="page">Graph</a><a href="/packages/pkg/podinfo?tab=resources">Resources</a><a href="/packages/pkg/podinfo?tab=events">Events</a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph" aria-current="page">Graph</a><a href="/packages/pkg/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">0</span></a><a href="/packages/pkg/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span></a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
 <div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
 <section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="package:pkg/podinfo">
-  <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
+  <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
 <div class="graph" data-graph="package-graph">
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
@@ -108,7 +108,7 @@
   </div>
   <div class="node-cards">
   <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">OCIRepository podinfo-release</strong> <span class="nc-origin">The source the package reads</span></div>
-  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span>Unknown</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">The ModulePackage</span></div>
+  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-unknown">Unknown</span> <span class="label">Applied</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">The ModulePackage</span></div>
   </div>
 </div>
 </section>

@@ -5,7 +5,7 @@
 <h2 class="frag-h mono">{{template "breakable" .Label}}</h2>
 {{if .Locked}}{{template "locked" .Access}}{{with .RefText}}<p class="mono muted">{{.}}</p>{{end}}
 {{else}}
-<div class="axes">{{with .Reconcile}}{{template "applied" .}}{{end}}{{with .Health}}{{template "state" .State}}{{end}}{{if .Absent}}<span class="health health-missing"><span class="dot" aria-hidden="true"></span>Missing</span>{{end}}</div>
+<div class="axes">{{with .Reconcile}}<span class="axis-pair"><span class="label">Applied</span> {{template "applied" .}}</span>{{end}}{{with .Health}}<span class="axis-pair"><span class="label">Health</span> {{template "state" .State}}</span>{{end}}{{if .Absent}}<span class="axis-pair"><span class="label">Health</span> <span class="health health-missing"><span class="axis">Health axis</span>Missing</span></span>{{end}}</div>
 <dl class="facts">
   {{with .RefText}}<dt>Object</dt><dd class="mono">{{template "breakable" .}}</dd>{{end}}
   {{with .Health}}{{with .Reason}}<dt>Health reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Health</dt><dd>{{.}}</dd>{{end}}{{if .Partial}}<dt>Partial</dt><dd>Some objects could not be read and were left out.</dd>{{end}}{{if .NotLive}}<dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>{{end}}{{end}}

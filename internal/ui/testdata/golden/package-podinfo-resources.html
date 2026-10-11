@@ -50,7 +50,7 @@
   </section>
   <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="package:pkg/podinfo">
     <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Unknown (not live)</span></div>
+    <div class="axes"><span class="health health-unknown"><span class="axis">Health axis</span>Unknown (not live)</span></div>
     <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
   </section>
   
@@ -71,9 +71,9 @@
 </ol>
   
 </details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph">Graph</a><a href="/packages/pkg/podinfo?tab=resources" aria-current="page">Resources</a><a href="/packages/pkg/podinfo?tab=events">Events</a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph">Graph</a><a href="/packages/pkg/podinfo?tab=resources" aria-current="page">Resources <span class="tab-n" id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">0</span></a><a href="/packages/pkg/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span></a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
 <section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="package:pkg/podinfo">
-  <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
+  <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
   <form class="filters" method="get" action="/packages/pkg/podinfo" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
   <input type="hidden" name="tab" value="resources">
   <div class="filter-fields">
