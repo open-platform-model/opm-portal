@@ -37,6 +37,7 @@
     "live": true
   },
   "inventoryCount": 1,
+  "inventoryRevision": 1,
   "lastAppliedAt": "2026-10-04T18:04:21Z",
   "renderContracts": [
     "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"

@@ -7,7 +7,9 @@ eval inside the page: the script waits with selectors and URL predicates. Checks
 one line, exiting 1 on the first failure:
 
 1. podinfo's Graph tab opens with the ModuleInstance in #detail (never an empty placeholder),
-   and #detail names the panel Clear selection brings back.
+   and #detail names the panel Clear selection brings back. The ModuleInstance's panel reads
+   Inventory `2 objects` and Inventory revision `1`; with the Deployment selected the panel
+   shows neither, and Clear selection brings both back.
 2. A click on the Deployment node (from the keyboard where the engine cannot hit-test an SVG
    link) shows podinfo-podinfo in #detail, and Clear selection brings the ModuleInstance back.
 3. After that click, the YAML tab link carries the selection and opens the Deployment's YAML.
@@ -72,6 +74,16 @@ def panel_is(page, title):
     expect(page.locator(HEAD).first).to_have_text(title)
 
 
+def inventory_facts(page):
+    """The Inventory and Inventory revision facts of #detail, as text; None for a fact the panel
+    does not show."""
+    out = {}
+    for label in ("Inventory", "Inventory revision"):
+        value = page.locator(f'#detail .facts dt:text-is("{label}") + dd')
+        out[label] = value.first.text_content().strip() if value.count() else None
+    return out
+
+
 def activate(page, selector):
     """Activates a graph node from the keyboard, as a keyboard user does."""
     page.locator(selector).first.focus()
@@ -90,6 +102,10 @@ def run(p, engine, base):
         if not check(engine, kicker == "Instance" and (root_panel or "").endswith("/node?id=mi%3Adefault%2Fpodinfo"),
                      f"the Graph tab rests on the ModuleInstance: kicker {kicker!r}, root panel {root_panel!r}"):
             return False
+        facts = inventory_facts(page)
+        if not check(engine, facts == {"Inventory": "2 objects", "Inventory revision": "1"},
+                     f"the ModuleInstance's panel at rest reads its inventory and revision: {facts}"):
+            return False
 
         # 2. Select the Deployment, then Clear selection.
         activate(page, f'.node[data-node="{DEPLOY}"]')
@@ -97,10 +113,18 @@ def run(p, engine, base):
         selected = page.evaluate("!!document.querySelector('.node[aria-current=\"true\"]')")
         if not check(engine, selected, "a node click shows podinfo-podinfo in #detail and marks the node"):
             return False
+        facts = inventory_facts(page)
+        if not check(engine, facts == {"Inventory": None, "Inventory revision": None},
+                     f"the Deployment's panel shows neither inventory fact: {facts}"):
+            return False
         page.locator("#detail [data-clear-selection]").click()
         panel_is(page, ROOT)
         placeholder = page.locator("#detail .muted", has_text="Select a graph node").count()
         if not check(engine, placeholder == 0, "Clear selection brings the ModuleInstance back, not a placeholder"):
+            return False
+        facts = inventory_facts(page)
+        if not check(engine, facts == {"Inventory": "2 objects", "Inventory revision": "1"},
+                     f"Clear selection brings the inventory and revision back: {facts}"):
             return False
 
         # 3. The YAML tab after a click.

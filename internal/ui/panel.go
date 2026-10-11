@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
@@ -222,6 +223,7 @@ func ownerFacts(v *ownerView) []fact {
 	case v.Instance != nil:
 		out = appendFact(out, "Module", id.Subtitle, true)
 		out = appendFact(out, "Version", id.Version, false)
+		out = append(out, inventoryFacts(v.Instance)...)
 	case v.Package != nil:
 		out = appendFact(out, "Source", strings.TrimPrefix(id.Subtitle, "from "), true)
 		out = appendFact(out, "Path", v.Package.Path, true)
@@ -241,6 +243,22 @@ func ownerFacts(v *ownerView) []fact {
 		sa = "ServiceAccount " + v.Package.ServiceAccountName
 	}
 	return appendFact(out, "Applier", sa, false)
+}
+
+// inventoryFacts are the two facts of an instance's inventory: its object
+// count, shown when the count is above zero or a revision is served, and the
+// revision the controller recorded, shown only when the API serves one.
+// Nothing is drawn for an instance that recorded no inventory (portal:D17).
+func inventoryFacts(in *v1.Instance) []fact {
+	var out []fact
+	if in.InventoryCount > 0 || in.InventoryRevision > 0 {
+		n := int(in.InventoryCount)
+		out = append(out, fact{Label: "Inventory", Value: fmt.Sprintf("%d %s", n, plural(n, "object", "objects"))})
+	}
+	if in.InventoryRevision > 0 {
+		out = append(out, fact{Label: "Inventory revision", Value: strconv.FormatInt(in.InventoryRevision, 10)})
+	}
+	return out
 }
 
 // panelLinks are the buttons a readable node may open, in order: Logs first
