@@ -914,25 +914,30 @@
     }
   }
 
-  // setFocusParam keeps the focus parameter in the address, so a refresh,
-  // a reload and a shared link show the same spotlight.
-  function setFocusParam(id) {
-    var u = new URL(location.href);
+  // setParams writes the selection into a URL: the focus, or none. It drops
+  // node too, because the server ranks node above focus for the panel and for
+  // the YAML default, so a node left from the address the page was opened at
+  // would show the old object once another is selected or the selection is cleared.
+  function setParams(u, id) {
     if (id) {
       u.searchParams.set("focus", id);
     } else {
       u.searchParams.delete("focus");
     }
+    u.searchParams.delete("node");
+  }
+
+  // setFocusParam keeps the selection in the address, so a refresh, a reload
+  // and a shared link show the same spotlight.
+  function setFocusParam(id) {
+    var u = new URL(location.href);
+    setParams(u, id);
     history.replaceState(history.state, "", u.pathname + u.search + u.hash);
     // The tab links keep the selection (portal:D9): the server wrote them for the
-    // address the page was opened at, so they follow the focus as it changes.
+    // address the page was opened at, so they follow the selection as it changes.
     document.querySelectorAll(".owner-tabs a").forEach(function (a) {
       var t = new URL(a.getAttribute("href"), location.href);
-      if (id) {
-        t.searchParams.set("focus", id);
-      } else {
-        t.searchParams.delete("focus");
-      }
+      setParams(t, id);
       a.setAttribute("href", t.pathname + t.search);
       // A boosted link keeps the path it was processed with, so a new href
       // reaches a click only after htmx processes the link again.

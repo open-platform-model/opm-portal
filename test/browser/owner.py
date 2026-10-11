@@ -21,16 +21,23 @@ one line, exiting 1 on the first failure:
 6. The Events, Logs and YAML panels inset every section by the same 20 px: no direct child of the
    tab panel (a note, the form, the table, a log or YAML pane) touches the panel's left or right edge.
 
+7. A page opened at ?node=<Deployment> (a graph node's own link, "open in new tab", a shared
+   link) then a selection of the Service: the address and the tab links carry focus=<Service> and
+   no node, so the YAML tab opens the Service's YAML, not the Deployment's; and Clear selection
+   drops both, in the address and in the tab links, so a reload rests on the ModuleInstance.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
 import os
 import sys
+from urllib.parse import quote
 
 from playwright.sync_api import expect, sync_playwright
 
 PODINFO = "/instances/default/podinfo"
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
+SERVICE = "obj:_/Service/default/podinfo-podinfo"
 HEAD = "#detail .frag-h"
 ROOT = "default/podinfo"
 DEP = "podinfo-podinfo"
@@ -117,7 +124,7 @@ def run(p, engine, base):
         panel_is(page, DEP)
         if not check(engine, "focus=" in page.url, f"a click on the row opened {page.url} with the panel filled"):
             return False
-        return events_tab(page, engine, base) and panel_insets(page, engine, base)
+        return events_tab(page, engine, base) and panel_insets(page, engine, base) and stale_node(page, engine, base)
     except Exception:
         print(f"{engine}: FAIL at {page.url}")  # the address shows which step stopped
         shoot(page)
@@ -173,6 +180,47 @@ def panel_insets(page, engine, base):
                      f"{tab}: {len(sections)} sections inset by at least 19 px each side; touching the edge: {bad}"):
             return False
     return True
+
+
+def tab_hrefs(page):
+    """The hrefs of the owner tab links, as the page holds them now."""
+    return page.eval_on_selector_all(".owner-tabs a", "els => els.map(a => a.getAttribute('href'))")
+
+
+def stale_node(page, engine, base):
+    """7. A selection replaces a node the page was opened at; Clear selection drops it."""
+    page.goto(base + PODINFO + "?tab=graph&node=" + quote(DEPLOY, safe=""))
+    panel_is(page, DEP)
+    activate(page, f'.node[data-node="{SERVICE}"]')
+    page.wait_for_selector(f'.node[data-node="{SERVICE}"][aria-current="true"]')
+    hrefs = tab_hrefs(page)
+    if not check(engine, "node=" not in page.url and "focus=" in page.url
+                 and all("node=" not in h and "focus=" in h for h in hrefs),
+                 f"selecting the Service at ?node=<Deployment> leaves no node in {page.url} or the tab links {hrefs}"):
+        return False
+    page.locator(".owner-tabs a", has_text="YAML").click()
+    page.wait_for_url("**tab=yaml**")
+    page.wait_for_selector("pre.yaml")
+    text = page.locator("pre.yaml").text_content()
+    if not check(engine, "kind: Service" in text and "kind: Deployment" not in text,
+                 f"the YAML tab opened the Service's YAML, not the Deployment's, at {page.url}"):
+        return False
+
+    page.goto(base + PODINFO + "?tab=graph&node=" + quote(DEPLOY, safe=""))
+    panel_is(page, DEP)
+    activate(page, f'.node[data-node="{SERVICE}"]')
+    page.wait_for_selector(f'.node[data-node="{SERVICE}"][aria-current="true"]')
+    page.locator("[data-clear-selection]").click()
+    page.wait_for_function("() => !location.search.includes('focus=') && !location.search.includes('node=')")
+    hrefs = tab_hrefs(page)
+    if not check(engine, all("node=" not in h and "focus=" not in h for h in hrefs),
+                 f"Clear selection leaves neither node nor focus in the tab links {hrefs}"):
+        return False
+    page.reload()
+    panel_is(page, ROOT)
+    kicker = page.locator("#detail .kicker").first.text_content().strip()
+    return check(engine, kicker == "Instance" and "node=" not in page.url,
+                 f"a reload after Clear selection rests on the ModuleInstance at {page.url}")
 
 
 def main() -> int:
