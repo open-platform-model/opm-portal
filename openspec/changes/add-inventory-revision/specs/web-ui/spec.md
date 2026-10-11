@@ -39,11 +39,6 @@ or for any other node. Source: portal:D2:R1, portal:D17.
 - **THEN** the panel shows its source facts, with its `Revision` as the source's, and no
   `Inventory revision`
 
-#### Scenario: An instance node on another page
-
-- **WHEN** a registration's panel on the Platform page shows the instance that holds the claim
-- **THEN** it shows neither fact
-
 #### Scenario: A locked node
 
 - **WHEN** the panel opens on a node whose access is not ok

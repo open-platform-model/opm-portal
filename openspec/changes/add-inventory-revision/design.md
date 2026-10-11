@@ -134,18 +134,18 @@ shows "Inventory 0 objects" and its revision. The rule is one boolean in the vie
 
 ### Which nodes carry the facts, and where the data comes from
 
-**Context**: The panel is generic: any node, on any owner page or the Platform page, opens in it.
-`align-owner-pages` gives the node whose `Ref` is the page's own owner its identity facts through
-`panelContext`.
+**Context**: The panel is generic: any node of an owner page opens in it. The Platform page draws
+no graph and has no node panel on merged main, so it shows neither fact. `align-owner-pages` gives
+the node whose `Ref` is the page's own owner its identity facts through `panelContext`.
 **Options considered**:
 1. Put the two facts on `GraphNode`. Widens the graph document and every graph golden, and the
    facts would be on a node, not on the owner.
 2. Read them from the owner document that `panelContext` already carries for the root node. No new
    fetch, no graph change.
 **Decision**: Option 2. The facts show only when the panel's node is the page's own ModuleInstance
-(the `Ref` equals the owner and the owner kind is instance). A ModuleInstance node seen from another
-page (a provider's instance on the Platform graph, an instance on a registration panel) is not
-the owner there and shows neither fact. A node whose `Access` is not `ok` renders in the locked
+(the `Ref` equals the owner and the owner kind is instance). A ModuleInstance node that is not the
+page's own (the panel route answers a node outside the page's graph with the missing panel) shows
+neither fact. A node whose `Access` is not `ok` renders in the locked
 form of the template, which has no facts block, so it carries neither.
 **Rationale**: The data is already in the page's own request; the locked branch of the template
 is the same gate every other fact passes.
@@ -154,15 +154,15 @@ is the same gate every other fact passes.
 
 Read on merged `main` (`360382a`), 2026-10-11. The owner document reaches the root panel:
 
-- `panelContext.self` is the `*ownerView` of the page (`internal/ui/panel.go:11`). The page sets it
+- `panelContext.self` is the `*ownerView` of the page (`internal/ui/panel.go:24`). The page sets it
   when it builds the resting panel (`owner.go:461`), and the panel fragment route sets it when the
   requested node is the owner's own node and the owner document read without a problem
-  (`pages.go:720-731`).
+  (`pages.go:726-731`).
 - `panel()` sets `p.Root` through `isOwnerNode` (a node of kind instance or package whose page path
   equals the page's own) and then `p.Facts = ownerFacts(ctx.self)` (`panel.go:178-180`). A node
-  that is locked returns before this (`panel.go:157-159`).
+  that is locked returns before this (`panel.go:167-169`).
 - `ownerFacts` returns a `[]fact` (`Label`, `Value`, `Mono`) for the instance or the package; the
-  template renders `.Facts` in the not-locked `<dl class="facts">` (`panel-body.html:15`). The
+  template renders `.Facts` in the not-locked `<dl class="facts">` (`panel-body.html:12`). The
   instance's document is `ownerView.Instance`, a `*v1.Instance`, so it carries the two values once
   `InstanceSummary` has the field.
 
@@ -237,7 +237,7 @@ Reads and grants: the change adds no read. It serves the field from the `get mod
 | Normal | "Inventory 42 objects", "Inventory revision 1". |
 | Error: the document could not be read | The page is the `403`, `404` or `503` page; the panel does not render. A failed read of an inventory object (the per-kind facts of `align-owner-pages`) does not touch these two facts, which come from the owner document. |
 | Permission denied: root node locked | The locked form of the template: kind, name, a lock, no facts. |
-| Not the owner's node (package root, another page's instance node, a Pod, a component) | Neither fact. |
+| Not the owner's node (package root, a Pod, a component, any other node) | Neither fact. |
 
 ## Accessibility and layout
 
