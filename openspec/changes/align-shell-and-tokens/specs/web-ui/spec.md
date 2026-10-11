@@ -299,7 +299,10 @@ lines of the feed the tab opens with). Source: portal:D19:R4, portal:D7:R2/R3.
 
 A tab whose list the caller may not read in full, or whose source is a problem, SHALL show no
 count, never a partial one. Showing a count SHALL not add a read. A count SHALL update when the
-page's regions refresh live, without reloading the page. Source: portal:D19:R4, portal:D7:R2/R3.
+page's regions refresh live, without reloading the page, and a count that has become unreadable
+SHALL be removed by that refresh. A tab that can carry a count SHALL always draw its count element,
+empty when it shows none, so the refresh can fill or empty it. Source: portal:D19:R4,
+portal:D7:R2/R3.
 
 #### Scenario: Registrations not all readable
 
@@ -316,6 +319,12 @@ page's regions refresh live, without reloading the page. Source: portal:D19:R4, 
 
 - **WHEN** podinfo's page is open on its Graph tab and a new event about the instance arrives
 - **THEN** the Events tab's count updates without a reload, and the tabs keep working as links
+
+#### Scenario: A count goes when its source becomes a problem
+
+- **WHEN** podinfo's page shows an Events count and a live refresh finds the events unreadable
+- **THEN** the Events tab shows no count, and a later refresh that finds the events readable shows
+  the count again
 
 ### Requirement: A region a tab opens has no visible heading
 
@@ -429,11 +438,11 @@ text. Source: portal:D2:R3, portal:D19:R5.
 
 ### Requirement: An info tip can be dismissed, hovered and opened by tap
 
-An info tip SHALL show its box when its trigger has the pointer or keyboard focus. The tip SHALL be
-dismissable, hoverable and persistent: Escape closes it without moving focus, the pointer can move
-onto the box without closing it, and the box stays until the user moves away or dismisses it. A tap
-or Enter on the trigger SHALL open a closed tip and close an open one. The box holds text only.
-Source: WCAG 2.2 1.4.13, portal:D19.
+An info tip SHALL show its box when its trigger, a native button, has the pointer or keyboard
+focus. It SHALL be dismissable, hoverable and persistent: Escape closes it without moving focus, the
+pointer can reach the box, and an opened box closes when focus or the pointer leaves. A tap or Enter
+on the trigger SHALL open a closed tip and close an open one. Source: WCAG 2.2 1.4.13 and 4.1.2,
+portal:D19.
 
 #### Scenario: Opens on focus
 
@@ -445,10 +454,35 @@ Source: WCAG 2.2 1.4.13, portal:D19.
 - **WHEN** a tip is open and the user presses Escape
 - **THEN** the box is hidden, focus stays on the trigger, and no other layer closes with it
 
+#### Scenario: Escape closes one layer
+
+- **WHEN** a tip is shown while the theme menu is open and the user presses Escape twice
+- **THEN** the first press hides the tip and leaves the menu open, and the second closes the menu
+
 #### Scenario: Enter opens it again
 
 - **WHEN** the user has closed a tip with Escape and presses Enter on its trigger
 - **THEN** the box is shown again
+
+#### Scenario: Moving focus away closes it
+
+- **WHEN** a tip is open and the user presses Tab to leave its trigger
+- **THEN** the box is hidden, and it is shown again when focus returns to the trigger
+
+#### Scenario: A dismiss does not stay
+
+- **WHEN** the user closes a tip with Escape, moves focus away and returns
+- **THEN** the box is shown
+
+#### Scenario: The box holds text only
+
+- **WHEN** the tip partial renders hostile text
+- **THEN** the box shows it escaped and holds no link or control
+
+#### Scenario: The trigger is a control
+
+- **WHEN** a screen reader meets a tip's trigger
+- **THEN** it is a button that `aria-describedby` ties to the box
 
 #### Scenario: The pointer moves onto the box
 
@@ -476,6 +510,12 @@ full health by its dashed border. Source: WCAG 2.2 1.4.11, portal:D19:R3.
 - **WHEN** the stylesheet is checked
 - **THEN** a forced-colours block sets a system-colour border on the Applied badge, the Health
   badge and the partial health badge, and on the state block and the tip's box
+
+#### Scenario: Only the current tab keeps its underline
+
+- **WHEN** forced-colours mode replaces the tab strip's colours
+- **THEN** a forced-colours block gives the tabs that are not current no bottom border, so the
+  strip's baseline stays whole, and the current tab keeps a system-colour underline
 
 #### Scenario: A partial health without its hatch
 

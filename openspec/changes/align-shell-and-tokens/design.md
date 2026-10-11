@@ -312,7 +312,8 @@ the page sideways.
 
 ```go
 // tabLink is one tab. Count is shown after the label when set; nil means
-// the page holds no count it may show.
+// the page holds no count it may show. Follow is set on every tab that can
+// carry a count, whether or not the page holds one now.
 type tabLink struct {
 	Name    string // the tab= value, for the count's id
 	Label   string
@@ -324,8 +325,16 @@ type tabLink struct {
 ```
 
 ```html
-{{$t := .}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{with .Count}} <span class="tab-n" id="tab-n-{{$t.Name}}"{{with $t.Follow}} data-follow="{{.}}"{{end}}>{{.}}</span>{{end}}</a>
+<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .Follow}}{{if .Count}} {{end}}<span class="tab-n" id="tab-n-{{.Name}}" data-follow="{{.Follow}}">{{with .Count}}{{.}}{{end}}</span>{{end}}</a>
 ```
+
+A tab that can carry a count (Providers, Catalogs, Claims, Resources, Events on an owner page)
+always draws the span, empty when the page holds no count it may show, and `.tab-n:empty` draws
+nothing. The refresh skips a followed element that the new render lacks, so a span drawn only with
+a count would keep its old number when the source later became a problem; an empty span in the new
+render replaces it. A tab that never carries a count (Graph, Logs, YAML, Provider, and the Catalog
+page's Events) has no span. The count is the unfiltered total of the rows the tab holds; a filter
+does not change it (DECISIONS.md, 2026-10-11).
 
 `tabLink` also gains `Name` (the `tab=` value) and `Follow` (the topics). The live refresh
 (`portal.js:244-335`) replaces only elements that carry both an id and `data-follow`, and the tab
@@ -475,13 +484,16 @@ after this one.
 
 Two follow-on changes draw the canvas's info tooltip: `align-platform-installed-catalog` on the
 Installed provider badge, `align-owner-pages` on the identity card's Owner and Applier facts. It
-lands here, for the same reason as the state block: a `tip` partial (a `span.tip`, which is the trigger: it
-carries `tabindex="0"` and `aria-describedby` naming the box, and holds a `span.tipbox` with
-`role="tooltip"` as its last child) and its CSS, shown on `:hover` and `:focus-within`
+lands here, for the same reason as the state block: a `tip` partial (a `span.tip` that holds a native
+`<button type="button" class="tip-t">`, the trigger, which carries `aria-describedby` naming the box,
+and a `span.tipbox` with `role="tooltip"` as its last child) and its CSS, shown on `:hover` and `:focus-within`
 with no script. The box is 300 px wide on the dark ink, opens below its trigger and aligns to the
 trigger's end near the right edge. Placement inside a scrolling table is the follow-on change's
 concern (see `align-platform-installed-catalog`, "Provider badge"). The box holds text only; a
-link or a control inside a tip would need a different component.
+link or a control inside a tip would need a different component. The trigger is a native button, not a
+scripted span, so a screen reader announces a control (WCAG 2.2 4.1.2) and Enter and Space press it
+with no key handler of ours; the button's own look is reset to the words around it
+(`.tip .tip-t`).
 
 WCAG 2.2 1.4.13 asks that content shown on hover or focus can be dismissed without moving the
 pointer or focus, can be hovered, and stays until dismissed. CSS alone gives the last two: the box
@@ -493,14 +505,21 @@ CSS cannot give a dismiss, and a touch screen needs a tap. So a small set of del
 
 | Input | Effect |
 | --- | --- |
-| Escape with a tip shown | First in the Escape order, before the theme menu. Sets `is-dismissed`, leaves focus on the trigger, and `evt.preventDefault()` so no other layer closes in the same press. `is-dismissed` clears when the pointer and focus have both left the tip |
-| Enter or Space on the focused trigger | Opens a closed tip (`is-open`, clears `is-dismissed`) and closes an open one (`is-dismissed`). Space calls `preventDefault` so the page does not scroll |
-| A tap (or a click) on the trigger | The same toggle. The handler reads whether the box is shown at `pointerdown`, before focus moves: a tap focuses a trigger that has `tabindex`, and `:focus-within` alone then shows the box, so reading after the focus would close the tip the tap opened |
-| A tap or click outside every tip | Removes `is-open` |
+| Escape with a tip shown | First in the Escape order, before the theme menu. Removes `is-open`, sets `is-dismissed` only on a tip that focus or the pointer holds (a dismiss on a tip neither holds would stay, with nothing to clear it), leaves focus on the trigger, and `evt.preventDefault()` so no other layer closes in the same press |
+| Enter or Space on the trigger | The button's click, handled as a tap: opens a closed tip (`is-open`, clears `is-dismissed`) and closes an open one (`is-dismissed`). The button makes Space not scroll the page |
+| A tap (or a click) on the trigger | The same toggle. The handler reads whether the box is shown at `pointerdown`, before focus moves: a tap focuses the button, and `:focus-within` alone then shows the box, so reading after the focus would close the tip the tap opened. A touch pointer lifts no dismiss on `pointerover`, which comes just before that read |
+| Focus leaves the tip | Removes `is-open`; removes `is-dismissed` unless the pointer still rests on the tip. A box shown by Enter is gone after Tab, and Shift+Tab back shows it |
+| The pointer leaves the tip | A mouse or pen pointer: removes `is-open`; removes `is-dismissed` unless focus is in the tip. A touch pointer's leave after the tap lifts does not count |
+| Focus or a mouse pointer reaches the tip again | Removes `is-dismissed`, so the next show is not hidden |
+| A tap or click outside every tip | Removes `is-open`, and blurs a tip that still holds focus |
+
+The requirement wins over the first draft of this table, which closed an opened tip only on a tap
+or click outside: "the box stays until the user moves away" means focus or the pointer leaving
+(DECISIONS.md, 2026-10-11).
 
 If the script fails to load, the CSS base still shows the tip on hover and focus and the pointer can
 still reach the box; only Escape and the tap toggle are lost. `test/browser/tip.py` drives the
-inputs above in the three engines. No page shows a tip in this change, so the case injects the
+inputs above in the three engines, with tab-away, a dismiss that does not stay, and the Escape order against the open theme menu. No page shows a tip in this change, so the case injects the
 markup of the golden `fragment-tip.html` into the Platform page, where the real `portal.css` and
 `portal.js` act on it; each follow-on change that puts a tip on a page adds its own case there.
 
@@ -564,7 +583,10 @@ a full health. Task 3.1 gives it a dashed border; the forced-colours block makes
 explicit, and gives the two badges a `CanvasText` border. The state block (a tint and a 2 px
 border) and the tip's box (a dark fill) get a `CanvasText` border in the same block (task 4.3),
 because a tint and a fill are what that mode replaces with the page colours. A CSS test holds the
-block (tasks 3.5, 4.4); screenshots in Chromium with forced colours emulated go into the evidence
+block (tasks 3.5, 4.4). The same block marks only the current tab: forced colours paint a
+transparent border, so every tab would show the current tab's underline. A page-colour border on
+the other tabs would instead cut the strip's 1 px baseline under them (each tab overlaps it by 1
+px), so the other tabs draw no bottom border and take its 3 px as padding. Screenshots in Chromium with forced colours emulated go into the evidence
 (task 5.1). Not verified here: a pass in a real Windows high-contrast theme.
 
 ### The phone test (section 3, SH-A4)

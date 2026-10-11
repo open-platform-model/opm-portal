@@ -49,3 +49,12 @@
 - [x] 5.3 Check that `docs/design/evidence/README.md` lists the new evidence folder, and that `docs/DESIGN.md` carries portal:D19 with R6 (E0) and the R7 of 2.5b, portal:OQ26 (per-catalog resolve time and digest) and the widened portal:OQ25 that the planning PR added; cite portal:D19 in the code comments that need one (the badge partials, `tabLink`, `stateBlock`)
 - [x] 5.4 `ROADMAP.md`: under "Next in V1", the change `align-shell-and-tokens` moves to in review, naming the bug fix, the flat look and tokens, the one badge shape, tabs with counts, the state block and the tooltip; name the amendments (the contrast pairs and portal:D19:R7, the dismissable tip, forced-colours borders, the details panel in the phone test, no entrance animation); note that `align-platform-installed-catalog`, `align-owner-pages` and `align-graph` start from it, and keep the uncounted Catalog Events tab listed as an open deviation for the owner; "Last updated"
 - [x] 5.5 `task check` green, then commit `docs(ui): record the aligned shell's screenshots and move it to review`
+
+## 6. Review fixes (the three reviews of the supervisor, 2026-10-11)
+
+- [x] 6.1 The tip trigger is a native `<button>` in `span.tip` (4.1.2); an opened tip closes when focus or the pointer leaves it, Escape sets `is-dismissed` only on a held tip, and `is-dismissed` clears on the next focus or hover; `test/browser/tip.py` gains tab-away, a dismiss that does not stay and the Escape order against the open theme menu; the design's input table follows the requirement
+- [x] 6.2 `escape_test.go`: the `htmx.ajax` scan ends each call at its own closing parenthesis and reads option variables and target strings
+- [x] 6.3 `portal.css`: locked node labels take `--locked-ink`; the other tabs draw no bottom border in forced colours; table rows take `--line-soft`; `css_test.go` also reads SVG text `fill` and `var(--c)` for the border-token rule, rejects a gradient in the `background` shorthand and a `box-shadow` outside the floating layers, and asserts the 1840 px column
+- [x] 6.4 A tab that can carry a count always draws its count span, empty when there is none and hidden by `.tab-n:empty`; the owner test denies the events read; `test/browser/tabcount.py` drives a live count update, an emptied count and a restored one
+- [x] 6.5 The delta spec gains the forced-colours tab scenario, the tip scenarios for tab-away, a dismiss that does not stay, the Escape order and the button trigger, and the count scenario for a source that becomes a problem
+- [x] 6.6 All gates green again, then archive
