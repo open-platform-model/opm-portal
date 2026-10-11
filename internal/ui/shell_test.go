@@ -202,3 +202,34 @@ func TestOldListsRedirectToInstalled(t *testing.T) {
 		t.Errorf("an instance page answers %d; only the lists redirect", res.status)
 	}
 }
+
+// TestTheLiveMarkIsWorded (portal:D19:R3): the mark starts as "Not live", the
+// script words every state with a capital, and the dot does not pulse.
+func TestTheLiveMarkIsWorded(t *testing.T) {
+	body := newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body
+	live := between(body, `<p class="live"`, "</p>")
+	if !strings.Contains(live, `<span class="live-text">Not live</span>`) {
+		t.Errorf("the live mark does not start as Not live:\n%s", live)
+	}
+	script, err := os.ReadFile("static/portal.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls := regexp.MustCompile(`setLive\((?:true|false|ok), "([^"]*)"\)`).FindAllStringSubmatch(string(script), -1)
+	want := []string{"Live", "Not live", "Reconnecting", "Offline", "Signed out", "Topics refused", "Session expired, reload"}
+	seen := map[string]bool{}
+	for _, c := range calls {
+		seen[c[1]] = true
+		if !slices.Contains(want, c[1]) {
+			t.Errorf("portal.js sets the live mark to %q, which is not one of the worded states", c[1])
+		}
+	}
+	for _, w := range []string{"Live", "Reconnecting", "Offline", "Signed out", "Topics refused", "Session expired, reload"} {
+		if !seen[w] {
+			t.Errorf("portal.js never sets the live mark to %q", w)
+		}
+	}
+	if strings.Contains(string(script), "pulse") || strings.Contains(body, "pulse") {
+		t.Error("the script or the page still names pulse")
+	}
+}

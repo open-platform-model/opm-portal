@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"slices"
 	"sync/atomic"
 	"testing"
@@ -32,7 +33,7 @@ func sameClaims(a, b []ProviderClaim) bool {
 	return slices.EqualFunc(a, b, func(x, y ProviderClaim) bool {
 		px, py := x.ProviderRefMatches, y.ProviderRefMatches
 		x.ProviderRefMatches, y.ProviderRefMatches = nil, nil
-		return x == y && (px == nil) == (py == nil) && (px == nil || *px == *py)
+		return reflect.DeepEqual(x, y) && (px == nil) == (py == nil) && (px == nil || *px == *py)
 	})
 }
 
@@ -80,6 +81,10 @@ func TestF1ProviderJoin(t *testing.T) {
 		Registration: "default.backup-provider",
 		Access:       health.AccessOK,
 		Standing:     accepted.Standing,
+		// The claim's own spec.catalog, spec.version and spec.provides.
+		Catalog:  accepted.Catalog,
+		Version:  accepted.Version,
+		Provides: accepted.Provides,
 		// spec.providerRef names default/backup-provider, the holder.
 		ProviderRefMatches: ptr(true),
 	}}
@@ -90,6 +95,9 @@ func TestF1ProviderJoin(t *testing.T) {
 	if s := d.ProviderOf[0].Standing; !s.Accepted || !s.Active || s.Verdict != health.VerdictAccepted {
 		t.Errorf("standing = %+v; want accepted, active, Accepted", s)
 	}
+	if c := d.ProviderOf[0]; !c.Read() || c.Catalog != "testing.opmodel.dev/catalogs/operator/backup@v0" || c.Version != "0.1.0" || len(c.Provides) != 1 {
+		t.Errorf("claim = %+v; want it read, with the registration's catalog, version 0.1.0 and one provided contract", c)
+	}
 }
 
 // TestF1InstanceListJoin: list items carry the same claims, and their
@@ -97,7 +105,8 @@ func TestF1ProviderJoin(t *testing.T) {
 func TestF1InstanceListJoin(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	accepted := registrationNamed(t, e.platform(t), "default.backup-provider")
-	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessOK, Standing: accepted.Standing, ProviderRefMatches: ptr(true)}}
+	want := []ProviderClaim{{Registration: "default.backup-provider", Access: health.AccessOK, Standing: accepted.Standing,
+		Catalog: accepted.Catalog, Version: accepted.Version, Provides: accepted.Provides, ProviderRefMatches: ptr(true)}}
 	list, err := e.m.ListInstances(t.Context(), alice, e.grant(t, "list", moduleInstances, "", ""), "")
 	if err != nil {
 		t.Fatal(err)
@@ -218,7 +227,8 @@ func TestPackageHolder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []ProviderClaim{{Registration: readmodeltest.PackageHolderClaim, Access: health.AccessOK, Standing: claim.Standing, ProviderRefMatches: ptr(false)}}
+	want := []ProviderClaim{{Registration: readmodeltest.PackageHolderClaim, Access: health.AccessOK, Standing: claim.Standing,
+		Catalog: claim.Catalog, Version: claim.Version, Provides: claim.Provides, ProviderRefMatches: ptr(false)}}
 	if !sameClaims(p.ProviderOf, want) {
 		t.Errorf("pkg/provider providerOf = %+v; want %+v (providerRefMatches false: the reference names a ModuleInstance)", p.ProviderOf, want)
 	}
@@ -371,6 +381,9 @@ func TestProviderOfARegistrationTheClusterDoesNotHold(t *testing.T) {
 		Standing: health.Registration{Verdict: health.VerdictUnknown}}}
 	if !sameClaims(d.ProviderOf, want) {
 		t.Errorf("providerOf = %+v; want %+v with no providerRefMatches", d.ProviderOf, want)
+	}
+	if d.ProviderOf[0].Read() {
+		t.Error("a claim the cluster does not hold reads as read")
 	}
 }
 

@@ -270,12 +270,15 @@ type PackageSummary struct {
 	SourceArtifact *SourceArtifact `json:"sourceArtifact,omitempty"`
 	// DependsOn are the packages spec.dependsOn names; an absent namespace
 	// is the package's own.
-	DependsOn      []ObjectRef `json:"dependsOn,omitempty"`
-	Path           string      `json:"path,omitempty"`
-	Reconcile      Reconcile   `json:"reconcile"`
-	Health         Health      `json:"health"`
-	InventoryCount int64       `json:"inventoryCount"`
-	LastAppliedAt  *time.Time  `json:"lastAppliedAt,omitempty"`
+	DependsOn []ObjectRef `json:"dependsOn,omitempty"`
+	Path      string      `json:"path,omitempty"`
+	// Prune is spec.prune as written; absent when the package does not set
+	// it, never a default.
+	Prune          *bool      `json:"prune,omitempty"`
+	Reconcile      Reconcile  `json:"reconcile"`
+	Health         Health     `json:"health"`
+	InventoryCount int64      `json:"inventoryCount"`
+	LastAppliedAt  *time.Time `json:"lastAppliedAt,omitempty"`
 	// ProviderOf are the TransformerRegistrations the package's inventory
 	// holds; absent when it holds none.
 	ProviderOf []ProviderClaim `json:"providerOf,omitempty"`
@@ -299,6 +302,26 @@ type Package struct {
 	History            []HistoryEntry `json:"history"`
 	LastApplied        Digests        `json:"lastApplied"`
 	Components         []Component    `json:"components"`
+	// SourceState is the package's Flux source as the caller read it; absent
+	// when the package names none.
+	SourceState *SourceState `json:"sourceState,omitempty"`
+}
+
+// SourceState is a package's Flux source (OCIRepository, GitRepository or
+// Bucket) as the caller read it, with get only. Access is ok, forbidden (the
+// caller's get was refused, or the reference is malformed) or notReadable. State is absent unless Access is ok: ready, notReady,
+// noArtifact (the Ready condition is True and the source has no artifact),
+// unknown, notFound, kindNotServed or unsupportedKind. Reason, Message and
+// Revision are the Ready condition's reason and message and the artifact's
+// revision as source-controller wrote them, cut to 256, 1024 and 256
+// Unicode code points, with an ellipsis ending a cut value. The artifact's
+// URL is never served.
+type SourceState struct {
+	Access   string `json:"access"`
+	State    string `json:"state,omitempty"`
+	Reason   string `json:"reason,omitempty"`
+	Message  string `json:"message,omitempty"`
+	Revision string `json:"revision,omitempty"`
 }
 
 // Subscription is one catalog the Platform's spec subscribes to.
@@ -398,8 +421,10 @@ type ReadingAs struct {
 // reason and note folded into one, with a count and the latest time. Events
 // expire after about an hour; no state is read from them.
 type Event struct {
-	Type                string     `json:"type"`
-	Reason              string     `json:"reason"`
+	Type   string `json:"type"`
+	Reason string `json:"reason"`
+	// Note is the event's note as written, capped at 512 Unicode code
+	// points: a longer note ends in an ellipsis after its first 511.
 	Note                string     `json:"note,omitempty"`
 	ReportingController string     `json:"reportingController,omitempty"`
 	Regarding           ObjectRef  `json:"regarding"`
@@ -408,11 +433,28 @@ type Event struct {
 	LastSeen            *time.Time `json:"lastSeen,omitempty"`
 }
 
-// EventList is the recent activity about one object, newest first.
+// Event list scopes: what an EventList merges.
+const (
+	// EventScopeAll is the owner's events merged with those of every object
+	// and runtime child its inventory reaches that the caller may read.
+	EventScopeAll = "all"
+)
+
+// EventList is the recent activity about one object, newest first. For an
+// instance or package asked with scope=all it is the activity about the
+// owner and everything its inventory reaches, merged.
 type EventList struct {
 	TypeMeta
 	Regarding ObjectRef `json:"regarding"`
 	Items     []Event   `json:"items"`
+	// Scope is "all" when the list merges the owner's events with those of
+	// every object its inventory reaches; absent for one object's feed.
+	Scope string `json:"scope,omitempty"`
+	// Partial is true when some reached objects were left out: the caller
+	// may not read them, may not list events where their events live, or
+	// those events could not be listed; or when the caller may not read the
+	// runtime children of a workload. Absent otherwise.
+	Partial bool `json:"partial,omitempty"`
 }
 
 // Graph is a laid-out relationship graph: of an instance, a package or the
@@ -488,9 +530,16 @@ type GraphKindCount struct {
 // GraphGroup is what a group node stands in for: configuration, pods or
 // more.
 type GraphGroup struct {
-	Kind    string           `json:"kind"`
-	Members []string         `json:"members,omitempty"`
-	Hidden  []GraphKindCount `json:"hidden,omitempty"`
+	Kind string `json:"kind"`
+	// Family is a configuration group's kind family: crds, rbac, webhooks or
+	// other. A client that does not know one still has the group's kind,
+	// members and health.
+	Family  string   `json:"family,omitempty"`
+	Members []string `json:"members,omitempty"`
+	// ObjectKinds counts the inventory objects a configuration group's
+	// members hold, by kind, sorted by kind.
+	ObjectKinds []GraphKindCount `json:"objectKinds,omitempty"`
+	Hidden      []GraphKindCount `json:"hidden,omitempty"`
 }
 
 // GraphNode is one node. Ids are stable across restarts and never hold a
@@ -506,23 +555,25 @@ type GraphNode struct {
 	Missing bool         `json:"missing,omitempty"`
 	Health  *GraphHealth `json:"health,omitempty"`
 	// Reconcile carries state, reason, message and retrying only.
-	Reconcile        *Reconcile         `json:"reconcile,omitempty"`
-	Owner            string             `json:"owner,omitempty"`
-	RenderContracts  []string           `json:"renderContracts,omitempty"`
-	Version          string             `json:"version,omitempty"`
-	Path             string             `json:"path,omitempty"`
-	Registration     *GraphRegistration `json:"registration,omitempty"`
-	Catalog          *GraphCatalog      `json:"catalog,omitempty"`
-	Platform         *GraphPlatform     `json:"platform,omitempty"`
-	Group            *GraphGroup        `json:"group,omitempty"`
-	MemberOf         string             `json:"memberOf,omitempty"`
-	Replicas         *int64             `json:"replicas,omitempty"`
-	ChildrenUnread   bool               `json:"childrenUnread,omitempty"`
-	HiddenScaledDown int                `json:"hiddenScaledDown,omitempty"`
-	Column           int                `json:"column"`
-	Row              int                `json:"row"`
-	X                int                `json:"x"`
-	Y                int                `json:"y"`
+	Reconcile       *Reconcile         `json:"reconcile,omitempty"`
+	Owner           string             `json:"owner,omitempty"`
+	RenderContracts []string           `json:"renderContracts,omitempty"`
+	Version         string             `json:"version,omitempty"`
+	Path            string             `json:"path,omitempty"`
+	Registration    *GraphRegistration `json:"registration,omitempty"`
+	// SourceState is a package source node's state, as on the Package.
+	SourceState      *SourceState   `json:"sourceState,omitempty"`
+	Catalog          *GraphCatalog  `json:"catalog,omitempty"`
+	Platform         *GraphPlatform `json:"platform,omitempty"`
+	Group            *GraphGroup    `json:"group,omitempty"`
+	MemberOf         string         `json:"memberOf,omitempty"`
+	Replicas         *int64         `json:"replicas,omitempty"`
+	ChildrenUnread   bool           `json:"childrenUnread,omitempty"`
+	HiddenScaledDown int            `json:"hiddenScaledDown,omitempty"`
+	Column           int            `json:"column"`
+	Row              int            `json:"row"`
+	X                int            `json:"x"`
+	Y                int            `json:"y"`
 }
 
 // GraphPoint is a position in a layout.
@@ -533,7 +584,8 @@ type GraphPoint struct {
 
 // GraphEdge is one edge, with the field it was drawn from. Verified is set
 // on an edge a second source can confirm, false with Reason when it does
-// not.
+// not. Route holds four points, the corners of the elbow the edge is
+// drawn as.
 type GraphEdge struct {
 	ID       string       `json:"id"`
 	Kind     string       `json:"kind"`

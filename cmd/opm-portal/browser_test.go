@@ -5,6 +5,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -12,9 +13,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 	"github.com/open-platform-model/opm-portal/internal/auth"
@@ -148,7 +152,8 @@ func TestBrowserLogs(t *testing.T) {
 // TestBrowserTheme checks, in real browsers (task test:browser), what only
 // a browser shows: a stored Dark theme paints dark first on a light system,
 // a stored Installed filter opens filtered on a full load and on a boosted
-// navigation, and a stale stored value is dropped (portal:D14).
+// navigation, a stale stored value is dropped (portal:D14), the Instance chip
+// reads in both themes, and nothing animates in on page load (portal:D19).
 func TestBrowserTheme(t *testing.T) {
 	script := browserScript(t, "theme.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -164,7 +169,8 @@ func TestBrowserTheme(t *testing.T) {
 
 // TestBrowserGraph drives the instance graph in real browsers (task
 // test:browser): Clear selection, the Resources hand-off, a group's fit and
-// Whole graph, and the state and full screen a live refresh keeps.
+// Overview, the state and full screen a live refresh keeps, and the details
+// panel a node selection fills.
 func TestBrowserGraph(t *testing.T) {
 	script := browserScript(t, "graph.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -178,16 +184,178 @@ func TestBrowserGraph(t *testing.T) {
 	}
 }
 
+// TestBrowserOwner drives an owner page's details panel in real browsers (task
+// test:browser): the panel at rest shows the ModuleInstance, a node click fills it
+// and Clear selection brings the ModuleInstance back, the YAML tab opens on the
+// selected object, and a click on a Resources row opens the Graph focused with
+// the panel filled.
+func TestBrowserOwner(t *testing.T) {
+	script := browserScript(t, "owner.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("an owner page interaction did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// TestBrowserTabCount drives a live tab count in real browsers (task
+// test:browser): a stream event makes the page fetch its own render, and the
+// real portal.js replaces the count span with the render's, whether the count
+// changed, the source became a problem and left the span empty, or the count
+// came back (portal:D19:R3). The F1 capture is static, so the script answers
+// that fetch with the real render edited as a later render would be.
+func TestBrowserTabCount(t *testing.T) {
+	script := browserScript(t, "tabcount.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("a tab count did not follow the page: %v", err)
+			}
+		})
+	}
+}
+
+// phonePages lists the pages TestBrowserPhone opens: the non-fragment
+// paths of f1Pages in internal/ui/ui_test.go, which package main cannot
+// import, the Graph tab of each owner page, the Provider tab of the package
+// that holds a refused claim, and the not-found page. A UI change that adds
+// a page adds its path
+// here, as it adds it to f1Pages.
+var phonePages = []string{
+	"/",
+	"/?tab=providers",
+	"/?tab=catalogs",
+	"/?pstatus=refused&eresource=registration:default.refused-claim-fixture",
+	"/installed",
+	"/installed?q=backup",
+	"/installed?q=zzz",
+	"/installed?namespace=default",
+	"/installed?kind=package",
+	"/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1",
+	"/installed?health=Bogus&q=pod",
+	"/instances/default/podinfo",
+	"/instances/default/podinfo?tab=graph&focus=obj:apps/Deployment/default/podinfo-podinfo",
+	"/instances/default/podinfo?tab=resources",
+	"/instances/default/podinfo?tab=events&type=Normal",
+	"/instances/default/podinfo?tab=logs",
+	"/instances/default/podinfo?tab=yaml&object=apps/Deployment/default/podinfo-podinfo",
+	"/instances/default/backup-provider",
+	"/instances/default/backup-provider?tab=provider",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved",
+	"/catalog?path=opmodel.dev/catalogs/opm@v4",
+	"/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events",
+	"/instances/cert-manager/cert-manager?tab=resources",
+	"/instances/cert-manager/cert-manager",
+	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
+	"/instances/default/podinfo?tab=graph",
+	"/instances/cert-manager/cert-manager?tab=graph",
+	"/instances/cert-manager/cert-manager?tab=graph&expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
+	"/instances/cert-manager/cert-manager?tab=graph&group=off",
+	"/instances/default/backup-provider?tab=graph",
+	"/packages/pkg/podinfo?tab=graph",
+	"/instances/web/web",
+	"/packages/pkg/podinfo",
+	"/packages/pkg/podinfo?tab=resources",
+	"/packages/pkg/provider?tab=provider",
+	"/nope",
+}
+
+// TestBrowserPhone opens every page of phonePages at a 360 px wide viewport
+// in real browsers (task test:browser) and fails when a page's scroll width
+// is above 360. The body clips sideways overflow, so only a browser that
+// measures the layout shows content a phone would lose. The script first
+// proves the measure can fail with an element it adds that is 500 px wide.
+// A last step selects a graph node from the keyboard and measures again with
+// the details panel filled.
+func TestBrowserPhone(t *testing.T) {
+	script := browserScript(t, "phone.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			// F1 with the package that holds a refused claim, as the UI tests build it.
+			args := append([]string{browser, serveSite(t, apitest.F1PackageHolder(t))}, phonePages...)
+			if err := playwright(ctx, t, script, nil, args...); err != nil {
+				t.Fatalf("a page is wider than 360 px: %v", err)
+			}
+		})
+	}
+}
+
+// tipFragment is the golden fragment-tip.html, the tip partial's output, which
+// package main cannot import from internal/ui.
+const tipFragment = "../../internal/ui/testdata/golden/fragment-tip.html"
+
+// TestBrowserTip drives the info tip in real browsers (task test:browser):
+// focus and hover show its box, Escape hides it with focus or the pointer
+// kept where they were, Enter and Space toggle it, the pointer reaches the
+// box, and a tap opens, closes and is closed by a tap outside (WCAG 2.2
+// 1.4.13). No page shows a tip yet, so the script inserts the markup of the
+// golden fragment-tip.html into the Platform page, where the real portal.css
+// and portal.js act on it; the change that puts a tip on a page adds a case
+// on that page.
+func TestBrowserTip(t *testing.T) {
+	script := browserScript(t, "tip.py")
+	markup, err := os.ReadFile(tipFragment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), strings.TrimSpace(string(markup))); err != nil {
+				t.Fatalf("the tip did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// TestBrowserFilters drives the filter forms in real browsers (task
+// test:browser): typing in Installed's search applies after a pause and keeps
+// focus, caret and the characters typed meanwhile, and replaces the history
+// entry so Back leaves the filtered view; Enter submits once; a select
+// applies at once; the Apply button hides until it takes keyboard focus; a
+// text field applies when the user leaves it; and the new count is announced
+// once through the header's status region (PIC-L1).
+func TestBrowserFilters(t *testing.T) {
+	script := browserScript(t, "filters.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), apitest.Context); err != nil {
+				t.Fatalf("a filter form did not hold: %v", err)
+			}
+		})
+	}
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {
+	t.Helper()
+	return serveSite(t, apitest.F1(t))
+}
+
+// serveSite is serveF1Site over objs.
+func serveSite(t *testing.T, objs []*unstructured.Unstructured) string {
 	t.Helper()
 	var lc net.ListenConfig
 	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := apitest.New(t, apitest.F1(t), apitest.AllowAll)
+	srv := apitest.New(t, objs, apitest.AllowAll)
 	pages, err := ui.New(ui.Config{API: srv})
 	if err != nil {
 		t.Fatal(err)
@@ -269,8 +437,16 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 }
 
 // serveLogsPage serves, on a free loopback port, a page holding a logs
-// region shaped as the owner page renders it. Its first render lists Pod
-// a's pane, its second adds Pod b's, and every later one lists no Pod.
+// region shaped as the owner page renders it: a Pod / container select form
+// and one open pane. The page loads portal.js but not htmx, so a select
+// change is a full page load and the page's htmx:afterSettle listeners do
+// not run here; TestBrowserOwner drives the swapped select on the real page
+// (owner.py, step 8). Its first render lists Pod a's pane, its second adds
+// Pod b's, and every later one lists no Pod; a request that names a pane
+// (log=) is rendered at once, with that one pane open. The stream's topics
+// endpoint records what each stream is subscribed to, and /subs?stream=ID
+// lists it; POST /subs/reset forgets all of it, so a step starts from nothing
+// and a topic listed afterwards was subscribed in that step.
 func serveLogsPage(t *testing.T) string {
 	t.Helper()
 	var lc net.ListenConfig
@@ -282,32 +458,84 @@ func serveLogsPage(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pane := func(pod string) string {
-		return `<details class="log" id="log_` + pod + `_c" data-log-topic="log:ns/` + pod + `/c">` +
+	pane := func(pod string, open bool) string {
+		attr := ""
+		if open {
+			attr = " open"
+		}
+		return `<details class="log" id="log_` + pod + `_c" data-log-topic="log:ns/` + pod + `/c"` + attr + `>` +
 			`<summary><span class="mono">` + pod + `</span> <span class="log-container">c</span></summary>` +
 			`<div class="log-tools"><label><input type="checkbox" data-log-previous="log:ns/` + pod + `/c/previous"> Previous instance</label>` +
 			`<span class="log-state" aria-live="polite"></span></div>` +
 			`<pre class="log-pane" tabindex="0" aria-label="Log of c in ` + pod + `"></pre></details>`
 	}
-	var renders atomic.Int32
+	form := func(picked string) string {
+		opt := func(pod string) string {
+			sel := ""
+			if pod == picked {
+				sel = " selected"
+			}
+			return `<option value="log_` + pod + `_c"` + sel + `>c</option>`
+		}
+		return `<form class="filters" method="get" action="/logs" data-filters="owner-logs"><input type="hidden" name="tab" value="logs">` +
+			`<select id="f-log" name="log"><optgroup label="a">` + opt("a") + `</optgroup><optgroup label="b">` + opt("b") + `</optgroup></select>` +
+			`<button type="submit">Show</button></form>`
+	}
+	var (
+		renders atomic.Int32
+		mu      sync.Mutex
+		subs    = map[string][]string{}
+	)
 	mux := http.NewServeMux()
 	mux.Handle("/static/", pages)
-	mux.HandleFunc("/logs", func(w http.ResponseWriter, _ *http.Request) {
-		var panes, note string
-		switch renders.Add(1) {
-		case 1:
-			panes, note = pane("a"), `<p class="note">Logs stream only while a pane is open.</p>`
-		case 2:
-			panes, note = pane("a")+pane("b"), `<p class="note">Logs stream only while a pane is open.</p>`
-		default:
-			note = `<p class="muted">No Pod below this inventory that you may read.</p>`
+	mux.HandleFunc("POST /stream/{id}/topics", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Add []string `json:"add"`
+		}
+		if json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body) == nil {
+			mu.Lock()
+			subs[r.PathValue("id")] = append(subs[r.PathValue("id")], body.Add...)
+			mu.Unlock()
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("GET /subs", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		got := subs[r.URL.Query().Get("stream")]
+		if got == nil {
+			got = []string{}
+		}
+		_ = json.NewEncoder(w).Encode(got)
+	})
+	mux.HandleFunc("POST /subs/reset", func(w http.ResponseWriter, _ *http.Request) {
+		mu.Lock()
+		subs = map[string][]string{}
+		mu.Unlock()
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
+		var panes, note, picker string
+		note = `<p class="note">Logs stream only while the pane is open.</p>`
+		if pick := r.URL.Query().Get("log"); pick != "" {
+			pod := strings.TrimSuffix(strings.TrimPrefix(pick, "log_"), "_c")
+			picker, panes = form(pick), pane(pod, true)
+		} else {
+			switch renders.Add(1) {
+			case 1:
+				picker, panes = form("log_a_c"), pane("a", true)
+			case 2:
+				picker, panes = form("log_a_c"), pane("a", true)+pane("b", false)
+			default:
+				note = `<p class="muted">No Pod below this inventory that you may read.</p>`
+			}
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Content-Security-Policy", ui.PagePolicy)
 		_, _ = io.WriteString(w, `<!doctype html><meta charset="utf-8"><title>logs</title>`+
 			`<link rel="stylesheet" href="/static/portal.css">`+
-			`<body><div id="stream-events" hidden></div><main id="main" data-topics="owner:t">`+
-			`<section class="panel" id="logs" data-follow="owner:t"><h2>Logs</h2>`+
+			`<body data-stream-base="/stream"><div id="stream-events" hidden></div><main id="main" data-topics="owner:t">`+
+			`<section class="panel" id="logs" data-follow="owner:t"><h2>Logs</h2>`+picker+
 			`<div class="logs">`+panes+`</div>`+note+`</section></main>`+
 			`<script src="/static/portal.js"></script></body>`)
 	})

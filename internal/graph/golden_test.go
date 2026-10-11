@@ -22,7 +22,6 @@ const goldenDir = "testdata/golden"
 func TestGoldens(t *testing.T) {
 	c := newCluster(t, f1(t), readmodeltest.AllowAll)
 	broken := newCluster(t, f1Broken(t), readmodeltest.AllowAll)
-	cmGroup := "grp:configuration/mi/cert-manager/cert-manager"
 	cases := []struct {
 		name  string
 		build func(t *testing.T) Graph
@@ -31,7 +30,10 @@ func TestGoldens(t *testing.T) {
 			return Instance(c.instance(t, "cert-manager", "cert-manager"), Options{})
 		}},
 		{"instance-cert-manager-expanded", func(t *testing.T) Graph {
-			return Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{cmGroup}})
+			return Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{cmRBAC}})
+		}},
+		{"instance-cert-manager-all-open", func(t *testing.T) Graph {
+			return Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{cmCRDs, cmRBAC, cmWebhooks}})
 		}},
 		{"instance-podinfo-broken", func(t *testing.T) Graph {
 			return Instance(broken.instance(t, "default", "podinfo"), Options{})
@@ -46,7 +48,7 @@ func TestGoldens(t *testing.T) {
 			return Instance(c.instance(t, "default", "backup-consumer"), Options{})
 		}},
 		{"package-podinfo", func(t *testing.T) Graph {
-			return Package(c.pkg(t), Options{})
+			return Package(c.pkg(t), nil, Options{})
 		}},
 		{"platform-f1", func(t *testing.T) Graph {
 			return Platform(c.platform(t), Options{})
@@ -92,14 +94,13 @@ func compareGolden(t *testing.T, name string, got []byte) {
 func TestMeasureCertManager(t *testing.T) {
 	c := newCluster(t, f1(t), readmodeltest.AllowAll)
 	d := c.instance(t, "cert-manager", "cert-manager")
-	cmGroup := "grp:configuration/mi/cert-manager/cert-manager"
 	const runs = 200
 	for _, tc := range []struct {
 		name string
 		opts Options
 	}{
 		{"collapsed", Options{}},
-		{"expanded", Options{Expand: []string{cmGroup}}},
+		{"expanded", Options{Expand: []string{cmRBAC}}},
 	} {
 		var g Graph
 		start := time.Now()

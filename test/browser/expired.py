@@ -3,7 +3,7 @@
 Usage: python3 expired.py <browser> <page URL>
 
 The page's stream sends its open event and then its expired event. The live indicator must read
-"session expired, reload" and stay so; the server counts the stream requests, so the caller checks
+"Session expired, reload" and stay so; the server counts the stream requests, so the caller checks
 that the browser did not reconnect. Prints one line per check and exits 1 on the first failure.
 """
 
@@ -11,7 +11,7 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
-WANT = "session expired, reload"
+WANT = "Session expired, reload"
 
 
 def main() -> int:
