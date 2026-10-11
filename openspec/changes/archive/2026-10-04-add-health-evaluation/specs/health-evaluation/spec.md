@@ -12,7 +12,6 @@ The portal SHALL compute each readable object's health from the standard Kuberne
 rules (kstatus) as one of Healthy, Progressing, Degraded, Missing or Unknown: current is
 Healthy, in progress and terminating are Progressing, failed is Degraded, an object the reader
 found absent is Missing, and anything the rules cannot decide is Unknown, never a guess.
-Source: 0030:D3.
 
 #### Scenario: Healthy instance objects
 
@@ -42,7 +41,6 @@ A Pod with a container or init container waiting with reason `ErrImagePull`,
 be Degraded, and the inventory object that owns it through its chain of controller owner
 references SHALL be Degraded with the Pod's reason, even while that object's own status reports
 it available. An owner reference not marked controller SHALL NOT be followed.
-Source: 0030:D3:R2/R3.
 
 #### Scenario: Image break one minute in
 
@@ -172,7 +170,6 @@ of Accepted, Refused, Pending, RemovalBlocked or Unknown. A registration whose `
 `DependentsRemain` SHALL be RemovalBlocked and keep its accepted and active values, never
 Refused. For a TransformerRegistration the verdict, not the applied state, SHALL decide how it
 is shown: a refusal and a blocked removal are both Stalled on the applied axis.
-Source: 0030:D4:R4/R7.
 
 #### Scenario: Refused claim
 

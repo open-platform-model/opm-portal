@@ -8,8 +8,8 @@ binary prints its version. Supervisor rulings: the read-model producer and the l
 joined through `stream.Mux` in this change, and `TuneConfig` applies to the dynamic client and to
 the review client alike.
 
-Sources: 0030:D5 (local mode, R1 to R7), 0030:D6:R2 (an empty identity is refused before any
-Kubernetes call), 0030:D10 (logs). Where this design and 0030 disagree, 0030 wins.
+Sources: portal:D5 (local mode, R1 to R7), portal:D6:R2 (an empty identity is refused before any
+Kubernetes call), portal:D10 (logs). Where this design and the withdrawn portal enhancement disagree, the withdrawn portal enhancement wins.
 
 ## Goals / Non-Goals
 
@@ -39,8 +39,7 @@ opm-portal serve [--kubeconfig PATH] [--context NAME] [--addr HOST:PORT]
   `--context` empty uses the current context.
 - `--addr` defaults to `127.0.0.1:0` (a free port). The host MUST be a loopback IP literal
   (`127.0.0.0/8`, `::1`) or `localhost`, which binds `127.0.0.1`. An empty host (`:8080`), any
-  other name, and any non-loopback IP are refused with exit code 2 before the kubeconfig is read
-  (0030:D5:R2). After `net.Listen` the bound address is checked again.
+  other name, and any non-loopback IP are refused with exit code 2 before the kubeconfig is read. After `net.Listen` the bound address is checked again.
 - `--namespaces` limits the namespaced OPM kinds to those namespaces, so a user who cannot list
   them cluster-wide can still use the portal on the namespaces they can read. The
   read model already takes `Namespaces`; the flag was not in the task's list but R5 is not
@@ -77,7 +76,7 @@ One `authentication.k8s.io/v1` SelfSubjectReview at startup, with a 10 s timeout
 identity `authz.Identity.Authenticated` refuses (empty, blank, `system:anonymous`), stops the
 binary with exit 1 before it listens or reads. Local mode does not strip `system:`
 names or groups: they are the user's own credential's, unlike an identity provider's claims in
-0030:D6:R3.
+portal:D6:R3.
 
 **Authorization**: the startup review is `create` on `selfsubjectreviews`; every read after it is
 preceded by `create` on `selfsubjectaccessreviews` through `authz.NewLocal`. Those are the only
@@ -149,8 +148,7 @@ func (l *Local) Handler(next http.Handler) http.Handler
    for its own scripts and styles and nothing more.
 2. **Host allowlist**: `r.Host`, lowercased, MUST be exactly `127.0.0.1:<port>`,
    `localhost:<port>`, `[::1]:<port>` or the bound address (another `127.0.0.0/8` IP when
-   `--addr` names one); anything else is `403` before any other step
-   (0030:D5:R4). A DNS-rebinding page's requests carry the attacker's host name, so they stop
+   `--addr` names one); anything else is `403` before any other step. A DNS-rebinding page's requests carry the attacker's host name, so they stop
    here.
 3. **Cross-origin protection**: `http.NewCrossOriginProtection().Handler`, which refuses a
    non-safe method whose `Sec-Fetch-Site` or `Origin` says it came from another origin. The read
@@ -248,7 +246,7 @@ into an `api.Principal`.
 ### Launch token transport
 
 **Context**: the token must reach exactly one browser.
-**Explored**: Jupyter's launch flow (token in URL, opened through a redirect file); 0030:D5's
+**Explored**: Jupyter's launch flow (token in URL, opened through a redirect file); portal:D5's
 rejected alternative "loopback without a launch token".
 **Options considered**:
 1. Token in the URL, reusable for the process lifetime. Simple; a URL left in shell history or

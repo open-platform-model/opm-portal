@@ -37,8 +37,7 @@ pills, its verdict, and its refusal or removal-blocked reason and message. A rem
 registration SHALL show as removal blocked while still accepted and active, never as refused. A
 Platform reporting unfulfilled provider contracts SHALL show it as information, not as a failure.
 The page SHALL show the platform graph and the Platform's recent events. When the registrations
-the caller may read are not all of them, the page SHALL say so with the locked style. Source:
-0030:D4:R4/R7, 0030:D3:R8.
+the caller may read are not all of them, the page SHALL say so with the locked style.
 
 #### Scenario: The F1 platform
 
@@ -84,7 +83,6 @@ withheld SHALL render locked: a distinct locked style, a lock mark and text sayi
 not read it or the portal cannot, showing only what the API document carries, with no link to a
 detail it cannot open. A forbidden instance or package list SHALL render as a locked list with no
 count. A Secret in an inventory SHALL show that Secret data is never read, with no YAML action.
-Source: 0030:D5:R7, 0030:D7:R3.
 
 #### Scenario: A forbidden kind inside an instance
 
@@ -107,8 +105,7 @@ into one line with a count and the latest time. The feed SHALL be labelled as re
 that expires after about an hour, and the page SHALL say that render warnings are kept only as
 events. A logs panel SHALL offer each container of each Pod an inventory reaches, following its
 log topic, rendering log text as text only. The package page SHALL show the same for a
-ModulePackage, with its source and dependencies. Source: 0030:D4:R3, 0030:D9:R2/R3/R5,
-0030:D10.
+ModulePackage, with its source and dependencies.
 
 #### Scenario: podinfo's page
 
@@ -120,8 +117,7 @@ ModulePackage, with its source and dependencies. Source: 0030:D4:R3, 0030:D9:R2/
 ### Requirement: Objects can be viewed as YAML without values
 
 Selecting an object an inventory reaches SHALL show it as YAML from the read API's object
-resource, without `spec.values`, managed fields or the last-applied annotation. Source:
-0030:D8:R2/R3, 0030:D2:R4.
+resource, without `spec.values`, managed fields or the last-applied annotation.
 
 #### Scenario: podinfo's Deployment as YAML
 

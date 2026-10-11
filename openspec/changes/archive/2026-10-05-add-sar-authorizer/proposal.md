@@ -1,8 +1,7 @@
 ## Why
 
 Milestone 2 runs the portal in-cluster: people sign in, and the portal reads with its own
-ServiceAccount only after the cluster has said the signed-in person may make that read
-(0030:D6). `internal/authz` has the seam, the guards and the cache, but its only backend is the
+ServiceAccount only after the cluster has said the signed-in person may make that read. `internal/authz` has the seam, the guards and the cache, but its only backend is the
 local one, which asks with SelfSubjectAccessReviews. In-cluster a self review would answer for
 the portal's own ServiceAccount, not the person, so it is forbidden there. This
 change adds the in-cluster backend behind the same seam, so the in-cluster wiring can plug it in
@@ -67,5 +66,5 @@ None.
   verified.
 - SemVer: MINOR after 1.0 (a new authorizer). On the 0.x line it ships as `feat(authz)` and cuts
   a minor release.
-- Enhancement link: lands 0030:D6 R1, R2, R4, R7 and R9 on the authorizer side and R3's last line
+- Enhancement link: lands portal:D6 R1, R2, R4, R7 and R9 on the authorizer side and R3's last line
   of defence; D6 is not claimed until OIDC sign-in and identity mapping land.

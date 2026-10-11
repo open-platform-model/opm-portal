@@ -8,7 +8,7 @@ topic-change request. This change fixes the contract both depend on, without imp
 
 The design draws on the portal architecture's stream section (one multiplexed stream per tab,
 2 streams per session in local mode, 500 per process, per-topic ring of about 1000 entries,
-heartbeat every 15 s, idle close after 30 min). Where that sketch and 0030 differ, 0030 wins; the
+heartbeat every 15 s, idle close after 30 min). Where that sketch and the withdrawn portal enhancement differ, the withdrawn portal enhancement wins; the
 one deviation from the sketch (in-band snapshot instead of a bare `resync`) is argued below.
 
 ## Goals / Non-Goals
@@ -214,7 +214,7 @@ replayed. Anything else opens a fresh stream with the URL's topics.
 **Context**: a reader may list instances in only some namespaces. Should that reader follow the
 cluster-wide `instances` topic, or must it require a cluster-wide `list`? And may event ids
 number every published change broker-wide? This is a design ruling by the swarm supervisor
-within 0030:D7:R2 and 0030:D5:R5, not an owner decision. It replaces an earlier ruling for
+within portal:D7:R2 and portal:D5:R5, not an owner decision. It replaces an earlier ruling for
 option (a), which rested on a wrong premise: that the read model filters a `GET` list per item.
 It does not. The merged `read-model` spec says "A list SHALL contain only items within the
 namespace scope of the caller's list grant", and `ListInstances` requires a covering list grant.
@@ -243,7 +243,7 @@ activity from gaps in the ids.
 
 ### How a reconnect learns it missed too much
 
-**Context**: 0030:D2:R5 asks that a reconnect "resumes from its last event or is told to
+**Context**: portal:D2:R5 asks that a reconnect "resumes from its last event or is told to
 re-read"; the architecture sketch sends a `resync` event and the client re-GETs.
 **Explored**: the architecture's stream section; the ordering of a re-GET against the live stream.
 **Options considered**:

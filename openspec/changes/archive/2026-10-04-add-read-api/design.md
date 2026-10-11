@@ -9,9 +9,9 @@ subscriber, with one send funnel that re-validates grants before each write; a `
 interface the read side implements). This change serves all of it over HTTP.
 
 Evidence: the F1 capture in `testdata/clusters/f1/` (opm-operator v1.0.0-beta.6), with the
-image-break samples from enhancement 0030 experiment 01 in `internal/health/testdata/`.
+image-break samples from the withdrawn portal enhancement experiment 01 in `internal/health/testdata/`.
 
-Supervisor rulings this design follows (not owner decisions): the API owns the 0030:D7:R4 gate
+Supervisor rulings this design follows (not owner decisions): the API owns the portal:D7:R4 gate
 for events; `Catalog.Registrations` is exposed as `claimants` and the contributing registration
 is the graph's accepted-and-active join; messages are verbatim in milestone 1 with the caveat
 below; paths are cluster-parameterized with only `default` served; the platform graph's provider
@@ -78,7 +78,7 @@ each item `{type, reason, note, reportingController, regarding, fieldPath, count
 `Graph` is `{apiVersion, kind, scope, root, layout, nodes, edges}`. `Removed` is
 `{apiVersion, kind, ref}`. Times are RFC 3339 and omitted when unknown, never a zero time.
 
-The operator's axis is named `reconcile` on the wire, as enhancement 0030's design names the
+The operator's axis is named `reconcile` on the wire, as the withdrawn portal enhancement's design names the
 block; its states are the applied axis (`Applied`, `Reconciling`, `Failed`, `Stalled`,
 `Suspended`, `ManagedExternally`, `Unknown`).
 
@@ -121,7 +121,7 @@ this, or the portal does not serve it."), so a caller cannot tell which check fa
 the object exists. Problem `type` is `about:blank` with the status's reason phrase
 as `title`; `code` is the machine-readable part. A problem carries no `instance` member: echoing
 the path would make the refusal for an existing object and a missing one differ by their names,
-and one constant body is simpler to hold to 0030:D7:R1.
+and one constant body is simpler to hold to portal:D7:R1.
 
 ### D-c: The identity seam
 
@@ -236,7 +236,7 @@ in V1 are small.
 
 ### Events gate: same denial as forbidden
 
-**Context**: 0030:D7:R4 says refuse as "not in inventory"; the supervisor ruled the API returns
+**Context**: portal:D7:R4 says refuse as "not in inventory"; the supervisor ruled the API returns
 the forbidden denial instead.
 **Options considered**: 1. 404 `not_in_inventory` - tells an allowed caller the object exists
 outside OPM. 2. The forbidden document.
@@ -245,15 +245,15 @@ add it.
 
 ### List denial: empty list, not 403
 
-**Context**: 0030:D7:R2 wants an empty list with no count; Principle IV wants degraded reads
+**Context**: portal:D7:R2 wants an empty list with no count; Principle IV wants degraded reads
 shown as degraded.
 **Decision**: `200`, `items: []`, `access: forbidden`. The stream refuses a list topic outright,
 as the broker already does.
 
-### Messages verbatim (0030:OQ8)
+### Messages verbatim
 
 Condition messages, history messages and event notes are served as written. Whether the
-operator's embedded kernel redacts marked secret paths in them is open (0030:OQ8). In local mode
+operator's embedded kernel redacts marked secret paths in them is open. In local mode
 the portal reveals nothing the user's kubeconfig cannot already read with `kubectl`; milestone 2
 must decide before the in-cluster release. The OpenAPI description states the caveat in plain
 words.

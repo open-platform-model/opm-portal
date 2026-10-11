@@ -11,7 +11,7 @@ Evidence used throughout:
   v1.0.0-beta.6): five ModuleInstances (one CLI-owned), one ModulePackage without Flux, the
   Platform, an accepted and a deliberately refused TransformerRegistration, 59 inventory objects
   and their ReplicaSets and Pods, and `events.k8s.io/v1` events.
-- The ApplyFailed instance from enhancement 0030 experiment 01, already in
+- The ApplyFailed instance from the withdrawn portal enhancement experiment 01, already in
   `internal/health/testdata/mi-apply-failed.yaml`; F1 holds no failed apply.
 - The experiment 01 report: per-request graph reads cost 7.4 to 9.4 s at client-go's default
   QPS 5 (observation 12); ReplicaSets and Pods carry `module-instance.opmodel.dev/name` but not
@@ -32,7 +32,7 @@ Evidence used throughout:
   T4 events) plus the polling fallback, behind one type, `readmodel.Model`.
 - Every public read takes the caller's identity and a grant and checks it before reading; every
   read inside a view is authorized for the caller on its own.
-- Stripping per 0030:D8 at the point objects enter memory, so no later layer can leak them.
+- Stripping per portal:D8 at the point objects enter memory, so no later layer can leak them.
 - Views shaped for the portal, built from held state.
 - Latency and memory on the F1 set measured and recorded here.
 
@@ -73,7 +73,7 @@ operator's typed API is not needed either.
 
 ### Authorization: who reads, and whose grant covers it
 
-**Context**: 0030:D7 wants every read authorized before lookup; 0030:D5:R7 wants every read in
+**Context**: portal:D7 wants every read authorized before lookup; portal:D5:R7 wants every read in
 local mode preceded by an allowed SelfSubjectAccessReview for the exact attributes. The read
 model reads twice over: its informers list and watch for everyone, and each caller is served from
 that shared state.

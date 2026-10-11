@@ -15,7 +15,7 @@ any code reads the cluster.
   that covers only its own identity and read until its decision expires, a typed `*DenialError`
   with a closed set of codes, and the `Authorizer` interface.
 - Fail-closed guards that run before any backend call: an empty, blank or anonymous identity is
-  refused with no Kubernetes call (the 0030:D6:R2 rule, applied in both milestones), any verb other
+  refused with no Kubernetes call (the portal:D6:R2 rule, applied in both milestones), any verb other
   than `get`, `list` or `watch` is refused, any subresource other than none, `status` or `log` is
   refused (exec, attach, portforward and proxy open streams), core `secrets` are refused whatever
   the caller's RBAC, and malformed or wildcard attributes are refused.
@@ -56,11 +56,11 @@ None.
 - SemVer: MINOR after 1.0 (new internal capability, nothing removed). Nothing user-visible
   changes, so the PR title, which the squash commit carries, is `chore(authz)`, and the 0.x
   line cuts no release for it. Branch commits typed `fix` or `test` do not reach `main`.
-- Enhancement link: lands the seam for 0030:D7 (the R1 refusal at Check); the M1 halves of
-  0030:D5 and 0030:D6 are guards and backends only. No decision is claimed (`enhancement.yaml`):
-  the change that completes 0030:D7 with a read path claims it.
+- Enhancement link: lands the seam for portal:D7 (the R1 refusal at Check); the M1 halves of
+  portal:D5 and portal:D6 are guards and backends only. No decision is claimed (`enhancement.yaml`):
+  the change that completes portal:D7 with a read path claims it.
 
 Not in this change: the in-cluster SubjectAccessReview backend and identity mapping (changes
 `add-sar-authorizer`, `add-oidc-sessions`), resolving the kubeconfig's identity at startup and
-the launch token (`add-local-mode`), list filtering and per-item access states (0030:D7:R2/R3,
+the launch token (`add-local-mode`), list filtering and per-item access states (portal:D7:R2/R3,
 `add-read-model` and `add-read-api`), and the not-in-inventory refusal.

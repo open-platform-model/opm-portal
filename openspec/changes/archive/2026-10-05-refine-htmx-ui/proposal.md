@@ -55,5 +55,5 @@ problems visible in the screenshots. No test failed if a page stopped escaping c
 - Principle V: unchanged. The new fields are the portal's own text and a function of the
   condition's type and status.
 - SemVer: MINOR after 1.0 (additive API fields); on the 0.x line it rides PR 22's `feat(ui)`.
-- Enhancement link: refines 0030:D2:R1, 0030:D3:R1/R3/R8, 0030:D4 and 0030:D5:R7 as shown on the
+- Enhancement link: refines portal:D2:R1, portal:D3:R1/R3/R8, portal:D4 and portal:D5:R7 as shown on the
   pages. See `enhancement.yaml`.

@@ -13,7 +13,7 @@ Evidence used throughout:
   stuck at `SourceNotReady`, and the deliberately refused claim `default.refused-claim-fixture`
   whose `spec.providerRef` names an instance that does not exist and whose `spec.catalog` is in
   no registry.
-- The image-break samples from enhancement 0030 experiment 01, already in
+- The image-break samples from the withdrawn portal enhancement experiment 01, already in
   `internal/health/testdata/` (`mi-podinfo-image-broken.yaml`,
   `objects-podinfo-phase4-broken-1min.yaml`): two ReplicaSets, one Pod waiting on
   `ErrImagePull`. F1 holds no broken rollout.
@@ -44,7 +44,7 @@ Evidence used throughout:
   SVG writer lives in a test file and exists so a reviewer can look at a golden layout.
 - Assembling the platform graph's provider lookups from the read model (which grants to ask
   for): the API handler does it, because grants are its job.
-- Requires edges, and a column of consumer instances: 0030:D4:R3 defers them until the operator
+- Requires edges, and a column of consumer instances: portal:D4:R3 defers them until the operator
   records provider demand.
 
 ## Authorization
@@ -174,7 +174,7 @@ of the right node, control points at the horizontal midpoint.
 
 ### Registration to catalog: spec or registry
 
-**Context**: The task brief says the edge comes from the registration's spec; 0030:D4 says from
+**Context**: The task brief says the edge comes from the registration's spec; portal:D4 says from
 "the registry entries a registration contributed". F1's refused claim names a catalog that is in
 no registry.
 **Options considered**:
@@ -188,12 +188,12 @@ that contributed it, so a duplicate claim on a contributed catalog (refused with
 The edge is drawn only for a registration that is accepted and active, the set the operator folds
 into the registry (`platform_controller.go:335`), at the version the entry resolved. The
 registration node keeps `spec.catalog` as text either way.
-**Rationale**: 0030 wins over the brief, and an edge the record does not support is worse than
-none (0030:D4 rationale).
+**Rationale**: The withdrawn portal enhancement wins over the brief, and an edge the record does not support is worse than
+none (portal:D4 rationale).
 
 ### Provider cross-check
 
-**Context**: 0030:D4:R2 wants the disagreement shown when the reference and the provider's
+**Context**: portal:D4:R2 wants the disagreement shown when the reference and the provider's
 inventory disagree. In F1 the refused claim's provider does not exist.
 **Decision**: The `providedBy` edge is always drawn and carries `verified`. It is verified only
 when the provider instance was read and its inventory holds a TransformerRegistration of that

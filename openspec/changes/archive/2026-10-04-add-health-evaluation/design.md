@@ -5,7 +5,7 @@ read model already holds and returns values; it reads nothing from a cluster, ke
 starts no goroutine. Its callers arrive later (the read model computes instance health on every
 watch event; the read API and the UI show both axes).
 
-Evidence used throughout: the live capture of enhancement 0030, experiment 01 (Kubernetes
+Evidence used throughout: the live capture of the withdrawn portal enhancement, experiment 01 (Kubernetes
 v1.36.1, opm-operator v1.0.0-beta.5, phases 3 to 6 plus the registration phases 7 to 9), copied
 into `internal/health/testdata/`, and opm-operator `main` at 8d34b6b
 (`internal/status/conditions.go`, `api/v1alpha1/*_types.go`, `go.mod`).
@@ -74,13 +74,13 @@ with the error as the message rather than guessing.
 
 ### Object health: kstatus plus the Pod rule
 
-**Context**: 0030:D3 names kstatus for per-object health and adds one Pod rule.
+**Context**: portal:D3 names kstatus for per-object health and adds one Pod rule.
 **Explored**: kstatus `Compute` run over every captured object (spike, section 1).
 **Options considered**:
 1. kstatus alone - refuted by the capture: one minute after the image break kstatus says the
    Deployment is `InProgress` ("Updated: 1/2"), and it turns `Failed` only at
    `ProgressDeadlineExceeded` (phase 5, about 600 s).
-2. kstatus plus a Pod rule propagated to the owning inventory workload - what 0030:D3 decides.
+2. kstatus plus a Pod rule propagated to the owning inventory workload - what portal:D3 decides.
 3. Re-implementing per-kind rules - disagrees with the operator and with Flux, more code.
 **Decision**: option 2, kstatus from `github.com/fluxcd/cli-utils` v1.2.2, the version
 opm-operator's `go.mod` pins. Mapping: `Current` Healthy, `InProgress` Progressing, `Failed`
@@ -112,12 +112,11 @@ name) to the instance. Only entries with `Access=ok` count. `forbidden` and `not
 entries are excluded and set `Partial`. A core `Secret` entry is `withheld` whatever the
 caller passed: the package never evaluates one, and it neither counts nor makes the result
 partial. A summary with nothing counted is Unknown and not live, with a zero `EvaluatedAt`. `EvaluatedAt` is the oldest
-evaluation among counted entries, and `Live` is false when any counted entry is not live
-(0030:D3:R5). Counts per state and per non-ok access ride along for the list pages.
+evaluation among counted entries, and `Live` is false when any counted entry is not live. Counts per state and per non-ok access ride along for the list pages.
 
 ### Applied axis
 
-**Context**: the operator's conditions say what it applied; 0030:D3 shows them as their own
+**Context**: the operator's conditions say what it applied; portal:D3 shows them as their own
 axis. Evidence: `internal/status/conditions.go` (`MarkReconciling` sets `Reconciling=True` and
 `Ready=Unknown`; `MarkStalled` sets `Stalled=True` and `Ready=False`; `MarkManagedExternally`
 sets `Ready=Unknown/ManagedExternally`) and the captured samples.
@@ -138,7 +137,7 @@ sets `Ready=Unknown/ManagedExternally`) and the captured samples.
 8. Otherwise (no Ready condition, an unknown kind): Unknown.
 `Since` is the deciding condition's `lastTransitionTime`. Informational notes, which never move
 the state: `ContractsFulfilled=False` on a Platform (normal on a fresh install, observation 11)
-and `Drifted=True`. `status.failureCounters` is never read (observation 6, 0030:D3:R7).
+and `Drifted=True`. `status.failureCounters` is never read (observation 6, portal:D3:R7).
 **Rationale**: Stalled and Failed carry the reason a person acts on; ManagedExternally and
 Suspended are deliberate states that would otherwise read as faults.
 
@@ -146,7 +145,7 @@ Suspended are deliberate states that would otherwise read as faults.
 
 From `status.accepted` and `status.active` (absent means false, observation 9), never from the
 condition pair. Verdict: `Ready` reason `DependentsRemain` is RemovalBlocked
-(phase 9: accepted and active stay true, 0030:D4:R7); otherwise `accepted` is Accepted; otherwise
+(phase 9: accepted and active stay true, portal:D4:R7); otherwise `accepted` is Accepted; otherwise
 `Ready=False` is Refused with its reason; `Ready=Unknown` is Pending
 (`ProviderInventoryPending` or reconciling); no `Ready` is Unknown. The `Active` condition's
 reason and message ride along, because `ProviderNotReady` explains an accepted, inactive claim.
@@ -181,7 +180,7 @@ Secret it is handed.
 - [The copied reason list drifts from the operator] → the opt-in parity test, run locally
   against a checkout; moving the constants into the operator's `api/` package (a proposed operator change)
   would turn the copy into an import.
-- [The Pod rule's reason list is closed] → it is exactly the list 0030:D3 names; a new reason
+- [The Pod rule's reason list is closed] → it is exactly the list portal:D3 names; a new reason
   needs a decision, not a code edit.
 - [A Pod mid-deletion with a waiting reason marks its workload Degraded for its grace period]
   → accepted: the rule as decided does not look at deletion, and the window is seconds.

@@ -65,10 +65,9 @@ None.
   milestone 1.
 - SemVer: MINOR after 1.0 (new internal capability). Nothing user-visible, so the PR title is
   `chore(readmodel)` and the 0.x line cuts no release.
-- Enhancement link: contributes to 0030:D3:R9, 0030:D7:R2/R3, 0030:D8:R1/R2/R3 and 0030:D9:R3/R4
+- Enhancement link: contributes to portal:D3:R9, portal:D7:R2/R3, portal:D8:R1/R2/R3 and portal:D9:R3/R4
   at the read-model layer; no decision completes here, so `enhancement.yaml` claims none.
 
 Not in this change: wire types and JSON names (`add-read-api`), the graph (`add-graph-model`),
-change streams and the T4 watch (`add-stream-broker`), YAML views, the not-in-inventory refusal
-(0030:D7:R4), wiring into the binary and resolving the kubeconfig identity (`add-local-mode`),
+change streams and the T4 watch (`add-stream-broker`), YAML views, the not-in-inventory refusal, wiring into the binary and resolving the kubeconfig identity (`add-local-mode`),
 and the in-cluster reader identity (milestone 2).

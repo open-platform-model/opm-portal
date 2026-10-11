@@ -2,8 +2,7 @@
 
 The owner asked to see "what is installed in the cluster and status + events logs, and ability to
 view the resources, with a generated DAG showing the relationships", and decided that a versioned
-JSON/SSE read API is the durable contract from day one, with the HTMX UI as its first consumer
-(0030:D2). Everything below the API is on `main`: authorization (`internal/authz`), the read model
+JSON/SSE read API is the durable contract from day one, with the HTMX UI as its first consumer. Everything below the API is on `main`: authorization (`internal/authz`), the read model
 (`internal/readmodel`), health, the graph model and the SSE broker. Nothing serves any of it over
 HTTP yet, so neither the UI (`add-htmx-ui`) nor local mode (`add-local-mode`) can start. This is
 the portal's first user-visible surface and its first release, 0.1.0.

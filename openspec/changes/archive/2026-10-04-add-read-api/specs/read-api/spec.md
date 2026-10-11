@@ -48,8 +48,7 @@ SHALL embed a raw custom-resource status. An instance and a package SHALL carry 
 applied state (`reconcile`: state, reason, message, since) and the portal's workload health
 (`health`: state, per-state and per-access counts, `partial`, `evaluatedAt`, `live`) as two
 separate blocks, never one merged status. Enumerated values SHALL be documented as open: a
-client is told to treat an unknown value as unknown and to ignore unknown fields. Source:
-0030:D2:R3/R4, 0030:D3:R1.
+client is told to treat an unknown value as unknown and to ignore unknown fields.
 
 #### Scenario: Both axes on an applied, degraded instance
 
@@ -86,8 +85,7 @@ an object that does not exist SHALL receive `404` with code `not_found`.
 
 A list resource SHALL authorize `list` on its kind in its scope: cluster-wide, or the namespace a
 `namespace` query parameter names. When that is denied it SHALL answer `200` with an empty
-`items` and `access: forbidden`, and no count or name of a hidden item. Source: 0030:D7:R2,
-0030:D5:R5.
+`items` and `access: forbidden`, and no count or name of a hidden item.
 
 #### Scenario: A namespace-scoped list
 

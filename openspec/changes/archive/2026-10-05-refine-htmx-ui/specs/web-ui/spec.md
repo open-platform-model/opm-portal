@@ -107,8 +107,7 @@ apart from the live ones. The feed SHALL be labelled as recent activity that exp
 an hour, and the page SHALL say that render warnings are kept only as events. A logs panel SHALL
 offer each container of each Pod an inventory reaches, following its log topic, rendering log
 text as text only, and each Pod row SHALL link to its log. The package page SHALL show the same
-for a ModulePackage, with its source and dependencies. Source: 0030:D4:R3, 0030:D9:R2/R3/R5,
-0030:D10.
+for a ModulePackage, with its source and dependencies.
 
 #### Scenario: podinfo's page
 

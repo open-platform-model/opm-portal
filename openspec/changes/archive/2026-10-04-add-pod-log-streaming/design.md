@@ -8,9 +8,9 @@ controller chain reaches an inventory object) inside its instance and package vi
 caller. The read API and its object-topic producer are built in parallel (P7) and are not
 imported here: this change integrates only through `stream.Producer`.
 
-Sources: 0030:D10 (contract), the V1 architecture's logs section (defaults: tail 200 lines, max
+Sources: portal:D10 (contract), the V1 architecture's logs section (defaults: tail 200 lines, max
 2000; 16 KiB line cap; 256 KiB/s per topic; 1 MiB initial-tail cap; 4 log topics per session, 50
-per process). Where they disagree, 0030 wins.
+per process). Where they disagree, the withdrawn portal enhancement wins.
 
 ## Goals / Non-Goals
 
@@ -33,7 +33,7 @@ per process). Where they disagree, 0030 wins.
 ### Reachability is a per-identity admission step in the broker
 
 **Context**: The topic's read (`get pods/log`) is identity-free and static, but reachability
-depends on the caller ("an inventory object the caller may read") and needs a lookup. 0030:D7
+depends on the caller ("an inventory object the caller may read") and needs a lookup. portal:D7
 says authorize before lookup and give one denial for missing and forbidden.
 
 **Options considered**:
@@ -101,11 +101,11 @@ func (m *Model) ReachPod(ctx context.Context, who authz.Identity, g authz.Grant,
 
 The Pod is found among the namespace's runtime children as the caller may list them; its
 `module-instance.opmodel.dev/name` label names candidate instances and packages (any namespace,
-from held state, since the label carries no namespace, 0030:OQ12); each candidate's inventory is
+from held state, since the label carries no namespace, portal:OQ12); each candidate's inventory is
 evaluated for the caller and the Pod must appear among an entry's runtime children. Not reached
 and some kind unavailable, or an owner check the authorizer could not decide, is `ErrUnavailable`,
 not `ErrNotReachable` (Principle IV); a forbidden owner is skipped. Reach requires the caller to
-read the owning ModuleInstance or ModulePackage as well as `pods/log`: 0030:D10:R1 narrowed as the
+read the owning ModuleInstance or ModulePackage as well as `pods/log`: portal:D10:R1 narrowed as the
 spec says (supervisor ruling). Evidence: the
 F1 capture's podinfo Deployment, ReplicaSet and Pods (`testdata/clusters/f1`).
 
@@ -134,8 +134,8 @@ func ClientSource(c kubernetes.Interface) Source // CoreV1().Pods(ns).Get / GetL
 ```
 
 `PodLogOptions{Container, Follow: !previous, Previous: previous, Timestamps: true, TailLines:
-cap}`. **`LimitBytes` is never set** (0030:D10: it ends a followed stream outright). The task text
-asked for `limitBytes`; 0030:D10 is the contract and wins. Bounds in the reader instead:
+cap}`. **`LimitBytes` is never set** (portal:D10: it ends a followed stream outright). The task text
+asked for `limitBytes`; portal:D10 is the contract and wins. Bounds in the reader instead:
 
 | Bound | Default | Effect |
 | --- | --- | --- |
@@ -156,7 +156,7 @@ stamped before the stream opened that arrives later is live. A log topic's resum
 by `LogRingBytes` (2 MiB) as well as `RingSize`, so it cannot hold 1000 lines of 16 KiB; object
 and list topics keep their `RingSize`-only ring.
 
-`MarkerDelay` (250 ms), `BufferBytes` (1 MiB) and `LogRingBytes` (2 MiB) are not in 0030:D10 or
+`MarkerDelay` (250 ms), `BufferBytes` (1 MiB) and `LogRingBytes` (2 MiB) are not in portal:D10 or
 the V1 architecture; they were accepted by supervisor ruling on 2026-10-04. The portal enforces
 D10's bounds itself and never sets `limitBytes` (same ruling).
 

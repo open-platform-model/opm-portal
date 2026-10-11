@@ -13,8 +13,7 @@ the portal's own ServiceAccount, at startup and per TTL.
 
 **Goals:**
 
-- An in-cluster backend that asks as the person through `subjectaccessreviews` only
-  (0030:D6:R9), behind the unchanged seam.
+- An in-cluster backend that asks as the person through `subjectaccessreviews` only, behind the unchanged seam.
 - The reader's grant from a review naming the portal's ServiceAccount, renewed by the cache TTL.
 - No path on which a person is answered as the portal's ServiceAccount: an empty identity, a
   system username and a system group are refused before any call.
@@ -25,8 +24,8 @@ the portal's own ServiceAccount, at startup and per TTL.
 - OIDC sign-in, bearer tokens, identity mapping, prefixes: the in-cluster
   wiring change. That change also adds the `--service-account` flag and a request id; this change
   adds no flag and no command.
-- Hiding condition and event messages in-cluster (owner decision on 0030:OQ8) and the
-  per-subscriber change comparison (supervisor ruling on 0030:OQ20): read API and stream changes.
+- Hiding condition and event messages in-cluster (owner decision on portal:OQ8) and the
+  per-subscriber change comparison (supervisor ruling on portal:OQ20): read API and stream changes.
 
 ## Decisions
 
@@ -81,7 +80,7 @@ in-cluster only `subjectaccessreviews` may be created.
 1. Trust the ServiceAccount's role: issue the reader a grant with no review. Adds an exception
    to "only a decision issues a grant" and hides a missing role behind failed reads.
 2. A SubjectAccessReview naming the ServiceAccount (owner's choice).
-3. A SelfSubjectAccessReview from the ServiceAccount: forbidden in-cluster by 0030:D6:R9.
+3. A SelfSubjectAccessReview from the ServiceAccount: forbidden in-cluster by portal:D6:R9.
 **Decision**: option 2, through the same `Checker`. The read model already asks for the reader's
 grant before it starts each informer (at startup) and before each poll and on-demand list; the
 cache reuses an allow for one TTL and then asks again, so the review recurs per TTL with no new
@@ -108,7 +107,7 @@ people and the reader.
 
 ### Access log in the Checker
 
-**Context**: 0030:D6:R7 asks for one record per authorized and per denied read, per person,
+**Context**: portal:D6:R7 asks for one record per authorized and per denied read, per person,
 because the API server's audit log sees only the ServiceAccount.
 **Decision**: `Checker.Check` logs one `Info` line, message `access`, after it decides, with
 `user`, `verb`, `group`, `version`, `resource`, `subresource`, `namespace`, `name`, `decision`
@@ -133,7 +132,7 @@ the wiring change).
   the portal; a wrong name makes the reader's reviews answer for another subject, while the reads
   themselves still run as the real ServiceAccount, so the API server stays the boundary. The flag
   overrides it.
-- [The access log grows with every per-item check of a view] -> it is the record 0030:D6:R7
+- [The access log grows with every per-item check of a view] -> it is the record portal:D6:R7
   asks for; cached decisions are marked so they can be filtered.
 - [A person with no `system:authenticated` group is reviewed without it] -> the review then
   under-reports access, which fails closed; identity mapping adds it.

@@ -2,7 +2,7 @@
 
 `main` has every part of the portal's read path (authorization, read model, graph, health, the
 change stream, pod logs and the `/api/v1alpha1` handlers) but the binary only prints its version:
-nobody can use any of it. Milestone 1 of enhancement 0030 is the portal running on the user's
+nobody can use any of it. Milestone 1 of the withdrawn portal enhancement is the portal running on the user's
 machine against their kubeconfig, with their RBAC as the boundary and no login code.
 This change is that runnable binary.
 
@@ -67,6 +67,6 @@ This change is that runnable binary.
   the server.
 - SemVer: MINOR after 1.0 (a new command). On the 0.x line it ships as `feat(local)` and cuts a
   minor release.
-- Enhancement link: lands 0030:D5 R1 to R6 (R7, locked nodes shown, waits for the UI, so D5 is
-  not claimed here) and completes 0030:D10: the logs producer landed its requirements behind the
+- Enhancement link: lands portal:D5 R1 to R6 (R7, locked nodes shown, waits for the UI, so D5 is
+  not claimed here) and completes portal:D10: the logs producer landed its requirements behind the
   broker, and this change serves its topics on the read API.

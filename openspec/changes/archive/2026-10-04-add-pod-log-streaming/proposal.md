@@ -1,6 +1,6 @@
 ## Why
 
-The owner asked for "status + events logs" next to each module's resources. Enhancement 0030:D10
+The owner asked for "status + events logs" next to each module's resources. Decision portal:D10
 fixes the rules: logs stream only for Pods an OPM inventory reaches through workload ownership,
 the user's `pods/log` access is confirmed before a stream starts and again on every reconnect,
 and the portal bounds each stream itself instead of using the API server's byte limit, which ends
@@ -61,5 +61,5 @@ a followed stream outright. The stream broker (`add-stream-broker`) reserved the
   clock; `golang.org/x/time/rate` is not imported for one use.
 - SemVer: MINOR after 1.0 (a new capability). Nothing user-visible until the read API mounts the
   stream, so the PR title is `chore(logs)` and the 0.x line cuts no release for it.
-- Enhancement link: implements 0030:D10 whole (R1 to R4) at the stream layer. No decision is
+- Enhancement link: implements portal:D10 whole (R1 to R4) at the stream layer. No decision is
   claimed in `enhancement.yaml`: D10 becomes observable only once the read API serves the stream.

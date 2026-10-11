@@ -78,8 +78,7 @@ the object as the cluster returns it, without `metadata.managedFields`, the
 ModulePackage, `spec.values`. The reads SHALL be authorized as the events about one object are,
 before any lookup: `get` on the owner, then `get` on the object; a kind the cluster does not
 serve, an object the owner's inventory does not reach, and a core Secret SHALL each be refused
-`403` with code `forbidden`, a Secret before any review about it. Source: 0030:D7:R4,
-0030:D8:R1/R2/R3, 0030:D2:R4.
+`403` with code `forbidden`, a Secret before any review about it.
 
 #### Scenario: podinfo's Deployment
 

@@ -1,6 +1,6 @@
 ## Why
 
-Milestone 2 of enhancement 0030 runs the portal in-cluster for many people, so it must know who
+Milestone 2 of the withdrawn portal enhancement runs the portal in-cluster for many people, so it must know who
 each request is before it can ask a SubjectAccessReview on their behalf. Local mode
 borrows the kubeconfig's identity; in-cluster there is no such identity, and the bug class this
 must avoid is concrete: CVE-2026-23990 let empty OIDC claims in the Flux Operator UI fall through
@@ -18,8 +18,7 @@ closed. The in-cluster command that wires it is a later change.
   `SameSite=Lax`); `POST /auth/logout` deletes the session and, when the issuer advertises one,
   sends the browser to its end-session endpoint.
 - Bearer JWTs in `Authorization`: accepted only when signed by the issuer's keys, naming the
-  configured audience and unexpired; anything else is refused with no Kubernetes call
-  (0030:D6:R8). Signing keys are cached and refetched on an unknown key at most once per interval.
+  configured audience and unexpired; anything else is refused with no Kubernetes call. Signing keys are cached and refetched on an unknown key at most once per interval.
 - Identity mapping from configurable username and groups claims and prefixes: an empty username
   claim is refused before prefixing, a `system:` username is refused, every `system:` group is
   stripped and `system:authenticated` is added. A regression test for
@@ -59,5 +58,5 @@ None. Local mode is unchanged.
   portal's own rate-limited key set.
 - SemVer: MINOR after 1.0 (a new capability, nothing changed). On the 0.x line it ships as
   `feat(auth)`.
-- Enhancement link: lands 0030:D6:R2/R3/R5/R6/R8 on the authentication side. D6 is not claimed:
+- Enhancement link: lands portal:D6:R2/R3/R5/R6/R8 on the authentication side. D6 is not claimed:
   R1, R4, R7 and R9 belong to the SubjectAccessReview authorizer and the in-cluster command.

@@ -46,7 +46,7 @@ SHALL stop covering any read when the decision it was issued from expires.
 
 The portal SHALL refuse, with an unauthenticated denial and without any Kubernetes call made on
 its behalf, every read for an identity whose username is empty, blank or `system:anonymous`,
-whatever groups, UID or extra values it carries. Source: 0030:D6:R2, applied in both milestones.
+whatever groups, UID or extra values it carries. The rule applies in both milestones.
 
 #### Scenario: Groups without a username
 
@@ -65,7 +65,7 @@ whatever groups, UID or extra values it carries. Source: 0030:D6:R2, applied in 
 The portal SHALL refuse, without asking the cluster, any request whose verb is not `get`, `list`
 or `watch`, any request whose subresource is not empty, `status` or `log` (a `get` on `exec`,
 `attach`, `portforward` or `proxy` opens a stream into a workload or node), any request on core
-`secrets` whatever the caller's RBAC (Source: 0030:D8:R1), and any request with an empty verb or
+`secrets` whatever the caller's RBAC, and any request with an empty verb or
 resource or a wildcard in any attribute.
 
 #### Scenario: Write verb
@@ -97,8 +97,7 @@ resource or a wildcard in any attribute.
 The portal SHALL treat an access review that fails, times out, or reports an evaluation error
 without allowing as a denial with an `unavailable` code, never as an allow. An explicit deny SHALL
 win over an allow, and a review with no opinion SHALL be a denial. The refusal's message SHALL NOT
-carry the failure's own text, which can name the API server, users, roles or objects. Source:
-0030:D6:R4.
+carry the failure's own text, which can name the API server, users, roles or objects.
 
 #### Scenario: Review call fails
 

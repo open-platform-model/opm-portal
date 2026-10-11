@@ -1,6 +1,6 @@
 ## Context
 
-Enhancement 0030, experiment 01 captured a released operator on throwaway podman kind clusters
+The withdrawn portal enhancement, experiment 01 captured a released operator on throwaway podman kind clusters
 (2026-10-04): CLI v1.0.0-beta.7 installed operator v1.0.0-beta.5, the Platform subscribed
 `opmodel.dev/catalogs/opm@v4` 4.5.2, and the inputs were cert-manager, podinfo, two hand-applied
 registrations, a ModulePackage without Flux and a CLI-owned `web_app` instance. A second cluster
@@ -204,7 +204,7 @@ v1.0.0-beta.2 or later; the released beta.5 operator refuses it `CatalogUnresolv
 (experiment 01, phase 7).
 **Options considered**:
 1. Build the operator from `main` for the capture: tests an unreleased build, the thing
-   0030's graduation gate rules out as evidence.
+   the withdrawn portal enhancement's graduation gate rules out as evidence.
 2. Leave the backup fixtures out until a release: loses the refused-claim and
    consumer-without-provider states.
 3. Apply them and record the verdict (chosen).

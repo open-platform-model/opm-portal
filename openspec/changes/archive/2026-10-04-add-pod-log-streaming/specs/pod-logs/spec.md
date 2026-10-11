@@ -40,7 +40,6 @@ every delivery once the decision behind it has expired, and authorized again, wi
 reachability, on every reconnect. A revoked permission SHALL close the topic with `forbidden`
 within one decision lifetime plus one heartbeat interval, and no line SHALL be delivered after the
 closing. The reading identity SHALL also be allowed the read before the upstream stream opens.
-Source: 0030:D10:R2.
 
 #### Scenario: No permission, no upstream read
 
@@ -73,8 +72,7 @@ the kept lines. The initial tail SHALL be delivered once it ends, and no later t
 delay after its latest line when the container is quiet. A stream SHALL never end because of a
 byte limit. The stamps are the node's clock and the stream's opening is the portal's, so clock skew
 can count a tail line as live or an early live line as tail; either way the line SHALL stay bounded
-and, when dropped, counted. Log lines SHALL NOT appear in the portal's own logs. Source:
-0030:D10:R3.
+and, when dropped, counted. Log lines SHALL NOT appear in the portal's own logs.
 
 #### Scenario: An oversize line
 

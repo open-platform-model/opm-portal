@@ -20,7 +20,7 @@
 
 ## 4. Review fixes (PR 8)
 
-- [x] 4.1 Claim no 0030 decision in `enhancement.yaml` (0030:D7 is delivered only in part); verify the proposal's enhancement link agrees
+- [x] 4.1 Claim no portal decision in `enhancement.yaml` (portal:D7 is delivered only in part); verify the proposal's enhancement link agrees
 - [x] 4.2 Leave the cause out of `DenialError.Error()` and keep it behind `Unwrap`; verify a test that an evaluation error's text does not reach the message
 - [x] 4.3 Bind a `Grant` to its identity (`Covers(who, req)`) and expire it with its decision; verify tests for another identity, reordered groups, expiry of a fresh, a cached and an uncached grant
 - [x] 4.4 Refuse every subresource but none, `status` and `log` before any review; verify cases for exec, attach, portforward and the proxy subresources

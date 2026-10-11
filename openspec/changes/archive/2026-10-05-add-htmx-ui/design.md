@@ -5,10 +5,10 @@ local mode's front door (`internal/auth`: launch token, session cookie, Host all
 `http.CrossOriginProtection`, `Content-Security-Policy: default-src 'none'`). The launch answers
 with a meta-refresh page that moves on to the instance list JSON. There is no HTML.
 
-Sources: 0030:D2 (the UI consumes the API in-process from the same documents), 0030:D3 (two
-axes), 0030:D4 (graphs, contracts as text, accepted and active apart), 0030:D5:R7 (locked shown
-up front), 0030:D8 (no Secret data, no values, no last-applied), 0030:D9 (events feed)
-(logs). Owner: "Go API + HTMX on top"; "Keep the seam". Where this design and 0030 disagree, 0030
+Sources: portal:D2 (the UI consumes the API in-process from the same documents), portal:D3 (two
+axes), portal:D4 (graphs, contracts as text, accepted and active apart), portal:D5:R7 (locked shown
+up front), portal:D8 (no Secret data, no values, no last-applied), portal:D9 (events feed)
+(logs). Owner: "Go API + HTMX on top"; "Keep the seam". Where this design and the withdrawn portal enhancement disagree, the withdrawn portal enhancement
 wins.
 
 ## Goals / Non-Goals
@@ -57,7 +57,7 @@ through a new `internal/api/apitest` helper.
 
 **Research & Decisions**
 
-**Context**: 0030:D2 says the UI renders from the API's documents in-process.
+**Context**: portal:D2 says the UI renders from the API's documents in-process.
 **Options considered**:
 1. Exported Go methods on `api.Server` returning DTOs - fast, but a second entry point beside the
    HTTP handlers that can drift (a check added to one path and not the other).
@@ -91,7 +91,7 @@ read; a namespace-scoped user's launch lands on a locked Platform this way),
 `not_found` a not-found page with `404`, `unauthenticated` a sign-in page with `401` telling the
 user to open a new launch link.
 
-### Locked rendering (0030:D5:R7)
+### Locked rendering
 
 Anything the API reports with `access` `forbidden`, `notReadable` or `withheld`, a list with
 access `forbidden`, a problem `forbidden`, or a graph node whose access is not `ok`, renders with
@@ -100,7 +100,7 @@ the `locked` class: a hatched surface, a lock glyph and the words "Locked: you m
 (an inventory reference), never more, and offers no link to a detail it cannot open. A Secret in
 an inventory shows "Secret data is never read" and no YAML action.
 
-### Two axes, never merged (0030:D3)
+### Two axes, never merged
 
 Each instance and package shows two badges with different shapes so they cannot be read as one:
 **Applied** (operator state; `Applied`, `Reconciling`, `Failed`, `Stalled`, `Suspended`,
@@ -186,7 +186,7 @@ the reader, after the reader's own `get` review, and strips `metadata.managedFie
 `kubectl.kubernetes.io/last-applied-configuration` annotation and, for ModuleInstance and
 ModulePackage, `spec.values`. Unlike the held copies it keeps the bulky fields
 health drops (a Deployment's template, a ConfigMap's data): the YAML view shows the object as
-`kubectl get -o yaml` would, which is why 0030:D8:R4 documents that values rendered into
+`kubectl get -o yaml` would, which is why portal:D8:R4 documents that values rendered into
 non-Secret objects are visible. The UI renders it as YAML with `sigs.k8s.io/yaml` (already a
 module dependency).
 

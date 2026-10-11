@@ -3,7 +3,7 @@
 The portal's main promise is that a broken rollout looks broken. The operator's `Ready=True`
 means every apply succeeded, not that the workload runs: on a live cluster an instance whose new
 Pod could not pull its image stayed `Ready=True`, and its Deployment `Available=True`, for the
-whole ten-minute progress deadline (enhancement 0030, experiment 01, observation 3). 0030:D3
+whole ten-minute progress deadline (the withdrawn portal enhancement, experiment 01, observation 3). portal:D3
 keeps the two apart: an **Applied** axis read from the operator's conditions, and a **Health**
 axis the portal computes from live objects. Every later change that shows status (the read
 model, the graph, the read API, the UI) needs both computations, so they land first, as pure

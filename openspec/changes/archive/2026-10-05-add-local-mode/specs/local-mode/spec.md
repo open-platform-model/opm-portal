@@ -33,7 +33,6 @@ that review fails or names an empty, blank or anonymous user. Every read SHALL b
 SelfSubjectAccessReview for that identity and the read's exact attributes, and every client SHALL
 be built from the kubeconfig with no credential of the portal's own. In local mode the only
 create requests the portal sends SHALL be `selfsubjectreviews` and `selfsubjectaccessreviews`.
-Source: 0030:D5:R1/R6/R7, 0030:D6:R2.
 
 #### Scenario: An anonymous kubeconfig
 

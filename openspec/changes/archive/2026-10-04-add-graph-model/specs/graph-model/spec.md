@@ -43,7 +43,6 @@ SHALL be drawn unverified with reason `ForeignNamespace`.
 
 A graph SHALL NOT contain a contract node or an edge from an instance to a contract. An instance
 node SHALL carry the contracts its render used as text, labelled as the render's contracts.
-Source: 0030:D4:R3.
 
 #### Scenario: cert-manager's contracts
 
@@ -59,7 +58,6 @@ reason: the provider was not found, could not be read, does not hold the registr
 inventory, or was not looked up by the caller. A provider that could not be read SHALL still be
 drawn, marked with its access; one that was not looked up SHALL be drawn with no access, never a
 guessed one.
-Source: 0030:D4:R2.
 
 #### Scenario: Accepted claim
 
@@ -90,7 +88,6 @@ Source: 0030:D4:R2.
 A registration node SHALL carry `accepted` and `active` as two values, its verdict, and the
 reason and message of its Ready condition, as `internal/health` read them from the status
 fields. A blocked removal SHALL keep its verdict `RemovalBlocked`, never refused.
-Source: 0030:D4:R4/R7.
 
 #### Scenario: Refused claim
 

@@ -87,6 +87,6 @@ the web UI as its first consumer; this change is that consumer.
   vendored font files. No Go dependency.
 - SemVer: MINOR after 1.0 (new pages and additive API). On the 0.x line it ships as `feat(ui)`
   and cuts a minor release.
-- Enhancement link: completes 0030:D5 (R7, locked nodes shown up front), 0030:D4 (R3 contracts as
-  text, R4 and R7 shown on pages) and 0030:D3 (both axes shown apart, the scripted image break
+- Enhancement link: completes portal:D5 (R7, locked nodes shown up front), portal:D4 (R3 contracts as
+  text, R4 and R7 shown on pages) and portal:D3 (both axes shown apart, the scripted image break
   measured on the live UI). See `enhancement.yaml`.

@@ -58,7 +58,7 @@ None.
   survive reconnects and must not let one stalled tab hold memory or block the publisher.
 - SemVer: MINOR after 1.0 (a new internal capability). Nothing user-visible changes, so the PR
   title is `chore(stream)` and the 0.x line cuts no release for it.
-- Enhancement link: builds toward 0030:D2:R5 and the stream half of 0030:D7:R2; claims no decision
+- Enhancement link: builds toward portal:D2:R5 and the stream half of portal:D7:R2; claims no decision
   (`enhancement.yaml`), because neither is observable until the read API serves the stream.
 
 Not in this change: the `/api/v1alpha1/watch` route and its problem documents, the topic-change
