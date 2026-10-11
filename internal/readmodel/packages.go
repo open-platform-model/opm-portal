@@ -82,10 +82,20 @@ func packageItem(u *unstructured.Unstructured) PackageItem {
 		SourceArtifact: sourceArtifact(u),
 		DependsOn:      dependsOn(u),
 		Path:           str(u.Object, "spec", "path"),
+		Prune:          pruneOf(u),
 		Applied:        health.ReadApplied(u),
 		InventoryCount: inventoryCount(u, inventory(u)),
 		LastAppliedAt:  timestamp(u.Object, "status", "lastAppliedAt"),
 	}
+}
+
+// pruneOf reads spec.prune as written: nil when the package does not set it.
+func pruneOf(u *unstructured.Unstructured) *bool {
+	v, found := boolean(u.Object, "spec", "prune")
+	if !found {
+		return nil
+	}
+	return &v
 }
 
 // dependsOn reads spec.dependsOn as written.

@@ -39,6 +39,9 @@ const (
 	defaultPollWorkers  = 8
 	defaultSyncTimeout  = 10 * time.Second
 	defaultChildrenTTL  = 10 * time.Second
+	// defaultSourceKindsInterval is how often discovery is asked whether the
+	// Flux source kinds are served now.
+	defaultSourceKindsInterval = 5 * time.Minute
 
 	// tunedQPS and tunedBurst replace client-go's defaults (5 and 10). A
 	// cold instance read lists one resource per inventory kind, and the
@@ -80,6 +83,10 @@ type Config struct {
 	// ChildrenTTL is how long an on-demand list of runtime children is
 	// reused when no one holds interest in the namespace. Default 10 seconds.
 	ChildrenTTL time.Duration
+	// SourceKindsInterval is how often the Model asks discovery whether the
+	// Flux source kinds are served, one call per tick, never on a request.
+	// Default 5 minutes.
+	SourceKindsInterval time.Duration
 	// Now is the clock. Default time.Now.
 	Now func() time.Time
 }
@@ -100,6 +107,9 @@ func (c Config) withDefaults() Config {
 	}
 	if c.ChildrenTTL <= 0 {
 		c.ChildrenTTL = defaultChildrenTTL
+	}
+	if c.SourceKindsInterval <= 0 {
+		c.SourceKindsInterval = defaultSourceKindsInterval
 	}
 	if c.Now == nil {
 		c.Now = time.Now

@@ -4,14 +4,24 @@ import (
 	"sort"
 )
 
-// Layout geometry, in user units.
+// Layout geometry, in user units. The elbow of an edge turns in the middle
+// of the gutter, 24 units from either column.
 const (
-	nodeWidth  = 200
-	nodeHeight = 44
+	nodeWidth  = 216
+	nodeHeight = 72
 	colPitch   = 264 // node width plus the gutter edges run in
-	rowPitch   = 56
+	rowPitch   = 96
 	pad        = 16
 	header     = 28 // room for the column titles
+
+	// A band is drawn with a frame that overhangs the columns it spans by
+	// frameOverhang (less than half the gutter, so no elbow runs through
+	// the frame's sides), reaches bandHeader above its first row's nodes
+	// and bandFooter below its last row's. Together they fit the half-row
+	// margin the layout leaves above and below a band.
+	frameOverhang = 12
+	bandHeader    = 48
+	bandFooter    = 24
 )
 
 // layout places every node in its column and gives every edge a route.
@@ -20,12 +30,20 @@ const (
 // the first column by id, each later one by its neighbors' rows in the
 // column before (ties by id, none last), then one upward sweep by the
 // neighbors' rows in the column after (ties by the current row), which
-// moves only the nodes with such neighbors, among the rows they hold. Every
-// step is deterministic, so the same graph always lays out the same way.
+// moves only the nodes with such neighbors, among the rows they hold. The
+// source and the dependencies of a package come first in the components
+// column. A graph with an expanded configuration group is placed on one
+// row grid with the group as a band (placeBands); any other graph centers
+// each column on the tallest. Every step is deterministic, so the same
+// graph always lays out the same way.
 func layout(g *Graph, titles []string) {
 	columns := compactColumns(g, titles)
-	orderColumns(columns, g.Edges)
-	place(g, columns)
+	orderColumns(columns, g.Edges, g.Root)
+	if bands := findBands(columns); len(bands) > 0 {
+		placeBands(g, columns, bands)
+	} else {
+		place(g, columns)
+	}
 	at := make(map[string]*Node, len(g.Nodes))
 	for i := range g.Nodes {
 		at[g.Nodes[i].ID] = &g.Nodes[i]
@@ -36,7 +54,8 @@ func layout(g *Graph, titles []string) {
 }
 
 // compactColumns renumbers the columns that hold a node densely, so an
-// empty column takes no space, and returns each column's nodes.
+// empty column takes no space, and returns each column's nodes. A runtime
+// column is titled from the kinds it holds.
 func compactColumns(g *Graph, titles []string) [][]*Node {
 	var used []int
 	seen := map[int]bool{}
@@ -60,17 +79,59 @@ func compactColumns(g *Graph, titles []string) [][]*Node {
 	columns := make([][]*Node, len(used))
 	for i := range g.Nodes {
 		n := &g.Nodes[i]
-		n.Column = dense[n.Column]
+		orig := n.Column
+		n.Column = dense[orig]
 		columns[n.Column] = append(columns[n.Column], n)
 	}
+	for k, c := range used {
+		if c >= colRuntime {
+			g.Layout.Columns[k].Title = runtimeTitle(columns[k])
+		}
+	}
 	return columns
+}
+
+// runtimeTitle names a runtime column by the one kind its nodes are
+// ("ReplicaSets", "Pods", "Jobs"), or "Runtime" when it holds more. A
+// summary node of the node cap says nothing about the column.
+func runtimeTitle(col []*Node) string {
+	kinds := map[string]bool{}
+	for _, n := range col {
+		switch {
+		case n.Kind == KindRuntime && n.Ref != nil:
+			kinds[n.Ref.Kind] = true
+		case n.Kind == KindGroup && n.Group != nil && n.Group.Kind == GroupPods:
+			kinds[kindPod] = true
+		}
+	}
+	if len(kinds) == 1 {
+		for k := range kinds {
+			return k + "s"
+		}
+	}
+	return "Runtime"
+}
+
+// headRank orders the nodes that come first in the components column of a
+// package graph: its source, then the packages it depends on. Every other
+// node ranks last.
+func headRank(n *Node, root string) int {
+	switch {
+	case n.Kind == KindSource:
+		return 0
+	case n.Kind == KindPackage && n.ID != root:
+		return 1
+	}
+	return 2
 }
 
 // orderColumns sorts each column: the first by id, each later one by its
 // neighbors' rows in the column before (ties by id, none last), then one
 // upward sweep by the neighbors' rows in the column after (ties by the
-// current row), among the rows of the nodes that have such neighbors.
-func orderColumns(columns [][]*Node, edges []Edge) {
+// current row), among the rows of the nodes that have such neighbors. A
+// source and the packages a package depends on go first in their column,
+// whatever their neighbors.
+func orderColumns(columns [][]*Node, edges []Edge, root string) {
 	neighbors := map[string][]string{}
 	for i := range edges {
 		e := &edges[i]
@@ -85,12 +146,20 @@ func orderColumns(columns [][]*Node, edges []Edge) {
 	}
 	for k, col := range columns {
 		if k == 0 {
-			sort.Slice(col, func(i, j int) bool { return col[i].ID < col[j].ID })
+			sort.Slice(col, func(i, j int) bool {
+				if a, b := headRank(col[i], root), headRank(col[j], root); a != b {
+					return a < b
+				}
+				return col[i].ID < col[j].ID
+			})
 			setRows(col)
 			continue
 		}
 		keys := barycenters(col, columns[k-1], neighbors, row)
 		sort.Slice(col, func(i, j int) bool {
+			if a, b := headRank(col[i], root), headRank(col[j], root); a != b {
+				return a < b
+			}
 			if c := keys[col[i].ID].compare(keys[col[j].ID]); c != 0 {
 				return c < 0
 			}
@@ -129,7 +198,8 @@ func sweepUp(col []*Node, keys map[string]barycenter, row map[string]int) {
 }
 
 // place gives every node its row and coordinates, centering each column on
-// the tallest, and sorts the nodes by column and row.
+// the tallest, and sorts the nodes by column and row. It lays out a graph
+// with no band.
 func place(g *Graph, columns [][]*Node) {
 	maxRows := 0
 	for _, col := range columns {
@@ -143,14 +213,22 @@ func place(g *Graph, columns [][]*Node) {
 			n.Y = pad + header + offset + r*rowPitch
 		}
 	}
-	sort.Slice(g.Nodes, func(i, j int) bool {
-		if g.Nodes[i].Column != g.Nodes[j].Column {
-			return g.Nodes[i].Column < g.Nodes[j].Column
-		}
-		return g.Nodes[i].Row < g.Nodes[j].Row
-	})
+	sortNodes(g)
 	g.Layout.Width = 2*pad + max(0, len(columns)*colPitch-(colPitch-nodeWidth))
 	g.Layout.Height = 2*pad + header + max(0, maxRows*rowPitch-(rowPitch-nodeHeight))
+}
+
+func sortNodes(g *Graph) {
+	sort.Slice(g.Nodes, func(i, j int) bool {
+		a, b := &g.Nodes[i], &g.Nodes[j]
+		if a.Column != b.Column {
+			return a.Column < b.Column
+		}
+		if a.Row != b.Row {
+			return a.Row < b.Row
+		}
+		return a.Y < b.Y
+	})
 }
 
 // barycenter is the mean row of a node's neighbors in one column, kept as

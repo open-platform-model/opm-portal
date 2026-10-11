@@ -115,12 +115,25 @@ type ProviderClaim struct {
 	Access health.Access
 	// Standing is the registration's own, as the controller wrote it.
 	Standing health.Registration
+	// Catalog, Version and Provides are the registration's spec.catalog,
+	// spec.version and spec.provides: the claim's own words, read from the
+	// object the standing came from. Empty unless Read reports true.
+	Catalog  string
+	Version  string
+	Provides []string
 	// ProviderRefMatches: the owner is a ModuleInstance whose namespace and
 	// name the registration's spec.providerRef names. Always false for a
 	// ModulePackage, since the reference names a ModuleInstance. Nil when
 	// no registration was read: the caller may not read it, or the model
 	// does not hold it.
 	ProviderRefMatches *bool
+}
+
+// Read reports whether the registration was read: the caller may read
+// registrations and the cluster holds this one, so Standing and the claim's
+// catalog, version and provides mean something.
+func (c ProviderClaim) Read() bool {
+	return c.Access == health.AccessOK && c.ProviderRefMatches != nil
 }
 
 // Component is one component of an inventory with its objects, in
@@ -192,8 +205,11 @@ type PackageItem struct {
 	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.
-	DependsOn      []ObjectRef
-	Path           string
+	DependsOn []ObjectRef
+	Path      string
+	// Prune is spec.prune as written; nil when the package does not set it,
+	// never a default.
+	Prune          *bool
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64

@@ -18,10 +18,13 @@ func writeSVG(g Graph) []byte {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" font-family="sans-serif" font-size="12" role="img" aria-label="%s graph of %s">`+"\n",
 		g.Layout.Width, g.Layout.Height, g.Layout.Width, g.Layout.Height, g.Scope, esc(g.Root))
-	b.WriteString(`<defs><marker id="arrow" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L8 4L0 8z" fill="#8a8fa0"/></marker></defs>` + "\n")
 	fmt.Fprintf(&b, `<rect width="%d" height="%d" fill="#ffffff"/>`+"\n", g.Layout.Width, g.Layout.Height)
 	for _, c := range g.Layout.Columns {
 		fmt.Fprintf(&b, `<text x="%d" y="%d" fill="#667085" font-size="11" font-weight="bold">%s</text>`+"\n", c.X, pad+12, esc(strings.ToUpper(c.Title)))
+	}
+	for _, r := range bandRects(g) {
+		fmt.Fprintf(&b, `<rect x="%d" y="%d" width="%d" height="%d" rx="8" fill="none" stroke="#8a8fa0" stroke-dasharray="6 4"><title>band %s</title></rect>`+"\n",
+			r.x0, r.y0, r.x1-r.x0, r.y1-r.y0, esc(r.id))
 	}
 	for i := range g.Edges {
 		writeEdge(&b, &g.Edges[i])
@@ -44,8 +47,8 @@ func writeEdge(b *bytes.Buffer, e *Edge) {
 		dash = ` stroke-dasharray="5 4"`
 		title += " (unverified: " + e.Reason + ")"
 	}
-	fmt.Fprintf(b, `<path d="M%d %d C%d %d %d %d %d %d" fill="none" stroke="#8a8fa0" stroke-width="1.3" marker-end="url(#arrow)"%s><title>%s</title></path>`+"\n",
-		r[0].X, r[0].Y, r[1].X, r[1].Y, r[2].X, r[2].Y, r[3].X, r[3].Y, dash, esc(title))
+	fmt.Fprintf(b, `<path d="M%d %d H%d V%d H%d" fill="none" stroke="#8a8fa0" stroke-width="2"%s><title>%s</title></path>`+"\n",
+		r[0].X, r[0].Y, r[1].X, r[3].Y, r[3].X, dash, esc(title))
 }
 
 func writeNode(b *bytes.Buffer, n *Node, l Layout) {
@@ -57,8 +60,8 @@ func writeNode(b *bytes.Buffer, n *Node, l Layout) {
 	fmt.Fprintf(b, `<g transform="translate(%d %d)"><title>%s</title>`, n.X, n.Y, esc(n.ID))
 	fmt.Fprintf(b, `<rect width="%d" height="%d" rx="6" fill="#f8f9fb" stroke="%s" stroke-width="1.5"%s/>`, l.NodeWidth, l.NodeHeight, stroke, dash)
 	fmt.Fprintf(b, `<rect width="5" height="%d" rx="2" fill="%s"/>`, l.NodeHeight, stroke)
-	fmt.Fprintf(b, `<text x="12" y="17" fill="#667085" font-size="10.5">%s</text>`, esc(truncate(subtitle(n), 34)))
-	fmt.Fprintf(b, `<text x="12" y="34" fill="#101828" font-weight="bold">%s</text></g>`+"\n", esc(truncate(n.Label, 26)))
+	fmt.Fprintf(b, `<text x="12" y="22" fill="#667085" font-size="10.5">%s</text>`, esc(truncate(subtitle(n), 36)))
+	fmt.Fprintf(b, `<text x="12" y="44" fill="#101828" font-weight="bold">%s</text></g>`+"\n", esc(truncate(n.Label, 28)))
 }
 
 // subtitle is the node's kind and its states, as words, so state is never

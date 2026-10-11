@@ -1257,6 +1257,17 @@ stays out, as D17 says.
 - R4: A tab count is shown only when the page holds it without another read and it covers everything
   the tab lists; otherwise the tab shows none.
 - R5: A summary block shows a time only when its source records one for that state.
+- R6: Where a canvas value fails WCAG 2.2 AA, the floor wins. Text in the muted ink token has a
+  contrast ratio of at least 4.5:1 against every surface token it is drawn on, and the border of a
+  text input or select, empty or filled, has a ratio of at least 3:1 against its field fill and the
+  surfaces it is drawn on, in the light and the dark theme. A test of token pairs in `internal/ui`
+  holds the floor. The web-ui requirements "Muted text meets WCAG 2.2 AA contrast in both themes"
+  and "Text inputs and selects have a boundary of at least 3:1" state it.
+- R7: R6's floor holds for every token pair the redesign adds. Text in a tone's ink token has a
+  contrast ratio of at least 4.5:1 on that tone's background and tint, and so do links in the accent
+  colours on the page and surface colours, and the muted and secondary ink on every tint, in the
+  light and the dark theme. Text is never drawn in a tone's border token on its fill. The same test
+  of token pairs holds it, and a canvas value that fails yields to it.
 
 **Alternatives considered:**
 
@@ -1282,6 +1293,11 @@ rulings: the planner derived them from Principle IV and D7 and D17 (2026-10-06),
 supervisor and the owner. R4 departs from the canvas in one place, the uncounted Events tab of the
 Catalog page, which is listed as an open deviation in `ROADMAP.md` and the OpenSpec change
 `align-shell-and-tokens`. Gaps measured in [evidence 05](design/evidence/05-canvas-gap-report/).
+R6 (the contrast floor) is the owner's decision of 2026-10-11 to record the floor under D19; the
+floor ranks above any canvas value. The OpenSpec change `fix-contrast-and-add-phone-check` carries
+it. R7 extends the floor to the pairs of the tone, link and state block tokens: the owner answered
+yes on 2026-10-11, and the proposal gate of the same day ruled that it is a new requirement that
+cites R6. The OpenSpec change `align-shell-and-tokens` carries it.
 
 ### D20: A package's source is read as the caller, and its own state is shown
 
@@ -1317,6 +1333,9 @@ controller watches it and re-reconciles the package, which refreshes the package
 - R5: The portal's roles gain no rule for the source kinds in V1 (D11:R3). In a Pod run from
   `deploy/` the ServiceAccount is the caller (D13), so the source shows locked; in-cluster, a user
   the cluster allows to get the source sees it as not readable by the portal.
+- R6: The Ready condition's message is served cut to at most 1024 Unicode code points, and its
+  reason and `status.artifact.revision` to at most 256 each, in local mode and in-cluster; a longer
+  value ends with an ellipsis.
 
 **Alternatives considered:**
 
@@ -1345,6 +1364,11 @@ F1's package Ready message (`no matches for kind "OCIRepository"`) shows the not
 The kind chosen by kind alone and the no-artifact case follow `resolve.go:52,64-69,84-95`. The
 three-kind limit and R5: supervisor rulings 2026-10-06, pending the owner. The discovery timer:
 planner, 2026-10-06, pending the supervisor and the owner.
+
+R6 (the length cap) is the owner's decision of 2026-10-11 to record the cap as a new requirement
+under D20: the owner answered "yes". The three values (1024, 256 and 256 code points) are the
+supervisor's rulings of the same day on the E4 gate reviews. The OpenSpec change `align-graph`
+carries it.
 
 ## Open questions
 

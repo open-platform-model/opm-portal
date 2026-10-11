@@ -41,12 +41,15 @@ const (
 	kindReplicaSet = "ReplicaSet"
 	// kindPod is the core Pod kind, whose logs a stream reads.
 	kindPod = "Pod"
+	// resourceSecrets is the core Secrets resource, which the read model never
+	// reads.
+	resourceSecrets = "secrets"
 )
 
 // isSecret reports whether resource is core Secrets, which the read model
 // never reads (portal:D8:R1).
 func isSecret(resource schema.GroupVersionResource) bool {
-	return resource.Group == "" && resource.Resource == "secrets"
+	return resource.Group == "" && resource.Resource == resourceSecrets
 }
 
 // resolvedKind is an inventory kind resolved to the resource it is served

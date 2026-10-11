@@ -403,3 +403,40 @@ func TestDeniedNamesTheScopesTheReaderMayNotWatch(t *testing.T) {
 		t.Fatalf("Denied with every grant = %+v, want none", got)
 	}
 }
+
+// TestPackagePruneIsSpecPruneAsWritten: pkg/podinfo sets spec.prune true;
+// a package that does not set it carries none, and one that sets false
+// carries false. Never a default.
+func TestPackagePruneIsSpecPruneAsWritten(t *testing.T) {
+	objs := loadF1(t)
+	unset := find(t, objs, "ModulePackage", "podinfo").DeepCopy()
+	unset.SetName("unset")
+	unstructured.RemoveNestedField(unset.Object, "spec", "prune")
+	off := find(t, objs, "ModulePackage", "podinfo").DeepCopy()
+	off.SetName("off")
+	if err := unstructured.SetNestedField(off.Object, false, "spec", "prune"); err != nil {
+		t.Fatal(err)
+	}
+	e := newEnv(t, append(objs, unset, off), allowAll, allowAll)
+	list, err := e.m.ListPackages(t.Context(), alice, e.grant(t, "list", modulePackages, "", ""), "pkg")
+	if err != nil || len(list) != 3 {
+		t.Fatalf("ListPackages = %+v, %v", list, err)
+	}
+	got := map[string]*bool{}
+	for _, it := range list {
+		got[it.Ref.Name] = it.Prune
+	}
+	if p := got["podinfo"]; p == nil || !*p {
+		t.Errorf("pkg/podinfo prune = %v, want true", p)
+	}
+	if p := got["unset"]; p != nil {
+		t.Errorf("pkg/unset prune = %v, want none", *p)
+	}
+	if p := got["off"]; p == nil || *p {
+		t.Errorf("pkg/off prune = %v, want false", p)
+	}
+	detail, err := e.m.Package(t.Context(), alice, e.grant(t, "get", modulePackages, "pkg", "podinfo"), "pkg", "podinfo")
+	if err != nil || detail.Prune == nil || !*detail.Prune {
+		t.Errorf("Package(pkg/podinfo).Prune = %v, %v; want true", detail.Prune, err)
+	}
+}

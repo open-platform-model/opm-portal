@@ -117,7 +117,9 @@ paths:
       description: |
         Without object parameters, the events about the instance. With them, the events about
         that object, which must be in the instance's inventory or a ReplicaSet, Pod or Job below
-        an inventory object; any other object is refused with the forbidden problem.
+        an inventory object; any other object is refused with the forbidden problem. With
+        scope=all, the events about the instance merged with those of every object its inventory
+        reaches that the caller may read, and of the runtime children below them.
       parameters:
         - $ref: '#/components/parameters/cluster'
         - $ref: '#/components/parameters/namespace'
@@ -126,6 +128,7 @@ paths:
         - $ref: '#/components/parameters/objectKind'
         - $ref: '#/components/parameters/objectNamespace'
         - $ref: '#/components/parameters/objectName'
+        - $ref: '#/components/parameters/eventScope'
       responses:
         '200':
           description: The folded events, newest first.
@@ -220,6 +223,11 @@ paths:
     get:
       operationId: getPackageEvents
       summary: Recent events about a ModulePackage or an object it reaches
+      description: |
+        Without object parameters, the events about the package. With them, the events about that
+        object, as for an instance. With scope=all, the events about the package merged with
+        those of every object its inventory reaches that the caller may read, and of the runtime
+        children below them.
       parameters:
         - $ref: '#/components/parameters/cluster'
         - $ref: '#/components/parameters/namespace'
@@ -228,6 +236,7 @@ paths:
         - $ref: '#/components/parameters/objectKind'
         - $ref: '#/components/parameters/objectNamespace'
         - $ref: '#/components/parameters/objectName'
+        - $ref: '#/components/parameters/eventScope'
       responses:
         '200':
           description: The folded events, newest first.
@@ -450,6 +459,19 @@ components:
       description: Show ReplicaSets scaled to zero instead of a count on their parent.
       schema:
         type: boolean
+    eventScope:
+      name: scope
+      in: query
+      required: false
+      description: |
+        What an owner events request covers. owner, the default, is the owner's own events or,
+        with object parameters, those of one object. all merges the owner's events with those of
+        everything its inventory reaches that the caller may read; it takes no object parameters,
+        and the response says scope all. Any other value, a repeated scope, or all with object
+        parameters is a 400 bad_request.
+      schema:
+        type: string
+        x-extensible-enum: [owner, all]
     objectGroup:
       name: group
       in: query
@@ -869,6 +891,9 @@ components:
             $ref: '#/components/schemas/ObjectRef'
         path:
           type: string
+        prune:
+          description: "spec.prune as written; absent when the package does not set it, never a default."
+          type: boolean
         reconcile:
           $ref: '#/components/schemas/Reconcile'
         health:
@@ -891,6 +916,31 @@ components:
           type: string
         digest:
           type: string
+    SourceState:
+      type: object
+      description: "A package's Flux source (OCIRepository, GitRepository or Bucket) as the caller read it, with get only. The portal reads no other kind, and never the artifact's URL. The Ready condition's reason and message and the artifact's revision are served as source-controller wrote them, in local mode and in-cluster, cut to their caps; a cut value ends with an ellipsis."
+      required: [access]
+      properties:
+        access:
+          description: "Whether the caller may read the source and the portal could: ok, forbidden (the caller's get was refused, or the sourceRef names a namespace or name no object could have, so nothing was read) or notReadable (the portal's own read was refused or failed)."
+          x-extensible-enum: [ok, forbidden, notReadable]
+          type: string
+        state:
+          description: "Absent unless access is ok. ready: Ready is True and the source has an artifact. notReady: Ready is False. noArtifact: Ready is True and the source has no artifact. unknown: Ready is Unknown or absent. notFound: the source does not exist. kindNotServed: the cluster serves no such kind, as when Flux is not installed; a kind installed later is found within five minutes. unsupportedKind: the sourceRef names a kind the controller does not read."
+          x-extensible-enum: [ready, notReady, noArtifact, unknown, notFound, kindNotServed, unsupportedKind]
+          type: string
+        reason:
+          description: "The Ready condition's reason, cut to 256 Unicode code points."
+          type: string
+          maxLength: 256
+        message:
+          description: "The Ready condition's message, cut to 1024 Unicode code points."
+          type: string
+          maxLength: 1024
+        revision:
+          description: "status.artifact.revision, cut to 256 Unicode code points."
+          type: string
+          maxLength: 256
     PackageList:
       type: object
       required: [apiVersion, kind, access, items]
@@ -935,6 +985,9 @@ components:
             $ref: '#/components/schemas/ObjectRef'
         path:
           type: string
+        prune:
+          description: "spec.prune as written; absent when the package does not set it, never a default."
+          type: boolean
         reconcile:
           $ref: '#/components/schemas/Reconcile'
         health:
@@ -966,6 +1019,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Component'
+        sourceState:
+          description: "The package's source as the caller read it; absent when the package names none. It is not counted in the package's health."
+          $ref: '#/components/schemas/SourceState'
     Subscription:
       type: object
       required: [catalog]
@@ -1132,7 +1188,7 @@ components:
         reason:
           type: string
         note:
-          description: "The reporting controller's text, served unchanged in local mode. In-cluster it is absent from an event the operator reported (reportingController opm-controller, or none on an event about an opmodel.dev object), because the operator does not remove secret values from the notes it writes, and such events that differ only in their note are served as one, their counts summed. Other controllers' notes, such as the kubelet's, are served in-cluster as written."
+          description: "The reporting controller's text, capped at 512 Unicode code points: a longer note ends in an ellipsis after its first 511, cut between code points. The cap is applied before the in-cluster fold below, so two notes that share their first 511 code points are two lines in local mode that look alike, and one line in-cluster with their counts summed. Served unchanged in local mode otherwise. In-cluster it is absent from an event the operator reported (reportingController opm-controller, or none on an event about an opmodel.dev object), because the operator does not remove secret values from the notes it writes, and such events that differ only in their note are served as one, their counts summed. Other controllers' notes, such as the kubelet's, are served in-cluster as written."
           type: string
         reportingController:
           type: string
@@ -1157,6 +1213,13 @@ components:
           type: string
         regarding:
           $ref: '#/components/schemas/ObjectRef'
+        scope:
+          description: "all when the list merges the owner's events with those of the objects its inventory reaches; absent for one object's feed."
+          x-extensible-enum: [all]
+          type: string
+        partial:
+          description: "true when some reached objects were left out: the caller may not read them, may not list events where their events live, those events could not be listed, or the caller may not read the runtime children of a workload. Absent otherwise."
+          type: boolean
         items:
           type: array
           items:
@@ -1293,10 +1356,19 @@ components:
         kind:
           x-extensible-enum: [configuration, pods, more]
           type: string
+        family:
+          description: "A configuration group's kind family, from the API group of its members' objects. A client that does not know a value still has the group's kind, members and health."
+          x-extensible-enum: [crds, rbac, webhooks, other]
+          type: string
         members:
           type: array
           items:
             type: string
+        objectKinds:
+          description: "The inventory objects a configuration group's members hold, counted by kind and sorted by kind."
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphKindCount'
         hidden:
           type: array
           items:
@@ -1336,6 +1408,9 @@ components:
           type: string
         registration:
           $ref: '#/components/schemas/GraphRegistration'
+        sourceState:
+          description: "A package graph's source node: the same state as the Package document. The node's access, missing and health follow it: ready is Healthy, notReady is Degraded with the Ready reason and message, noArtifact and unknown are Unknown, notFound and kindNotServed are missing, forbidden and notReadable are locked, and an unsupported kind has no health."
+          $ref: '#/components/schemas/SourceState'
         catalog:
           $ref: '#/components/schemas/GraphCatalog'
         platform:
@@ -1387,6 +1462,7 @@ components:
         reason:
           type: string
         route:
+          description: "Four points: the start, the two corners of the elbow in the middle of the gutter between the columns, and the end. The edge is drawn as a horizontal run from the start to the first corner's x, a vertical run to the end's y and a horizontal run to the end."
           type: array
           items:
             $ref: '#/components/schemas/GraphPoint'

@@ -20,6 +20,9 @@ type builder struct {
 	byID    map[string]int
 	edges   []Edge
 	edgeIDs map[string]int
+	// claims are the owner's provider claims by registration name, for the
+	// standing an inventory registration node carries.
+	claims map[string]readmodel.ProviderClaim
 }
 
 func newBuilder(scope Scope, titles []string, opts Options) *builder {
