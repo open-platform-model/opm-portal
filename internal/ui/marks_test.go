@@ -52,3 +52,26 @@ func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
 		t.Error("the selected node is not marked")
 	}
 }
+
+// TestConfigFoldsNameTheirOwnFamily: each configuration fold of the Resources
+// tab says what its own family holds, not one sentence for all of them.
+func TestConfigFoldsNameTheirOwnFamily(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	main := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
+	notes := map[string]string{
+		`<details id="config-components">`:   "Custom resource definitions, which add kinds to the cluster",
+		`<details id="config-components-2">`: "Roles, bindings and other access rules, with no workload",
+		`<details id="config-components-3">`: "Webhook configurations, which route API requests to a service",
+	}
+	for id, want := range notes {
+		head := between(main, id, "</summary>")
+		if !strings.Contains(head, want) {
+			t.Errorf("the fold %s does not name its family: want %q in %q", id, want, head)
+		}
+		for _, other := range notes {
+			if other != want && strings.Contains(head, other) {
+				t.Errorf("the fold %s carries another family's note %q", id, other)
+			}
+		}
+	}
+}

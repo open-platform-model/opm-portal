@@ -526,7 +526,10 @@ type configGroup struct {
 	// ID is the id of the group's <details>, so a refresh keeps it open.
 	ID string
 	// Label is the group node's label, such as "17 configuration components".
-	Label      string
+	Label string
+	// Family is the group's kind family as the graph wrote it: crds, rbac,
+	// webhooks or other. It words the fold's note.
+	Family     string
 	Health     string
 	Open       bool
 	Components []componentView
@@ -590,7 +593,7 @@ func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, []configGroup
 		if n.Kind != "group" || n.Group == nil || n.Group.Kind != "configuration" {
 			continue
 		}
-		cg := configGroup{ID: "config-components", Label: n.Label, Health: "Unknown"}
+		cg := configGroup{ID: "config-components", Label: n.Label, Family: n.Group.Family, Health: "Unknown"}
 		if len(groups) > 0 {
 			cg.ID += "-" + strconv.Itoa(len(groups)+1)
 		}

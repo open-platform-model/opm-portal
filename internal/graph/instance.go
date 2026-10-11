@@ -12,7 +12,7 @@ import (
 // Columns of the instance and package scopes. A runtime child sits in the
 // column after its inventory object's plus its depth below it, less one.
 const (
-	colUpstream = iota // module, or source and dependencies
+	colUpstream = iota // module (instance graphs only)
 	colOwner
 	colComponent
 	colObject
