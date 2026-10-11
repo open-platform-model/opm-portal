@@ -75,11 +75,9 @@ status alone. Source: portal:D3:R1/R5/R6/R8, portal:D2:R3, portal:D19:R3.
 
 Text drawn with the muted ink token SHALL have a contrast ratio of at least 4.5:1 against each
 surface token it is drawn on (page, card, secondary card, field, the neutral fill and the degraded
-fill), in the light and the dark theme. Text in a tone's ink SHALL have the same ratio on that
-tone's background and tint, and so SHALL links in the accent colours on the page and surface
-colours, and the muted and secondary ink on every tint. A canvas value that fails SHALL change to
-one that passes, never the layout. The ratio is computed from the token hex values in `portal.css`
-with the WCAG relative luminance formula and is not rounded. Source: portal:D19:R6, portal:D19:R7.
+fill), in the light and the dark theme. A canvas value that fails SHALL change to one that passes,
+never the layout. The ratio is computed from the token hex values in `portal.css` with the WCAG
+relative luminance formula and is not rounded. Source: portal:D19:R6, portal:D19:R7.
 
 #### Scenario: Muted text on the page and on cards
 
@@ -91,18 +89,6 @@ with the WCAG relative luminance formula and is not rounded. Source: portal:D19:
 
 - **WHEN** a change lowers the ratio of a listed token pair under its floor in either theme
 - **THEN** the contrast test fails and names the pair, the theme and the measured ratio
-
-#### Scenario: Tone ink on its background and tint
-
-- **WHEN** the contrast test checks each tone's ink, including the locked ink, on its background
-  and its tint, in the light and the dark theme
-- **THEN** every pair is at least 4.5:1, and no rule draws text in a tone's border token on its fill
-
-#### Scenario: Links and secondary ink
-
-- **WHEN** the contrast test checks the accent and deep accent on the page and surface colours,
-  and the muted and secondary ink on every tint, in both themes
-- **THEN** every pair is at least 4.5:1
 
 ### Requirement: Text inputs and selects have a boundary of at least 3:1
 
@@ -250,6 +236,25 @@ dark. Source: portal:D19:R2.
 - **WHEN** the stylesheet is checked
 - **THEN** every tone's border, ink, background and tint token is defined on `:root` and in both
   dark blocks, and the contrast test's dark-block agreement check covers each of them
+
+### Requirement: Tone ink and link colours meet the same contrast floor
+
+Text in a tone's ink SHALL have a contrast ratio of at least 4.5:1 on that tone's background and
+tint, in the light and the dark theme. Links in the accent colours on the page and surface colours,
+and the muted and secondary ink on every tint, SHALL meet the same ratio. The ratio is computed as
+for muted text. Source: portal:D19:R7.
+
+#### Scenario: Tone ink on its background and tint
+
+- **WHEN** the contrast test checks each tone's ink, including the locked ink, on its background
+  and its tint, in the light and the dark theme
+- **THEN** every pair is at least 4.5:1, and no rule draws text in a tone's border token on its fill
+
+#### Scenario: Links and secondary ink
+
+- **WHEN** the contrast test checks the accent and deep accent on the page and surface colours,
+  and the muted and secondary ink on every tint, in both themes
+- **THEN** every pair is at least 4.5:1
 
 ### Requirement: Tabs are underlined
 
