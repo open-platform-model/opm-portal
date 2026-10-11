@@ -12,9 +12,19 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
+// catalogEventsPath is the Catalog page's Events tab of the refused claim.
+const catalogEventsPath = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events"
+
 // hostile is cluster text that would run as markup if a page did not
 // escape it.
 const hostile = `<script>alert(1)</script><img src=x onerror=alert(2)>`
+
+// hostileReason and hostileType are query values for the Catalog Events tab
+// that no cluster text repeats.
+const (
+	hostileReason = `<script>alert(3)</script>`
+	hostileType   = `<img src=x onerror=alert(4)>`
+)
 
 // poison puts hostile into every free-text field below v: messages,
 // reasons, notes and actions, at any depth, and into an annotation.
@@ -76,11 +86,22 @@ func TestClusterTextIsEscapedEverywhere(t *testing.T) {
 	// A hostile query is the viewer's own text: it is shown escaped too.
 	q := url.Values{"q": {hostile}, "health": {hostile}, "uses": {hostile}, "pq": {hostile}, "eresource": {hostile}, "reason": {hostile}}.Encode()
 	for _, path := range []string{"/installed?" + q, "/?" + q, "/?tab=catalogs&cq=" + url.QueryEscape(hostile),
-		"/instances/default/podinfo?tab=resources&" + q, "/instances/default/podinfo?tab=events&resource=" + url.QueryEscape(hostile) + "&" + q} {
+		"/instances/default/podinfo?tab=resources&" + q, "/instances/default/podinfo?tab=events&resource=" + url.QueryEscape(hostile) + "&" + q,
+		catalogEventsPath + "&type=" + url.QueryEscape(hostileType) + "&reason=" + url.QueryEscape(hostileReason)} {
 		body := s.get(t, path).body
 		for _, raw := range []string{"<script>alert", "<img src=x"} {
 			if strings.Contains(body, raw) {
 				t.Errorf("%s renders the query as markup: %q", path, raw)
+			}
+		}
+		// The Catalog Events tab carries type and reason into a hidden field,
+		// a chip and a note: each value must be there, escaped. Both differ
+		// from the cluster text, which the page escapes on its own.
+		if strings.HasPrefix(path, "/catalog") {
+			for _, want := range []string{"&lt;script&gt;alert(3)&lt;/script&gt;", "&lt;img src=x onerror=alert(4)&gt;"} {
+				if !strings.Contains(body, want) {
+					t.Errorf("%s does not show the query value escaped: %q", path, want)
+				}
 			}
 		}
 	}
@@ -269,5 +290,37 @@ htmx.ajax("GET", p, opts);`,
 		if got := ajaxCallsWithoutSelect(good); len(got) != 0 {
 			t.Errorf("%s: flagged %v, want none", name, got)
 		}
+	}
+}
+
+// TestInstalledTooltipAndSourceEscapeClusterText: the provider tooltip is
+// built from the registration's reason, and the source cell shows the
+// package's recorded revision and digest; both are cluster text, shown
+// escaped and never as markup (SR11). The tooltip of a refused claim is the
+// only one that carries a reason.
+func TestInstalledTooltipAndSourceEscapeClusterText(t *testing.T) {
+	objs := apitest.F1PackageHolder(t)
+	for _, o := range objs {
+		poison(o.Object)
+		if o.GetKind() == "ModulePackage" {
+			if err := unstructured.SetNestedField(o.Object, hostile, "status", "source", "artifactRevision"); err != nil {
+				t.Fatal(err)
+			}
+			if err := unstructured.SetNestedField(o.Object, "sha256:"+hostile, "status", "source", "artifactDigest"); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	main := mainOf(newSite(t, objs, apitest.AllowAll).get(t, "/installed").body)
+	for _, raw := range []string{"<script>alert", "<img src=x"} {
+		if strings.Contains(main, raw) {
+			t.Errorf("/installed renders cluster text as markup: %q", raw)
+		}
+	}
+	tip := between(main, `href="/packages/pkg/provider"`, "</tr>")
+	if !strings.Contains(tip, `<span class="prov prov-refused">`) || !strings.Contains(tip, "is refused: ProviderMismatch") ||
+		!strings.Contains(tip, "&lt;script&gt;alert(1)&lt;/script&gt;") || !strings.Contains(tip, `title="&lt;script&gt;alert(1)&lt;/script&gt;`) ||
+		!strings.Contains(tip, `>sha256:&lt;script&gt;`) {
+		t.Errorf("the refused claim's tooltip or the source cell does not show escaped cluster text:\n%s", tip)
 	}
 }

@@ -72,6 +72,7 @@
   --degraded-ink: #a3260f;
   --degraded-bg: #f8e0da;
   --degraded-tint: #fcefeb;
+  --degraded-row: #fdf3f0;
   --unknown: #b07814;
   --unknown-ink: #6e4700;
   --unknown-bg: #f6ead0;
@@ -149,6 +150,7 @@
     --degraded-ink: #ff9d88;
     --degraded-bg: #3a1712;
     --degraded-tint: #2a1310;
+    --degraded-row: #24110e;
     --unknown: #e3b45c;
     --unknown-ink: #f0c879;
     --unknown-bg: #33270f;
@@ -219,6 +221,7 @@
   --degraded-ink: #ff9d88;
   --degraded-bg: #3a1712;
   --degraded-tint: #2a1310;
+  --degraded-row: #24110e;
   --unknown: #e3b45c;
   --unknown-ink: #f0c879;
   --unknown-bg: #33270f;
@@ -313,6 +316,9 @@ a:hover { color: var(--accent-deep); }
   .masthead, .brand { transition: none; }
 }
 .live { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--hdr-muted); }
+/* The hidden count a filter change leaves for a screen reader (the clip
+   pattern, never display:none). */
+.live-note { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hdr-muted); }
 body.is-live .live-dot { background: var(--live-ok); }
 body.is-offline .live-dot { background: var(--live-off); }
@@ -331,7 +337,8 @@ body.is-offline .live-dot { background: var(--live-off); }
 .theme-list button { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 36px; padding: 6px 12px; border-radius: 6px; background: transparent; color: var(--hdr-strong); font-weight: 400; text-align: left; }
 .theme-list button:hover { background: var(--hdr-menu-hover); color: var(--hdr-strong); }
 .theme-list button[aria-pressed="true"] { background: var(--hdr-menu-hover); }
-.theme-list button[aria-pressed="true"]::after { content: "✓"; color: var(--hdr-accent); }
+.theme-check { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--hdr-strong); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+.theme-list button[aria-pressed="true"] .theme-check { visibility: visible; }
 
 /* ---- Page grid ---- */
 
@@ -381,7 +388,8 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 20px;
+  --panel-pad: 20px; /* a filter strip reaches past it to the panel's edges */
+  padding: var(--panel-pad);
   position: relative;
 }
 .fragment { min-width: 0; }
@@ -419,7 +427,7 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .hue-missing, .health-missing { --c: var(--missing); --c-ink: var(--missing-ink); --c-bg: var(--missing-bg); --c-tint: var(--missing-tint); }
 .hue-locked { --c: var(--locked); --c-ink: var(--locked-ink); --c-bg: var(--locked-bg); --c-tint: var(--locked-tint); }
 
-.applied, .health {
+.applied, .health, .sq {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-ui); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
   padding: 3px 9px; border: 1.5px solid var(--c); border-radius: 5px;
@@ -501,6 +509,19 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .field { flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field-search { flex: 2 1 260px; }
 .field-submit { flex: 0 0 auto; }
+/* With script the Apply button hides (the clip pattern, not display:none, so
+   Enter still has a submit button) and shows again when it takes keyboard
+   focus. The same holds for the Platform's events form, whose button is
+   "Show". */
+.opm-js form[data-filters] .field-submit:not(:focus-within) {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+/* The search box: a magnifier before the input, the box carrying the border. */
+.search-box { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--control-border); background: var(--field); }
+.search-box:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+.search-box:has(input:not([value=""])) { border-color: var(--accent); background: var(--accent-field); }
+.field .search-box input, .field .search-box input:not([value=""]) { flex: 1; min-height: 40px; padding: 0; border: 0; border-radius: 0; background: transparent; outline: none; }
+.search-icon { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--muted); stroke-width: 2; }
 .field label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
 .field input, .field select { font: inherit; font-size: 14px; min-height: 42px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--control-border); background: var(--field); color: var(--ink); min-width: 0; width: 100%; }
 .field input:not([value=""]), .field select:has(option:checked:not([value=""])) { border-color: var(--accent); background: var(--accent-field); }
@@ -514,6 +535,17 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .fclear { font-size: 13px; color: var(--accent); }
 .fnote { margin: 0; flex-basis: 100%; font-size: 13px; color: var(--ink-2); padding: 6px 10px; border: 1px dashed var(--line-strong); border-radius: 8px; overflow-wrap: anywhere; }
 .shown { margin: 0 0 10px; font-size: 14px; color: var(--ink-2); }
+/* The count row of a filter form: "Showing n of M", the chips, "Clear all". */
+.filter-chips { min-height: 32px; }
+.filter-chips .shown { margin: 0 6px 0 0; }
+.fchip-label { font-weight: 600; }
+.fclear { text-decoration: underline; }
+/* The strip variant: a flat strip inside a panel, a bottom rule, the count at
+   the end of the field row. */
+.filters-strip { margin: 0 calc(var(--panel-pad) * -1) 14px; padding: 14px 24px; gap: 8px; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+.filters-strip .field { max-width: 260px; }
+.filters-strip .field-search { max-width: none; }
+.filters-strip .filter-fields > .shown { margin: 0 0 0 auto; align-self: center; }
 .empty { padding: 32px 12px; text-align: center; }
 .empty p { margin: 6px 0; }
 .locked-group { margin-bottom: 10px; }
@@ -522,10 +554,17 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 
 /* ---- Installed ---- */
 
+/* The panel of the list keeps no padding of its own: the table runs to its
+   edges, and the notes, locked groups and the empty state pad themselves
+   (platform-28). */
+.panel-flush { padding: 0; }
+.panel-flush > :not(.table-wrap) { margin: 14px 20px; }
+
 .row-ns { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
 .kind { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap; }
 .kind-instance { border: 1.5px solid var(--kind-instance-bg); background: var(--kind-instance-bg); color: var(--kind-instance-ink); }
 .kind-package { border: 1.5px dashed var(--accent); background: var(--accent-field); color: var(--kind-package-ink); }
+.kind-icon { flex: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; }
 .prov { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 2px 8px; border-radius: 5px; border: 1.5px solid var(--neutral); color: var(--neutral-ink); background: var(--neutral-bg); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .prov-active { border-color: var(--healthy); color: var(--healthy-ink); background: var(--healthy-bg); }
 .prov-inactive, .prov-pending, .prov-blocked { border-color: var(--progressing); color: var(--progressing-ink); background: var(--progressing-bg); }
@@ -533,6 +572,69 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .prov-unknown { border-color: var(--unknown); color: var(--unknown-ink); background: var(--unknown-bg); border-style: dotted; }
 .prov-locked { border-color: var(--locked); color: var(--locked-ink); background: var(--locked-bg); border-style: dashed; }
 .prov .lock-mark { margin-top: 0; width: 12px; height: 12px; }
+/* The pill of a provider tip (Installed): 11 px, 700, uppercase, coloured by
+   standing as the design names it: pending blue, removal blocked amber,
+   accepted and not active neutral. */
+.tip .prov { margin-top: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.tip .prov .kind-icon { width: 12px; height: 12px; stroke-width: 2.4; }
+.tip .prov-inactive { border-color: var(--neutral); color: var(--neutral-ink); background: var(--neutral-bg); }
+.tip .prov-blocked { border-color: var(--unknown); color: var(--unknown-ink); background: var(--unknown-bg); }
+
+/* The kind chip with its provider badges, one under the other. */
+.kind-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* The provider badge is a native button inside the tip; the pill inside it
+   draws the badge, so the tip's dotted underline is not drawn. */
+.tip .tip-t:has(.prov), .tip .tip-t:has(.prov):hover { text-decoration: none; }
+
+/* A solid ink button, the empty state's way out. */
+.btn { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; text-decoration: none; }
+.btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.empty-title { font-size: 17px; font-weight: 600; }
+
+/* The rows of Installed. The whole row is a link: the name anchor's ::after
+   covers the row, and the tooltip trigger sits above it. From 761 px up the
+   table is fixed, with the canvas's column widths, and scrolls sideways
+   below the width where it fits; the rows become cards below. */
+.installed tr { position: relative; }
+.installed .row-link::after { content: ""; position: absolute; inset: 0; }
+.installed .row-link { color: var(--ink); }
+.installed .row-link:focus-visible { outline: none; }
+.installed tbody tr:has(.row-link:focus-visible) { outline: 3px solid var(--focus); outline-offset: -3px; }
+.installed .tip { position: relative; z-index: 1; }
+.installed tr.row-degraded { background: var(--degraded-row); }
+.installed tr.row-degraded:hover { background: var(--degraded-tint); }
+.installed .src { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.installed .ver.block { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.installed .row-ns { margin-top: 2px; }
+@media (min-width: 761px) {
+  /* Column widths are the canvas's (Kind 130, Applied 150, Health 150, Objects 80,
+     Owner 90) plus the 16 px between columns, which the cells carry as 8 px each
+     side, and the 20 px at the table's edges. */
+  .installed { table-layout: fixed; min-width: 940px; }
+  .installed .c-name { width: 14%; }
+  .installed .c-kind { width: 146px; }
+  .installed .c-applied, .installed .c-health { width: 166px; }
+  .installed .c-objects { width: 96px; }
+  .installed .c-owner { width: 118px; }
+  .installed th, .installed td { padding: 14px 8px; vertical-align: middle; }
+  .installed th:first-child, .installed td:first-child { padding-left: 20px; }
+  .installed th:last-child, .installed td:last-child { padding-right: 20px; }
+  .installed thead th { padding-block: 12px; }
+  .installed th[scope="row"] a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+  .installed .row-ns { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* Where the 940 px table fits, the wrap does not clip, so a tooltip opens
+   below its badge past the last row. Below it the wrap scrolls sideways and
+   would clip an absolute box, so the box opens in the cell's flow, pushing
+   the row's content down. */
+@media (min-width: 1040px) {
+  .installed-wrap { overflow: visible; }
+}
+@media (max-width: 1039px) {
+  .installed .tip { display: block; }
+  .installed .tipbox { position: static; inline-size: auto; max-inline-size: 300px; }
+  .installed .tipbox::before { content: none; }
+}
 
 /* ---- Platform ---- */
 
@@ -565,7 +667,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .tabs-lg a[aria-current="page"] { font-weight: 700; }
 .tab-n { font-family: var(--font-mono); font-size: 12px; font-weight: 600; line-height: 1; padding: 3px 7px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--ink-2); }
 .tab-n:empty { display: none; } /* a tab with no count keeps the span, so a live refresh can empty it, and draws no pill */
-#parts .filters, #events-panel .filters { margin-bottom: 14px; background: var(--surface-2); }
+#events-panel .filters { margin-bottom: 14px; background: var(--surface-2); }
 .holder, .claimant { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0; }
 .holder-note { margin: 4px 0 0; font-size: 0.8rem; }
 .holder-link { font-size: 0.8rem; }
@@ -599,6 +701,18 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .claims .prov { margin-top: 0; }
 .owner-tabs { margin: 4px 0 0; }
 .origin { font-size: 0.75rem; color: var(--muted); }
+/* The Catalog page: the origin pill beside the kicker, the display-font headline and the
+   path line under it (catalog-01, catalog-02). Text is drawn in the tone's ink on its fill. */
+#catalog-head .kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.origin-subscription, .origin-registration, .origin-claim {
+  display: inline-flex; align-items: center; padding: 2px 9px; border: 1.5px solid var(--c); border-radius: 999px;
+  color: var(--c-ink); background: var(--c-bg); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.origin-subscription { --c: var(--applied); --c-ink: var(--applied-ink); --c-bg: var(--applied-bg); }
+.origin-registration { --c: var(--unknown); --c-ink: var(--unknown-ink); --c-bg: var(--unknown-bg); }
+.origin-claim { --c: var(--neutral); --c-ink: var(--neutral-ink); --c-bg: transparent; border-style: dashed; }
+.catalog-path { margin: 0 0 12px; color: var(--ink-2); font-size: 13px; overflow-wrap: anywhere; }
+.crumb-here { color: var(--ink); }
 .obj-reason { font-size: 0.75rem; color: var(--ink-2); }
 .yaml-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .yaml-list a[aria-current] { font-weight: 700; color: var(--accent); }
@@ -888,4 +1002,71 @@ li.object.locked { margin: 4px 0 4px 4px; }
 @keyframes settle {
   0% { box-shadow: 0 0 0 3px var(--accent-soft); }
   100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+/* ---- Platform page (the status block, count rows, providers, catalogs, events) ---- */
+
+/* The Installed card: two columns of 40 px rows, the badge at the start and
+   the count in the tone ink at the end. The whole row is the link. */
+.count-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 0 40px; }
+.count-col { min-width: 0; }
+.count-col > .label { margin: 0 0 4px; }
+.count.count-row, .count.count-row.health, .count.count-row.applied { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 4px 0; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; background: none; text-transform: none; letter-spacing: normal; text-decoration: none; color: var(--c-ink); }
+.count.count-row:hover { background: var(--surface-2); color: var(--c-ink); }
+.count-badge { display: inline-flex; font-family: var(--font-ui); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border: 1.5px solid var(--c); border-radius: 5px; color: var(--c-ink); background: var(--c-bg); white-space: nowrap; }
+.count-row .count-n { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--c-ink); }
+#installed-card .count-row .count-n { margin-left: 0; }
+
+/* The Platform panels pad their sections, not themselves (platform-28). */
+.panel-flush > .region { margin: 0; }
+.panel-flush > .region > :not(.table-wrap) { margin: 14px 20px; }
+.panel-flush > .filters-strip { margin: 0 0 14px; }
+#installed-card .card-headline, #installed-card .count-cols { margin-inline: 20px; }
+.pf-identity .facts { grid-template-columns: 110px minmax(0, 1fr); font-size: 14px; }
+
+/* Provider and catalog rows. */
+.row-heading, .row-heading a { font-size: 13px; font-weight: 500; }
+.chip-contract { display: inline-block; max-width: 100%; margin: 1px 0; padding: 1px 9px; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent-soft); color: var(--accent-deep); font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.verdict-why[class*="hue-"] { color: var(--c-ink); }
+.providers .verdict-why .msg { display: inline; margin: 0; color: inherit; }
+.muted.block { display: block; font-size: 12px; }
+.contracts-note { padding-block: 2px; }
+.contracts-note p { margin: 2px 0; font-size: 14px; }
+.contracts-note .kicker { color: var(--unknown-ink); font-weight: 600; margin: 0; }
+.contracts-note details { margin-top: 6px; }
+.contracts-note summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+
+/* Recent events: the heading row holds the title, the Resource select and the
+   count; the table follows; the one-hour note is a footnote. */
+#events-panel .events-head { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0; padding: 14px 20px; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+#events-panel .events-head h2 { margin: 0; }
+#events-panel .events-head .filter-fields { flex: 0 1 auto; align-items: center; }
+#events-panel .events-head .field { min-width: min(260px, 100%); }
+#events-panel .events-head .shown { margin: 0 0 0 auto; }
+#events-panel .events-head .filter-chips { flex-basis: 100%; }
+#events-panel > .note { margin: 12px 20px; font-size: 12px; }
+#events > .note { margin: 14px 20px; }
+.events-table .ev-type { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.events-table .ev-warning .ev-type, .events-table tr.ev-warning .ev-type { color: var(--degraded-ink); }
+.events-table .ev-reason { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.events-table .ev-note { display: inline; margin: 0; }
+.events-table .ev-by { font-size: 12px; }
+.events-table .ev-age { white-space: nowrap; font-size: 12px; }
+.ev-resource { display: flex; flex-direction: column; gap: 1px; min-width: 0; overflow-wrap: anywhere; text-decoration: none; }
+.ev-resource .mono { font-size: 13px; }
+.ev-kind { font-size: 12px; color: var(--muted); }
+/* The providers table keeps the contract pill whole: it scrolls inside its own wrap before it squeezes the column. */
+@media (min-width: 761px) {
+  table.providers { min-width: 900px; }
+  table.providers th:nth-child(3), table.providers td:nth-child(3) { min-width: 230px; }
+}
+@media (min-width: 761px) {
+  .events-table .c-type { width: 88px; }
+  .events-table .c-reason { width: 180px; }
+  .events-table .c-resource { width: 280px; }
+  .events-table .c-age { width: 76px; text-align: right; }
+  .events-table .ev-age { text-align: right; }
+  .events-table th, .events-table td { padding: 12px 8px; }
+  .events-table th:first-child, .events-table td:first-child { padding-left: 20px; }
+  .events-table th:last-child, .events-table td:last-child { padding-right: 20px; }
 }

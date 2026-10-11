@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending; phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`align-platform-installed-catalog` reviewed, fixed and archived on its branch, PR pending; `align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending).
 
 ## Where it stands
 
@@ -85,10 +85,20 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      Open deviation for the owner's review: the Catalog page's Events tab carries no count where
      the canvas shows one, since counting it would add a read on every tab (portal:D19:R4, a
      planner reading, not a ruling).
-   - `align-platform-installed-catalog`, after the gate: Platform and Catalog state blocks with
-     reason counts, filter selects that list the values present with counts and apply as you type
-     (portal:D14:R7), Installed counted across namespaces with a package's source in the Module
-     filter, and events tables.
+   - `align-platform-installed-catalog` (reviewed, fixed and archived on its branch, PR pending; built on top of the gate): Platform and Catalog
+     state blocks with reason counts, filter selects that list the values present with counts and
+     apply as you type (portal:D14:R7), Installed counted across namespaces with a package's source
+     in the Module filter, events tables, and the Catalog page with its short-name headline, origin
+     pill, source and the "refused since" time. What it uncovered: option counts are live reads, so
+     a reader who may list only some namespaces gets no count for the lists locked to them and
+     types a namespace; the count announced after a filter change had to come from the form that
+     made the request, since the Platform page holds two counts, and each filter form's Apply button
+     needed a stable id so that tabbing out of a text field kept the user's place; the canvas Catalog block says
+     "Pulled <version> from the registry", but nothing the portal reads records a pull, so the
+     block says "In the resolved registry at <version>"; the events Age keeps the relative form
+     ("5m ago") with the absolute time in `title`; the Catalog page has no per-catalog resolve time
+     until the operator records one (portal:OQ26). Open for the owner: any canvas copy above that
+     the owner overturns.
    - `align-owner-pages`, after the gate, beside `align-graph`: Applied, Health and Provider as
      state blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
      over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, and

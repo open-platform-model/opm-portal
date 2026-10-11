@@ -112,7 +112,7 @@
       <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource"><option value=""{{if not (index .Filters.Values "resource")}} selected{{end}}>This {{$v.Kind.Topic}}</option>{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
       <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any</option>{{range .Types}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
       <div class="field"><label for="f-reason">Reason</label><input id="f-reason" name="reason" value="{{.Reason}}" placeholder="an event reason" autocomplete="off" spellcheck="false"></div>
-      <div class="field field-submit"><button type="submit">Apply filters</button></div>
+      <div class="field field-submit"><button type="submit" id="apply-owner-events">Apply filters</button></div>
     </div>
     {{with .Filters}}{{if or .Active .Ignored}}
     <div class="filter-chips">

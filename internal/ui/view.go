@@ -85,7 +85,7 @@ func slug(s string) string { return strings.ToLower(s) }
 // Applied; ManagedExternally is neutral (portal:D3:R1/R6).
 func appliedBadge(r v1.Reconcile) badge {
 	b := known("applied", appliedText, r.State)
-	if r.State == "Failed" && r.Retrying {
+	if r.State == stateFailed && r.Retrying {
 		b.Text = "Failed, retrying"
 	}
 	return b
@@ -152,6 +152,47 @@ func providerBadge(c v1.ProviderClaim) badge {
 		b.Title += ": " + c.Reason
 	}
 	return b
+}
+
+// providerPill is the provider badge of an Installed row: a pill of the
+// word "Provider" colored by the registration's standing, inside an info
+// tip whose sentence names the registration and its standing in words, from
+// what the controller wrote and never from what the portal computed
+// (portal:D15:R2/R4). The standing is also in visually hidden text. A
+// registration the caller may not read gets the locked pill and no name.
+func providerPill(c v1.ProviderClaim, id string) tipData {
+	td := tipData{ID: id, Trigger: "Provider", Icon: "plug"}
+	if c.Access != v1.AccessOK {
+		td.Pill, td.Hidden = "prov prov-locked", "standing: locked"
+		td.Text = "Holds a registration whose standing you may not read."
+		return td
+	}
+	reason := ""
+	if c.Reason != "" {
+		reason = ": " + c.Reason
+	}
+	name := "Registration " + c.Registration
+	switch {
+	case c.Verdict == verdictRemovalBlocked:
+		td.Pill, td.Hidden = "prov prov-blocked", "standing: removal blocked"
+		td.Text = name + " is accepted, removal blocked" + reason + "."
+	case c.Verdict == verdictAccepted && c.Active:
+		td.Pill, td.Hidden = "prov prov-active", "standing: active"
+		td.Text = name + " is accepted and active."
+	case c.Verdict == verdictAccepted:
+		td.Pill, td.Hidden = "prov prov-inactive", "standing: accepted, not active"
+		td.Text = name + " is accepted and not active."
+	case c.Verdict == verdictRefused:
+		td.Pill, td.Hidden = "prov prov-refused", "standing: refused"
+		td.Text = name + " is refused" + reason + "."
+	case c.Verdict == verdictPending:
+		td.Pill, td.Hidden = "prov prov-pending", "standing: pending"
+		td.Text = name + " is pending" + reason + "."
+	default:
+		td.Pill, td.Hidden = "prov prov-unknown", "standing: unknown"
+		td.Text = name + " has a standing the portal does not know."
+	}
+	return td
 }
 
 // claimBadge is a held registration's standing on the Provider card, in

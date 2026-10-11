@@ -397,3 +397,114 @@ func TestANewEventReplacesTheTabCountAndNothingElse(t *testing.T) {
 		t.Errorf("the strips differ beyond the count:\n%s\n%s", strip(before), strip(after))
 	}
 }
+
+// TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot (installed-06, PIC-L1): the
+// live refresh replaces only elements that carry an id and data-follow, so
+// "Showing n of M" in a filter form refreshes with its list and leaves the
+// fields beside it alone, and the hidden count note in the header's status
+// region has neither, so no refresh can write it. The header's region is the
+// one status region on the page, not atomic, and holds the note beside the
+// stream's text.
+func TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	region := regexp.MustCompile(`<p class="shown" id="shown" data-follow="([^"]+)">`)
+	for path, list := range map[string]string{
+		"/installed":              `id="list"`,
+		"/installed?q=zzz":        `id="list"`,
+		"/":                       `id="providers"`,
+		"/?tab=catalogs":          `id="catalogs"`,
+		"/installed?kind=package": `id="list"`,
+	} {
+		page := s.get(t, path).body
+		m := region.FindStringSubmatch(mainOf(page))
+		if m == nil {
+			t.Errorf("%s: no followed count region", path)
+			continue
+		}
+		after := between(mainOf(page), list, ">")
+		if !strings.Contains(after, `data-follow="`+m[1]+`"`) {
+			t.Errorf("%s: the count follows %q, the list %s", path, m[1], after)
+		}
+		if n := strings.Count(page, `role="status"`); n != 1 {
+			t.Errorf("%s: %d status regions; the header's is the only one", path, n)
+		}
+		live := between(page, `<p class="live"`, "</p>")
+		if !strings.Contains(live, `id="live" role="status" aria-live="polite" aria-atomic="false"`) ||
+			!strings.Contains(live, `<span class="live-text">Not live</span><span class="live-note"></span>`) {
+			t.Errorf("%s: the status region is not the atomic-free text and note: %s", path, live)
+		}
+	}
+}
+
+// TestANewPlatformEventReplacesTheEventsCount (platform-24): the Platform
+// page's "Showing n of M" for Recent events is its own followed region,
+// `#events-shown`, with the topics of the feed beside it, so a new event
+// changes its text and the refresh that replaces it needs nothing else.
+func TestANewPlatformEventReplacesTheEventsCount(t *testing.T) {
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		if kind, _, _ := unstructured.NestedString(o.Object, "regarding", "kind"); o.GetKind() != "Event" || kind != "Platform" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("platform.new-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e2e2")
+		if err := unstructured.SetNestedField(extra.Object, "NewReason", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of the Platform to copy")
+	}
+	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
+	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, "/").body))
+	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, "/").body))
+	if before == nil || after == nil {
+		t.Fatal("the Platform page has no followed #events-shown region")
+	}
+	if !slices.Contains(strings.Fields(before[1]), "events:platform") {
+		t.Errorf("the count follows %q, not events:platform", before[1])
+	}
+	if before[2] == after[2] || !strings.Contains(after[2], "<strong>3</strong> of 3") {
+		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
+	}
+}
+
+// TestANewEventReplacesTheCatalogEventsCount: the Catalog page's Events count
+// is a followed region, and a new Platform event changes it.
+func TestANewEventReplacesTheCatalogEventsCount(t *testing.T) {
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		if kind, _, _ := unstructured.NestedString(o.Object, "regarding", "kind"); o.GetKind() != "Event" || kind != "Platform" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("platform.new-catalog-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e2e3")
+		if err := unstructured.SetNestedField(extra.Object, "NewReason", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of the Platform to copy")
+	}
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events"
+	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
+	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, path).body))
+	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, path).body))
+	if before == nil || after == nil {
+		t.Fatal("the Catalog Events tab has no followed #events-shown region")
+	}
+	if !slices.Contains(strings.Fields(before[1]), "events:platform") {
+		t.Errorf("the count follows %q, not events:platform", before[1])
+	}
+	if before[2] == after[2] || !strings.Contains(after[2], "<strong>3</strong> of 3") {
+		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
+	}
+}

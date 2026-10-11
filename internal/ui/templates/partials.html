@@ -62,7 +62,27 @@
      button. Data: .ID (the box's id), .Trigger (the words the trigger draws),
      .Text (the tip). A box that sits near the right edge takes class "tip-end". */}}
 {{define "tip" -}}
-<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{.Trigger}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
+<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{if .Pill}}<span class="{{.Pill}}">{{if eq .Icon "plug"}}{{template "icon-plug"}}{{end}}{{.Trigger}}</span>{{else}}{{.Trigger}}{{end}}{{with .Hidden}}<span class="vh">{{.}}</span>{{end}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
+{{- end}}
+
+{{/* The kind chip's icons and the provider pill's plug are inline, aria-hidden
+     SVGs drawn in the chip's colour; the word beside them names the kind. */}}
+{{define "icon-instance" -}}
+<svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>
+{{- end}}
+
+{{define "icon-package" -}}
+<svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 8l9-5 9 5-9 5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/><path d="M7.5 5.5l9 5"/></svg>
+{{- end}}
+
+{{define "icon-plug" -}}
+<svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>
+{{- end}}
+
+{{/* kind-chip is the chip of an Instance or a Package: the icon that draws the
+     two apart, then the word. Data: "instance" or "package". */}}
+{{define "kind-chip" -}}
+<span class="kind kind-{{.}}">{{if eq . "package"}}{{template "icon-package"}}Package{{else}}{{template "icon-instance"}}Instance{{end}}</span>
 {{- end}}
 
 {{define "time" -}}
@@ -125,6 +145,48 @@
 {{end}}
 </ol>
 {{else}}<p class="muted">No events in the last hour or so.</p>{{end}}
+{{- end}}
+
+{{/* events-table is a feed as a table: Type, Reason, an optional Resource, Message
+     and Age. The resource cell is a filter link when the page can filter by that
+     object. At phone width the table becomes cards, as table.rows does. */}}
+{{define "events-table" -}}
+{{if .Problem}}{{template "problem-region" .Problem}}
+{{else if .Rows}}
+<div class="table-wrap">
+<table class="table rows events-table">
+  <thead><tr><th scope="col" class="c-type">Type</th><th scope="col" class="c-reason">Reason</th>{{if .ShowResource}}<th scope="col" class="c-resource">Resource</th>{{end}}<th scope="col">Message</th><th scope="col" class="c-age">Age</th></tr></thead>
+  <tbody>
+  {{range .Rows}}
+  <tr class="ev-{{if eq .Type "Warning"}}warning{{else}}normal{{end}}">
+    <td data-label="Type" class="ev-type">{{.Type}}</td>
+    <td data-label="Reason" class="mono ev-reason">{{.Reason}}</td>
+    {{if $.ShowResource}}<td data-label="Resource">{{if .ResourceHref}}<a class="ev-resource" href="{{.ResourceHref}}" title="Show only this resource's events"><span class="ev-kind">{{.Kind}}</span><span class="mono">{{.Name}}</span></a>{{else}}<span class="ev-resource"><span class="ev-kind">{{.Kind}}</span><span class="mono">{{.Name}}</span></span>{{end}}</td>{{end}}
+    <td data-label="Message">{{with .Note}}<span class="ev-note">{{.}}</span>{{end}}{{if gt .Count 1}} <span class="ev-count" title="Repeats folded into one line">×{{.Count}}</span>{{end}}{{with .ReportingController}} <span class="muted ev-by">{{.}}</span>{{end}}</td>
+    <td data-label="Age" class="ev-age">{{template "time" .LastSeen}}</td>
+  </tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+{{else}}<p class="muted">{{.Empty}}</p>{{end}}
+{{- end}}
+
+{{/* reg-status is a registration's standing: the acceptance and activation
+     badges (and "Removal blocked"), the reason line in the verdict's ink, and
+     the activation reason of an accepted registration that is not active. It
+     takes a providerRow or a catalogClaim. */}}
+{{/* claim-link names a registration on the Source row. One holder makes the
+     name a link to that holder's Provider tab; several follow the name as a
+     muted "held by"; none leaves the name plain. */}}
+{{define "claim-link" -}}
+{{if .Href}}<a class="mono" href="{{.Href}}">{{template "breakable" .Name}}</a>{{else}}<span class="mono">{{template "breakable" .Name}}</span>{{if gt (len .Holders) 1}} <span class="muted">held by {{range $i, $h := .Holders}}{{if $i}}, {{end}}<a class="mono" href="{{$h.Href}}">{{$h.Text}}</a>{{end}}</span>{{end}}{{end}}
+{{- end}}
+
+{{define "reg-status" -}}
+<p class="pills">{{range .Badges}}<span class="sq hue-{{.Hue}}">{{.Text}}</span>{{end}}</p>
+{{if or (ne .Verdict "Accepted") .Message}}{{if or .Reason .Message}}<p class="verdict-why {{.Why}}">{{$why := ""}}{{if ne .Reason .Verdict}}{{$why = .Reason}}{{end}}{{with $why}}<span class="mono">{{.}}</span>{{end}}{{if and $why .Message}}: {{end}}{{with .Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}{{end}}
+{{if and .Accepted (not .Active)}}{{if or .ActiveReason .ActiveMessage}}<p class="verdict-why"><span class="label">Activation</span> {{with .ActiveReason}}<span class="mono">{{.}}</span>{{end}}{{with .ActiveMessage}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}{{end}}
 {{- end}}
 
 {{define "events-note" -}}
@@ -219,29 +281,40 @@
 <li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{template "breakable" .Text}}</span><span class="origin">made by the cluster</span>{{with .Health.Reason}}<span class="mono obj-reason">{{.}}</span>{{end}}{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions">{{with .Focus}}<a href="{{.}}">Graph</a>{{end}}{{if .LogID}}<a href="{{.LogHref}}" data-log-link="{{.LogID}}">Logs</a>{{end}}<a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
 {{- end}}
 
-{{/* filter-form is one view's GET filter form, its chips and its notes. */}}
+{{/* filter-count is the count row's "Showing n of M", a followed region so a
+     live refresh updates it without re-rendering the fields a user may be
+     typing in. */}}
+{{define "filter-count" -}}
+<p class="shown"{{with .ShownID}} id="{{.}}"{{end}}{{with .Follow}} data-follow="{{.}}"{{end}}>Showing <strong>{{.Shown}}</strong> of {{.Total}}{{with .Scope}} {{.}}{{end}}</p>
+{{- end}}
+
+{{/* filter-form is one view's GET filter form, its count row, chips and
+     notes. Its fields come in the view's parameter order; Variant is "card"
+     (its own card, the count row beneath) or "strip" (a flat strip inside a
+     panel, the count at the end of the field row). */}}
 {{define "filter-form" -}}
-<form class="filters" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}" hx-swap="outerHTML show:none"{{with .Filters.View}}{{with .Key}} data-filters="{{.}}"{{end}}{{end}}>
+{{- $key := ""}}{{with .Filters.View}}{{$key = .Key}}{{end -}}
+<form class="filters{{with .Variant}} filters-{{.}}{{end}}" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}" hx-swap="outerHTML show:none"{{with $key}} data-filters="{{.}}" hx-sync="this:replace" hx-replace-url="true"{{end}}>
   {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
-  {{with .Fields}}
   <div class="filter-fields">
-    {{range .Texts}}{{if .Search}}
-    <div class="field field-search"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" type="search" value="{{.Value}}" placeholder="{{.Placeholder}}" autocomplete="off" spellcheck="false"></div>
-    {{end}}{{end}}
-    {{range .Selects}}
-    <div class="field"><label for="{{.ID}}">{{.Label}}</label><select id="{{.ID}}" name="{{.Name}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
-    {{end}}
-    {{range .Texts}}{{if not .Search}}
+    {{range .Fields}}
+    {{if .Search}}
+    <div class="field field-search"><label for="{{.ID}}">{{.Label}}</label><span class="search-box"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="{{.ID}}" name="{{.Name}}" type="search" value="{{.Value}}" placeholder="{{.Placeholder}}" autocomplete="off" spellcheck="false"></span></div>
+    {{else if .IsSelect}}
+    <div class="field"><label for="{{.ID}}">{{.Label}}</label><select id="{{.ID}}" name="{{.Name}}">{{range .Select}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
+    {{else}}
     <div class="field"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" value="{{.Value}}" placeholder="{{.Placeholder}}"{{with .List}} list="{{.}}"{{end}} autocomplete="off" spellcheck="false">{{if .List}}<datalist id="{{.List}}">{{range .Suggestions}}<option value="{{.}}">{{end}}</datalist>{{end}}</div>
     {{end}}{{end}}
-    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    <div class="field field-submit"><button type="submit"{{with $key}} id="apply-{{.}}"{{end}}>Apply filters</button></div>
+    {{if and (eq .Variant "strip") (ge .Total 0)}}{{template "filter-count" .}}{{end}}
   </div>
-  {{end}}
-  {{with .Filters}}{{if or .Active .Ignored}}
+  {{$count := and (eq .Variant "card") (ge .Total 0)}}
+  {{with $f := .Filters}}{{if or $count $f.Active $f.Ignored}}
   <div class="filter-chips">
-    {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
-    {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
-    {{if .Active}}<a class="fclear" href="{{.Clear}}" data-filters-explicit{{with .View}}{{with .Key}} data-clear-filters="{{.}}"{{end}}{{end}}>Clear filters</a>{{end}}
+    {{if $count}}{{template "filter-count" $}}{{end}}
+    {{range $f.Active}}<a class="fchip" href="{{.Remove}}" title="{{.Value}}" data-filters-explicit aria-label="Remove {{.Label}} filter"><span class="fchip-label">{{.Label}}:</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+    {{range $f.Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
+    {{if $f.Active}}<a class="fclear" href="{{$f.Clear}}" data-filters-explicit{{with $key}} data-clear-filters="{{.}}"{{end}}>{{$.ClearText}}</a>{{end}}
   </div>
   {{end}}{{end}}
 </form>

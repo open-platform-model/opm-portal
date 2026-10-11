@@ -168,7 +168,7 @@ func appliedCardOf(v *ownerView) appliedCard {
 		h := &v.History[i]
 		outcome := h.Outcome
 		switch outcome {
-		case "Succeeded", "Failed":
+		case "Succeeded", stateFailed:
 		default:
 			outcome = "Unknown"
 		}
@@ -674,10 +674,13 @@ func resourceCount(cs []componentView, config *configGroup) int {
 	return n
 }
 
+// kindModulePackage is the Kubernetes kind of a package owner.
+const kindModulePackage = "ModulePackage"
+
 // objectKind is the owner's Kubernetes kind.
 func (k ownerKind) objectKind() string {
 	if k == packageKind {
-		return "ModulePackage"
+		return kindModulePackage
 	}
 	return "ModuleInstance"
 }

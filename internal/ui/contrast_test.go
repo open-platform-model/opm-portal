@@ -86,6 +86,9 @@ func buildContrastPairs() []contrastPair {
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
+		{"ink on a degraded row", "--ink", "--degraded-row", textFloor, ""},
+		{"secondary ink on a degraded row", "--ink-2", "--degraded-row", textFloor, ""},
+		{"muted on a degraded row", "--muted", "--degraded-row", textFloor, ""},
 	}
 	pairs := make([]contrastPair, 0, len(fixed)+5*len(tones))
 	pairs = append(pairs, fixed...)

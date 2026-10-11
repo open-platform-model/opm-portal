@@ -41,7 +41,7 @@
     <span class="conn-reader">reading as <span class="mono">unknown</span></span>
     <span class="conn-version">Kubernetes <span class="mono">unknown</span></span>
     {{end}}
-    <p class="live" id="live" role="status" aria-live="polite"><span class="live-dot" aria-hidden="true"></span><span class="live-text">Not live</span></p>
+    <p class="live" id="live" role="status" aria-live="polite" aria-atomic="false"><span class="live-dot" aria-hidden="true"></span><span class="live-text">Not live</span><span class="live-note"></span></p>
     <details class="theme" id="theme-menu">
       <summary aria-label="Theme: System" data-theme-summary>
         <svg class="ti ti-system" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path class="ti-fill" d="M12 3a9 9 0 0 1 0 18z"/></svg>
@@ -49,9 +49,9 @@
         <svg class="ti ti-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
       </summary>
       <div class="theme-list" role="group" aria-label="Theme">
-        <button type="button" aria-pressed="false" data-theme-choice="light">Light</button>
-        <button type="button" aria-pressed="false" data-theme-choice="dark">Dark</button>
-        <button type="button" aria-pressed="true" data-theme-choice="system">System</button>
+        <button type="button" aria-pressed="false" data-theme-choice="light">Light<svg class="theme-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></button>
+        <button type="button" aria-pressed="false" data-theme-choice="dark">Dark<svg class="theme-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></button>
+        <button type="button" aria-pressed="true" data-theme-choice="system">System<svg class="theme-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></button>
       </div>
     </details>
   </div>
