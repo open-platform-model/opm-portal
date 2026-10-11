@@ -28,7 +28,7 @@ same tokens, tabs and summary block, so this change lands them first, once.
   footer grow to 1840 px. Summary rows use equal auto-fit columns. Body text is 16 px, `h1` is at
   most 40 px, mono text is 13 px, and kickers, labels, table heads and fact labels are sans.
   Links are brass. No element animates in on page load: the staggered entrance goes. A contrast
-  test covers every new colour pair, and `docs/DESIGN.md` records the floor as a new D19 requirement.
+  test covers every new colour pair, and `docs/DESIGN.md` records the floor for them as D19:R7, which cites R6.
 - **Badges, tabs and the live mark** (section 3): Applied and Health share one square, uppercase
   badge in their tone, taken from the state class every badge already carries. The `APPLY |`
   prefix and the health dot go; each badge still names its axis to assistive technology, and
@@ -64,9 +64,9 @@ Applied axis keeps the controller's state words (portal:D3:R1; supervisor ruling
 
 ## Gate
 
-This change needs `fix-contrast-and-add-phone-check` merged first: that change adds the
-phone-width test and the contrast test that sections 2, 3 and 4 extend, and the sections that
-extend them start after `main` is merged into the branch.
+This change needs `fix-contrast-and-add-phone-check` (E0): that change adds the phone-width test
+and the contrast test that sections 2, 3 and 4 extend. It is merged (PR 43) and `main` is merged
+into the branch.
 
 `align-platform-installed-catalog`, `align-owner-pages` and `align-graph` each depend on
 align-shell-and-tokens. They use its tone classes, its tab component and its state block, and
@@ -114,8 +114,8 @@ None.
 - SemVer: MINOR after 1.0. Pages change, and no API or flag changes. On the 0.x line it ships as
   one PR titled `feat(ui): follow the canvas's flat look, tokens, tabs and state block`, which
   cuts a minor release. The section 1 bug fix rides in the same PR.
-- Decisions: implements portal:D19 (the canvas's flat look), adds one requirement to it (the
-  contrast floor, next free number, every existing number kept), and
+- Decisions: implements portal:D19 (the canvas's flat look), adds one requirement to it (R7, the
+  contrast floor for this change's pairs, citing R6; every existing number and word kept), and
   keeps portal:D3 (two axes, the Applied words), portal:D14 (nothing new stored) and portal:D17
   as they are. portal:OQ25 is widened and portal:OQ26 is added, both docs only.
 - Shared pieces the follow-on changes take as they ship: the `stateBlock` fields (`When` is a
@@ -123,6 +123,7 @@ None.
   state classes.
 - Main-spec requirements touched, so the parallel changes can avoid them: `web-ui`'s "Applied and
   health are two badges, never one" and "An expired session stops the page's stream" (MODIFIED).
-  The other requirements are ADDED under new names. Each stays under 500 characters, since
-  `openspec validate --strict` warns above that: the five requirements of the first draft were
-  split without changing a sentence, and the floors of the plan add their own.
+  The contrast, 360 px and dark-block requirements of E0 are MODIFIED, not restated: "Muted text meets WCAG 2.2 AA contrast in both themes", "Text inputs and selects have a boundary of at least 3:1" and "Every F1 page holds its width at a phone viewport". The other requirements are ADDED under new names. Each stays under 500 characters, since
+  `openspec validate --strict` warns above that: four requirements of the first draft were
+  split, sentence for sentence (the state block's first sentence was cut into three), and the
+  floors of the plan add their own.

@@ -71,6 +71,109 @@ status alone. Source: portal:D3:R1/R5/R6/R8, portal:D2:R3, portal:D19:R3.
 - **THEN** its badge says "partial" and is drawn with a hatched fill and a dashed border, apart
   from a full health of the same state
 
+### Requirement: Muted text meets WCAG 2.2 AA contrast in both themes
+
+Text drawn with the muted ink token SHALL have a contrast ratio of at least 4.5:1 against each
+surface token it is drawn on (page, card, secondary card, field, the neutral fill and the degraded
+fill), in the light and the dark theme. Text in a tone's ink SHALL have the same ratio on that
+tone's background and tint, and so SHALL links in the accent colours on the page and surface
+colours, and the muted and secondary ink on every tint. A canvas value that fails SHALL change to
+one that passes, never the layout. The ratio is computed from the token hex values in `portal.css`
+with the WCAG relative luminance formula and is not rounded. Source: portal:D19:R6, portal:D19:R7.
+
+#### Scenario: Muted text on the page and on cards
+
+- **WHEN** the light theme draws muted text on the page background, on a card, on a secondary card,
+  on a field, or on the neutral or degraded fill
+- **THEN** each pair has a ratio of at least 4.5:1
+
+#### Scenario: A token pair falls below its floor
+
+- **WHEN** a change lowers the ratio of a listed token pair under its floor in either theme
+- **THEN** the contrast test fails and names the pair, the theme and the measured ratio
+
+#### Scenario: Tone ink on its background and tint
+
+- **WHEN** the contrast test checks each tone's ink, including the locked ink, on its background
+  and its tint, in the light and the dark theme
+- **THEN** every pair is at least 4.5:1, and no rule draws text in a tone's border token on its fill
+
+#### Scenario: Links and secondary ink
+
+- **WHEN** the contrast test checks the accent and deep accent on the page and surface colours,
+  and the muted and secondary ink on every tint, in both themes
+- **THEN** every pair is at least 4.5:1
+
+### Requirement: Text inputs and selects have a boundary of at least 3:1
+
+The border of a text input or select SHALL have a contrast ratio of at least 3:1 against the fill
+of the field and against each surface a field is drawn on, in the light and the dark theme, whether
+the field is empty or filled. Borders that only decorate a control that has a text label
+are not held to this ratio. Source: portal:D19:R6.
+
+#### Scenario: A filter field on its panel
+
+- **WHEN** a filter input or select is drawn on the filter panel, in either theme
+- **THEN** its border has a ratio of at least 3:1 against the field fill and against the panel
+
+#### Scenario: A filled filter field
+
+- **WHEN** a filter input has a value or a select has a chosen option, in either theme
+- **THEN** its accent border has a ratio of at least 3:1 against its accent field fill and against
+  the panel
+
+#### Scenario: The two dark blocks agree
+
+- **WHEN** the dark theme tokens are set both under the OS preference and under the stored Dark
+  choice
+- **THEN** every token in the contrast test's pair list, and every tone and kind token, has the
+  same value in both blocks, or the test fails
+
+#### Scenario: A token the test cannot read
+
+- **WHEN** a listed token holds a value that is not a six-digit hex colour
+- **THEN** the contrast test fails and names the token instead of skipping the pair
+
+### Requirement: Every F1 page holds its width at a phone viewport
+
+A browser test SHALL open every page of the F1 capture, the not-found page included, at a 360 CSS px
+wide viewport in Chromium, Firefox and WebKit, and SHALL fail when a page's scroll width exceeds
+360 px. The test SHALL prove that it can fail. A change that adds a page SHALL add it to the test.
+The test SHALL also fill the details panel by selecting a graph node and measure again.
+
+#### Scenario: A page fits the phone viewport
+
+- **WHEN** the test opens a page of the F1 capture at 360 px wide, in any of the three browsers
+- **THEN** the page's scroll width is 360 px or less and the test passes
+
+#### Scenario: A page scrolls sideways
+
+- **WHEN** a page has content that makes its scroll width exceed 360 px
+- **THEN** the test fails and names the page, the browser and the elements that reach past the
+  viewport
+
+#### Scenario: The check can fail
+
+- **WHEN** the test adds a 500 px wide element to a page at the 360 px viewport
+- **THEN** it measures a scroll width above 360 px in each browser, or the test fails
+
+#### Scenario: A page that needs another set-up
+
+- **WHEN** a page needs another capture or authorizer than the F1 site (the locked page, the
+  broken-rollout page and in-cluster mode)
+- **THEN** the test does not open it, and a later change adds it with its own set-up
+
+#### Scenario: The test runs where the other browser tests run
+
+- **WHEN** `task test:browser` runs, locally or in the nightly `E2E` workflow
+- **THEN** it includes `TestBrowserPhone`
+
+#### Scenario: A selected node on a phone
+
+- **WHEN** the user activates the `podinfo-podinfo` node from the keyboard on
+  `/instances/default/podinfo` at 360 px wide
+- **THEN** the details panel fills and the page's scroll width is at most 360 px
+
 ### Requirement: An expired session stops the page's stream
 
 When the stream ends with an `expired` event, the page SHALL close its `EventSource`, so it does
@@ -105,16 +208,16 @@ page background, and is not covered by this requirement. Source: portal:D19:R1.
 - **WHEN** `/installed` is shown in a 1920 px wide viewport
 - **THEN** the page column is 1840 px wide, with the footer at the same width
 
-### Requirement: Summary rows share their width and no page scrolls sideways at 360 px
+### Requirement: Summary rows share their width
 
-A row of summary cards SHALL share its width in equal columns and SHALL stack at narrow widths. No
-page SHALL scroll horizontally at a 360 px wide viewport. Source: portal:D19:R1, portal:D17.
+A row of summary cards SHALL share its width in equal columns and SHALL stack at narrow widths.
+Source: portal:D19:R1, portal:D17.
 
-#### Scenario: A phone
+#### Scenario: Summary cards on a phone
 
 - **WHEN** `/`, `/installed`, `/instances/default/podinfo` and a Catalog page are shown in a
   360 px wide viewport
-- **THEN** none scrolls horizontally, and the summary cards stack in one column
+- **THEN** the summary cards stack in one column
 
 ### Requirement: Pages share one type scale and link colour
 
@@ -145,39 +248,8 @@ dark. Source: portal:D19:R2.
 #### Scenario: Tone tokens in both themes
 
 - **WHEN** the stylesheet is checked
-- **THEN** every tone's border, ink, background and tint token is defined on `:root` and
-  redefined, with the same values, in both dark blocks
-
-### Requirement: Tone, link and state block colours meet WCAG 2.2 AA contrast
-
-Text in a tone's ink SHALL have a contrast ratio of at least 4.5:1 on that tone's background and
-tint, in both themes. So SHALL brass links on the page and surface colours, and muted and
-secondary ink on every tint. A canvas value that fails SHALL change to one that passes, never the
-layout. Ratios come from the token hex values and are not rounded. Source: portal:D19 (the
-contrast requirement added with this change), WCAG 2.2 1.4.3.
-
-#### Scenario: Tone ink on its background and tint
-
-- **WHEN** the contrast test checks each tone's ink, including the locked ink, on its background
-  and its tint, in the light and the dark theme
-- **THEN** every pair is at least 4.5:1
-
-#### Scenario: Links and secondary ink
-
-- **WHEN** the contrast test checks the accent and deep accent on the page and surface colours,
-  and the muted and secondary ink on every tint, in both themes
-- **THEN** every pair is at least 4.5:1
-
-#### Scenario: A canvas value that fails
-
-- **WHEN** a tone ink from the canvas's sheet falls under 4.5:1 on its background or tint
-- **THEN** the token takes the nearest value that passes, its layout is unchanged, and the final
-  value is written into design.md
-
-#### Scenario: A pair falls below its floor
-
-- **WHEN** a change lowers a listed pair under 4.5:1 in either theme
-- **THEN** the contrast test fails and names the pair, the theme and the ratio
+- **THEN** every tone's border, ink, background and tint token is defined on `:root` and in both
+  dark blocks, and the contrast test's dark-block agreement check covers each of them
 
 ### Requirement: Tabs are underlined
 
@@ -258,10 +330,10 @@ and SHALL keep that heading for assistive technology. Source: portal:D19.
 
 ### Requirement: Selecting a graph node fills the details panel
 
-With script on, activating a graph node by pointer or keyboard SHALL load that node's details
-into the details panel in place, showing its name, its kind, the axes it carries and its links,
-and SHALL mark the node as selected. The request SHALL not take its swap selection from the page
-around it, so the panel never shows empty after a selection. Source: portal:D4, portal:D19.
+With script on, activating a graph node by pointer or keyboard SHALL load that node's details into
+the details panel in place, showing its name, its kind, the axes it carries and its links, and
+SHALL mark the node as selected. Without script, a node SHALL stay a link that opens the page with
+the node selected and its details rendered by the server. Source: portal:D4, portal:D19.
 
 #### Scenario: Selecting podinfo's Deployment
 
@@ -271,16 +343,16 @@ around it, so the panel never shows empty after a selection. Source: portal:D4, 
   Deployment, and its health badge beside a visible "Health" label, and the node is marked
   selected
 
-### Requirement: A node keeps a working panel without script and without a grant
-
-Without script, a node SHALL stay a link that opens the page with the node selected and its
-details rendered by the server. A node the caller may not read SHALL fill the panel with its
-locked form. Source: portal:D4, portal:D19.
-
 #### Scenario: Without script
 
 - **WHEN** a browser with script disabled follows the same node
 - **THEN** the page opens with that node selected and the details panel rendered with it
+
+### Requirement: The panel request keeps its own swap selection, and a locked node fills it
+
+The request that loads a node's details SHALL not take its swap selection from the page around
+it, so the panel never shows empty after a selection. A node the caller may not read SHALL fill the
+panel with its locked form. Source: portal:D4, portal:D19.
 
 #### Scenario: A locked node
 
@@ -409,23 +481,6 @@ full health by its dashed border. Source: WCAG 2.2 1.4.11, portal:D19:R3.
 
 - **WHEN** forced-colours mode drops the partial health badge's hatch
 - **THEN** the badge's dashed border still tells it from a full health
-
-### Requirement: The details panel after a node selection holds the phone width
-
-With a node selected, the page SHALL not scroll horizontally at a 360 px wide viewport, and the
-phone-width test SHALL cover that state and every non-fragment page of the F1 capture. Source:
-portal:D19:R1, the 360 px rule of this spec.
-
-#### Scenario: A selected node on a phone
-
-- **WHEN** the user activates the `podinfo-podinfo` node from the keyboard on
-  `/instances/default/podinfo` at 360 px wide
-- **THEN** the details panel fills and the page's scroll width is at most 360 px
-
-#### Scenario: Every restyled page is in the test
-
-- **WHEN** the phone test's page list is compared with the non-fragment pages of the F1 capture
-- **THEN** each page is listed
 
 ### Requirement: Pages do not animate in
 

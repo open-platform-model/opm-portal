@@ -107,14 +107,17 @@ The change was merged with the planning PR, then amended with floors that the po
 carries and the planning PR lacks. The ids SH-A1 to SH-A5 name them in `tasks.md` and below. Every
 other task and requirement is as the planning PR wrote it, except that four long requirements of
 the spec delta are split, sentence for sentence, to stay under the 500 characters that
-`openspec validate --strict` allows (proposal, Impact).
+`openspec validate --strict` allows (proposal, Impact). The split adds two scenarios, "A tab
+without script" and "Reasons, notes and links", which the long requirements needed to stay whole.
+The gate of 2026-10-11 then moved the no-script sentence back under the name that
+`align-graph` cites, and made the contrast, 360 px and dark-block requirements of E0 MODIFIED.
 
 | Id | Amendment | Design point | Tasks | Requirement in the spec delta |
 | --- | --- | --- | --- | --- |
-| SH-A1 | Contrast pairs for the new tokens, and the floor recorded under D19 | The contrast floor | 2.5a, 2.5b | Tone, link and state block colours meet WCAG 2.2 AA contrast |
+| SH-A1 | Contrast pairs for the new tokens, and the floor recorded under D19 as R7 | The contrast floor | 2.5a, 2.5b | Muted text meets WCAG 2.2 AA contrast in both themes (MODIFIED, extended to the new pairs) |
 | SH-A2 | The tip can be dismissed, hovered and opened by a tap | The tooltip | 4.2, 4.3, 4.4, 4.4a, 4.4b | An info tip can be dismissed, hovered and opened by tap |
 | SH-A3 | Forced-colours borders | Forced-colours borders | 3.1, 3.5, 4.3, 4.4, 5.1 | Badges, the state block and the info tip keep a border in forced-colours mode |
-| SH-A4 | The details panel after a node selection, and every page, in the phone test | The phone test | 3.5a, 3.6 | The details panel after a node selection holds the phone width |
+| SH-A4 | The details panel after a node selection, and every page, in the phone test | The phone test | 3.5a, 3.6 | Every F1 page holds its width at a phone viewport (MODIFIED, one scenario added) |
 | SH-A5 | No entrance animation | No entrance animation | 2.2, 2.5, 2.6a | Pages do not animate in |
 
 ## Decisions
@@ -472,9 +475,9 @@ after this one.
 
 Two follow-on changes draw the canvas's info tooltip: `align-platform-installed-catalog` on the
 Installed provider badge, `align-owner-pages` on the identity card's Owner and Applier facts. It
-lands here, for the same reason as the state block: a `tip` partial (a focusable `span.tip` with
-`tabindex="0"`, holding its trigger, and a `span.tipbox` with `role="tooltip"` as its last child;
-the trigger names the box in `aria-describedby`) and its CSS, shown on `:hover` and `:focus-within`
+lands here, for the same reason as the state block: a `tip` partial (a `span.tip`, which is the trigger: it
+carries `tabindex="0"` and `aria-describedby` naming the box, and holds a `span.tipbox` with
+`role="tooltip"` as its last child) and its CSS, shown on `:hover` and `:focus-within`
 with no script. The box is 300 px wide on the dark ink, opens below its trigger and aligns to the
 trigger's end near the right edge. Placement inside a scrolling table is the follow-on change's
 concern (see `align-platform-installed-catalog`, "Provider badge"). The box holds text only; a
@@ -513,10 +516,15 @@ it on their pages: the Platform status and Catalog resolved blocks
 WCAG 2.2 AA asks 4.5:1 for text (1.4.3) and 3:1 for the boundary of a control (1.4.11). D19 says the
 tokens carry the canvas's values, and the canvas's `--muted` and control border fail that floor
 (`--muted` `#6a6f7a` on `#efe9dc` is 4.165:1). `fix-contrast-and-add-phone-check` (E0) fixes those
-two tokens and adds `internal/ui/contrast_test.go` with a pair list. It may not add tokens, so it
-leaves two light pairs pending (`--healthy` on `--healthy-bg` 4.450, `--degraded` on
-`--degraded-bg` 4.414), which this change's `-ink` tokens close. This change extends the list with
-the pairs of the tokens it adds (task 2.5a) and records the floor as a D19 requirement (task 2.5b).
+two tokens, adds `internal/ui/contrast_test.go` with a pair list, and records the floor for muted
+text and field borders as portal:D19:R6. It may not add tokens, so it leaves two light pairs
+pending (`--healthy` on `--healthy-bg` 4.450, `--degraded` on `--degraded-bg` 4.414), which this
+change's `-ink` tokens close by the pairs `--healthy-ink` on `--healthy-bg` and `--degraded-ink` on
+`--degraded-bg`. This change extends the list with the pairs of the tokens it adds (task 2.5a),
+moves every rule that draws text in a border token on its fill to the `-ink` token, and records
+the floor for the new pairs as portal:D19:R7, which cites R6 and restates none of it (task 2.5b).
+The spec delta MODIFIES E0's requirements for contrast, the 360 px test and the dark-block
+agreement; it does not state them again.
 
 Ratios by the WCAG formula over the hex values of the table above and of `portal.css` on `main`,
 computed on 2026-10-11 (not rendered pixels, and the tints are solid, so no layer is blended):
@@ -532,7 +540,12 @@ computed on 2026-10-11 (not rendered pixels, and the tints are solid, so no laye
 | `--muted` `#5f6672` (E0's value) on every tint, `--locked-tint` included | 4.5 | 4.533 (locked) to 5.691 (neutral) | 5.516 (locked) to 6.019 (missing) |
 | `--muted` `#6a6f7a` (today's value) on every tint | 4.5 | fails on applied 4.454, progressing 4.486, degraded 4.483, missing 4.455, locked 3.948 | not changed by E0 |
 
-With the table's values every pair passes, so the amendment is a guard and not a repair. It depends
+With the table's values every `-ink` pair passes. The repair is in `portal.css`: on `main`, `.verdict-accepted`,
+`.verdict-refused`, `.verdict-removalblocked`, `.prov` and `.prov-*`, `.reason-counts .count-warning` and the
+badge state classes draw text in a border token on its `-bg` fill (`--healthy` 4.450:1 and
+`--degraded` 4.414:1 in the light theme). Task 2.5a moves each of them to its `-ink` token, and the
+check of task 2.5 fails on any rule that sets `color: var(--<tone>)` with `background:
+var(--<tone>-bg)` or `-tint`, so a rule left behind cannot pass. It depends
 on E0 for `--muted`, and one margin is narrow: `--muted` on `--locked-tint` passes by 0.033. A later
 change to either value fails the test and names the pair. The state block's 15 px summary in
 `--ink-2`, its 13 px time and 12 px caption in `--muted`, and its 26 px state word in `-ink` all sit
@@ -658,7 +671,8 @@ border fail WCAG 2.2 AA, and this change adds tints and inks that nobody had mea
 2. Hold the floor in the test only: the code then disagrees with D19's text, and the next reader
    restores the canvas's value.
 3. Hold the floor in the test and as a new D19 requirement, so a canvas value that fails yields.
-**Decision**: 3. The owner answered yes on 2026-10-11.
+**Decision**: 3, as R7 after E0's R6, which it cites. The owner answered yes on 2026-10-11, and the
+gate ruled on 2026-10-11 that R6 keeps every word (E0 merged it for muted text and field borders).
 **Rationale**: the record should say what the code does. The requirement adds a limit and removes
 no word of D19; reversal is a text edit (high reversibility, hours).
 
