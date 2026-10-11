@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-graph` built and in review, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -105,7 +105,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, the
      Provider tab as a facts grid with a conditions table and a table of what it provides, and
      `prune` on packages. What it uncovered is item 4 below.
-   - `align-graph` (in review; built in six sections, review and archive next), beside `align-owner-pages`: configuration grouped per kind
+   - `align-graph` (built in six sections, reviewed and archived on its branch; the PR is next), beside `align-owner-pages`: configuration grouped per kind
      family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
      legend, selection apart from the spotlight, registration standing on its node, and the
      package's source read as the caller (portal:D20). It and `align-owner-pages` share files,
