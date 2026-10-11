@@ -69,6 +69,12 @@
         "namespace": "pkg",
         "name": "podinfo-release"
       },
+      "access": "ok",
+      "missing": true,
+      "sourceState": {
+        "access": "ok",
+        "state": "kindNotServed"
+      },
       "column": 1,
       "row": 0,
       "x": 280,

@@ -891,6 +891,31 @@ components:
           type: string
         digest:
           type: string
+    SourceState:
+      type: object
+      description: "A package's Flux source (OCIRepository, GitRepository or Bucket) as the caller read it, with get only. The portal reads no other kind, and never the artifact's URL. The Ready condition's reason and message and the artifact's revision are served as source-controller wrote them, in local mode and in-cluster, cut to their caps; a cut value ends with an ellipsis."
+      required: [access]
+      properties:
+        access:
+          description: "Whether the caller may read the source and the portal could: ok, forbidden (the caller's get was refused, so nothing was read) or notReadable (the portal's own read was refused or failed)."
+          x-extensible-enum: [ok, forbidden, notReadable]
+          type: string
+        state:
+          description: "Absent unless access is ok. ready: Ready is True and the source has an artifact. notReady: Ready is False. noArtifact: Ready is True and the source has no artifact. unknown: Ready is Unknown or absent. notFound: the source does not exist. kindNotServed: the cluster serves no such kind, as when Flux is not installed; a kind installed later is found within five minutes. unsupportedKind: the sourceRef names a kind the controller does not read."
+          x-extensible-enum: [ready, notReady, noArtifact, unknown, notFound, kindNotServed, unsupportedKind]
+          type: string
+        reason:
+          description: "The Ready condition's reason, cut to 256 Unicode code points."
+          type: string
+          maxLength: 256
+        message:
+          description: "The Ready condition's message, cut to 1024 Unicode code points."
+          type: string
+          maxLength: 1024
+        revision:
+          description: "status.artifact.revision, cut to 256 Unicode code points."
+          type: string
+          maxLength: 256
     PackageList:
       type: object
       required: [apiVersion, kind, access, items]
@@ -966,6 +991,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Component'
+        sourceState:
+          description: "The package's source as the caller read it; absent when the package names none. It is not counted in the package's health."
+          $ref: '#/components/schemas/SourceState'
     Subscription:
       type: object
       required: [catalog]
@@ -1345,6 +1373,9 @@ components:
           type: string
         registration:
           $ref: '#/components/schemas/GraphRegistration'
+        sourceState:
+          description: "A package graph's source node: the same state as the Package document. The node's access, missing and health follow it: ready is Healthy, notReady is Degraded with the Ready reason and message, noArtifact and unknown are Unknown, notFound and kindNotServed are missing, forbidden and notReadable are locked, and an unsupported kind has no health."
+          $ref: '#/components/schemas/SourceState'
         catalog:
           $ref: '#/components/schemas/GraphCatalog'
         platform:

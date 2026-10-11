@@ -48,7 +48,7 @@ func TestGoldens(t *testing.T) {
 			return Instance(c.instance(t, "default", "backup-consumer"), Options{})
 		}},
 		{"package-podinfo", func(t *testing.T) Graph {
-			return Package(c.pkg(t), Options{})
+			return Package(c.pkg(t), nil, Options{})
 		}},
 		{"platform-f1", func(t *testing.T) Graph {
 			return Platform(c.platform(t), Options{})

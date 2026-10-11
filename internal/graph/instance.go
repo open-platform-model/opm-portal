@@ -72,8 +72,11 @@ func Instance(d readmodel.InstanceDetail, opts Options) Graph {
 
 // Package returns the graph of one ModulePackage: its source, the packages
 // it depends on, its components, their inventory objects and the runtime
-// children below them.
-func Package(d readmodel.PackageDetail, opts Options) Graph {
+// children below them. src is the source as the caller read it, cut for
+// serving, or nil when it was not looked up: the source node then carries
+// no access and no state. The source's health is the node's own; it is not
+// counted in the package's (portal:D3).
+func Package(d readmodel.PackageDetail, src *readmodel.SourceState, opts Options) Graph {
 	titles := slices.Clone(packageTitles)
 	if d.Source.Kind == "" && len(d.DependsOn) == 0 {
 		titles[colComponent] = "Components"
@@ -93,20 +96,26 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 	}
 	b.root = root.ID
 	b.add(root, colOwner)
-	if src := d.Source; src.Kind != "" && src.Name != "" {
-		group, version := splitAPIVersion(src.APIVersion)
+	if ref := d.Source; ref.Kind != "" && ref.Name != "" {
+		group, version := splitAPIVersion(ref.APIVersion)
+		if readmodel.SourceSupported(ref.Kind) {
+			// The controller chooses the group from the kind and ignores
+			// sourceRef.apiVersion, so the node names the group it reads.
+			group, version = readmodel.FluxGroup, "v1"
+		}
 		// The operator reads the source from the package's namespace when
 		// sourceRef names none (opm-operator modulepackage_controller.go).
-		srcNS := src.Namespace
+		srcNS := ref.Namespace
 		if srcNS == "" {
 			srcNS = ns
 		}
 		n := Node{
-			ID:    sourceID(group, src.Kind, srcNS, src.Name),
+			ID:    sourceID(group, ref.Kind, srcNS, ref.Name),
 			Kind:  KindSource,
-			Label: src.Kind + " " + src.Name,
-			Ref:   &Ref{Group: group, Version: version, Kind: src.Kind, Namespace: srcNS, Name: src.Name},
+			Label: ref.Kind + " " + ref.Name,
+			Ref:   &Ref{Group: group, Version: version, Kind: ref.Kind, Namespace: srcNS, Name: ref.Name},
 		}
+		sourceNode(&n, src)
 		b.add(n, colComponent)
 		b.edge(EdgeSourcedFrom, root.ID, n.ID)
 	}
@@ -130,6 +139,28 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 	}
 	b.inventory(root.ID, d.Components)
 	return b.finish()
+}
+
+// sourceNode sets the access, state and health of a source node from the
+// state the caller read (nil: not looked up, so the node says nothing).
+func sourceNode(n *Node, src *readmodel.SourceState) {
+	if src == nil {
+		return
+	}
+	n.Access = src.Access
+	n.SourceState = &SourceState{Access: src.Access, State: src.Readiness, Reason: src.Reason, Message: src.Message, Revision: src.Revision}
+	switch src.Readiness {
+	case readmodel.SourceReady:
+		n.Health = &Health{State: health.Healthy}
+	case readmodel.SourceNotReady:
+		n.Health = &Health{State: health.Degraded, Reason: src.Reason, Message: src.Message}
+	case readmodel.SourceNoArtifact, readmodel.SourceUnknown:
+		n.Health = &Health{State: health.Unknown}
+	case readmodel.SourceNotFound, readmodel.SourceKindNotServed:
+		n.Missing = true
+	case readmodel.SourceUnsupported:
+		// Not read: no health, and not missing.
+	}
 }
 
 // instanceNode is an instance with both axes, as the read model filled

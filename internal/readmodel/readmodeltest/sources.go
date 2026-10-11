@@ -87,10 +87,14 @@ func readyCondition(status, reason, message string) []any {
 }
 
 func ociRepository(name, uid string, conds []any, artifact bool) *unstructured.Unstructured {
+	return ociRepositoryIn(SourceNamespace, name, uid, conds, artifact)
+}
+
+func ociRepositoryIn(namespace, name, uid string, conds []any, artifact bool) *unstructured.Unstructured {
 	status := map[string]any{"conditions": conds, "observedGeneration": int64(1)}
 	if artifact {
 		status["artifact"] = map[string]any{
-			"path":           "ocirepository/pkg/" + name + "/4f1c9a2e.tar.gz",
+			"path":           "ocirepository/" + namespace + "/" + name + "/4f1c9a2e.tar.gz",
 			"url":            SourceArtifactURL,
 			"revision":       SourceRevision,
 			"digest":         "sha256:7d2a96c0e51f4b38a9d60c7e1f5b8a24c3e90d17b6f4a85e2c1d7b93f06a4e58",
@@ -102,7 +106,7 @@ func ociRepository(name, uid string, conds []any, artifact bool) *unstructured.U
 		"apiVersion": FluxGroup + "/v1",
 		"kind":       "OCIRepository",
 		"metadata": map[string]any{
-			"name": name, "namespace": SourceNamespace, "uid": uid, "generation": int64(1),
+			"name": name, "namespace": namespace, "uid": uid, "generation": int64(1),
 			"resourceVersion":   "1200",
 			"creationTimestamp": "2026-10-04T18:03:50Z",
 			"annotations":       map[string]any{ConstructedAnnotation: "true"},
@@ -133,4 +137,37 @@ func WithUnversionedSourcePackage(t testing.TB, objs []*unstructured.Unstructure
 	pkg.SetAnnotations(map[string]string{ConstructedAnnotation: "true"})
 	unstructured.RemoveNestedField(pkg.Object, "spec", "sourceRef", "apiVersion")
 	return append(slices.Clone(objs), pkg)
+}
+
+// The namespaces and the package of WithCrossNamespaceSource.
+const (
+	// CrossPackageNamespace holds CrossPackage; CrossSourceNamespace holds
+	// the OCIRepository it names.
+	CrossPackageNamespace = "pkg-a"
+	CrossSourceNamespace  = "pkg-b"
+	CrossPackage          = "podinfo-cross"
+)
+
+// WithCrossNamespaceSource returns objs plus a ModulePackage
+// pkg-a/podinfo-cross whose spec.sourceRef names the OCIRepository
+// pkg-b/podinfo-release, and that OCIRepository (Ready=True with an artifact
+// revision). A caller allowed to read the package in pkg-a is not thereby
+// allowed to read the source in pkg-b.
+//
+// CONSTRUCTED, not captured: the package is pkg/podinfo moved to pkg-a with
+// sourceRef.namespace set, and the source is SourceReady moved to pkg-b. The
+// fixture cluster runs no Flux. Both carry ConstructedAnnotation.
+func WithCrossNamespaceSource(t testing.TB, objs []*unstructured.Unstructured) []*unstructured.Unstructured {
+	t.Helper()
+	pkg := Find(t, objs, "ModulePackage", "podinfo").DeepCopy()
+	pkg.SetName(CrossPackage)
+	pkg.SetNamespace(CrossPackageNamespace)
+	pkg.SetUID("00000000-0000-4000-8000-00000000c0e0")
+	pkg.SetAnnotations(map[string]string{ConstructedAnnotation: "true"})
+	if err := unstructured.SetNestedField(pkg.Object, CrossSourceNamespace, "spec", "sourceRef", "namespace"); err != nil {
+		t.Fatal(err)
+	}
+	src := ociRepositoryIn(CrossSourceNamespace, SourceReady, "6f3c1b9a-0b57-4d6e-8b1e-5d1a2f3c4e04", readyCondition("True", "Succeeded",
+		"stored artifact for digest '"+SourceRevision+"'"), true)
+	return append(slices.Clone(objs), pkg, src)
 }

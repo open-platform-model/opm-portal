@@ -100,7 +100,7 @@ func TestEdgesNameTheirSource(t *testing.T) {
 	graphs := []Graph{
 		Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{cmRBAC}}),
 		Instance(c.instance(t, "web", "web"), Options{}),
-		Package(c.pkg(t), Options{}),
+		Package(c.pkg(t), nil, Options{}),
 		Platform(c.platform(t), Options{}),
 	}
 	for _, g := range graphs {
@@ -382,7 +382,7 @@ func TestNodeCapKeepsHealth(t *testing.T) {
 }
 
 func TestPackageGraph(t *testing.T) {
-	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), Options{})
+	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), nil, Options{})
 	root := nodeByID(t, g, "mp:pkg/podinfo")
 	if root.Applied.State != health.AppliedStateFailed || root.Applied.Reason != "SourceNotReady" {
 		t.Errorf("root applied = %+v, want Failed SourceNotReady", root.Applied)
@@ -406,7 +406,7 @@ func TestForeignNamespaceDependency(t *testing.T) {
 	if err := unstructured.SetNestedSlice(pkg.Object, deps, "spec", "dependsOn"); err != nil {
 		t.Fatal(err)
 	}
-	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkg(t), Options{})
+	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkg(t), nil, Options{})
 	if e, ok := edgeBetween(g, EdgeDependsOn, "mp:pkg/podinfo", "mp:pkg/base"); !ok || e.Verified != nil {
 		t.Errorf("same-namespace edge = %+v, want drawn and unmarked", e)
 	}

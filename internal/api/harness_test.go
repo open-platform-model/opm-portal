@@ -91,6 +91,8 @@ type env struct {
 	client *dynfake.FakeDynamicClient
 	disc   *fakediscovery.FakeDiscovery
 	az     *recorder
+	// reviews are the access reviews the cluster received for alice.
+	reviews *readmodeltest.Reviews
 	// principal is what Authenticate returns.
 	principal Principal
 }
@@ -113,7 +115,7 @@ func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRul
 func newEnvWithDiscovery(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule readmodeltest.Rule,
 	disc *fakediscovery.FakeDiscovery, opts ...func(*Config)) *env {
 	t.Helper()
-	caller, _ := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
+	caller, callerReviews := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
 	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, reader.Username: readerChecker}}
 	client := readmodeltest.Dynamic(objs...)
@@ -132,7 +134,7 @@ func newEnvWithDiscovery(t testing.TB, objs []*unstructured.Unstructured, caller
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
-	e := &env{model: m, client: client, disc: disc, az: az, principal: Principal{Identity: alice, Session: "session-alice"}}
+	e := &env{model: m, client: client, disc: disc, az: az, reviews: callerReviews, principal: Principal{Identity: alice, Session: "session-alice"}}
 	cfg := Config{
 		Mode:       ModeLocal,
 		Model:      m,

@@ -110,7 +110,7 @@ func TestRuntimeColumnTitles(t *testing.T) {
 // the packages it depends on come first in the components column, and every
 // edge runs rightward.
 func TestPackageColumns(t *testing.T) {
-	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), Options{})
+	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), nil, Options{})
 	if want := []string{"Package", "Source and components"}; !slices.Equal(titles(g), want) {
 		t.Errorf("F1 package columns = %v, want %v", titles(g), want)
 	}
@@ -133,7 +133,7 @@ func TestPackageColumnsOrder(t *testing.T) {
 	if err := setDependsOn(pkgObj, "base", "alpha"); err != nil {
 		t.Fatal(err)
 	}
-	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkgNamed(t, "pkg", "provider"), Options{})
+	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkgNamed(t, "pkg", "provider"), nil, Options{})
 	var col []string
 	for i := range g.Nodes {
 		if g.Nodes[i].Column == 1 {

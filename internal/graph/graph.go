@@ -2,6 +2,7 @@ package graph
 
 import (
 	"github.com/open-platform-model/opm-portal/internal/health"
+	"github.com/open-platform-model/opm-portal/internal/readmodel"
 )
 
 // Scope is what a graph is about.
@@ -208,6 +209,19 @@ type Registration struct {
 	ActiveMessage string         `json:"activeMessage,omitempty"`
 }
 
+// SourceState is a package source node's state as the caller read it: the
+// read model's SourceState, already cut for serving.
+type SourceState struct {
+	// Access says how reading the source went; empty readiness when it
+	// was refused or could not be read.
+	Access  health.Access             `json:"access"`
+	State   readmodel.SourceReadiness `json:"state,omitempty"`
+	Reason  string                    `json:"reason,omitempty"`
+	Message string                    `json:"message,omitempty"`
+	// Revision is status.artifact.revision.
+	Revision string `json:"revision,omitempty"`
+}
+
 // Catalog is one entry of the Platform's resolved registry.
 type Catalog struct {
 	Version string `json:"version,omitempty"`
@@ -270,11 +284,14 @@ type Node struct {
 	// Version is a module's version.
 	Version string `json:"version,omitempty"`
 	// Path is a package's path inside its source.
-	Path         string         `json:"path,omitempty"`
-	Registration *Registration  `json:"registration,omitempty"`
-	Catalog      *Catalog       `json:"catalog,omitempty"`
-	Platform     *PlatformFacts `json:"platform,omitempty"`
-	Group        *Group         `json:"group,omitempty"`
+	Path         string        `json:"path,omitempty"`
+	Registration *Registration `json:"registration,omitempty"`
+	// SourceState is a package source node's state; nil on other nodes and
+	// when the source was not looked up.
+	SourceState *SourceState   `json:"sourceState,omitempty"`
+	Catalog     *Catalog       `json:"catalog,omitempty"`
+	Platform    *PlatformFacts `json:"platform,omitempty"`
+	Group       *Group         `json:"group,omitempty"`
 	// MemberOf is the id of the group an expanded member belongs to, so a
 	// consumer can collapse it again.
 	MemberOf string `json:"memberOf,omitempty"`

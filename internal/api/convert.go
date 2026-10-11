@@ -228,8 +228,11 @@ func packageSummary(it readmodel.PackageItem) v1.PackageSummary {
 	return out
 }
 
-func packageDoc(d readmodel.PackageDetail) v1.Package {
+// packageDoc converts a package. src is its source as the caller read it,
+// already cut for serving, or nil when the package names none.
+func packageDoc(d readmodel.PackageDetail, src *readmodel.SourceState) v1.Package {
 	return v1.Package{
+		SourceState:        sourceState(src),
 		TypeMeta:           meta(v1.KindPackage),
 		PackageSummary:     packageSummary(d.PackageItem),
 		ServiceAccountName: d.ServiceAccountName,
@@ -403,6 +406,7 @@ func graphNode(n *graph.Node) v1.GraphNode {
 			ActiveReason: r.ActiveReason, ActiveMessage: r.ActiveMessage,
 		}
 	}
+	out.SourceState = graphSourceState(n.SourceState)
 	if c := n.Catalog; c != nil {
 		out.Catalog = &v1.GraphCatalog{Version: c.Version, Enabled: c.Enabled, Source: c.Source}
 	}
@@ -420,4 +424,18 @@ func graphNode(n *graph.Node) v1.GraphNode {
 		out.Group = gg
 	}
 	return out
+}
+
+func sourceState(s *readmodel.SourceState) *v1.SourceState {
+	if s == nil {
+		return nil
+	}
+	return &v1.SourceState{Access: string(s.Access), State: string(s.Readiness), Reason: s.Reason, Message: s.Message, Revision: s.Revision}
+}
+
+func graphSourceState(s *graph.SourceState) *v1.SourceState {
+	if s == nil {
+		return nil
+	}
+	return &v1.SourceState{Access: string(s.Access), State: string(s.State), Reason: s.Reason, Message: s.Message, Revision: s.Revision}
 }

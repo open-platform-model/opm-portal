@@ -230,11 +230,11 @@ func (s *Server) getPackage(ctx context.Context, p Principal, r *http.Request) (
 	if err != nil {
 		return nil, err
 	}
-	d, err := s.packageDetail(ctx, p.Identity, o)
+	d, src, err := s.packageWithSource(ctx, p.Identity, o)
 	if err != nil {
 		return nil, err
 	}
-	return packageDoc(d), nil
+	return packageDoc(d, src), nil
 }
 
 func (s *Server) packageDetail(ctx context.Context, who authz.Identity, o owner) (readmodel.PackageDetail, error) {
@@ -254,11 +254,11 @@ func (s *Server) packageGraph(ctx context.Context, p Principal, r *http.Request)
 	if err != nil {
 		return nil, err
 	}
-	d, err := s.packageDetail(ctx, p.Identity, o)
+	d, src, err := s.packageWithSource(ctx, p.Identity, o)
 	if err != nil {
 		return nil, err
 	}
-	return graphDoc(graph.Package(d, opts)), nil
+	return graphDoc(graph.Package(d, src, opts)), nil
 }
 
 func (s *Server) packageEvents(ctx context.Context, p Principal, r *http.Request) (any, error) {

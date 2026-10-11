@@ -87,6 +87,7 @@ func (m *Model) Start(ctx context.Context) error {
 	case <-ctx.Done():
 	}
 	go m.janitor()
+	go m.sourceWatcher()
 	return nil
 }
 

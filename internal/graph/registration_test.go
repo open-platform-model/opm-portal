@@ -40,7 +40,7 @@ func TestInstanceRegistrationStanding(t *testing.T) {
 // the refusal on the claim's node.
 func TestPackageRegistrationStanding(t *testing.T) {
 	c := newCluster(t, readmodeltest.WithPackageHolder(t, f1(t)), readmodeltest.AllowAll)
-	g := Package(c.pkgNamed(t, readmodeltest.PackageHolderNamespace, readmodeltest.PackageHolderName), Options{})
+	g := Package(c.pkgNamed(t, readmodeltest.PackageHolderNamespace, readmodeltest.PackageHolderName), nil, Options{})
 	r := nodeByID(t, g, holderClaim).Registration
 	if r == nil || r.Accepted || r.Active || r.Verdict != health.VerdictRefused || r.Reason != "ProviderMismatch" || r.Catalog != backupCatalog {
 		t.Fatalf("registration = %+v, want neither accepted nor active, Refused, ProviderMismatch, catalog %s", r, backupCatalog)
