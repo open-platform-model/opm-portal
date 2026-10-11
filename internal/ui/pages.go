@@ -303,7 +303,7 @@ func unreadableWord(p *v1.Problem) string {
 	if p != nil && p.Code != v1.CodeForbidden {
 		return "unavailable"
 	}
-	return "locked"
+	return wordLocked
 }
 
 // installedReadable says which kinds the caller may read in the scope the
@@ -597,7 +597,7 @@ func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, []configGroup
 		if n.Health != nil {
 			cg.Health = n.Health.State
 		}
-		cg.Open = cg.Health != "Healthy"
+		cg.Open = cg.Health != healthHealthy
 		next := make([]componentView, 0, len(rest))
 		for j := range rest {
 			if slices.Contains(n.Group.Members, rest[j].Name) {

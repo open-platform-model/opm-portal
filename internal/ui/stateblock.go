@@ -66,11 +66,14 @@ type attemptDot struct {
 // hueLocked is the hue and note class of what the caller may not read.
 const hueLocked = "locked"
 
+// wordLocked is the word shown, and read aloud, where a source is locked.
+const wordLocked = hueLocked
+
 // stateBlockHues are the hues the state block draws: the seven tones and the
 // locked standing.
 var stateBlockHues = map[string]bool{
 	"applied": true, "healthy": true, "progressing": true, "degraded": true,
-	"unknown": true, hueNeutral: true, "missing": true, "locked": true,
+	"unknown": true, hueNeutral: true, "missing": true, hueLocked: true,
 }
 
 // newStateBlock returns b with its hue settled. A hue the block does not know
