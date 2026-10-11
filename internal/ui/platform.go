@@ -680,7 +680,7 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		Shown:        provShown, Total: provTotal, ShownID: "shown", Follow: platformTopic, Variant: filtersStrip,
 	})
 	v.Catalogs.Form = newChoiceForm(cf, "Filter catalogs", keepHidden(q, catalogFilters.paramNames()...), formInput{
-		Counts: catCounts, NoCount: map[string]bool{"claimed": regsLocked}, Omit: map[string]bool{"claimed": regsLocked},
+		Counts: catCounts, NoCount: map[string]bool{"claimed": regsLocked, "csource": v.Problem != nil}, Omit: map[string]bool{"claimed": regsLocked},
 		Placeholders: map[string]string{"cq": "Catalog path or claimant"},
 		Shown:        catShown, Total: catTotal, ShownID: "shown", Follow: platformTopic, Variant: filtersStrip,
 	})

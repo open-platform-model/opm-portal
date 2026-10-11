@@ -725,6 +725,15 @@ func TestInstalledTotalCoversEveryNamespace(t *testing.T) {
 	if got := selects["kind"]; !slices.Equal(got, []string{"|Any kind", "instance|Instance (locked)", "package|Package (locked)"}) {
 		t.Errorf("kind options = %q; want both kinds locked with no count", got)
 	}
+	// Nor does a count stand for health, applied, provider or owner: with
+	// neither list read, "(0)" would say nothing is unhealthy (portal:D14:R7).
+	for _, name := range []string{"health", "applied", "provider", "owner"} {
+		for _, o := range selects[name] {
+			if strings.Contains(o, "(0)") {
+				t.Errorf("%s option %q carries a zero count for a list the caller may not read", name, o)
+			}
+		}
+	}
 	main := mainOf(res.body)
 	if strings.Count(main, "locked-panel") != 2 {
 		t.Errorf("want both kinds rendered locked:\n%s", between(main, `id="list"`, "</section>"))

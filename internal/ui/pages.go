@@ -356,6 +356,13 @@ func installedInput(rows []installedRow, rd installedReadable) formInput {
 			}
 		}
 	}
+	// With neither list read, every count stands for rows nobody may read:
+	// "Healthy (0)" would say nothing is unhealthy, when the portal does not
+	// know (portal:D14:R7).
+	var noCount map[string]bool
+	if !rd.instances && !rd.packages {
+		noCount = map[string]bool{"health": true, "applied": true, "provider": true, "owner": true}
+	}
 	keys := func(param string) []string {
 		out := make([]string, 0, len(counts[param]))
 		for k := range counts[param] {
@@ -367,6 +374,7 @@ func installedInput(rows []installedRow, rd installedReadable) formInput {
 	in := formInput{
 		Choices: map[string][]string{"uses": keys("uses"), "module": keys("module")},
 		Counts:  counts,
+		NoCount: noCount,
 		Notes:   notes,
 		Suggest: map[string][]string{},
 		Placeholders: map[string]string{

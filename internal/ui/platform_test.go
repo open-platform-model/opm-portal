@@ -340,6 +340,13 @@ func TestPlatformFormsCountOverTheDocument(t *testing.T) {
 	if strings.Contains(cats, `id="f-claimed"`) || strings.Contains(cats, "Claimed only (") {
 		t.Errorf("the Claimed select or a claimed-only count shows over locked registrations:\n%s", cats)
 	}
+	// A Platform the caller may not read leaves no count on the Source
+	// options either: "(0)" would stand for a document that is not read.
+	forbidden := newSite(t, apitest.F1(t), apitest.DenyResources("platforms"))
+	cats = between(mainOf(forbidden.get(t, "/?tab=catalogs").body), `aria-label="Filter catalogs"`, "</form>")
+	if src := between(cats, `<select id="f-csource"`, "</select>"); strings.Contains(src, " (") {
+		t.Errorf("a Source option carries a count over a Platform the caller may not read:\n%s", src)
+	}
 }
 
 // TestPlatformEventsTableLinksItsResources (platform-23 to platform-26): the
