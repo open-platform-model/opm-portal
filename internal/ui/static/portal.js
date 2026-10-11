@@ -144,9 +144,13 @@
   }
   rememberFilters();
   document.addEventListener("htmx:pushedIntoHistory", rememberFilters);
+  // A filter form replaces its history entry, so Back leaves the filtered
+  // view instead of walking back through every keystroke.
+  document.addEventListener("htmx:replacedInHistory", rememberFilters);
   document.addEventListener("htmx:historyRestore", function () {
     rememberFilters();
     markTheme();
+    setLiveNote("");
   });
 
   // "Clear filters" forgets the view first, so nothing restores them.
@@ -157,12 +161,157 @@
     }
   }, true);
 
+  // ---- Filter forms ----
   // A filter form's selects apply at once; without script its button does.
   document.addEventListener("change", function (evt) {
     var sel = evt.target;
     if (sel && sel.matches && sel.matches("form[data-filters] select") && sel.form && sel.form.requestSubmit) {
       sel.form.requestSubmit();
     }
+  });
+
+  // A search or text field of a form[data-filters] applies after a pause in
+  // typing. The pending timer names its form by the form's data-filters
+  // value and looks it up when it fires, so a swap that replaced the form
+  // never leaves it submitting a detached one. A submit clears it, so Enter
+  // submits once, and so does a request the form did not make (a link
+  // followed while a key was pending).
+  var FILTER_PAUSE = 300;
+  var typingTimer = 0;
+  var typingForm = "";
+
+  function armFilter(form) {
+    window.clearTimeout(typingTimer);
+    typingForm = form.getAttribute("data-filters") || "";
+    typingTimer = window.setTimeout(function () {
+      typingTimer = 0;
+      var live = typingForm ? document.querySelector('form[data-filters="' + CSS.escape(typingForm) + '"]') : null;
+      if (live && live.requestSubmit) {
+        live.requestSubmit();
+      }
+    }, FILTER_PAUSE);
+  }
+
+  function disarmFilter() {
+    window.clearTimeout(typingTimer);
+    typingTimer = 0;
+  }
+
+  function filterInput(el, selector) {
+    return !!(el && el.matches && el.form && el.matches(selector) && el.form.matches("form[data-filters]"));
+  }
+
+  document.addEventListener("input", function (evt) {
+    if (filterInput(evt.target, "input[type=search]")) {
+      armFilter(evt.target.form);
+    }
+  });
+  document.addEventListener("change", function (evt) {
+    if (filterInput(evt.target, "input:not([type=search]):not([type=hidden]):not([type=checkbox]):not([type=radio])")) {
+      armFilter(evt.target.form);
+    }
+  });
+  document.addEventListener("submit", function (evt) {
+    if (evt.target && evt.target.matches && evt.target.matches("form[data-filters]")) {
+      disarmFilter();
+    }
+  }, true);
+
+  // The field the user is typing in is recorded just before a page swap
+  // replaces it. htmx puts focus and caret back on a field with an id, but
+  // the swap renders the value the server received, so a key typed while
+  // the request was in flight would be lost: after the page settles the live
+  // value and caret are restored, and the pause starts again so the newer
+  // text is applied next.
+  var typed = null;
+  document.addEventListener("htmx:beforeSwap", function (evt) {
+    var t = evt.detail && evt.detail.target;
+    var a = document.activeElement;
+    typed = null;
+    if (t && t.id === "main" && a && a.id && t.contains(a) && filterInput(a, "input:not([type=hidden])")) {
+      try {
+        typed = { id: a.id, value: a.value, start: a.selectionStart, end: a.selectionEnd };
+      } catch (e) {
+        typed = null;
+      }
+    }
+  });
+
+  // isMainSettle says an htmx:afterSettle is the one of the swapped page. A
+  // boosted request settles twice, once for #nav (hx-select-oob) and once for
+  // #main, with the same detail; what must happen once per request acts on
+  // the #main event.
+  function isMainSettle(evt) {
+    return !!(evt.target && evt.target.id === "main");
+  }
+
+  document.addEventListener("htmx:afterSettle", function (evt) {
+    if (!isMainSettle(evt)) {
+      return;
+    }
+    var rec = typed;
+    typed = null;
+    var el = rec && document.getElementById(rec.id);
+    if (!el || !el.form || el.value === rec.value) {
+      return;
+    }
+    el.value = rec.value;
+    if (document.activeElement !== el) {
+      el.focus({ preventScroll: true });
+    }
+    try {
+      el.setSelectionRange(rec.start, rec.end);
+    } catch (e) {
+      // The field takes no selection; the value is back.
+    }
+    armFilter(el.form);
+  });
+
+  document.addEventListener("htmx:beforeRequest", function (evt) {
+    var elt = evt.detail && evt.detail.elt;
+    var own = !!(elt && elt.matches && elt.matches("form[data-filters]"));
+    var chip = !!(elt && elt.matches && elt.matches("a.fchip, a.fclear") && elt.closest("form[data-filters]"));
+    if (typingTimer && !own) {
+      disarmFilter();
+    }
+    // A filter change started this request: a field, a chip's remove link
+    // or "Clear all" of a filter form. Its settled count is announced.
+    var form = own ? elt : (chip ? elt.closest("form[data-filters]") : null);
+    filterChange = form ? form.getAttribute("data-filters") || "" : null;
+  });
+
+  // The count of a filter change that has applied is announced once through
+  // the header's polite status region, in its hidden .live-note, so no live
+  // region is added to the page. The region is not atomic, so a change of
+  // the stream's state (.live-text) presents that text only. A page move
+  // empties the note, which belongs to the page it was written for.
+  // It holds the data-filters name of the form that made the request, or
+  // null when no filter form did.
+  var filterChange = null;
+
+  function setLiveNote(text) {
+    var note = document.querySelector("#live .live-note");
+    if (note && note.textContent !== text) {
+      note.textContent = text;
+    }
+  }
+
+  document.addEventListener("htmx:afterSettle", function (evt) {
+    if (!isMainSettle(evt)) {
+      return;
+    }
+    if (filterChange === null) {
+      setLiveNote("");
+      return;
+    }
+    // The count is the one inside the form that made the request: a page
+    // with two filter forms (the Platform page) has two counts. A form that
+    // shows none (a list the caller may not read) announces nothing, never
+    // another form's count.
+    var form = filterChange ? document.querySelector('form[data-filters="' + CSS.escape(filterChange) + '"]') : null;
+    var count = form && form.querySelector(".shown");
+    filterChange = null;
+    setLiveNote(count ? (count.textContent || "").replace(/\s+/g, " ").trim() : "");
   });
 
   // ---- Stream topics ----
@@ -659,6 +808,18 @@
       followLog(d);
     }
   }, true);
+  // followOpenLogs follows every open pane that does not follow yet: a pane the
+  // server renders open may fire its toggle event before this script listens,
+  // so the pane is followed from what is open now, at load and after every swap.
+  function followOpenLogs() {
+    document.querySelectorAll("details.log[open]").forEach(function (d) {
+      if (!d.hasAttribute("data-following")) {
+        followLog(d);
+      }
+    });
+  }
+  followOpenLogs();
+  document.addEventListener("htmx:afterSettle", followOpenLogs);
   document.addEventListener("change", function (evt) {
     var c = evt.target;
     if (c && c.matches && c.matches("input[data-log-previous]")) {
@@ -688,14 +849,20 @@
   });
   // After a page swap, focus moves to the current tab, or to the page, so
   // keyboard users are not left on a detached element.
-  document.addEventListener("htmx:afterSettle", function () {
-    if (!mainSwapped) {
+  document.addEventListener("htmx:afterSettle", function (evt) {
+    if (!mainSwapped || !evt.target || evt.target.id !== "main") {
       return;
     }
     mainSwapped = false;
     var m = document.getElementById("main");
     var tab = tabClicked && m && m.querySelector(".tabs a[aria-current]");
     tabClicked = false;
+    // htmx put focus back on a field with an id inside the new page (a
+    // filter form being used): leave it there.
+    var active = document.activeElement;
+    if (m && active && active !== m && active !== document.body && m.contains(active)) {
+      return;
+    }
     var target = tab || m;
     if (target && target.focus) {
       target.focus({ preventScroll: true });
@@ -779,10 +946,10 @@
     }
   }
 
-  // setSelectionParams keeps node and focus in the address, so a refresh,
-  // a reload and a shared link show the same selection or spotlight.
-  function setSelectionParams(node, focus) {
-    var u = new URL(location.href);
+  // setParams writes the selection into a URL: the node, the focus, or
+  // neither. The server ranks focus above node for the panel and the
+  // spotlight, so the one that is not meant stays out of the address.
+  function setParams(u, node, focus) {
     [["node", node], ["focus", focus]].forEach(function (kv) {
       if (kv[1]) {
         u.searchParams.set(kv[0], kv[1]);
@@ -790,19 +957,40 @@
         u.searchParams.delete(kv[0]);
       }
     });
-    history.replaceState(history.state, "", u.pathname + u.search + u.hash);
   }
 
-  // resetDetail returns the panel to the node the page rests on, which the
-  // graph names; without one it says what to do.
+  // setSelectionParams keeps node and focus in the address, so a refresh, a
+  // reload and a shared link show the same selection or spotlight.
+  function setSelectionParams(node, focus) {
+    var u = new URL(location.href);
+    setParams(u, node, focus);
+    history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+    // The tab links keep the selection (portal:D9): the server wrote them for the
+    // address the page was opened at, so they follow the selection as it changes.
+    document.querySelectorAll(".owner-tabs a").forEach(function (a) {
+      var t = new URL(a.getAttribute("href"), location.href);
+      setParams(t, node, focus);
+      a.setAttribute("href", t.pathname + t.search);
+      // A boosted link keeps the path it was processed with, so a new href
+      // reaches a click only after htmx processes the link again.
+      if (typeof htmx !== "undefined") {
+        htmx.process(a);
+      }
+    });
+  }
+
+  // resetDetail brings the panel back to the node the page rests on: the
+  // graph names that node's panel in data-resting-panel, and a page with no
+  // graph names it in data-root-panel on the panel itself. A page that names
+  // none says what to do.
   function resetDetail(g) {
     var target = document.getElementById("detail");
     if (!target) {
       return;
     }
-    var url = g && g.getAttribute("data-resting-panel");
+    var url = (g && g.getAttribute("data-resting-panel")) || target.getAttribute("data-root-panel");
     if (url && typeof htmx !== "undefined") {
-      htmx.ajax("GET", url, { source: g, target: "#detail", swap: "innerHTML", select: "unset" });
+      htmx.ajax("GET", url, { source: g || target, target: "#detail", swap: "innerHTML", select: "unset" });
       return;
     }
     var p = document.createElement("p");

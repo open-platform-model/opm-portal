@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-graph` built and in review: groups per kind family, drawing, selection, fit, zoom and full screen; `align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending).
+Last updated: 2026-10-11 (`align-graph` built and in review, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -73,7 +73,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    between the owner's canvas and the live pages,
    [evidence 05](docs/design/evidence/05-canvas-gap-report/); portal:D19, D20, D4:R5 as amended,
    D9:R6, D14:R7):
-   - `align-shell-and-tokens` (in review; reviewed in three parts, fixed and archived on its branch; the gate for the other three, which start from it): fixes
+   - `align-shell-and-tokens` (merged as PR 44; reviewed in three parts, fixed and archived; the gate for the other three, which start from it): fixes
      the empty details panel after a graph node is selected, and lands the flat look (no grid,
      shadows or heading marks, an 1840 px column), tone and kind chip tokens in light and dark, one
      square badge for both axes with the Applied words kept, underline tabs with counts, a worded
@@ -85,14 +85,26 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      Open deviation for the owner's review: the Catalog page's Events tab carries no count where
      the canvas shows one, since counting it would add a read on every tab (portal:D19:R4, a
      planner reading, not a ruling).
-   - `align-platform-installed-catalog`, after the gate: Platform and Catalog state blocks with
-     reason counts, filter selects that list the values present with counts and apply as you type
-     (portal:D14:R7), Installed counted across namespaces with a package's source in the Module
-     filter, and events tables.
-   - `align-owner-pages`, after the gate, beside `align-graph`: Applied, Health and Provider as
-     state blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
-     over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, and
-     `prune` on packages.
+   - `align-platform-installed-catalog` (merged as PR 47; reviewed, fixed and archived; built on top of the gate): Platform and Catalog
+     state blocks with reason counts, filter selects that list the values present with counts and
+     apply as you type (portal:D14:R7), Installed counted across namespaces with a package's source
+     in the Module filter, events tables, and the Catalog page with its short-name headline, origin
+     pill, source and the "refused since" time. What it uncovered: option counts are live reads, so
+     a reader who may list only some namespaces gets no count for the lists locked to them and
+     types a namespace; the count announced after a filter change had to come from the form that
+     made the request, since the Platform page holds two counts, and each filter form's Apply button
+     needed a stable id so that tabbing out of a text field kept the user's place; the canvas Catalog block says
+     "Pulled <version> from the registry", but nothing the portal reads records a pull, so the
+     block says "In the resolved registry at <version>"; the events Age keeps the relative form
+     ("5m ago") with the absolute time in `title`; the Catalog page has no per-catalog resolve time
+     until the operator records one (portal:OQ26). Open for the owner: any canvas copy above that
+     the owner overturns.
+   - `align-owner-pages` (merged as PR 48; built in six sections, reviewed, fixed and archived),
+     after the gate, beside `align-graph`: Applied, Health and Provider as state
+     blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
+     over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, the
+     Provider tab as a facts grid with a conditions table and a table of what it provides, and
+     `prune` on packages. What it uncovered is item 4 below.
    - `align-graph` (in review; built in six sections, review and archive next), beside `align-owner-pages`: configuration grouped per kind
      family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
      legend, selection apart from the spotlight, registration standing on its node, and the
@@ -106,14 +118,28 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      instance graph carries no `providerRef`.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
-4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
+4. **What `align-owner-pages` uncovered, none blocking:**
+   - The merged feed costs 6 to 26 ms more than the owner's own feed for cert-manager at the pace
+     of a person, on a kind cluster (95th percentile over 50 reads, measured twice: before the
+     build and on the built read). Back to back it costs 281 ms, which is the reading client's
+     rate limit (50 requests a second, 14 lists a read). A configurable rate, or a short cache of
+     the merged feed per owner, is the follow-up for a portal with many readers of one large owner
+     (design.md "Scale and refresh").
+   - The Events tab and its count refresh with the owner's own events, so an event about a child
+     alone shows on the next page read. A live refresh of child events needs a stream topic per
+     reached object or a merged topic; none is built.
+   - The Service panel shows ports and no Endpoints: Endpoints need a read of EndpointSlices, a
+     new kind that waits on its own read decision (portal:D8:R4 applies the same way).
+   - `CapText` and its 512-code-point cap on an event note are in `internal/readmodel/cap.go`,
+     added here first; `align-graph` adopts them for any new cluster text it serves.
+5. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
    graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
    item 4 (the loopback cookie risk, accepted and documented).
-5. **Phone-width test and contrast fix** (`fix-contrast-and-add-phone-check`, before the canvas
+6. **Phone-width test and contrast fix** (`fix-contrast-and-add-phone-check`, before the canvas
    alignment): `TestBrowserPhone` holds every F1 page to 360 px wide in three browsers; light muted
    text and the border of filter fields pass WCAG 2.2 AA, held by a token-pair test and recorded as
    portal:D19:R6. Two light-theme pairs, `--healthy` and `--degraded` on their fills, fail today and
-   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens (in review).
+   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens (merged).
 
 ## Future plans
 

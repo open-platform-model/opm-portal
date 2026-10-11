@@ -27,6 +27,7 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   - `PackageSummary` gains `prune`, read from `spec.prune` of the package object the portal
     already reads.
   - Implements the owner's "Merge all" answer, recorded as portal:D9:R6.
+  - Every event note the API serves is capped at 512 Unicode code points (see "Length cap" below).
 - **Summary cards** (section 2):
   - Applied, Health and Provider are drawn as the shared state block: eyebrow, a "when" stamp,
     tone icon, big state word, a one-line summary from recorded facts, and reason counts (count
@@ -66,6 +67,21 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   - "What it provides" as a table with round contract pills, and a "Show in Installed →" or "All
     N in Installed →" hand-off that is hidden when nothing uses the contract.
   - The standing appears once per claim.
+- **Floors this change holds** (amendments of 2026-10-11 from the portal's plan, each traced in
+  design.md "Amendments"):
+  - A two-user test for the merged feed: a caller who may list events but may not list the Pods
+    sees no event of a ReplicaSet, Pod or Job (the runtime children are shown all or none for each
+    owner) and no count that includes one (OP-A1).
+  - A length cap on served event notes, and the in-cluster cases for both writers of an operator
+    note (OP-A2).
+  - Panel facts for a node only when the caller's access to it is `ok`, and an image reference
+    shown without userinfo (OP-A3).
+  - A text for every Provider standing in the Provider card and the Contracts fact, so none falls
+    through to "N provided, M in use" when the claim provides nothing (OP-A4).
+  - The owner pages in `TestBrowserPhone` at 360 px, and the tap and Escape cases for the Owner and
+    Applier tips (OP-A5).
+  - Branches take the other change's work by merging `main` into them, never by a history rewrite
+    (OP-A6).
 - Docs pages that describe the owner pages, and `ROADMAP.md`.
 
 Not in this change: the per-gap exclusions in design.md Non-Goals (Age columns, Service
@@ -91,14 +107,15 @@ Both changes read `node` and `focus` the same way: `node` is the selection a cli
 the hand-off spotlight; tab links keep both, YAML opens on the `node` object, else the `focus`
 object, the Resources row of either is marked, and the panel rests only when neither is set. The
 selection lines in `ownerTabsOf` are the one place both changes edit the same function; whichever
-lands second rebases them.
+lands second merges `main` into its branch and reconciles them (never a history rewrite).
 
 The resting node of the details panel is one behaviour (`graph-23`, `provider-21`, `instance-27`):
 `align-graph`'s ADDED requirement "The details panel rests on the node that needs attention" picks
 the node; `align-owner-pages`' tabs requirement only says the panel shows that node, never an empty
 placeholder. The per-kind object facts on the panel (Replicas, Image, Strategy, Node, Restarts,
 Started, Type, Ports; `instance-28`) are `align-owner-pages`', read from the object document in
-`panel.go`. Whichever change lands second rebases onto the other's markup.
+`panel.go`. Whichever change lands second merges `main` into its branch and takes the other's
+markup.
 
 ## Capabilities
 
@@ -111,7 +128,7 @@ None.
 - `web-ui`: the owner page's summary cards, tabs, Resources table, details panel at rest,
   merged Events, Logs, YAML and Provider tab requirements change.
 - `read-api`: owner events gain `scope=all` and the `scope` and `partial` fields; packages carry
-  `prune`.
+  `prune`; every served event note is capped at 512 Unicode code points.
 - `read-model`: events can be read merged over an inventory, one list per namespace and kind.
 
 ## Impact
@@ -137,7 +154,25 @@ None.
   out and the feed says `partial`; Secrets stay excluded. `prune` comes from the ModulePackage
   the portal already reads. Per-kind panel facts come from the object resource the YAML view
   already serves, stripped as today (portal:D8). No write and no Secret data. The `deploy/` role
-  needs no new rule.
+  needs no new rule. Two floors from the portal's plan hold on top of that. A caller who may list
+  events but may not read an object's kind sees none of that object's events; ReplicaSets, Pods and
+  Jobs go together, so a caller who may not list one of them in a namespace of the owner sees none
+  of the three in any namespace of that owner. The test `TestMergedEventsHideWhatTheCallerCannotGet` names both cases. The panel's per-kind facts are
+  a fixed list, shown only for a node whose access is `ok`, and an image reference loses any
+  userinfo before it is shown.
+- Length cap: the API caps every event note it serves at 512 Unicode code points, an ellipsis
+  ending a longer note, through one exported helper, `CapText(s string, limit int) string` in
+  `internal/readmodel/cap.go`, called in `eventListDoc` (`internal/api/convert.go:309`) after the
+  read model's fold of events by note. `align-graph` calls the same helper for the Flux condition
+  message (its own limit, set in its own change). Either change, whichever merges first, adds
+  `CapText` and its tests; the other adopts the file and adds no second helper. The helper sits in
+  `internal/readmodel` so that both changes can import it: `internal/api` imports the read model,
+  never the reverse, and `internal/ui` cannot be imported from `internal/api` without an import
+  cycle. The call stays in `eventListDoc` because a cap in the read model, where the note is read
+  (`events.go:113`), would cut notes before the fold at `events.go:120` (design.md "Where the
+  length cap lives"). The cap is a documented maximum on an existing field (`Event.note`), so it is
+  additive in the sense of `task api:breaking`; it shortens only notes over 512 code points, and
+  design.md records it as a limit, not as a decision in `docs/DESIGN.md`.
 - Principle VII: no dependency and no build step. The UI takes on one complexity: the panel
   reads an object document to show Replicas, Image, Strategy, Node, Restarts, Started, Type and
   Ports. The alternative was widening `GraphNode` in `internal/graph`, which `align-graph` owns.
@@ -150,7 +185,7 @@ None.
   - Default panel: the panel at rest (`instance-27`) is the same behaviour as `align-graph`'s
     `graph-23`. `align-graph` owns which node the panel rests on and the `resetDetail` reset. This
     change builds the minimal form (the owner's node) only if it lands first; the second change
-    rebases.
+    merges `main` into its branch.
   - Per-kind panel facts: `instance-28` is this change's gap, and design.md decision 5 reads them
     from the object document in `panel.go`, with no `internal/graph` change (both proposals now
     say so).
@@ -191,4 +226,7 @@ None.
 - SemVer: MINOR after 1.0 (additive API, changed pages). On the 0.x line it ships as one PR
   titled `feat(ui): align the instance and package pages with the canvas`.
 - Decisions: implements portal:D9:R6 (new, owner answer 2026-10-06) and keeps portal:D3,
-  portal:D8, portal:D9:R1 to R5, portal:D10, portal:D15 and portal:D16 as they are.
+  portal:D8, portal:D9:R1 to R5, portal:D10, portal:D15 and portal:D16 as they are. The owner's
+  answers of 2026-10-11 confirm this change's choices over the plan's: the plan's Provider table
+  and claim heading, a ReplicaSet owner fact and a revision tip are not added, age, the `cause`
+  join and the hover warning line stay unscheduled, and Resources stays a table.

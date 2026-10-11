@@ -43,24 +43,36 @@ status `401`. Source: portal:D2:R1.
 
 ### Requirement: The Platform page is the landing page
 
-`/` SHALL show the Platform: an identity card (name, type, controller version; the context,
-reader and Kubernetes version are in the header); a status card with the applied state of `Ready` and its reason (`Generated`,
-or `BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts`,
-`ComparablePredicates`), each reason linking to its condition with the meaning, next step and
-message, and `ContractsFulfilled` beside it as information; an Installed card with the counts per
-health state and per applied state, each linking to Installed filtered by it, and the numbers of
-instances, packages and of those that hold a registration; Providers and Catalogs tabs with
-filters; and the recent events of the Platform and of each readable registration, merged newest
-first, with a resource filter. A Providers row SHALL show the registration's name, its catalog and
-version linking to the Catalog page, its provided contracts, its holder ("Installed as") with kind
-and link, its acceptance and its activation as two separate pills, and its refusal or
-removal-blocked reason and message. A removal-blocked registration SHALL show as removal blocked
-while still accepted and active, never as refused. A Catalogs row SHALL show the path linking to
-the Catalog page, version, source, claimants and enablement. A Platform reporting unfulfilled
-provider contracts SHALL show it as information, not as a failure. The page SHALL show no Platform
-health and no platform graph. When the registrations the caller may read are not all of them, or a
-list behind the Installed counts is forbidden, the page SHALL say so with the locked style.
-Source: portal:D4:R4/R7, portal:D3:R8, portal:D17, portal:D9:R4.
+`/` SHALL show the Platform: an identity card (name, type, and the controller version labelled
+"Controller"; the context, reader and Kubernetes version are in the header); a status block with
+the applied state of `Ready` as a large state word in its tone, the time since that state
+("since", from the deciding condition), the line of resolved catalogs, subscriptions and active
+claims, and the reasons that need attention, each a count and a reason linking to its cause: per
+refusal reason, the number of registrations refused with it, linking to the Providers tab filtered
+to refused; per removal-blocked reason, the same, linking to it filtered to removal blocked; the
+`Ready` reason (`BuildFailed`, `GenerateFailed`, `ContractCollisions`, `OverSubscribedContracts`,
+`ComparablePredicates`) when `Ready` is not `True`, linking to its condition with the meaning,
+next step and message; and `ContractsFulfilled`'s reason when it is `False`, as information
+without a count, linking to the contracts note; an Installed card with one column of count rows
+per health state and one per applied state, each row a badge and its count linking to Installed
+filtered by it, and the numbers of instances, packages and of those that are providers; Providers
+and Catalogs tabs with filters; and the recent events of the Platform and of each readable
+registration, merged newest first, as a table with a resource filter whose options carry their
+counts. A Providers row SHALL show the registration's name linking to its holder's Provider tab
+when it has one, its catalog and version linking to the Catalog page, its provided contracts, its
+holder ("Installed as") with kind and link, its acceptance and its activation as two separate
+badges, and its refusal or removal-blocked reason and message. A removal-blocked registration
+SHALL show as removal blocked while still accepted and active, never as refused. A Catalogs row
+SHALL show the path linking to the Catalog page, version, source ("subscription", "contributed" or
+"claimed only"), claimants linking to their holders' Provider tabs, and enablement as a badge. An
+events row SHALL show type, reason, the object it is about as a link that filters the feed to that
+object, the note with the repeat count and reporting controller, and the age. A Platform reporting
+unfulfilled provider contracts SHALL show it as information, not as a failure. The page SHALL show
+no Platform health and no platform graph. When the registrations the caller may read are not all
+of them, or a list behind the Installed counts is forbidden, the page SHALL say so with the locked
+style, whatever other reasons the status block shows, and SHALL never show a refusal count or an
+active-claims count of zero for registrations it could not read. Source: portal:D4:R4/R7,
+portal:D3:R8, portal:D17, portal:D9:R2/R4, portal:D19:R3/R5.
 
 #### Scenario: The F1 platform
 
@@ -72,7 +84,7 @@ Source: portal:D4:R4/R7, portal:D3:R8, portal:D17, portal:D9:R4.
 #### Scenario: Accepted and active apart
 
 - **WHEN** a registration is accepted and not active
-- **THEN** its row shows an "accepted" pill and an "inactive" pill, each on its own
+- **THEN** its row shows an "Accepted" badge and an "Inactive" badge, each on its own
 
 #### Scenario: A count hands off
 
@@ -83,6 +95,38 @@ Source: portal:D4:R4/R7, portal:D3:R8, portal:D17, portal:D9:R4.
 
 - **WHEN** the caller may not list ModuleInstances
 - **THEN** the Installed card shows the instance counts locked, not zero
+
+#### Scenario: A refusal on the status block
+
+- **WHEN** a signed-in browser opens `/` on the F1 capture
+- **THEN** the status block reads "Applied" with a "since" time, and shows the count 1 with the
+  reason `CatalogUnresolved` linking to `/?tab=providers&pstatus=refused#parts`
+
+#### Scenario: Registrations forbidden on the status block
+
+- **WHEN** the caller may get the Platform but may not list TransformerRegistrations
+- **THEN** the status block says the refusals are locked and shows no refusal count, and its
+  summary shows no "0 claims"
+
+#### Scenario: Registrations forbidden while Ready is not True
+
+- **WHEN** the caller may get the Platform but may not list TransformerRegistrations, and the
+  Platform's `Ready` is `False`
+- **THEN** the status block shows the `Ready` reason and, in the locked style, that the refusals
+  are locked
+
+#### Scenario: Removal blocked keeps acceptance and activation
+
+- **WHEN** a registration's verdict is `RemovalBlocked`
+- **THEN** its row shows "Accepted", "Active" and "Removal blocked" badges with its reason and
+  message, and no "Refused" badge
+
+#### Scenario: An event's resource filters the feed
+
+- **WHEN** the user follows the resource link of an event about the TransformerRegistration
+  `default.refused-claim-fixture`
+- **THEN** the browser opens `/` with `eresource=registration:default.refused-claim-fixture` and
+  the table holds only that registration's events
 
 ### Requirement: Applied and health are two badges, never one
 
@@ -157,33 +201,105 @@ status alone. Source: portal:D3:R1/R5/R6/R8, portal:D2:R3, portal:D19:R3.
 
 ### Requirement: The instance page shows the record, the feed and the logs
 
-The instance page SHALL show the instance's graph, its inventory objects and runtime children with
-their health in the Resources tab, its conditions with each known reason's meaning and next step
-beside the controller's message, its status history newest first behind "Show history", the render
-contracts as plain text labelled as the contracts the render used and not the instance's provider
-demand, and its recent events with repeats folded into one line with a count and the latest time.
-Configuration components SHALL be grouped in the Resources tab as in the graph, with a count and
-their worst health, and the group SHALL be open when any member is not healthy. ReplicaSets with
-zero desired replicas SHALL be folded apart from the live ones. The feed SHALL be labelled as
-recent activity that expires after about an hour, and the page SHALL say that render warnings are
-kept only as events. The Logs tab SHALL offer each container of each Pod an inventory reaches,
-following its log topic, rendering log text as text only, and each Pod row SHALL link to its log.
-The package page SHALL show the same for a ModulePackage, with its source, interval, source
-revision and dependencies. Source: portal:D4:R3, portal:D9:R2/R3/R5, portal:D10, portal:D16:R1.
+The instance page SHALL show:
+
+- the instance's graph;
+- its inventory objects and runtime children with their health, in the Resources tab;
+- its conditions, with each known reason's meaning and next step beside the controller's
+  message, in a Conditions fold below the tab panels;
+- its status history, newest first, behind "Show history";
+- the render contracts as plain text, labelled as the contracts the render used and not the
+  instance's provider demand;
+- its recent events.
+
+The Events tab SHALL open on the events of the instance and of every object and runtime child its
+inventory reaches that the caller may read, merged newest first, with repeats folded into one line
+with a count and the latest time. When some reached objects' events could not be read, the tab
+SHALL say that they are left out, never show their absence as no events. Configuration
+components SHALL be folded in the Resources tab into the same groups the graph folds them into,
+each with its count and worst health, and a group SHALL be open when any member is not healthy.
+ReplicaSets with zero desired replicas SHALL be folded apart from the live ones. The feed SHALL be
+labelled as recent activity that expires after about an hour, and the page SHALL say that render
+warnings are kept only as events.
+
+The Logs tab SHALL offer each container of each Pod an inventory reaches through one Pod and
+container picker. It SHALL show the picked container, or the first one when none is picked, in
+one pane that follows its log topic as soon as the tab opens, and SHALL render log text as text
+only. The details panel of a Pod SHALL link to its log. When the picked container waits with a
+reason under which no instance of it has started (or, where the Pod does not say per container,
+its Pod does), the tab SHALL say the container has not started, so there are no logs yet, and
+link to that Pod's events. When the picked container is in `CrashLoopBackOff`, the tab SHALL say
+it is restarting and point to its previous instance's logs.
+
+The package page SHALL show the same for a ModulePackage, with its source, interval, prune
+setting, source revision and dependencies. Source: portal:D4:R3, portal:D9:R2/R3/R5/R6,
+portal:D10, portal:D16:R1.
 
 #### Scenario: podinfo's page
 
 - **WHEN** a signed-in browser opens `/instances/default/podinfo` on the F1 capture
 - **THEN** across its tabs it shows the podinfo component with its Service and Deployment, the
   ReplicaSet and two Pods below, the conditions with their meanings, the history, the render
-  contracts as text, the events feed with its expiry note, and one log entry per Pod container
+  contracts as text, the events feed with its expiry note, and a log choice for each Pod
+  container
 
 #### Scenario: cert-manager's configuration components
 
 - **WHEN** a signed-in browser opens `/instances/cert-manager/cert-manager?tab=resources` on the
   F1 capture
-- **THEN** its configuration components are one closed group with their count and health, and
-  its workload components are listed one by one
+- **THEN** its configuration components are folded into the same closed groups the graph shows,
+  each with its count and health, and its workload components are listed one by one
+
+#### Scenario: Every reached object's events on arrival
+
+- **WHEN** a signed-in browser opens `/instances/default/podinfo?tab=events` on the F1 capture
+- **THEN** with no resource filter the list holds the instance's own events and the Deployment's
+  `ScalingReplicaSet` event, newest first
+
+#### Scenario: Events of one namespace not readable
+
+- **WHEN** the caller may list events in the instance's namespace but not in `default`, where the
+  events about the instance's cluster-scoped objects live, and opens its Events tab
+- **THEN** the tab lists the events it could read and says that some objects' events could not
+  be read and are left out
+
+#### Scenario: Logs open on arrival
+
+- **WHEN** a browser with script opens podinfo's Logs tab
+- **THEN** the first Pod's first container is picked and its pane follows its log without a
+  further click
+
+#### Scenario: A container that has not started
+
+- **WHEN** the picked container belongs to a Pod waiting with `ImagePullBackOff`
+- **THEN** the Logs tab says the container has not started, so there are no logs yet, and links
+  to the Events tab filtered to that Pod
+
+#### Scenario: A crash-looping container
+
+- **WHEN** the picked container waits with `CrashLoopBackOff`
+- **THEN** the Logs tab says the container is restarting and points to its previous instance's
+  logs, and does not say it has not started
+
+#### Scenario: Events of a caller who cannot list the Pods
+
+- **WHEN** a caller who may get the instance and list events in `default` but may not list Pods
+  opens `/instances/default/podinfo?tab=events` on the F1 capture
+- **THEN** no ReplicaSet, Pod or Job is offered in the Resource choice or listed in the table, the
+  Events tab carries no count, "All resources" says its count covers what could be read, and no
+  count in the filters includes an event about one of them
+
+#### Scenario: A long event note
+
+- **WHEN** an event in the merged feed carries a note of 2,000 code points
+- **THEN** the table shows the note as the API served it, capped, and the page clips it no further
+
+#### Scenario: Events of both operator writers in-cluster
+
+- **WHEN** an in-cluster browser opens the Events tab of an instance whose feed holds an event from
+  `opm-controller` and an event with no controller that regards the instance, beside the kubelet's
+  events about its Pods
+- **THEN** neither of the first two shows a note, and the kubelet's events show theirs
 
 ### Requirement: Objects can be viewed as YAML without values
 
@@ -377,13 +493,20 @@ unavailable or throwing, pages SHALL render in System. Source: portal:D14:R4/R5.
 ### Requirement: Installed lists instances and packages together
 
 `/installed` SHALL list the ModuleInstances and ModulePackages the caller may read in one table:
-name and namespace, a kind chip (instance and package drawn apart), a provider badge when the
-item holds a TransformerRegistration, the module path and version or the package's source and
-path, the applied badge, the health badge, the object count and the owner (`controller` or `cli`
-for an instance, `controller` for a package). A kind the caller may not list SHALL render locked
-for that kind only, with no count, while the other kind's rows show. `/instances` and `/packages`
-SHALL redirect with `308` to `/installed` with `kind=instance` or `kind=package`, keeping a
-`namespace` parameter. Source: portal:D17:R1, portal:D7:R2.
+name and namespace, a kind chip with its icon (instance and package drawn apart), a provider badge
+reading "Provider" when the item holds a TransformerRegistration, coloured by its standing and
+opening, on hover, on keyboard focus and on a tap, a tooltip that names the registration and its
+standing in words, that Escape closes and that the pointer can enter, the module path with its version on a line below, or the package's source as
+`<Kind> <namespace>/<name>` with its source revision's short digest on a line below or "no
+revision recorded" when the controller recorded none, and its path only when it is neither empty
+nor `.`, the applied badge, the health badge, the object count and the owner (`controller` or
+`cli` for an instance, `controller` for a package). Each row SHALL be a link to the item's page,
+and a row whose health is Degraded SHALL be tinted apart from the others. When filters match
+nothing, the list SHALL say so and offer a button that clears them. A kind the caller may not list
+SHALL render locked for that kind only, with no count, while the other kind's rows show.
+`/instances` and `/packages` SHALL redirect with `308` to `/installed` with `kind=instance` or
+`kind=package`, keeping a `namespace` parameter. Source: portal:D17:R1, portal:D7:R2,
+portal:D15:R2/R4.
 
 #### Scenario: The F1 Installed list
 
@@ -402,6 +525,30 @@ SHALL redirect with `308` to `/installed` with `kind=instance` or `kind=package`
 
 - **WHEN** a browser requests `/instances?namespace=team-a`
 - **THEN** the response is `308` to `/installed?kind=instance&namespace=team-a`
+
+#### Scenario: The provider tooltip by keyboard
+
+- **WHEN** a keyboard user tabs to the provider badge of `default/backup-provider`
+- **THEN** a tooltip shows that registration `default.backup-provider` is accepted and active,
+  and the standing is also in the badge's text for assistive technology
+
+#### Scenario: The provider tooltip by tap and Escape
+
+- **WHEN** a touch user taps the provider badge of `default/backup-provider`, and later taps it
+  again, or a keyboard user opens the tooltip and presses Escape
+- **THEN** the first tap opens the tooltip without leaving the page, and the second tap or Escape
+  closes it while focus stays on the badge
+
+#### Scenario: A package with no recorded revision
+
+- **WHEN** the Installed list shows the F1 package `pkg/podinfo`
+- **THEN** its source cell reads its source kind with `pkg/` and the source name on one line and
+  "no revision recorded" on the next, and shows no "path ."
+
+#### Scenario: A whole row opens the item
+
+- **WHEN** the user clicks the Owner cell of the `default/podinfo` row
+- **THEN** the browser opens `/instances/default/podinfo`
 
 ### Requirement: List filters live in the URL and are remembered per browser
 
@@ -474,53 +621,182 @@ portal:D14:R1/R2/R3, portal:D16:R2.
 
 ### Requirement: Instance and package pages summarize Applied, Health and Provider standing
 
-The page of an instance or package SHALL show an identity card (kind, name, namespace, module path
-and version, or source, path, interval and source revision, owner, applier ServiceAccount), an
-Applied card and a Health card, and a Provider card when it holds a TransformerRegistration. The
-Applied card SHALL show the applied badge with its reason and meaning, the counts of Warning
-events in the current feed by reason, each linking to the Events tab filtered by that reason and
-labelled as the last hour of events, a `Reconciling` mark with its reason and since time while
-that condition is `True`, and one dot per `status.history` entry, oldest first, coloured by the
-entry's outcome; it SHALL show no dot for an attempt the history does not record, and SHALL say
-that at most ten attempts are kept and that reconciles that change nothing are not recorded. The
-Health card SHALL show the health badge, its partial and live marks, and the counts of objects and
-runtime children by health reason, each linking to the Resources tab with `reason` set to it. The Provider card SHALL show, per held
-registration, Active, Accepted and not active, Refused, Removal blocked or Pending with its
-reason, or a locked standing when the caller may not read registrations. An interval the package
-does not set SHALL read "not set"; a revision the package has not recorded SHALL read "not
-recorded". Source: portal:D3:R1, portal:D9:R1/R2, portal:D15:R2/R4.
+The page of an instance or package SHALL show an identity card. The card SHALL carry the kind,
+the name and, under the name, the module path and version, or for a package "from" its source
+kind, namespace and name, with the namespace defaulting to the package's own. It SHALL also carry
+the namespace, the owner and the applier ServiceAccount, each of the last two with an
+explanation reachable by pointer and keyboard. A package's card SHALL add its path, interval,
+prune setting and source revision.
+
+The page SHALL show an Applied card and a Health card, and a Provider card when the item holds a
+TransformerRegistration. Each card SHALL be a state block: an eyebrow naming the axis and its
+source, the recorded time of the state when there is one, an icon and a large state word in the
+state's tone, a one-line summary, and reason counts with the count first, each linking to its
+evidence, or a line saying there are none.
+
+The Applied card:
+
+- SHALL show the applied state as its word. It SHALL show "Reconciling" instead while the
+  `Reconciling` condition is `True` on an applied item, with that condition's time.
+- SHALL compose its summary only from recorded facts: the inventory count, the fetched revision,
+  the run of failed attempts and whether the controller retries. It SHALL name a retry interval
+  only where the controller retries at that interval.
+- SHALL show the reason's meaning and, in local mode, the controller's message beneath the
+  summary.
+- SHALL show a `Reconciling` mark with its reason and since time while that condition is `True`
+  and the word is not "Reconciling".
+- SHALL count the Warning events about the item itself by reason, labelled as the last hour of
+  events, each count linking to the Events tab filtered by that reason.
+- SHALL draw one dot per `status.history` entry, oldest first, marked and coloured by the entry's
+  outcome, with no dot for an attempt the history does not record.
+- SHALL show the number of attempts and a Show history control. The opened history SHALL show
+  each entry's outcome and SHALL say that at most ten attempts are kept and that reconciles that
+  change nothing are not recorded.
+
+The Health card:
+
+- SHALL show the health state as its word.
+- SHALL say how many resources are unhealthy or rolling out out of how many were counted, or that
+  nothing was applied, so there is nothing to check.
+- SHALL show its partial mark, and when it is not live, the time it was evaluated. A health with
+  no counted object SHALL show no time and SHALL not be called "not live".
+- SHALL count objects and runtime children by health reason, each linking to the Resources tab
+  with `reason` set to it.
+
+The Provider card SHALL show, per held registration, Active, Accepted and not active, Refused,
+Removal blocked or Pending as the controller recorded it, or a locked standing when the caller
+may not read registrations. Its summary SHALL be the contracts an active registration provides,
+or else the controller's message in local mode and the reason's meaning in-cluster, never a
+verdict the portal composed. When the controller wrote no message and the reason has no known
+meaning, the summary SHALL be a fixed sentence for the recorded standing, so no standing shows its
+word over an empty summary, and a standing the page does not know SHALL read Unknown. A non-success
+reason SHALL link to the Provider tab. Below 520 px wide, the identity card's facts SHALL take one
+column.
+
+An interval the package does not set SHALL read "not set"; a revision the package has not
+recorded SHALL read "not recorded". Source: portal:D3:R1/R4/R5, portal:D9:R1/R2,
+portal:D15:R2/R3/R4, portal:D8:R5/R6.
 
 #### Scenario: The image-break podinfo
 
 - **WHEN** the page of the image-break podinfo sample is rendered
-- **THEN** the Applied card reads Applied and the Health card reads Degraded with one count for
-  the Pod's waiting reason, linking to `tab=resources&reason=<that reason>`, which lists that Pod
+- **THEN** the Applied card reads Applied and the Health card reads Degraded with a summary
+  counting the unhealthy resources and one count for the Pod's waiting reason, linking to
+  `tab=resources&reason=<that reason>`, which lists that Pod
 
 #### Scenario: A failed attempt in the history
 
 - **WHEN** an instance's newest history entry has no phase and a message
-- **THEN** its dot is drawn failed, and in local mode its title carries the message
+- **THEN** its dot is drawn and marked failed, and in local mode its tooltip carries the message
 
 #### Scenario: The F1 package
 
 - **WHEN** a browser opens `/packages/pkg/podinfo` on the F1 capture
-- **THEN** the identity card shows source `OCIRepository` `podinfo-release`, interval `1m` and
-  revision "not recorded", and the Applied card reads Failed with reason `SourceNotReady`, a
-  `Reconciling` mark with reason `Progressing`, and three failed dots and no other dot
+- **THEN** the identity card reads "from OCIRepository pkg/podinfo-release" under the name, with
+  interval "every 1 min", prune on and revision "not recorded"
+- **AND** the Applied card reads Failed with reason `SourceNotReady`, a summary naming the three
+  failed attempts, a `Reconciling` mark with reason `Progressing`, and three failed dots and no
+  other dot
+
+#### Scenario: Rolling out
+
+- **WHEN** an applied instance's `Reconciling` condition turns `True`
+- **THEN** its Applied card reads Reconciling in the progressing tone, with the condition's time
+  and reason
+
+#### Scenario: Nothing applied yet
+
+- **WHEN** a package whose inventory names no object is rendered
+- **THEN** its Health card reads Unknown with "Nothing applied yet, so nothing to check", shows no
+  time, and does not say "not live"
+
+#### Scenario: A refused provider in-cluster
+
+- **WHEN** a package holding a claim the controller refused is rendered over an in-cluster read
+  API
+- **THEN** its Provider card reads Refused with the reason's meaning as its summary and no
+  message text the controller wrote
+
+#### Scenario: A pending claim with no controller text
+
+- **WHEN** a registration is Pending and its conditions carry no message and no known reason
+- **THEN** the Provider card reads Pending with the summary "The controller has not decided on this
+  claim yet." in both modes
+
+#### Scenario: A claim of unknown standing
+
+- **WHEN** the Platform records a verdict the page does not know for a held registration
+- **THEN** the Provider card reads Unknown and says the portal does not know the claim's standing
+
+#### Scenario: A blocked removal
+
+- **WHEN** a held registration's removal is blocked while modules still use what it provides, and
+  the conditions carry no message
+- **THEN** the Provider card reads Removal blocked and says the claim is accepted and active and
+  its removal waits until no module uses what it provides
+
+#### Scenario: Platform forbidden on the card
+
+- **WHEN** the caller may read `default/backup-provider` and its registration but not the
+  Platform
+- **THEN** the Provider card reads Active from the claim, with no time and no list of provided
+  contracts, and the page is not an error
 
 ### Requirement: Instance and package pages are organised in tabs
 
-Below the cards the page SHALL offer the tabs Graph, Resources, Events, Logs and YAML, and
-Provider when the item holds a registration, each a link carrying `tab=` that the server renders.
-The details panel SHALL show only on Graph and Resources. Resources SHALL list each inventory
-object and runtime child with kind, name, origin (in the inventory, or made by the cluster below an
-inventory object), health and reason, filtered by a `reason` parameter, with configuration
-components grouped as in the graph, and each row SHALL link to the Graph tab focused on its node.
-The details panel SHALL keep its Open, Expand, YAML and Events links, and SHALL add a Logs link for
-a Pod. Events SHALL filter by resource (grouped
-by kind), type and reason. Logs SHALL pick a Pod and container and follow its log as the logs
-panel does today. YAML SHALL pick an object grouped by kind and show no Secret and no values.
-Source: portal:D8:R2, portal:D9:R3, portal:D10.
+Below the cards the page SHALL offer the tabs Graph, Provider when the item holds a registration,
+Resources, Events, Logs and YAML, in that order. Each tab SHALL be a link carrying `tab=` that the
+server renders, and SHALL keep the `node` and `focus` parameters.
+
+The details panel SHALL show only on Graph and Resources, beside the tab's region where the page
+is wide enough. With neither `node` nor `focus` set, it SHALL show the details of the node the
+graph rests on
+(the item's own node, unless the graph's resting rule picks a held registration whose claim needs
+attention), without spotlighting it, and Clear selection SHALL return it there. The panel SHALL never be an empty placeholder.
+
+The panel SHALL show the node's kind, name and state badges, its health message in a box toned by
+its health, and its facts:
+
+- for a Deployment, StatefulSet, DaemonSet, ReplicaSet, Pod or Service, the replica, image,
+  strategy, node, restart, start, type and port facts its object document carries;
+- for a component, that a component is not a Kubernetes object and has no events or YAML of its
+  own, and what it renders;
+- for the item's own node, its identity facts and an Events link, and no link to the page already
+  open.
+
+The facts SHALL be a fixed list and SHALL appear only for a node the caller may read: a node that is
+locked, forbidden or not readable SHALL carry none, and no object SHALL be read for it. An image
+reference SHALL be shown without any userinfo before its host.
+
+The panel SHALL keep its Open, Expand, YAML and Events links, and SHALL add a Logs link for a Pod.
+
+Resources SHALL be a table with one row per inventory object and runtime child: kind, name,
+component, origin (applied from the inventory, or made by the cluster below an inventory object),
+health, and details (the health reason or desired replicas and the message). A Degraded or
+Missing row SHALL be marked apart, and the row of the `node` or `focus` object SHALL be marked as
+current. Each row SHALL link to the Graph tab focused on its node.
+Configuration components SHALL fold as in the graph. The table SHALL be filtered by a `reason`
+parameter shown as a removable chip. On a package page the first row SHALL be the package's
+source, with origin "source". With nothing applied, the tab SHALL read "Nothing applied yet. The
+graph fills in once an apply succeeds." on an instance, and "Nothing applied yet. The package has
+never fetched its source." on a package that has no source artifact.
+
+At 360 px wide, no tab SHALL make the page scroll sideways, and the Resources and Events tables
+SHALL lay out each row as a card below 760 px.
+
+Events SHALL filter by resource (grouped by kind, with "All resources" and the item itself as
+choices, and otherwise only objects that have events in the feed), by type and by reason, each
+choice with its count; on a feed that left objects out, "All resources" SHALL say its count
+covers what could be read. The reason SHALL be shown as a chip
+only when set. "Showing N of M" SHALL sit with the filters. The events SHALL be a table, and each
+line SHALL show type, reason, the regarded resource (a link that filters to it when the item
+reaches it), message and age.
+
+Logs SHALL pick a Pod and container and follow its log as the logs panel does today.
+
+YAML SHALL pick an object grouped by kind, open on the selected (`node`) object, else the
+focused (`focus`) object, else the first readable object, and show no Secret and no values.
+Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 
 #### Scenario: From Resources to the graph
 
@@ -530,12 +806,112 @@ Source: portal:D8:R2, portal:D9:R3, portal:D10.
 #### Scenario: Events filtered by reason
 
 - **WHEN** a browser opens podinfo's page with `tab=events&type=Warning`
-- **THEN** only Warning events are listed, folded with their counts
+- **THEN** only Warning events are listed, folded with their counts, and the type choice reads
+  Warning with its count
 
 #### Scenario: A Secret in YAML
 
 - **WHEN** the YAML picker lists an inventory that holds a Secret
-- **THEN** the Secret is listed as never read and cannot be opened
+- **THEN** the Secret is listed as never read and cannot be picked
+
+#### Scenario: The panel at rest
+
+- **WHEN** a signed-in browser opens `/instances/default/podinfo` with no `focus`
+- **THEN** the details panel shows the ModuleInstance `default/podinfo` with its identity facts
+  and an Events link, and no node is spotlighted
+
+#### Scenario: Clear selection returns to the resting node
+
+- **WHEN** the user selects podinfo's Deployment node and then Clear selection, with script on
+- **THEN** the details panel shows the node the graph rests on again, not an empty placeholder
+
+#### Scenario: Tab order with a provider
+
+- **WHEN** a browser opens `/instances/default/backup-provider` on the F1 capture
+- **THEN** the tabs read Graph, Provider, Resources, Events, Logs and YAML, in that order
+
+#### Scenario: The package's source row
+
+- **WHEN** a browser opens `/packages/pkg/podinfo?tab=resources` on the F1 capture
+- **THEN** the first row names `OCIRepository` `pkg/podinfo-release` with origin "source", and the
+  tab says the package has never fetched its source
+
+#### Scenario: Object facts in the panel
+
+- **WHEN** the panel opens on podinfo's Deployment
+- **THEN** it shows the desired replicas and the container image from the Deployment object, and
+  no environment variable
+
+#### Scenario: An image reference with userinfo
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:secret@registry.example/app:1`
+- **THEN** the panel shows `registry.example/app:1`, and neither the user nor the password appears
+  anywhere in the page
+
+#### Scenario: A password that holds a slash
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:ab/cd@registry.example/app:1`
+- **THEN** the panel shows `registry.example/app:1`, and neither the user nor any part of the
+  password appears anywhere in the page
+
+#### Scenario: A digest reference
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `registry.example/app@sha256:` followed by a digest
+- **THEN** the panel shows the reference whole
+
+#### Scenario: A digest reference with userinfo
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:secret@registry.example/app@sha256:` followed by a digest
+- **THEN** the panel shows `registry.example/app@sha256:` and the digest, with no userinfo
+
+#### Scenario: A sha384 digest reference
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `registry.example/app@sha384:` followed by a digest
+- **THEN** the panel shows the reference whole, repository included
+
+#### Scenario: A node the caller cannot read
+
+- **WHEN** the panel opens on a node whose access for the caller is not ok
+- **THEN** it shows no per-kind fact, and no request for the object is made
+
+#### Scenario: Owner tabs at 360 px
+
+- **WHEN** a browser 360 px wide opens the Graph, Resources, Events, Logs and YAML tabs of
+  podinfo
+- **THEN** the page does not scroll sideways on any of them, and each displayed row of the
+  Resources and Events tables is a card
+
+#### Scenario: Object facts not readable
+
+- **WHEN** the panel opens on an object whose document the read API refuses
+- **THEN** the panel shows the node's graph facts and says details from the object could not be
+  read, and is not an error page
+
+#### Scenario: YAML on arrival
+
+- **WHEN** a browser opens podinfo's page with `tab=yaml&focus=<the Deployment's node>`
+- **THEN** the Deployment's YAML is shown without picking it
+
+#### Scenario: YAML follows a graph click
+
+- **WHEN** the user clicks podinfo's Deployment node on the Graph tab and then follows the YAML
+  tab
+- **THEN** the YAML tab opens on the Deployment's YAML
+
+#### Scenario: Only objects with events are offered
+
+- **WHEN** a browser opens podinfo's Events tab and one reached object has no event in the feed
+- **THEN** the Resource filter does not offer that object
+
+#### Scenario: A resource link filters the feed
+
+- **WHEN** the user follows the Deployment's name in a line of podinfo's Events tab
+- **THEN** the tab lists only the Deployment's events, and the Resource choice reads its name
 
 ### Requirement: Graphs can be explored without leaving the page
 
@@ -587,23 +963,47 @@ be shown. Source: portal:D15:R1/R2/R3, portal:D4:R2.
 
 ### Requirement: The Provider tab shows the claim and who uses what it provides
 
-The Provider tab SHALL show, per held registration, its name, its claimed catalog (linking to the
-Catalog page) and version, whether that catalog is in the Platform's resolved registry and
-contributed by this registration, its conditions (type, status, reason, meaning, since, and in
-local mode the message), and per provided contract the readable instances whose render contracts
-contain it: the first three, the count of the rest, and a link to Installed filtered by that
-contract. When the caller could not list instances everywhere, the list SHALL say it may be
-incomplete. The registration's conditions, catalog and registry state come from the Platform
-document; when the caller may not read the Platform, those parts SHALL render locked and the tab
-SHALL keep the registration's name and standing. Source: portal:D16:R3, portal:D4:R4,
-portal:D7:R3.
+The Provider tab SHALL open with a sentence, per kind, saying the item is also a provider that
+registers a catalog with the platform. For a refused claim, the sentence SHALL add, from the
+controller's verdict, that it provides nothing.
+
+Per held registration, the tab SHALL show:
+
+- the registration's name and its standing once: acceptance and activation as two marks, and the
+  reason only when it is not a success reason;
+- a grid of facts: the registration, its claimed catalog (linking to the Catalog page) and
+  version, whether that catalog is in the Platform's resolved registry and contributed by this
+  registration, how many contracts it provides and how many are in use (or "none" for a refused
+  claim, and no in-use count when a list of users is incomplete or locked), the `providerRef`,
+  and in local mode the controller's message;
+- its "Registration conditions" (type, a status badge toned by the condition's tone, reason,
+  meaning and since, and in local mode the message);
+- a table of what it provides, where each contract is a pill showing its short path, with the full
+  path as its title, and with the readable instances whose render contracts contain it.
+
+The Contracts fact SHALL have a text for every standing. A claim that is accepted but not active,
+or pending, SHALL say how many contracts it lists and that none is provided yet. A claim of unknown
+standing SHALL say that it is not known. A claim whose removal is blocked SHALL give its counts and
+say the removal is blocked.
+
+Below 760 px wide, each row of the table SHALL be a card. For each contract the table SHALL list the first three users and the count of the rest. It SHALL
+link to Installed filtered by that contract as "Show in Installed" when there are three or fewer,
+and "All N in Installed" otherwise. When no readable instance uses the contract and the list is
+complete, the tab SHALL say no installed module uses it yet and offer no link. When the caller
+could not list instances everywhere, the list SHALL say it may be incomplete.
+
+The registration's conditions, catalog and registry state come from the Platform document. When
+the caller may not read the Platform, those parts SHALL render locked, and the tab SHALL keep the
+registration's name and standing. Source: portal:D16:R3, portal:D4:R4, portal:D7:R3,
+portal:D15:R2/R3.
 
 #### Scenario: Who uses the backup trait
 
 - **WHEN** a browser opens backup-provider's Provider tab on the F1 capture
 - **THEN** contract `opmodel.dev/catalogs/opm/traits/backup@v1alpha1` lists
   `default/backup-consumer` and links to
-  `/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1`
+  `/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1` as "Show in Installed", and
+  the Contracts fact reads "1 provided, 1 in use"
 
 #### Scenario: Platform forbidden
 
@@ -612,26 +1012,76 @@ portal:D7:R3.
 - **THEN** the tab names `default.backup-provider` with its standing, and its conditions and
   catalog render locked; the page is not an error
 
+#### Scenario: Users not fully readable
+
+- **WHEN** the caller may not list ModuleInstances in every namespace and opens backup-provider's
+  Provider tab
+- **THEN** the Contracts fact reads "1 provided; use not fully readable", not an in-use count
+
+#### Scenario: A contract nobody uses
+
+- **WHEN** a registration provides a contract that no readable instance's render used, and the
+  caller may list instances everywhere
+- **THEN** the contract's row says no installed module uses it yet and offers no Installed link
+
+#### Scenario: A claim that provides nothing yet
+
+- **WHEN** a held registration lists two contracts and is Pending, or accepted and not active
+- **THEN** the Contracts fact says it lists two and that none is provided yet, and does not read
+  "2 provided, 0 in use"
+
+#### Scenario: A blocked removal still provides
+
+- **WHEN** a held registration's removal is blocked and one of its contracts is in use
+- **THEN** the Contracts fact gives "1 in use" and says the removal is blocked
+
+#### Scenario: A claim of unknown standing
+
+- **WHEN** the verdict of a held registration is one the page does not know
+- **THEN** the Contracts fact says it is not known
+
+#### Scenario: The Provider tab at 360 px
+
+- **WHEN** a browser 360 px wide opens backup-provider's Provider tab
+- **THEN** the page does not scroll sideways, the facts take one column, and each row of "What it
+  provides" is a card
+
+#### Scenario: The standing said once
+
+- **WHEN** a browser opens backup-provider's Provider tab on the F1 capture
+- **THEN** its registration shows "accepted" and "active" once each, and no success reason beside
+  them
+
 ### Requirement: The Catalog page shows one catalog as the cluster records it
 
 `/catalog?path=<catalog>` SHALL show any catalog the Platform subscribes to, holds in its resolved
-registry, or a readable registration claims: its path, version, origin (subscribed, from a
-provider, or claimed only), source (the subscription, or the contributing registration and its
-holder), enablement, whether it is resolved (with the Platform's `Ready` reason, or the claiming
-registration's refusal reason), the Platform's `ContractsFulfilled` labelled as platform-wide, the
-registrations that claim it with their holders and standing, and the recent events of the Platform
-and its claimants. It SHALL show no definition, description, documentation link or transformer,
-and SHALL say these are not recorded. When the caller may not read the Platform, the page SHALL
-render locked with status `403`, saying nothing about whether the catalog exists. A path that a
-readable Platform and the readable registrations do not name SHALL render not found with status
-`404`. Source: portal:D17:R3, portal:D3:R8, portal:D7:R1.
+registry, or a readable registration claims: as its headline, the catalog's short name (its last
+path segment without the major version, or a longer form when two catalogs share it), with the
+full path and version on a line below; its origin (subscribed, from a provider, or claimed only)
+as a pill; its source ("Platform subscription", or the contributing registration, or for a
+claimed-only catalog the claiming registrations, each linking to its holder's Provider tab when it
+has one holder); its enablement, reading "no: not in the registry" for a catalog the registry does
+not hold; whether it is resolved, as a state block with the state word, a summary of what the
+registry records, and for an unresolved catalog the time since it was refused (the earliest time
+a claiming registration's `Ready` condition turned `False`, or the Platform's `Ready` for a
+subscription) and each reason (the Platform's `Ready` reason without a count, or the claiming
+registrations' refusal reasons with their count)
+linking to the Events tab filtered by that reason; the Platform's `ContractsFulfilled` labelled as
+platform-wide; the registrations that claim it with their holders and standing; and the recent
+events of the Platform and its claimants as a table, filterable by type and reason, with how many
+are shown of how many. The breadcrumb SHALL end with the short name. It SHALL show no definition,
+description, documentation link or transformer, and SHALL say these are not recorded. When the
+caller may not read the Platform, the page SHALL render locked with status `403`, saying nothing
+about whether the catalog exists. A path that a readable Platform and the readable registrations
+do not name SHALL render not found with status `404`. Source: portal:D17:R3, portal:D3:R8,
+portal:D7:R1, portal:D9:R2, portal:D19:R5.
 
 #### Scenario: The contributed backup catalog
 
 - **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` on the
   F1 capture
-- **THEN** it shows version `0.1.0`, origin from a provider, contributed by
-  `default.backup-provider` held by `default/backup-provider`, and resolved
+- **THEN** it shows the headline `backup`, version `0.1.0`, origin from a provider, the source
+  `default.backup-provider` linking to the Provider tab of `default/backup-provider`, and resolved
 
 #### Scenario: A claimed catalog that does not resolve
 
@@ -651,19 +1101,50 @@ readable Platform and the readable registrations do not name SHALL render not fo
   `/catalog?path=example.com/nothing@v0`
 - **THEN** both render the same locked page with status `403`
 
+#### Scenario: A refusal reason opens the events
+
+- **WHEN** the user follows the `CatalogUnresolved` reason on the Resolved block of the catalog
+  `default.refused-claim-fixture` claims
+- **THEN** the Events tab opens filtered to reason `CatalogUnresolved`, holding the claim's
+  warning, with its source reading the claiming registration's name, its enablement "no: not in
+  the registry", and a "refused since" time on the block
+
+#### Scenario: Events filtered by type
+
+- **WHEN** a browser opens the Events tab of a catalog with `type=Warning`
+- **THEN** the table holds only Warning events and says how many it shows of all the events
+
+#### Scenario: A Type choice keeps the reason
+
+- **WHEN** a browser opens a catalog's Events tab with `reason=CatalogUnresolved` and then picks
+  type Warning
+- **THEN** the address carries both `reason=CatalogUnresolved` and `type=Warning`
+
+#### Scenario: Claimants forbidden
+
+- **WHEN** the caller may get the Platform but may not list TransformerRegistrations and opens a
+  subscribed catalog
+- **THEN** the claims render locked and the Resolved block shows the Platform's own resolution,
+  with no refusal count
+
 ### Requirement: Pages use the words a platform team uses
 
 Page text SHALL name kinds in the words a platform team uses: "Providers" for
 TransformerRegistrations and the instances and packages that hold them, "Installed" for
 ModuleInstances and ModulePackages, and "controller" for the opm-operator. The read API's
-`operatorVersion` SHALL be labelled "Controller version", and its owner value `operator` SHALL
-read "controller". The YAML view shows objects as the cluster serves them and is exempt. Source:
-portal:D17:R2.
+`operatorVersion` SHALL be labelled "Controller", and its owner value `operator` SHALL read
+"controller". The Installed card SHALL count the items that hold a registration as providers. The
+YAML view shows objects as the cluster serves them and is exempt. Source: portal:D17:R2.
 
 #### Scenario: The owner column
 
 - **WHEN** the Installed list shows an instance whose owner is `operator` in the read API
 - **THEN** its owner cell reads "controller"
+
+#### Scenario: The providers line
+
+- **WHEN** the Platform page's Installed card counts the F1 capture
+- **THEN** its closing line says how many of the installed items are providers
 
 ### Requirement: Locked things render locked on every page
 
@@ -871,8 +1352,9 @@ carrying `tab=` that works without script. Source: portal:D19, portal:D7:R2/R3.
 
 A tab SHALL show, after its label, the unfiltered number of items it lists when the page already
 holds that number and it covers everything the tab lists: Providers, Catalogs, Claims, Resources
-(inventory objects and runtime children) and Events on instance and package pages (the folded
-lines of the feed the tab opens with). Source: portal:D19:R4, portal:D7:R2/R3.
+(every row the table lists: inventory objects, their runtime children, and a package's source row)
+and Events on instance and package pages (the folded lines of the feed the tab opens with).
+Source: portal:D19:R4, portal:D7:R2/R3.
 
 #### Scenario: The F1 Platform tabs
 
@@ -885,6 +1367,13 @@ lines of the feed the tab opens with). Source: portal:D19:R4, portal:D7:R2/R3.
 - **THEN** the Resources tab carries the number of its inventory objects and runtime children,
   the Events tab the number of folded lines its feed opens with, and Graph, Logs and YAML carry
   none
+
+#### Scenario: A package's Resources count includes its source row
+
+- **WHEN** a signed-in browser opens `/packages/pkg/podinfo` on the F1 capture, whose inventory
+  is empty
+- **THEN** the Resources tab reads "Resources 1", the one row its table lists being the package's
+  source, and the count stays 1 under a `reason` filter that hides the row
 
 #### Scenario: A filter does not change a count
 
@@ -1141,3 +1630,242 @@ asked for reduced motion. Source: the owner's decision of 2026-10-11, portal:D19
 
 - **WHEN** the stylesheet is checked
 - **THEN** it holds no `@keyframes rise` and no rule on `.reveal`
+
+### Requirement: Filter forms offer the values present
+
+The filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab SHALL each draw their fields in their view's parameter
+order. A filter whose values are facts of the listed rows (Installed's namespace, uses and
+module; the Providers tab's provides) SHALL be a select of the values present in the rows the
+caller may read. Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: Namespace choices with counts
+
+- **WHEN** a signed-in browser opens `/installed` on the F1 capture
+- **THEN** the Namespace filter offers `cert-manager (1)`, `default (3)`, `pkg (1)` and
+  `web (1)` after "All namespaces"
+
+### Requirement: Filter selects name their empty choice
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, the first option of every select SHALL name the empty
+choice in words ("Any kind", "All namespaces", "Anyone", "Any status", "Either"). Source:
+portal:D14:R1/R2, portal:D19.
+
+#### Scenario: Provider status choices
+
+- **WHEN** a signed-in browser opens `/?tab=providers` on the F1 capture
+- **THEN** the Status filter offers "Any status", then each status with its count, among them
+  `Accepted (1)` and `Refused (1)`
+
+### Requirement: Filter selects keep the full contract and a URL value
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, a contract SHALL show by its last two path segments
+with its version, with the full contract as its value. A value in the URL that is not among the
+choices SHALL still apply and show as selected. Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: A value not among the choices
+
+- **WHEN** a browser opens `/installed?namespace=team-z` on the F1 capture
+- **THEN** the Namespace select shows `team-z` selected, the list is empty, and its chip reads
+  "Namespace: team-z"
+
+### Requirement: Filter counts cover only what the caller may list
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, every select option SHALL carry its count over the
+rows before filtering. A select SHALL offer as choices, and count, only values found in rows the
+caller may list, the Uses options included. Source: portal:D14:R7, portal:D7:R2.
+
+#### Scenario: A reader who may list one namespace sees that namespace only
+
+- **WHEN** the caller may list ModuleInstances and ModulePackages only in namespace `default` and
+  opens `/installed?namespace=default` on the F1 capture
+- **THEN** every option count, the Uses counts included, counts rows in `default` only, the Uses
+  options hold no contract that only rows in `cert-manager` or `web` use (such as `crds`), and the
+  namespace choices hold `default` only
+
+### Requirement: A list the caller may not read gives no count
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, an option whose rows come from a list the caller may
+not read, or that failed, SHALL carry no count, never a zero. The form SHALL then say its counts
+cover only what the caller may read, and the namespace filter SHALL stay a field the user can
+type into, so a reader who may list only some namespaces can name one. Source: portal:D14:R7,
+portal:D7:R2.
+
+#### Scenario: A namespace-only reader
+
+- **WHEN** the caller may list ModuleInstances and ModulePackages only in namespace `default` and
+  opens `/installed`
+- **THEN** both lists render locked, the Namespace filter is a field the user can type into, and
+  no option count stands for the locked lists
+
+#### Scenario: Packages forbidden in the Kind filter
+
+- **WHEN** the caller may list ModuleInstances but not ModulePackages and opens `/installed`
+- **THEN** the Kind filter's Package option carries no count
+
+#### Scenario: Neither Installed list readable
+
+- **WHEN** the caller may list neither ModuleInstances nor ModulePackages and opens `/installed`
+- **THEN** the Health, Applied, Provider and Owner options carry no count, never "(0)"
+
+#### Scenario: Platform forbidden in the Catalogs filters
+
+- **WHEN** the caller may not get the Platform and opens `/?tab=catalogs`
+- **THEN** the Source options carry no count
+
+#### Scenario: Registrations forbidden in the Platform filters
+
+- **WHEN** the caller may get the Platform but may not list TransformerRegistrations and opens
+  `/?tab=providers`, then `/?tab=catalogs`
+- **THEN** the Status and Provides options carry no counts, and the Catalogs tab offers no Claimed
+  filter
+
+### Requirement: Filter forms show what they apply
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, each active filter's chip SHALL read "Label: value".
+The form SHALL always show how many rows it shows of how many, and "Clear all" when a filter is
+active. Source: portal:D14:R1/R3.
+
+#### Scenario: Chip, count and Clear all
+
+- **WHEN** a signed-in browser opens `/installed?namespace=default` on the F1 capture
+- **THEN** the form shows the chip "Namespace: default", the count "Showing 3 of 6" and "Clear all"
+
+### Requirement: Filter forms keep the URL as their source
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, the URL query SHALL stay the filters' source of truth.
+Without script the Apply button SHALL show and every filter SHALL work as a plain `GET`. Source:
+portal:D14:R1/R3.
+
+#### Scenario: Without script
+
+- **WHEN** a browser with script disabled submits Installed's filter form with search `backup`
+- **THEN** the Apply button is visible and the page shows `/installed?q=backup`
+
+### Requirement: Filter forms apply as the user types
+
+On every page, with script, a search or text field of a `data-filters` form, among them the
+filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent events,
+and the Catalog page's Events tab, SHALL apply after a short pause in typing, with the user's
+focus, caret and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until
+it takes keyboard focus.
+Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: A text field applies when the user tabs out of it
+
+- **WHEN** a browser with script types `BackOff` into a text field that is not a search, in a
+  `data-filters` form whose Apply button has a stable id (as the owner page's Events form has),
+  and presses Tab
+- **THEN** focus is on that form's Apply button, the list applies, and focus is on the new Apply
+  button after the swap, because the button has a stable id
+
+#### Scenario: Typing applies the search
+
+- **WHEN** a browser with script types `backup` into Installed's search field and stops typing
+- **THEN** the page shows `/installed?q=backup` listing `default/backup-provider` and
+  `default/backup-consumer`, with focus and caret still in the search field, and no Apply button
+  is visible
+
+### Requirement: A filter's new count is announced once
+
+On the Platform page, the Installed list and the Catalog page, when a filter change (a field, a
+chip's remove link or "Clear all") has applied, the page SHALL announce the new count ("Showing n
+of M") once, through the header's existing polite status region. A live refresh, a change of the
+stream's state and a move to another page SHALL NOT announce it again. No other live region SHALL
+be added. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
+
+#### Scenario: Typing announces the count
+
+- **WHEN** a browser with script types `backup` into Installed's search field and the list applies
+- **THEN** the header's status region holds the text "Showing 2 of 6" once, and focus stays in
+  the search field
+
+#### Scenario: A form with no count announces nothing
+
+- **WHEN** a browser with script searches the Platform's Providers tab and the response leaves the
+  Providers form without a count
+- **THEN** the header's status region holds no text: the count announced is the one inside the
+  form that made the request, and the Recent events count is not announced in its place
+
+#### Scenario: Removing a chip announces the count
+
+- **WHEN** a browser with script opens `/installed?q=backup` on the F1 capture and removes the
+  chip "Search: backup"
+- **THEN** the header's status region holds the text "Showing 6 of 6" once
+
+#### Scenario: Clear all announces the count
+
+- **WHEN** a browser with script opens `/installed?namespace=default` on the F1 capture and
+  follows "Clear all"
+- **THEN** the header's status region holds the text "Showing 6 of 6" once
+
+#### Scenario: A refresh does not announce
+
+- **WHEN** a live refresh changes the rows or the count of an Installed list the user has not
+  touched
+- **THEN** the header's status region keeps the text it held before
+
+#### Scenario: A change of the stream's state does not repeat the count
+
+- **WHEN** the count "Showing 2 of 6" has been announced and the stream's state then changes to
+  "Reconnecting"
+- **THEN** the header's status region presents the new state only, and the count is not read again
+
+#### Scenario: A move to another page forgets the count
+
+- **WHEN** the count "Showing 2 of 6" has been announced on Installed and the user opens the
+  Platform page from the main navigation
+- **THEN** the hidden count is empty, and a later change of the stream's state does not present it
+
+### Requirement: Installed counts every namespace the caller may list
+
+When the caller may list ModuleInstances and ModulePackages in every namespace, Installed SHALL
+apply its namespace filter to the full lists, so its total, its filter counts and its namespace
+choices cover every namespace. Source: portal:D7:R2, portal:D14:R2/R7.
+
+#### Scenario: The total under a namespace filter
+
+- **WHEN** a signed-in browser opens `/installed?namespace=default` on the F1 capture
+- **THEN** the list holds the three instances in `default` and says it shows 3 of 6
+
+### Requirement: Installed counts one namespace when a kind's full list is forbidden
+
+When a kind's full list is forbidden and a namespace filter is set, Installed SHALL list that kind
+in the filtered namespace only, SHALL apply the namespace filter to the other kind's rows before
+counting, so that the total, the filter counts and the choices all cover that namespace only, and
+SHALL label its total as within that namespace. Source: portal:D7:R2, portal:D14:R2/R7.
+
+#### Scenario: A namespace-scoped reader with a namespace filter
+
+- **WHEN** the caller may list ModuleInstances only in namespace `default` and opens
+  `/installed?namespace=default`
+- **THEN** the instances in `default` are listed and the total is labelled as within `default`
+
+#### Scenario: One kind scoped
+
+- **WHEN** the caller may list ModuleInstances in every namespace but ModulePackages only in
+  `default`, and opens `/installed?namespace=default`
+- **THEN** the page says "of N in default", where N counts only the instances and packages in
+  `default`, and no option count, the Uses counts included, counts a row outside `default`
+
+### Requirement: The module filter matches a package by its source
+
+Installed's module filter SHALL offer, beside the instances' module paths, each package's source
+as `<Kind> <namespace>/<name>`, and SHALL match a package whose source is that value. Search SHALL
+also match an item's kind word (`instance`, `package`) and a package's source. Source: portal:D17.
+
+#### Scenario: A package by its source
+
+- **WHEN** a browser chooses the F1 package's source in Installed's Module filter
+- **THEN** the list holds `pkg/podinfo` only, and no note says packages are excluded
+
+#### Scenario: Searching by kind
+
+- **WHEN** a browser opens `/installed?q=package` on the F1 capture
+- **THEN** the list holds `pkg/podinfo`

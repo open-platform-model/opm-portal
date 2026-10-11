@@ -82,6 +82,26 @@ portal:D10, portal:D16:R1.
 - **THEN** the Logs tab says the container is restarting and points to its previous instance's
   logs, and does not say it has not started
 
+#### Scenario: Events of a caller who cannot list the Pods
+
+- **WHEN** a caller who may get the instance and list events in `default` but may not list Pods
+  opens `/instances/default/podinfo?tab=events` on the F1 capture
+- **THEN** no ReplicaSet, Pod or Job is offered in the Resource choice or listed in the table, the
+  Events tab carries no count, "All resources" says its count covers what could be read, and no
+  count in the filters includes an event about one of them
+
+#### Scenario: A long event note
+
+- **WHEN** an event in the merged feed carries a note of 2,000 code points
+- **THEN** the table shows the note as the API served it, capped, and the page clips it no further
+
+#### Scenario: Events of both operator writers in-cluster
+
+- **WHEN** an in-cluster browser opens the Events tab of an instance whose feed holds an event from
+  `opm-controller` and an event with no controller that regards the instance, beside the kubelet's
+  events about its Pods
+- **THEN** neither of the first two shows a note, and the kubelet's events show theirs
+
 ### Requirement: Instance and package pages summarize Applied, Health and Provider standing
 
 The page of an instance or package SHALL show an identity card. The card SHALL carry the kind,
@@ -130,7 +150,11 @@ The Provider card SHALL show, per held registration, Active, Accepted and not ac
 Removal blocked or Pending as the controller recorded it, or a locked standing when the caller
 may not read registrations. Its summary SHALL be the contracts an active registration provides,
 or else the controller's message in local mode and the reason's meaning in-cluster, never a
-verdict the portal composed. A non-success reason SHALL link to the Provider tab.
+verdict the portal composed. When the controller wrote no message and the reason has no known
+meaning, the summary SHALL be a fixed sentence for the recorded standing, so no standing shows its
+word over an empty summary, and a standing the page does not know SHALL read Unknown. A non-success
+reason SHALL link to the Provider tab. Below 520 px wide, the identity card's facts SHALL take one
+column.
 
 An interval the package does not set SHALL read "not set"; a revision the package has not
 recorded SHALL read "not recorded". Source: portal:D3:R1/R4/R5, portal:D9:R1/R2,
@@ -176,6 +200,24 @@ portal:D15:R2/R3/R4, portal:D8:R5/R6.
 - **THEN** its Provider card reads Refused with the reason's meaning as its summary and no
   message text the controller wrote
 
+#### Scenario: A pending claim with no controller text
+
+- **WHEN** a registration is Pending and its conditions carry no message and no known reason
+- **THEN** the Provider card reads Pending with the summary "The controller has not decided on this
+  claim yet." in both modes
+
+#### Scenario: A claim of unknown standing
+
+- **WHEN** the Platform records a verdict the page does not know for a held registration
+- **THEN** the Provider card reads Unknown and says the portal does not know the claim's standing
+
+#### Scenario: A blocked removal
+
+- **WHEN** a held registration's removal is blocked while modules still use what it provides, and
+  the conditions carry no message
+- **THEN** the Provider card reads Removal blocked and says the claim is accepted and active and
+  its removal waits until no module uses what it provides
+
 #### Scenario: Platform forbidden on the card
 
 - **WHEN** the caller may read `default/backup-provider` and its registration but not the
@@ -205,6 +247,10 @@ its health, and its facts:
 - for the item's own node, its identity facts and an Events link, and no link to the page already
   open.
 
+The facts SHALL be a fixed list and SHALL appear only for a node the caller may read: a node that is
+locked, forbidden or not readable SHALL carry none, and no object SHALL be read for it. An image
+reference SHALL be shown without any userinfo before its host.
+
 The panel SHALL keep its Open, Expand, YAML and Events links, and SHALL add a Logs link for a Pod.
 
 Resources SHALL be a table with one row per inventory object and runtime child: kind, name,
@@ -217,6 +263,9 @@ parameter shown as a removable chip. On a package page the first row SHALL be th
 source, with origin "source". With nothing applied, the tab SHALL read "Nothing applied yet. The
 graph fills in once an apply succeeds." on an instance, and "Nothing applied yet. The package has
 never fetched its source." on a package that has no source artifact.
+
+At 360 px wide, no tab SHALL make the page scroll sideways, and the Resources and Events tables
+SHALL lay out each row as a card below 760 px.
 
 Events SHALL filter by resource (grouped by kind, with "All resources" and the item itself as
 choices, and otherwise only objects that have events in the feed), by type and by reason, each
@@ -276,6 +325,50 @@ Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 - **THEN** it shows the desired replicas and the container image from the Deployment object, and
   no environment variable
 
+#### Scenario: An image reference with userinfo
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:secret@registry.example/app:1`
+- **THEN** the panel shows `registry.example/app:1`, and neither the user nor the password appears
+  anywhere in the page
+
+#### Scenario: A password that holds a slash
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:ab/cd@registry.example/app:1`
+- **THEN** the panel shows `registry.example/app:1`, and neither the user nor any part of the
+  password appears anywhere in the page
+
+#### Scenario: A digest reference
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `registry.example/app@sha256:` followed by a digest
+- **THEN** the panel shows the reference whole
+
+#### Scenario: A digest reference with userinfo
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:secret@registry.example/app@sha256:` followed by a digest
+- **THEN** the panel shows `registry.example/app@sha256:` and the digest, with no userinfo
+
+#### Scenario: A sha384 digest reference
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `registry.example/app@sha384:` followed by a digest
+- **THEN** the panel shows the reference whole, repository included
+
+#### Scenario: A node the caller cannot read
+
+- **WHEN** the panel opens on a node whose access for the caller is not ok
+- **THEN** it shows no per-kind fact, and no request for the object is made
+
+#### Scenario: Owner tabs at 360 px
+
+- **WHEN** a browser 360 px wide opens the Graph, Resources, Events, Logs and YAML tabs of
+  podinfo
+- **THEN** the page does not scroll sideways on any of them, and each displayed row of the
+  Resources and Events tables is a card
+
 #### Scenario: Object facts not readable
 
 - **WHEN** the panel opens on an object whose document the read API refuses
@@ -323,7 +416,12 @@ Per held registration, the tab SHALL show:
 - a table of what it provides, where each contract is a pill showing its short path, with the full
   path as its title, and with the readable instances whose render contracts contain it.
 
-For each contract the table SHALL list the first three users and the count of the rest. It SHALL
+The Contracts fact SHALL have a text for every standing. A claim that is accepted but not active,
+or pending, SHALL say how many contracts it lists and that none is provided yet. A claim of unknown
+standing SHALL say that it is not known. A claim whose removal is blocked SHALL give its counts and
+say the removal is blocked.
+
+Below 760 px wide, each row of the table SHALL be a card. For each contract the table SHALL list the first three users and the count of the rest. It SHALL
 link to Installed filtered by that contract as "Show in Installed" when there are three or fewer,
 and "All N in Installed" otherwise. When no readable instance uses the contract and the list is
 complete, the tab SHALL say no installed module uses it yet and offer no link. When the caller
@@ -361,8 +459,94 @@ portal:D15:R2/R3.
   caller may list instances everywhere
 - **THEN** the contract's row says no installed module uses it yet and offers no Installed link
 
+#### Scenario: A claim that provides nothing yet
+
+- **WHEN** a held registration lists two contracts and is Pending, or accepted and not active
+- **THEN** the Contracts fact says it lists two and that none is provided yet, and does not read
+  "2 provided, 0 in use"
+
+#### Scenario: A blocked removal still provides
+
+- **WHEN** a held registration's removal is blocked and one of its contracts is in use
+- **THEN** the Contracts fact gives "1 in use" and says the removal is blocked
+
+#### Scenario: A claim of unknown standing
+
+- **WHEN** the verdict of a held registration is one the page does not know
+- **THEN** the Contracts fact says it is not known
+
+#### Scenario: The Provider tab at 360 px
+
+- **WHEN** a browser 360 px wide opens backup-provider's Provider tab
+- **THEN** the page does not scroll sideways, the facts take one column, and each row of "What it
+  provides" is a card
+
 #### Scenario: The standing said once
 
 - **WHEN** a browser opens backup-provider's Provider tab on the F1 capture
 - **THEN** its registration shows "accepted" and "active" once each, and no success reason beside
   them
+
+### Requirement: Filter forms apply as the user types
+
+On every page, with script, a search or text field of a `data-filters` form, among them the
+filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent events,
+and the Catalog page's Events tab, SHALL apply after a short pause in typing, with the user's
+focus, caret and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until
+it takes keyboard focus.
+Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: A text field applies when the user tabs out of it
+
+- **WHEN** a browser with script types `BackOff` into a text field that is not a search, in a
+  `data-filters` form whose Apply button has a stable id (as the owner page's Events form has),
+  and presses Tab
+- **THEN** focus is on that form's Apply button, the list applies, and focus is on the new Apply
+  button after the swap, because the button has a stable id
+
+#### Scenario: Typing applies the search
+
+- **WHEN** a browser with script types `backup` into Installed's search field and stops typing
+- **THEN** the page shows `/installed?q=backup` listing `default/backup-provider` and
+  `default/backup-consumer`, with focus and caret still in the search field, and no Apply button
+  is visible
+
+### Requirement: Tabs carry their counts
+
+A tab SHALL show, after its label, the unfiltered number of items it lists when the page already
+holds that number and it covers everything the tab lists: Providers, Catalogs, Claims, Resources
+(every row the table lists: inventory objects, their runtime children, and a package's source row)
+and Events on instance and package pages (the folded lines of the feed the tab opens with).
+Source: portal:D19:R4, portal:D7:R2/R3.
+
+#### Scenario: The F1 Platform tabs
+
+- **WHEN** a signed-in browser opens `/` on the F1 capture
+- **THEN** the tabs read "Providers 2" and "Catalogs 3", with Providers underlined as current
+
+#### Scenario: podinfo's tabs
+
+- **WHEN** a signed-in browser opens `/instances/default/podinfo` on the F1 capture
+- **THEN** the Resources tab carries the number of its inventory objects and runtime children,
+  the Events tab the number of folded lines its feed opens with, and Graph, Logs and YAML carry
+  none
+
+#### Scenario: A package's Resources count includes its source row
+
+- **WHEN** a signed-in browser opens `/packages/pkg/podinfo` on the F1 capture, whose inventory
+  is empty
+- **THEN** the Resources tab reads "Resources 1", the one row its table lists being the package's
+  source, and the count stays 1 under a `reason` filter that hides the row
+
+#### Scenario: A filter does not change a count
+
+- **WHEN** a browser opens podinfo's page with `tab=events&type=Warning`
+- **THEN** the Events tab's count is the unfiltered number, and the list shows only Warning
+  events
+
+#### Scenario: The Catalog page's tabs
+
+- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` on the
+  F1 capture
+- **THEN** the Claims tab carries the number of registrations that claim the catalog and the
+  Events tab carries none

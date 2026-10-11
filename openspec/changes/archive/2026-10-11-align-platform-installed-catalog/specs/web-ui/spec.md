@@ -92,8 +92,8 @@ portal:D3:R8, portal:D17, portal:D9:R2/R4, portal:D19:R3/R5.
 `/installed` SHALL list the ModuleInstances and ModulePackages the caller may read in one table:
 name and namespace, a kind chip with its icon (instance and package drawn apart), a provider badge
 reading "Provider" when the item holds a TransformerRegistration, coloured by its standing and
-opening, on hover and on keyboard focus, a tooltip that names the registration and its standing in
-words, the module path with its version on a line below, or the package's source as
+opening, on hover, on keyboard focus and on a tap, a tooltip that names the registration and its
+standing in words, that Escape closes and that the pointer can enter, the module path with its version on a line below, or the package's source as
 `<Kind> <namespace>/<name>` with its source revision's short digest on a line below or "no
 revision recorded" when the controller recorded none, and its path only when it is neither empty
 nor `.`, the applied badge, the health badge, the object count and the owner (`controller` or
@@ -128,6 +128,13 @@ portal:D15:R2/R4.
 - **WHEN** a keyboard user tabs to the provider badge of `default/backup-provider`
 - **THEN** a tooltip shows that registration `default.backup-provider` is accepted and active,
   and the standing is also in the badge's text for assistive technology
+
+#### Scenario: The provider tooltip by tap and Escape
+
+- **WHEN** a touch user taps the provider badge of `default/backup-provider`, and later taps it
+  again, or a keyboard user opens the tooltip and presses Escape
+- **THEN** the first tap opens the tooltip without leaving the page, and the second tap or Escape
+  closes it while focus stays on the badge
 
 #### Scenario: A package with no recorded revision
 
@@ -236,28 +243,13 @@ YAML view shows objects as the cluster serves them and is exempt. Source: portal
 
 ## ADDED Requirements
 
-### Requirement: Filter forms offer the values present and apply as the user types
+### Requirement: Filter forms offer the values present
 
-This requirement covers the filter forms of the Installed list, the Platform's Providers and
-Catalogs tabs, the Platform's recent events and the Catalog page's Events tab. Each SHALL draw its
-fields in its view's parameter order. A filter whose values are
-facts of the listed rows (Installed's namespace, uses and module; the Providers tab's provides)
-SHALL be a select of the values present in the rows the caller may read. Every select option
-SHALL carry its count over the rows before filtering, and the first option SHALL name the empty
-choice in words ("Any kind", "All namespaces", "Anyone", "Any status", "Either"). An option whose
-rows come from a list the caller may not read, or that failed, SHALL carry no count, never a zero.
-A contract SHALL
-show by its last two path segments with its version, with the full contract as its value. A
-value in the URL that is not among the choices SHALL still apply and show as selected. When a
-list behind a form is locked or failed, the counts SHALL cover only what the caller may read and
-say so, and the namespace filter SHALL stay a field the user can type into, so a reader who may
-list only some namespaces can name one. Each active filter's chip SHALL read "Label: value", and
-the form SHALL always show how many rows it shows of how many, and "Clear all" when a filter is
-active. Without script, the button SHALL show and every filter SHALL work as a plain `GET`. The URL
-query SHALL stay the filters' source of truth. On every page, with script, a search or text field
-of a `data-filters` form SHALL apply after a short pause in typing, with the user's focus, caret
-and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until it takes
-keyboard focus. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2, portal:D19.
+The filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab SHALL each draw their fields in their view's parameter
+order. A filter whose values are facts of the listed rows (Installed's namespace, uses and
+module; the Providers tab's provides) SHALL be a select of the values present in the rows the
+caller may read. Source: portal:D14:R1/R2, portal:D19.
 
 #### Scenario: Namespace choices with counts
 
@@ -265,23 +257,55 @@ keyboard focus. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2, portal:D19.
 - **THEN** the Namespace filter offers `cert-manager (1)`, `default (3)`, `pkg (1)` and
   `web (1)` after "All namespaces"
 
+### Requirement: Filter selects name their empty choice
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, the first option of every select SHALL name the empty
+choice in words ("Any kind", "All namespaces", "Anyone", "Any status", "Either"). Source:
+portal:D14:R1/R2, portal:D19.
+
+#### Scenario: Provider status choices
+
+- **WHEN** a signed-in browser opens `/?tab=providers` on the F1 capture
+- **THEN** the Status filter offers "Any status", then each status with its count, among them
+  `Accepted (1)` and `Refused (1)`
+
+### Requirement: Filter selects keep the full contract and a URL value
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, a contract SHALL show by its last two path segments
+with its version, with the full contract as its value. A value in the URL that is not among the
+choices SHALL still apply and show as selected. Source: portal:D14:R1/R2, portal:D19.
+
 #### Scenario: A value not among the choices
 
 - **WHEN** a browser opens `/installed?namespace=team-z` on the F1 capture
 - **THEN** the Namespace select shows `team-z` selected, the list is empty, and its chip reads
   "Namespace: team-z"
 
-#### Scenario: Typing applies the search
+### Requirement: Filter counts cover only what the caller may list
 
-- **WHEN** a browser with script types `backup` into Installed's search field and stops typing
-- **THEN** the page shows `/installed?q=backup` listing `default/backup-provider` and
-  `default/backup-consumer`, with focus and caret still in the search field, and no Apply button
-  is visible
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, every select option SHALL carry its count over the
+rows before filtering. A select SHALL offer as choices, and count, only values found in rows the
+caller may list, the Uses options included. Source: portal:D14:R7, portal:D7:R2.
 
-#### Scenario: Without script
+#### Scenario: A reader who may list one namespace sees that namespace only
 
-- **WHEN** a browser with script disabled submits Installed's filter form with search `backup`
-- **THEN** the Apply button is visible and the page shows `/installed?q=backup`
+- **WHEN** the caller may list ModuleInstances and ModulePackages only in namespace `default` and
+  opens `/installed?namespace=default` on the F1 capture
+- **THEN** every option count, the Uses counts included, counts rows in `default` only, the Uses
+  options hold no contract that only rows in `cert-manager` or `web` use (such as `crds`), and the
+  namespace choices hold `default` only
+
+### Requirement: A list the caller may not read gives no count
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, an option whose rows come from a list the caller may
+not read, or that failed, SHALL carry no count, never a zero. The form SHALL then say its counts
+cover only what the caller may read, and the namespace filter SHALL stay a field the user can
+type into, so a reader who may list only some namespaces can name one. Source: portal:D14:R7,
+portal:D7:R2.
 
 #### Scenario: A namespace-only reader
 
@@ -295,6 +319,16 @@ keyboard focus. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2, portal:D19.
 - **WHEN** the caller may list ModuleInstances but not ModulePackages and opens `/installed`
 - **THEN** the Kind filter's Package option carries no count
 
+#### Scenario: Neither Installed list readable
+
+- **WHEN** the caller may list neither ModuleInstances nor ModulePackages and opens `/installed`
+- **THEN** the Health, Applied, Provider and Owner options carry no count, never "(0)"
+
+#### Scenario: Platform forbidden in the Catalogs filters
+
+- **WHEN** the caller may not get the Platform and opens `/?tab=catalogs`
+- **THEN** the Source options carry no count
+
 #### Scenario: Registrations forbidden in the Platform filters
 
 - **WHEN** the caller may get the Platform but may not list TransformerRegistrations and opens
@@ -302,26 +336,121 @@ keyboard focus. Source: portal:D14:R1/R2/R3/R7, portal:D7:R2, portal:D19.
 - **THEN** the Status and Provides options carry no counts, and the Catalogs tab offers no Claimed
   filter
 
-#### Scenario: Provider status choices
+### Requirement: Filter forms show what they apply
 
-- **WHEN** a signed-in browser opens `/?tab=providers` on the F1 capture
-- **THEN** the Status filter offers "Any status", then each status with its count, among them
-  `Accepted (1)` and `Refused (1)`
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, each active filter's chip SHALL read "Label: value".
+The form SHALL always show how many rows it shows of how many, and "Clear all" when a filter is
+active. Source: portal:D14:R1/R3.
+
+#### Scenario: Chip, count and Clear all
+
+- **WHEN** a signed-in browser opens `/installed?namespace=default` on the F1 capture
+- **THEN** the form shows the chip "Namespace: default", the count "Showing 3 of 6" and "Clear all"
+
+### Requirement: Filter forms keep the URL as their source
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, the URL query SHALL stay the filters' source of truth.
+Without script the Apply button SHALL show and every filter SHALL work as a plain `GET`. Source:
+portal:D14:R1/R3.
+
+#### Scenario: Without script
+
+- **WHEN** a browser with script disabled submits Installed's filter form with search `backup`
+- **THEN** the Apply button is visible and the page shows `/installed?q=backup`
+
+### Requirement: Filter forms apply as the user types
+
+On every page, with script, a search or text field of a `data-filters` form, among them the
+filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent events,
+and the Catalog page's Events tab, SHALL apply after a short pause in typing, with the user's
+focus, caret and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until
+it takes keyboard focus.
+Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: A text field applies when the user tabs out of it
+
+- **WHEN** a browser with script types `BackOff` into the Reason field of the owner page's Events
+  form and presses Tab
+- **THEN** focus is on that form's Apply button, the list applies, and focus is on the new Apply
+  button after the swap, because the button has a stable id
+
+#### Scenario: Typing applies the search
+
+- **WHEN** a browser with script types `backup` into Installed's search field and stops typing
+- **THEN** the page shows `/installed?q=backup` listing `default/backup-provider` and
+  `default/backup-consumer`, with focus and caret still in the search field, and no Apply button
+  is visible
+
+### Requirement: A filter's new count is announced once
+
+On the Platform page, the Installed list and the Catalog page, when a filter change (a field, a
+chip's remove link or "Clear all") has applied, the page SHALL announce the new count ("Showing n
+of M") once, through the header's existing polite status region. A live refresh, a change of the
+stream's state and a move to another page SHALL NOT announce it again. No other live region SHALL
+be added. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
+
+#### Scenario: Typing announces the count
+
+- **WHEN** a browser with script types `backup` into Installed's search field and the list applies
+- **THEN** the header's status region holds the text "Showing 2 of 6" once, and focus stays in
+  the search field
+
+#### Scenario: A form with no count announces nothing
+
+- **WHEN** a browser with script searches the Platform's Providers tab and the response leaves the
+  Providers form without a count
+- **THEN** the header's status region holds no text: the count announced is the one inside the
+  form that made the request, and the Recent events count is not announced in its place
+
+#### Scenario: Removing a chip announces the count
+
+- **WHEN** a browser with script opens `/installed?q=backup` on the F1 capture and removes the
+  chip "Search: backup"
+- **THEN** the header's status region holds the text "Showing 6 of 6" once
+
+#### Scenario: Clear all announces the count
+
+- **WHEN** a browser with script opens `/installed?namespace=default` on the F1 capture and
+  follows "Clear all"
+- **THEN** the header's status region holds the text "Showing 6 of 6" once
+
+#### Scenario: A refresh does not announce
+
+- **WHEN** a live refresh changes the rows or the count of an Installed list the user has not
+  touched
+- **THEN** the header's status region keeps the text it held before
+
+#### Scenario: A change of the stream's state does not repeat the count
+
+- **WHEN** the count "Showing 2 of 6" has been announced and the stream's state then changes to
+  "Reconnecting"
+- **THEN** the header's status region presents the new state only, and the count is not read again
+
+#### Scenario: A move to another page forgets the count
+
+- **WHEN** the count "Showing 2 of 6" has been announced on Installed and the user opens the
+  Platform page from the main navigation
+- **THEN** the hidden count is empty, and a later change of the stream's state does not present it
 
 ### Requirement: Installed counts every namespace the caller may list
 
 When the caller may list ModuleInstances and ModulePackages in every namespace, Installed SHALL
 apply its namespace filter to the full lists, so its total, its filter counts and its namespace
-choices cover every namespace. When a kind's full list is forbidden and a namespace filter is set,
-Installed SHALL list that kind in the filtered namespace only, SHALL apply the namespace filter to
-the other kind's rows before counting, so that the total, the filter counts and the choices all
-cover that namespace only, and SHALL label its total as within that namespace. Source:
-portal:D7:R2, portal:D14:R2/R7.
+choices cover every namespace. Source: portal:D7:R2, portal:D14:R2/R7.
 
 #### Scenario: The total under a namespace filter
 
 - **WHEN** a signed-in browser opens `/installed?namespace=default` on the F1 capture
 - **THEN** the list holds the three instances in `default` and says it shows 3 of 6
+
+### Requirement: Installed counts one namespace when a kind's full list is forbidden
+
+When a kind's full list is forbidden and a namespace filter is set, Installed SHALL list that kind
+in the filtered namespace only, SHALL apply the namespace filter to the other kind's rows before
+counting, so that the total, the filter counts and the choices all cover that namespace only, and
+SHALL label its total as within that namespace. Source: portal:D7:R2, portal:D14:R2/R7.
 
 #### Scenario: A namespace-scoped reader with a namespace filter
 
@@ -334,7 +463,7 @@ portal:D7:R2, portal:D14:R2/R7.
 - **WHEN** the caller may list ModuleInstances in every namespace but ModulePackages only in
   `default`, and opens `/installed?namespace=default`
 - **THEN** the page says "of N in default", where N counts only the instances and packages in
-  `default`
+  `default`, and no option count, the Uses counts included, counts a row outside `default`
 
 ### Requirement: The module filter matches a package by its source
 

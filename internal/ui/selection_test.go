@@ -200,7 +200,7 @@ func TestResourcesHandOffOpensAndFitsAFoldedGroup(t *testing.T) {
 	}
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	res := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
-	links := regexp.MustCompile(`href="(/instances/cert-manager/cert-manager\?expand=[^"]+)">Graph</a>`).FindAllStringSubmatch(res, -1)
+	links := regexp.MustCompile(`class="row-link" href="(/instances/cert-manager/cert-manager\?expand=[^"]+)"`).FindAllStringSubmatch(res, -1)
 	if len(links) == 0 {
 		t.Fatal("no folded object links to the graph")
 	}
@@ -377,11 +377,11 @@ func TestGroupPanel(t *testing.T) {
 	if strings.Contains(frag, "Edges") && strings.Contains(frag, "Stands for") {
 		t.Error("a configuration group still says Stands for")
 	}
-	p := &nodePanel{}
 	r := mustRequest(t, "/instances/cert-manager/cert-manager?tab=graph&expand="+url.QueryEscape(rbac))
-	p.variant(r, &v1.Graph{}, &v1.GraphNode{ID: rbac, Kind: "group", Group: &v1.GraphGroup{Kind: groupConfiguration, Family: "rbac", Members: []string{"a"}}}, panelContext{base: "/b"})
-	if !strings.Contains(p.Collapse, "node=") || strings.Contains(p.Collapse, "expand=") || p.Expand != "" {
-		t.Errorf("an open group's Collapse is %q (Expand %q): it should select the group and drop it from expand", p.Collapse, p.Expand)
+	group := &v1.GraphNode{ID: rbac, Kind: "group", Group: &v1.GraphGroup{Kind: groupConfiguration, Family: "rbac", Members: []string{"a"}}}
+	links := panelLinks(r, group, panelContext{base: "/instances/cert-manager/cert-manager"})
+	if len(links) != 1 || links[0].Text != "Collapse group" || !strings.Contains(links[0].Href, "node=") || strings.Contains(links[0].Href, "expand=") {
+		t.Errorf("an open group's links are %+v: want one Collapse group link that selects the group and drops it from expand", links)
 	}
 }
 
@@ -453,7 +453,7 @@ func TestSourcePanel(t *testing.T) {
 		{ID: "p", Kind: "package", Label: "pkg/p"},
 		{ID: "s", Kind: "source", Label: "OCIRepository s", Access: v1.AccessForbidden, SourceState: &v1.SourceState{Access: v1.AccessForbidden}},
 	}}
-	if lp := h.panel(mustRequest(t, "/"), g, "s", panelContext{base: "/b"}); !lp.Locked || lp.Src != nil || lp.Open != "" {
+	if lp := h.panel(mustRequest(t, "/"), g, "s", panelContext{base: "/b"}); !lp.Locked || lp.Src != nil || len(lp.Links) != 0 {
 		t.Errorf("a forbidden source's panel %+v is not just locked", lp)
 	}
 }

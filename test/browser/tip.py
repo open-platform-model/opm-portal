@@ -31,6 +31,13 @@ not available, and the output says which path ran):
 10. A second tap closes it; a third opens it again.
 11. A tap outside closes it.
 
+Owner page (OP-A5, after the checks above): on /instances/default/podinfo the identity card's Owner and
+Applier tips (#tip-owner, #tip-applier) are driven the same way, each printing one line:
+16. Focus shows the box; Escape hides it with focus still on the trigger.
+17. With the pointer on the trigger the box shows, and it stays with the pointer on the box.
+18. At 360 px a tap opens the box inside the viewport with no sideways scroll, a second tap closes it, and
+   after a third tap Escape closes it.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -74,6 +81,88 @@ def open_fresh(page, base, markup):
 def centre(locator):
     b = locator.bounding_box()
     return b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
+
+
+OWNER_PAGE = "/instances/default/podinfo"
+OWNER_TIPS = ["tip-owner", "tip-applier"]
+
+
+def owner_tips(browser, engine, base, check):
+    """Drive the identity card's Owner and Applier tips on the owner page, with keyboard, pointer and touch."""
+    page = browser.new_context(viewport=WIDE, color_scheme="light").new_page()
+    page.goto(base + OWNER_PAGE, wait_until="load")
+    page.evaluate("document.fonts.ready.then(() => true)")
+    for tid in OWNER_TIPS:
+        tip, box = page.locator(f".tip:has(#{tid})"), page.locator(f"#{tid}")
+        trigger = tip.locator("button.tip-t")
+        page.mouse.move(2, 790)
+        trigger.focus()
+        shown = box.is_visible()
+        page.keyboard.press("Escape")
+        on_trigger = page.evaluate("document.activeElement.classList.contains('tip-t')")
+        if not check(page, shown and not box.is_visible() and on_trigger,
+                     f"{tid}: focus shows the box ({shown}); Escape hides it with focus on the trigger ({on_trigger})", f"{tid}-key"):
+            return False
+        page.locator("body").click(position={"x": 2, "y": 790})
+        x, y = centre(tip)
+        page.mouse.move(x, y)
+        on = box.is_visible()
+        # The trigger is narrow and the box wide: the pointer goes down out of the trigger and into the
+        # box, then across it, the way a hand moves.
+        top = box.bounding_box()
+        page.mouse.move(x, top["y"] + 4, steps=8)
+        bx, by = centre(box)
+        page.mouse.move(bx, by, steps=12)
+        if not check(page, on and box.is_visible(), f"{tid}: the pointer on the trigger shows the box ({on}) and it stays with the pointer on the box", f"{tid}-hover"):
+            return False
+        page.mouse.move(2, 790)
+
+    touch = None
+    try:
+        touch = browser.new_context(viewport=PHONE, has_touch=True, color_scheme="light").new_page()
+        touch.goto(base + OWNER_PAGE, wait_until="load")
+        touch.locator(".tip:has(#tip-owner)").tap()
+        tapped = True
+    except Exception as err:
+        print(f"{engine}: the owner-page touch checks run the click path (touch emulation is not available: {str(err).splitlines()[0]})")
+        touch = browser.new_context(viewport=PHONE, color_scheme="light").new_page()
+        touch.goto(base + OWNER_PAGE, wait_until="load")
+        tapped = False
+    touch.evaluate("document.fonts.ready.then(() => true)")
+    for tid in OWNER_TIPS:
+        tip, box = touch.locator(f".tip:has(#{tid})"), touch.locator(f"#{tid}")
+
+        def activate():
+            if tapped:
+                tip.tap()
+            else:
+                tip.click()
+
+        touch.reload(wait_until="load")
+        touch.evaluate("document.fonts.ready.then(() => true)")
+        activate()
+        opened = box.is_visible()
+        if not opened and not tapped:
+            # A click on the click path hovers first, which can have shown the box already; one
+            # more click settles it. A tap has no hover: the first tap must open the box.
+            activate()
+            opened = box.is_visible()
+        r = box.bounding_box()
+        fits = r is not None and r["x"] >= 0 and r["x"] + r["width"] <= PHONE["width"]
+        scroll = touch.evaluate("Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)")
+        if not check(touch, opened and fits and scroll <= PHONE["width"],
+                     f"{tid}: a tap opens the box ({opened}) inside the viewport ({fits}); the page scrolls {scroll}", f"{tid}-tap"):
+            return False
+        activate()
+        closed = not box.is_visible()
+        activate()
+        again = box.is_visible()
+        touch.keyboard.press("Escape")
+        escaped = not box.is_visible()
+        if not check(touch, closed and again and escaped,
+                     f"{tid}: a second tap closes it ({closed}); a third opens it ({again}); Escape closes it ({escaped})", f"{tid}-close"):
+            return False
+    return True
 
 
 def run(p, engine, base, markup):
@@ -239,6 +328,9 @@ def run(p, engine, base, markup):
         inside = r is not None and r["x"] >= 0 and r["x"] + r["width"] <= PHONE["width"]
         if not check(touch, box.is_visible() and inside and scroll <= PHONE["width"],
                      f"a trigger at the right edge keeps its box inside the viewport ({r['x']:.0f} to {r['x'] + r['width']:.0f} of {PHONE['width']}), the page scrolls {scroll}", "edge"):
+            return False
+
+        if not owner_tips(browser, engine, base, check):
             return False
     finally:
         browser.close()

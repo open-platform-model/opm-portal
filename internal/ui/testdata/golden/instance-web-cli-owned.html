@@ -4,51 +4,44 @@
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:web/web">
     <p class="kicker">Instance</p>
     <h1>web</h1>
-    
+    <p class="subtitle mono">opmodel.<wbr>dev/<wbr>modules/<wbr>web_app@v1 · <span class="ver">v1.0.5</span></p>
     <dl class="facts">
       <dt>Namespace</dt><dd class="mono">web</dd>
-      <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>web_app@v1 <span class="ver">v1.0.5</span></dd>
-      <dt>Applied by</dt><dd>the opm CLI</dd>
-      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-owner">Owner</button><span class="tipbox" id="tip-owner" role="tooltip">Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.</span></span></dt><dd>the opm CLI</dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-applier">Applier</button><span class="tipbox" id="tip-applier" role="tooltip">The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount.</span></span></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
       <dt>Objects</dt><dd>2</dd>
       <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC">5m ago</time></dd>
     </dl>
-    
   </section>
-  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:web/web events:instance:web/web">
-    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
-    <div class="axes"><span class="applied applied-managedexternally"><span class="axis">Applied axis</span>Managed externally</span><span class="mono">ManagedExternally</span></div>
-    <p class="card-meaning">The CLI applied this instance; the operator only records it.</p>
-    <p class="card-message">ModuleInstance is managed externally by the CLI</p>
-    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
-    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="muted">none recorded</span></div>
-    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
-    <details class="history-fold" id="history-fold"><summary>Show history</summary><p class="muted">No history recorded yet.</p></details>
-  </section>
-  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:web/web">
-    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
-    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
-  </section>
+  
+<section class="state-block hue-neutral" id="applied-card" aria-label="Applied status" data-follow="instance:web/web events:instance:web/web">
+  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Managed externally</span></div>
+  <p class="sb-summary">Applied by the opm CLI; the controller does not manage it</p>
+  <p class="sb-note">The CLI applied this instance; the operator only records it.</p><p class="sb-note says">ModuleInstance is managed externally by the CLI</p>
+  <p class="sb-caption">Warning events, last hour</p>
+  <div class="sb-reasons"><span class="muted">No reconcile errors</span></div>
+  <div class="hist">
+  <div class="hist-bar"><span class="hist-label">History</span>
+    <span class="hist-count">none recorded</span>
+  </div>
+</div>
+</section>
+  
+<section class="state-block hue-healthy" id="health-card" aria-label="Health status" data-follow="instance:web/web">
+  <div class="sb-head"><span class="sb-eyebrow">Health · everything it runs</span><span class="sb-when">checked live</span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Healthy</span></div>
+  <p class="sb-summary">All 2 resources healthy</p>
+  
+  <div class="sb-reasons"><span class="muted">No unhealthy resources</span></div>
+  
+</section>
   
 </div>
-<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:web/web">
-  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
-<ol class="conditions">
-  <li class="condition tone-unknown">
-    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">Unknown</span><span class="cond-reason">ManagedExternally</span><span class="cond-time"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m ago</time></span></div>
-    <p class="cond-message">ModuleInstance is managed externally by the CLI</p>
-    <p class="cond-meaning">The CLI applied this instance; the operator only records it.</p>
-  </li>
-</ol>
-  
-  <h3 class="sub-h">Render contracts</h3>
-  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
-  <p class="muted">None recorded.</p>
-</details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/web/web?tab=graph" aria-current="page">Graph</a><a href="/instances/web/web?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:web/web events:instance:web/web">4</span></a><a href="/instances/web/web?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:web/web events:instance:web/web">1</span></a><a href="/instances/web/web?tab=logs">Logs</a><a href="/instances/web/web?tab=yaml">YAML</a></nav>
-<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
-<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:web/web">
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/web/web?tab=graph" aria-current="page">Graph</a><a href="/instances/web/web?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:web/web events:instance:web/web">4</span></a><a href="/instances/web/web?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:web/web events:instance:web/web">8</span></a><a href="/instances/web/web?tab=logs">Logs</a><a href="/instances/web/web?tab=yaml">YAML</a></nav>
+<div class="owner-row">
+<div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
+<section class="panel owner-panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:web/web">
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
 <div class="graph" data-graph="instance-graph" data-resting-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb">
   <div class="graph-tools" role="group" aria-label="Graph view">
@@ -161,24 +154,35 @@
 </div>
 </section>
 </div>
-<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb">
 <p class="kicker">Instance</p>
 <h2 class="frag-h mono">web/<wbr>web</h2>
 <div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-managedexternally"><span class="axis">Applied axis</span>Managed externally</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></span></div>
 <dl class="facts">
   <dt>Object</dt><dd class="mono">ModuleInstance.<wbr>opmodel.<wbr>dev web/<wbr>web</dd>
   <dt>Applied reason</dt><dd class="mono">ManagedExternally</dd><dt>Controller says</dt><dd>ModuleInstance is managed externally by the CLI</dd>
-  <dt>Applied by</dt><dd>the opm CLI</dd>
+  <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>web_app@v1</dd><dt>Version</dt><dd>v1.0.5</dd><dt>Owner</dt><dd>the opm CLI</dd><dt>Applier</dt><dd>the controller&#39;s own ServiceAccount</dd>
   
   
   
   
 </dl>
 <h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
-<p class="panel-links">
-  <a href="/instances/web/web">Open page</a>
-  
-  
-</p>
+<p class="panel-links"><a class="btn" href="/instances/web/web?tab=events">Events</a></p>
 </aside>
+</div>
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:web/web">
+  <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-unknown">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">Unknown</span><span class="cond-reason">ManagedExternally</span><span class="cond-time"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m ago</time></span></div>
+    <p class="cond-message">ModuleInstance is managed externally by the CLI</p>
+    <p class="cond-meaning">The CLI applied this instance; the operator only records it.</p>
+  </li>
+</ol>
+  
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  <p class="muted">None recorded.</p>
+</details>
 </main>

@@ -104,9 +104,10 @@ type Group struct {
 
 The group node's `label` reads "<family label> · N components" ("RBAC · 13 components"), a plain
 fallback for a consumer that ignores `family`; the UI of section 4 draws its own lines from
-`family`, `members` and `objectKinds`. Until `align-owner-pages` folds the Resources tab per
-family, `foldConfig` in `internal/ui/pages.go` folds the members of every configuration group into
-its one entry, with the worst of the groups' health.
+`family`, `members` and `objectKinds`. `align-owner-pages` (on main) folds the Resources tab per
+group node: `foldConfig` in `internal/ui/pages.go` returns one entry for each configuration group
+node of the graph, so the three families are three folds there, each with its node's health. This
+change leaves that function as main has it (it keeps only the `configuration` kind filter).
 
 Wire: `GraphGroup` gains `family` (`x-extensible-enum: [crds, rbac, webhooks, other]`) and
 `objectKinds` (`GraphKindCount[]`). The UI maps the family to its label; an unknown family renders

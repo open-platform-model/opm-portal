@@ -1,9 +1,11 @@
 package ui
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -33,6 +35,8 @@ type eventsView struct {
 	About string
 	// Follow is the events topic the feed follows, if any.
 	Follow string
+	// Partial is true when the feed left out what the caller could not read.
+	Partial bool
 }
 
 // signIn answers a request the read API did not authenticate.
@@ -77,20 +81,71 @@ type installedRow struct {
 	Href      string
 	Namespace string
 	Name      string
-	// Module is the module path and version of an instance; Source and
-	// Path the source and path of a package.
-	Module    v1.Module
-	Source    v1.SourceRef
-	Path      string
-	Reconcile v1.Reconcile
-	Health    v1.Health
-	Objects   int64
+	// Module is the module path and version of an instance. Source is a
+	// package's source as "<Kind> <namespace>/<name>", Path its path and
+	// SourceArtifact the revision and digest the controller recorded.
+	Module         v1.Module
+	Source         string
+	Path           string
+	SourceArtifact *v1.SourceArtifact
+	Reconcile      v1.Reconcile
+	Health         v1.Health
+	Objects        int64
 	// Owner is controller or cli in the page's words: the read API's
 	// owner operator is the controller, and a package's is the controller.
 	Owner      string
 	ProviderOf []v1.ProviderClaim
+	// Pills are the provider badges, one for each registration held.
+	Pills []tipData
 	// RenderContracts are an instance's; a package records none.
 	RenderContracts []string
+}
+
+// ModuleValue is what the module filter matches: an instance's module path
+// or a package's source string.
+func (r *installedRow) ModuleValue() string {
+	if r.Kind == packageKind.Topic {
+		return r.Source
+	}
+	return r.Module.Path
+}
+
+// RowClass tints a row by its health, as the canvas tints a Degraded one.
+func (r *installedRow) RowClass() string {
+	if _, ok := healthText[r.Health.State]; ok {
+		return "row-" + slug(r.Health.State)
+	}
+	return "row-" + unknownWord
+}
+
+// ShowPath says whether the package's path is worth a word: not when it is
+// empty or the source's root.
+func (r *installedRow) ShowPath() bool { return r.Path != "" && r.Path != "." }
+
+// Revision is the second line of a package's source cell: the digest as
+// "sha256:" and its first eight hex characters, with the recorded revision
+// in the title, or nothing recorded.
+func (r *installedRow) Revision() revisionLine {
+	a := r.SourceArtifact
+	switch {
+	case a != nil && a.Digest != "":
+		return revisionLine{Text: digestShort(a.Digest), Title: a.Revision}
+	case a != nil && a.Revision != "":
+		return revisionLine{Text: a.Revision}
+	}
+	return revisionLine{Text: "no revision recorded"}
+}
+
+// revisionLine is the second line of a package's source cell.
+type revisionLine struct{ Text, Title string }
+
+// digestShort is a digest as "algorithm:" and its first eight characters.
+func digestShort(d string) string {
+	alg, hex, ok := strings.Cut(d, ":")
+	if !ok {
+		return d[:min(8, len(d))]
+	}
+	return alg + ":" + hex[:min(8, len(hex))]
 }
 
 // installedView is the Installed list: instances and packages in one
@@ -106,73 +161,240 @@ type installedView struct {
 	InstancesLocked  bool
 	PackagesLocked   bool
 	Rows             []installedRow
-	// Total is the number of rows before the filters.
+	// Total is the number of rows before the filters, over the rows the
+	// caller may read, or within Namespace when a kind was read there.
 	Total int
-	// UsesSet and ModuleSet: the uses or module filter leaves packages
-	// out, and the page says so.
-	UsesSet   bool
-	ModuleSet bool
-	// Suggestions for the free-text filters, from the rows the caller may
-	// read.
-	Namespaces []string
-	Modules    []string
-	Contracts  []string
+	// UsesSet: the uses filter leaves packages out, and the page says so.
+	UsesSet bool
+	// Scope says what the total counts when it is not every row: "in
+	// default", "you may read".
+	Scope string
+	// Topic is the stream topic the list follows, which the count region
+	// follows too.
+	Topic string
+	// input is what the page supplies to its filter form: the choices and
+	// the counts of the rows the caller may read.
+	input formInput
+}
+
+// listForbidden says the caller may not list a kind in the scope asked.
+func listForbidden(p *v1.Problem, access string) bool {
+	if p != nil {
+		return p.Code == v1.CodeForbidden
+	}
+	return access == v1.AccessForbidden
+}
+
+// installedReads are the two lists as the page read them.
+type installedReads struct {
+	instances v1.InstanceList
+	packages  v1.PackageList
+	instProb  *v1.Problem
+	pkgProb   *v1.Problem
+	// wide: both lists were read for every namespace. scoped: at least one
+	// kind was read in the filtered namespace instead.
+	wide, scoped bool
+}
+
+// readInstalled reads both lists for every namespace. Where a kind is
+// forbidden for every namespace and the filter names one, that kind is read
+// in the namespace, which is the read the page made before (installed-23).
+func (h *Handler) readInstalled(r *http.Request, ns string) installedReads {
+	var rd installedReads
+	rd.instProb = h.fetch(r, "/instances", nil, &rd.instances)
+	rd.pkgProb = h.fetch(r, "/packages", nil, &rd.packages)
+	rd.wide = rd.instProb == nil && rd.instances.Access == v1.AccessOK &&
+		rd.pkgProb == nil && rd.packages.Access == v1.AccessOK
+	if ns == "" || !dnsLabel(ns) {
+		return rd
+	}
+	if listForbidden(rd.instProb, rd.instances.Access) {
+		rd.instances, rd.scoped = v1.InstanceList{}, true
+		rd.instProb = h.fetch(r, "/instances", nsQuery(ns), &rd.instances)
+	}
+	if listForbidden(rd.pkgProb, rd.packages.Access) {
+		rd.packages, rd.scoped = v1.PackageList{}, true
+		rd.pkgProb = h.fetch(r, "/packages", nsQuery(ns), &rd.packages)
+	}
+	return rd
+}
+
+// rows returns every row the caller may read, sorted. A kind read for one
+// namespace beside a kind read for every namespace would count a mixed
+// number, so both are kept to the namespace then.
+func (rd *installedReads) rows(ns string) []installedRow {
+	all := make([]installedRow, 0, len(rd.instances.Items)+len(rd.packages.Items))
+	for i := range rd.instances.Items {
+		all = append(all, instanceRow(&rd.instances.Items[i]))
+	}
+	for i := range rd.packages.Items {
+		all = append(all, packageRow(&rd.packages.Items[i]))
+	}
+	if rd.scoped {
+		all = slices.DeleteFunc(all, func(row installedRow) bool { return row.Namespace != ns })
+	}
+	slices.SortStableFunc(all, func(a, b installedRow) int {
+		return strings.Compare(a.Namespace+"/"+a.Name+"/"+a.Kind, b.Namespace+"/"+b.Name+"/"+b.Kind)
+	})
+	return all
 }
 
 func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
 	v := installedView{Filters: parseFilters(&installedFilters, r.URL.Query()), Query: r.URL.Query()}
 	fv := v.Filters.Values
 	ns := fv["namespace"]
-	// A namespace no object can have matches nothing, and is not asked of
-	// the read API, which would refuse it.
-	query, readable := nsQuery(ns), ns == "" || dnsLabel(ns)
 
-	var instances v1.InstanceList
-	var packages v1.PackageList
-	if readable {
-		v.InstancesProblem = h.fetch(r, "/instances", query, &instances)
-		v.PackagesProblem = h.fetch(r, "/packages", query, &packages)
-		if unauthenticated(v.InstancesProblem) || unauthenticated(v.PackagesProblem) {
-			h.signIn(w, r)
-			return
-		}
-		v.InstancesLocked = v.InstancesProblem == nil && instances.Access != v1.AccessOK
-		v.PackagesLocked = v.PackagesProblem == nil && packages.Access != v1.AccessOK
+	rd := h.readInstalled(r, ns)
+	if unauthenticated(rd.instProb) || unauthenticated(rd.pkgProb) {
+		h.signIn(w, r)
+		return
 	}
-	all := make([]installedRow, 0, len(instances.Items)+len(packages.Items))
-	for i := range instances.Items {
-		all = append(all, instanceRow(&instances.Items[i]))
-	}
-	for i := range packages.Items {
-		all = append(all, packageRow(&packages.Items[i]))
-	}
-	slices.SortStableFunc(all, func(a, b installedRow) int {
-		return strings.Compare(a.Namespace+"/"+a.Name+"/"+a.Kind, b.Namespace+"/"+b.Name+"/"+b.Kind)
-	})
+	v.InstancesProblem, v.PackagesProblem = rd.instProb, rd.pkgProb
+	v.InstancesLocked = rd.instProb == nil && rd.instances.Access != v1.AccessOK
+	v.PackagesLocked = rd.pkgProb == nil && rd.packages.Access != v1.AccessOK
+
+	all := rd.rows(ns)
 	v.Total = len(all)
 	for i := range all {
-		v.Namespaces = appendUnique(v.Namespaces, all[i].Namespace)
-		v.Modules = appendUnique(v.Modules, all[i].Module.Path)
-		for _, c := range all[i].RenderContracts {
-			v.Contracts = appendUnique(v.Contracts, c)
-		}
 		if matchesInstalled(&all[i], fv) {
 			v.Rows = append(v.Rows, all[i])
 		}
 	}
-	slices.Sort(v.Contracts)
-	slices.Sort(v.Modules)
-	slices.Sort(v.Namespaces)
-	v.UsesSet, v.ModuleSet = fv["uses"] != "", fv["module"] != ""
+	v.UsesSet = fv["uses"] != ""
 
-	// The topic names the namespace only when the read API could be asked
-	// for it, so a malformed one never reaches the stream.
+	v.Scope = v.scope(rd.scoped, ns)
+	v.input = installedInput(all, installedReadable{
+		instances: v.InstancesProblem == nil && !v.InstancesLocked,
+		packages:  v.PackagesProblem == nil && !v.PackagesLocked,
+		instNote:  unreadableWord(v.InstancesProblem),
+		pkgNote:   unreadableWord(v.PackagesProblem),
+		wide:      rd.wide,
+	})
+
+	// The topic names the namespace only for a kind read in it, so a
+	// malformed one never reaches the stream.
 	topic := "instances"
-	if ns != "" && readable {
+	if rd.scoped {
 		topic += ":" + ns
 	}
+	v.Topic = topic
 	status := max(problemStatus(v.InstancesProblem), problemStatus(v.PackagesProblem))
 	h.render(w, r, status, "installed", page{Title: "Installed", Nav: "installed", Topics: []string{topic}, Main: v})
+}
+
+// scope says what the total counts when it is not every row (installed-23):
+// within the namespace a kind was read in, or only what the caller may read.
+func (v *installedView) scope(scoped bool, ns string) string {
+	partial := v.InstancesLocked || v.PackagesLocked || v.InstancesProblem != nil || v.PackagesProblem != nil
+	switch {
+	case scoped && partial:
+		return "you may read in " + ns
+	case scoped:
+		return "in " + ns
+	case partial:
+		return "you may read"
+	}
+	return ""
+}
+
+// unreadableWord is the word an option takes where its count would stand
+// for a list that is locked or failed.
+func unreadableWord(p *v1.Problem) string {
+	if p != nil && p.Code != v1.CodeForbidden {
+		return "unavailable"
+	}
+	return wordLocked
+}
+
+// installedReadable says which kinds the caller may read in the scope the
+// page asked, and whether both were read for every namespace.
+type installedReadable struct {
+	instances, packages bool
+	instNote, pkgNote   string
+	wide                bool
+}
+
+// installedInput builds the choices and the counts of the Installed filter
+// form from the rows the caller may read, before any filter. A value whose
+// rows come only from a list the caller may not read carries a word where
+// its count would stand, never a zero (portal:D14:R7, portal:D7:R2).
+func installedInput(rows []installedRow, rd installedReadable) formInput {
+	counts := map[string]map[string]int{}
+	for _, p := range installedFilters.Params {
+		counts[p.Name] = map[string]int{}
+	}
+	bump := func(param, value string) {
+		if value != "" {
+			counts[param][value]++
+		}
+	}
+	for i := range rows {
+		row := &rows[i]
+		bump("kind", row.Kind)
+		bump("provider", map[bool]string{true: "yes", false: "no"}[len(row.ProviderOf) > 0])
+		for _, c := range row.RenderContracts {
+			bump("uses", c)
+		}
+		bump("namespace", row.Namespace)
+		bump("health", row.Health.State)
+		bump("applied", row.Reconcile.State)
+		bump("owner", row.Owner)
+		bump("module", row.ModuleValue())
+	}
+	notes := map[string]map[string]string{"kind": {}, "owner": {}}
+	if !rd.instances {
+		notes["kind"][instanceKind.Topic] = rd.instNote
+		// Only instances are owned by the cli.
+		notes["owner"]["cli"] = rd.instNote
+	}
+	if !rd.packages {
+		notes["kind"][packageKind.Topic] = rd.pkgNote
+	}
+	// A fixed value with no rows among the rows the caller may read counts
+	// zero, unless its rows could only have come from an unread list.
+	for _, p := range installedFilters.Params {
+		for _, val := range p.Values {
+			if _, ok := counts[p.Name][val]; !ok && notes[p.Name][val] == "" {
+				counts[p.Name][val] = 0
+			}
+		}
+	}
+	// With neither list read, every count stands for rows nobody may read:
+	// "Healthy (0)" would say nothing is unhealthy, when the portal does not
+	// know (portal:D14:R7).
+	var noCount map[string]bool
+	if !rd.instances && !rd.packages {
+		noCount = map[string]bool{"health": true, "applied": true, "provider": true, "owner": true}
+	}
+	keys := func(param string) []string {
+		out := make([]string, 0, len(counts[param]))
+		for k := range counts[param] {
+			out = append(out, k)
+		}
+		slices.Sort(out)
+		return out
+	}
+	in := formInput{
+		Choices: map[string][]string{"uses": keys("uses"), "module": keys("module")},
+		Counts:  counts,
+		NoCount: noCount,
+		Notes:   notes,
+		Suggest: map[string][]string{},
+		Placeholders: map[string]string{
+			"q": "Name, namespace, module or source", "namespace": "all namespaces",
+		},
+		ShownID: "shown", Variant: filtersCard,
+	}
+	if rd.wide {
+		in.Choices["namespace"] = keys("namespace")
+	} else {
+		// A kind that is locked for every namespace leaves the namespace a
+		// field to type into: a reader who may list some namespaces can
+		// still name one (portal:D14:R7). The datalist offers what is read.
+		in.Suggest["namespace"] = keys("namespace")
+		delete(counts, "namespace")
+	}
+	return in
 }
 
 func instanceRow(it *v1.InstanceSummary) installedRow {
@@ -182,26 +404,49 @@ func instanceRow(it *v1.InstanceSummary) installedRow {
 		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Module: it.Module,
 		Reconcile: it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: owner,
 		ProviderOf: it.ProviderOf, RenderContracts: it.RenderContracts,
+		Pills: providerPills(instanceKind.Topic, it.Ref, it.ProviderOf),
 	}
 }
 
 func packageRow(it *v1.PackageSummary) installedRow {
 	return installedRow{
-		Kind: "package", Href: packageKind.base(it.Ref.Namespace, it.Ref.Name),
-		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Source: it.Source, Path: it.Path,
-		Reconcile: it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: ownerController,
+		Kind: packageKind.Topic, Href: packageKind.base(it.Ref.Namespace, it.Ref.Name),
+		Namespace: it.Ref.Namespace, Name: it.Ref.Name, Source: packageSource(it), Path: it.Path,
+		SourceArtifact: it.SourceArtifact,
+		Reconcile:      it.Reconcile, Health: it.Health, Objects: it.InventoryCount, Owner: ownerController,
 		ProviderOf: it.ProviderOf,
+		Pills:      providerPills(packageKind.Topic, it.Ref, it.ProviderOf),
 	}
+}
+
+// packageSource is a package's source as "<Kind> <namespace>/<name>", the
+// namespace defaulting to the package's own (installed-26).
+func packageSource(it *v1.PackageSummary) string {
+	ns := it.Source.Namespace
+	if ns == "" {
+		ns = it.Ref.Namespace
+	}
+	return it.Source.Kind + " " + ns + "/" + it.Source.Name
+}
+
+// providerPills builds one provider badge for each registration an item
+// holds. The tooltip ids are unique on the page.
+func providerPills(kind string, ref v1.ObjectRef, claims []v1.ProviderClaim) []tipData {
+	out := make([]tipData, 0, len(claims))
+	for i, c := range claims {
+		out = append(out, providerPill(c, fmt.Sprintf("tip-prov-%s-%s-%s-%d", kind, ref.Namespace, ref.Name, i)))
+	}
+	return out
 }
 
 // matchesInstalled applies the Installed filters to one row. Free text
 // and names are matched as given. uses names what an instance's render
-// used, which a package does not record (portal:D16:R2), and module what
-// an instance was rendered from, where a package records a source; a
-// package matches neither.
+// used, which a package does not record (portal:D16:R2), so a package
+// matches no uses value. module is an instance's module path or a
+// package's source string.
 func matchesInstalled(row *installedRow, f map[string]string) bool {
 	if q := strings.ToLower(f["q"]); q != "" {
-		hay := strings.ToLower(strings.Join([]string{row.Namespace, row.Name, row.Module.Path, row.Source.Kind, row.Source.Name, row.Path}, " "))
+		hay := strings.ToLower(strings.Join([]string{row.Kind, row.Namespace, row.Name, row.Module.Path, row.Source, row.Path}, " "))
 		if !strings.Contains(hay, q) {
 			return false
 		}
@@ -211,13 +456,13 @@ func matchesInstalled(row *installedRow, f map[string]string) bool {
 		ok    func(string) bool
 	}{
 		{"kind", func(want string) bool { return row.Kind == want }},
-		{"provider", func(want string) bool { return (len(row.ProviderOf) > 0) == (want == "yes") }},
+		{"provider", func(want string) bool { return (len(row.ProviderOf) > 0) == (want == yesWord) }},
 		{"uses", func(want string) bool { return slices.Contains(row.RenderContracts, want) }},
 		{"namespace", func(want string) bool { return row.Namespace == want }},
 		{"health", func(want string) bool { return row.Health.State == want }},
 		{"applied", func(want string) bool { return row.Reconcile.State == want }},
 		{"owner", func(want string) bool { return row.Owner == want }},
-		{"module", func(want string) bool { return row.Kind == instanceKind.Topic && row.Module.Path == want }},
+		{"module", func(want string) bool { return row.ModuleValue() == want }},
 	}
 	for _, c := range checks {
 		if want := f[c.param]; want != "" && !c.ok(want) {
@@ -275,10 +520,13 @@ type componentView struct {
 	Objects []objectView
 }
 
-// configGroup is the configuration components folded into one entry, with
-// the health the graph's group node reports. It opens when that health is
-// not Healthy.
+// configGroup is the components the graph folds into one group node, listed
+// folded the same way. It opens when its health is not Healthy.
 type configGroup struct {
+	// ID is the id of the group's <details>, so a refresh keeps it open.
+	ID string
+	// Label is the group node's label, such as "17 configuration components".
+	Label      string
 	Health     string
 	Open       bool
 	Components []componentView
@@ -286,8 +534,10 @@ type configGroup struct {
 
 type objectView struct {
 	v1.InventoryObject
-	// Focus opens the Graph tab focused on the node that shows the object.
+	// Focus opens the Graph tab focused on the node that shows the object,
+	// and NodeID is that node's id.
 	Focus     string
+	NodeID    string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -301,6 +551,7 @@ type objectView struct {
 type childView struct {
 	v1.RuntimeChild
 	Focus     string
+	NodeID    string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -317,76 +568,51 @@ type logPane struct {
 	Pod       string
 	Container string
 	Previous  string
+	// PodValue names the Pod in the Events resource filter; Reason is the
+	// Pod's health reason, which says whether the container has started.
+	PodValue string
+	Reason   string
 }
 
 func (k ownerKind) base(ns, name string) string {
 	return "/" + k.Path + "/" + url.PathEscape(ns) + "/" + url.PathEscape(name)
 }
 
-// Health states the Resources tab compares.
-const (
-	stateHealthy = "Healthy"
-	stateUnknown = "Unknown"
-)
-
-// foldConfig moves the components the graph folds into its configuration
-// groups out of cs, in their order, so the list folds what the graph folds
-// (portal:D4:R5). The graph folds one group per kind family; the list still
-// shows them as one entry, with the worst health of the groups, until the
-// Resources tab folds per family (change align-owner-pages).
-func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup) {
-	var groups []*v1.GraphNode
+// foldConfig moves the components the graph folds into a group node out of
+// cs, in their order, one configGroup for each group node of the graph, so the
+// list folds what the graph folds (portal:D4:R5). A group none of whose
+// members is among cs is left out.
+func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, []configGroup) {
+	var groups []configGroup
+	rest := cs
 	for i := range g.Nodes {
-		if n := &g.Nodes[i]; n.Kind == "group" && n.Group != nil && n.Group.Kind == "configuration" {
-			groups = append(groups, n)
+		n := &g.Nodes[i]
+		if n.Kind != "group" || n.Group == nil || n.Group.Kind != "configuration" {
+			continue
 		}
-	}
-	if len(groups) == 0 {
-		return cs, nil
-	}
-	cg := &configGroup{Health: stateUnknown}
-	for i, group := range groups {
-		state := stateUnknown
-		if group.Health != nil {
-			state = group.Health.State
+		cg := configGroup{ID: "config-components", Label: n.Label, Health: "Unknown"}
+		if len(groups) > 0 {
+			cg.ID += "-" + strconv.Itoa(len(groups)+1)
 		}
-		if i == 0 || worseState(state, cg.Health) {
-			cg.Health = state
+		if n.Health != nil {
+			cg.Health = n.Health.State
 		}
-	}
-	cg.Open = cg.Health != stateHealthy
-	rest := make([]componentView, 0, len(cs))
-	for i := range cs {
-		if slices.ContainsFunc(groups, func(n *v1.GraphNode) bool { return slices.Contains(n.Group.Members, cs[i].Name) }) {
-			cg.Components = append(cg.Components, cs[i])
-		} else {
-			rest = append(rest, cs[i])
+		cg.Open = cg.Health != healthHealthy
+		next := make([]componentView, 0, len(rest))
+		for j := range rest {
+			if slices.Contains(n.Group.Members, rest[j].Name) {
+				cg.Components = append(cg.Components, rest[j])
+			} else {
+				next = append(next, rest[j])
+			}
 		}
-	}
-	if len(cg.Components) == 0 {
-		return cs, nil
-	}
-	return rest, cg
-}
-
-// worseState reports whether health state a is worse than b in the roll-up
-// order of internal/health: Degraded, Missing, Progressing, Unknown,
-// Healthy.
-func worseState(a, b string) bool {
-	rank := func(s string) int {
-		switch s {
-		case "Degraded":
-			return 4
-		case "Missing":
-			return 3
-		case "Progressing":
-			return 2
-		case stateHealthy:
-			return 0
+		if len(cg.Components) == 0 {
+			continue
 		}
-		return 1
+		rest = next
+		groups = append(groups, cg)
 	}
-	return rank(a) > rank(b)
+	return rest, groups
 }
 
 // components adds the links each object offers: its YAML and its events,
@@ -424,7 +650,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 		cv := childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q}
 		if isPod(ch.Ref) && len(ch.Containers) > 0 {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
-			cv.LogHref = base + "?tab=" + tabLogs + "#" + cv.LogID
+			cv.LogHref = logLink(base, cv.LogID)
 		}
 		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)
@@ -447,7 +673,8 @@ func logPanes(cs []componentView) []logPane {
 				}
 				for _, c := range ch.Containers {
 					topic := "log:" + ch.Ref.Namespace + "/" + ch.Ref.Name + "/" + c
-					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c})
+					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c,
+						PodValue: resourceValue(ch.Ref), Reason: ch.Health.Reason})
 				}
 			}
 		}
@@ -456,6 +683,11 @@ func logPanes(cs []componentView) []logPane {
 }
 
 func isPod(r v1.ObjectRef) bool { return r.Kind == "Pod" && r.Group == "" }
+
+// logLink is the Logs tab opened on the pane id: ?tab=logs&log=<id>.
+func logLink(base, id string) string {
+	return base + "?tab=" + tabLogs + "&log=" + url.QueryEscape(id)
+}
 
 // logID is the id of a container's log pane.
 func logID(pod, container string) string { return domID("log", pod, container) }
@@ -486,29 +718,17 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 		if n := restingNode(&g); n != nil {
 			ctx.resting = n.ID
 		}
-		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && isPod(*n.Ref) {
-			ctx.firstContainer = h.firstContainers(r, k, base)
+		// A Pod's Logs link needs the owner's containers, and the owner's own
+		// node its identity facts, both from the owner document.
+		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && (isPod(*n.Ref) || isOwnerNode(n, ctx)) {
+			self := h.loadOwner(r, k, r.PathValue("namespace"), r.PathValue("name"))
+			ctx.firstContainer = self.firstContainer
+			if self.Problem == nil {
+				ctx.self = &self
+			}
 		}
 		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), ctx))
 	}
-}
-
-// firstContainers reads the owner's document for its Pods' containers,
-// for a Pod panel's Logs link.
-func (h *Handler) firstContainers(r *http.Request, k ownerKind, base string) func(string) string {
-	var comps []v1.Component
-	if k == instanceKind {
-		var doc v1.Instance
-		if h.fetch(r, base, nil, &doc) == nil {
-			comps = doc.Components
-		}
-	} else {
-		var doc v1.Package
-		if h.fetch(r, base, nil, &doc) == nil {
-			comps = doc.Components
-		}
-	}
-	return containersOf(comps)
 }
 
 // containersOf maps each Pod below cs to its first container.
@@ -578,6 +798,7 @@ func (h *Handler) events(r *http.Request, path string, q url.Values, follow stri
 	ev := eventsView{Follow: follow}
 	ev.Problem = h.fetch(r, path, q, &doc)
 	ev.Items = doc.Items
+	ev.Partial = doc.Partial
 	return ev
 }
 
@@ -603,10 +824,9 @@ func (h *Handler) renderProblemFragment(w http.ResponseWriter, r *http.Request, 
 	h.renderFragment(w, r, problemStatus(p), "problem", page{Title: "Unavailable", Main: p})
 }
 
-// FilterForm returns the Installed filter form.
+// FilterForm returns the Installed filter form, with its count row.
 func (v installedView) FilterForm() filterForm {
-	return newFilterForm(v.Filters, "Filter what is installed", keepHidden(v.Query, installedFilters.paramNames()...),
-		map[string][]string{"namespace": v.Namespaces, "uses": v.Contracts, "module": v.Modules},
-		map[string]string{"q": "Name, namespace, module or source", "uses": "a contract the render used", "namespace": "all namespaces", "module": "a module path"},
-	)
+	in := v.input
+	in.Shown, in.Total, in.Scope, in.Follow = len(v.Rows), v.Total, v.Scope, v.Topic
+	return newChoiceForm(v.Filters, "Filter what is installed", keepHidden(v.Query, installedFilters.paramNames()...), in)
 }

@@ -16,6 +16,7 @@
   },
   "interval": "1m",
   "path": ".",
+  "prune": true,
   "reconcile": {
     "state": "Failed",
     "reason": "SourceNotReady",

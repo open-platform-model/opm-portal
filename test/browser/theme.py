@@ -7,10 +7,13 @@ first failure:
 
 1. A stored Dark theme is applied before first paint on a light system: by DOMContentLoaded the
    root already carries data-theme="dark", set by the head script before the stylesheet link.
-   The dark background is checked at `load`, once the stylesheet has been applied: at
-   DOMContentLoaded WebKit may not have applied a head stylesheet yet (it reports a transparent
-   body), but it does not paint before that stylesheet is in, so the earlier reading says nothing
-   about what was painted.
+   The dark background is checked once the stylesheet is applied and a frame has painted: two
+   animation frames after `load`. At DOMContentLoaded WebKit may not have applied a head
+   stylesheet yet (it reports a transparent body), but it does not paint before that stylesheet is
+   in, so the earlier reading says nothing about what was painted. At `load` itself WebKit can
+   still report the body as transparent for a stylesheet of about 55 KB or more, with the root's
+   custom properties already resolved (measured: portal.css of main plus 6.7 KB of comment failed
+   5 of 8 runs; main alone failed 0 of 14), so the load-time reading is kept in the output only.
 2. A stored Installed filter opens filtered on a full load: /installed becomes
    /installed?kind=package and lists only packages. A MutationObserver records each document
    when its <body> appears, with whether <html> carries the opm-restoring class (the stylesheet's
@@ -32,6 +35,10 @@ first failure:
 9. Nothing animates in (portal:D19, the owner's decision of 2026-10-11): /installed loaded with
    motion allowed has, right after the load event, no running animation whose target lies inside
    main. The live dot's pulse lies outside main.
+10. The theme menu fits a phone (PIC-A2) and marks the choice with a check (platform-32): at a
+   360 px viewport on the Platform page, with the menu open, its box lies inside the viewport and
+   the page does not scroll sideways; the check SVG of the pressed choice is visible and the
+   others are not.
 """
 
 import sys
@@ -44,7 +51,7 @@ CHIP_LIGHT = "rgb(20, 24, 32)"
 
 # Records every document as soon as its <body> appears (before DOMContentLoaded, so a document
 # the head script replaces is still seen if it gets that far), the theme at DOMContentLoaded, and
-# the body's background at load, once the stylesheet has been applied.
+# the body's background at load (reported only) and two frames after it (the one checked).
 RECORD = (
     "(() => {"
     " const mo = new MutationObserver(() => { if (!document.body) return; mo.disconnect();"
@@ -57,6 +64,8 @@ RECORD = (
     "  window.__theme = document.documentElement.getAttribute('data-theme'); });"
     " window.addEventListener('load', () => {"
     "  window.__bg = getComputedStyle(document.body).backgroundColor;"
+    "  requestAnimationFrame(() => requestAnimationFrame(() => {"
+    "   window.__painted = getComputedStyle(document.body).backgroundColor; }));"
     "  window.__anims = document.getAnimations().filter(a => a.effect && a.effect.target"
     "   && a.effect.target.closest && a.effect.target.closest('main')).length; });"
     "})();"
@@ -82,9 +91,15 @@ def run(p, engine, base, context):
         page.goto(base + "/")
         page.evaluate("localStorage.setItem('opm-portal.theme', 'dark')")
         page.goto(base + "/", wait_until="load")
-        theme, bg = page.evaluate("[window.__theme, window.__bg]")
-        if not check(engine, theme == "dark" and bg == DARK_BG,
-                     f"data-theme={theme!r} at DOMContentLoaded, background={bg!r} at load"):
+        # The page's CSP refuses wait_for_function (it evaluates a string); poll through evaluate.
+        for _ in range(50):
+            if page.evaluate("window.__painted !== undefined"):
+                break
+            page.wait_for_timeout(100)
+        theme, bg, painted = page.evaluate("[window.__theme, window.__bg, window.__painted]")
+        if not check(engine, theme == "dark" and painted == DARK_BG,
+                     f"data-theme={theme!r} at DOMContentLoaded, background={painted!r} two frames after load "
+                     f"({bg!r} at load)"):
             return False
 
         page.evaluate(f"localStorage.setItem({key!r}, 'kind=package'); sessionStorage.removeItem('rec')")
@@ -171,6 +186,23 @@ def run(p, engine, base, context):
         motion.goto(base + "/installed", wait_until="load")
         anims = motion.evaluate("window.__anims")
         if not check(engine, anims == 0, f"animations inside main right after load: {anims}"):
+            return False
+
+        phone = browser.new_context(viewport={"width": 360, "height": 640}, color_scheme="light").new_page()
+        phone.goto(base + "/", wait_until="load")
+        phone.locator("details.theme > summary").click()
+        box = phone.evaluate(
+            "(() => { const r = document.querySelector('.theme-list').getBoundingClientRect();"
+            " return [r.left, r.right, r.top, r.bottom, window.innerWidth, window.innerHeight,"
+            " Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)]; })()")
+        if not check(engine, box[0] >= 0 and box[1] <= box[4] and box[2] >= 0 and box[3] <= box[5] and box[6] <= 360,
+                     f"360 px, menu open: box {box[0]:.0f} to {box[1]:.0f} of {box[4]}, down to {box[3]:.0f} of {box[5]}, page scrolls {box[6]}"):
+            return False
+        marks = phone.evaluate(
+            "[...document.querySelectorAll('.theme-list button')].map(b => [b.getAttribute('aria-pressed'),"
+            " getComputedStyle(b.querySelector('.theme-check')).visibility])")
+        if not check(engine, marks == [["false", "hidden"], ["false", "hidden"], ["true", "visible"]],
+                     f"the check shows on the pressed choice only: {marks}"):
             return False
     finally:
         browser.close()

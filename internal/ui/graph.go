@@ -652,7 +652,7 @@ func (d *drawing) nodeOf(n *v1.GraphNode) svgNode {
 func toneOf(n *v1.GraphNode, locked bool, state string) string {
 	switch {
 	case locked:
-		return "locked"
+		return hueLocked
 	case n.Registration != nil:
 		slug, _ := standingOf(n.Registration)
 		return "standing-" + slug
@@ -680,7 +680,7 @@ func standingOf(r *v1.GraphRegistration) (slug, text string) {
 	case verdictPending:
 		return "pending", firstOf(r.Reason, "Pending")
 	}
-	return unknownWord, stateUnknown
+	return unknownWord, wordUnknown
 }
 
 func firstOf(a, b string) string {
@@ -747,7 +747,7 @@ func sourceStatus(s *v1.SourceState) string {
 	switch s.State {
 	case "ready":
 		if s.Revision != "" {
-			return "Artifact ready · " + shortRevision(s.Revision)
+			return "Artifact ready · " + nodeRevision(s.Revision)
 		}
 		return "Artifact ready"
 	case "notReady":
@@ -761,12 +761,12 @@ func sourceStatus(s *v1.SourceState) string {
 	case "unsupportedKind":
 		return "Not read by the portal"
 	}
-	return stateUnknown
+	return wordUnknown
 }
 
-// shortRevision keeps the start of a digest ("sha256:0123456789ab" reads
+// nodeRevision keeps the start of a digest ("sha256:0123456789ab" reads
 // "0123456") and any other revision as it is, clipped.
-func shortRevision(rev string) string {
+func nodeRevision(rev string) string {
 	if i := strings.LastIndex(rev, ":"); i >= 0 {
 		return string([]rune(rev[i+1:])[:min(7, len([]rune(rev[i+1:])))])
 	}
@@ -795,7 +795,7 @@ func groupStatus(n *v1.GraphNode) string {
 
 func replicaStatus(n *v1.GraphNode) string {
 	s := fmt.Sprintf("%d desired", *n.Replicas)
-	if n.Health != nil && n.Health.State != "Healthy" && n.Health.Reason != "" {
+	if n.Health != nil && n.Health.State != healthHealthy && n.Health.Reason != "" {
 		s += " · " + n.Health.Reason
 	}
 	return s

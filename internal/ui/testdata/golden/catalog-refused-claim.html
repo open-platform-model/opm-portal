@@ -1,34 +1,42 @@
 <main id="main" tabindex="-1" data-topics="platform" data-canonical="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0">
-<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Platform</a> <span aria-hidden="true">/</span> <a href="/?tab=catalogs">Catalogs</a> <span aria-hidden="true">/</span> <span class="mono">operator/refused-claim-fixture-absent@v0</span></nav>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Platform</a> <span aria-hidden="true">/</span> <a href="/?tab=catalogs">Catalogs</a> <span aria-hidden="true">/</span> <span class="crumb-here" aria-current="page">refused-claim-fixture-absent</span></nav>
 <div class="summary reveal">
   <section class="card" id="catalog-head" aria-label="Identity" data-follow="platform">
-    <p class="kicker">Catalog · Claimed only</p>
-    <h1 class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</h1>
+    <p class="kicker">Catalog <span class="origin origin-claim">Claimed only</span></p>
+    <h1>refused-claim-fixture-absent</h1>
+    <p class="catalog-path mono">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0 · 0.1.0</p>
     <dl class="facts">
-      <dt>Version</dt><dd><span class="mono">0.1.0</span></dd>
-      <dt>Source</dt><dd>claimed only</dd>
-      <dt>Enabled</dt><dd><span class="muted">not recorded</span></dd>
+      <dt>Source</dt><dd><span class="mono">default.<wbr>refused-claim-fixture</span></dd>
+      <dt>Enabled</dt><dd>no: not in the registry</dd>
     </dl>
   </section>
-  <section class="card owner-card" id="catalog-resolved" aria-labelledby="resolved-h" data-follow="platform">
-    <h2 id="resolved-h">Resolved <span class="h-note">in the Platform's registry</span></h2>
-    <p><span class="health health-degraded">Not resolved</span> <span class="mono">CatalogUnresolved</span></p><p class="muted">From the claim default.refused-claim-fixture.</p>
-    <p class="reason-info"><span class="label">Platform-wide contracts</span> <span class="mono">UnfulfilledContracts</span> <span class="muted">for the whole Platform, not this catalog; information, not a failure</span></p>
-  </section>
+<section class="state-block hue-degraded" id="catalog-resolved" aria-label="Resolution status" data-follow="platform">
+  <div class="sb-head"><span class="sb-eyebrow">Resolved · the controller</span><span class="sb-when">refused since <time datetime="2026-10-04T18:04:26Z" title="2026-10-04 18:04:26 UTC">5m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10v9M18 25v.5"/></svg><span class="sb-word">Unresolved</span></div>
+  <p class="sb-summary">Not in the resolved registry. Claimed by default.refused-claim-fixture</p>
+  
+  <div class="sb-reasons"><a href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0&amp;reason=CatalogUnresolved&amp;tab=events" class="hue-degraded"><strong>1</strong> <span class="mono">CatalogUnresolved</span></a></div>
+  
+</section>
 </div>
+<p class="reason-info"><span class="label">Platform-wide contracts</span> <span class="mono">UnfulfilledContracts</span> <span class="muted">for the whole Platform, not this catalog; information, not a failure</span></p>
 <p class="note">The cluster does not record a catalog's definitions, their descriptions or the transformers it ships, so they are not shown.</p>
 <nav class="tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0&amp;tab=claims" aria-current="page">Claims <span class="tab-n" id="tab-n-claims" data-follow="platform">1</span></a><a href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0&amp;tab=events">Events</a></nav>
-<section class="panel panel-wide reveal" id="claims" aria-labelledby="claims-h" data-follow="platform">
+<section class="panel panel-wide panel-flush reveal" id="claims" aria-labelledby="claims-h" data-follow="platform">
   <h2 class="vh" id="claims-h">Claims <span class="h-note">registrations that claim this catalog</span></h2>
+  <div class="region">
   <div class="table-wrap"><table class="table rows">
-    <thead><tr><th scope="col">Registration</th><th scope="col">Installed as</th><th scope="col">Standing</th></tr></thead>
+    <thead><tr><th scope="col">Registration</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
     <tbody>
     <tr class="reg reg-Refused">
-      <th scope="row" data-label="Registration"><span class="mono">default.<wbr>refused-claim-fixture</span> <span class="ver">0.1.0</span></th>
+      <th scope="row" data-label="Registration"><span class="mono row-heading">default.<wbr>refused-claim-fixture</span> <span class="ver">0.1.0</span></th>
       <td data-label="Installed as"><span class="muted">held by nothing you may read</span></td>
-      <td data-label="Standing"><p class="pills"><span class="pill pill-no">not accepted</span> <span class="pill pill-no">inactive</span></p><p class="verdict-why"><span class="verdict verdict-refused">Refused</span> <span class="mono">CatalogUnresolved</span><span class="msg">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</span></p></td>
+      <td data-label="Status"><p class="pills"><span class="sq hue-degraded">Refused</span><span class="sq hue-neutral">Inactive</span></p>
+<p class="verdict-why hue-degraded"><span class="mono">CatalogUnresolved</span>: <span class="msg">Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found</span></p>
+</td>
     </tr>
     </tbody>
   </table></div>
+  </div>
 </section>
 </main>

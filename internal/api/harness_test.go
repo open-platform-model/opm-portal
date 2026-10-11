@@ -117,7 +117,10 @@ func newEnvWithDiscovery(t testing.TB, objs []*unstructured.Unstructured, caller
 	t.Helper()
 	caller, callerReviews := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
-	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, reader.Username: readerChecker}}
+	// bob is a second caller under the same rule, which can tell the two apart
+	// by the username it is given.
+	bobChecker, _ := readmodeltest.NewChecker(t, bob, callerRule, authz.Options{})
+	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, bob.Username: bobChecker, reader.Username: readerChecker}}
 	client := readmodeltest.Dynamic(objs...)
 	m, err := readmodel.New(readmodel.Config{
 		Dynamic:     client,

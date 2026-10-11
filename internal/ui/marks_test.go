@@ -29,12 +29,19 @@ func TestGraphKeepsTheAxesApart(t *testing.T) {
 // TestConfigComponentsFoldAsInTheGraph (portal:D4:R5): cert-manager's
 // configuration components the graph folds (its CRDs, RBAC and webhook
 // groups, 16 of 17: the lone Namespace stays a component) are one closed
-// group in the list, and the selected node is marked.
+// group in the list for each family group of the graph, and the selected
+// node is marked.
 func TestConfigComponentsFoldAsInTheGraph(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	main := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
-	if !strings.Contains(main, `<details id="config-components">`) || !strings.Contains(main, "16 configuration components") {
-		t.Error("the configuration components of the graph's three family groups are not one closed group of 16")
+	for _, want := range []string{
+		`<details id="config-components">`, "CRDs · 1 component",
+		`<details id="config-components-2">`, "RBAC · 13 components",
+		`<details id="config-components-3">`, "Webhook configuration · 2 components",
+	} {
+		if !strings.Contains(main, want) {
+			t.Errorf("the family groups of the graph are not three closed groups in the list: %q is missing", want)
+		}
 	}
 	comps := between(main, `id="components"`, `id="config-components"`)
 	if strings.Contains(comps, `<h3 class="component-name">crds</h3>`) {

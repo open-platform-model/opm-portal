@@ -77,7 +77,10 @@ func htmxRequest(r *http.Request) { r.Header.Set("HX-Request", "true") }
 // TestDevServe serves the UI over the F1 capture on the address in
 // OPM_PORTAL_UI_DEV until OPM_PORTAL_UI_DEV_FOR passes (default 10m), for
 // looking at the pages in a browser. Every request reads as the test
-// caller, so no launch is needed. Skipped unless the variable is set.
+// caller, so no launch is needed. OPM_PORTAL_UI_DEV_BROKEN serves the
+// image-break sample, OPM_PORTAL_UI_DEV_HOLDER adds the package that holds a
+// refused claim, OPM_PORTAL_UI_DEV_DENY denies a resource. Skipped unless the
+// variable is set.
 func TestDevServe(t *testing.T) {
 	addr := os.Getenv("OPM_PORTAL_UI_DEV")
 	if addr == "" {
@@ -86,6 +89,9 @@ func TestDevServe(t *testing.T) {
 	objs := apitest.F1(t)
 	if os.Getenv("OPM_PORTAL_UI_DEV_BROKEN") != "" {
 		objs = apitest.F1Broken(t)
+	}
+	if os.Getenv("OPM_PORTAL_UI_DEV_HOLDER") != "" {
+		objs = apitest.F1PackageHolder(t)
 	}
 	rule := apitest.AllowAll
 	if deny := os.Getenv("OPM_PORTAL_UI_DEV_DENY"); deny != "" {
