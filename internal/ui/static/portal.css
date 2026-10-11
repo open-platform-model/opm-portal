@@ -851,6 +851,13 @@ li.object.locked { margin: 4px 0 4px 4px; }
   .sb-icon path, .sb-icon rect { stroke: Canvas; }
 }
 
+/* Forced colours also paint a transparent border, so every tab would show the underline of the
+   current one. The other tabs take the page colour; only the current tab keeps a visible one. */
+@media (forced-colors: active) {
+  .tabs a { border-bottom-color: Canvas; }
+  .tabs a[aria-current="page"] { border-bottom-color: CanvasText; }
+}
+
 /* ---- Message page ---- */
 
 .message { padding: 8vh 0; max-width: 60ch; }
