@@ -135,7 +135,7 @@ func Find(t testing.TB, objs []*unstructured.Unstructured, kind, name string) *u
 // Dynamic returns a fake dynamic client serving objs.
 func Dynamic(objs ...*unstructured.Unstructured) *dynfake.FakeDynamicClient {
 	listKinds := map[schema.GroupVersionResource]string{}
-	for _, k := range Kinds {
+	for _, k := range KindsWithFlux() {
 		listKinds[k.GVR()] = k.GVK.Kind + "List"
 	}
 	runtimeObjs := make([]runtime.Object, 0, len(objs))

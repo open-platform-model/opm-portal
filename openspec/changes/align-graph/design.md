@@ -737,9 +737,113 @@ changes behaviour.
 | AG-A4 | The graph pages in `TestBrowserPhone` | Fit, zoom and full screen | 6.10 | web-ui |
 | AG-A5 | "Merge `main` into the branch" in place of the history-rewrite wording | Risks / Trade-offs; the proposal | none | none |
 
+## Spike findings
+
+Section 1 ran on 2026-10-11 over the F1 capture. None of the three findings changes what section 2
+builds; the details below are what section 2 takes over. The throwaway tests are removed; the
+fixtures stay in `internal/readmodel/readmodeltest/sources.go`.
+
+### Band layout (task 1.1)
+
+**Method.** A throwaway test re-placed cert-manager's laid-out graph (the old single configuration
+group expanded: 70 nodes, 6 columns) with the planned algorithm, for each family alone, for RBAC
+with CRDs, for all three, and for an inventory in reverse order. A second case emulated task 2.1's
+target: RBAC open, CRDs and Webhook configuration folded (61 nodes, the number the spec names).
+Geometry: nodes 216 x 72, row pitch 96, column pitch 264 (a 48 px gutter), band rectangle from 12 px
+left of the components column to 12 px right of the last column, 48 px above its first node (the
+header) and 24 px below its last. A control run moved a node into the band, and routed an elbow from
+above the band to below it; the checker saw both.
+
+**Result.** On every case: no node inside a band that is neither a member nor an object of a member,
+no edge between two nodes outside a band crossing its rectangle, no overlap between two bands or two
+nodes, and identical coordinates in two runs and from the reversed inventory. RBAC alone (13 members,
+26 objects) is a band of 26 rows. The graph with RBAC open and the other two families folded is 61
+nodes, 1568 x 3396 px (35 rows); with all three open it is 70 nodes and 4308 px tall; RBAC alone in
+the 70-node case is 4164 px. At the pane's 760 px maximum the overview fit would be about 0.22, so
+the 0.6 floor of task 6.1 decides, and the frame scrolls (as "Fit, zoom and full screen" says).
+
+**What section 2.2 takes over.**
+
+- The elbows' vertical segments run at the middle of a gutter, 24 px from a column edge. The frame
+  and the band rectangle therefore overhang the columns by less than 24 px (12): at 24 px or more,
+  every elbow from the instance to a component above or below the band, whose vertical segment spans
+  the band's rows, would cross the frame's left side. Task 4.4 draws the frame with the same 12.
+- Components in the components column all have the owner as their only neighbour to the left, so
+  their barycenters tie and the order is by id; a band goes where its first member's id sorts among
+  the other components.
+- A node in a column to the right of the components sits above or below a band by the side of its
+  component (walking `hasComponent` and `owns` and `controls` edges back to a component). Within a
+  side, the barycenter order stays.
+- One row grid: the nodes right of the components column are placed top-aligned in segments (above
+  the first band, between bands, below the last); a segment is as tall as its tallest column, so
+  every column's bands start on the same row. A band's rows shift down half a pitch, and the rows
+  after it a full pitch, per band passed: the half-row margins.
+- Columns left of the components (owner, module) sit at the mean y of their neighbours in the next
+  column, rounded down: with one grid and no per-column centring, that keeps their elbows in the
+  gutter.
+- Members sit in consecutive rows from the band's top and their objects in member order, so with
+  13 members and 26 objects the members fill the top 13 rows and each member's two objects sit at
+  rows 2i and 2i+1; the band's height is the larger count.
+
+### Source fixtures (task 1.2)
+
+`readmodeltest.WithSources` adds three constructed `source.toolkit.fluxcd.io/v1` OCIRepositories
+in `pkg`: `podinfo-release` (Ready=True, artifact revision `SourceRevision`, an artifact URL the
+portal must not serve), `podinfo-notready` (Ready=False, reason `OCIOperationFailed`, a registry
+message, no artifact) and `podinfo-noartifact` (Ready=True, no `status.artifact`).
+`WithUnversionedSourcePackage` adds `pkg/podinfo-unversioned`, F1's package with the `apiVersion`
+removed from its sourceRef. Every object carries the annotation `testing.opmodel.dev/constructed`
+and says so in its doc comment: F1 runs no Flux, so none of them is captured.
+
+Checked through a throwaway read-model test:
+
+- The fake dynamic client serves the three objects (`Dynamic` now registers list kinds for
+  `FluxKinds` as well), with the conditions and the artifact as built.
+- Plain F1 discovery does not serve the kind: `ResolveKind("source.toolkit.fluxcd.io",
+  "OCIRepository")` fails with `no matches for kind "OCIRepository"`. `KindsWithFlux()` (F1's
+  `Kinds` plus the three Flux kinds) makes it resolve to `ocirepositories`, namespaced.
+- A kind the fake discovery gains after the Model started is not seen by `ResolveKind`, which never
+  refreshes. After `SetDiscovery` with the Flux kinds, `ResolveKind` still failed; after the
+  mapper's `Reset()` it resolved. Task 3.1's timer therefore calls `Reset()` on the kind resolver
+  and then looks the kinds up; it needs no other hook.
+- `Model.Package` reads the unversioned package with an empty `Source.APIVersion` and kind
+  `OCIRepository`, so task 3.1 has the input its sourceRef case needs.
+
+### SVG motion (task 1.3)
+
+**Method.** A throwaway Playwright script ran on the real cert-manager Graph tab served by the
+portal's UI over F1, under the page's own policy (`style-src 'self'`), in the pinned Playwright
+image (Chromium 153.0.8010.12, Firefox 155.0, WebKit 26.6). It set properties through the CSSOM and
+read computed values and bounding boxes during and after the transition. No engine logged a policy
+violation.
+
+| Test | Chromium | Firefox | WebKit |
+| --- | --- | --- | --- |
+| `transform` + `transition` on a node `<a>`: position 100 ms steps | moves, 0 / 9.2 / 20.2 / 31.2 ... 66 | moves | moves, 0 / 10.4 / 21 / 31.7 ... 66 |
+| the same on the node's inner `<rect>` | moves | moves | moves |
+| `opacity` transition on a node | fades (0.53 at 300 ms) | fades | fades |
+| `transition` on the outer `<svg>` `width` and `height`, changed through the attributes | 854 to 427 px, 652 at 300 ms | same | same (648) |
+| the same, changed through the CSSOM `width` and `height` | same | same | same (650) |
+| `transform: scale(1.5)` + `transition` on the viewport `<g>`, origin `0 0` | 836 to 1254 px, 1034 at 300 ms | 838 to 1257 | 836 to 1254 |
+
+**Result.** Members can move, not only fade, in all three engines: a CSSOM transform and transition
+on the SVG `<a>` animates, so task 6.4 moves members from the group node's place. Both zoom
+animations work in all three. Task 6.4 uses the transition on the outer `<svg>`'s `width` and
+`height` (a class on the stage sets `transition: width 300ms, height 300ms`; the script keeps
+setting the attributes as `apply()` does today): the layout size animates, so the frame's scroll
+range and `scrollLeft` follow it, which a scale on the viewport `<g>` would not do. Wheel zoom never
+animates, so it never sets that class.
+
+**One engine quirk.** In WebKit, the first transition started on a freshly loaded page read its
+starting position at 300 ms and its end position at 1000 ms, three runs in a row; the same
+transition after any other animation, and every later one, ran at once. Browser tests therefore
+assert end positions and `getAnimations().length`, never a mid-transition position, and a user
+meets the quirk only as one expand animation that jumps. Reduced motion was not part of this spike;
+task 6.4 and 6.6 cover it.
+
 ## Open Questions
 
-None that change the specs or the tasks. The spike (section 1) confirms three assumptions and
-records its findings here: the band layout's invariant on cert-manager, the constructed Flux source
-fixtures through the read-model test harness, and CSS transforms on SVG links in the three
-engines.
+None that change the specs or the tasks. The spike (section 1) confirmed three assumptions; its
+findings are under "Spike findings": the band layout's invariant on cert-manager, the constructed
+Flux source fixtures through the read-model test harness, and CSS transforms on SVG links in the
+three engines.
