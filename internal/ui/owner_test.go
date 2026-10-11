@@ -140,17 +140,37 @@ func TestTabsShowTheirOwnRegions(t *testing.T) {
 	}
 }
 
-// TestYAMLTabListsASecretAsNeverRead (portal:D8:R1).
+// TestYAMLTabListsASecretAsNeverRead (portal:D8:R1): the read API serves a
+// core Secret with access "withheld", so the test uses that value. The Secret
+// is a disabled option, the page fetches nothing for it and shows no content.
 func TestYAMLTabListsASecretAsNeverRead(t *testing.T) {
 	h := &Handler{}
 	v := ownerView{Kind: instanceKind, Base: "/instances/default/app", Components: h.components("/instances/default/app", []v1.Component{{
-		Name: "db", Objects: []v1.InventoryObject{{Ref: v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}, Access: v1.AccessOK}},
+		Name: "db", Objects: []v1.InventoryObject{{Ref: v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}, Access: v1.AccessWithheld}},
 	}})}
 	h.ownerYAMLTab(httptestRequest(t, "/instances/default/app?tab=yaml"), &v, &v1.Graph{})
 	v.Tab = tabYAML
 	out := between(renderMain(t, "owner", v), `id="yaml"`, "</section>")
-	if !strings.Contains(out, "db (Secret data is never read)") || !strings.Contains(out, "disabled") || strings.Contains(out, "kind: ") {
+	if !strings.Contains(out, "default/db (Secret data is never read)") || !strings.Contains(out, "disabled") || strings.Contains(out, "kind: ") || v.YAML.Has {
 		t.Errorf("Secret in the YAML picker:\n%s", out)
+	}
+}
+
+// TestYAMLTabSkipsAnObjectItCannotList: an object that is forbidden or not
+// readable is not in the picker; only a withheld object is, and as never read.
+func TestYAMLTabSkipsAnObjectItCannotList(t *testing.T) {
+	obj := func(name, access string) v1.InventoryObject {
+		return v1.InventoryObject{Ref: v1.ObjectRef{Version: "v1", Kind: "ConfigMap", Namespace: "default", Name: name}, Access: access}
+	}
+	v := ownerView{Kind: instanceKind, Base: "/instances/default/app", Components: (&Handler{}).components("/instances/default/app", []v1.Component{{
+		Name: "app", Objects: []v1.InventoryObject{obj("ok", v1.AccessOK), obj("denied", v1.AccessForbidden), obj("down", v1.AccessNotReadable), obj("held", v1.AccessWithheld)},
+	}})}
+	got := map[string]bool{}
+	for _, e := range yamlEntries(&v) {
+		got[e.ref.Name] = e.secret
+	}
+	if len(got) != 2 || got["ok"] || !got["held"] {
+		t.Errorf("entries = %v, want ok pickable and held listed as never read", got)
 	}
 }
 

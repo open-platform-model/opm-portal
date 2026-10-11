@@ -254,6 +254,9 @@ func (b *tableBuilder) oldBody(o *objectView, old []resRow) resBody {
 	return resBody{Head: head, Rows: old}
 }
 
+// neverReadNote is the text of an object in the lists that the portal names and never reads.
+const neverReadNote = "Secret data is never read"
+
 // objectRows draws an object's row and the rows of the children below it,
 // and returns the old revisions apart, as their rows. member marks the rows
 // that belong to a group's tbody.
@@ -261,12 +264,14 @@ func (b *tableBuilder) objectRows(o *objectView, component string, member bool) 
 	row := resRow{Kind: o.Ref.Kind, Name: nsName(o.Ref), Component: component, Origin: originApplied, Member: member}
 	row.Current = o.NodeID != "" && o.NodeID == b.sel
 	switch {
+	case o.Access == v1.AccessWithheld:
+		row.Locked, row.LockText = true, neverReadNote
 	case o.Access != v1.AccessOK:
 		row.Locked, row.LockText = true, accessText(o.Access)
 	default:
 		row.Href = o.Focus
 		if isSecret(o.Ref) {
-			row.Note = "Secret data is never read"
+			row.Note = neverReadNote
 		}
 		if o.Health != nil {
 			row.Health, row.Reason, row.Message = o.Health.State, o.Health.Reason, o.Health.Message

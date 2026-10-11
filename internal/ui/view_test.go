@@ -57,18 +57,21 @@ func TestAcceptedAndActiveApart(t *testing.T) {
 }
 
 // TestSecretsOfferNoYAML (portal:D8:R1): a Secret in an inventory says its
-// data is never read and links to nothing.
+// data is never read and links to nothing. The read API serves it with access
+// "withheld"; the "ok" case stays as a guard on the same text.
 func TestSecretsOfferNoYAML(t *testing.T) {
-	h := &Handler{cfg: Config{Now: time.Now}}
-	ref := v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}
-	v := ownerView{Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources, Components: h.components("/instances/default/app", []v1.Component{{
-		Name:    "db",
-		Objects: []v1.InventoryObject{{Ref: ref, Access: v1.AccessOK, Health: &v1.ObjectHealth{State: "Healthy"}, Live: true}},
-	}})}
-	v.Resources = resourcesOf(nil, &v, &v1.Graph{})
-	out := between(renderMain(t, "owner", v), `id="components"`, "</section>")
-	if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "kind=Secret") {
-		t.Errorf("Secret row:\n%s", out)
+	for _, access := range []string{v1.AccessWithheld, v1.AccessOK} {
+		h := &Handler{cfg: Config{Now: time.Now}}
+		ref := v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}
+		v := ownerView{Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources, Components: h.components("/instances/default/app", []v1.Component{{
+			Name:    "db",
+			Objects: []v1.InventoryObject{{Ref: ref, Access: access, Health: &v1.ObjectHealth{State: "Healthy"}, Live: true}},
+		}})}
+		v.Resources = resourcesOf(nil, &v, &v1.Graph{})
+		out := between(renderMain(t, "owner", v), `id="components"`, "</section>")
+		if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "kind=Secret") || strings.Contains(out, "Withheld:") {
+			t.Errorf("Secret row with access %q:\n%s", access, out)
+		}
 	}
 }
 

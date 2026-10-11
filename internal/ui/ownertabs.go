@@ -241,14 +241,21 @@ type yamlEntry struct {
 	secret bool
 }
 
-// yamlEntries lists the readable objects of the inventory, each object before
-// its children and old revisions; a Secret is listed and marked.
+// yamlEntries lists the objects of the inventory the choice can show, each
+// object before its children and old revisions. The read API serves a Secret
+// with access "withheld": it is listed by name and marked as never read, with
+// no children and no content. An object that is forbidden or not readable is
+// not listed.
 func yamlEntries(v *ownerView) []yamlEntry {
 	var entries []yamlEntry
 	comps := v.allComponents()
 	for i := range comps {
 		for j := range comps[i].Objects {
 			o := &comps[i].Objects[j]
+			if o.Access == v1.AccessWithheld {
+				entries = append(entries, yamlEntry{o.Ref, true})
+				continue
+			}
 			if o.Access != v1.AccessOK {
 				continue
 			}
