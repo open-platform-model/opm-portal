@@ -107,7 +107,10 @@ fallback for a consumer that ignores `family`; the UI of section 4 draws its own
 `family`, `members` and `objectKinds`. `align-owner-pages` (on main) folds the Resources tab per
 group node: `foldConfig` in `internal/ui/pages.go` returns one entry for each configuration group
 node of the graph, so the three families are three folds there, each with its node's health. This
-change leaves that function as main has it (it keeps only the `configuration` kind filter).
+change leaves that function as main has it (it keeps only the `configuration` kind filter) and
+adds one thing to its output: each fold carries its node's `family`, and the fold's note names that
+family ("Custom resource definitions, which add kinds to the cluster" for `crds`, and one sentence
+each for `rbac`, `webhooks` and `other`), not one sentence for all of them.
 
 Wire: `GraphGroup` gains `family` (`x-extensible-enum: [crds, rbac, webhooks, other]`) and
 `objectKinds` (`GraphKindCount[]`). The UI maps the family to its label; an unknown family renders
@@ -213,7 +216,10 @@ package itself is authorized and read, the way `lookupProvider` does for the pla
    inventory reaches a Flux source, so a Flux installed after the portal starts would read "Kind
    not installed" until a restart. The server therefore re-checks discovery for
    `source.toolkit.fluxcd.io` on a five-minute timer, one discovery call per tick, never on a
-   request, and a kind found there resolves on the next lookup.
+   request, and a kind found there resolves on the next lookup. As built, the timer is in the read
+   model, not in `internal/api`: `Config.SourceKindsInterval` (default five minutes, zero for the
+   default) drives it, and the shared kind mapper resets only when a served Flux kind is unknown
+   to it.
 3. Authorize `get` on the resolved resource, namespace (sourceRef's, else the package's, as the
    controller does, `resolve.go:41-44`) and name. Refused: access `forbidden`, nothing read. A
    `sourceRef.namespace` that differs from the package's is reviewed in that namespace, never in
@@ -231,7 +237,9 @@ package itself is authorized and read, the way `lookupProvider` does for the pla
 5. Cut the served text. The lookup in `internal/api` (the one place the state is converted for
    serving) cuts the message to 1024 Unicode code points, and the reason and the revision to 256
    each, with `readmodel.CapText`, once, before it hands the state to `graph.Package` and to the
-   wire conversion. Every consumer (the package document, the graph node's health, the panel, the
+   wire conversion. As built, the signature is `graph.Package(d, src, opts)`: `src` is the cut
+   state, and `nil` means the source was not looked up, so the node carries no access and no
+   state. Every consumer (the package document, the graph node's health, the panel, the
    card) holds the cut text, in local mode and in-cluster (AG-A1, SR3).
 
 A failed lookup never fails the package document or its graph; it is the state. Wire:
@@ -341,7 +349,11 @@ every configuration group id and draws no frames and no group header. Expand all
 on, so the switch stays on. The switch is a link that reads its state in visible text ("Grouped"
 or "Ungrouped", with a check), with no `aria-pressed`, which is valid only on a button. One
 divergence stays: under `group=off` the layout still places each family as a band, so the half-row
-gaps around bands remain where the canvas draws none; recorded under "Visual check".
+gaps around bands remain where the canvas draws none; recorded under "Visual check". As built,
+`group=off` is a second read of the graph document with every configuration group expanded
+(`fetchGraph` in `internal/ui`), made only when the first read holds a configuration group; the
+switch link adds `group=off` and carries no ids. The second read is the caller's own, through the
+same in-process API, so it costs one more graph build and one source lookup per render.
 
 The Collapse pill, Overview, Expand all, Collapse all and the switch all go through
 `expandGroup` (an ajax swap of `#main` with `select: "#main"` and no scroll to the top), as group
@@ -384,7 +396,8 @@ expand" for a collapsed group and "Click for details" otherwise. A registration 
 standing badge and "Catalog: <path> <version> · Provider: <this owner>". The visible "Health" and
 "Applied" labels `align-shell-and-tokens` puts before the card's marks stay. `showCard` places the card
 at the node's right edge plus 12 px, or left of the node when it does not fit, clamped
-vertically, through CSSOM properties.
+vertically, through CSSOM properties. As built, this placement is part of section 5 (task 5.7
+tests it), and section 4 left the old below-the-node placement until then.
 
 ### Selection and spotlight (graph-22, instance-21, graph-11)
 
@@ -394,7 +407,8 @@ Two states, as on the canvas (`CertManager.dc.html:529-554`):
   shows the node's panel and a 3 px accent ring with a surface-coloured gap. It dims nothing.
   `portal.js` writes it with `history.replaceState`; a refresh keeps it.
 - **Spotlight** (`focus=<id>`): the hand-off from Resources and Health reasons. It selects the node
-  as well, draws the ring with a 10 px tint halo, scrolls the frame so the node is centred
+  as well (when `node` and `focus` are both present, `node` ranks first for the panel, as main's
+  spec has it since `align-owner-pages`, and the spotlight still draws), draws the ring with a 10 px tint halo, scrolls the frame so the node is centred
   (smooth unless reduced motion), and dims every node and edge outside the node's whole chain at
   0.35 opacity. Hover and keyboard focus apply the same chain dimming as a transient class,
   cleared on leave.
@@ -455,7 +469,10 @@ layout) gain three variants, each a block selected by node kind:
   Pending), the controller's message in a tone box in local mode (absent in-cluster, portal:D8:R5),
   the role sentence "Claims a catalog for this provider; the controller decides whether it is
   accepted and active.", the facts Catalog (path and version, linking to `/catalog?path=`) and
-  Provider (this owner, and whether `spec.providerRef` names it, portal:D4:R2/D15:R2). Locked
+  Provider (this owner, and whether `spec.providerRef` names it, portal:D4:R2/D15:R2; as built, that
+  sentence is derived from the controller's verdict, because the instance graph carries no
+  `providerRef`: Accepted names the owner, a Refused verdict with `ProviderMismatch` does not, and
+  any other verdict reads "not judged yet"). Locked
   when the caller may not read registrations (portal:D15:R4).
 - **Source**: kind and `namespace/name`, the readiness badge, reason, message and revision; for
   `kindNotServed` the sentence "The cluster does not serve this kind. Install Flux
@@ -539,7 +556,9 @@ resting node, an open configuration group (as Overview does), then full screen. 
 the page's own handler, which the full-screen overlay makes possible. When a
 configuration group is expanded, the toolbar shows an Overview pill (a back chevron, "Overview"
 and a muted "Esc"), titled "Close RBAC and go back to the overview", linking to the Graph tab with
-no configuration group expanded; it replaces "Whole graph". The legend's Esc line matches.
+no configuration group expanded; it replaces "Whole graph". As built, Overview drops every expanded
+group (not only configuration groups, as "Whole graph" did) and the pill shows while any group is
+open. The legend's Esc line matches.
 
 ## Research & Decisions
 
@@ -868,6 +887,8 @@ Divergences kept:
 - The Applied words stay beside the square on every owner node, as `align-shell-and-tokens` decided.
 - Configuration objects and toned component nodes carry kstatus health, as graph-26 decided, so a healthy component can sit beside a "Current" object.
 - The instance page draws no module node (instance-17).
+- Locked nodes lose their dashed outline (the hatch stays) and missing nodes lose their dashes, so
+  a dashed box means one thing: made by the cluster.
 - The group frame's header is 12 px and shrinks with the zoom: at the 0.6 fit floor of a 13-component group it reads small. The floor keeps node labels legible; the frame header is the first text to suffer. A larger floor would turn the open group into a page of scrolling. Not changed.
 - Under `group=off` each family is still laid out as a band, so the half-row gaps around bands remain where the canvas draws none.
 - The pane is capped at 760 px and scrolls inside itself when the graph is taller; the canvas grows with the graph.
