@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-shell-and-tokens` in review; phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending; phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -73,13 +73,15 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    between the owner's canvas and the live pages,
    [evidence 05](docs/design/evidence/05-canvas-gap-report/); portal:D19, D20, D4:R5 as amended,
    D9:R6, D14:R7):
-   - `align-shell-and-tokens` (in review; the gate for the other three, which start from it): fixes
+   - `align-shell-and-tokens` (in review; reviewed in three parts, fixed and archived on its branch; the gate for the other three, which start from it): fixes
      the empty details panel after a graph node is selected, and lands the flat look (no grid,
      shadows or heading marks, an 1840 px column), tone and kind chip tokens in light and dark, one
      square badge for both axes with the Applied words kept, underline tabs with counts, a worded
      live mark, and the shared state block and the dismissable tip (portal:D19). Amendments to the plan:
      contrast pairs for every new token and portal:D19:R7, forced-colours borders on badges, tabs,
-     the state block and the tip, the details panel in the phone test, and no entrance animation.
+     the state block and the tip, the details panel in the phone test, and no entrance animation. The
+     review moved the tip trigger to a native button and made a tab count that goes unreadable leave
+     the page on the next refresh.
      Open deviation for the owner's review: the Catalog page's Events tab carries no count where
      the canvas shows one, since counting it would add a read on every tab (portal:D19:R4, a
      planner reading, not a ruling).
