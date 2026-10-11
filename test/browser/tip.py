@@ -142,7 +142,9 @@ def owner_tips(browser, engine, base, check):
         touch.evaluate("document.fonts.ready.then(() => true)")
         activate()
         opened = box.is_visible()
-        if not opened:
+        if not opened and not tapped:
+            # A click on the click path hovers first, which can have shown the box already; one
+            # more click settles it. A tap has no hover: the first tap must open the box.
             activate()
             opened = box.is_visible()
         r = box.bounding_box()
