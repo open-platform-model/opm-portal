@@ -314,7 +314,7 @@ func registrationPanel(g *v1.Graph, n *v1.GraphNode) *regPanel {
 		CatalogHref: catalogHref(r.Catalog),
 		Role:        regRole,
 	}
-	if slug == "inactive" {
+	if slug == slugInactive {
 		out.ActiveBy = firstOf(r.ActiveMessage, r.ActiveReason)
 	}
 	if root := findNode(g, g.Root); root != nil {

@@ -230,6 +230,8 @@ const (
 	kindRuntime        = "runtime"
 	groupConfiguration = "configuration"
 	standingActive     = "active"
+	slugInactive       = "inactive"
+	textRemovalBlocked = "Removal blocked"
 	configGroupPrefix  = "grp:configuration/"
 )
 
@@ -669,12 +671,12 @@ func toneOf(n *v1.GraphNode, locked bool, state string) string {
 func standingOf(r *v1.GraphRegistration) (slug, text string) {
 	switch r.Verdict {
 	case verdictRemovalBlocked:
-		return "blocked", "Removal blocked"
+		return "blocked", textRemovalBlocked
 	case verdictAccepted:
 		if r.Active {
 			return standingActive, "Accepted · active"
 		}
-		return "inactive", "Accepted · not active"
+		return slugInactive, "Accepted · not active"
 	case verdictRefused:
 		return "refused", firstOf(r.Reason, "Refused")
 	case verdictPending:

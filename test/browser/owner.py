@@ -97,7 +97,7 @@ def run(p, engine, base):
         selected = page.evaluate("!!document.querySelector('.node[aria-current=\"true\"]')")
         if not check(engine, selected, "a node click shows podinfo-podinfo in #detail and marks the node"):
             return False
-        page.locator("[data-clear-selection]").click()
+        page.locator("#detail [data-clear-selection]").click()
         panel_is(page, ROOT)
         placeholder = page.locator("#detail .muted", has_text="Select a graph node").count()
         if not check(engine, placeholder == 0, "Clear selection brings the ModuleInstance back, not a placeholder"):
@@ -217,7 +217,7 @@ def stale_node(page, engine, base):
     panel_is(page, DEP)
     activate(page, f'.node[data-node="{SERVICE}"]')
     page.wait_for_selector(f'.node[data-node="{SERVICE}"][aria-current="true"]')
-    page.locator("[data-clear-selection]").click()
+    page.locator("#detail [data-clear-selection]").click()
     page.wait_for_function("() => !location.search.includes('focus=') && !location.search.includes('node=')")
     hrefs = tab_hrefs(page)
     if not check(engine, all("node=" not in h and "focus=" not in h for h in hrefs),

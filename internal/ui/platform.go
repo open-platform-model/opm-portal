@@ -303,7 +303,7 @@ func registrationBadges(r *v1.Registration) []sqBadge {
 	}
 	out := []sqBadge{acc, act}
 	if r.Verdict == verdictRemovalBlocked {
-		out = append(out, sqBadge{unknownWord, "Removal blocked"})
+		out = append(out, sqBadge{unknownWord, textRemovalBlocked})
 	}
 	return out
 }
@@ -371,7 +371,7 @@ func matchesProvider(r *providerRow, f map[string]string) bool {
 		return r.Active
 	case "accepted":
 		return r.Accepted
-	case "inactive":
+	case slugInactive:
 		return r.Accepted && !r.Active
 	case "refused":
 		return r.Verdict == verdictRefused
@@ -747,7 +747,7 @@ func providerCounts(p *v1.Platform) (provides []string, counts map[string]map[st
 			counts["pstatus"]["active"]++
 		}
 		if r.Accepted && !r.Active {
-			counts["pstatus"]["inactive"]++
+			counts["pstatus"][slugInactive]++
 		}
 		switch r.Verdict {
 		case verdictRefused:

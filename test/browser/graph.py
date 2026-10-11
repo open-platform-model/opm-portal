@@ -261,8 +261,8 @@ def run(p, engine, base):
 
         # 8. The hand-off to a folded RBAC object opens and fits the group, with the object spotlit.
         page.goto(base + CERT + "?tab=resources")
-        page.locator("#config-components > summary").click()
-        page.locator('#components a[href*="expand="]', has_text="Graph").first.click()
+        page.locator("#config-components-2 > summary").click()
+        page.locator('a.row-link[href*="expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Frbac"]').first.click()
         page.wait_for_url("**fit=**")
         page.wait_for_selector(".graph[data-fitted]")
         page.wait_for_selector(".node[data-spotlight]")
