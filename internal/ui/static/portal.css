@@ -824,7 +824,6 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 @media (max-width: 520px) { .tl-head { grid-template-columns: 34px auto minmax(0, 1fr); } .tl-head .tl-message { grid-column: 1 / -1; } }
 .tl-meta, .ev-meta { margin: 4px 0 0; font-size: 0.75rem; color: var(--muted); overflow-wrap: anywhere; }
 
-.event { padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; background: var(--surface-2); border: 1px solid var(--line); }
 .ev-warning { border-color: color-mix(in srgb, var(--degraded) 45%, var(--line)); }
 .ev-warning .ev-type { color: var(--degraded-ink); }
 .ev-reason { font-weight: 700; }

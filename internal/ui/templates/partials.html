@@ -149,21 +149,6 @@
 {{else}}<p class="muted">No history recorded yet.</p>{{end}}
 {{- end}}
 
-{{define "events-list" -}}
-{{if .Problem}}{{template "problem-region" .Problem}}
-{{else if .Items}}
-<ol class="events">
-{{range .Items}}
-  <li class="event ev-{{if eq .Type "Warning"}}warning{{else}}normal{{end}}">
-    <div class="ev-head"><span class="ev-type">{{.Type}}</span><span class="ev-reason">{{.Reason}}</span>{{if gt .Count 1}}<span class="ev-count" title="Repeats folded into one line">×{{.Count}}</span>{{end}}<span class="ev-time">{{template "time" .LastSeen}}</span></div>
-    {{with .Note}}<p class="ev-note">{{.}}</p>{{end}}
-    <p class="ev-meta mono">{{refText .Regarding}}{{with .ReportingController}} · {{.}}{{end}}</p>
-  </li>
-{{end}}
-</ol>
-{{else}}<p class="muted">No events in the last hour or so.</p>{{end}}
-{{- end}}
-
 {{/* events-table is a feed as a table: Type, Reason, an optional Resource, Message
      and Age. The resource cell is a filter link when the page can filter by that
      object. At phone width the table becomes cards, as table.rows does. */}}
