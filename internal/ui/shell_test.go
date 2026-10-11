@@ -43,7 +43,7 @@ func TestHeaderNamesTheConnection(t *testing.T) {
 func TestHeaderInACluster(t *testing.T) {
 	s := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
 	body := s.get(t, "/").body
-	if !strings.Contains(body, `<span class="conn-cluster mono" title="Context in cluster">in cluster</span>`) ||
+	if !strings.Contains(body, `<span class="conn-cluster mono" title="In cluster: the credentials of the Pod">in cluster</span>`) ||
 		!strings.Contains(body, `data-context="in-cluster"`) {
 		t.Errorf("an in-cluster header does not read in cluster:\n%s", between(body, "<header", "</header>"))
 	}

@@ -215,9 +215,13 @@ type header struct {
 	Entry string
 	// Context keys what the browser remembers: the context name, or
 	// in-cluster.
-	Context  string
-	Username string
-	Version  string
+	Context string
+	// InCluster is true when the portal reads with the Pod's own credentials:
+	// there is no kubeconfig context, so the pill's tip does not call the
+	// mode one.
+	InCluster bool
+	Username  string
+	Version   string
 }
 
 // header reads the Cluster document for the caller of r.
@@ -230,6 +234,7 @@ func (h *Handler) header(r *http.Request) header {
 	switch {
 	case c.Source == v1.SourceInCluster:
 		hd.Cluster, hd.Context = "in cluster", v1.SourceInCluster
+		hd.InCluster = true
 	case c.Context == "":
 		// No context to key remembered filters by: the browser keeps none.
 		hd.Cluster = unknownWord

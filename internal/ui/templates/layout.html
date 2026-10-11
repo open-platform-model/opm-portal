@@ -37,7 +37,7 @@
     {{if .Header.Entry -}}
     <span class="conn-cluster conn-two" title="Context {{.Header.Cluster}}, cluster {{.Header.Entry}}"><span class="conn-name mono">{{.Header.Cluster}}</span> <span class="conn-entry"><span class="conn-k">cluster</span> <span class="conn-name mono">{{.Header.Entry}}</span></span></span>
     {{- else -}}
-    <span class="conn-cluster mono" title="Context {{.Header.Cluster}}">{{.Header.Cluster}}</span>
+    <span class="conn-cluster mono" title="{{if .Header.InCluster}}In cluster: the credentials of the Pod{{else}}Context {{.Header.Cluster}}{{end}}">{{.Header.Cluster}}</span>
     {{- end}}
     <span class="conn-reader">reading as <span class="mono">{{.Header.Username}}</span></span>
     <span class="conn-version">Kubernetes <span class="mono">{{with .Header.Version}}{{.}}{{else}}unknown{{end}}</span></span>
