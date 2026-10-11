@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`add-inventory-revision` built and in review; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -117,7 +117,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      the registration panel names the provider only from the controller's verdict, since the
      instance graph carries no `providerRef`.
    - `add-inventory-revision` (built in two sections on top of `align-owner-pages` and
-     `align-graph`; in review): `inventoryRevision`, the controller's `status.inventory.revision`,
+     `align-graph`; reviewed, fixed and archived): `inventoryRevision`, the controller's `status.inventory.revision`,
      is a new optional field on `Instance` and its list items, and the details panel of an
      instance's own node reads "Inventory" and "Inventory revision". Left for later: the revision
      on packages waits on a page that shows it (owner ruling, 2026-10-11), and "in N components"
