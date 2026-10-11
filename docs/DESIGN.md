@@ -5,28 +5,28 @@ change, and the questions still open. Plan and progress live in [ROADMAP.md](../
 mechanism lives in the OpenSpec changes under `openspec/`.
 
 **Numbering.** Decisions D1 to D11, their requirements and the open questions OQ1 to OQ20 were
-enhancement 0030's numbers until that entry was withdrawn on 2026-10-05; the numbers are unchanged,
-so `0030:D7:R4` and `portal:D7:R4` name the same requirement. Numbers added here start at D12 and
-OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
+the numbers of the portal enhancement until that entry was withdrawn on 2026-10-05. The numbers
+are unchanged. Numbers added here start at D12 and OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
 D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. D13 (2026-10-05) lets local mode run
 in a Pod as a test tool. D14 to D18 and OQ22 to OQ25 (2026-10-05) come with the web UI redesign
 (OpenSpec change `redesign-web-ui`), which also narrows OQ18. D19, D20, D9:R6, D14:R7 and OQ26
 (2026-10-06) come with the canvas alignment (OpenSpec changes `align-shell-and-tokens`,
 `align-platform-installed-catalog`, `align-owner-pages` and `align-graph`), which also amends D1,
 D3 and D4:R5 and widens OQ25. The never-merged enhancements PR 101 drafted
-the same answers under other numbers (OQ20 as 0030:D7:R5, the floor as 0030:D9:R6/R7); those
+the same answers under other numbers (for OQ20 and for the version floor); those
 numbers were never adopted, and this file's are the only ones.
 
 ## Citing this record
 
 Cite a portal decision as `portal:D7`, a requirement as `portal:D7:R4`, several decisions as
 `portal:D3/D4`, several requirements of one decision as `portal:D6:R2/R8`, and a question as
-`portal:OQ20`. Next to an enhancement, repeat each head: `portal:D9, 0027:D1`. A bare `D7` names
+`portal:OQ20`. Name an enhancement by its id and a reason in words, never by a decision number: `portal:D9` and
+enhancement 0027 (a platform-owned definition binds the module). A bare `D7` names
 nothing outside this file. Inside this file, decisions refer to one another without the `portal:`
 head.
 
-Archived OpenSpec changes keep their `0030:Dn` citations as history; read each as `portal:Dn`.
-Everything else cites `portal:Dn`, and no new text may cite the withdrawn entry.
+Archived OpenSpec changes cite these decisions as `portal:Dn` too. No new text may cite the
+withdrawn entry.
 
 ## How this file is maintained
 
@@ -43,7 +43,8 @@ Everything else cites `portal:Dn`, and no new text may cite the withdrawn entry.
 - **A question closes with a status:** `resolved-by-Dn`, `answered`, `deferred-to-<entry or
   milestone>`, or `withdrawn`. An open one says whether it blocks a milestone.
 - **Writes of any kind need a new decision first.** V2 writes build on enhancement 0027; a portal
-  change that implements an enhancement decision cites it and carries `enhancement.yaml`.
+  change that delivers a line of an enhancement's `tasks.md` names that enhancement in its proposal
+  (`Delivers NNNN, task X.Y.`).
 
 ## Summary
 
@@ -381,7 +382,7 @@ what it says, apply success, so the portal keeps it and labels it honestly, and 
 the objects that show the failure.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 3, 6, 11 and 12,
-and the CLI-owned instance addendum. Enhancement 0015 ("The registration CR is excluded by kind from its package's readiness; pure-registration modules are legal") (readiness means apply success); enhancement 0015 ("An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation") (an
+and the CLI-owned instance addendum. Enhancement 0015 (readiness means apply success; an
 unfulfilled contract is reported, never refused), which R8 follows. Owner decision 2026-10-04 to
 capture a CLI-owned instance on the throwaway cluster. Configuration objects keep kstatus health on
 the graph and in group roll-ups: supervisor ruling 2026-10-06, pending the owner. On instance and
@@ -464,7 +465,7 @@ team would act on it.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 2, 8, 9 and 13,
 phases 7 to 9; [evidence 02](design/evidence/02-live-graph-spike/). Registration verdicts as
-Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines them. R5: owner decision 2026-10-06, asked how the graph should group
+enhancement 0015 defines them (a registration is a cluster-scoped CR, gated by the RBAC the operator already enforces). R5: owner decision 2026-10-06, asked how the graph should group
 configuration: "Groups per kind (Recommended)" (groups per kind family, an accordion with one open
 at a time, a dotted frame, Collapse and Overview, zoom to the group;
 [evidence 05](design/evidence/05-canvas-gap-report/), gaps graph-01, graph-04, graph-06,
@@ -1382,7 +1383,7 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   SubjectAccessReview-then-read. Impersonation (classic, then ConstrainedImpersonation once the
   floor is 1.36 or later) puts users in the audit log at the cost of an impersonate grant; token
   passthrough works only where the API server trusts the portal's issuer. Binding when V2 adds
-  writes (see 0027:OQ26).
+  writes (see the open question of enhancement 0027 on the identity under which an in-cluster UI writes an order).
 - **OQ2: What is the minimum Kubernetes version?** Status: resolved-by-D12 (owner answer
   2026-10-05: 1.34). The selector check at 1.34 is D12:R2, and the CI job that keeps it is D12:R3.
 - **OQ6: Who may read the cluster-scoped Platform and TransformerRegistrations, and do the
@@ -1483,7 +1484,7 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
 
 - **OQ10: When does the read API leave `v1alpha1`, and who may depend on it before then?** Status:
   open. Blocking: before the first release outside `0.x`, and before any adapter is published as
-  depending on the API. In 0030 it blocked acceptance; with no acceptance stage left, it binds where
+  depending on the API. In the portal enhancement it blocked acceptance; with no acceptance stage left, it binds where
   the promise does. Adapters need to know what the additive-only promise of D2 is worth.
   Candidate: a declared stability point after which a removal needs a new version served beside the
   old one for at least one minor release.
@@ -1567,5 +1568,5 @@ in the API server's audit log, so the portal's access log is the only record of 
 | 0015 (archived) | Catalog contracts and transformer registration: the registration verdicts the Platform view reads, and the readiness rule behind "Applied" (D3, D4) |
 | 0027 | Self-service kinds, which V2's writes build on; its OQ17 to OQ29 hold the marketplace contract questions |
 | 0013 | Secrets, and the diagnostics redaction rule behind D8:R5 |
-| 0030 (withdrawn 2026-10-05) | This design's former home |
-| 0031 (withdrawn 2026-10-05) | The module presentation contract draft; its evidence informs V2 |
+| The portal enhancement (withdrawn 2026-10-05) | This design's former home |
+| The module presentation enhancement (withdrawn 2026-10-05) | The module presentation contract draft; its evidence informs V2 |

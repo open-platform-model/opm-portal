@@ -57,9 +57,9 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 
 | PR | What landed |
 | --- | --- |
-| 29 | The design and this plan moved into the repo when enhancement 0030 was withdrawn |
+| 29 | The design and this plan moved into the repo when the portal enhancement was withdrawn |
 | 35 | OIDC sign-in removed and kept as a future plan (owner decision 2026-10-05) |
-| 34 | Every `0030:` citation outside archived changes rewritten as `portal:` (issues 31 and 32) |
+| 34 | Every citation of the withdrawn portal enhancement outside archived changes rewritten as `portal:` (issues 31 and 32) |
 | 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
 | 39 | Web UI redesign (`redesign-web-ui`): Platform and Installed views, a theme choice and remembered filters, summary cards and tabs on instance and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); the `Cluster` document, provider holders and package sources in the read API; local mode on `127.0.0.1:7878` |
 
@@ -218,7 +218,7 @@ configuration, and orders an instance as themselves. **V2 cannot start before en
 (self-service kinds) is accepted**: an order is an instance of a 0027 served kind, never a
 ModuleInstance that names a module.
 
-The marketplace contract questions live in enhancement 0027, OQ17 to OQ29 (presentation block on
+The marketplace contract questions live in enhancement 0027 (presentation block on
 the definition, schema agreement, secret and union encoding, required and computed fields,
 admission, outputs, what a UI may create, under which identity, per-field errors, literal secrets,
 prefill). The direction the portal brings to them, as candidates and not decisions:
@@ -233,16 +233,16 @@ prefill). The direction the portal brings to them, as candidates and not decisio
 - **Order flow**: form, validate, review page with secrets redacted, create as the user, status
   page built on the V1 views.
 
-Evidence: the withdrawn enhancement 0031 (module presentation contract) and 0027's experiments.
+Evidence: the withdrawn module presentation enhancement and the experiments of enhancement 0027.
 
 What it would take, in order, each step gated:
 
 | Step | Delivers | Gate |
 | --- | --- | --- |
 | Evidence | Experiments on secret encoding, field hints, unions, card and index | none |
-| Browse and preview | Card and asset gate, index module, admin registry browser, author preview | 0027:OQ17 answered; core release |
-| Tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | 0027 accepted with its OQ18 to OQ22 answered |
-| Order | Dry run and submit as the user, review and status pages, edit and delete | 0027:OQ24 to OQ27 answered; write identity decided (portal:OQ1) |
+| Browse and preview | Card and asset gate, index module, admin registry browser, author preview | the presentation question of enhancement 0027 answered; core release |
+| Tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | enhancement 0027 accepted with its served-schema questions answered |
+| Order | Dry run and submit as the user, review and status pages, edit and delete | the order questions of enhancement 0027 answered; write identity decided (portal:OQ1) |
 
 ### 3. Advanced features
 
