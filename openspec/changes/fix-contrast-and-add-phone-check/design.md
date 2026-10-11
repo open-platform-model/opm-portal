@@ -230,6 +230,42 @@ committed.
 - **Not measured**: the border colours in a browser (formula only), forced colours, 200 percent text,
   a real device. Task 2.3 takes the border screenshots.
 
+## Evidence (implement, 2026-10-11)
+
+Method and limits: the dev server (`OPM_PORTAL_UI_DEV=127.0.0.1:18080 go test ./internal/ui -run
+TestDevServe`) on the final `portal.css`, and the pinned Playwright image with the repo's
+hash-locked requirements. Scripts and screenshots are in the swarm scratchpad, not committed.
+
+- **Phone test.** `OPM_PORTAL_CONTAINER_ENGINE=podman task test:browser`: `TestBrowserPhone` passes in
+  Chromium, Firefox and WebKit with 26 of 26 pages at 360 by 640 (`scrollWidth` 360 on each); the
+  500 px probe measures 516 in each engine. The other five tests pass. No page needed a fix or an
+  exception, so Decision 3 stands. A scratch page 700 px wide makes the script exit 1 and name
+  `div#wide.big right=700`, and a 900 px child inside an `overflow-x: auto` box is not listed.
+- **Test before the token change.** `go test ./internal/ui -run TestContrast` failed on the four
+  light `--muted` pairs (page 4.165, secondary card 4.394, neutral fill 3.935, degraded fill 3.999)
+  and on the four `--control-border` pairs (token missing), and passed on the rest. After task 2.2 it
+  passes. Changing one dark `--control-border` value by one digit fails the dark-block check; adding
+  `--healthy-ink` makes the pending check fail and name the entry.
+- **Rendered pixels, muted text** (Chromium, 1280 by 900, six pages: Platform, Installed with and
+  without filters, instance, package, catalog; elements whose text colour is the muted token and that
+  are not inside a closed fold; text hidden, box screenshotted, median pixel against the muted
+  colour): light 159 elements, 0 under 4.5; dark 156 elements, 0 under 4.5. Firefox and WebKit were
+  not repeated for this pass (the specify run covered the three engines with `#5f6672`). The value
+  `#5f6672` stays.
+- **Field borders in pixels** (Chromium, Installed page, light and dark, 1280 and 360 px wide): the
+  empty select border pixel is (140, 130, 105) in light and (106, 117, 135) in dark, which is
+  3.592 on the panel and 3.748 on the field fill in light, and 3.822 and 3.670 in dark, equal to the
+  formula values. The
+  filled border reads the accent: 5.588 on the panel and 5.516 on the field fill light, 9.285 and
+  8.203 dark. The search input at 1280 px samples placeholder text in its centre column; its 360 px
+  reading matches the select's.
+- **Screenshots** (scratchpad `T4.9/shots/`): `<theme>-<1280|360>-<page>.png` for the Platform,
+  Installed, filled Installed, instance and package pages, and `chromium-<theme>-1280-<page>.png`
+  for the six pages of the pixel pass. The Installed pages at 1280 (light) and 360 (dark) were read: the filter fields keep a visible
+  boundary and no layout moved.
+- **Not measured**: Firefox and WebKit pixels for the final values, forced colours, 200 percent text,
+  a real device.
+
 ## Risks / Trade-offs
 
 - [`task test:browser` runs nightly only, so a width regression is caught the night after it merges]

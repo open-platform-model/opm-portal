@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-06 (web UI redesign merged; canvas alignment planned).
+Last updated: 2026-10-11 (phone-width test and contrast fix added; canvas alignment planned).
 
 ## Where it stands
 
@@ -99,6 +99,11 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
    graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
    item 4 (the loopback cookie risk, accepted and documented).
+5. **Phone-width test and contrast fix** (`fix-contrast-and-add-phone-check`, before the canvas
+   alignment): `TestBrowserPhone` holds every F1 page to 360 px wide in three browsers; light muted
+   text and the border of filter fields pass WCAG 2.2 AA, held by a token-pair test and recorded as
+   portal:D19:R6. Two light-theme pairs, `--healthy` and `--degraded` on their fills, fail today and
+   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens.
 
 ## Future plans
 
