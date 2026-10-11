@@ -260,9 +260,12 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
 - **Provider badge** (installed-11): a new `providerPill` in `view.go` builds it, and
   `providerBadge` is left as it is, so the owner page's kicker (`owner.html:5`) and `claimBadge`,
   which `align-owner-pages` owns, keep their standing word until that change moves them to
-  `providerPill`. The pill renders through `align-shell-and-tokens`' `tip` partial: the trigger
-  (`tabindex=0`, `aria-describedby`) wraps `span.prov`, which holds a plug SVG and the word
-  "Provider", 11 px/700 uppercase. Its border is
+  `providerPill`. The pill renders through `align-shell-and-tokens`' `tip` partial: the trigger is that
+  partial's native `<button class="tip-t">` (it has `aria-describedby`, and no `tabindex`, since a
+  button is focusable), and it holds `span.prov`, a plug SVG and the word "Provider", 11 px/700
+  uppercase. The merged `tipData.Trigger` is a plain string, drawn as escaped text, so section 3
+  adds the field or the form of the partial that lets the trigger hold the SVG (task 1.1 found
+  this; it does not change the tooltip's behaviour). Its border is
   coloured by standing: green when accepted and active, red when refused, amber when removal is
   blocked, the progressing blue when pending, neutral when accepted and inactive, the lock style
   when locked. Next
@@ -574,6 +577,49 @@ settle when they differ, re-arm the debounce) is built either way. The spike als
 timer lookup by id, the single submit on Enter and Back after typing. The finding goes here
 before section 2 starts.
 **Rationale**: the least code that keeps the URL as the only state.
+
+**Finding** (task 1.2, run on 2026-10-11 in Chromium, Firefox and WebKit of the pinned Playwright
+image, over the F1 capture; htmx 2.0.11; the scratch form carried `hx-sync="this:replace"` and
+`hx-replace-url="true"`, and the scratch script the debounce, the form lookup by id and the value
+restore of "Apply as you type"; the scratch code is dropped):
+
+- **Focus and caret: htmx's own restore holds in all three engines (option 1).** Typing `backp`,
+  one `ArrowLeft` and `u` makes `backup` with the caret at 5. At `htmx:afterSwap` of `#main` the
+  active element is `f-q` with its caret at 5 in Chromium, Firefox and WebKit. No `portal.js`
+  restore of focus or caret is needed.
+- **`portal.js` steals it afterwards.** Its `htmx:afterSettle` handler (`portal.js:688-703`)
+  focuses `#main` after every page swap. A boosted request fires `htmx:afterSettle` twice
+  (`#nav`, then `#main`, because `#app` carries `hx-select-oob="#nav"`), and the handler acts on
+  the first, so in all three engines the field has lost focus by the time the swap has settled.
+  Section 2.4 therefore makes that handler leave focus alone when, after the swap, the focused
+  element is inside the new `#main` (htmx put it back on an element with an `id`); a link, a tab
+  or the main navigation has no focused element with an `id` after the swap, so they still move
+  focus to the tab or the page as today.
+- **Characters typed while a request is in flight are lost without the value restore.** With the
+  response held, `ba` was in flight and `ck` was typed: the live value was `back`; after the
+  swap the field read `ba` in all three engines and the URL read `q=ba`. With the value restore
+  (record value and caret at `htmx:beforeSwap`, restore them when they differ, re-arm the
+  debounce) the field read `back` with the caret at 4 right after the swap, and 900 ms later the
+  URL read `q=back`, after two requests in all. The restore is built.
+- **A timer armed before a swap looks the form up by id.** A key typed, then a chip's remove
+  link followed before the timer fired: no error, and the timer submitted the new form (one extra
+  request to the same URL, the typed key dropped by the swap). Section 2.4 also clears the
+  pending timer on `htmx:beforeRequest` of any request the form did not make, so that request
+  is not sent.
+- **Enter submits once.** In the search field Enter gave one `submit` and one request in all three
+  engines (the `submit` listener clears the timer). In a text input, tabbing away gave one
+  request through the debounced `change`. Enter in the namespace text input (it has a
+  `datalist`) gave one request in Chromium and Firefox; in WebKit, Enter in that input gives no
+  `submit` and no `change`, with or without the new script (the same on `main`), so a keyboard
+  user there applies it with Tab, or by Tab to the Apply button, which `:focus-visible` shows.
+  The browser test checks Enter on the search field, and Tab away on the text input.
+- **Back leaves the filtered view.** From the Platform page, the Installed link, then typing
+  `backup`: the history length did not grow during typing, and Back landed on `/` in all three
+  engines. `htmx:replacedInHistory` fires with the new path (`/installed?q=backup`) and
+  `htmx:pushedIntoHistory` for the navigation, so `rememberFilters` listens to both.
+
+The finding adds one rule to section 2.4 (the focus handler) and one (the timer cleared by a
+foreign request); it does not change what section 2 builds, and the value restore stays.
 
 ### Installed totals across namespaces (installed-23, installed-01)
 
