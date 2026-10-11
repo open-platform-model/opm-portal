@@ -337,7 +337,8 @@ body.is-offline .live-dot { background: var(--live-off); }
 .theme-list button { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 36px; padding: 6px 12px; border-radius: 6px; background: transparent; color: var(--hdr-strong); font-weight: 400; text-align: left; }
 .theme-list button:hover { background: var(--hdr-menu-hover); color: var(--hdr-strong); }
 .theme-list button[aria-pressed="true"] { background: var(--hdr-menu-hover); }
-.theme-list button[aria-pressed="true"]::after { content: "✓"; color: var(--hdr-accent); }
+.theme-check { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--hdr-strong); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
+.theme-list button[aria-pressed="true"] .theme-check { visibility: visible; }
 
 /* ---- Page grid ---- */
 
@@ -426,7 +427,7 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .hue-missing, .health-missing { --c: var(--missing); --c-ink: var(--missing-ink); --c-bg: var(--missing-bg); --c-tint: var(--missing-tint); }
 .hue-locked { --c: var(--locked); --c-ink: var(--locked-ink); --c-bg: var(--locked-bg); --c-tint: var(--locked-tint); }
 
-.applied, .health {
+.applied, .health, .sq {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-ui); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
   padding: 3px 9px; border: 1.5px solid var(--c); border-radius: 5px;
@@ -989,4 +990,71 @@ li.object.locked { margin: 4px 0 4px 4px; }
 @keyframes settle {
   0% { box-shadow: 0 0 0 3px var(--accent-soft); }
   100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+/* ---- Platform page (the status block, count rows, providers, catalogs, events) ---- */
+
+/* The Installed card: two columns of 40 px rows, the badge at the start and
+   the count in the tone ink at the end. The whole row is the link. */
+.count-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 0 40px; }
+.count-col { min-width: 0; }
+.count-col > .label { margin: 0 0 4px; }
+.count.count-row, .count.count-row.health, .count.count-row.applied { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 4px 0; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; background: none; text-transform: none; letter-spacing: normal; text-decoration: none; color: var(--c-ink); }
+.count.count-row:hover { background: var(--surface-2); color: var(--c-ink); }
+.count-badge { display: inline-flex; font-family: var(--font-ui); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 9px; border: 1.5px solid var(--c); border-radius: 5px; color: var(--c-ink); background: var(--c-bg); white-space: nowrap; }
+.count-row .count-n { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--c-ink); }
+#installed-card .count-row .count-n { margin-left: 0; }
+
+/* The Platform panels pad their sections, not themselves (platform-28). */
+.panel-flush > .region { margin: 0; }
+.panel-flush > .region > :not(.table-wrap) { margin: 14px 20px; }
+.panel-flush > .filters-strip { margin: 0 0 14px; }
+#installed-card .card-headline, #installed-card .count-cols { margin-inline: 20px; }
+.pf-identity .facts { grid-template-columns: 110px minmax(0, 1fr); font-size: 14px; }
+
+/* Provider and catalog rows. */
+.row-heading, .row-heading a { font-size: 13px; font-weight: 500; }
+.chip-contract { display: inline-block; max-width: 100%; margin: 1px 0; padding: 1px 9px; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent-soft); color: var(--accent-deep); font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.verdict-why[class*="hue-"] { color: var(--c-ink); }
+.providers .verdict-why .msg { display: inline; margin: 0; color: inherit; }
+.muted.block { display: block; font-size: 12px; }
+.contracts-note { padding-block: 2px; }
+.contracts-note p { margin: 2px 0; font-size: 14px; }
+.contracts-note .kicker { color: var(--unknown-ink); font-weight: 600; margin: 0; }
+.contracts-note details { margin-top: 6px; }
+.contracts-note summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+
+/* Recent events: the heading row holds the title, the Resource select and the
+   count; the table follows; the one-hour note is a footnote. */
+#events-panel .events-head { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0; padding: 14px 20px; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+#events-panel .events-head h2 { margin: 0; }
+#events-panel .events-head .filter-fields { flex: 0 1 auto; align-items: center; }
+#events-panel .events-head .field { min-width: min(260px, 100%); }
+#events-panel .events-head .shown { margin: 0 0 0 auto; }
+#events-panel .events-head .filter-chips { flex-basis: 100%; }
+#events-panel > .note { margin: 12px 20px; font-size: 12px; }
+#events > .note { margin: 14px 20px; }
+.events-table .ev-type { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.events-table .ev-warning .ev-type, .events-table tr.ev-warning .ev-type { color: var(--degraded-ink); }
+.events-table .ev-reason { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.events-table .ev-note { display: inline; margin: 0; }
+.events-table .ev-by { font-size: 12px; }
+.events-table .ev-age { white-space: nowrap; font-size: 12px; }
+.ev-resource { display: flex; flex-direction: column; gap: 1px; min-width: 0; overflow-wrap: anywhere; text-decoration: none; }
+.ev-resource .mono { font-size: 13px; }
+.ev-kind { font-size: 12px; color: var(--muted); }
+/* The providers table keeps the contract pill whole: it scrolls inside its own wrap before it squeezes the column. */
+@media (min-width: 761px) {
+  table.providers { min-width: 900px; }
+  table.providers th:nth-child(3), table.providers td:nth-child(3) { min-width: 230px; }
+}
+@media (min-width: 761px) {
+  .events-table .c-type { width: 88px; }
+  .events-table .c-reason { width: 180px; }
+  .events-table .c-resource { width: 280px; }
+  .events-table .c-age { width: 76px; text-align: right; }
+  .events-table .ev-age { text-align: right; }
+  .events-table th, .events-table td { padding: 12px 8px; }
+  .events-table th:first-child, .events-table td:first-child { padding-left: 20px; }
+  .events-table th:last-child, .events-table td:last-child { padding-right: 20px; }
 }

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"slices"
@@ -28,6 +29,10 @@ const (
 	verdictRemovalBlocked = "RemovalBlocked"
 	conditionReady        = "Ready"
 	conditionContracts    = "ContractsFulfilled"
+	condTrue              = "True"
+	sourceSubscription    = "subscription"
+	stateFailed           = "Failed"
+	eventPlatform         = "platform" // the eresource value of the Platform's own events
 )
 
 type platformView struct {
@@ -39,6 +44,7 @@ type platformView struct {
 	Tabs []tabLink
 
 	Status    platformStatus
+	Block     stateBlock
 	Installed installedCounts
 	Providers providersTab
 	Catalogs  catalogsTab
@@ -75,6 +81,94 @@ func statusOf(p *v1.Platform) platformStatus {
 	return st
 }
 
+// reconcileHue is the hue the Platform's reconcile state takes on the status
+// block: the icon and the tone follow it.
+func reconcileHue(state string) string {
+	switch state {
+	case "Applied":
+		return "applied"
+	case "Reconciling":
+		return "progressing"
+	case stateFailed, "Stalled":
+		return "degraded"
+	case "Suspended", "ManagedExternally":
+		return "neutral"
+	}
+	return unknownWord
+}
+
+// platformStatusBlock builds the status block of the Platform page
+// (platform-04, platform-05): the applied word with its "since" time, the
+// line of catalogs and claims, and the reasons that need attention, each a
+// count and a reason linking to its cause. With registrations the caller may
+// not list, the claims part reads "claims locked", no refusal count shows
+// (never a zero) and a locked note line says so, whatever other reasons the
+// block holds (portal:D7:R2).
+func platformStatusBlock(p *v1.Platform) stateBlock {
+	st := statusOf(p)
+	locked := p.RegistrationsAccess != v1.AccessOK
+	b := stateBlock{
+		ID: "platform-status", Label: "Platform status", Eyebrow: "Platform · the controller",
+		Hue: reconcileHue(p.Reconcile.State), State: appliedBadge(p.Reconcile).Text,
+		None: "Nothing refused or unfulfilled", Follow: platformTopic,
+	}
+	if p.Reconcile.Since != nil {
+		b.When, b.WhenText = p.Reconcile.Since, "since"
+	}
+	claims := fmt.Sprintf("%d %s active", st.Active, plural(st.Active, "claim", "claims"))
+	if locked {
+		claims = "claims locked"
+	}
+	b.Summary = fmt.Sprintf("%d %s resolved from %d %s · %s", st.Resolved, plural(st.Resolved, "catalog", "catalogs"),
+		st.Subscribed, plural(st.Subscribed, "subscription", "subscriptions"), claims)
+	if locked {
+		b.Notes = append(b.Notes, sbNote{Text: "Refusals not shown: you may not list TransformerRegistrations", Class: hueLocked})
+	} else {
+		b.Reasons = append(b.Reasons, verdictReasons(p, verdictRefused, "refused", "hue-degraded")...)
+		b.Reasons = append(b.Reasons, verdictReasons(p, verdictRemovalBlocked, "blocked", "hue-unknown")...)
+	}
+	if c := st.Ready; c != nil && c.Status != condTrue {
+		b.Reasons = append(b.Reasons, countLink{Text: reasonOf(c), Class: "hue-degraded", Href: "#cond-Ready"})
+	}
+	if c := st.Contracts; c != nil && c.Status == "False" {
+		b.Reasons = append(b.Reasons, countLink{Text: reasonOf(c), Class: "hue-unknown", Href: "/?tab=catalogs#contracts"})
+	}
+	return newStateBlock(b)
+}
+
+func reasonOf(c *v1.Condition) string {
+	if c.Reason != "" {
+		return c.Reason
+	}
+	return c.Status
+}
+
+// verdictReasons counts the registrations of one verdict per reason, each a
+// link to the Providers tab filtered to that verdict, most counted first.
+func verdictReasons(p *v1.Platform, verdict, filter, class string) []countLink {
+	n := map[string]int{}
+	for i := range p.Registrations {
+		if r := &p.Registrations[i]; r.Verdict == verdict {
+			n[r.Reason]++
+		}
+	}
+	out := make([]countLink, 0, len(n))
+	for reason, c := range n {
+		text := reason
+		if text == "" {
+			text = verdictText[verdict]
+		}
+		out = append(out, countLink{Text: text, Class: class, N: c, Href: "/?tab=providers&pstatus=" + filter + "#parts"})
+	}
+	slices.SortFunc(out, func(a, b countLink) int {
+		if a.N != b.N {
+			return b.N - a.N
+		}
+		return strings.Compare(a.Text, b.Text)
+	})
+	return out
+}
+
 // --- Installed counts ---
 
 // countLink is one count that hands off to Installed filtered by it.
@@ -83,6 +177,8 @@ type countLink struct {
 	Class string
 	Href  string
 	N     int
+	// Title is the link's title, "Show the N installed with health X".
+	Title string
 }
 
 // installedCounts is the Installed card. A list the caller may not read
@@ -133,13 +229,15 @@ func (h *Handler) installedCounts(r *http.Request) installedCounts {
 	for _, s := range healthValues {
 		if n := health[s]; n > 0 {
 			c.Health = append(c.Health, countLink{Text: healthText[s], Class: "health health-" + slug(s), N: n,
-				Href: "/installed?" + url.Values{"health": {s}}.Encode()})
+				Href:  "/installed?" + url.Values{"health": {s}}.Encode(),
+				Title: fmt.Sprintf("Show the %d installed with health %s", n, healthText[s])})
 		}
 	}
 	for _, s := range appliedValues {
 		if n := applied[s]; n > 0 {
 			c.Applied = append(c.Applied, countLink{Text: appliedText[s], Class: "applied applied-" + slug(s), N: n,
-				Href: "/installed?" + url.Values{"applied": {s}}.Encode()})
+				Href:  "/installed?" + url.Values{"applied": {s}}.Encode(),
+				Title: fmt.Sprintf("Show the %d installed with applied state %s", n, appliedText[s])})
 		}
 	}
 	return c
@@ -171,6 +269,54 @@ type providerRow struct {
 	// RefElsewhere: spec.providerRef names a ModuleInstance no holder is,
 	// so both are shown (portal:D15, portal:D4:R2).
 	RefElsewhere bool
+	// NameHref is the first holder's Provider tab, "" when nothing holds it.
+	NameHref string
+	// Badges are acceptance, activation and, for a removal-blocked
+	// registration, the third; Why is the reason line's hue class.
+	Badges []sqBadge
+	Why    string
+}
+
+// sqBadge is one square badge: its hue class and its words.
+type sqBadge struct{ Hue, Text string }
+
+// registrationBadges are a registration's acceptance, then its activation,
+// then "Removal blocked" beside them only for that verdict (portal:D4:R4/R7).
+// A removal-blocked registration stays accepted and active, never refused.
+func registrationBadges(r *v1.Registration) []sqBadge {
+	acc := sqBadge{"healthy", "Accepted"}
+	if !r.Accepted {
+		switch r.Verdict {
+		case verdictRefused:
+			acc = sqBadge{"degraded", "Refused"}
+		case verdictPending:
+			acc = sqBadge{"progressing", "Pending"}
+		default:
+			acc = sqBadge{"neutral", "Not accepted"}
+		}
+	}
+	act := sqBadge{"neutral", "Inactive"}
+	if r.Active {
+		act = sqBadge{"healthy", "Active"}
+	}
+	out := []sqBadge{acc, act}
+	if r.Verdict == verdictRemovalBlocked {
+		out = append(out, sqBadge{unknownWord, "Removal blocked"})
+	}
+	return out
+}
+
+// whyHue is the hue of a registration's reason line.
+func whyHue(verdict string) string {
+	switch verdict {
+	case verdictRefused:
+		return "hue-degraded"
+	case verdictRemovalBlocked:
+		return "hue-unknown"
+	case verdictPending:
+		return "hue-progressing"
+	}
+	return "hue-neutral"
 }
 
 type providersTab struct {
@@ -190,6 +336,11 @@ func providerRows(p *v1.Platform, f map[string]string) (rows []providerRow, tota
 				r.RefElsewhere = false
 			}
 		}
+		if len(r.Holders) > 0 {
+			r.NameHref = r.Holders[0].Href
+		}
+		r.Badges = registrationBadges(&p.Registrations[i])
+		r.Why = whyHue(r.Verdict)
 		total++
 		if matchesProvider(&r, f) {
 			rows = append(rows, r)
@@ -281,9 +432,9 @@ func catalogRows(p *v1.Platform, f map[string]string) (rows []catalogRow, total 
 			ContributedBy: c.ContributedBy, Claimants: claims[c.Catalog]}
 		switch c.Source {
 		case "Subscription":
-			row.Source, row.SourceText = "subscription", "subscribed"
+			row.Source, row.SourceText = sourceSubscription, "subscription"
 		case "Registration":
-			row.Source, row.SourceText = "registration", "from a provider"
+			row.Source, row.SourceText = "registration", "contributed"
 		default:
 			row.Source, row.SourceText = strings.ToLower(c.Source), c.Source
 		}
@@ -295,7 +446,7 @@ func catalogRows(p *v1.Platform, f map[string]string) (rows []catalogRow, total 
 			continue
 		}
 		seen[s.Catalog] = true
-		all = append(all, catalogRow{Path: s.Catalog, Version: s.Version, Source: "subscription", SourceText: "subscribed",
+		all = append(all, catalogRow{Path: s.Catalog, Version: s.Version, Source: sourceSubscription, SourceText: "subscription",
 			Enabled: s.Enable, Claimants: claims[s.Catalog]})
 	}
 	for i := range p.Registrations {
@@ -342,6 +493,24 @@ type optionGroup struct {
 	Options []selectOption
 }
 
+// eventsTable is what the "events-table" partial draws: the rows of a feed
+// as a table, with a Resource column where the feed mixes objects.
+type eventsTable struct {
+	Problem      *v1.Problem
+	Rows         []eventRow
+	ShowResource bool
+	// Empty is the words of an empty feed.
+	Empty string
+}
+
+// eventRow is one event with the object it is about, and the link that
+// filters the feed to that object ("" when the object is not a filter).
+type eventRow struct {
+	v1.Event
+	Kind, Name   string
+	ResourceHref string
+}
+
 // platformEvents is the merged feed of the Platform and each readable
 // registration, newest first, with its resource filter.
 type platformEvents struct {
@@ -349,15 +518,32 @@ type platformEvents struct {
 	Groups  []optionGroup
 	Hidden  []hiddenField
 	Feed    eventsView
+	Table   eventsTable
 	Total   int
 	// Unread names the registrations whose feed could not be read.
 	Unread []string
 	Follow string
 }
 
+// eventResource is the eresource value of the object an event is about:
+// the Platform, or a registration; "" for any other object.
+func eventResource(ref v1.ObjectRef) string {
+	switch ref.Kind {
+	case "Platform":
+		return eventPlatform
+	case "TransformerRegistration":
+		return "registration:" + ref.Name
+	}
+	return ""
+}
+
 func (h *Handler) platformEvents(r *http.Request, p *v1.Platform) platformEvents {
-	resource := filterParam{Name: "eresource", Label: "Resource", Values: []string{"platform"},
-		Text: map[string]string{"platform": "the Platform"}}
+	platformName := "the Platform"
+	if p != nil && p.Name != "" {
+		platformName = p.Name
+	}
+	resource := filterParam{Name: "eresource", Label: "Resource", Values: []string{eventPlatform},
+		Text: map[string]string{eventPlatform: "the Platform"}}
 	var names []string
 	if p != nil {
 		for i := range p.Registrations {
@@ -367,8 +553,9 @@ func (h *Handler) platformEvents(r *http.Request, p *v1.Platform) platformEvents
 			resource.Text["registration:"+n] = n
 		}
 	}
+	q := r.URL.Query()
 	view := filterView{Path: "/", Params: []filterParam{resource}}
-	ev := platformEvents{Filters: parseFilters(&view, r.URL.Query()), Hidden: keepHidden(r.URL.Query(), "eresource")}
+	ev := platformEvents{Filters: parseFilters(&view, q), Hidden: keepHidden(q, "eresource")}
 	want := ev.Filters.Values["eresource"]
 
 	follow := []string{"events:platform"}
@@ -376,32 +563,59 @@ func (h *Handler) platformEvents(r *http.Request, p *v1.Platform) platformEvents
 	ev.Feed.Problem = platform.Problem
 	items := platform.Items
 	ev.Total = len(platform.Items)
-	if want != "" && want != "platform" {
+	if want != "" && want != eventPlatform {
 		items = nil
 	}
-	groups := []optionGroup{{Label: "Platform", Options: []selectOption{{Value: "platform", Text: "the Platform", Selected: want == "platform"}}}}
-	providers := optionGroup{Label: "Providers"}
+	platformOpt := selectOption{Value: eventPlatform, Text: platformName, Selected: want == eventPlatform}
+	if platform.Problem == nil {
+		platformOpt.Text += fmt.Sprintf(" (%d)", len(platform.Items))
+	}
+	providers := optionGroup{Label: "Providers (TransformerRegistration)"}
 	for _, n := range names {
 		follow = append(follow, "events:registration:"+n)
-		providers.Options = append(providers.Options, selectOption{Value: "registration:" + n, Text: n, Selected: want == "registration:"+n})
+		opt := selectOption{Value: "registration:" + n, Text: n, Selected: want == "registration:"+n}
 		feed := h.events(r, "/platform/registrations/"+url.PathEscape(n)+"/events", nil, "")
 		if feed.Problem != nil {
+			// A registration whose feed was not read is offered with no count.
 			ev.Unread = append(ev.Unread, n)
+			providers.Options = append(providers.Options, opt)
 			continue
 		}
+		opt.Text += fmt.Sprintf(" (%d)", len(feed.Items))
+		providers.Options = append(providers.Options, opt)
 		ev.Total += len(feed.Items)
 		if want == "" || want == "registration:"+n {
 			items = append(items, feed.Items...)
 		}
 	}
+	all := selectOption{Value: "", Text: "All resources", Selected: want == ""}
+	if len(ev.Unread) == 0 && platform.Problem == nil {
+		all.Text += fmt.Sprintf(" (%d)", ev.Total)
+	}
+	groups := []optionGroup{{Label: "Everything", Options: []selectOption{all}}, {Label: "Platform", Options: []selectOption{platformOpt}}}
 	if len(providers.Options) > 0 {
 		groups = append(groups, providers)
 	}
 	ev.Groups = groups
 	slices.SortStableFunc(items, func(a, b v1.Event) int { return newestFirst(a.LastSeen, b.LastSeen) })
 	ev.Feed.Items = items
+	ev.Table = eventsTableOf(items, ev.Feed.Problem, q)
 	ev.Follow = strings.Join(follow, " ")
 	return ev
+}
+
+// eventsTableOf builds the table of a feed: each row links to the filter that
+// shows only its object's events, keeping the other query parameters.
+func eventsTableOf(items []v1.Event, problem *v1.Problem, q url.Values) eventsTable {
+	t := eventsTable{Problem: problem, ShowResource: true, Empty: "No events in the last hour or so.", Rows: make([]eventRow, 0, len(items))}
+	for i := range items {
+		row := eventRow{Event: items[i], Kind: items[i].Regarding.Kind, Name: items[i].Regarding.Name}
+		if v := eventResource(items[i].Regarding); v != "" {
+			row.ResourceHref = linkWith("/", q, "eresource", v)
+		}
+		t.Rows = append(t.Rows, row)
+	}
+	return t
 }
 
 // --- The page ---
@@ -428,6 +642,7 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 	if v.Problem == nil {
 		plat = &v.Platform
 		v.Status = statusOf(plat)
+		v.Block = platformStatusBlock(plat)
 		v.Providers.Access = v.Platform.RegistrationsAccess
 		v.Providers.Rows, v.Providers.Total = providerRows(plat, pf.Values)
 		if v.Platform.RegistrationsAccess != v1.AccessOK {
@@ -445,13 +660,10 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 			setCount(v.Tabs, tabCatalogs, v.Catalogs.Total)
 		}
 	}
-	var provides []string
-	for i := range v.Platform.Registrations {
-		for _, c := range v.Platform.Registrations[i].Provides {
-			provides = appendUnique(provides, c)
-		}
-	}
-	slices.Sort(provides)
+	provides, provCounts := providerCounts(&v.Platform)
+	allCatalogs, _ := catalogRows(&v.Platform, nil)
+	catCounts := catalogCounts(&v.Platform, allCatalogs)
+	regsLocked := v.Platform.RegistrationsAccess != v1.AccessOK
 	// A count row stands for rows the page shows: none when the source is a
 	// problem, and none for providers the caller may not list (portal:D7:R2).
 	provShown, provTotal := len(v.Providers.Rows), v.Providers.Total
@@ -462,11 +674,13 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		provTotal = -1
 	}
 	v.Providers.Form = newChoiceForm(pf, "Filter providers", keepHidden(q, providerFilters.paramNames()...), formInput{
-		Suggest:      map[string][]string{"provides": provides},
-		Placeholders: map[string]string{"pq": "Name, catalog, contract or holder", "provides": "a contract"},
+		Choices: map[string][]string{"provides": provides}, Counts: provCounts,
+		NoCount:      map[string]bool{"pstatus": regsLocked, "provides": regsLocked},
+		Placeholders: map[string]string{"pq": "Name, catalog, contract or holder"},
 		Shown:        provShown, Total: provTotal, ShownID: "shown", Follow: platformTopic, Variant: filtersStrip,
 	})
 	v.Catalogs.Form = newChoiceForm(cf, "Filter catalogs", keepHidden(q, catalogFilters.paramNames()...), formInput{
+		Counts: catCounts, NoCount: map[string]bool{"claimed": regsLocked}, Omit: map[string]bool{"claimed": regsLocked},
 		Placeholders: map[string]string{"cq": "Catalog path or claimant"},
 		Shown:        catShown, Total: catTotal, ShownID: "shown", Follow: platformTopic, Variant: filtersStrip,
 	})
@@ -510,4 +724,71 @@ func contractShort(c string) string {
 		return c
 	}
 	return strings.Join(parts[len(parts)-2:], "/")
+}
+
+// providerCounts are the contracts the registrations provide, sorted, and the
+// counts of each Status and Provides option over every registration the
+// Platform document holds. A count is only meaningful when the registrations
+// are all readable; the caller of this function marks the options NoCount
+// otherwise (portal:D7).
+func providerCounts(p *v1.Platform) (provides []string, counts map[string]map[string]int) {
+	counts = map[string]map[string]int{"pstatus": {}, "provides": {}}
+	for _, v := range providerFilters.Params[1].Values {
+		counts["pstatus"][v] = 0 // a fixed value with no rows reads (0) when the list is readable
+	}
+	for i := range p.Registrations {
+		r := &p.Registrations[i]
+		if r.Accepted {
+			counts["pstatus"]["accepted"]++
+		}
+		if r.Active {
+			counts["pstatus"]["active"]++
+		}
+		if r.Accepted && !r.Active {
+			counts["pstatus"]["inactive"]++
+		}
+		switch r.Verdict {
+		case verdictRefused:
+			counts["pstatus"]["refused"]++
+		case verdictRemovalBlocked:
+			counts["pstatus"]["blocked"]++
+		case verdictPending:
+			counts["pstatus"]["pending"]++
+		}
+		for _, c := range r.Provides {
+			provides = appendUnique(provides, c)
+			counts["provides"][c]++
+		}
+	}
+	slices.Sort(provides)
+	return provides, counts
+}
+
+// catalogCounts are the counts of the Source and Claimed options over every
+// catalog row. With registrations the caller may not read, claimed-only rows
+// and claims are unknown: those options carry no count.
+func catalogCounts(p *v1.Platform, rows []catalogRow) map[string]map[string]int {
+	counts := map[string]map[string]int{"csource": {}, "claimed": {}}
+	for _, v := range catalogFilters.Params[1].Values {
+		counts["csource"][v] = 0
+	}
+	counts["claimed"]["yes"], counts["claimed"]["no"] = 0, 0
+	locked := p.RegistrationsAccess != v1.AccessOK
+	for i := range rows {
+		c := &rows[i]
+		if !locked || c.Source != "claim" {
+			counts["csource"][c.Source]++
+		}
+		if !locked {
+			if len(c.Claimants) > 0 {
+				counts["claimed"]["yes"]++
+			} else {
+				counts["claimed"]["no"]++
+			}
+		}
+	}
+	if locked {
+		delete(counts["csource"], "claim")
+	}
+	return counts
 }

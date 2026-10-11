@@ -42,6 +42,9 @@ type stateBlock struct {
 	Problem  *v1.Problem // set: the block renders the problem region in place of the state
 }
 
+// hueLocked is the hue and note class of what the caller may not read.
+const hueLocked = "locked"
+
 // stateBlockHues are the hues the state block draws: the seven tones and the
 // locked standing.
 var stateBlockHues = map[string]bool{
@@ -56,7 +59,7 @@ var stateBlockHues = map[string]bool{
 func newStateBlock(b stateBlock) stateBlock {
 	switch {
 	case b.Problem != nil && b.Problem.Code == v1.CodeForbidden:
-		b.Hue = "locked"
+		b.Hue = hueLocked
 	case b.Problem != nil:
 		b.Hue = "neutral"
 	case !stateBlockHues[b.Hue]:

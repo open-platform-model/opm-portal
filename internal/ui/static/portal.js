@@ -270,12 +270,14 @@
   document.addEventListener("htmx:beforeRequest", function (evt) {
     var elt = evt.detail && evt.detail.elt;
     var own = !!(elt && elt.matches && elt.matches("form[data-filters]"));
+    var chip = !!(elt && elt.matches && elt.matches("a.fchip, a.fclear") && elt.closest("form[data-filters]"));
     if (typingTimer && !own) {
       disarmFilter();
     }
     // A filter change started this request: a field, a chip's remove link
     // or "Clear all" of a filter form. Its settled count is announced.
-    filterChange = own || !!(elt && elt.matches && elt.matches("a.fchip, a.fclear") && elt.closest("form[data-filters]"));
+    var form = own ? elt : (chip ? elt.closest("form[data-filters]") : null);
+    filterChange = form ? form.getAttribute("data-filters") || "" : null;
   });
 
   // The count of a filter change that has applied is announced once through
@@ -283,7 +285,9 @@
   // region is added to the page. The region is not atomic, so a change of
   // the stream's state (.live-text) presents that text only. A page move
   // empties the note, which belongs to the page it was written for.
-  var filterChange = false;
+  // It holds the data-filters name of the form that made the request, or
+  // null when no filter form did.
+  var filterChange = null;
 
   function setLiveNote(text) {
     var note = document.querySelector("#live .live-note");
@@ -296,12 +300,15 @@
     if (!isMainSettle(evt)) {
       return;
     }
-    if (!filterChange) {
+    if (filterChange === null) {
       setLiveNote("");
       return;
     }
-    filterChange = false;
-    var count = document.getElementById("shown") || document.getElementById("events-shown");
+    // The count is the one inside the form that made the request: a page
+    // with two filter forms (the Platform page) has two counts.
+    var form = filterChange ? document.querySelector('form[data-filters="' + CSS.escape(filterChange) + '"]') : null;
+    var count = (form && form.querySelector(".shown")) || document.getElementById("shown") || document.getElementById("events-shown");
+    filterChange = null;
     if (count) {
       setLiveNote((count.textContent || "").replace(/\s+/g, " ").trim());
     }

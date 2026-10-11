@@ -1,10 +1,14 @@
 package ui
 
 import (
+	"fmt"
 	"net/http"
+	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
+	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
@@ -14,9 +18,12 @@ import (
 func TestPlatformStatusLinksItsReasons(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
 	for _, want := range []string{
-		`<a href="#cond-Ready"><span class="label">Ready</span> <span class="mono">Generated</span></a>`,
-		`<a href="#cond-ContractsFulfilled"><span class="label">Contracts</span> <span class="mono">UnfulfilledContracts</span></a>`,
-		`id="cond-Ready"`, `id="cond-ContractsFulfilled"`, `<dt>Controller version</dt><dd class="mono">v1.0.0-beta.6</dd>`,
+		`<section class="state-block hue-applied" id="platform-status" aria-label="Platform status"`,
+		`<span class="sb-eyebrow">Platform · the controller</span><span class="sb-when">since `,
+		`<span class="sb-word">Applied</span>`,
+		`<a href="/?tab=providers&amp;pstatus=refused#parts" class="hue-degraded"><strong>1</strong> <span class="mono">CatalogUnresolved</span></a>`,
+		`<a href="/?tab=catalogs#contracts" class="hue-unknown"><span class="mono">UnfulfilledContracts</span></a>`,
+		`id="cond-Ready"`, `id="cond-ContractsFulfilled"`, `<dt>Controller</dt><dd class="mono">v1.0.0-beta.6</dd>`,
 	} {
 		if !strings.Contains(main, want) {
 			t.Errorf("the Platform page lacks %s", want)
@@ -33,9 +40,9 @@ func TestPlatformStatusLinksItsReasons(t *testing.T) {
 // it, and a list the caller may not read is locked, not zero.
 func TestPlatformCountsHandOff(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
-	for _, want := range []string{`href="/installed?health=Healthy">Healthy <span class="count-n">5</span>`,
-		`href="/installed?applied=Failed">Failed <span class="count-n">1</span>`,
-		"6 installed: 5 instances, 1 package; 1 of them holds a registration."} {
+	for _, want := range []string{`href="/installed?health=Healthy" title="Show the 5 installed with health Healthy"><span class="count-badge">Healthy</span><span class="count-n">5</span>`,
+		`href="/installed?applied=Failed" title="Show the 1 installed with applied state Failed"><span class="count-badge">Failed</span><span class="count-n">1</span>`,
+		"6 installed: 5 instances, 1 package · 1 of them is a provider"} {
 		if !strings.Contains(main, want) {
 			t.Errorf("the Installed card lacks %s", want)
 		}
@@ -107,7 +114,7 @@ func TestPlatformForbidden(t *testing.T) {
 func TestPlatformRegionsEscapeClusterText(t *testing.T) {
 	s := newSite(t, hostileF1(t), apitest.AllowAll)
 	for path, regions := range map[string][]string{
-		"/":              {`<div id="providers"`, `id="conditions"`, `<div id="events"`},
+		"/":              {`<div id="providers"`, `id="platform-status"`, `id="conditions"`, `<div id="events"`},
 		"/?tab=catalogs": {`<div id="catalogs"`},
 	} {
 		main := mainOf(s.get(t, path).body)
@@ -117,6 +124,42 @@ func TestPlatformRegionsEscapeClusterText(t *testing.T) {
 				t.Errorf("%s %s does not show the hostile text escaped", path, from)
 			}
 		}
+	}
+}
+
+// TestPlatformReasonLinksAndEventCellsEscapeClusterText (4.9, SR11): over a
+// capture whose reasons and notes are hostile, the status block's reason
+// links and the events table's reason and message cells show the text
+// escaped, the reason links' addresses carry none of it, and no attribute
+// anywhere on the page holds an unescaped angle bracket or quote.
+func TestPlatformReasonLinksAndEventCellsEscapeClusterText(t *testing.T) {
+	const escaped = "&lt;script&gt;alert(1)&lt;/script&gt;"
+	main := mainOf(newSite(t, hostileF1(t), apitest.AllowAll).get(t, "/").body)
+
+	reasons := between(main, `<div class="sb-reasons">`, "</div>")
+	links := regexp.MustCompile(`(?s)<a href="([^"]*)"[^>]*>(.*?)</a>`).FindAllStringSubmatch(reasons, -1)
+	if len(links) == 0 {
+		t.Fatalf("the status block has no reason link:\n%s", main)
+	}
+	for _, l := range links {
+		if strings.Contains(l[1], "script") || strings.Contains(l[1], "%3C") {
+			t.Errorf("a reason link's address carries cluster text: %s", l[1])
+		}
+		if !strings.Contains(l[2], escaped) || strings.Contains(l[2], "<script") {
+			t.Errorf("a reason link does not show its hostile reason escaped: %s", l[2])
+		}
+	}
+
+	events := between(main, `<table class="table rows events-table">`, "</table>")
+	for _, cell := range []string{`class="mono ev-reason">`, `<span class="ev-note">`} {
+		part := between(events, cell, "</")
+		if !strings.Contains(part, escaped) || strings.Contains(part, "<script") {
+			t.Errorf("an events cell (%s) does not show the hostile text escaped: %q", cell, part)
+		}
+	}
+
+	if bad := regexp.MustCompile(`="[^"]*[<>][^"]*"`).FindAllString(main, -1); len(bad) != 0 {
+		t.Errorf("attributes hold an unescaped angle bracket: %q", bad)
 	}
 }
 
@@ -192,5 +235,139 @@ func TestPlatformTabsCarryTheirCounts(t *testing.T) {
 				t.Errorf("%s: a count shows over a list the caller may not read in full, or its empty span is gone (want %s):\n%s", name, want, tabs)
 			}
 		}
+	}
+}
+
+// platformWith is a Platform with the registrations and conditions a status
+// block test needs, whose registrations are readable unless said.
+func platformWith(access string, regs []v1.Registration, conds ...v1.Condition) *v1.Platform {
+	return &v1.Platform{Name: "cluster", Reconcile: v1.Reconcile{State: "Applied"}, Registrations: regs,
+		RegistrationsAccess: access, Conditions: conds}
+}
+
+// TestPlatformStatusBlockCountsItsReasons (platform-04, platform-05): a count per
+// refusal reason linking to the Providers tab filtered to refused, one per
+// removal-blocked reason, the Ready reason when Ready is not True and the
+// ContractsFulfilled reason when it is False, both without a count.
+func TestPlatformStatusBlockCountsItsReasons(t *testing.T) {
+	regs := []v1.Registration{
+		{Name: "a", Verdict: verdictRefused, Reason: "CatalogUnresolved"},
+		{Name: "b", Verdict: verdictRefused, Reason: "CatalogUnresolved"},
+		{Name: "c", Verdict: verdictRemovalBlocked, Reason: "DependentsRemain", Accepted: true, Active: true},
+		{Name: "d", Accepted: true, Active: true, Verdict: "Accepted"},
+	}
+	b := platformStatusBlock(platformWith(v1.AccessOK, regs,
+		v1.Condition{Type: conditionReady, Status: "False", Reason: "BuildFailed"},
+		v1.Condition{Type: conditionContracts, Status: "False", Reason: "UnfulfilledContracts"}))
+	got := make([]string, 0, len(b.Reasons))
+	for _, r := range b.Reasons {
+		got = append(got, fmt.Sprintf("%d %s %s %s", r.N, r.Text, r.Class, r.Href))
+	}
+	want := []string{
+		"2 CatalogUnresolved hue-degraded /?tab=providers&pstatus=refused#parts",
+		"1 DependentsRemain hue-unknown /?tab=providers&pstatus=blocked#parts",
+		"0 BuildFailed hue-degraded #cond-Ready",
+		"0 UnfulfilledContracts hue-unknown /?tab=catalogs#contracts",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("reasons:\n got %q\nwant %q", got, want)
+	}
+	if !strings.Contains(b.Summary, "3 claims active") && !strings.Contains(b.Summary, "2 claims active") {
+		t.Errorf("the summary does not count active claims: %q", b.Summary)
+	}
+	quiet := platformStatusBlock(platformWith(v1.AccessOK, regs[3:]))
+	if len(quiet.Reasons) != 0 || quiet.None != "Nothing refused or unfulfilled" {
+		t.Errorf("a clean Platform shows reasons %v", quiet.Reasons)
+	}
+}
+
+// TestPlatformStatusBlockLocksWhatItCannotCount (portal:D7:R2): with
+// registrations the caller may not list, the claims part reads "claims
+// locked", no refusal count shows, a locked note line says so, and a Ready
+// reason still shows beside it.
+func TestPlatformStatusBlockLocksWhatItCannotCount(t *testing.T) {
+	regs := []v1.Registration{{Name: "a", Verdict: verdictRefused, Reason: "CatalogUnresolved"}}
+	for name, conds := range map[string][]v1.Condition{
+		"ready":         nil,
+		"ready False":   {{Type: conditionReady, Status: "False", Reason: "BuildFailed"}},
+		"contracts off": {{Type: conditionContracts, Status: "False", Reason: "UnfulfilledContracts"}},
+	} {
+		b := platformStatusBlock(platformWith(v1.AccessForbidden, regs, conds...))
+		if !strings.Contains(b.Summary, "claims locked") || strings.Contains(b.Summary, "0 claim") {
+			t.Errorf("%s: the summary is %q", name, b.Summary)
+		}
+		if len(b.Notes) != 1 || b.Notes[0].Class != "locked" || !strings.Contains(b.Notes[0].Text, "Refusals not shown") {
+			t.Errorf("%s: no locked note: %+v", name, b.Notes)
+		}
+		for _, r := range b.Reasons {
+			if r.Text == "CatalogUnresolved" {
+				t.Errorf("%s: a refusal count shows for registrations the caller may not list", name)
+			}
+		}
+	}
+	b := platformStatusBlock(platformWith(v1.AccessForbidden, regs, v1.Condition{Type: conditionReady, Status: "False", Reason: "BuildFailed"}))
+	out := renderMain(t, "platform", platformView{Block: b, Platform: v1.Platform{RegistrationsAccess: v1.AccessForbidden}})
+	status := between(out, `id="platform-status"`, "</section>")
+	if !strings.Contains(status, `class="sb-note locked">Refusals not shown: you may not list TransformerRegistrations`) || !strings.Contains(status, "BuildFailed") {
+		t.Errorf("the locked note and the Ready reason do not show together:\n%s", status)
+	}
+}
+
+// TestPlatformFormsCountOverTheDocument (platform-11, platform-43): Provides is
+// a select of the registrations' contracts and every option carries its
+// count; locked registrations leave Status and Provides without counts and
+// the Claimed select out.
+func TestPlatformFormsCountOverTheDocument(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	form := between(mainOf(s.get(t, "/").body), `aria-label="Filter providers"`, "</form>")
+	for _, want := range []string{`<select id="f-provides"`, `Active (1)`, `Refused (1)`, `Inactive (0)`} {
+		if !strings.Contains(form, want) {
+			t.Errorf("the Providers form lacks %s:\n%s", want, form)
+		}
+	}
+	cats := between(mainOf(s.get(t, "/?tab=catalogs").body), `aria-label="Filter catalogs"`, "</form>")
+	for _, want := range []string{`Subscription (`, `Claimed only (1)`, `Unclaimed (`} {
+		if !strings.Contains(cats, want) {
+			t.Errorf("the Catalogs form lacks %s:\n%s", want, cats)
+		}
+	}
+	locked := newSite(t, apitest.F1(t), apitest.DenyResources("transformerregistrations"))
+	form = between(mainOf(locked.get(t, "/").body), `aria-label="Filter providers"`, "</form>")
+	if strings.Contains(form, " (") && strings.Contains(between(form, `<select id="f-pstatus"`, "</select>"), " (") {
+		t.Errorf("a Status option carries a count over locked registrations:\n%s", form)
+	}
+	cats = between(mainOf(locked.get(t, "/?tab=catalogs").body), `aria-label="Filter catalogs"`, "</form>")
+	if strings.Contains(cats, `id="f-claimed"`) || strings.Contains(cats, "Claimed only (") {
+		t.Errorf("the Claimed select or a claimed-only count shows over locked registrations:\n%s", cats)
+	}
+}
+
+// TestPlatformEventsTableLinksItsResources (platform-23 to platform-26): the
+// heading row holds the Resource select with counts and the count in its own
+// followed region; a resource cell filters the feed and keeps the other
+// parameters.
+func TestPlatformEventsTableLinksItsResources(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	main := mainOf(s.get(t, "/?tab=catalogs").body)
+	panel := between(main, `id="events-panel"`, "</section>")
+	for _, want := range []string{
+		`<optgroup label="Everything"><option value="" selected>All resources (`,
+		`<optgroup label="Providers (TransformerRegistration)">`,
+		`<p class="shown" id="events-shown" data-follow="`,
+		`<table class="table rows events-table">`,
+		`href="/?eresource=platform&amp;tab=catalogs" title="Show only this resource's events"`,
+	} {
+		if !strings.Contains(panel, want) {
+			t.Errorf("the events panel lacks %s", want)
+		}
+	}
+	region := regexp.MustCompile(`id="events-shown" data-follow="([^"]*)"`).FindStringSubmatch(panel)
+	feed := regexp.MustCompile(`<div id="events" class="region" data-follow="([^"]*)"`).FindStringSubmatch(panel)
+	if region == nil || feed == nil || region[1] != feed[1] {
+		t.Errorf("the count region follows %v, the feed %v", region, feed)
+	}
+	only := between(mainOf(s.get(t, "/?eresource=platform").body), `id="events-panel"`, "</section>")
+	if !strings.Contains(only, `<option value="platform" selected>`) || strings.Contains(only, "CatalogUnresolved") {
+		t.Errorf("eresource=platform does not filter the table:\n%s", only)
 	}
 }

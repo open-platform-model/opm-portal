@@ -76,8 +76,8 @@ var (
 	}}
 	catalogFilters = filterView{Key: "catalogs", Path: "/", Params: []filterParam{
 		{Name: "cq", Label: "Search"},
-		{Name: "csource", Label: "Source", Any: "Any source", Values: []string{"subscription", "registration", "claim"},
-			Text: map[string]string{"subscription": "Subscription", "registration": "Contributed", "claim": "Claimed only"}},
+		{Name: "csource", Label: "Source", Any: "Any source", Values: []string{sourceSubscription, "registration", "claim"},
+			Text: map[string]string{sourceSubscription: "Subscription", "registration": "Contributed", "claim": "Claimed only"}},
 		{Name: "claimed", Label: "Claimed", Any: "Either", Values: []string{"yes", "no"},
 			Text: map[string]string{"yes": "Claimed", "no": "Unclaimed"}},
 	}}
@@ -235,6 +235,9 @@ type formInput struct {
 	// stands in the option where its count would be ("locked"). Such an
 	// option carries no count, never a zero (portal:D14:R7).
 	Notes map[string]map[string]string
+	// Omit names the parameters whose control the form leaves out: a filter
+	// over rows the caller may not read, such as Claimed over locked claims.
+	Omit map[string]bool
 	// Suggest are the suggestions of a text input (a datalist).
 	Suggest      map[string][]string
 	Placeholders map[string]string
@@ -264,6 +267,9 @@ const (
 func (f *filters) fields(in formInput) []field {
 	out := make([]field, 0, len(f.View.Params))
 	for _, p := range f.View.Params {
+		if in.Omit[p.Name] {
+			continue
+		}
 		id := "f-" + p.Name
 		cur := f.Values[p.Name]
 		fld := field{ID: id, Name: p.Name, Label: p.Label, Search: p.Label == "Search"}

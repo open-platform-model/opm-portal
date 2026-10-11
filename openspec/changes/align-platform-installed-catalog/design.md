@@ -387,7 +387,8 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     is the Platform's name with its count; and "Providers (TransformerRegistration)" with each
     registration and its count. The counts come from the feeds the page already reads; a
     registration whose feed was not read (`Unread`) is offered with no count.
-  - Age is compact ("5m"), with `datetime` and the absolute time in `title`.
+  - Age keeps the portal's shared relative form ("5m ago"), with `datetime` and the absolute time
+    in `title` (supervisor ruling of 2026-10-11, as for the banner time of `align-graph`).
 - **Theme menu** (platform-32): each theme button holds an inline SVG check, shown only when
   `aria-pressed="true"` and drawn in `--hdr-strong`. It replaces the brass `::after` glyph. This
   edits the theme menu markup in `layout.html`, which A also edits. This change starts after A
@@ -453,8 +454,8 @@ The `events-table` partial replaces `events-list` wherever an events feed is a p
 a `<table class="table rows events-table">` with these columns, at the canvas's widths
 (`Main.dc.html`): Type (88 px, 12 px uppercase, red ink for Warning), Reason (mono; 180 px, 190 px
 on the Catalog page), an optional Resource (kind over a linked name; 280 px), Message (note; then
-"×N" when folded and the reporting controller, both muted; the rest), and Age (compact,
-right-aligned; 56 px). At phone width it falls back to the card layout `table.rows` already has. Its
+"×N" when folded and the reporting controller, both muted; the rest), and Age (the shared
+relative form, "5m ago"; right-aligned; 76 px). At phone width it falls back to the card layout `table.rows` already has. Its
 input is:
 
 ```go

@@ -435,3 +435,40 @@ func TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot(t *testing.T) {
 		}
 	}
 }
+
+// TestANewPlatformEventReplacesTheEventsCount (platform-24): the Platform
+// page's "Showing n of M" for Recent events is its own followed region,
+// `#events-shown`, with the topics of the feed beside it, so a new event
+// changes its text and the refresh that replaces it needs nothing else.
+func TestANewPlatformEventReplacesTheEventsCount(t *testing.T) {
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		if kind, _, _ := unstructured.NestedString(o.Object, "regarding", "kind"); o.GetKind() != "Event" || kind != "Platform" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("platform.new-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e2e2")
+		if err := unstructured.SetNestedField(extra.Object, "NewReason", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of the Platform to copy")
+	}
+	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
+	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, "/").body))
+	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, "/").body))
+	if before == nil || after == nil {
+		t.Fatal("the Platform page has no followed #events-shown region")
+	}
+	if !slices.Contains(strings.Fields(before[1]), "events:platform") {
+		t.Errorf("the count follows %q, not events:platform", before[1])
+	}
+	if before[2] == after[2] || !strings.Contains(after[2], "<strong>3</strong> of 3") {
+		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
+	}
+}

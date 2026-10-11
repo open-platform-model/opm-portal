@@ -135,7 +135,7 @@ func catalogViewOf(p *v1.Platform, row catalogRow) catalogView {
 			v.NotResolvedReason, v.NotResolvedWhy = reg.Reason, "From the claim "+reg.Name+"."
 		}
 	}
-	if !row.Resolved && v.NotResolvedReason == "" && ready != nil && ready.Status != "True" {
+	if !row.Resolved && v.NotResolvedReason == "" && ready != nil && ready.Status != condTrue {
 		v.NotResolvedReason, v.NotResolvedWhy = ready.Reason, "From the Platform's Ready condition."
 	}
 	return v
@@ -143,7 +143,7 @@ func catalogViewOf(p *v1.Platform, row catalogRow) catalogView {
 
 func originOf(row catalogRow) string {
 	switch row.Source {
-	case "subscription":
+	case sourceSubscription:
 		return "Subscribed"
 	case "registration":
 		return "From a provider"

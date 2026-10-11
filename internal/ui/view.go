@@ -85,7 +85,7 @@ func slug(s string) string { return strings.ToLower(s) }
 // Applied; ManagedExternally is neutral (portal:D3:R1/R6).
 func appliedBadge(r v1.Reconcile) badge {
 	b := known("applied", appliedText, r.State)
-	if r.State == "Failed" && r.Retrying {
+	if r.State == stateFailed && r.Retrying {
 		b.Text = "Failed, retrying"
 	}
 	return b

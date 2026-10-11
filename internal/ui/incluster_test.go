@@ -122,3 +122,38 @@ func operatorEvent(ev map[string]any) bool {
 	}
 	return false
 }
+
+// TestInClusterPlatformPageShowsReasonsOnly (platform-21, platform-23): in
+// cluster mode the Platform page keeps every reason and no operator message:
+// the events table carries no controller note (the reporter's name stays), the contracts note has no
+// "Controller message" fold, and a provider row shows its reason with no
+// message after it. The local site proves the same pieces exist there.
+func TestInClusterPlatformPageShowsReasonsOnly(t *testing.T) {
+	local := newSite(t, apitest.F1(t), apitest.AllowAll)
+	in := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
+
+	cats := between(mainOf(in.get(t, "/?tab=catalogs").body), `id="contracts"`, "</div>")
+	if cats == "" || strings.Contains(cats, "<details") || strings.Contains(cats, "Controller message") {
+		t.Errorf("the in-cluster contracts note is missing or carries the controller message:\n%s", cats)
+	}
+	if !strings.Contains(between(mainOf(local.get(t, "/?tab=catalogs").body), `id="contracts"`, "</div>"), "<details") {
+		t.Error("the local contracts note has no fold, so the in-cluster check proves nothing")
+	}
+
+	main := mainOf(in.get(t, "/").body)
+	events := between(main, `<table class="table rows events-table">`, "</table>")
+	if !strings.Contains(events, "CatalogUnresolved") || strings.Contains(events, `class="ev-note"`) {
+		t.Errorf("the in-cluster events table shows a controller note:\n%s", events)
+	}
+	if !strings.Contains(between(mainOf(local.get(t, "/").body), `<table class="table rows events-table">`, "</table>"), `class="ev-note"`) {
+		t.Error("the local events table has no note, so the in-cluster check proves nothing")
+	}
+	providers := between(main, `<div id="providers"`, "</table>")
+	if !strings.Contains(providers, `<span class="mono">CatalogUnresolved</span>`) || strings.Contains(providers, `class="msg"`) {
+		t.Errorf("the in-cluster provider rows show a message, or lose the reason:\n%s", providers)
+	}
+	status := between(main, `id="platform-status"`, "</section>")
+	if !strings.Contains(status, "CatalogUnresolved") || strings.Contains(status, "Generated") {
+		t.Errorf("the in-cluster status block does not read from reasons:\n%s", status)
+	}
+}

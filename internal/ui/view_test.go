@@ -45,12 +45,12 @@ func TestAcceptedAndActiveApart(t *testing.T) {
 	v.Providers.Form = newFilterForm(parseFilters(&providerFilters, nil), "Filter providers", nil, nil, nil)
 	v.Events.Filters = parseFilters(&filterView{Path: "/"}, nil)
 	out := renderMain(t, "platform", v)
-	pending := between(out, `<span class="mono">pending</span></th>`, "</tr>")
-	if !strings.Contains(pending, ">accepted<") || !strings.Contains(pending, ">inactive<") {
+	pending := between(out, `pending</span></th>`, "</tr>")
+	if !strings.Contains(pending, ">Accepted<") || !strings.Contains(pending, ">Inactive<") {
 		t.Errorf("accepted, inactive claim:\n%s", pending)
 	}
-	leaving := between(out, `<span class="mono">leaving</span></th>`, "</tr>")
-	if !strings.Contains(leaving, "Removal blocked") || !strings.Contains(leaving, ">accepted<") || !strings.Contains(leaving, ">active<") ||
+	leaving := between(out, `leaving</span></th>`, "</tr>")
+	if !strings.Contains(leaving, "Removal blocked") || !strings.Contains(leaving, ">Accepted<") || !strings.Contains(leaving, ">Active<") ||
 		strings.Contains(leaving, "Refused") || !strings.Contains(leaving, "DependentsRemain") {
 		t.Errorf("removal-blocked claim:\n%s", leaving)
 	}

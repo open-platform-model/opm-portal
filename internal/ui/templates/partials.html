@@ -147,6 +147,31 @@
 {{else}}<p class="muted">No events in the last hour or so.</p>{{end}}
 {{- end}}
 
+{{/* events-table is a feed as a table: Type, Reason, an optional Resource, Message
+     and Age. The resource cell is a filter link when the page can filter by that
+     object. At phone width the table becomes cards, as table.rows does. */}}
+{{define "events-table" -}}
+{{if .Problem}}{{template "problem-region" .Problem}}
+{{else if .Rows}}
+<div class="table-wrap">
+<table class="table rows events-table">
+  <thead><tr><th scope="col" class="c-type">Type</th><th scope="col" class="c-reason">Reason</th>{{if .ShowResource}}<th scope="col" class="c-resource">Resource</th>{{end}}<th scope="col">Message</th><th scope="col" class="c-age">Age</th></tr></thead>
+  <tbody>
+  {{range .Rows}}
+  <tr class="ev-{{if eq .Type "Warning"}}warning{{else}}normal{{end}}">
+    <td data-label="Type" class="ev-type">{{.Type}}</td>
+    <td data-label="Reason" class="mono ev-reason">{{.Reason}}</td>
+    {{if $.ShowResource}}<td data-label="Resource">{{if .ResourceHref}}<a class="ev-resource" href="{{.ResourceHref}}" title="Show only this resource's events"><span class="ev-kind">{{.Kind}}</span><span class="mono">{{.Name}}</span></a>{{else}}<span class="ev-resource"><span class="ev-kind">{{.Kind}}</span><span class="mono">{{.Name}}</span></span>{{end}}</td>{{end}}
+    <td data-label="Message">{{with .Note}}<span class="ev-note">{{.}}</span>{{end}}{{if gt .Count 1}} <span class="ev-count" title="Repeats folded into one line">×{{.Count}}</span>{{end}}{{with .ReportingController}} <span class="muted ev-by">{{.}}</span>{{end}}</td>
+    <td data-label="Age" class="ev-age">{{template "time" .LastSeen}}</td>
+  </tr>
+  {{end}}
+  </tbody>
+</table>
+</div>
+{{else}}<p class="muted">{{.Empty}}</p>{{end}}
+{{- end}}
+
 {{define "events-note" -}}
 <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
 {{- end}}

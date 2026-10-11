@@ -168,7 +168,7 @@ func appliedCardOf(v *ownerView) appliedCard {
 		h := &v.History[i]
 		outcome := h.Outcome
 		switch outcome {
-		case "Succeeded", "Failed":
+		case "Succeeded", stateFailed:
 		default:
 			outcome = "Unknown"
 		}

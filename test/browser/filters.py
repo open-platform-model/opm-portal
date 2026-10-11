@@ -36,6 +36,11 @@ first failure:
    without closing it; and on a touch viewport a tap opens it without leaving the page and a second
    tap closes it (Firefox runs the click path where its touch emulation is not available).
 
+10. Recent events on the Platform page (platform-23 to platform-26, PIC-L1): the Platform resource
+   link in the table filters it to that resource and sets the Resource select, and the select's
+   change to a registration filters the table and announces "Showing 1 of 2, newest first, repeats
+   folded".
+
 The browser script also counts what the test needs: htmx requests, and the requests it holds. With
 OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
@@ -114,6 +119,11 @@ def run(p, engine, base, context):
 
     def wait_path(page, want, timeout=8000):
         page.wait_for_function("([w]) => location.pathname + location.search === w", arg=[want], timeout=timeout)
+
+    def wait_settled(page, timeout=8000):
+        # htmx processes swapped-in markup when the swap settles (20 ms after the swap): a form changed
+        # before that submits natively, a race only a script can win.
+        page.wait_for_function("() => !document.querySelector('.htmx-settling, .htmx-swapping, .htmx-request')", timeout=timeout)
 
     def wait_note(page, want, timeout=8000):
         page.wait_for_function("([w]) => document.querySelector('#live .live-note').textContent === w", arg=[want], timeout=timeout)
@@ -261,6 +271,29 @@ def run(p, engine, base, context):
         page.keyboard.press("Tab")
         page.wait_for_function("() => location.search.includes('reason=BackOff')", timeout=8000)
         check(page, True, "a text field applies when the user leaves it, on a form of another page")
+        page.context.close()
+
+        # 10: Recent events on the Platform page: a resource link filters the table and sets eresource, and
+        # the Resource select's change updates the announced count.
+        page = fresh()
+        page.goto(base + "/", wait_until="load")
+        total = page.evaluate("document.querySelectorAll('#events tbody tr').length")
+        page.locator('#events a.ev-resource[href*="eresource=platform"]').first.click()
+        wait_path(page, "/?eresource=platform")
+        wait_settled(page)
+        kinds = page.evaluate("[...document.querySelectorAll('#events tbody tr .ev-kind')].map(e => e.textContent)")
+        selected = page.evaluate("document.querySelector('#f-eresource').value")
+        if not check(page, total == 2 and kinds == ["Platform"] and selected == "platform",
+                     f"a resource link filters the events ({total} rows, then {kinds}) and sets the select to {selected!r}"):
+            return False
+        page.select_option("#f-eresource", "registration:default.refused-claim-fixture")
+        wait_path(page, "/?eresource=registration%3Adefault.refused-claim-fixture")
+        wait_note(page, "Showing 1 of 2, newest first, repeats folded")
+        kinds = page.evaluate("[...document.querySelectorAll('#events tbody tr .ev-kind')].map(e => e.textContent)")
+        note = page.inner_text("#live .live-note")
+        if not check(page, kinds == ["TransformerRegistration"] and note == "Showing 1 of 2, newest first, repeats folded",
+                     f"the Resource select's change filters the events ({kinds}) and announces {note!r}"):
+            return False
         page.context.close()
 
         # 9: the provider badge on Installed.
