@@ -411,8 +411,8 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		v.Tab = tabCatalogs
 	}
 	v.Tabs = []tabLink{
-		{Name: tabProviders, Label: "Providers", Href: linkWith("/", q, "tab", tabProviders), Current: v.Tab == tabProviders, Follow: "platform"},
-		{Name: tabCatalogs, Label: "Catalogs", Href: linkWith("/", q, "tab", tabCatalogs), Current: v.Tab == tabCatalogs, Follow: "platform"},
+		{Name: tabProviders, Label: "Providers", Href: linkWith("/", q, "tab", tabProviders), Current: v.Tab == tabProviders, Follow: platformTopic},
+		{Name: tabCatalogs, Label: "Catalogs", Href: linkWith("/", q, "tab", tabCatalogs), Current: v.Tab == tabCatalogs, Follow: platformTopic},
 	}
 	v.Problem = h.fetch(r, "/platform", nil, &v.Platform)
 	if unauthenticated(v.Problem) {
@@ -459,7 +459,7 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 
 	follow := strings.Fields(v.Events.Follow)
 	topics := make([]string, 0, 2+len(follow))
-	topics = append(topics, "platform", "instances")
+	topics = append(topics, platformTopic, "instances")
 	topics = append(topics, follow...)
 	h.render(w, r, problemStatus(v.Problem), "platform", page{
 		Title:  "Platform",

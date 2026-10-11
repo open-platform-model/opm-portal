@@ -50,6 +50,9 @@ type tabLink struct {
 	Follow string
 }
 
+// platformTopic is the live topic of the Platform and its registrations.
+const platformTopic = "platform"
+
 // setCount sets the count of the tab called name. The strip keeps its links;
 // only the count is a followed region. A tab with no count set keeps an empty
 // span, so a refresh that finds the source unreadable removes the old number.
@@ -563,7 +566,7 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 		if v.Tab == tabProvider {
 			// The tab joins the Platform's registrations and the instances
 			// that use what they provide.
-			topics = append(topics, "platform", "instances")
+			topics = append(topics, platformTopic, "instances")
 		}
 		h.render(w, r, problemStatus(v.Problem), "owner", page{
 			Title:  k.Title + " " + ns + "/" + name,

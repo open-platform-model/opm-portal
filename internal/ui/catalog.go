@@ -89,7 +89,7 @@ func (h *Handler) catalogPage(w http.ResponseWriter, r *http.Request) {
 	for _, t := range []struct{ Name, Label string }{{tabClaims, "Claims"}, {tabEvents, "Events"}} {
 		tab := tabLink{Name: t.Name, Label: t.Label, Href: base + "&tab=" + t.Name, Current: v.Tab == t.Name}
 		if t.Name == tabClaims {
-			tab.Follow = "platform"
+			tab.Follow = platformTopic
 		}
 		v.Tabs = append(v.Tabs, tab)
 	}
@@ -98,7 +98,7 @@ func (h *Handler) catalogPage(w http.ResponseWriter, r *http.Request) {
 	if v.ClaimsLocked == "" {
 		setCount(v.Tabs, tabClaims, len(v.Claims))
 	}
-	topics := []string{"platform"}
+	topics := []string{platformTopic}
 	if v.Tab == tabEvents {
 		v.Events = h.catalogEvents(r, v.claimants())
 		topics = append(topics, strings.Fields(v.Events.Follow)...)

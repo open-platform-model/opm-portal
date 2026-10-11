@@ -414,8 +414,8 @@ func TestTipPartial(t *testing.T) {
 	if strings.Contains(out, "tabindex") || strings.Contains(out, "style=") {
 		t.Errorf("a tip trigger is a button, not a scripted span, and has no style attribute: %s", out)
 	}
-	box := out[strings.Index(out, `<span class="tipbox"`):]
-	if strings.Contains(box, "<a ") || strings.Contains(box, "<button") || !strings.HasSuffix(strings.TrimSpace(out), "</span></span>") {
+	_, box, found := strings.Cut(out, `<span class="tipbox"`)
+	if !found || strings.Contains(box, "<a ") || strings.Contains(box, "<button") || !strings.HasSuffix(strings.TrimSpace(out), "</span></span>") {
 		t.Errorf("the box holds text only and is the last child of span.tip: %s", out)
 	}
 }

@@ -435,7 +435,7 @@ func TestPortalCSSHoldsTheWideColumn(t *testing.T) {
 			t.Errorf("%s has max-width %q, want 1840px", sel, d["max-width"])
 		}
 		if d["margin"] != "0 auto" && sel == "main" {
-			t.Errorf("main has margin %q, want 0 auto, so the column is centred", d["margin"])
+			t.Errorf("main has margin %q, want 0 auto, so the column is centered", d["margin"])
 		}
 	}
 	if d, _ := ruleFor(parseCSS("main { max-width: 1200px; margin: 0 auto; }"), "main"); d["max-width"] == "1840px" {
