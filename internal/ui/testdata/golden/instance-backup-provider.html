@@ -68,7 +68,7 @@
 <div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
 <section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:default/backup-provider">
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
-<div class="graph" data-graph="instance-graph">
+<div class="graph" data-graph="instance-graph" data-resting-panel="/instances/default/backup-provider/node?id=mi%3Adefault%2Fbackup-provider">
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">Select a box to see its details on the right.</span>
     <a class="tool-link" href="/instances/default/backup-provider" hx-boost="false" data-clear-selection hidden>Clear selection</a>
@@ -86,9 +86,10 @@
       <text class="col-title" x="16" y="20">Instance</text><text class="col-title" x="280" y="20">Components</text><text class="col-title" x="544" y="20">Objects</text>
       <path class="edge edge-hasComponent" d="M232 80 H256 V80 H280" data-from="mi:default/backup-provider" data-to="comp:mi/default/backup-provider/registration"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-owns" d="M496 80 H520 V80 H544" data-from="comp:mi/default/backup-provider/registration" data-to="obj:opmodel.dev/TransformerRegistration/_/default.backup-provider"><title>owns, from status.inventory entries</title></path>
       
-      <a class="node kind-instance health-healthy ap-applied" href="/instances/default/backup-provider?focus=mi%3Adefault%2Fbackup-provider&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=mi%3Adefault%2Fbackup-provider" data-node="mi:default/backup-provider" tabindex="0" aria-label="Instance, default/backup-provider, Healthy, Applied" aria-describedby="instance-graph-card-0">
+      <a class="node kind-instance health-healthy ap-applied" href="/instances/default/backup-provider?node=mi%3Adefault%2Fbackup-provider&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=mi%3Adefault%2Fbackup-provider" data-node="mi:default/backup-provider" tabindex="0" aria-label="Instance, default/backup-provider, Healthy, Applied" aria-describedby="instance-graph-card-0" data-resting>
         <title>default/backup-provider</title>
-        <rect class="node-ring" x="16" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-halo" x="6" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="12" y="40" width="224" height="80" rx="11"/>
         <rect class="node-box" x="16" y="44" width="216" height="72" rx="6"/>
         
         <text class="node-kind" x="28" y="64">Instance</text>
@@ -97,9 +98,10 @@
         <text class="node-status" x="41" y="104">Healthy</text>
         <rect class="node-stamp" x="216" y="50" width="10" height="10" rx="1"/>
       </a>
-      <a class="node kind-component health-healthy" href="/instances/default/backup-provider?focus=comp%3Ami%2Fdefault%2Fbackup-provider%2Fregistration&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=comp%3Ami%2Fdefault%2Fbackup-provider%2Fregistration" data-node="comp:mi/default/backup-provider/registration" tabindex="0" aria-label="Component, registration, 1 object" aria-describedby="instance-graph-card-1">
+      <a class="node kind-component health-healthy" href="/instances/default/backup-provider?node=comp%3Ami%2Fdefault%2Fbackup-provider%2Fregistration&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=comp%3Ami%2Fdefault%2Fbackup-provider%2Fregistration" data-node="comp:mi/default/backup-provider/registration" tabindex="0" aria-label="Component, registration, 1 object" aria-describedby="instance-graph-card-1">
         <title>registration</title>
-        <rect class="node-ring" x="280" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-halo" x="270" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="40" width="224" height="80" rx="11"/>
         <rect class="node-box" x="280" y="44" width="216" height="72" rx="6"/>
         
         <text class="node-kind" x="292" y="64">Component</text>
@@ -107,9 +109,10 @@
         <circle class="node-dot" cx="296" cy="101" r="3"/>
         <text class="node-status" x="305" y="104">1 object</text>
       </a>
-      <a class="node kind-object standing-active" href="/instances/default/backup-provider?focus=obj%3Aopmodel.dev%2FTransformerRegistration%2F_%2Fdefault.backup-provider&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=obj%3Aopmodel.dev%2FTransformerRegistration%2F_%2Fdefault.backup-provider" data-node="obj:opmodel.dev/TransformerRegistration/_/default.backup-provider" tabindex="0" aria-label="Object, default.backup-provider, Accepted · active" aria-describedby="instance-graph-card-2">
+      <a class="node kind-object standing-active" href="/instances/default/backup-provider?node=obj%3Aopmodel.dev%2FTransformerRegistration%2F_%2Fdefault.backup-provider&amp;tab=graph" data-panel="/instances/default/backup-provider/node?id=obj%3Aopmodel.dev%2FTransformerRegistration%2F_%2Fdefault.backup-provider" data-node="obj:opmodel.dev/TransformerRegistration/_/default.backup-provider" tabindex="0" aria-label="Object, default.backup-provider, Accepted · active" aria-describedby="instance-graph-card-2">
         <title>default.backup-provider</title>
-        <rect class="node-ring" x="544" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-halo" x="534" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="40" width="224" height="80" rx="11"/>
         <rect class="node-box" x="544" y="44" width="216" height="72" rx="6"/>
         
         <text class="node-kind" x="556" y="64">TransformerRegistration</text>
@@ -138,6 +141,24 @@
 </section>
 </div>
 <aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<p class="kicker">Instance</p>
+<h2 class="frag-h mono">default/<wbr>backup-provider</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModuleInstance.<wbr>opmodel.<wbr>dev default/<wbr>backup-provider</dd>
+  <dt>Applied reason</dt><dd class="mono">ReconciliationSucceeded</dd><dt>Controller says</dt><dd>Reconciliation succeeded</dd>
+  <dt>Applied by</dt><dd>the controller</dd>
+  
+  
+  
+  
+</dl>
+<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1</li></ul>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
+<p class="panel-links">
+  <a href="/instances/default/backup-provider">Open page</a>
+  
+  
+</p>
 </aside>
 </main>

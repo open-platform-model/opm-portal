@@ -483,6 +483,9 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 			return
 		}
 		ctx := panelContext{owner: k, base: base}
+		if n := restingNode(&g); n != nil {
+			ctx.resting = n.ID
+		}
 		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && isPod(*n.Ref) {
 			ctx.firstContainer = h.firstContainers(r, k, base)
 		}

@@ -32,6 +32,8 @@ const (
 	ghostWidth  = 30
 	ghostLineH  = 16
 	nodeGap     = 24
+	ringGap     = 4
+	haloGap     = 10
 	graphMargin = 16
 )
 
@@ -56,11 +58,15 @@ type svgGraph struct {
 	// FitGroup is the group whose members the view fits to on load, after
 	// it was expanded.
 	FitGroup string
-	// Focused: a node is focused; Clear is the graph without the focus and
-	// Whole the graph with no group expanded, when one is.
+	// Focused: a node is selected or spotlit; Clear is the graph without
+	// either and Whole the graph with no group expanded, when one is.
 	Focused bool
 	Clear   string
 	Whole   string
+	// Focus is the spotlit node, which dims what lies outside its chain;
+	// RestingPanel is the panel the page shows when nothing is selected.
+	Focus        string
+	RestingPanel string
 }
 
 type svgNode struct {
@@ -81,7 +87,12 @@ type svgNode struct {
 	Panel    string
 	Locked   bool
 	Selected bool
-	// Dim: a node is focused and this one is not next to it.
+	// Spot: the node is the spotlit one (ring and halo). Resting: the page
+	// shows this node's panel because nothing is selected; it is drawn
+	// with the plain ring and is not a selection.
+	Spot    bool
+	Resting bool
+	// Dim: a node is spotlit and this one is outside its chain.
 	Dim bool
 	// MemberOf is the group an expanded member belongs to; Group marks a
 	// group node, which expands on activation.
@@ -97,6 +108,11 @@ type svgNode struct {
 	// status dot.
 	TextX, KindY, NameY, StatusY int
 	DotX, DotY, StatusX          int
+	// RingX..RingH is the selection ring, 4 px outside the box so a gap of
+	// the pane shows between them; HaloX..HaloH carries the spotlight's
+	// halo 10 px further out.
+	RingX, RingY, RingW, RingH int
+	HaloX, HaloY, HaloW, HaloH int
 }
 
 type svgEdge struct {
@@ -195,6 +211,7 @@ const (
 	kindSource         = "source"
 	kindRuntime        = "runtime"
 	groupConfiguration = "configuration"
+	standingActive     = "active"
 	configGroupPrefix  = "grp:configuration/"
 )
 
@@ -205,6 +222,7 @@ type drawing struct {
 	page       string
 	panel      string
 	expanded   []string
+	ungrouped  bool
 	byID       map[string]*v1.GraphNode
 	objects    map[string]int
 	controller map[string]string
@@ -215,28 +233,48 @@ type drawing struct {
 	dx   int
 }
 
-// buildGraph turns a graph document into its SVG model. page is the page
-// the graph is on: a node links to page with ?node=<id> (its panel without
-// script) and names its panel fragment at panel?id=<id>. selected is the
-// node whose panel the page shows, if any.
-func buildGraph(g v1.Graph, id, page, panel, selected string, expanded ...string) svgGraph {
-	d := newDrawing(&g, id, page, panel, expanded)
+// graphParams are what a graph is drawn for: its ids and links, the node
+// the page selects (Node), the node it spotlights (Focus), the node it
+// rests on when neither is set (Resting) and the groups it keeps open.
+type graphParams struct {
+	ID, Page, Panel string
+	Node, Focus     string
+	Resting         string
+	Expanded        []string
+	Ungrouped       bool
+}
+
+// buildGraph turns a graph document into its SVG model. A node links to
+// the page with ?node=<id> (its panel without script) and names its panel
+// fragment at panel?id=<id>. A selected node is ringed and dims nothing; a
+// spotlit one is ringed with a halo, and everything outside its chain, its
+// ancestors and descendants, is dimmed.
+func buildGraph(g v1.Graph, p graphParams) svgGraph {
+	d := newDrawing(&g, p.ID, p.Page, p.Panel, p.Expanded)
+	d.ungrouped = p.Ungrouped
 	out := svgGraph{
-		ID:      id,
+		ID:      p.ID,
 		RootID:  g.Root,
 		Width:   g.Layout.Width - d.dx,
 		Height:  g.Layout.Height,
 		Columns: d.columns(),
 		Empty:   len(g.Nodes) == 0,
 	}
-	// A node is next to the selected one when an edge joins them.
-	near := map[string]bool{selected: true}
-	for i := range g.Edges {
-		if e := &g.Edges[i]; e.From == selected || e.To == selected {
-			near[e.From], near[e.To] = true, true
-		}
+	ring, spot := p.Node, false
+	if p.Focus != "" && findNode(&g, p.Focus) != nil {
+		ring, spot = p.Focus, true
 	}
-	spot := selected != "" && findNode(&g, selected) != nil
+	if findNode(&g, ring) == nil {
+		ring = ""
+	}
+	var lit map[string]bool
+	if spot {
+		lit = chain(g.Edges, ring)
+		out.Focus = ring
+	}
+	if p.Resting != "" {
+		out.RestingPanel = d.panel + "?" + url.Values{"id": {p.Resting}}.Encode()
+	}
 	locked := map[string]bool{}
 	for i := range g.Nodes {
 		gn := &g.Nodes[i]
@@ -244,36 +282,123 @@ func buildGraph(g v1.Graph, id, page, panel, selected string, expanded ...string
 			continue
 		}
 		n := d.nodeOf(gn)
-		n.Selected = n.ID == selected
-		n.Dim = spot && !near[n.ID]
+		n.Selected = ring != "" && n.ID == ring
+		n.Spot = spot && n.Selected
+		n.Dim = spot && !lit[n.ID]
+		n.Resting = ring == "" && p.Resting != "" && n.ID == p.Resting
 		n.MemberOf = gn.MemberOf
-		n.Card.ID = id + "-card-" + strconv.Itoa(len(out.Nodes))
+		n.Card.ID = p.ID + "-card-" + strconv.Itoa(len(out.Nodes))
 		d.groupLink(&n, gn)
 		out.Source = out.Source || gn.Kind == kindSource
 		locked[n.ID] = n.Locked
 		out.Nodes = append(out.Nodes, n)
 	}
-	out.Edges = d.edgesOf(locked, selected, spot)
+	out.Edges = d.edgesOf(locked, lit)
 	out.Frames = d.frames(out.Columns)
 	return out
 }
 
-// edgesOf draws the edges that remain; with a node spotlit, the edges that
-// do not touch it fade.
-func (d *drawing) edgesOf(locked map[string]bool, selected string, spot bool) []svgEdge {
+// chain returns id, its ancestors (edges walked backward) and its
+// descendants (edges walked forward). It is two directed walks, not an
+// undirected closure: a closure would light every node joined to any
+// ancestor, such as a Pod's Service sibling through the shared component.
+func chain(edges []v1.GraphEdge, id string) map[string]bool {
+	back, forward := map[string][]string{}, map[string][]string{}
+	for i := range edges {
+		e := &edges[i]
+		back[e.To] = append(back[e.To], e.From)
+		forward[e.From] = append(forward[e.From], e.To)
+	}
+	out := map[string]bool{id: true}
+	for _, next := range []map[string][]string{back, forward} {
+		seen := map[string]bool{id: true}
+		stack := []string{id}
+		for len(stack) > 0 {
+			n := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			for _, m := range next[n] {
+				if !seen[m] {
+					seen[m] = true
+					out[m] = true
+					stack = append(stack, m)
+				}
+			}
+		}
+	}
+	return out
+}
+
+// edgesOf draws the edges that remain; with a node spotlit (lit is its
+// chain), an edge with an end outside the chain fades.
+func (d *drawing) edgesOf(locked, lit map[string]bool) []svgEdge {
 	var out []svgEdge
 	for i := range d.g.Edges {
 		if d.dropped[d.g.Edges[i].From] || d.dropped[d.g.Edges[i].To] {
 			continue
 		}
 		if e, ok := edgeOf(&d.g.Edges[i], locked, d.dx); ok {
-			if spot && e.From != selected && e.To != selected {
+			if lit != nil && (!lit[e.From] || !lit[e.To]) {
 				e.Class += " dim"
 			}
 			out = append(out, e)
 		}
 	}
 	return out
+}
+
+// nodeHref is the page with node id selected: the no-script form of a
+// click. It keeps the groups the page has open.
+func (d *drawing) nodeHref(id string) string {
+	q := url.Values{"tab": {"graph"}, "node": {id}}
+	for _, e := range d.expanded {
+		q.Add("expand", e)
+	}
+	if d.ungrouped {
+		q.Set("group", "off")
+	}
+	return d.page + "?" + q.Encode()
+}
+
+// graphHandoff is the Graph tab spotlighting node id, with group expanded
+// and fitted when the node is folded into one.
+func graphHandoff(base, id, group string) string {
+	q := url.Values{"tab": {tabGraph}, "focus": {id}}
+	if group != "" {
+		q.Set("expand", group)
+		q.Set("fit", group)
+	}
+	return base + "?" + q.Encode()
+}
+
+// restingNode is the node whose panel a page shows when nothing is
+// selected: the first held registration, by name, that the caller may read
+// and whose claim needs attention (refused, pending, accepted but not
+// active, or removal blocked), and otherwise the owner's own node.
+func restingNode(g *v1.Graph) *v1.GraphNode {
+	var first *v1.GraphNode
+	for i := range g.Nodes {
+		n := &g.Nodes[i]
+		if n.Registration == nil || (n.Access != "" && n.Access != v1.AccessOK) {
+			continue
+		}
+		if slug, _ := standingOf(n.Registration); slug == standingActive || slug == unknownWord {
+			continue
+		}
+		if first == nil || registrationName(n) < registrationName(first) {
+			first = n
+		}
+	}
+	if first != nil {
+		return first
+	}
+	return findNode(g, g.Root)
+}
+
+func registrationName(n *v1.GraphNode) string {
+	if n.Ref != nil {
+		return n.Ref.Name
+	}
+	return n.Label
 }
 
 // groupLink makes a closed group's node open the group: its link adds the
@@ -372,11 +497,13 @@ func (d *drawing) nodeOf(n *v1.GraphNode) svgNode {
 		Mono:    n.Group == nil && (n.Kind == "object" || n.Kind == kindRuntime || n.Kind == kindSource),
 		Full:    n.Label,
 		Aria:    nodeAria(n, word, status),
-		Href:    d.page + "?" + url.Values{"tab": {"graph"}, "focus": {n.ID}}.Encode(),
+		Href:    d.nodeHref(n.ID),
 		Card:    d.cardOf(n, word, locked, state),
 		Panel:   d.panel + "?" + url.Values{"id": {n.ID}}.Encode(),
 		Locked:  locked,
 		Applied: n.Reconcile != nil && !locked,
+		RingX:   x - ringGap, RingY: n.Y - ringGap, RingW: w + 2*ringGap, RingH: d.g.Layout.NodeHeight + 2*ringGap,
+		HaloX: x - haloGap, HaloY: n.Y - haloGap, HaloW: w + 2*haloGap, HaloH: d.g.Layout.NodeHeight + 2*haloGap,
 		StampX:  x + w - 16,
 		StampY:  n.Y + 6,
 		TextX:   x + 12,
@@ -416,7 +543,7 @@ func standingOf(r *v1.GraphRegistration) (slug, text string) {
 		return "blocked", "Removal blocked"
 	case verdictAccepted:
 		if r.Active {
-			return "active", "Accepted · active"
+			return standingActive, "Accepted · active"
 		}
 		return "inactive", "Accepted · not active"
 	case verdictRefused:

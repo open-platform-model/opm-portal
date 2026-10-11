@@ -624,7 +624,11 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 /* ---- Graph view: spotlight, cards, full screen ---- */
 
 .graph { position: relative; }
-.graph .node.dim, .graph .edge.dim { opacity: 0.25; }
+.graph .node.dim, .graph .edge.dim { opacity: 0.35; }
+/* Hover and keyboard focus dim the same chain while they last: the
+   transient class replaces the page's own spotlight, which is lifted. */
+.graph.chain-on .node.dim, .graph.chain-on .edge.dim { opacity: 1; }
+.graph.chain-on .node.chain-dim, .graph.chain-on .edge.chain-dim { opacity: 0.35; }
 .graph .node, .graph .edge { transition: opacity 0.15s ease; }
 @media (prefers-reduced-motion: reduce) { .graph .node, .graph .edge { transition: none; } }
 .node-cards { position: static; }
@@ -639,6 +643,15 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .nc-marks .label { margin: 0 2px 0 6px; color: var(--hdr-strong); }
 .tool-link { font-size: 0.8rem; white-space: nowrap; }
 .tool-link[hidden] { display: none; }
+/* The toolbar's Clear selection is for full screen, where the details panel
+   is out of sight; elsewhere the panel carries the control. */
+.graph-stage:not(.graph-full):not(:fullscreen) .graph-tools [data-clear-selection] { display: none; }
+.detail { position: relative; }
+.clear-pill { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--control-border); border-radius: 999px; background: var(--surface); color: var(--ink-2); text-decoration: none; }
+.clear-pill svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.clear-pill:hover { border-color: var(--accent); color: var(--accent-deep); }
+.detail .frag-h { padding-right: 36px; }
+.tone-box { margin: 10px 0 0; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); font-size: 0.85rem; overflow-wrap: anywhere; }
 .zoom-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }
 .zoom-label input { width: 110px; }
 .graph-stage { min-width: 0; }
@@ -767,10 +780,14 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .node.locked .node-label { fill: var(--locked-ink); }
 /* The outline is health's; hover, focus and selection draw a ring around
    it instead of recolouring it. */
-.node-ring { fill: none; stroke: none; }
-.node:hover .node-ring { stroke: var(--accent-soft); stroke-width: 8; }
-.node:focus-visible .node-ring { stroke: var(--focus); stroke-width: 6; }
-.node[aria-current="true"] .node-ring { stroke: var(--focus); stroke-width: 9; stroke-opacity: 0.55; }
+.node-ring, .node-halo { fill: none; stroke: none; }
+.node:hover .node-ring { stroke: var(--accent-soft); stroke-width: 6; }
+/* A selection is a 3 px accent ring with a gap of the pane between it and
+   the box; the resting node wears the same ring but is not a selection. A
+   spotlit node adds a 10 px tint halo. */
+.node[aria-current="true"] .node-ring, .graph:not(.has-selection) .node[data-resting] .node-ring { stroke: var(--accent); stroke-width: 3; }
+.node[data-spotlight] .node-halo { stroke: var(--accent-soft); stroke-width: 10; }
+.node:focus-visible .node-ring { stroke: var(--focus); stroke-width: 4; }
 .node:hover .node-box { stroke-width: 2.5; }
 /* The applied stamp: the operator's axis, shaped like the applied badge. */
 .node-stamp { fill: var(--applied); stroke: var(--applied); stroke-width: 1.2; }

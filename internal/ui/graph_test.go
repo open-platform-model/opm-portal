@@ -330,7 +330,7 @@ func moduleGraph() v1.Graph {
 // not changed, and a graph whose first column still holds a node stays.
 func TestBuildGraphDropsTheModuleNode(t *testing.T) {
 	g := moduleGraph()
-	out := buildGraph(g, "instance-graph", "/instances/ns/i", "/instances/ns/i/node", "")
+	out := buildGraph(g, graphParams{ID: "instance-graph", Page: "/instances/ns/i", Panel: "/instances/ns/i/node"})
 	if len(out.Nodes) != 2 || len(out.Edges) != 1 || out.Width != 800-264 {
 		t.Fatalf("%d nodes, %d edges, width %d; want 2, 1, 536", len(out.Nodes), len(out.Edges), out.Width)
 	}
@@ -344,7 +344,7 @@ func TestBuildGraphDropsTheModuleNode(t *testing.T) {
 		t.Error("buildGraph changed the document it was given")
 	}
 	g.Nodes[0].Kind = "object"
-	if kept := buildGraph(g, "instance-graph", "/", "/node", ""); kept.Width != 800 || kept.Columns[0].Title != "Module" {
+	if kept := buildGraph(g, graphParams{ID: "instance-graph", Page: "/", Panel: "/node"}); kept.Width != 800 || kept.Columns[0].Title != "Module" {
 		t.Errorf("a graph with a node in its first column was moved: width %d, columns %v", kept.Width, kept.Columns)
 	}
 }

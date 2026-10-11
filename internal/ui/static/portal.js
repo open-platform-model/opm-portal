@@ -702,36 +702,62 @@
   });
 
   // ---- Graph nodes ----
-  // selected maps a graph id to the id of its selected node, so a refresh
-  // that replaces the graph keeps the mark.
+  // Two states, as on the canvas. A selection (node=) shows the node's panel
+  // and a ring and dims nothing. A spotlight (focus=) selects too, adds a
+  // halo, centres the node and dims everything outside its chain: its
+  // ancestors and its descendants, two directed walks, never an undirected
+  // closure. Hover and keyboard focus dim the same chain while they last.
+  // selected maps a graph id to its selected node, spot to its spotlit one;
+  // a render that replaces the graph is the truth for both (the address
+  // carries them), and centred remembers which focus value was centred.
   var selected = new Map();
+  var spot = new Map();
+  var centred = new Map();
 
-  // markSelected marks the selected node and spotlights it: every node
-  // and edge not next to it is dimmed by a class.
+  // chainOf is id, its ancestors (edges walked backward) and its
+  // descendants (edges walked forward).
+  function chainOf(g, id) {
+    var back = Object.create(null), fwd = Object.create(null);
+    g.querySelectorAll("path[data-from]").forEach(function (e) {
+      var f = e.getAttribute("data-from"), t = e.getAttribute("data-to");
+      (back[t] = back[t] || []).push(f);
+      (fwd[f] = fwd[f] || []).push(t);
+    });
+    var out = new Set([id]);
+    [back, fwd].forEach(function (next) {
+      var seen = new Set([id]), stack = [id];
+      while (stack.length) {
+        var n = stack.pop();
+        (next[n] || []).forEach(function (m) {
+          if (!seen.has(m)) {
+            seen.add(m);
+            out.add(m);
+            stack.push(m);
+          }
+        });
+      }
+    });
+    return out;
+  }
+
+  // dimBy gives cls to every node outside lit and every edge with an end
+  // outside it; no lit set clears the class.
+  function dimBy(g, lit, cls) {
+    g.querySelectorAll("path[data-from]").forEach(function (e) {
+      e.classList.toggle(cls, !!lit && !(lit.has(e.getAttribute("data-from")) && lit.has(e.getAttribute("data-to"))));
+    });
+    g.querySelectorAll(".node").forEach(function (n) {
+      n.classList.toggle(cls, !!lit && !lit.has(n.getAttribute("data-node")));
+    });
+  }
+
+  // markSelected rings the selected node and, for a spotlight, adds the
+  // halo and dims what lies outside the chain.
   function markSelected(g) {
-    var want = selected.get(g.getAttribute("data-graph"));
-    if (want && !g.querySelector('.node[data-node="' + CSS.escape(want) + '"]')) {
-      // The focused node is gone (the object was deleted): nothing dims,
-      // and the panel no longer describes it.
-      selected.delete(g.getAttribute("data-graph"));
-      setFocusParam("");
-      resetDetail();
-      want = "";
-    }
-    var near = new Set();
-    if (want) {
-      near.add(want);
-      g.querySelectorAll("path[data-from]").forEach(function (e) {
-        var from = e.getAttribute("data-from"), to = e.getAttribute("data-to");
-        if (from === want || to === want) {
-          near.add(from);
-          near.add(to);
-        }
-        e.classList.toggle("dim", from !== want && to !== want);
-      });
-    } else {
-      g.querySelectorAll("path[data-from]").forEach(function (e) { e.classList.remove("dim"); });
-    }
+    var gid = g.getAttribute("data-graph");
+    var want = selected.get(gid) || "";
+    var hot = spot.get(gid) || "";
+    dimBy(g, hot ? chainOf(g, hot) : null, "dim");
     g.querySelectorAll(".node").forEach(function (n) {
       var id = n.getAttribute("data-node");
       if (want && id === want) {
@@ -739,41 +765,58 @@
       } else {
         n.removeAttribute("aria-current");
       }
-      n.classList.toggle("dim", !!want && !near.has(id));
+      if (hot && id === hot) {
+        n.setAttribute("data-spotlight", "");
+      } else {
+        n.removeAttribute("data-spotlight");
+      }
     });
+    g.classList.toggle("has-selection", !!want);
     var clear = g.querySelector("[data-clear-selection]");
     if (clear) {
       clear.hidden = !want;
     }
   }
 
-  // setFocusParam keeps the focus parameter in the address, so a refresh,
-  // a reload and a shared link show the same spotlight.
-  function setFocusParam(id) {
+  // setSelectionParams keeps node and focus in the address, so a refresh,
+  // a reload and a shared link show the same selection or spotlight.
+  function setSelectionParams(node, focus) {
     var u = new URL(location.href);
-    if (id) {
-      u.searchParams.set("focus", id);
-    } else {
-      u.searchParams.delete("focus");
-    }
+    [["node", node], ["focus", focus]].forEach(function (kv) {
+      if (kv[1]) {
+        u.searchParams.set(kv[0], kv[1]);
+      } else {
+        u.searchParams.delete(kv[0]);
+      }
+    });
     history.replaceState(history.state, "", u.pathname + u.search + u.hash);
   }
 
-  function resetDetail() {
+  // resetDetail returns the panel to the node the page rests on, which the
+  // graph names; without one it says what to do.
+  function resetDetail(g) {
     var target = document.getElementById("detail");
-    if (target) {
-      var p = document.createElement("p");
-      p.className = "muted";
-      p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
-      target.replaceChildren(p);
+    if (!target) {
+      return;
     }
+    var url = g && g.getAttribute("data-resting-panel");
+    if (url && typeof htmx !== "undefined") {
+      htmx.ajax("GET", url, { source: g, target: "#detail", swap: "innerHTML", select: "unset" });
+      return;
+    }
+    var p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
+    target.replaceChildren(p);
   }
 
   function clearSelection(g) {
-    selected.delete(g.getAttribute("data-graph"));
+    var gid = g.getAttribute("data-graph");
+    selected.delete(gid);
+    spot.delete(gid);
     markSelected(g);
-    setFocusParam("");
-    resetDetail();
+    setSelectionParams("", "");
+    resetDetail(g);
   }
 
   function intoView(el) {
@@ -781,6 +824,32 @@
     if (r.top < 0 || r.top > window.innerHeight - 80) {
       el.scrollIntoView({ block: "start", behavior: "smooth" });
     }
+  }
+
+  // centreSpot scrolls the frame so the spotlit node is in its middle, once
+  // per focus value: smooth unless the user asks for reduced motion.
+  function centreSpot(g) {
+    var gid = g.getAttribute("data-graph");
+    var hot = spot.get(gid);
+    var frame = frameOf(g);
+    var svg = g.querySelector("svg");
+    if (!hot || centred.get(gid) === hot || !frame || !svg || !frame.clientWidth) {
+      return;
+    }
+    var box = g.querySelector('.node[data-node="' + CSS.escape(hot) + '"] .node-box');
+    if (!box) {
+      return;
+    }
+    centred.set(gid, hot);
+    var s = parseFloat(svg.getAttribute("width")) / svg.viewBox.baseVal.width;
+    var cx = (box.x.baseVal.value + box.width.baseVal.value / 2) * s;
+    var cy = (box.y.baseVal.value + box.height.baseVal.value / 2) * s;
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    frame.scrollTo({
+      left: Math.max(0, cx - frame.clientWidth / 2),
+      top: Math.max(0, cy - frame.clientHeight / 2),
+      behavior: reduced ? "auto" : "smooth"
+    });
   }
 
   function openNode(a) {
@@ -791,9 +860,11 @@
     }
     var g = a.closest(".graph[data-graph]");
     if (g) {
-      selected.set(g.getAttribute("data-graph"), a.getAttribute("data-node"));
+      var gid = g.getAttribute("data-graph");
+      selected.set(gid, a.getAttribute("data-node"));
+      spot.delete(gid);
       markSelected(g);
-      setFocusParam(a.getAttribute("data-node"));
+      setSelectionParams(a.getAttribute("data-node"), "");
     }
     // select "unset": the node sits inside #app, whose hx-select="#main" the
     // request would inherit, and the panel response holds no #main.
@@ -832,7 +903,8 @@
   document.addEventListener("click", function (evt) {
     var clear = evt.target.closest && evt.target.closest("[data-clear-selection]");
     if (clear) {
-      var cg = clear.closest(".graph[data-graph]");
+      // The panel's Clear selection sits outside the graph: find the page's.
+      var cg = clear.closest(".graph[data-graph]") || document.querySelector(".graph[data-graph]");
       if (cg) {
         evt.preventDefault();
         clearSelection(cg);
@@ -844,7 +916,7 @@
       // A click on the empty graph clears the selection; a drag does not.
       var empty = evt.target.closest && evt.target.closest(".graph-frame");
       var eg = empty && empty.closest(".graph[data-graph]");
-      if (eg && !moved && selected.has(eg.getAttribute("data-graph"))) {
+      if (eg && !moved && selected.has(eg.getAttribute("data-graph")) && !evt.target.closest("a")) {
         clearSelection(eg);
       }
       return;
@@ -939,15 +1011,31 @@
   // back its selected node; it runs on load and after every swap.
   function restoreGraphs() {
     document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
-      if (!selected.has(g.getAttribute("data-graph"))) {
-        var cur = g.querySelector(".node[aria-current]");
-        if (cur) {
-          selected.set(g.getAttribute("data-graph"), cur.getAttribute("data-node"));
-        }
+      var gid = g.getAttribute("data-graph");
+      var prev = selected.get(gid);
+      var cur = g.querySelector(".node[aria-current]");
+      if (prev && !g.querySelector('.node[data-node="' + CSS.escape(prev) + '"]')) {
+        // The selected node is gone (the object was deleted): the panel no
+        // longer describes it, and the address stops naming it.
+        setSelectionParams("", "");
+        resetDetail(g);
+      }
+      // The render is the truth: it was made from the address.
+      if (cur) {
+        selected.set(gid, cur.getAttribute("data-node"));
+      } else {
+        selected.delete(gid);
+      }
+      var focus = g.getAttribute("data-focus");
+      if (focus && cur) {
+        spot.set(gid, focus);
+      } else {
+        spot.delete(gid);
       }
       apply(g);
       markSelected(g);
       fitGroup(g);
+      centreSpot(g);
     });
     markFull();
     showHovered();
@@ -1046,6 +1134,7 @@
   document.addEventListener("htmx:beforeSwap", function (evt) {
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
+      centred.clear();
       leaveFull();
     }
   });
@@ -1277,6 +1366,10 @@
     return id ? document.getElementById(id) : null;
   }
 
+  // showCard places the card at the node's right edge plus 12 px, or left of
+  // the node when it does not fit there, clamped to the graph, through CSSOM
+  // properties; it also dims, while it lasts, what lies outside the node's
+  // chain.
   function showCard(n) {
     var card = cardFor(n);
     var g = n.closest(".graph[data-graph]");
@@ -1287,16 +1380,26 @@
     var box = g.getBoundingClientRect();
     var r = n.getBoundingClientRect();
     card.hidden = false;
-    var left = r.left - box.left;
-    var top = r.bottom - box.top + 6;
-    var max = g.clientWidth - card.offsetWidth - 4;
-    card.style.left = Math.max(4, Math.min(left, max)) + "px";
+    var w = card.offsetWidth, h = card.offsetHeight;
+    var left = r.right - box.left + 12;
+    if (left + w > g.clientWidth - 4) {
+      left = r.left - box.left - 12 - w;
+    }
+    left = Math.max(4, Math.min(left, g.clientWidth - w - 4));
+    var top = Math.max(4, Math.min(r.top - box.top, g.clientHeight - h - 4));
+    card.style.left = left + "px";
     card.style.top = top + "px";
     hovered = { graph: g.getAttribute("data-graph"), node: n.getAttribute("data-node") };
+    g.classList.add("chain-on");
+    dimBy(g, chainOf(g, n.getAttribute("data-node")), "chain-dim");
   }
 
   function hideCards() {
     document.querySelectorAll(".node-card:not([hidden])").forEach(function (c) { c.hidden = true; });
+    document.querySelectorAll(".graph.chain-on").forEach(function (g) {
+      g.classList.remove("chain-on");
+      dimBy(g, null, "chain-dim");
+    });
   }
 
   function showHovered() {

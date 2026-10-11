@@ -75,7 +75,7 @@
 <div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
 <section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="package:pkg/podinfo">
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
-<div class="graph" data-graph="package-graph">
+<div class="graph" data-graph="package-graph" data-resting-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo">
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">Select a box to see its details on the right.</span>
     <a class="tool-link" href="/packages/pkg/podinfo" hx-boost="false" data-clear-selection hidden>Clear selection</a>
@@ -94,9 +94,10 @@
       <path class="edge edge-sourcedFrom" d="M232 80 H256 V80 H280" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
       <path class="edge edge-ghost" d="M232 80 H256 V192 H280"/>
       
-      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?focus=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, Unknown, Failed, retrying" aria-describedby="package-graph-card-0">
+      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?node=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, Unknown, Failed, retrying" aria-describedby="package-graph-card-0" data-resting>
         <title>pkg/podinfo</title>
-        <rect class="node-ring" x="16" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-halo" x="6" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="12" y="40" width="224" height="80" rx="11"/>
         <rect class="node-box" x="16" y="44" width="216" height="72" rx="6"/>
         
         <text class="node-kind" x="28" y="64">Package</text>
@@ -105,9 +106,10 @@
         <text class="node-status" x="41" y="104">Unknown</text>
         <rect class="node-stamp" x="216" y="50" width="10" height="10" rx="1"/>
       </a>
-      <a class="node kind-source health-missing" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release, Kind not installed" aria-describedby="package-graph-card-1">
+      <a class="node kind-source health-missing" href="/packages/pkg/podinfo?node=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release, Kind not installed" aria-describedby="package-graph-card-1">
         <title>OCIRepository podinfo-release</title>
-        <rect class="node-ring" x="280" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-halo" x="270" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="40" width="224" height="80" rx="11"/>
         <rect class="node-box" x="280" y="44" width="216" height="72" rx="6"/>
         
         <text class="node-kind" x="292" y="64">OCIRepository</text>
@@ -140,6 +142,24 @@
 </section>
 </div>
 <aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<p class="kicker">Package</p>
+<h2 class="frag-h mono">pkg/<wbr>podinfo</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-unknown"><span class="axis">Health axis</span>Unknown</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModulePackage.<wbr>opmodel.<wbr>dev pkg/<wbr>podinfo</dd>
+  <dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>
+  <dt>Applied reason</dt><dd class="mono">SourceNotReady</dd><dt>Controller says</dt><dd>getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</dd>
+  
+  <dt>Path</dt><dd class="mono">.</dd>
+  
+  
+  
+</dl>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>sourcedFrom (ModulePackage spec.sourceRef)</li></ul>
+<p class="panel-links">
+  <a href="/packages/pkg/podinfo">Open page</a>
+  
+  
+</p>
 </aside>
 </main>

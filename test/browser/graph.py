@@ -20,10 +20,18 @@ first failure:
    with an Applied and a Health badge. The panel request must not inherit the page's hx-select.
    Each badge stands beside a visible label that names its axis (portal:D19:R3): "Applied" and
    "Health" for the instance's node, "Health" alone for the Deployment's.
+7. Selection and spotlight: a click selects with `node=` and dims nothing; hovering or focusing the Pod
+   dims the Service (the chain is the Pod's ancestors and descendants, not its siblings); the hover
+   card sits right of the node, or left of it where there is no room on the right.
+8. The Resources hand-off to a folded RBAC object expands and fits the group and shows the object
+   spotlit inside the frame.
+9. The Clear selection pill returns the panel to the resting node; Escape at the resting node does not
+   clear it, and the resting node wears the plain ring.
 """
 
 import json
 import sys
+import time
 
 from playwright.sync_api import sync_playwright
 
@@ -34,6 +42,10 @@ LABELS = (
     " el => [el.textContent.trim(), el.offsetWidth > 1 && el.offsetHeight > 1])"
 )
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
+SERVICE = "obj:_/Service/default/podinfo-podinfo"
+POD = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
+CERT = "/instances/cert-manager/cert-manager"
+STROKE = "id => getComputedStyle(document.querySelector(`.node[data-node=\"${id}\"] .node-ring`)).strokeWidth"
 ROOT = "mi:default/podinfo"
 
 
@@ -74,10 +86,11 @@ def run(p, engine, base):
         page.goto(base + PODINFO + "?tab=graph")
         set_zoom(page, 120)
         activate(page, f'.node[data-node="{DEPLOY}"]')
-        page.wait_for_url(lambda u: "focus=" in u)
+        page.wait_for_url(lambda u: "node=" in u and "focus=" not in u)
+        page.wait_for_selector("#detail .clear-pill")
         before = page.evaluate("history.length")
-        page.locator("[data-clear-selection]").click()
-        page.wait_for_url(lambda u: "focus=" not in u)
+        page.locator("#detail .clear-pill").click()
+        page.wait_for_url(lambda u: "node=" not in u)
         after, dims, cur = page.evaluate(
             "[history.length, document.querySelectorAll('.graph .dim').length,"
             " document.querySelectorAll('.node[aria-current]').length]")
@@ -136,7 +149,7 @@ def run(p, engine, base):
         # 6. The details panel after a node selection (instance-43).
         page.goto(base + PODINFO + "?tab=graph")
         activate(page, f'.node[data-node="{DEPLOY}"]')
-        page.wait_for_selector("#detail .frag-h")
+        page.wait_for_selector("#detail .clear-pill")
         name, facts, cur = page.evaluate(
             "[document.querySelector('#detail .frag-h').textContent.trim(),"
             " document.querySelector('#detail .facts').textContent,"
@@ -151,7 +164,7 @@ def run(p, engine, base):
         if engine != "firefox":
             page.goto(base + PODINFO + "?tab=graph")
             page.locator(f'.node[data-node="{DEPLOY}"]').first.click()
-            page.wait_for_selector("#detail .frag-h")
+            page.wait_for_selector("#detail .clear-pill")
             clicked = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
             if not check(engine, clicked == "podinfo-podinfo", f"pointer selection filled the panel: {clicked!r}"):
                 return False
@@ -166,6 +179,93 @@ def run(p, engine, base):
         labels = page.evaluate(LABELS)
         if not check(engine, labels == [["Applied", True], ["Health", True]],
                      f"the instance node's panel shows visible Applied and Health labels: {labels}"):
+            return False
+
+        # 7. Selection does not dim; the chain does (hover and focus); the card keeps to the node.
+        page.goto(base + PODINFO + "?tab=graph")
+        activate(page, f'.node[data-node="{SERVICE}"]')
+        page.wait_for_url(lambda u: "node=" in u)
+        dims, cur, halo = page.evaluate(
+            "[document.querySelectorAll('.graph .dim').length,"
+            " document.querySelectorAll('.node[aria-current]').length,"
+            " document.querySelectorAll('.node[data-spotlight]').length]")
+        if not check(engine, dims == 0 and cur == 1 and halo == 0 and "focus=" not in page.url,
+                     f"a click selects with node= and dims nothing: dimmed {dims}, selected {cur}, halo {halo}, {page.url}"):
+            return False
+        page.goto(base + PODINFO + "?tab=graph")
+        page.locator(f'.node[data-node="{POD}"]').first.focus()
+        page.wait_for_selector(".node-card:not([hidden])")
+        chain = page.evaluate(
+            f"[...document.querySelectorAll('.graph .node.chain-dim')].map(n => n.getAttribute('data-node'))")
+        if not check(engine, SERVICE in chain and POD not in chain and DEPLOY not in chain and ROOT not in chain,
+                     f"focusing the Pod dims the Service and keeps its chain lit: dimmed {chain}"):
+            return False
+        card_left = page.evaluate(
+            f"(() => {{ const c = document.querySelector('.node-card:not([hidden])').getBoundingClientRect();"
+            f" const n = document.querySelector('.node[data-node=\"{POD}\"]').getBoundingClientRect();"
+            " return [c.left, c.right, n.left, n.right]; })()")
+        if not check(engine, card_left[1] <= card_left[2] + 1 or card_left[0] >= card_left[3] - 1,
+                     f"the Pod's card keeps off its node: {json.dumps(card_left)}"):
+            return False
+        page.keyboard.press("Escape")
+        page.wait_for_selector(".node-card:not([hidden])", state="detached")
+        after = page.evaluate("document.querySelectorAll('.graph .chain-dim, .graph.chain-on').length")
+        if not check(engine, after == 0, f"Escape hides the card and lifts the transient dimming: {after} left"):
+            return False
+        page.locator(f'.node[data-node="{ROOT}"]').first.focus()
+        page.wait_for_selector(".node-card:not([hidden])")
+        card = page.evaluate(
+            f"(() => {{ const c = document.querySelector('.node-card:not([hidden])').getBoundingClientRect();"
+            f" const n = document.querySelector('.node[data-node=\"{ROOT}\"]').getBoundingClientRect();"
+            " return [c.left, n.right]; })()")
+        if not check(engine, card[0] >= card[1] - 1, f"the instance's card sits right of its node: {json.dumps(card)}"):
+            return False
+        page.keyboard.press("Escape")
+
+        # 8. The hand-off to a folded RBAC object opens and fits the group, with the object spotlit.
+        page.goto(base + CERT + "?tab=resources")
+        page.locator("#config-components > summary").click()
+        page.locator('#components a[href*="expand="]', has_text="Graph").first.click()
+        page.wait_for_url("**fit=**")
+        page.wait_for_selector(".graph[data-fitted]")
+        page.wait_for_selector(".node[data-spotlight]")
+        seen = False
+        for _ in range(40):
+            seen = page.evaluate(
+                "(() => { const n = document.querySelector('.node[data-spotlight]').getBoundingClientRect();"
+                " const f = document.querySelector('.graph-frame').getBoundingClientRect();"
+                " return n.left >= f.left - 1 && n.right <= f.right + 1 && n.top >= f.top - 1 && n.bottom <= f.bottom + 1; })()")
+            if seen:
+                break
+            time.sleep(0.1)
+        frames = page.locator(".group-frame").count()
+        if not check(engine, seen and frames == 1,
+                     f"the hand-off opened the group ({frames} frame) and shows the spotlit object inside the frame: {seen}"):
+            return False
+
+        # 9. Clear selection returns to the resting node; Escape there clears nothing.
+        page.goto(base + PODINFO + "?tab=graph")
+        rest_name = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
+        ring = page.evaluate(STROKE, ROOT)
+        activate(page, f'.node[data-node="{DEPLOY}"]')
+        page.wait_for_selector("#detail .clear-pill")
+        page.locator("#detail .clear-pill").click()
+        page.wait_for_url(lambda u: "node=" not in u)
+        for _ in range(40):
+            name = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
+            if name == rest_name:
+                break
+            time.sleep(0.1)
+        pill = page.locator("#detail .clear-pill").count()
+        if not check(engine, name == rest_name and pill == 0 and ring == "3px",
+                     f"Clear selection returned to the resting node {rest_name!r}: panel {name!r}, pill {pill}, plain ring {ring}"):
+            return False
+        page.keyboard.press("Escape")
+        time.sleep(0.3)
+        still = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
+        ring2 = page.evaluate(STROKE, ROOT)
+        if not check(engine, still == rest_name and ring2 == "3px" and "node=" not in page.url,
+                     f"Escape at the resting node clears nothing: panel {still!r}, ring {ring2}"):
             return False
     finally:
         browser.close()

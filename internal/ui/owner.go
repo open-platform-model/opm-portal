@@ -95,8 +95,9 @@ type ownerView struct {
 
 	Graph        svgGraph
 	GraphProblem *v1.Problem
-	// Focus is the node the graph spotlights.
+	// Focus is the node the graph spotlights; Node the one it selects.
 	Focus string
+	Node  string
 	Panel *nodePanel
 
 	// ReasonForm filters the Resources tab by a health reason.
@@ -274,7 +275,7 @@ func refKey(r v1.ObjectRef) string { return r.Group + "/" + r.Kind + "/" + r.Nam
 func annotateResources(cs []componentView, byRef, groupOf map[string]string, base, reason string) []componentView {
 	focus := func(r v1.ObjectRef, component string) string {
 		if id := byRef[refKey(r)]; id != "" {
-			return base + "?" + url.Values{"tab": {tabGraph}, "focus": {id}}.Encode()
+			return graphHandoff(base, id, "")
 		}
 		// Folded into a group: open the group and focus the object's own
 		// node in it.
@@ -285,7 +286,7 @@ func annotateResources(cs []componentView, byRef, groupOf map[string]string, bas
 		if group == "" {
 			return base + "?tab=" + tabGraph
 		}
-		return base + "?" + url.Values{"tab": {tabGraph}, "expand": {group}, "focus": {objectNodeID(r)}}.Encode()
+		return graphHandoff(base, objectNodeID(r), group)
 	}
 	out := make([]componentView, 0, len(cs))
 	for i := range cs {
@@ -602,24 +603,43 @@ func (v *ownerView) nothingApplied() (empty, fetched bool) {
 	return false, true
 }
 
+// selectInGraph draws the graph with the page's selection and spotlight,
+// and sets the panel: the spotlit node's, else the selected one's, else the
+// node the page rests on.
+func (h *Handler) selectInGraph(r *http.Request, v *ownerView, g *v1.Graph) {
+	q := r.URL.Query()
+	v.Focus, v.Node = q.Get("focus"), q.Get("node")
+	resting := ""
+	if n := restingNode(g); n != nil {
+		resting = n.ID
+	}
+	v.Graph = buildGraph(*g, graphParams{
+		ID: v.Kind.Topic + "-graph", Page: v.Base, Panel: v.Base + "/node",
+		Node: v.Node, Focus: v.Focus, Resting: resting,
+		Expanded: q["expand"], Ungrouped: q.Get("group") == "off",
+	})
+	v.Graph.FitGroup = q.Get("fit")
+	v.finishGraph(q)
+	v.Components, v.Config = foldConfig(v.Components, g)
+	if shown := firstOf(v.Focus, firstOf(v.Node, resting)); shown != "" {
+		v.Panel = h.panel(r, g, shown, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer, resting: resting})
+	}
+	if len(q["expand"]) > 0 {
+		v.Graph.Whole = v.Base + "?tab=" + tabGraph
+	}
+	v.Graph.Clear = linkWithout(v.Base, q, "focus", "node")
+	v.Graph.Focused = v.Panel != nil && !v.Panel.Missing && (v.Focus != "" || v.Node != "")
+	if v.Panel != nil && !v.Panel.Resting {
+		v.Panel.Clear = v.Graph.Clear
+	}
+}
+
 // ownerTabsOf reads what the cards and the open tab show.
 func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	q := r.URL.Query()
 	var g v1.Graph
 	if v.GraphProblem = h.fetch(r, v.Base+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
-		v.Focus = q.Get("focus")
-		v.Graph = buildGraph(g, v.Kind.Topic+"-graph", v.Base, v.Base+"/node", v.Focus, q["expand"]...)
-		v.Graph.FitGroup = q.Get("fit")
-		v.finishGraph(q)
-		v.Components, v.Config = foldConfig(v.Components, &g)
-		if v.Focus != "" {
-			v.Panel = h.panel(r, &g, v.Focus, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer})
-		}
-		if len(q["expand"]) > 0 {
-			v.Graph.Whole = v.Base + "?tab=" + tabGraph
-		}
-		v.Graph.Clear = linkWithout(v.Base, q, "focus")
-		v.Graph.Focused = v.Panel != nil && !v.Panel.Missing
+		h.selectInGraph(r, v, &g)
 	}
 	// The Resources count comes before the tab switch: annotateResources
 	// drops the rows a reason filter does not match, and the count is the
@@ -644,7 +664,7 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 		for _, c := range v.Healthc.Reasons {
 			reasons = append(reasons, c.Text)
 		}
-		v.ReasonForm = newFilterForm(parseFilters(&rv, q), "Filter resources", keepHidden(q, "reason", "focus"),
+		v.ReasonForm = newFilterForm(parseFilters(&rv, q), "Filter resources", keepHidden(q, "reason", "focus", "node"),
 			map[string][]string{"reason": reasons}, map[string]string{"reason": "a reason, such as ImagePullBackOff"})
 		v.Components = annotateResources(v.Components, byRef, groupOf, v.Base, reason)
 		if v.Config != nil {
