@@ -27,18 +27,22 @@ same tokens, tabs and summary block, so this change lands them first, once.
   their shadow and corner mark, and `h2` loses its diamond and grows to 20 px. The page column and
   footer grow to 1840 px. Summary rows use equal auto-fit columns. Body text is 16 px, `h1` is at
   most 40 px, mono text is 13 px, and kickers, labels, table heads and fact labels are sans.
-  Links are brass.
+  Links are brass. No element animates in on page load: the staggered entrance goes. A contrast
+  test covers every new colour pair, and `docs/DESIGN.md` records the floor as a new D19 requirement.
 - **Badges, tabs and the live mark** (section 3): Applied and Health share one square, uppercase
   badge in their tone, taken from the state class every badge already carries. The `APPLY |`
   prefix and the health dot go; each badge still names its axis to assistive technology, and
   where both axes stand together each is named in visible text. Tabs on every page become
   underline tabs and carry counts the page already holds, refreshed live with the page. A region opened by a tab no longer shows its own heading, which stays for screen
-  readers. The live mark reads "Live", "Not live", "Offline" and so on, with a steady dot.
+  readers. The live mark reads "Live", "Not live", "Offline" and so on, with a steady dot. In
+  forced-colours mode the badges keep a system-colour border, and the partial health keeps its
+  dashed one. The 360 px phone test also covers the details panel after a node selection.
 - **The state block and the tooltip** (section 4): one shared component for the summary cards:
   eyebrow, a recorded time, a tone icon, a big uppercase state word, a summary line, note lines, a
-  caption, reason count links and footer links, with locked and degraded forms; and one CSS-only
-  info tooltip. This change builds and tests both. `align-platform-installed-catalog` and
-  `align-owner-pages` put them on their pages.
+  caption, reason count links and footer links, with locked and degraded forms; and one info
+  tooltip. This change builds and tests both. `align-platform-installed-catalog` and
+  `align-owner-pages` put them on their pages. The tip can be dismissed with Escape, hovered and
+  opened by a tap, with a small script over its CSS-only base (WCAG 2.2 1.4.13).
 - **Docs and evidence** (section 5): screenshots of every page in light, dark and at 360 px;
   `docs/site/` pages that describe the old badge shapes or wording; `ROADMAP.md`.
 
@@ -59,6 +63,10 @@ graph's drawing. The canvas's "Ready / Not ready" words for the Applied axis als
 Applied axis keeps the controller's state words (portal:D3:R1; supervisor ruling 2026-10-06).
 
 ## Gate
+
+This change needs `fix-contrast-and-add-phone-check` merged first: that change adds the
+phone-width test and the contrast test that sections 2, 3 and 4 extend, and the sections that
+extend them start after `main` is merged into the branch.
 
 `align-platform-installed-catalog`, `align-owner-pages` and `align-graph` each depend on
 align-shell-and-tokens. They use its tone classes, its tab component and its state block, and
@@ -86,7 +94,11 @@ None.
   templates, `view.go`, `owner.go`, `catalog.go` and `platform.go` (tab counts), and a new state
   block view type and partial, and the tooltip partial. Tests and goldens change too.
   `test/browser/graph.py`, `test/browser/expired.py`, `test/browser/theme.py` and the
-  `TestBrowserGraph` doc comment in `cmd/opm-portal/browser_test.go` change. `api/v1alpha1`, `internal/api`, `internal/readmodel`,
+  `TestBrowserGraph` doc comment in `cmd/opm-portal/browser_test.go` change. The floors add
+  `internal/ui/contrast_test.go` (extended), `test/browser/phone.py` (extended), a new
+  `test/browser/tip.py` with `TestBrowserTip` and its name in the `-run` pattern of `Taskfile.yml`,
+  a check in `test/browser/theme.py`, a requirement in `docs/DESIGN.md`, and a small script in
+  `portal.js` for the tip. `api/v1alpha1`, `internal/api`, `internal/readmodel`,
   `internal/graph` and `internal/health` do not change.
 - API: none. `task api:breaking` is unaffected.
 - Pages: every page, through the shell and the shared CSS; tab strips on the Platform, Catalog,
@@ -96,11 +108,14 @@ None.
   is not shown.
 - Principle VII: no dependency and no build step. The state block lands one section before any
   page uses it. Two follow-on changes run in parallel and both need it, so one copy here beats
-  two copies there. A view test exercises every tone and every form.
+  two copies there. A view test exercises every tone and every form. The tip gains a small script (Escape, tap) over
+  its CSS-only base, because WCAG 2.2 1.4.13 asks for a tip that can be dismissed and CSS alone
+  cannot close a tip that still has the pointer or focus.
 - SemVer: MINOR after 1.0. Pages change, and no API or flag changes. On the 0.x line it ships as
   one PR titled `feat(ui): follow the canvas's flat look, tokens, tabs and state block`, which
   cuts a minor release. The section 1 bug fix rides in the same PR.
-- Decisions: implements portal:D19 (the canvas's flat look) and
+- Decisions: implements portal:D19 (the canvas's flat look), adds one requirement to it (the
+  contrast floor, next free number, every existing number kept), and
   keeps portal:D3 (two axes, the Applied words), portal:D14 (nothing new stored) and portal:D17
   as they are. portal:OQ25 is widened and portal:OQ26 is added, both docs only.
 - Shared pieces the follow-on changes take as they ship: the `stateBlock` fields (`When` is a
@@ -108,4 +123,6 @@ None.
   state classes.
 - Main-spec requirements touched, so the parallel changes can avoid them: `web-ui`'s "Applied and
   health are two badges, never one" and "An expired session stops the page's stream" (MODIFIED).
-  Five requirements are ADDED under new names.
+  The other requirements are ADDED under new names. Each stays under 500 characters, since
+  `openspec validate --strict` warns above that: the five requirements of the first draft were
+  split without changing a sentence, and the floors of the plan add their own.

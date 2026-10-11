@@ -32,6 +32,9 @@ component and state block this change lands.
   scale, label style and link colour.
 - One square badge for both axes; underline tabs with counts on every page; a worded live mark.
 - One state block component, built and tested here, for the follow-on changes to use.
+- The floors the portal's UI plan adds to this change (SH-A1 to SH-A5, table below): the contrast
+  pairs and their D19 requirement, a tip that can be dismissed and hovered, forced-colours
+  borders, the details panel in the phone test, and no entrance animation.
 - Every gap in `gaps.md` section A mapped to a design point and a task (table below).
 
 **Non-Goals:**
@@ -98,6 +101,22 @@ Side effects on items outside section A, claimed by nobody else: the page-wide g
 shape half of `installed-12` and `installed-13` (decided out under the old badge rule) is
 reversed by portal:D19:R3. Their word half stays out.
 
+## Amendments
+
+The change was merged with the planning PR, then amended with floors that the portal's UI plan
+carries and the planning PR lacks. The ids SH-A1 to SH-A5 name them in `tasks.md` and below. Every
+other task and requirement is as the planning PR wrote it, except that four long requirements of
+the spec delta are split, sentence for sentence, to stay under the 500 characters that
+`openspec validate --strict` allows (proposal, Impact).
+
+| Id | Amendment | Design point | Tasks | Requirement in the spec delta |
+| --- | --- | --- | --- | --- |
+| SH-A1 | Contrast pairs for the new tokens, and the floor recorded under D19 | The contrast floor | 2.5a, 2.5b | Tone, link and state block colours meet WCAG 2.2 AA contrast |
+| SH-A2 | The tip can be dismissed, hovered and opened by a tap | The tooltip | 4.2, 4.3, 4.4, 4.4a, 4.4b | An info tip can be dismissed, hovered and opened by tap |
+| SH-A3 | Forced-colours borders | Forced-colours borders | 3.1, 3.5, 4.3, 4.4, 5.1 | Badges, the state block and the info tip keep a border in forced-colours mode |
+| SH-A4 | The details panel after a node selection, and every page, in the phone test | The phone test | 3.5a, 3.6 | The details panel after a node selection holds the phone width |
+| SH-A5 | No entrance animation | No entrance animation | 2.2, 2.5, 2.6a | Pages do not animate in |
+
 ## Decisions
 
 ### The node panel request (section 1, instance-43)
@@ -146,7 +165,8 @@ badge background (`--<tone>-bg`) and the block tint (`--<tone>-tint`). Each is r
 | neutral (gray) | #5f6672 / #3a4150 / #e7e3da / #fffdf8 | #8f96a3 / #c4c0b5 / #262c36 / #161c26 |
 | missing (live only) | #8a3a9c / #6e2c7e / #efe0f3 / #f7eefa | #d69af0 / #e2b6f5 / #2a1733 / #1f1226 |
 
-`--line` in dark becomes `#2a3240` (canvas `--pt-d6ccb8`). A new `--line-soft` (#e5dccb, dark
+These are the canvas's values. Where one fails the contrast floor, the floor wins ("The contrast
+floor" below). `--line` in dark becomes `#2a3240` (canvas `--pt-d6ccb8`). A new `--line-soft` (#e5dccb, dark
 #222a35) is the canvas's row divider. `missing` has no canvas value; it keeps today's border and
 background and gains an ink and tint in the same family. `locked` keeps its tokens and gains
 `--locked-ink` (mapped to today's `--locked`) and `--locked-tint` (mapped to `--locked-bg`) in all
@@ -448,16 +468,38 @@ that a block never borrows a time holds. The one block-specific addition, the Ap
 attempt strip, stays with `align-owner-pages`, which is the only change that edits the partial
 after this one.
 
-### The tooltip (section 4)
+### The tooltip (section 4, SH-A2)
 
 Two follow-on changes draw the canvas's info tooltip: `align-platform-installed-catalog` on the
 Installed provider badge, `align-owner-pages` on the identity card's Owner and Applier facts. It
 lands here, for the same reason as the state block: a `tip` partial (a focusable `span.tip` with
-`tabindex="0"` and `aria-describedby`, holding its trigger, and a `span.tipbox` with
-`role="tooltip"`) and its CSS, shown on `:hover` and `:focus-within` with no script. The box is 300
-px wide on the dark ink, opens below its trigger and aligns to the trigger's end near the right
-edge. Placement inside a scrolling table is the follow-on change's concern (see
-`align-platform-installed-catalog`, "Provider badge").
+`tabindex="0"`, holding its trigger, and a `span.tipbox` with `role="tooltip"` as its last child;
+the trigger names the box in `aria-describedby`) and its CSS, shown on `:hover` and `:focus-within`
+with no script. The box is 300 px wide on the dark ink, opens below its trigger and aligns to the
+trigger's end near the right edge. Placement inside a scrolling table is the follow-on change's
+concern (see `align-platform-installed-catalog`, "Provider badge"). The box holds text only; a
+link or a control inside a tip would need a different component.
+
+WCAG 2.2 1.4.13 asks that content shown on hover or focus can be dismissed without moving the
+pointer or focus, can be hovered, and stays until dismissed. CSS alone gives the last two: the box
+sits inside `.tip` and touches its trigger (no gap that drops `:hover`), so the pointer reaches it.
+CSS cannot give a dismiss, and a touch screen needs a tap. So a small set of delegated handlers on
+`document` in `portal.js` (delegated, so markup swapped in by htmx works) adds two state classes,
+`is-open` and `is-dismissed`, over the CSS base (`.tip.is-open .tipbox` shows, `.tip.is-dismissed
+.tipbox` hides, the hide rule last):
+
+| Input | Effect |
+| --- | --- |
+| Escape with a tip shown | First in the Escape order, before the theme menu. Sets `is-dismissed`, leaves focus on the trigger, and `evt.preventDefault()` so no other layer closes in the same press. `is-dismissed` clears when the pointer and focus have both left the tip |
+| Enter or Space on the focused trigger | Opens a closed tip (`is-open`, clears `is-dismissed`) and closes an open one (`is-dismissed`). Space calls `preventDefault` so the page does not scroll |
+| A tap (or a click) on the trigger | The same toggle. The handler reads whether the box is shown at `pointerdown`, before focus moves: a tap focuses a trigger that has `tabindex`, and `:focus-within` alone then shows the box, so reading after the focus would close the tip the tap opened |
+| A tap or click outside every tip | Removes `is-open` |
+
+If the script fails to load, the CSS base still shows the tip on hover and focus and the pointer can
+still reach the box; only Escape and the tap toggle are lost. `test/browser/tip.py` drives the
+inputs above in the three engines. No page shows a tip in this change, so the case injects the
+markup of the golden `fragment-tip.html` into the Platform page, where the real `portal.css` and
+`portal.js` act on it; each follow-on change that puts a tip on a page adds its own case there.
 
 No page renders a state block or a tooltip in this change. A view test renders the partials for
 every hue, with and without `When`, with notes, a caption, reasons, links and a problem, and checks
@@ -465,6 +507,76 @@ the escaping. The follow-on changes put
 it on their pages: the Platform status and Catalog resolved blocks
 (`align-platform-installed-catalog`), and the Applied, Health and Provider blocks
 (`align-owner-pages`).
+
+### The contrast floor (section 2, SH-A1)
+
+WCAG 2.2 AA asks 4.5:1 for text (1.4.3) and 3:1 for the boundary of a control (1.4.11). D19 says the
+tokens carry the canvas's values, and the canvas's `--muted` and control border fail that floor
+(`--muted` `#6a6f7a` on `#efe9dc` is 4.165:1). `fix-contrast-and-add-phone-check` (E0) fixes those
+two tokens and adds `internal/ui/contrast_test.go` with a pair list. It may not add tokens, so it
+leaves two light pairs pending (`--healthy` on `--healthy-bg` 4.450, `--degraded` on
+`--degraded-bg` 4.414), which this change's `-ink` tokens close. This change extends the list with
+the pairs of the tokens it adds (task 2.5a) and records the floor as a D19 requirement (task 2.5b).
+
+Ratios by the WCAG formula over the hex values of the table above and of `portal.css` on `main`,
+computed on 2026-10-11 (not rendered pixels, and the tints are solid, so no layer is blended):
+
+| Pair | Floor | Light | Dark |
+| --- | --- | --- | --- |
+| Each tone's `-ink` on its `-bg` (seven tones) | 4.5 | 5.865 (degraded) to 11.354 (applied) | 7.379 (applied) to 9.650 (missing) |
+| Each tone's `-ink` on its `-tint` | 4.5 | 6.576 (degraded) to 12.702 (applied) | 8.091 (applied) to 10.485 (unknown) |
+| `--locked-ink` on `--locked-tint` | 4.5 | 5.029 | 8.472 |
+| `--accent` on `--bg`, on `--surface` | 4.5 | 4.899, 5.588 | 10.008, 9.285 |
+| `--accent-deep` on `--bg`, on `--surface` | 4.5 | 8.099, 9.237 | 12.104, 11.230 |
+| `--ink-2` on every tint, `--locked-tint` included | 4.5 | 8.020 to 10.068 | 9.028 to 9.852 |
+| `--muted` `#5f6672` (E0's value) on every tint, `--locked-tint` included | 4.5 | 4.533 (locked) to 5.691 (neutral) | 5.516 (locked) to 6.019 (missing) |
+| `--muted` `#6a6f7a` (today's value) on every tint | 4.5 | fails on applied 4.454, progressing 4.486, degraded 4.483, missing 4.455, locked 3.948 | not changed by E0 |
+
+With the table's values every pair passes, so the amendment is a guard and not a repair. It depends
+on E0 for `--muted`, and one margin is narrow: `--muted` on `--locked-tint` passes by 0.033. A later
+change to either value fails the test and names the pair. The state block's 15 px summary in
+`--ink-2`, its 13 px time and 12 px caption in `--muted`, and its 26 px state word in `-ink` all sit
+on the tint, which is why the tints are in the list. The border and icon colour `--<tone>` is not
+in the list: a badge and a state block name their state in text, so the border is decoration, and
+the icon is `aria-hidden`.
+
+### Forced-colours borders (sections 3 and 4, SH-A3)
+
+In forced-colours mode the browser replaces authored colours with the user's palette, sets
+`box-shadow` to none and drops background images other than `url()`. The words of a badge and the
+state word keep carrying the state, so the loss of hue costs nothing. What must survive is the
+shape. The partial health badge is the case at risk: today it draws its ring with an inset
+`box-shadow` and its hatch with a gradient (`portal.css:376`), and both vanish, so it would read as
+a full health. Task 3.1 gives it a dashed border; the forced-colours block makes the dashed border
+explicit, and gives the two badges a `CanvasText` border. The state block (a tint and a 2 px
+border) and the tip's box (a dark fill) get a `CanvasText` border in the same block (task 4.3),
+because a tint and a fill are what that mode replaces with the page colours. A CSS test holds the
+block (tasks 3.5, 4.4); screenshots in Chromium with forced colours emulated go into the evidence
+(task 5.1). Not verified here: a pass in a real Windows high-contrast theme.
+
+### The phone test (section 3, SH-A4)
+
+`fix-contrast-and-add-phone-check` (E0) adds `TestBrowserPhone`, which opens every non-fragment
+page of the F1 capture at 360 px and fails above a 360 px scroll width. This change restyles every
+page, so its page list must hold all of them. E0's list is the non-fragment paths of `f1Pages`, so
+the task is to compare the two lists and add a path this change adds (none is expected). One state
+is not a path: the details panel after a node selection, filled in place by script. Its content
+is the widest thing a selection adds (kinds, long names, two badges with labels), so `phone.py`
+gains one step that selects the `podinfo-podinfo` node from the keyboard and measures again. The
+360 px screenshots of task 5.1 stay as evidence of the look; the test is the guard.
+
+### No entrance animation (section 2, SH-A5)
+
+The page runs a staggered entrance on load: `.reveal` animates `rise` over 520 ms, with delays of
+60 to 360 ms on the children of `main`, under `prefers-reduced-motion: no-preference`
+(`portal.css:743-757`). D19:R1 names the pattern, the shadow, the corner mark and the heading
+marker, not this. The owner answered on 2026-10-11 to remove it. The change removes the CSS only:
+the `.reveal` rules, `body.loaded .reveal` and `@keyframes rise`. The `settle` ring that a live
+refresh draws stays, with the 900 ms `loaded` class it waits for. The `reveal` class stays in the
+templates, where it now names nothing, because `align-platform-installed-catalog`,
+`align-owner-pages` and `align-graph` edit the same templates in parallel and a markup change in
+all of them would collide; the first change that wants the class gone removes it. A CSS test (task
+2.5) and a browser check (task 2.6a) hold the removal.
 
 ### Authorization
 
@@ -536,6 +648,47 @@ icon, word, summary and reasons as data.
 parallel changes need one component, and putting it in the gate is the only order without a
 copy.
 
+### The contrast floor against the canvas's values
+
+**Context**: D19 says the tokens carry the canvas's values; the canvas's `--muted` and control
+border fail WCAG 2.2 AA, and this change adds tints and inks that nobody had measured.
+**Explored**: the formula table in "The contrast floor"; E0's `contrast_test.go` design.
+**Options considered**:
+1. Keep the canvas's values and accept the failures: breaks the accessibility floor.
+2. Hold the floor in the test only: the code then disagrees with D19's text, and the next reader
+   restores the canvas's value.
+3. Hold the floor in the test and as a new D19 requirement, so a canvas value that fails yields.
+**Decision**: 3. The owner answered yes on 2026-10-11.
+**Rationale**: the record should say what the code does. The requirement adds a limit and removes
+no word of D19; reversal is a text edit (high reversibility, hours).
+
+### A tip that can be dismissed
+
+**Context**: the tip of the planning PR is CSS-only, so Escape cannot close it; WCAG 2.2 1.4.13
+needs a dismiss, and a touch screen has no hover.
+**Explored**: `portal.js:1051-1084` (the Escape order), the hover card's script
+(`portal.js:1086` on), the tip's markup above.
+**Options considered**:
+1. CSS only, as drafted: fails the dismiss, and gives touch no way to open it.
+2. The Popover API: it opens from a button press, not on hover or focus, so it would replace the
+   tip's behaviour and not add a dismiss to it.
+3. Delegated handlers over the CSS base: a small script; the base still works if it fails.
+**Decision**: 3.
+**Rationale**: smallest change that meets 1.4.13 and keeps the no-script behaviour; the script
+adds two classes and no state of its own.
+
+### Dropping the entrance animation
+
+**Context**: the planning PR is silent on the staggered entrance (D19:R1 does not name it).
+**Explored**: `portal.css:743-757`; the template and golden use of `.reveal`.
+**Options considered**:
+1. Keep it, under `no-preference` only (today).
+2. Remove the CSS and keep the class in the templates.
+3. Remove the CSS and the class from every template.
+**Decision**: 2. The owner answered yes to removing the animation on 2026-10-11.
+**Rationale**: an operator console gains nothing from a 900 ms entrance. Option 3 touches every
+template that the three follow-on changes also edit, and every golden, for no behaviour.
+
 ## Risks / Trade-offs
 
 - **The look changes on every page at once.** Goldens change wholesale in sections 2 and 3.
@@ -544,13 +697,18 @@ copy.
 - **Same-shape badges are easier to confuse.** Mitigation: a badge never stands without a named
   axis, and each carries its axis in its accessible name. The words of the two axes do not
   overlap except "Unknown", and that one is named by place.
+- **The tip's script acts on a component no page shows yet.** The browser case injects the
+  golden markup into a real page, so a mismatch between the partial and the script shows. Each
+  follow-on change that places a tip adds a case on its page.
+- **One contrast margin is thin** (`--muted` on `--locked-tint`, 0.033). The test names the pair
+  when either value moves.
 - **An unused component for one release.** Mitigation: the view test holds its contract, and the
   follow-on changes cannot start before it lands.
 - **Shared templates edited here and in the follow-on changes.** Mitigation: this change edits
   them only for tab counts, region headings and badge markup, and lands first. The follow-on
   changes start from it.
 - **Main-spec overlap.** This change MODIFIES two `web-ui` requirements ("Applied and health are
-  two badges, never one"; "An expired session stops the page's stream") and adds five under new
+  two badges, never one"; "An expired session stops the page's stream") and adds the others under new
   names. The follow-on changes must not modify those two, or must rebase on this change's
   archive.
 
@@ -561,5 +719,7 @@ working. Rollback is a revert.
 
 ## Open Questions
 
-None for this change. The docs-only questions are in `docs/DESIGN.md`: portal:OQ26 (per-catalog
+None for this change that needs the owner. One note for the implementer: whether Playwright's
+touch emulation works in Firefox is not known here; task 4.4b records which engine ran the tap
+path and which ran the click path. The docs-only questions are in `docs/DESIGN.md`: portal:OQ26 (per-catalog
 resolve time and digest, opm-operator#230) and portal:OQ25 (now also a catalog's description).

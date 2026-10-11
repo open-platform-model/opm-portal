@@ -91,19 +91,8 @@ rendered.
 Every page SHALL follow the reviewed canvas's look. The page background SHALL be one flat colour
 with no grid or glow. Panels and cards SHALL be flat, with a 1 px border, no shadow and no corner
 mark. Section headings SHALL be plain 20 px text with no marker. The page column and the footer
-SHALL be at most 1840 px wide. A row of summary cards SHALL share its width in equal columns and
-SHALL stack at narrow widths. Body text SHALL be 16 px, a page title at most 40 px, and mono text
-13 px. Kickers, labels, table heads and fact labels SHALL use the page's sans face, and fact
-labels SHALL be in sentence case. Text links in the page body SHALL be drawn in the accent
-colour; the header, tabs, chips, badges, state-block reason links and graph nodes keep their own
-colours.
-Every colour SHALL be a token on `:root`, redefined for dark mode under the `prefers-color-scheme`
-block guarded by `:root:not([data-theme="light"])` and again under `:root[data-theme="dark"]`.
-Each status tone SHALL have a border, a text ink, a background and a tint token. The Instance and
-Package kind chips SHALL take their colours from their own tokens, so that both read in light and
-dark. No page SHALL scroll horizontally at a 360 px wide viewport. The graph pane's own grid is part
-of the graph's drawing, not the page background, and is not covered by this requirement. Source:
-portal:D19:R1/R2, portal:D17.
+SHALL be at most 1840 px wide. The graph pane's own grid is part of the graph's drawing, not the
+page background, and is not covered by this requirement. Source: portal:D19:R1.
 
 #### Scenario: A flat page
 
@@ -116,11 +105,37 @@ portal:D19:R1/R2, portal:D17.
 - **WHEN** `/installed` is shown in a 1920 px wide viewport
 - **THEN** the page column is 1840 px wide, with the footer at the same width
 
+### Requirement: Summary rows share their width and no page scrolls sideways at 360 px
+
+A row of summary cards SHALL share its width in equal columns and SHALL stack at narrow widths. No
+page SHALL scroll horizontally at a 360 px wide viewport. Source: portal:D19:R1, portal:D17.
+
 #### Scenario: A phone
 
 - **WHEN** `/`, `/installed`, `/instances/default/podinfo` and a Catalog page are shown in a
   360 px wide viewport
 - **THEN** none scrolls horizontally, and the summary cards stack in one column
+
+### Requirement: Pages share one type scale and link colour
+
+Body text SHALL be 16 px, a page title at most 40 px, and mono text 13 px. Kickers, labels, table
+heads and fact labels SHALL use the page's sans face, and fact labels SHALL be in sentence case.
+Text links in the page body SHALL be drawn in the accent colour; the header, tabs, chips, badges,
+state-block reason links and graph nodes keep their own colours. Source: portal:D19, portal:D17.
+
+#### Scenario: Header links keep their colours
+
+- **WHEN** any page is shown
+- **THEN** links in the page body are drawn in the accent colour and the header's brand,
+  navigation and connection marks keep the header's own colours
+
+### Requirement: Every colour is a token in both themes
+
+Every colour SHALL be a token on `:root`, redefined for dark mode under the `prefers-color-scheme`
+block guarded by `:root:not([data-theme="light"])` and again under `:root[data-theme="dark"]`.
+Each status tone SHALL have a border, a text ink, a background and a tint token. The Instance and
+Package kind chips SHALL take their colours from their own tokens, so that both read in light and
+dark. Source: portal:D19:R2.
 
 #### Scenario: The Instance chip in dark mode
 
@@ -133,42 +148,60 @@ portal:D19:R1/R2, portal:D17.
 - **THEN** every tone's border, ink, background and tint token is defined on `:root` and
   redefined, with the same values, in both dark blocks
 
-#### Scenario: Header links keep their colours
+### Requirement: Tone, link and state block colours meet WCAG 2.2 AA contrast
 
-- **WHEN** any page is shown
-- **THEN** links in the page body are drawn in the accent colour and the header's brand,
-  navigation and connection marks keep the header's own colours
+Text in a tone's ink SHALL have a contrast ratio of at least 4.5:1 on that tone's background and
+tint, in both themes. So SHALL brass links on the page and surface colours, and muted and
+secondary ink on every tint. A canvas value that fails SHALL change to one that passes, never the
+layout. Ratios come from the token hex values and are not rounded. Source: portal:D19 (the
+contrast requirement added with this change), WCAG 2.2 1.4.3.
 
-### Requirement: Tabs are underlined and carry their counts
+#### Scenario: Tone ink on its background and tint
+
+- **WHEN** the contrast test checks each tone's ink, including the locked ink, on its background
+  and its tint, in the light and the dark theme
+- **THEN** every pair is at least 4.5:1
+
+#### Scenario: Links and secondary ink
+
+- **WHEN** the contrast test checks the accent and deep accent on the page and surface colours,
+  and the muted and secondary ink on every tint, in both themes
+- **THEN** every pair is at least 4.5:1
+
+#### Scenario: A canvas value that fails
+
+- **WHEN** a tone ink from the canvas's sheet falls under 4.5:1 on its background or tint
+- **THEN** the token takes the nearest value that passes, its layout is unchanged, and the final
+  value is written into design.md
+
+#### Scenario: A pair falls below its floor
+
+- **WHEN** a change lowers a listed pair under 4.5:1 in either theme
+- **THEN** the contrast test fails and names the pair, the theme and the ratio
+
+### Requirement: Tabs are underlined
 
 Every tab strip (the Platform's Providers and Catalogs, the Catalog page's tabs, and the instance
 and package pages' tabs) SHALL be drawn as underline tabs: no box around a tab, the current tab
 marked by a 3 px accent underline and the ink colour, the others muted. A tab SHALL be a link
-carrying `tab=` that works without script. A tab SHALL show, after its label, the unfiltered
-number of items it lists when the page already holds that number and it covers everything the tab
-lists: Providers, Catalogs, Claims, Resources (inventory objects and runtime children) and Events
-on instance and package pages (the folded lines of the feed the tab opens with). A tab whose list
-the caller may not read in full, or whose source is a problem, SHALL show no count, never a
-partial one. Showing a count SHALL not add a read. A count SHALL update when the page's regions
-refresh live, without reloading the page. A region a tab opens SHALL not show a visible
-heading of its own, since the selected tab names it, and SHALL keep that heading for assistive
-technology. Source: portal:D19:R4, portal:D7:R2/R3.
+carrying `tab=` that works without script. Source: portal:D19, portal:D7:R2/R3.
+
+#### Scenario: A tab without script
+
+- **WHEN** a browser with script off follows podinfo's Resources tab
+- **THEN** the page opens on that tab, drawn with the 3 px accent underline
+
+### Requirement: Tabs carry their counts
+
+A tab SHALL show, after its label, the unfiltered number of items it lists when the page already
+holds that number and it covers everything the tab lists: Providers, Catalogs, Claims, Resources
+(inventory objects and runtime children) and Events on instance and package pages (the folded
+lines of the feed the tab opens with). Source: portal:D19:R4, portal:D7:R2/R3.
 
 #### Scenario: The F1 Platform tabs
 
 - **WHEN** a signed-in browser opens `/` on the F1 capture
 - **THEN** the tabs read "Providers 2" and "Catalogs 3", with Providers underlined as current
-
-#### Scenario: Registrations not all readable
-
-- **WHEN** the caller may read the Platform but not list TransformerRegistrations
-- **THEN** neither the Providers nor the Catalogs tab shows a count, since the Catalogs tab lists
-  catalogs that only a registration claims
-
-#### Scenario: Platform forbidden
-
-- **WHEN** the caller may not read the Platform
-- **THEN** neither the Providers nor the Catalogs tab shows a count
 
 #### Scenario: podinfo's tabs
 
@@ -190,10 +223,32 @@ technology. Source: portal:D19:R4, portal:D7:R2/R3.
 - **THEN** the Claims tab carries the number of registrations that claim the catalog and the
   Events tab carries none
 
+### Requirement: A tab count is never partial, adds no read and follows the page live
+
+A tab whose list the caller may not read in full, or whose source is a problem, SHALL show no
+count, never a partial one. Showing a count SHALL not add a read. A count SHALL update when the
+page's regions refresh live, without reloading the page. Source: portal:D19:R4, portal:D7:R2/R3.
+
+#### Scenario: Registrations not all readable
+
+- **WHEN** the caller may read the Platform but not list TransformerRegistrations
+- **THEN** neither the Providers nor the Catalogs tab shows a count, since the Catalogs tab lists
+  catalogs that only a registration claims
+
+#### Scenario: Platform forbidden
+
+- **WHEN** the caller may not read the Platform
+- **THEN** neither the Providers nor the Catalogs tab shows a count
+
 #### Scenario: A count follows the page live
 
 - **WHEN** podinfo's page is open on its Graph tab and a new event about the instance arrives
 - **THEN** the Events tab's count updates without a reload, and the tabs keep working as links
+
+### Requirement: A region a tab opens has no visible heading
+
+A region a tab opens SHALL not show a visible heading of its own, since the selected tab names it,
+and SHALL keep that heading for assistive technology. Source: portal:D19.
 
 #### Scenario: A region named by its tab
 
@@ -206,10 +261,7 @@ technology. Source: portal:D19:R4, portal:D7:R2/R3.
 With script on, activating a graph node by pointer or keyboard SHALL load that node's details
 into the details panel in place, showing its name, its kind, the axes it carries and its links,
 and SHALL mark the node as selected. The request SHALL not take its swap selection from the page
-around it, so the panel never shows empty after a selection. Without script, a node SHALL stay a
-link that opens the page with the node selected and its details rendered by the server. A node
-the caller may not read SHALL fill the panel with its locked form. Source: portal:D4,
-portal:D19.
+around it, so the panel never shows empty after a selection. Source: portal:D4, portal:D19.
 
 #### Scenario: Selecting podinfo's Deployment
 
@@ -218,6 +270,12 @@ portal:D19.
 - **THEN** the details panel shows the name `podinfo-podinfo`, an Object fact naming the kind
   Deployment, and its health badge beside a visible "Health" label, and the node is marked
   selected
+
+### Requirement: A node keeps a working panel without script and without a grant
+
+Without script, a node SHALL stay a link that opens the page with the node selected and its
+details rendered by the server. A node the caller may not read SHALL fill the panel with its
+locked form. Source: portal:D4, portal:D19.
 
 #### Scenario: Without script
 
@@ -251,14 +309,9 @@ portal:D19.
 
 The pages SHALL draw each summary of one axis or standing with one shared state block: an eyebrow
 naming the axis and its source; the time the source recorded for the state, when it records one,
-or else words that name no time (such as "checked live"), and nothing otherwise; an icon and a large uppercase state word in the state's tone; a summary
-line; optional secondary lines under it (a reason's meaning, a partial or locked mark); an
-optional caption saying what the reasons count; reason links, each a count and a reason linking
-to the view that lists them, or a line saying there are none; and optional footer links. The state word SHALL carry the state without relying on colour. A state
-the UI does not know SHALL render in the unknown tone with its word, never in an error tone. When
-the block's source is forbidden or not readable, the block SHALL render that source locked or
-degraded, with no state word, so a locked source never reads as a state. Every text in the block
-SHALL be rendered as text. Source: portal:D3:R1, portal:D2:R3, portal:D7:R3, portal:D19:R5.
+or else words that name no time (such as "checked live"), and nothing otherwise; an icon and a
+large uppercase state word in the state's tone; and a summary line. Source: portal:D3:R1,
+portal:D2:R3, portal:D7:R3, portal:D19:R5.
 
 #### Scenario: A degraded health block
 
@@ -271,6 +324,27 @@ SHALL be rendered as text. Source: portal:D3:R1, portal:D2:R3, portal:D7:R3, por
 - **WHEN** a state block's source records no time for its state
 - **THEN** the block shows no time, never one borrowed from another field
 
+### Requirement: A state block carries its notes, reasons and links
+
+A state block SHALL also carry optional secondary lines under the summary (a reason's meaning, a
+partial or locked mark); an optional caption saying what the reasons count; reason links, each a
+count and a reason linking to the view that lists them, or a line saying there are none; and
+optional footer links. Source: portal:D3:R1, portal:D7:R3.
+
+#### Scenario: Reasons, notes and links
+
+- **WHEN** a state block is drawn with a note, a caption, two reasons and a footer link
+- **THEN** it shows the note under the summary, the caption over the reasons, each reason as a
+  link with its count, and the footer link
+
+### Requirement: A state block never reads a missing source as a state
+
+The state word SHALL carry the state without relying on colour. A state the UI does not know SHALL
+render in the unknown tone with its word, never in an error tone. When the block's source is
+forbidden or not readable, the block SHALL render that source locked or degraded, with no state
+word, so a locked source never reads as a state. Every text in the block SHALL be rendered as
+text. Source: portal:D2:R3, portal:D19:R5.
+
 #### Scenario: A locked source
 
 - **WHEN** a state block's source is `forbidden`
@@ -280,3 +354,91 @@ SHALL be rendered as text. Source: portal:D3:R1, portal:D2:R3, portal:D7:R3, por
 
 - **WHEN** a reason or summary holds `<script>alert(1)</script>`
 - **THEN** the block shows it as text, escaped
+
+### Requirement: An info tip can be dismissed, hovered and opened by tap
+
+An info tip SHALL show its box when its trigger has the pointer or keyboard focus. The tip SHALL be
+dismissable, hoverable and persistent: Escape closes it without moving focus, the pointer can move
+onto the box without closing it, and the box stays until the user moves away or dismisses it. A tap
+or Enter on the trigger SHALL open a closed tip and close an open one. The box holds text only.
+Source: WCAG 2.2 1.4.13, portal:D19.
+
+#### Scenario: Opens on focus
+
+- **WHEN** keyboard focus reaches a tip's trigger
+- **THEN** the box is shown, and the trigger's `aria-describedby` names it
+
+#### Scenario: Escape closes the tip
+
+- **WHEN** a tip is open and the user presses Escape
+- **THEN** the box is hidden, focus stays on the trigger, and no other layer closes with it
+
+#### Scenario: Enter opens it again
+
+- **WHEN** the user has closed a tip with Escape and presses Enter on its trigger
+- **THEN** the box is shown again
+
+#### Scenario: The pointer moves onto the box
+
+- **WHEN** the pointer rests on a tip's trigger and then moves onto its box
+- **THEN** the box stays shown
+
+#### Scenario: A tap on a touch screen
+
+- **WHEN** the user taps a tip's trigger on a touch screen
+- **THEN** the box opens, a second tap on the trigger closes it, and a tap outside closes it
+
+#### Scenario: Without script
+
+- **WHEN** script is off and the pointer or focus reaches a tip's trigger
+- **THEN** the box is still shown
+
+### Requirement: Badges, the state block and the info tip keep a border in forced-colours mode
+
+In forced-colours mode, the Applied and Health badges, the state block and the info tip's box
+SHALL each keep a border drawn in a system colour, and a partial health SHALL stay apart from a
+full health by its dashed border. Source: WCAG 2.2 1.4.11, portal:D19:R3.
+
+#### Scenario: Badges keep their border
+
+- **WHEN** the stylesheet is checked
+- **THEN** a forced-colours block sets a system-colour border on the Applied badge, the Health
+  badge and the partial health badge, and on the state block and the tip's box
+
+#### Scenario: A partial health without its hatch
+
+- **WHEN** forced-colours mode drops the partial health badge's hatch
+- **THEN** the badge's dashed border still tells it from a full health
+
+### Requirement: The details panel after a node selection holds the phone width
+
+With a node selected, the page SHALL not scroll horizontally at a 360 px wide viewport, and the
+phone-width test SHALL cover that state and every non-fragment page of the F1 capture. Source:
+portal:D19:R1, the 360 px rule of this spec.
+
+#### Scenario: A selected node on a phone
+
+- **WHEN** the user activates the `podinfo-podinfo` node from the keyboard on
+  `/instances/default/podinfo` at 360 px wide
+- **THEN** the details panel fills and the page's scroll width is at most 360 px
+
+#### Scenario: Every restyled page is in the test
+
+- **WHEN** the phone test's page list is compared with the non-fragment pages of the F1 capture
+- **THEN** each page is listed
+
+### Requirement: Pages do not animate in
+
+No element SHALL animate when a page loads or a tab opens, whatever the user's motion preference.
+The fading ring on a region that a live refresh replaces stays, and only where the user has not
+asked for reduced motion. Source: the owner's decision of 2026-10-11, portal:D19.
+
+#### Scenario: A page loads
+
+- **WHEN** `/installed` loads with motion allowed
+- **THEN** no animation runs on any element inside `main`
+
+#### Scenario: No entrance rule remains
+
+- **WHEN** the stylesheet is checked
+- **THEN** it holds no `@keyframes rise` and no rule on `.reveal`
