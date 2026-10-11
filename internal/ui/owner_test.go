@@ -233,7 +233,7 @@ func TestPodPanelLogsOpenItsPane(t *testing.T) {
 }
 
 // TestOwnerTabsCarryTheirCounts (portal:D19:R3): Resources counts the
-// objects and the runtime children below them, Events the folded lines of
+// objects and the runtime children below them and a package's source row, Events the folded lines of
 // the merged feed (the owner's and those of every object it reaches); both count the whole list when a filter narrows the tab.
 // A tab whose source is a problem keeps an empty count span, so a live refresh
 // can remove the old number; when the owner document itself is a problem the
@@ -251,10 +251,14 @@ func TestOwnerTabsCarryTheirCounts(t *testing.T) {
 			t.Errorf("the instance tabs lack %s:\n%s", want, tabs)
 		}
 	}
-	// A package with an empty inventory counts zero resources.
-	pkg := tabsOf(mainOf(s.get(t, "/packages/pkg/podinfo").body))
-	if !strings.Contains(pkg, `id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">0</span>`) {
-		t.Errorf("the package tabs:\n%s", pkg)
+	// A package with an empty inventory lists one row, its source, and counts it
+	// (portal:D19:R4: a count covers everything the tab lists), also under a
+	// reason filter that hides the row.
+	for _, path := range []string{"/packages/pkg/podinfo", "/packages/pkg/podinfo?tab=resources", "/packages/pkg/podinfo?tab=resources&reason=X"} {
+		pkg := tabsOf(mainOf(s.get(t, path).body))
+		if !strings.Contains(pkg, `Resources <span class="tab-n" id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span>`) {
+			t.Errorf("%s: the package tabs:\n%s", path, pkg)
+		}
 	}
 	// A filter narrows the list, not the tab: the unfiltered counts stay.
 	broken := newSite(t, apitest.F1Broken(t), apitest.AllowAll)

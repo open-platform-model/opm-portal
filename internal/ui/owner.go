@@ -363,7 +363,7 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	// The Resources count comes before the tab switch: annotateResources
 	// drops the rows a reason filter does not match, and the count is the
 	// tab's whole list (portal:D19:R3).
-	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Configs))
+	setCount(v.Tabs, tabResources, resourceCount(v, &g))
 	// The merged feed is read on every tab (design.md, "Scale and refresh"),
 	// so the Events count is its folded count on every tab.
 	v.Events = h.events(r, v.Base+"/events", url.Values{"scope": {"all"}}, "events:"+v.Topic)
@@ -450,8 +450,9 @@ func (v *ownerView) countEvents() {
 
 // resourceCount counts the rows the Resources tab lists: each inventory
 // object and every runtime child below it, the scaled-down ReplicaSets and
-// the configuration group included.
-func resourceCount(cs []componentView, configs []configGroup) int {
+// the configuration group included, and a package's source row, which the
+// tab lists first (portal:D19:R4).
+func resourceCount(v *ownerView, g *v1.Graph) int {
 	n := 0
 	count := func(cs []componentView) {
 		for i := range cs {
@@ -461,9 +462,12 @@ func resourceCount(cs []componentView, configs []configGroup) int {
 			}
 		}
 	}
-	count(cs)
-	for i := range configs {
-		count(configs[i].Components)
+	count(v.Components)
+	for i := range v.Configs {
+		count(v.Configs[i].Components)
+	}
+	if v.Package != nil && sourceNode(g) != nil {
+		n++
 	}
 	return n
 }

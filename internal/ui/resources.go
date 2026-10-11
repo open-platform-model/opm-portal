@@ -158,17 +158,24 @@ func (b *tableBuilder) add(r resRow) {
 	b.rows++
 }
 
+// sourceNode is the graph's source node when it names an object, else nil.
+func sourceNode(g *v1.Graph) *v1.GraphNode {
+	for i := range g.Nodes {
+		if g.Nodes[i].Kind == "source" {
+			if g.Nodes[i].Ref == nil {
+				return nil
+			}
+			return &g.Nodes[i]
+		}
+	}
+	return nil
+}
+
 // sourceRow is the package's source, the first row, from the graph's source
 // node. Without a health on the node it reads "not read".
 func (b *tableBuilder) sourceRow(v *ownerView, g *v1.Graph) {
-	var n *v1.GraphNode
-	for i := range g.Nodes {
-		if g.Nodes[i].Kind == "source" {
-			n = &g.Nodes[i]
-			break
-		}
-	}
-	if n == nil || n.Ref == nil {
+	n := sourceNode(g)
+	if n == nil {
 		return
 	}
 	row := resRow{Kind: n.Ref.Kind, Name: nsName(*n.Ref), Origin: originSource, Current: b.sel == n.ID}
