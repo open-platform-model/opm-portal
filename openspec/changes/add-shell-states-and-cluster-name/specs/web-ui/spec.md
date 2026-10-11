@@ -12,7 +12,7 @@ SHALL be the one place these facts show. A version the document does not carry S
 navigation, live mark and theme menu, with the cluster, reader and version reading "unknown" in
 the degraded style, and no cluster entry name. The header SHALL slim after the page scrolls 48 px
 and SHALL not animate under `prefers-reduced-motion`. The cluster entry name SHALL come from the
-`Cluster` document alone: the header SHALL read nothing else for it. Source: portal:D18:R1,
+`Cluster` document alone: the header SHALL read nothing else for it. Source: portal:D18,
 portal:D17:R1.
 
 #### Scenario: The F1 header
@@ -61,17 +61,19 @@ portal:D17:R1.
 When the stream ends with an `expired` event, the page SHALL close its `EventSource`, so it does
 not reconnect, and SHALL show in the live mark that the session expired and the page must be
 reloaded, in the live mark's capitalised wording. The page SHALL keep showing what it last
-rendered, and SHALL show a visible banner below the header that says the session expired, states
-the time of the last data the page received in UTC, and carries a Reload link that loads the page
-afresh. The banner SHALL be neither a live region nor given a role: the live mark SHALL stay the
-one announcer.
+rendered, and SHALL show a visible banner in the sticky header that says the session expired,
+states the time of the last data the page received in the form of the `time` partial (relative
+text, the ISO time in `datetime`, the absolute time in UTC in `title`), and carries a Reload link
+that loads the page afresh. The banner SHALL be neither a live region nor given a role: the live
+mark SHALL stay the one announcer.
 
 #### Scenario: The session expires while a page is open
 
 - **WHEN** the session of an open page expires
 - **THEN** the live mark reads "Session expired, reload"
-- **AND** the banner reads "Session expired. Showing data read at" followed by the time of the
-  last message the stream delivered, in UTC, with a Reload link
+- **AND** the banner reads "Session expired. Showing data read" followed by the age of the last
+  message the stream delivered as a `time` element (relative text, with the instant in
+  `datetime` and in UTC in `title`), with a Reload link
 - **AND** the page makes no further stream request
 
 #### Scenario: Reload after the session expired
@@ -180,16 +182,21 @@ state SHALL not use a `style` attribute.
 ### Requirement: A lost stream shows a banner
 
 When the page's stream is not open (reconnecting, offline, topics refused, or a signed-out
-answer), the page SHALL show a visible banner below the header with the live mark's word and the
-time of the last message the stream delivered, in UTC, for example "Showing data read at 10:42
-UTC. Reconnecting.", and a Reload link. The banner SHALL be neither a live region nor given a
-role. The page SHALL record the time of every stream message, a heartbeat included, and at load.
+answer), the page SHALL show a visible banner in the sticky header, so that a reader scrolled down
+the page still sees it, with the live mark's word, the time of the last message the stream
+delivered, and a Reload link. The banner SHALL be neither a live region nor given a role. The page
+SHALL record the time of every stream message, a heartbeat included, and at load.
 
 #### Scenario: The stream drops
 
 - **WHEN** the stream's connection drops 20 seconds after its last heartbeat at 10:42:07 UTC
 - **THEN** the live mark reads "Reconnecting"
-- **AND** the banner reads "Showing data read at 10:42 UTC. Reconnecting." with a Reload link
+- **AND** the banner reads "Showing data read 20s ago. Reconnecting." with a Reload link
+
+#### Scenario: A reader scrolled far down
+
+- **WHEN** the reader has scrolled 3000 px down a Resources page and the stream drops
+- **THEN** the banner and its Reload link are inside the viewport, at the top, with the header
 
 #### Scenario: The page makes no announcement of its own
 
@@ -202,11 +209,29 @@ role. The page SHALL record the time of every stream message, a heartbeat includ
 - **WHEN** a page is served and its script does not run
 - **THEN** the banner stays hidden and the page renders as before
 
+### Requirement: The banner and the stale note print their time like every other time
+
+The time in the banner and in the stale note SHALL have the form of the `time` partial: relative
+text, the ISO time in `datetime` and the absolute time in UTC in `title`. It SHALL keep counting
+like every other relative time.
+
+#### Scenario: The time carries both forms
+
+- **WHEN** the banner shows the last message of 10:42:07 UTC, 20 seconds old
+- **THEN** its `time` carries `datetime="2026-10-11T10:42:07Z"` and the `title`
+  "2026-10-11 10:42:07 UTC", and reads "20s ago"
+
+#### Scenario: The banner keeps counting
+
+- **WHEN** the banner shows "Showing data read 20s ago." and the stream stays down for 60 more
+  seconds
+- **THEN** the banner reads "Showing data read 1m ago."
+
 ### Requirement: A stream that returns re-renders before the banner goes
 
 When a stream opens again after a loss, the page SHALL re-render every region it follows from one
-fetch of the page, and SHALL hide the banner only when that fetch has succeeded. When the fetch
-fails, the banner SHALL stay, with the live mark's word for the failure.
+fetch of the page. The page SHALL hide the banner and set the live mark to "Live" only when that
+fetch has returned 200 and the regions are replaced.
 
 #### Scenario: The stream returns
 
@@ -214,17 +239,37 @@ fails, the banner SHALL stay, with the live mark's word for the failure.
 - **THEN** the followed regions show the fetch's content, the live mark reads "Live" and the
   banner is hidden
 
+### Requirement: A resync that has not succeeded keeps the banner
+
+From the moment the connection opens again until the resync has succeeded, the live mark SHALL
+keep the word of the loss and the banner SHALL stay. When the fetch fails, the banner SHALL stay
+with the live mark's word for the failure. When the fetch is answered as signed out, the banner
+SHALL stay and read "Signed out".
+
+#### Scenario: The connection is open and the fetch is pending
+
+- **WHEN** the stream's connection has opened again and the one fetch of the page has not yet
+  answered
+- **THEN** the live mark still reads "Reconnecting" and the banner is still shown
+
 #### Scenario: The stream returns but the fetch fails
 
 - **WHEN** the stream opens again and the page's fetch fails
 - **THEN** the live mark reads "Offline" and the banner stays, with "Offline" as its last word
+
+#### Scenario: The stream returns but the session is gone
+
+- **WHEN** the stream opens again and the page's fetch is answered with 401
+- **THEN** the live mark reads "Signed out" and the banner stays, reading "Signed out. Showing
+  data read" and the time of the last message
 
 ### Requirement: A node panel is re-rendered with its page
 
 A details panel that shows a graph node, including the resting node, SHALL be re-rendered with
 the other regions of its page when a topic the page follows changes, from the same one fetch,
 without announcing the panel again. A refresh SHALL not replace the panel while a request into it
-is open, and SHALL keep the reader's focus, the selected node and the open state of its groups.
+is open, and SHALL keep the reader's focus, including focus on one of the panel's own links, the
+selected node and the open state of its groups.
 
 #### Scenario: A selected node changes health
 
@@ -232,6 +277,11 @@ is open, and SHALL keep the reader's focus, the selected node and the open state
   Deployment becomes Healthy
 - **THEN** without a reload the graph and the panel both read Healthy, the node stays selected and
   the address still carries `node`
+
+#### Scenario: Focus on a panel link survives a refresh
+
+- **WHEN** a keyboard user has focus on the panel's YAML link and a followed topic changes
+- **THEN** after the refresh the panel is replaced and focus is on the YAML link of the new panel
 
 #### Scenario: A request into the panel is open
 
@@ -253,14 +303,16 @@ is open, and SHALL keep the reader's focus, the selected node and the open state
 
 A YAML view or an Events view in the details panel SHALL not be re-fetched by a refresh. After a
 refresh in which a followed topic changed, the view SHALL show a note with the absolute time it
-was read, in UTC, the words "The object may have changed since", and a link that reloads the view.
-The note SHALL be plain text from the template.
+was read, in the form of the `time` partial (relative text, the ISO time in `datetime`, the
+absolute time in UTC in `title`), the words "The object may have changed since", and a link that
+reloads the view. The note SHALL be plain text from the template.
 
 #### Scenario: A YAML view after a change
 
 - **WHEN** the user has opened a Deployment's YAML in the panel and a followed topic changes
-- **THEN** the YAML text is unchanged, and a note reads "Read at" with the time it was read in
-  UTC and "The object may have changed since", with a link "Reload this view"
+- **THEN** the YAML text is unchanged, and a note reads "Read" with the age of the read as a
+  `time` element (its `title` holds the absolute time in UTC) and "The object may have changed
+  since", with a link "Reload this view"
 
 #### Scenario: Reloading the view
 

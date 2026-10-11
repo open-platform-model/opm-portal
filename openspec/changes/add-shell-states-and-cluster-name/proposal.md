@@ -33,18 +33,23 @@ not here: `align-shell-and-tokens` owns it.
   the slow request fills the details panel, `aria-busy="true"` and a visible "Loading..." line in
   it. The bar is static under `prefers-reduced-motion`. The count of open requests, not a flag,
   decides when it ends. Background refreshes from the stream show nothing.
-- **A lost stream and an expired session show a banner.** A visible line below the header says
-  "Showing data read at 10:42. Reconnecting." or "Session expired. Reload." with a Reload link.
-  The banner is not a live region and has no role: the existing live mark `#live` stays the one
+- **A lost stream and an expired session show a banner.** A visible line in the sticky header, so
+  a reader scrolled down a long page still sees it, says "Showing data read 4m ago. Reconnecting."
+  or "Session expired. Showing data read 4m ago." with a Reload link. The time has the form of the
+  existing `time` partial (relative text, the absolute UTC time in `title`) and keeps counting. The
+  banner is not a live region and has no role: the existing live mark `#live` stays the one
   announcer. When the stream comes back, the page re-renders every region it follows once, then
-  the banner goes.
+  the banner goes; until that fetch succeeds the live mark keeps the word of the loss.
 - **The header names the cluster entry.** When the `Cluster` document carries an entry name that
   differs from the context name, the cluster pill shows both, each with its word. It wraps at
   360 px with the longest name. No read, no API change (design.md, "The cluster entry name").
 - **The details panel follows the page, or says it is old.** A panel that shows a graph node (or
   the resting node) is replaced when the page's topic changes, from the same one fetch as the
-  other regions. A YAML or Events view is not re-fetched: it shows a note, "Read at 10:42. The
-  object may have changed since.", with a link that reloads the view.
+  other regions. A YAML or Events view is not re-fetched: it shows a note, "Read 4m ago. The
+  object may have changed since.", with a link that reloads the view. A keyboard reader on one of
+  the panel's links keeps focus through the replacement.
+- **The leftover `reveal` classes go.** `align-shell-and-tokens` removes the animation CSS; this
+  change, which lands last, removes the `reveal` class from the templates.
 
 Section 1 is a spike. Two facts the stale panel and the banner rest on are read from source and
 not yet run in a browser (design.md, "Assumptions"). The spike runs them and writes the finding
@@ -74,16 +79,19 @@ None. The behaviour belongs to the existing `web-ui` capability.
   cluster entry name) and "An expired session stops the page's stream" (adds the banner on top of
   `align-shell-and-tokens`' wording); adds "Relative times are rewritten as they age", "A rewritten
   time changes only its text", "A request open for a second shows a loading bar", "A slow panel
-  request marks the details panel busy", "A lost stream shows a banner", "A stream that returns
-  re-renders before the banner goes", "A node panel is re-rendered with its page" and "A YAML or
+  request marks the details panel busy", "A lost stream shows a banner", "The banner and the stale
+  note print their time like every other time", "A stream that returns re-renders before the
+  banner goes", "A resync that has not succeeded keeps the banner", "A node panel is re-rendered with its page" and "A YAML or
   Events view says when it is old".
 
 ## Impact
 
 - **Packages.** `internal/ui` (view types for the header and the panel marker, templates,
-  `static/portal.js`, `static/portal.css`, tests and goldens); `test/browser` and
-  `cmd/opm-portal` (browser tests); `Taskfile.yml` (the `-run` pattern); `docs/site`, `ROADMAP.md`.
-  No change to `api/v1alpha1`, `internal/api`, `internal/readmodel`, `internal/stream` or `deploy/`.
+  `static/portal.js`, `static/portal.css`, tests and goldens); `internal/api/apitest` (a test
+  helper only, so a fixture can serve a cluster entry that differs from the context);
+  `test/browser` and `cmd/opm-portal` (browser tests); `Taskfile.yml` (the `-run` pattern);
+  `AGENTS.md` (the browser test lines); `docs/site`, `ROADMAP.md`. No change to `api/v1alpha1`,
+  the handlers of `internal/api`, `internal/readmodel`, `internal/stream` or `deploy/`.
 - **Pages.** All pages (the header, the banner, the loading bar, times); the instance and package
   pages (the details panel). The Catalog page has no panel and takes the first three behaviours.
 - **SemVer.** MINOR after 1.0: pages change and nothing else does. On the 0.x line it ships as one
@@ -104,7 +112,7 @@ None. The behaviour belongs to the existing `web-ui` capability.
 - **Decisions.** Implements portal:D18:R1 (the entry name) and the live mark of portal:D19.
   Changes no decision and edits no number in `docs/DESIGN.md`; no `enhancement.yaml`.
 - **Not in this change.** The `Tip` and its keyboard rules (`align-shell-and-tokens`); a visible
-  absolute time beside every relative time (a question in the report, not scheduled); a banner or
+  absolute time beside every relative time (not scheduled in track 1; a later change on the owner's ask); a banner or
   "No longer live" text on a region whose topic the server closed (`sse:closed`, unchanged);
   the Kubernetes version and Context facts on the Platform card (NQ5: header only); a count of
   data age on each region; any change to what the stream sends.

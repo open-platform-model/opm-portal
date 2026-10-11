@@ -137,14 +137,19 @@ One registry of open requests, keyed by the request object, not a counter:
 ```js
 var open = new Map();                 // xhr -> target element
 // htmx:beforeRequest   -> open.set(evt.detail.xhr, evt.detail.target); startTimer()
-// htmx:afterRequest, htmx:sendError, htmx:responseError, htmx:timeout, htmx:abort
-//                      -> open.delete(evt.detail.xhr); if (open.size === 0) endLoading()
+// htmx:afterRequest   -> open.delete(evt.detail.xhr); if (open.size === 0) endLoading()
+//                        (also on htmx:sendError, htmx:responseError and htmx:timeout, as a
+//                        second delete of the same key)
 ```
 
-A counter goes wrong when one request fires two end events (an error fires `responseError` and
-then `afterRequest`) or none (a request replaced by a newer one on the same element). A map keyed
-by the request makes a second delete a no-op, which is the carried nit of the plan: the hook
-counts open requests and ends only when none is open (`design/T2.4.md` S3, nit a).
+`htmx:afterRequest` is the end event of every path: a success, an error answer, a send error, a
+timeout, and an abort, which also fires `htmx:sendAbort`. A request replaced through `hx-sync` is
+aborted the same way, so it also ends with `afterRequest`. `htmx:abort` is not an end event: it is
+the event htmx listens for in order to abort a request, and it carries no `xhr`. A counter goes
+wrong when one request fires two end events (an error fires `responseError` and then
+`afterRequest`). A map keyed by the request makes a second delete a no-op, which is the carried
+nit of the plan: the hook counts open requests and ends only when none is open (`design/T2.4.md`
+S3, nit a).
 
 - **Start.** On the first `beforeRequest` of an empty registry a 1000 ms timer starts. When it
   fires and the registry is not empty, `body` gets the class `is-loading`.
@@ -165,20 +170,22 @@ counts open requests and ends only when none is open (`design/T2.4.md` S3, nit a
 
 ### The banner (RegionBanner)
 
-A banner sits in the layout between `</header>` and `<main>`, inside `#app` so a boosted
-navigation (which swaps `#main`) does not remove it:
+The banner is the last row of the sticky header, so a reader scrolled down a long page (Resources,
+Events) still sees it. It sits inside `<header class="masthead">` after `.conn`, inside `#app`, so a
+boosted navigation (which swaps `#main` and `#nav` only) does not remove it:
 
 ```html
 <div class="region-banner" id="region-banner" hidden>
-  <p class="rb-text"></p>
+  <p class="rb-text"><span class="rb-lead"></span>Showing data read
+    <time class="rb-time" data-relative aria-live="off" datetime="" title=""></time>.<span class="rb-word"></span></p>
   <a class="rb-reload" href="" hx-boost="false">Reload</a>
 </div>
 ```
 
-It has no `role` and no `aria-live`. `href=""` resolves to the current address with its query, and
-`hx-boost="false"` makes it a full page load, which is what a closed stream needs (a boosted swap
-would keep the old, closed `EventSource`). Without script the banner stays hidden, which is right:
-the states it describes only arise with script.
+It has no `role` and no `aria-live` of its own. `href=""` resolves to the current address with
+its query, and `hx-boost="false"` makes it a full page load, which is what a closed stream needs (a
+boosted swap would keep the old, closed `EventSource`). Without script the banner stays hidden,
+which is right: the states it describes only arise with script.
 
 One function sets both the live mark and the banner, so they cannot disagree:
 
@@ -186,36 +193,52 @@ One function sets both the live mark and the banner, so they cannot disagree:
 // state: "live" | "lost" | "expired" | "signedout"
 function setStream(state, word) {      // word: the live mark's text, e.g. "Reconnecting"
   setLive(state === "live", word);
-  showBanner(state, word);             // hides it for "live" unless a resync is running
+  showBanner(state, word);             // after a loss, hides it only by the rule of the next section
 }
 ```
 
 | State | Live mark (E1's words) | Banner text | Reload link |
 | --- | --- | --- | --- |
-| lost (`Reconnecting`, `Offline`, `Topics refused`) | unchanged | `Showing data read at 10:42 UTC. <Word>.` | yes |
-| expired | `Session expired, reload` | `Session expired. Showing data read at 10:42 UTC.` | yes |
-| signed out | `Signed out` | `Signed out. Showing data read at 10:42 UTC.` | yes |
+| lost (`Reconnecting`, `Offline`, `Topics refused`) | unchanged | `Showing data read 42s ago. <Word>.` | yes |
+| expired | `Session expired, reload` | `Session expired. Showing data read 42s ago.` | yes |
+| signed out | `Signed out` | `Signed out. Showing data read 42s ago.` | yes |
 
-The words after "Showing data read at" are the live mark's own, so the page has one vocabulary.
-The time is UTC, to match the absolute times the pages already print (`view.go:228`) and the logs
-an operator compares them with; it also makes the test independent of the browser's time zone.
+The words around the time are the live mark's own, so the page has one vocabulary. The script
+writes `.rb-lead` ("Session expired. " or "Signed out. ", empty for a lost stream) and `.rb-word`
+(" Reconnecting.", empty for expired and signed out) with `textContent`, each with its own
+spacing.
 
 **Data time.** `lastRead` is the time of the last message the stream delivered, from any event the
 hidden hook lists, `heartbeat` included (the layout adds `sse:heartbeat` to the list; the handler
 only records the time). It starts at page load. With a heartbeat every 15 seconds, the stated time
 is at most about 15 seconds earlier than the true last contact, and never later.
 
+**The time's form is the `time` partial's.** The banner prints the read time the way every other
+time on the pages is printed (`templates/partials.html:13-15`, `internal/ui/view.go:216-232`):
+relative text, the ISO time in `datetime` and the absolute time in `title`
+(`2006-01-02 15:04:05 UTC`). The script sets `datetime` from `new Date(lastRead + skew)`, in UTC,
+and `title` from the same instant in the `title` form, with `setAttribute`; the text comes from
+the table of "Relative times keep counting". The element carries `data-relative`, so the tick
+rewrites it with the others and the banner keeps counting ("42s ago", then "1m ago") while the
+stream stays down. No new time form exists, and no time zone enters the text, so the browser test
+does not depend on the browser's time zone. The absolute time shows as a tooltip only, as it does
+everywhere else on the pages; a visible absolute time is Open Question 1.
+
 **Announcement.** `#live` keeps announcing: its text changes in `setLive`, as today. The banner
 adds nothing a screen reader hears, because a second announcement of the same outage would read it
 twice (WCAG 4.1.3; `design/T2.3.md` section 11, `RegionBanner`). A reader who moves to the banner
-finds the same words with the time.
+finds the same words with the time. The `time` inside it is marked `aria-live="off"`, as the
+`time` partial is.
 
-**Look.** The banner takes the neutral or progressing tone tokens of `align-shell-and-tokens` for
-a lost stream and the degraded tone for expired and signed out; the words carry the state and the
-tone only supports them. The pair `-ink` on `-tint` and the bar's accent on the header are added
-to the contrast pair test of `fix-contrast-and-add-phone-check`. Forced colours: a 1 px border in
-`CanvasText`. The banner is in flow (not sticky) so it never covers a heading at 200 percent text
-size or at 360 px; the Reload link is 44 px high.
+**Look.** The banner is a full-width row of the header with its own background: the neutral or
+progressing tone tokens of `align-shell-and-tokens` for a lost stream and the degraded tone for
+expired and signed out. The words carry the state and the tone only supports them. The pair `-ink`
+on `-tint` and the bar's accent on the header are added to the contrast pair test of
+`fix-contrast-and-add-phone-check`. Forced colours: a 1 px border in `CanvasText`. The row is
+capped at `max-height: 8rem` with `overflow-y: auto`: the text is at most about 90 characters, so
+at 360 px it takes two or three lines beside a Reload link that is 44 px high, and the cap only
+bites at large text sizes. The header slims after 48 px of scroll (`.masthead.compact`); the
+banner row keeps its size, because its words and its link are the point of the row.
 
 ### Reconnecting: the page is true again before the banner goes
 
@@ -225,17 +248,38 @@ It does not hold after a reconnect: the page may have missed changes during the 
 server could not resume the stream (a new stream id) nothing re-renders the regions. Clearing the
 banner then would claim freshness the page does not have.
 
-Decision: the script remembers whether a stream has opened before (`everOpened`). On an `sse:open`
-that is not the first, it keeps `primed` cleared (so snapshots do not hide changes) and marks
-every topic the page follows dirty (`pageTopics()`), so one `refresh()` re-renders all followed
-regions from one fetch. The banner hides when that refresh settles without error; when the fetch
-fails, `refresh()`'s catch already sets "Offline" and the banner stays. When no region follows
-any topic, the banner hides at once.
+Decision: the script remembers whether a stream has opened before (`everOpened`). The first open
+of a page sets "Live" as today. After a loss, the page is `resyncing` from the first sign of the
+new connection until its resync settles, and the rules are these:
+
+- `htmx:sseOpen` (the connection opened, `portal.js:556`) and the server's `open` event
+  (`portal.js:477`) do not set "Live" and do not hide the banner. The live mark keeps the word of
+  the loss ("Reconnecting") and the banner stays, so a reader never sees "Live" or an empty header
+  before the page is true again.
+- On the server's `open` event that is not the first, the script keeps `primed` cleared (so
+  snapshots do not hide changes) and marks every topic the page follows dirty (`pageTopics()`),
+  so one `refresh()` re-renders all followed regions from one fetch. This is the resync: the
+  first refresh that starts after that `open` event. A refresh already in flight does not count;
+  the dirty topics wait for the next one through the existing `schedule()` after `inflight`.
+- The resync settles in one of four ways. The fetch answered 200 and the regions are replaced:
+  only then `setStream("live", "live")` runs, the live mark reads "Live" and the banner hides.
+  The fetch answered 401: `setStream("signedout")` runs and the banner stays, reading "Signed
+  out" (the same 401 path as `portal.js:294-297`, which settles `refresh()` without an error and
+  must not be read as success). The fetch failed or answered another status than 200 or 401: the
+  `catch` sets "Offline" and the banner stays. The page moved on while the fetch ran
+  (`portal.js:304-308`): the topics are marked dirty again and the banner stays until the next
+  resync settles.
+- A loss before the first `open` of a page (the first connection fails once) needs no resync: the
+  page was rendered by the server a moment ago, and the first `open` sets "Live" and hides the
+  banner.
+- When no region follows any topic, there is nothing to re-render: the banner hides and the mark
+  reads "Live" on the server's `open` event.
 
 If the server resumes the stream with the missed events (it receives `Last-Event-ID`,
-`internal/stream/stream.go:87`), the extra refresh is redundant and harmless: one fetch. Whether
+`internal/stream/handler.go:63`, matched in `internal/stream/broker.go:474`), the extra refresh is redundant and harmless: one fetch. Whether
 the server resumes or starts anew is an Assumption of the spike, not a precondition of the
-design.
+design. The spike also confirms that a refresh in flight at the `open` event delays the resync and
+does not hide the banner.
 
 ### The details panel follows the page, or says it is old
 
@@ -247,23 +291,35 @@ not hold them.
 **A node panel follows.** `#detail` carries `data-topics="<owner topic>"` (the value the owner
 cards follow, `owner.html:4`) and the script sets `data-follow` from it exactly while the panel is
 a node panel. `refresh()` then replaces `#detail` by id from the one fetch, as it replaces every
-other followed region, and `keepOpen`, `focusKey` and `refocus` already carry open `details` and
-focus across. The replacement is the page render for the current address, which holds the selected
+other followed region, and `keepOpen` carries open `details` across. Focus is carried by `focusKey` and `refocus`, which
+today restore only an element with an `id` or a graph node (`portal.js` `focusKey`, `refocus`),
+and the panel links (Open page, Expand this group, YAML, Events, Logs) have no `id`
+(`templates/panel-body.html:26-32`). So this change gives each panel link a stable key,
+`data-focus-key="panel-open"`, `"panel-expand"`, `"panel-yaml"`, `"panel-events"` and
+`"panel-logs"` (one panel on a page, so each is unique), and `focusKey` records
+`data-focus-key` beside the `id` and the graph node, and `refocus` finds the element with the
+same `data-focus-key`. The Clear selection pill (`partials.html`, `data-clear-selection`) takes
+the key `clear-<graph id>` for the same reason. A keyboard reader on the YAML link then keeps
+focus through each refresh. The key is an attribute of the template, never text from the cluster. The replacement is the page render for the current address, which holds the selected
 node's panel because a click writes `node` to the address (E4) and the resting panel when no
 parameter is set (E3, E4).
 
-**A YAML or Events view does not follow, and says so.** The two fragments mark their root:
-`<div class="fragment" data-view="yaml" data-read="2026-10-11T10:42:07Z">`, with a hidden note and
-a reload link as ordinary template text:
+**A YAML or Events view does not follow, and says so.** The two fragments mark their root: `<div class="fragment" data-view="yaml">`, with a hidden note
+and a reload link as ordinary template text. The note prints the time through the existing `time`
+partial, so it has the one form every time on the pages has:
 
 ```html
-<p class="stale-note" hidden>Read at <time datetime="…">10:42 UTC</time>. The object may have
-changed since. <a href="{{.Reload}}" hx-get="{{.Reload}}" hx-target="#detail" hx-select="unset"
+<p class="stale-note" hidden>Read {{template "time" .Read}}. The object may have changed since.
+<a href="{{.Reload}}" hx-get="{{.Reload}}" hx-target="#detail" hx-select="unset"
 hx-swap="innerHTML">Reload this view</a></p>
 ```
 
-The note's time is absolute, UTC, server-written from the handler's clock at render: no tick and
-no relative text, so nothing in it goes stale in a second way. After a refresh in which a followed
+which renders as `Read <time datetime="2026-10-11T10:42:07Z" title="2026-10-11 10:42:07 UTC"
+data-relative aria-live="off">4m ago</time>`. The read time is the handler's clock at render
+(`Config.Now`), so the server writes it and the page script does not guess it. The `time` carries
+`data-relative`, so the tick keeps the note's "4m ago" true while the note is hidden or shown; it
+is the same element the rest of the pages tick, in the same polite region with the same
+`aria-live="off"`. After a refresh in which a followed
 topic was dirty, the script removes `hidden` from the note of the fragment in `#detail`, if any.
 This is the only DOM change; the view's text, scroll position and any selection in it stay.
 
@@ -275,9 +331,9 @@ accordingly. Three cases need care:
   and marks the topic dirty again, so the replacement runs after the request settles. (htmx
   resolves a target selector when the request starts; replacing the element under it would drop
   the response.)
-- The reader's focus is inside the panel (a link, the Clear selection pill): the existing
-  `focusKey`/`refocus` pair restores it by key; the spike checks that a replaced `aside` does the
-  same as a replaced section.
+- The reader's focus is inside the panel (a link, the Clear selection pill): the `focusKey` and
+  `refocus` pair, extended as above, restores it by `data-focus-key`; the spike checks that a
+  replaced `aside` does the same as a replaced section.
 - The selected node is gone: `markSelected` already clears the selection and resets the panel.
 
 **Announcement.** A replaced `aside` is a new live region inserted with its content, which screen
@@ -299,12 +355,15 @@ here:
 
 | File | This change edits only | Expected from other changes |
 | --- | --- | --- |
-| `static/portal.js` | `setLive` callers (through `setStream`), the `sse:open`, `sse:expired`, `htmx:sseError` handlers, the `catch` in `refresh()`, the region loop in `refresh()` for `#detail`, and new blocks (tick, loading, banner, resync) | E1: the words in `setLive`; E3/E4: `resetDetail`, `openNode`, `markSelected`; E2: filter code |
-| `templates/layout.html` | the `meta` for the server time, `sse:heartbeat` in the hook list, the banner element, the cluster pill markup | E1: the live mark's initial text |
-| `templates/partials.html` | the `time` define | E1: `state-block`, `tip`; E2/E3: `events-table`, `history` |
-| `templates/owner.html` | `data-topics` on the `detail` define | E3: the rest of `detail` (`data-root-panel`) |
+| `static/portal.js` | `setLive` callers (through `setStream`), the `sse:open`, `sse:expired`, `htmx:sseError` handlers, the `catch` in `refresh()`, the region loop in `refresh()` for `#detail`, `focusKey` and `refocus` (one more key), and new blocks (tick, loading, banner, resync) | E1: the words in `setLive`; E3/E4: `resetDetail`, `openNode`, `markSelected`; E2: filter code |
+| `templates/layout.html` | the `meta` for the server time, `sse:heartbeat` in the hook list, the banner element (the last child of the header), the cluster pill markup | E1: the live mark's initial text |
+| `templates/partials.html` | the `time` define; `data-focus-key` on the Clear selection pill | E1: `state-block`, `tip`; E2/E3: `events-table`, `history`; E4: the graph toolbar |
+| `templates/owner.html` | `data-topics` on the `detail` define; the `reveal` class removed | E3: the rest of `detail` (`data-root-panel`) |
+| `templates/panel-body.html` | `data-focus-key` on the five panel links | E3, E4: the rest of the body (`panel.go` fields) |
+| `templates/catalog.html`, `installed.html`, `message.html`, `platform.html` | the `reveal` class removed (SH-A5 removed the CSS; E5 lands last) | none |
 | `templates/object.html`, `events.html` | the fragment root's `data-view` and note | E3: the Events view uses `events-table` |
 | `static/portal.css` | `.region-banner`, `.rb-*`, `.detail-loading`, `.masthead::after`, `.conn-entry`, `time[data-relative]` | E1: tokens |
+| `internal/ui/refresh_test.go`, `internal/ui/testdata/golden/` | the `reveal` class in the fixture string at `refresh_test.go:72`; goldens regenerated | none |
 | `Taskfile.yml:90` | names added to the `-run` pattern | E0, E2, E3 add names too; a conflict resolves by keeping every name |
 
 Merge `main` into the branch first (`PROTOCOL.md`), re-run the goldens with `-update` and read
@@ -372,14 +431,18 @@ render, or leave it and mark it.
 a node") and the owner's cards. The reader's view is never replaced by something they did not ask
 for.
 
-### The data time is the last message, in UTC
+### The data time is the last message, in the `time` partial's form
 
-**Context**: "Showing data read at 10:42" needs a time and a zone.
+**Context**: "Showing data read ..." needs a time. The banner and the stale note follow the
+existing `time` partial rather than a new UTC form, so the pages keep one convention.
 
-**Decision**: the time of the last stream message (heartbeat included), shown as `HH:MM UTC`.
+**Decision**: the time of the last stream message (heartbeat included), printed as a `time`
+element: relative text, ISO in `datetime`, `2006-01-02 15:04:05 UTC` in `title`.
 
 **Rationale**: It is the last moment the page knew it was current, bounded by the 15 s heartbeat.
-The pages print absolute times in UTC; a banner in another zone would make two answers.
+Every other time on the pages already has this form, so the page has one convention, the tick
+keeps the banner's text true, and the tooltip carries the absolute time in UTC, so the test does
+not depend on a time zone.
 
 ## Assumptions
 
@@ -397,10 +460,11 @@ under "Live checks" below before any code of sections 2 to 4.
 3. **A reconnect with a new stream id re-renders nothing today.** After `htmx:sseOpen` the server
    either resumes (backlog events reach `changed()`) or starts a new stream (the first snapshot of
    each topic is dropped as `primed`). Traced for the second case at `portal.js:507`.
-4. **Every htmx request ends with exactly one of the end events carrying its `xhr`,** including
-   a boosted navigation, an `htmx.ajax` into `#detail` and a request replaced by a newer one on the
-   same element. `htmx:abort` and `htmx:timeout` are listed because htmx 2.0.11
-   (`layout.html:16`) is documented to fire them; the spike confirms.
+4. **Every htmx request ends with `htmx:afterRequest` carrying its `xhr`,** including a boosted
+   navigation, an `htmx.ajax` into `#detail`, a request aborted, and a request replaced by a newer
+   one on the same element through `hx-sync`. Read from the vendored htmx 2.0.11
+   (`internal/ui/static/vendor/htmx-2.0.11.min.js`): an abort ends with `htmx:afterRequest` and
+   `htmx:sendAbort`. The spike confirms each kind.
 5. **`heartbeat` reaches the page when its name is in the hook list.** The `htmx-ext-sse` 2.2.4
    extension dispatches `sse:<name>` for the names in `hx-trigger`.
 
@@ -413,7 +477,7 @@ that is not enough, the proposal stops and asks.
 
 - **A replaced `#detail` loses a text selection.** A reader copying a message from the panel
   loses the selection at the next refresh. The cards have the same behaviour and the 400 ms
-  debounce limits it. Accepted; recorded so the reviewer does not read it as a bug.
+  debounce limits it. Accepted.
 - **`aria-live="off"` on a `time` inside a polite region** may not be honoured by every screen
   reader. If it is not, a time in the panel is announced every 30 seconds. The panel shows no
   relative time at rest (the node panel has none; the Events view has them). Mitigation if found:
@@ -421,10 +485,15 @@ that is not enough, the proposal stops and asks.
 - **Clock skew handling is one reading.** A device that sleeps and wakes with a corrected clock
   moves the skew. The tick re-reads `meta` only at load. A refreshed fragment carries fresh server
   relative text, so an error self-heals at the next refresh.
-- **The banner adds a block above `main`.** The page below shifts down when it appears. It appears
-  on a fault, once, and is in flow. It is not sticky, so the layout never covers content. The
-  scroll position of the page is kept by the browser's scroll anchoring; the browser test checks
-  that a heading in view does not jump more than the banner's height.
+- **The banner makes the sticky header taller.** It is the last row of the header, so a reader
+  scrolled down a long page sees it, with the data time and the Reload link. The price is that the
+  header covers up to the banner's height (capped at 8rem, about 3 lines plus the link at 360 px)
+  of the page while the banner shows, for the whole outage. The header is already sticky and
+  already wraps on a phone; the base has no `scroll-padding-top`, so a focused element can sit
+  under the header today, and a taller header makes that case somewhat more likely. This change
+  does not fix the old case (Unverified). The page below shifts down once when the banner appears;
+  the browser test checks that a heading in view does not jump more than the banner's height, and
+  that the banner is in view after a scroll of 3000 px.
 - **Re-fetch storm after an outage.** Every client of an outage refreshes once on return. The
   server's page render is the same one the cards already trigger on every change; one fetch per
   client per reconnect is the same cost as a burst of changes.
@@ -448,13 +517,14 @@ banner when the element is missing).
 1. **Absolute time beside relative time.** `design/T2.3.md` section 11 wants the absolute time as
    visible text in the detail views, because `title` is reachable by mouse only. This change keeps
    `title` and ticks the relative text. Adding visible absolute times touches the state block and
-   the history table, which `align-shell-and-tokens` and `align-owner-pages` own. Not scheduled;
-   the supervisor decides whether it is a follow-up change.
+   the history table, which `align-shell-and-tokens` and `align-owner-pages` own. Not scheduled in
+   track 1; it can become a later change on the owner's ask.
 2. **A stall watchdog.** Show the banner when no message has arrived for a multiple of the
    heartbeat. Needs the interval on the page (a `meta` or a field in the `open` event). Not
-   scheduled.
+   scheduled in track 1; it can become a later change on the owner's ask.
 3. **"No longer live" on a closed region.** `sse:closed` adds a class and a `title`
-   (`portal.js:534-537`); a sighted keyboard or touch reader sees nothing. Not scheduled.
+   (`portal.js:534-537`); a sighted keyboard or touch reader sees nothing. Not scheduled in track 1; it can become a later
+   change on the owner's ask.
 
 ## Live checks
 
