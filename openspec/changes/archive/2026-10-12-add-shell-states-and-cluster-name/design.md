@@ -622,6 +622,11 @@ What the built change does differently from the text above. Each was accepted by
   (T4.67, from the T4.64 ruling). The sections above say so.
 - **The in-cluster pill's tip does not say "Context"** (T4.69, from the T4.68 fix-check). In a
   Pod the portal reads with the Pod's own credentials and has no context name.
+- **`--masthead-h` is read again when the page and its fonts have loaded** (T4.69). In Firefox
+  the header was read at 180.5 px while the page loaded and then settled at 208.0 px without a
+  call of the resize observer, so `scroll-padding-top` stayed 27.5 px short in about half of the
+  `phone_banner.py` runs (7 of 12 failed in Firefox before the fix, 0 of 10 after). The page now
+  also reads the height on `load` and when `document.fonts.ready` resolves.
 
 ## Live checks
 
