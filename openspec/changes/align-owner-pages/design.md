@@ -934,6 +934,23 @@ remaining difference here and say why it stays.
 Known before the screenshots: the Resources table folds configuration groups and old
 ReplicaSets, where the canvas's table is flat (decision 4, held by portal:D4:R5).
 
+### Section 3: the cards (task 3.6)
+
+Chromium, over the F1 capture served by `TestDevServe` (F1 and `OPM_PORTAL_UI_DEV_BROKEN=1`), on
+2026-10-11: podinfo, the image-break podinfo, `pkg/podinfo`, backup-provider and cert-manager in light
+and dark at 1440 px and in light at 360 px (full page). Every page measured `scrollWidth` 1440 and 360.
+Compared with `Instance.dc.html`, `Package.dc.html` and `Provider.dc.html`. The screenshots are in the
+agent's scratch folder and are not committed; `TestBrowserPhone` holds the 360 px result.
+
+| Difference from the canvas | Why it stays |
+| --- | --- |
+| The Applied block carries the reason's meaning and, in local mode, the controller's own message as note lines under the summary; the canvas shows the summary only | portal:D8:R5/R6 keep both visible; in-cluster the message is omitted by the read API |
+| The Provider block is the fourth block in the summary grid and wraps below the identity card on a wide screen; the canvas fits it in the same row | the summary grid (`repeat(auto-fit, minmax(min(380px, 100%), 1fr))`) is `align-shell-and-tokens`'; no rule is added |
+| The attempt dots are 24 px (the info tip's target floor) where the canvas draws 18 px | WCAG 2.2 2.5.8; each dot is a focusable tip |
+| A Warning count on the Applied block is drawn in the degraded ink on the block's tint, a pair `contrast_test.go` now holds for every tone | the canvas shows no warning on an Applied block |
+| The tab strip still lists Provider last | tab order is task 4.1 |
+| The Conditions fold sits below the tab panels, as the canvas does | none |
+
 ## Amendments from the portal's plan
 
 Six amendments of 2026-10-11 (ids from the portal plan) add floors that the first version of this

@@ -122,3 +122,31 @@ func operatorEvent(ev map[string]any) bool {
 	}
 	return false
 }
+
+// TestInClusterCardsShowReasonsAndMeaningsOnly (align-owner-pages, 3.5): over
+// the in-cluster read API the package's Applied block keeps the state word,
+// the summary composed from recorded fields, the reason's meaning and the
+// attempt dots, and shows none of the controller's message, which the read
+// API omits; the Provider block of a refused claim shows the reason and its
+// meaning, and no controller text.
+func TestInClusterCardsShowReasonsAndMeaningsOnly(t *testing.T) {
+	s := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
+	applied := between(mainOf(s.get(t, "/packages/pkg/podinfo").body), `id="applied-card"`, "</section>")
+	for _, want := range []string{`<span class="sb-word">Failed, retrying</span>`, "Failed on the last 3 attempts, retrying every 1 min",
+		"The package&#39;s source is not ready or does not exist.", "Reconciling: Progressing", "last 3 attempts"} {
+		if !strings.Contains(applied, want) {
+			t.Errorf("in-cluster Applied block lacks %q:\n%s", want, applied)
+		}
+	}
+	for _, text := range []string{"no matches for kind", `class="sb-note says"`} {
+		if strings.Contains(applied, text) {
+			t.Errorf("in-cluster Applied block shows the controller's message (%q):\n%s", text, applied)
+		}
+	}
+	held := newInClusterSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	provider := between(mainOf(held.get(t, "/packages/pkg/provider").body), `id="provider-card"`, "</section>")
+	if !strings.Contains(provider, `<span class="sb-word">Refused</span>`) || !strings.Contains(provider, "ProviderMismatch") ||
+		strings.Contains(provider, "which does not exist") {
+		t.Errorf("in-cluster Provider block:\n%s", provider)
+	}
+}

@@ -52,7 +52,7 @@ func TestPackageHolderProviderTab(t *testing.T) {
 	s := newSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
 	main := mainOf(s.get(t, "/packages/pkg/provider?tab=provider").body)
 	card := between(main, `id="provider-card"`, "</section>")
-	if !strings.Contains(card, ">Refused</span>") || !strings.Contains(card, "ProviderMismatch") {
+	if !strings.Contains(card, `<span class="sb-word">Refused</span>`) || !strings.Contains(card, "ProviderMismatch") {
 		t.Errorf("Provider card:\n%s", card)
 	}
 	tab := between(main, `id="provider"`, "</section>")
@@ -60,7 +60,7 @@ func TestPackageHolderProviderTab(t *testing.T) {
 		!strings.Contains(tab, "Claim names provider ModuleInstance pkg/provider, which does not exist") {
 		t.Errorf("Provider tab:\n%s", tab)
 	}
-	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), "Provider, refused") {
+	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), `Provider<span class="vh">, refused</span>`) {
 		t.Error("no Provider pill on the package")
 	}
 }

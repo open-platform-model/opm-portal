@@ -90,8 +90,12 @@ type ownerView struct {
 	Tab  string
 	Tabs []tabLink
 
-	Applied appliedCard
-	Healthc healthCard
+	// Identity, Cards and plat are the summary row: the identity card's
+	// facts, the Applied, Health and Provider blocks, and the Platform the
+	// Provider card reads on every tab.
+	Identity ownerIdentity
+	Cards    ownerCards
+	plat     platformRead
 
 	Graph        svgGraph
 	GraphProblem *v1.Problem
@@ -108,121 +112,6 @@ type ownerView struct {
 	Provider   providerTabView
 
 	firstContainer func(string) string
-}
-
-// --- Cards ---
-
-// appliedCard is what the controller applied: the badge and its reason's
-// meaning, the Reconciling mark, the Warning reasons of the current feed,
-// and one dot per recorded attempt.
-type appliedCard struct {
-	Meaning     string
-	Reconciling *v1.Condition
-	Warnings    []countLink
-	Dots        []attemptDot
-}
-
-// attemptDot is one status.history entry, oldest first, colored by the
-// outcome the read API decided; there is no dot for an attempt the history
-// does not record (portal:D9:R1).
-type attemptDot struct {
-	Class string
-	Title string
-}
-
-// healthCard counts objects and runtime children by health reason, each
-// linking to the Resources tab filtered by it. A reason an object only
-// mirrors from a child below it is counted once, at the child.
-type healthCard struct {
-	Reasons []countLink
-}
-
-func appliedCardOf(v *ownerView) appliedCard {
-	var c appliedCard
-	for i := range v.Conditions {
-		cond := &v.Conditions[i]
-		if cond.Type == "Reconciling" && cond.Status == "True" {
-			c.Reconciling = cond
-		}
-		if cond.Reason != "" && cond.Reason == v.Reconcile.Reason && c.Meaning == "" {
-			c.Meaning = cond.Meaning
-		}
-	}
-	counts := map[string]int{}
-	var order []string
-	for i := range v.Events.Items {
-		e := &v.Events.Items[i]
-		if e.Type != eventWarning {
-			continue
-		}
-		if counts[e.Reason] == 0 {
-			order = append(order, e.Reason)
-		}
-		counts[e.Reason] += int(e.Count)
-	}
-	for _, r := range order {
-		c.Warnings = append(c.Warnings, countLink{Text: r, N: counts[r],
-			Href: v.Base + "?" + url.Values{"tab": {tabEvents}, "type": {eventWarning}, "reason": {r}}.Encode()})
-	}
-	for i := len(v.History) - 1; i >= 0; i-- {
-		h := &v.History[i]
-		outcome := h.Outcome
-		switch outcome {
-		case "Succeeded", "Failed":
-		default:
-			outcome = "Unknown"
-		}
-		title := "#" + itoa(h.Sequence) + " " + h.Action + ": " + strings.ToLower(outcome)
-		if h.FinishedAt != nil {
-			title += ", " + h.FinishedAt.UTC().Format("2006-01-02 15:04:05 UTC")
-		}
-		if h.Message != "" {
-			title += ": " + h.Message
-		}
-		c.Dots = append(c.Dots, attemptDot{Class: "dot-" + strings.ToLower(outcome), Title: title})
-	}
-	return c
-}
-
-func healthCardOf(v *ownerView) healthCard {
-	counts := map[string]int{}
-	add := func(h *v1.ObjectHealth) {
-		if h != nil && h.Reason != "" && h.State != "Healthy" {
-			counts[h.Reason]++
-		}
-	}
-	walk := func(cs []componentView) {
-		for i := range cs {
-			for j := range cs[i].Objects {
-				o := &cs[i].Objects[j]
-				mirrored := false
-				for k := range o.Children {
-					add(&o.Children[k].Health)
-					mirrored = mirrored || (o.Health != nil && o.Children[k].Health.Reason == o.Health.Reason)
-				}
-				// A workload degraded only because a child waits carries the
-				// child's reason: the reason is counted once, at its source.
-				if !mirrored {
-					add(o.Health)
-				}
-			}
-		}
-	}
-	walk(v.Components)
-	if v.Config != nil {
-		walk(v.Config.Components)
-	}
-	reasons := make([]string, 0, len(counts))
-	for r := range counts {
-		reasons = append(reasons, r)
-	}
-	slices.Sort(reasons)
-	var c healthCard
-	for _, r := range reasons {
-		c.Reasons = append(c.Reasons, countLink{Text: r, N: counts[r],
-			Href: v.Base + "?" + url.Values{"tab": {tabResources}, "reason": {r}}.Encode()})
-	}
-	return c
 }
 
 // --- Resources ---
@@ -563,10 +452,13 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 			h.ownerTabsOf(r, &v)
 		}
 		topics := []string{v.Topic, "events:" + v.Topic}
+		if len(v.ProviderOf) > 0 {
+			// The Provider card reads the Platform's registration on every tab.
+			topics = append(topics, platformTopic)
+		}
 		if v.Tab == tabProvider {
-			// The tab joins the Platform's registrations and the instances
-			// that use what they provide.
-			topics = append(topics, platformTopic, "instances")
+			// The tab joins the instances that use what a registration provides.
+			topics = append(topics, "instances")
 		}
 		h.render(w, r, problemStatus(v.Problem), "owner", page{
 			Title:  k.Title + " " + ns + "/" + name,
@@ -607,15 +499,14 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	// The Events count comes before ownerEventsTab, which filters the feed
 	// by type and reason or replaces it with another object's.
 	v.countEvents()
-	v.Applied = appliedCardOf(v)
-	v.Healthc = healthCardOf(v)
+	h.ownerCards(r, v)
 	switch v.Tab {
 	case tabResources:
 		byRef, groupOf := focusIDs(&g)
 		reason := strings.TrimSpace(q.Get("reason"))
 		rv := filterView{Path: v.Base, Params: reasonFilter.Params}
-		reasons := make([]string, 0, len(v.Healthc.Reasons))
-		for _, c := range v.Healthc.Reasons {
+		reasons := make([]string, 0, len(v.Cards.Reasons))
+		for _, c := range v.Cards.Reasons {
 			reasons = append(reasons, c.Text)
 		}
 		v.ReasonForm = newFilterForm(parseFilters(&rv, q), "Filter resources", keepHidden(q, "reason", "focus"),
@@ -641,6 +532,16 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	case tabProvider:
 		v.Provider = h.providerTab(r, v)
 	}
+}
+
+// ownerCards builds the identity facts and the cards under it. The Provider
+// card reads the Platform on every tab, so the page reads it once here.
+func (h *Handler) ownerCards(r *http.Request, v *ownerView) {
+	v.Identity = identityOf(v)
+	if len(v.ProviderOf) > 0 {
+		v.plat = h.readPlatform(r)
+	}
+	v.Cards = h.cardsOf(v)
 }
 
 // countFollow is the topics a tab count follows: the owner's own and its events.

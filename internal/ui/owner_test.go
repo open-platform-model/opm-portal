@@ -14,21 +14,33 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 )
 
-// TestPackageCardsOnF1: the package's identity names its interval and an
-// unrecorded revision; the Applied card reads Failed, SourceNotReady, with
-// the Reconciling mark and three failed dots and no other (portal:D9:R1).
+// TestPackageCardsOnF1: the package's identity names its subtitle, interval,
+// prune and an unrecorded revision; the Applied block reads Failed, retrying,
+// names the cadence of a source failure, keeps the Reconciling mark as a note
+// and draws three failed dots and no other (portal:D9:R1).
 func TestPackageCardsOnF1(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/packages/pkg/podinfo").body)
 	head := between(main, `id="owner-head"`, "</section>")
-	for _, want := range []string{`<dt>Interval</dt><dd><span class="mono">1m</span></dd>`, `<dt>Revision</dt><dd><span class="muted">not recorded</span></dd>`, "OCIRepository podinfo-release"} {
+	for _, want := range []string{`<p class="subtitle mono">from OCIRepository pkg/<wbr>podinfo-release</p>`,
+		`<dt>Interval</dt><dd>every 1 min</dd>`, `<dt>Prune</dt><dd>on</dd>`, `<dt>Revision</dt><dd><span class="muted">not recorded</span></dd>`,
+		`<dt>Source</dt><dd class="mono">OCIRepository pkg/podinfo-release</dd>`, `aria-describedby="tip-owner">Owner</button>`, `aria-describedby="tip-applier">Applier</button>`} {
 		if !strings.Contains(head, want) {
 			t.Errorf("identity lacks %s", want)
 		}
 	}
+	if strings.Contains(head, "<dt>Module</dt>") {
+		t.Error("the identity keeps a Module row")
+	}
 	applied := between(main, `id="applied-card"`, "</section>")
-	if !strings.Contains(applied, "applied-failed") || !strings.Contains(applied, ">SourceNotReady<") ||
-		!strings.Contains(applied, `<span class="label">Reconciling</span> <span class="mono">Progressing</span>`) {
-		t.Errorf("Applied card:\n%s", applied)
+	if !strings.Contains(main, `class="state-block hue-degraded" id="applied-card"`) {
+		t.Error("the Applied block is not degraded")
+	}
+	for _, want := range []string{`<span class="sb-word">Failed, retrying</span>`,
+		"Failed on the last 3 attempts, retrying every 1 min", `<p class="sb-note reconciling">Reconciling: Progressing, since `,
+		"Warning events, last hour", "No reconcile errors", "At most ten attempts are kept", "Show history", "last 3 attempts"} {
+		if !strings.Contains(applied, want) {
+			t.Errorf("Applied block lacks %q:\n%s", want, applied)
+		}
 	}
 	dots := regexp.MustCompile(`class="adot ([a-z-]+)"`).FindAllStringSubmatch(applied, -1)
 	if len(dots) != 3 {
@@ -39,9 +51,6 @@ func TestPackageCardsOnF1(t *testing.T) {
 			t.Errorf("dot %s; want failed", d[1])
 		}
 	}
-	if !strings.Contains(applied, "At most ten attempts are kept") || !strings.Contains(applied, "Show history") {
-		t.Error("the Applied card lacks the ten-entry note or Show history")
-	}
 }
 
 // TestBrokenRolloutHandsOffToResources: the image-break sample's Health
@@ -49,7 +58,7 @@ func TestPackageCardsOnF1(t *testing.T) {
 func TestBrokenRolloutHandsOffToResources(t *testing.T) {
 	s := newSite(t, apitest.F1Broken(t), apitest.AllowAll)
 	health := between(mainOf(s.get(t, "/instances/default/podinfo").body), `id="health-card"`, "</section>")
-	if !strings.Contains(health, `<span class="mono">ImagePullBackOff</span> <span class="count-n">1</span>`) {
+	if !strings.Contains(health, `<strong>1</strong> <span class="mono">ImagePullBackOff</span>`) {
 		t.Errorf("the waiting reason is not counted once, at the Pod:\n%s", health)
 	}
 	m := regexp.MustCompile(`href="(/instances/default/podinfo\?reason=ImagePullBackOff&amp;tab=resources)"`).FindStringSubmatch(health)
@@ -69,14 +78,21 @@ func TestBrokenRolloutHandsOffToResources(t *testing.T) {
 func TestProviderCardOnF1(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/instances/default/backup-provider").body)
 	card := between(main, `id="provider-card"`, "</section>")
-	if !strings.Contains(card, ">Active</span>") || !strings.Contains(card, "default.<wbr>backup-provider") {
-		t.Errorf("Provider card:\n%s", card)
+	if !strings.Contains(main, `class="state-block hue-healthy" id="provider-card"`) {
+		t.Error("the Provider block is not healthy")
 	}
-	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), `class="prov prov-active"`) {
-		t.Error("no Provider pill")
+	for _, want := range []string{`<span class="sb-word">Active</span>`, "Provides traits/backup@v1alpha1 for the platform",
+		`active since <time`, "No registration problems", `href="/instances/default/backup-provider?tab=provider">Open the Provider tab</a>`} {
+		if !strings.Contains(card, want) {
+			t.Errorf("Provider card lacks %q:\n%s", want, card)
+		}
+	}
+	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), `class="prov prov-active prov-pill"`) ||
+		!strings.Contains(between(main, `id="owner-head"`, "</h1>"), `Provider<span class="vh">, active</span>`) {
+		t.Error("no Provider pill with its standing in hidden text")
 	}
 	locked := mainOf(newSite(t, apitest.F1(t), apitest.DenyResources("transformerregistrations")).get(t, "/instances/default/backup-provider").body)
-	if card := between(locked, `id="provider-card"`, "</section>"); !strings.Contains(card, ">Locked</span>") {
+	if card := between(locked, `id="provider-card"`, "</section>"); !strings.Contains(locked, `class="state-block hue-locked" id="provider-card"`) || !strings.Contains(card, "locked-panel") {
 		t.Errorf("forbidden registrations: Provider card:\n%s", card)
 	}
 	if strings.Contains(mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/instances/default/podinfo").body), `id="provider-card"`) {
@@ -160,9 +176,28 @@ func TestOwnerCardsEscapeClusterText(t *testing.T) {
 		}
 	}
 	pkg := mainOf(s.get(t, "/packages/pkg/podinfo").body)
-	dots := between(pkg, `<span class="dots">`, "</div>")
+	dots := between(pkg, `<span class="adots">`, "</div>")
 	if !strings.Contains(dots, "&lt;script&gt;alert(1)&lt;/script&gt;") {
 		t.Errorf("the dots' titles do not carry the hostile message escaped:\n%s", dots)
+	}
+	// The hostile text reaches the controller's note, the tips and the history rows of the Applied block,
+	// and the summary of the Provider block, and is escaped in each.
+	reg := v1.Registration{Name: "default.x", Message: hostile, Reason: "CatalogUnresolved",
+		Conditions: []v1.Condition{{Type: "Ready", Reason: "CatalogUnresolved", Meaning: hostile}}}
+	pv := ownerView{Topic: "instance:default/x", Base: "/instances/default/x",
+		ProviderOf: []v1.ProviderClaim{{Registration: "default.x", Access: v1.AccessOK, Verdict: "Refused", Reason: "CatalogUnresolved"}, {Registration: hostile, Access: v1.AccessOK, Verdict: "Pending"}},
+		plat:       platformRead{Read: true, Doc: v1.Platform{Registrations: []v1.Registration{reg}}}}
+	provider := renderPartialAt(t, "state-block", cardsHandler().providerBlock(&pv))
+	for _, tc := range []struct{ page, from, to, what string }{
+		{pkg, `id="applied-card"`, `class="sb-caption"`, "the Applied block's summary and notes"},
+		{pkg, `<span class="adots">`, `<span class="hist-count">`, "the attempt tips"},
+		{pkg, `<ol class="timeline">`, `</ol>`, "the history rows"},
+		{provider, `class="sb-summary"`, `class="sb-reasons"`, "the Provider block's summary and notes"},
+	} {
+		part := between(tc.page, tc.from, tc.to)
+		if !strings.Contains(part, "&lt;script&gt;alert(1)&lt;/script&gt;") || strings.Contains(part, "<script>") || strings.Contains(part, "<img src=x") {
+			t.Errorf("%s: hostile text is not shown escaped:\n%s", tc.what, part)
+		}
 	}
 }
 

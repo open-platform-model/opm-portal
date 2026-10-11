@@ -2,88 +2,50 @@
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> <span aria-hidden="true">/</span> <span class="mono">{{.Namespace}}</span> <span aria-hidden="true">/</span> <span>{{.Name}}</span></nav>
 <div class="summary reveal">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="{{.Topic}}">
-    <p class="kicker">{{.Kind.Title}}{{range .ProviderOf}}{{with providerBadge .}} <span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}}{{end}}</p>
+    <p class="kicker">{{.Kind.Title}}{{range .ProviderOf}}{{with providerPill .}} <span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}Provider<span class="vh">, {{.Standing}}</span></span>{{end}}{{end}}</p>
     <h1>{{.Name}}</h1>
     {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
-    {{with .Instance}}
+    <p class="subtitle mono">{{template "breakable" .Identity.Subtitle}}{{with .Identity.Version}} · <span class="ver">{{.}}</span>{{end}}</p>
     <dl class="facts">
-      <dt>Namespace</dt><dd class="mono">{{.Ref.Namespace}}</dd>
-      <dt>Module</dt><dd class="mono">{{template "breakable" .Module.Path}}{{with .Module.Version}} <span class="ver">{{.}}</span>{{end}}</dd>
-      <dt>Applied by</dt><dd>{{if eq .Owner "cli"}}the opm CLI{{else}}the controller{{end}}</dd>
-      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}</dd>
-      <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
-      <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
-    </dl>
-    {{end}}
-    {{with .Package}}
-    <dl class="facts">
-      <dt>Namespace</dt><dd class="mono">{{.Ref.Namespace}}</dd>
-      <dt>Source</dt><dd class="mono">{{.Source.Kind}} {{with .Source.Namespace}}{{.}}/{{end}}{{.Source.Name}}</dd>
+      <dt>Namespace</dt><dd class="mono">{{.Namespace}}</dd>
+      <dt>{{template "tip" .Identity.OwnerTip}}</dt><dd>{{.Identity.Owner}}</dd>
+      <dt>{{template "tip" .Identity.ApplierTip}}</dt><dd>{{with .Instance}}{{with .ServiceAccountName}}ServiceAccount <span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}{{end}}{{with .Package}}{{with .ServiceAccountName}}ServiceAccount <span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}{{end}}</dd>
+      {{with .Package}}
+      <dt>Source</dt><dd class="mono">{{.Source.Kind}} {{$v.Identity.SourceNamespace}}/{{.Source.Name}}</dd>
       {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
-      <dt>Interval</dt><dd>{{with .Interval}}<span class="mono">{{.}}</span>{{else}}<span class="muted">not set</span>{{end}}</dd>
+      <dt>Interval</dt><dd>{{with $v.Identity.Interval}}{{.}}{{else}}<span class="muted">not set</span>{{end}}</dd>
+      <dt>Prune</dt><dd>{{with $v.Identity.Prune}}{{.}}{{else}}<span class="muted">not set</span>{{end}}</dd>
       <dt>Revision</dt><dd>{{with .SourceArtifact}}{{with .Revision}}<span class="mono">{{template "breakable" .}}</span>{{else}}<span class="muted">not recorded</span>{{end}}{{else}}<span class="muted">not recorded</span>{{end}}</dd>
       <dt>Depends on</dt><dd>{{if .DependsOn}}{{range .DependsOn}}<a class="mono chip" href="/packages/{{if .Namespace}}{{.Namespace}}{{else}}{{$v.Namespace}}{{end}}/{{.Name}}">{{.Name}}</a> {{end}}{{else}}<span class="muted">nothing</span>{{end}}</dd>
-      <dt>Applied by</dt><dd>the controller</dd>
-      <dt><abbr title="The ServiceAccount the controller applies this package's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd>{{with .ServiceAccountName}}<span class="mono">{{.}}</span>{{else}}<span class="muted">the controller's own ServiceAccount</span>{{end}}</dd>
-      <dt>Objects</dt><dd>{{.InventoryCount}}</dd>
-      <dt>Last applied</dt><dd>{{template "time" .LastAppliedAt}}</dd>
+      {{end}}
+      <dt>Objects</dt><dd>{{with .Instance}}{{.InventoryCount}}{{end}}{{with .Package}}{{.InventoryCount}}{{end}}</dd>
+      <dt>Last applied</dt><dd>{{with .Instance}}{{template "time" .LastAppliedAt}}{{end}}{{with .Package}}{{template "time" .LastAppliedAt}}{{end}}</dd>
     </dl>
-    {{end}}
     {{end}}
   </section>
   {{if not .Problem}}
-  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="{{.Topic}} events:{{.Topic}}">
-    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
-    <div class="axes">{{template "applied" .Reconcile}}{{with .Reconcile.Reason}}<span class="mono">{{.}}</span>{{end}}</div>
-    {{with .Applied.Meaning}}<p class="card-meaning">{{.}}</p>{{end}}
-    {{with .Reconcile.Message}}<p class="card-message">{{.}}</p>{{end}}
-    {{with .Applied.Reconciling}}<p class="reconciling"><span class="label">Reconciling</span> <span class="mono">{{.Reason}}</span> since {{template "time" .LastTransitionTime}}</p>{{end}}
-    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span>{{range .Applied.Warnings}}<a class="count count-warning" href="{{.Href}}">{{.Text}} <span class="count-n">{{.N}}</span></a>{{else}}<span class="muted">none</span>{{end}}</div>
-    <div class="attempts"><span class="label">Attempts, oldest first</span>{{if .Applied.Dots}}<span class="dots">{{range .Applied.Dots}}<span class="adot {{.Class}}" role="img" tabindex="0" title="{{.Title}}" aria-label="{{.Title}}"></span>{{end}}</span>{{else}}<span class="muted">none recorded</span>{{end}}</div>
-    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
-    <details class="history-fold" id="history-fold"><summary>Show history</summary>{{template "history" .History}}</details>
-  </section>
-  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="{{.Topic}}">
-    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes">{{template "health" .Health}}{{if not .Health.Live}}{{with .Health.EvaluatedAt}}<span class="muted">evaluated {{template "time" .}}</span>{{end}}{{end}}</div>
-    <div class="reason-counts"><span class="label">By reason</span>{{range .Healthc.Reasons}}<a class="count" href="{{.Href}}"><span class="mono">{{.Text}}</span> <span class="count-n">{{.N}}</span></a>{{else}}<span class="muted">no object reports a reason</span>{{end}}</div>
-  </section>
-  {{if .ProviderOf}}
-  <section class="card owner-card" id="provider-card" aria-labelledby="provider-h" data-follow="{{.Topic}}">
-    <h2 id="provider-h">Provider <span class="h-note">the controller's verdict on what this holds</span></h2>
-    <ul class="claims">
-    {{range .ProviderOf}}
-      <li>{{with claimBadge .}}<span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}{{.Text}}</span>{{end}} <a class="mono" href="{{$v.Base}}?tab=provider">{{template "breakable" .Registration}}</a>{{with .Reason}} <span class="mono muted">{{.}}</span>{{end}}{{if ne .Access "ok"}} <span class="muted">{{accessText .Access}}</span>{{end}}</li>
-    {{end}}
-    </ul>
-  </section>
-  {{end}}
+  {{template "state-block" .Cards.Applied}}
+  {{template "state-block" .Cards.Health}}
+  {{with .Cards.Provider}}{{template "state-block" .}}{{end}}
   {{end}}
 </div>
 
 {{if not .Problem}}
-<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="{{.Topic}}">
-  <summary><h2 id="conditions-h">Conditions{{with .Instance}} and render contracts{{end}}</h2></summary>
-  {{template "conditions" .Conditions}}
-  {{with .Instance}}
-  <h3 class="sub-h">Render contracts</h3>
-  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
-  {{if .RenderContracts}}<ul class="contracts">{{range .RenderContracts}}<li class="mono">{{.}}</li>{{end}}</ul>{{else}}<p class="muted">None recorded.</p>{{end}}
-  {{end}}
-</details>
-
 <nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}{{template "tab" .}}{{end}}</nav>
 
 {{if eq .Tab "graph"}}
-<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
-<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
+<div class="owner-row">
+<div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
+<section class="panel owner-panel reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
   {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
 </section>
 </div>
 {{template "detail" .}}
+</div>
 {{else if eq .Tab "resources"}}
-<section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
+<div class="owner-row">
+<section class="panel owner-panel owner-main reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
   {{template "filter-form" .ReasonForm}}
   {{if or .Components .Config}}
@@ -102,8 +64,9 @@
   {{else}}<p class="muted">The inventory names no objects yet.</p>{{end}}
 </section>
 {{template "detail" .}}
+</div>
 {{else if eq .Tab "events"}}
-<section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
+<section class="panel owner-panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
   <h2 class="vh" id="events-h">Events{{with .Events.About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
   {{with .EventsForm}}
   <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
@@ -129,7 +92,7 @@
   {{template "events-list" .Events}}
 </section>
 {{else if eq .Tab "logs"}}
-<section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
+<section class="panel owner-panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   <div class="logs">
   {{range .Logs}}
@@ -144,20 +107,20 @@
   {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}
 </section>
 {{else if eq .Tab "yaml"}}
-<section class="panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="{{.Topic}}">
+<section class="panel owner-panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="yaml-picker-h">Objects</h2>
   {{range .YAML.Groups}}
   <h3 class="sub-h">{{.Kind}}</h3>
   <ul class="yaml-list">{{range .Items}}<li>{{if .Secret}}<span class="mono muted">{{template "breakable" .Text}}</span> <span class="muted">Secret data is never read</span>{{else}}<a class="mono" href="{{.Href}}"{{if .Current}} aria-current="true"{{end}}>{{template "breakable" .Text}}</a>{{end}}</li>{{end}}</ul>
   {{else}}<p class="muted">No object you may read.</p>{{end}}
 </section>
-<section class="panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
+<section class="panel owner-panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
   <h2 class="vh" id="yaml-h">YAML</h2>
   {{if .YAML.Has}}{{with .YAML.Picked}}{{if .Problem}}{{template "problem-region" .Problem}}{{else}}<p class="mono muted">{{.Text}}</p><pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>{{end}}{{end}}
   {{else}}<p class="muted">Pick an object. Every object is shown as the cluster serves it, without managed fields, the last-applied annotation or values.</p>{{end}}
 </section>
 {{else if eq .Tab "provider"}}
-<section class="panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">
+<section class="panel owner-panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">
   <h2 class="vh" id="provider-tab-h">Provider <span class="h-note">the registrations this {{.Kind.Topic}}'s inventory holds, as the controller judged them</span></h2>
   {{with .Provider}}
   {{if .PlatformLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not read the Platform, so each claim's conditions, catalog and registry state are not shown. The standing below is the registration's own.</p></div>{{end}}
@@ -202,11 +165,21 @@
   {{end}}
 </section>
 {{end}}
+
+<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="{{.Topic}}">
+  <summary><h2 id="conditions-h">Conditions{{with .Instance}} and render contracts{{end}}</h2></summary>
+  {{template "conditions" .Conditions}}
+  {{with .Instance}}
+  <h3 class="sub-h">Render contracts</h3>
+  <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
+  {{if .RenderContracts}}<ul class="contracts">{{range .RenderContracts}}<li class="mono">{{.}}</li>{{end}}</ul>{{else}}<p class="muted">None recorded.</p>{{end}}
+  {{end}}
+</details>
 {{end}}
 {{end}}{{end}}
 
 {{define "detail"}}
-<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
   {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>{{end}}
 </aside>
 {{end}}

@@ -21,6 +21,10 @@ Checks, each printing one line per page, then exiting 1 if any failed:
    podinfo-podinfo, and the measure with the panel filled is at most 360. The panel holds the
    widest content a selection adds (kinds, long names, two badges with labels).
 
+4. The owner pages' identity cards (OP-A5): on the four pages of OWNER_PAGES the identity card's .facts list
+   computes to one grid column at this width (below 520 px), and the page holds 360 px with the Applied,
+   Health and Provider blocks, their attempt strip and the tips in it.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -35,6 +39,18 @@ HEIGHT = 640
 # The page and node of the details-panel step.
 PANEL_PAGE = "/instances/default/podinfo"
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
+
+# The owner pages whose identity card the facts check reads (OP-A5): an instance, a large instance, a
+# provider instance and a package.
+OWNER_PAGES = [
+    "/instances/default/podinfo",
+    "/instances/cert-manager/cert-manager",
+    "/instances/default/backup-provider",
+    "/packages/pkg/podinfo",
+]
+
+# The tracks of the identity card's .facts grid: one for a single column.
+FACT_TRACKS = "() => getComputedStyle(document.querySelector('#owner-head .facts')).gridTemplateColumns.trim().split(/\\s+/).length"
 
 # The wider of the two scroll widths. The page policy forbids eval inside the page, but
 # page.evaluate runs through the browser's debugging protocol, as the other scripts use it.
@@ -128,6 +144,16 @@ def run(p, engine, base, paths):
             print(f"{engine}: FAIL {path} scrollWidth {width} over {WIDTH}; past the edge: {'; '.join(past) or 'none found'}")
             shoot(page, index)
 
+        for path in OWNER_PAGES:
+            open_page(page, base + path)
+            tracks = page.evaluate(FACT_TRACKS)
+            if tracks == 1:
+                print(f"{engine}: {path} identity facts compute to one column")
+                continue
+            failed.append(path + " (identity facts)")
+            print(f"{engine}: FAIL {path} identity facts compute to {tracks} columns at {WIDTH} px; want one")
+            shoot(page, len(paths) + 1)
+
         open_page(page, base + PANEL_PAGE)
         page.locator(f'.node[data-node="{DEPLOY}"]').first.focus()
         page.keyboard.press("Enter")
@@ -144,7 +170,8 @@ def run(p, engine, base, paths):
             shoot(page, len(paths))
     finally:
         browser.close()
-    print(f"{engine}: {len(paths) + 1 - len(failed)} of {len(paths) + 1} checks hold {WIDTH} px")
+    total = len(paths) + 1 + len(OWNER_PAGES)
+    print(f"{engine}: {total - len(failed)} of {total} checks hold {WIDTH} px")
     return not failed
 
 

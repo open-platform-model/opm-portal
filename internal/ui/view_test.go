@@ -72,19 +72,21 @@ func TestSecretsOfferNoYAML(t *testing.T) {
 }
 
 // TestPolledObjectsSayWhenTheyWereRead (portal:D3:R5): a polled object and
-// a health that is not live show when they were evaluated.
+// a health that is not live show when they were evaluated, on the Health
+// block and on the object's row.
 func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 	h := &Handler{cfg: Config{Now: func() time.Time { return time.Date(2026, 10, 5, 12, 1, 0, 0, time.UTC) }}}
 	read := time.Date(2026, 10, 5, 12, 0, 30, 0, time.UTC)
 	ref := v1.ObjectRef{Version: "v1", Kind: "Service", Namespace: "default", Name: "web"}
 	v := ownerView{
 		Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources,
-		Health: v1.Health{State: "Healthy", Live: false, EvaluatedAt: &read},
+		Health: v1.Health{State: "Healthy", Counts: v1.HealthCounts{Healthy: 1}, Live: false, EvaluatedAt: &read},
 		Components: h.components("/instances/default/app", []v1.Component{{
 			Name:    "web",
 			Objects: []v1.InventoryObject{{Ref: ref, Access: v1.AccessOK, Health: &v1.ObjectHealth{State: "Healthy"}, EvaluatedAt: &read}},
 		}}),
 	}
+	v.Cards = h.cardsOf(&v)
 	pages, err := parsePages(h.templateFuncs())
 	if err != nil {
 		t.Fatal(err)
@@ -94,7 +96,7 @@ func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := b.String()
-	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "evaluated <time") || !strings.Contains(out, "Healthy (not live)") {
+	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "not live, evaluated <time") {
 		t.Errorf("polled object without its read time:\n%s", between(out, `id="health-card"`, `id="detail"`))
 	}
 }
@@ -133,7 +135,7 @@ func TestBadgesAreOneShapeAndNameTheirAxis(t *testing.T) {
 			t.Errorf("%s partial still draws a dot: %q", name, tc.out)
 		}
 	}
-	partial := renderPartial(t, "health", v1.Health{State: "Healthy", Partial: true, Live: false})
+	partial := renderPartial(t, "health", v1.Health{State: "Healthy", Partial: true, Live: false, Counts: v1.HealthCounts{Healthy: 1}})
 	if !strings.Contains(partial, "health-partial") || !strings.Contains(partial, "Healthy (partial, not live)") {
 		t.Errorf("a partial health keeps its class and words: %q", partial)
 	}
@@ -417,5 +419,25 @@ func TestTipPartial(t *testing.T) {
 	_, box, found := strings.Cut(out, `<span class="tipbox"`)
 	if !found || strings.Contains(box, "<a ") || strings.Contains(box, "<button") || !strings.HasSuffix(strings.TrimSpace(out), "</span></span>") {
 		t.Errorf("the box holds text only and is the last child of span.tip: %s", out)
+	}
+}
+
+// TestHealthBadgeNotesNotLiveOnlyForCountedObjects (instance-39): a health
+// that counted nothing polled nothing, so its badge adds no "not live" note;
+// a polled health with counts still does.
+func TestHealthBadgeNotesNotLiveOnlyForCountedObjects(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		health v1.Health
+		want   string
+	}{
+		{"nothing counted", v1.Health{State: "Healthy", Live: false}, "Healthy"},
+		{"polled and counted", v1.Health{State: "Healthy", Live: false, Counts: v1.HealthCounts{Healthy: 2}}, "Healthy (not live)"},
+		{"live and counted", v1.Health{State: "Healthy", Live: true, Counts: v1.HealthCounts{Healthy: 2}}, "Healthy"},
+		{"partial, nothing counted", v1.Health{State: "Unknown", Partial: true}, "Unknown (partial)"},
+	} {
+		if got := healthBadge(tc.health).Text; got != tc.want {
+			t.Errorf("%s: badge %q; want %q", tc.name, got, tc.want)
+		}
 	}
 }

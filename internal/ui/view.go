@@ -99,7 +99,9 @@ func healthBadge(h v1.Health) badge {
 	if h.Partial {
 		notes = append(notes, "partial")
 	}
-	if !h.Live && h.State != "" {
+	// With nothing counted nothing was polled, so there is nothing to warn
+	// about (instance-39).
+	if !h.Live && h.State != "" && healthTotal(h.Counts) > 0 {
 		notes = append(notes, "not live")
 	}
 	if len(notes) > 0 {
@@ -152,6 +154,37 @@ func providerBadge(c v1.ProviderClaim) badge {
 		b.Title += ": " + c.Reason
 	}
 	return b
+}
+
+// pill is a round tag whose standing is also said in hidden words, so color
+// is never the only carrier.
+type pill struct {
+	Class    string
+	Standing string
+	Title    string
+	Locked   bool
+}
+
+// providerPill is the round "Provider" tag of the page kicker: the word
+// "Provider", with the controller's standing in hidden text and in the title
+// (portal:D15:R2/R4). providerBadge stays for the pages that print the
+// standing as visible words.
+func providerPill(c v1.ProviderClaim) pill {
+	b := providerBadge(c)
+	return pill{Class: b.Class + " prov-pill", Standing: strings.TrimPrefix(b.Text, "Provider, "), Title: b.Title, Locked: b.Locked}
+}
+
+// outcomeText names the outcomes of an attempt the read API decides.
+var outcomeText = map[string]string{outcomeOK: "Applied", outcomeFailed: outcomeFailed, wordUnknown: wordUnknown}
+
+// outcomeBadge is the badge of one history attempt; an outcome the UI does
+// not know reads Unknown.
+func outcomeBadge(outcome string) badge {
+	text, ok := outcomeText[outcome]
+	if !ok {
+		outcome, text = wordUnknown, wordUnknown
+	}
+	return badge{Class: "outcome outcome-" + slug(outcome), Text: text}
 }
 
 // claimBadge is a held registration's standing on the Provider card, in
@@ -317,6 +350,8 @@ var funcs = template.FuncMap{
 	"verdictBadge":  verdictBadge,
 	"providerBadge": providerBadge,
 	"claimBadge":    claimBadge,
+	"providerPill":  providerPill,
+	"outcomeBadge":  outcomeBadge,
 	"ownerText":     ownerText,
 	"accessText":    accessText,
 	"toneClass":     toneClass,

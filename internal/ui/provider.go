@@ -63,13 +63,9 @@ func catalogHref(path string) string { return "/catalog?" + url.Values{"path": {
 // providerTab reads what the Provider tab shows for v's held claims.
 func (h *Handler) providerTab(r *http.Request, v *ownerView) providerTabView {
 	var t providerTabView
-	var p v1.Platform
-	if prob := h.fetch(r, "/platform", nil, &p); prob != nil {
-		t.PlatformLocked = prob.Code == v1.CodeForbidden
-		if !t.PlatformLocked {
-			t.PlatformProblem = prob
-		}
-	}
+	p := v.plat.Doc
+	t.PlatformLocked = v.plat.Locked
+	t.PlatformProblem = v.plat.Problem
 	items := h.usedByInstances(r, &t, v, &p)
 	for _, c := range v.ProviderOf {
 		cv := claimView{Claim: c}
@@ -96,6 +92,21 @@ func (h *Handler) providerTab(r *http.Request, v *ownerView) providerTabView {
 		t.Claims = append(t.Claims, cv)
 	}
 	return t
+}
+
+// readPlatform reads the Platform for the Provider card and the Provider tab.
+func (h *Handler) readPlatform(r *http.Request) platformRead {
+	var pr platformRead
+	prob := h.fetch(r, "/platform", nil, &pr.Doc)
+	switch {
+	case prob == nil:
+		pr.Read = true
+	case prob.Code == v1.CodeForbidden:
+		pr.Locked = true
+	default:
+		pr.Problem = prob
+	}
+	return pr
 }
 
 // usedByInstances lists the instances "Used by" reads: every instance the

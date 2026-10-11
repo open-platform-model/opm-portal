@@ -152,7 +152,8 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	body := s.get(t, "/instances/default/podinfo").body
 	applied := between(body, `id="applied-card"`, "</section>")
 	health := between(body, `id="health-card"`, "</section>")
-	if !strings.Contains(applied, `class="applied applied-applied"`) || !strings.Contains(health, `class="health health-degraded"`) {
+	if !strings.Contains(body, `class="state-block hue-applied" id="applied-card"`) || !strings.Contains(body, `class="state-block hue-degraded" id="health-card"`) ||
+		!strings.Contains(applied, `<span class="sb-word">Applied</span>`) || !strings.Contains(health, `<span class="sb-word">Degraded</span>`) {
 		t.Errorf("the broken rollout's cards do not show Applied and Degraded apart:\n%s\n%s", applied, health)
 	}
 	if !strings.Contains(health, `href="/instances/default/podinfo?reason=ImagePullBackOff&amp;tab=resources"`) &&

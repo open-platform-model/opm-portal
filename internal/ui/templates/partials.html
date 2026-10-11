@@ -35,10 +35,28 @@
   {{range .Notes}}<p class="sb-note{{with .Class}} {{.}}{{end}}">{{if .Mono}}<span class="mono">{{.Text}}</span>{{else}}{{.Text}}{{end}}</p>{{end}}
   {{with .Caption}}<p class="sb-caption">{{.}}</p>{{end}}
   <div class="sb-reasons">{{range .Reasons}}<a href="{{.Href}}"{{with .Class}} class="{{.}}"{{end}}>{{if .N}}<strong>{{.N}}</strong> {{end}}<span class="mono">{{.Text}}</span></a>{{else}}<span class="muted">{{.None}}</span>{{end}}</div>
-  {{with .Links}}<p class="sb-links">{{range .}}<a href="{{.Href}}">{{.Text}}</a>{{end}}</p>{{end}}
+  {{with .Links}}<p class="sb-links">{{range .}}<a href="{{.Href}}">{{.Text}}</a>{{end}}</p>{{end}}{{with .History}}
+  {{template "history-strip" .}}{{end}}
   {{end}}
 </section>
 {{end}}
+
+{{/* history-strip is the Applied card's attempts, inside the block's section: a
+     label, one dot per recorded attempt (a tip each, marked by outcome), the count
+     and a pill that opens the attempts. The pill is the summary of a details
+     element that follows the bar and sits at the bar's end by CSS; the label swaps
+     with details[open]. The ten-attempt note is inside the opened body. */}}
+{{define "history-strip" -}}
+<div class="hist">
+  <div class="hist-bar"><span class="hist-label">History</span>
+    {{if .Dots}}<span class="adots">{{range .Dots}}<span class="adot {{.Class}}">{{template "tip" .Tip}}</span>{{end}}</span><span class="hist-count">{{.Count}}</span>{{else}}<span class="hist-count">none recorded</span>{{end}}
+  </div>
+  {{if .Rows}}<details class="hist-fold" id="history-fold"><summary><span class="hist-closed">Show history ▾</span><span class="hist-open">Hide history ▴</span></summary>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+    {{template "history" .Rows}}
+  </details>{{end}}
+</div>
+{{- end}}
 
 {{/* sb-icon is the state block's round icon: a check for applied, healthy and
      neutral, a bang for degraded and missing, turning arrows for progressing,
@@ -62,7 +80,7 @@
      button. Data: .ID (the box's id), .Trigger (the words the trigger draws),
      .Text (the tip). A box that sits near the right edge takes class "tip-end". */}}
 {{define "tip" -}}
-<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{.Trigger}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
+<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}"{{with .Label}} aria-label="{{.}}"{{end}}>{{.Trigger}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
 {{- end}}
 
 {{define "time" -}}
@@ -103,9 +121,8 @@
 <ol class="timeline">
 {{range .}}
   <li class="tl-item"{{with .Phase}} data-phase="{{.}}"{{end}}>
-    <div class="tl-head"><span class="tl-seq">#{{.Sequence}}</span><span class="tl-action">{{.Action}}</span>{{with .Phase}}<span class="tl-phase">{{.}}</span>{{end}}<span class="tl-time">{{template "time" .FinishedAt}}</span></div>
-    {{with .Message}}<p class="tl-message">{{.}}</p>{{end}}
-    <p class="tl-meta mono">{{.InventoryCount}} objects{{with .Digests.Render}} · render <span title="{{.}}">{{short .}}</span>{{end}}{{with .Digests.Source}} · source <span title="{{.}}">{{short .}}</span>{{end}}</p>
+    <div class="tl-head"><span class="tl-seq">#{{.Sequence}}</span>{{with outcomeBadge .Outcome}}<span class="{{.Class}}">{{.Text}}</span>{{end}}<span class="tl-message">{{.Message}}</span><span class="tl-time">{{template "time" .FinishedAt}}</span></div>
+    <p class="tl-meta mono">{{.Action}}{{with .Phase}} · {{.}}{{end}} · {{.InventoryCount}} objects{{with .Digests.Render}} · render <span title="{{.}}">{{short .}}</span>{{end}}{{with .Digests.Source}} · source <span title="{{.}}">{{short .}}</span>{{end}}</p>
   </li>
 {{end}}
 </ol>
