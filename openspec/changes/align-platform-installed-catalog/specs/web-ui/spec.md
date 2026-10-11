@@ -352,10 +352,11 @@ portal:D14:R1/R3.
 
 ### Requirement: Filter forms apply as the user types
 
-On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
-events, and the Catalog page's Events tab, with script, a search or text field of a `data-filters`
-form SHALL apply after a short pause in typing, with the user's focus, caret and any text typed
-meanwhile kept, and that form's Apply button SHALL be hidden until it takes keyboard focus.
+On every page, with script, a search or text field of a `data-filters` form, among them the
+filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent events,
+and the Catalog page's Events tab, SHALL apply after a short pause in typing, with the user's
+focus, caret and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until
+it takes keyboard focus.
 Source: portal:D14:R1/R2, portal:D19.
 
 #### Scenario: Typing applies the search
@@ -367,17 +368,29 @@ Source: portal:D14:R1/R2, portal:D19.
 
 ### Requirement: A filter's new count is announced once
 
-On the Platform page, the Installed list and the Catalog page, when a change to a `data-filters`
-form that shows a count has applied, the page SHALL announce the new count ("Showing n of M")
-once through the header's existing polite status region. A live refresh of the count, a change of
-the stream's state and a move to another page SHALL NOT announce it again. No other live region
-SHALL be added for it. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
+On the Platform page, the Installed list and the Catalog page, when a filter change (a field, a
+chip's remove link or "Clear all") has applied, the page SHALL announce the new count ("Showing n
+of M") once, through the header's existing polite status region. A live refresh, a change of the
+stream's state and a move to another page SHALL NOT announce it again. No other live region SHALL
+be added. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
 
 #### Scenario: Typing announces the count
 
 - **WHEN** a browser with script types `backup` into Installed's search field and the list applies
 - **THEN** the header's status region holds the text "Showing 2 of 6" once, and focus stays in
   the search field
+
+#### Scenario: Removing a chip announces the count
+
+- **WHEN** a browser with script opens `/installed?q=backup` on the F1 capture and removes the
+  chip "Search: backup"
+- **THEN** the header's status region holds the text "Showing 6 of 6" once
+
+#### Scenario: Clear all announces the count
+
+- **WHEN** a browser with script opens `/installed?namespace=default` on the F1 capture and
+  follows "Clear all"
+- **THEN** the header's status region holds the text "Showing 6 of 6" once
 
 #### Scenario: A refresh does not announce
 

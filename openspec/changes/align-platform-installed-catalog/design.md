@@ -493,7 +493,8 @@ caller may list", "Installed counts one namespace when a kind's full list is for
 module filter matches a package by its source". (The filter requirements were one requirement in
 the planning PR; the split keeps each under the 500-character guidance of `openspec validate
 --strict`. The split keeps every clause of the original, sentence for sentence: the list of forms
-it covered, now the opening words of each requirement; the select of values present "in the rows
+it covered, now the opening words of each requirement except the typing one, which keeps "on
+every page" for any `data-filters` form, as on main; the select of values present "in the rows
 the caller may read"; the empty-choice words for every select, not only the selects of row facts;
 the full contract as the option value; the URL value that still applies and shows as selected; the
 no-count rule; "so a reader who may list only some namespaces can name one"; the chips, the count
@@ -504,11 +505,16 @@ choices counted only from rows the caller may list.) The MODIFIED requirements k
 scenario of the main spec, and none of them is touched by `align-owner-pages` or `align-graph`.
 "List filters live in the URL and are remembered per browser" is left as it is: the new behaviour
 is additive and sits in the ADDED requirements. Every ADDED filter requirement except the
-announcement opens with the same list of forms (Installed, the Providers and Catalogs tabs,
-Platform events, Catalog events), so none binds the owner-page forms `align-owner-pages` specifies
-("Clear filters", no count on the Resources reason form, selects without counts). "A filter's new
+announcement and the typing one opens with the same list of forms (Installed, the Providers and
+Catalogs tabs, Platform events, Catalog events), so none binds the owner-page forms
+`align-owner-pages` specifies ("Clear filters", no count on the Resources reason form, selects
+without counts). "Filter forms apply as the user types" keeps the scope it has on main, "on every
+page, with script, a search or text field of a `data-filters` form" (supervisor ruling,
+2026-10-11): `align-owner-pages` relies on it for its owner-page forms, and nothing in that change
+asks for them to wait for Apply. The narrowing ruled for the counts and "Clear all" does not reach
+it. "A filter's new
 count is announced once" is narrower: it names this change's pages (the Platform page, the
-Installed list and the Catalog page) and leaves the owner pages to `align-owner-pages`, whose Events tab
+Installed list and the Catalog page), covers a field, a chip's remove link and "Clear all", and leaves the owner pages to `align-owner-pages`, whose Events tab
 count is not announced by this change and which needs no matching correction (supervisor ruling,
 2026-10-11).
 
@@ -624,12 +630,18 @@ technology announces unreliably.
        empty the note whenever it is no longer true. Cost: one attribute on a shared element,
        and a screen reader that ignores `aria-atomic="false"` presents the whole region.
 **Decision**: Option 3 with 3b. `layout.html` puts `aria-atomic="false"` on `#live`. `portal.js`
-sets a flag when a `submit` or select `change` on a `form[data-filters]` starts a request. On
-`htmx:afterSettle` with the flag set it copies the text of the new count region (`#shown`,
-`#events-shown`) into `.live-note` when it differs from what the note holds, then clears the
-flag. On `htmx:afterSettle` of a boosted request that no filter change started (a link, the
-main navigation, "Clear filters") and on `htmx:historyRestore`, it empties the note: the count
-belongs to the page it was written for. A followed refresh is not a boosted request and never
+sets a flag when a `submit` or select `change` on a `form[data-filters]`, or a click on a chip's
+remove link or on "Clear all" inside one, starts a request: all are filter changes. It acts once
+per request, on the `htmx:afterSettle` whose target is `#main`. The layout's `hx-select-oob="#nav"`
+(`layout.html:24`) makes htmx 2.0.11 settle two elements for one boosted request, `#nav` and
+`#main`, and fire `htmx:afterSettle` for each with the same detail; a handler that acted on every
+event would write the count on the first and empty it on the second, in the same task, and the
+count would never be announced. So the `#nav` event does nothing. On the `#main` event with the
+flag set it copies the text of the new count region (`#shown`, `#events-shown`) into `.live-note`
+when it differs from what the note holds, then clears the flag. On the `#main` event of a boosted
+request that no filter change started (a link, the main navigation, "Clear filters" in the empty
+state) and on `htmx:historyRestore`, it empties the note: the count belongs to the page it was
+written for. A followed refresh is not a boosted request and never
 sets the flag, so it touches nothing. `setLive` writes only `.live-text`. The hidden note is the
 clip pattern, never `display:none`. A form with no count region (the owner pages' Resources
 reason form) announces nothing.
