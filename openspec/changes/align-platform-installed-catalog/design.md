@@ -20,8 +20,9 @@ The change starts after `align-shell-and-tokens` (A) merges, and uses what A pro
 - the shared **state block** partial,
 - and the shared **tooltip** (`tip` partial, `.tipbox` CSS), which opens on tap and closes on
   Escape (PIC-A3, below),
-- and, through `fix-contrast-and-add-phone-check`, the `TestBrowserPhone` page list that this
-  change extends (PIC-A2).
+- and, through `fix-contrast-and-add-phone-check`, the `TestBrowserPhone` page list, a list of
+  page paths that are loaded and measured at 360 px, which this change extends with paths only
+  (PIC-A2).
 
 A defines the state block (its design.md, "The state block"): a `stateBlock` struct with
 `ID`, `Label`, `Eyebrow`, `When *time.Time`, `WhenText`, `Hue`, `State`, `Summary`, `Notes`,
@@ -483,21 +484,33 @@ that C's files keep working whichever change lands first:
 
 `web-ui` only. MODIFIED: "The Platform page is the landing page", "Installed lists instances and
 packages together", "The Catalog page shows one catalog as the cluster records it", "Pages use the
-words a platform team uses". ADDED: "Filter forms offer the values present", "Filter counts cover only what
-the caller may list", "Filter forms show what they apply", "Filter forms apply as the user types",
-"A filter's new count is announced once", "Installed counts every namespace the caller may list",
-"Installed counts one namespace when a kind's full list is forbidden", "The module filter matches
-a package by its source". (The first four filter requirements were one requirement in the
-planning PR; the split keeps each under the 500-character guidance of `openspec validate --strict`.
-It drops only examples that "Filter forms" above already carries: the list of "any" words and the
-full contract kept as the option value.) The MODIFIED requirements keep every scenario of the main spec, and none
-of them is touched by `align-owner-pages` or `align-graph`. "List filters live in the URL and are
-remembered per browser" is left as it is: the new behaviour is additive and sits in the ADDED
-requirements. The ADDED filter requirements name the forms they cover (Installed, the
-Providers and Catalogs tabs, Platform events, Catalog events), so they do not bind the owner-page
-forms `align-owner-pages` specifies ("Clear filters", no count on the Resources reason form); only
-"Filter forms apply as the user types", for every `data-filters` form, and "A filter's new count
-is announced once", for every such form that shows a count, hold on every page.
+words a platform team uses". ADDED: "Filter forms offer the values present", "Filter selects name
+their empty choice", "Filter selects keep the full contract and a URL value", "Filter counts
+cover only what the caller may list", "A list the caller may not read gives no count", "Filter
+forms show what they apply", "Filter forms keep the URL as their source", "Filter forms apply as
+the user types", "A filter's new count is announced once", "Installed counts every namespace the
+caller may list", "Installed counts one namespace when a kind's full list is forbidden", "The
+module filter matches a package by its source". (The filter requirements were one requirement in
+the planning PR; the split keeps each under the 500-character guidance of `openspec validate
+--strict`. The split keeps every clause of the original, sentence for sentence: the list of forms
+it covered, now the opening words of each requirement; the select of values present "in the rows
+the caller may read"; the empty-choice words for every select, not only the selects of row facts;
+the full contract as the option value; the URL value that still applies and shows as selected; the
+no-count rule; "so a reader who may list only some namespaces can name one"; the chips, the count
+row and "Clear all"; the plain `GET` without script; and the URL as the source of truth. The first
+split of this change dropped five of these; the proposal gate found it and the corrective
+specify restored them. The only wording added is PIC-A1's: the Uses options included, and the
+choices counted only from rows the caller may list.) The MODIFIED requirements keep every
+scenario of the main spec, and none of them is touched by `align-owner-pages` or `align-graph`.
+"List filters live in the URL and are remembered per browser" is left as it is: the new behaviour
+is additive and sits in the ADDED requirements. Every ADDED filter requirement except the
+announcement opens with the same list of forms (Installed, the Providers and Catalogs tabs,
+Platform events, Catalog events), so none binds the owner-page forms `align-owner-pages` specifies
+("Clear filters", no count on the Resources reason form, selects without counts). "A filter's new
+count is announced once" is narrower: it names this change's pages (the Platform page, the
+Installed list and the Catalog page) and leaves the owner pages to `align-owner-pages`, whose Events tab
+count is not announced by this change and which needs no matching correction (supervisor ruling,
+2026-10-11).
 
 ### Design record
 
@@ -519,13 +532,19 @@ changes. `internal/ui` still reads only through the read API.
 
 **Counts leave out unlisted namespaces (PIC-A1; portal:D14:R7).** Every number the filter forms
 show is a count over rows the caller may list: the option counts, the Uses counts, the namespace
-choices and the total. Where the caller may not list a kind everywhere, the page reads that kind
-in the filtered namespace only and applies the namespace filter to the other kind's rows before
-it counts anything (Installed, above), so a count never includes a row in a namespace the caller
-may not list. The Platform tabs count over the Platform document's registrations and catalogs,
-which the read API returns for a caller who may get the Platform. Task 3.8 names the test:
-`TestInstalledCountsFollowTheCallersNamespaces`, through `apitest`, which fails when a count
-includes a row outside the caller's namespace.
+choices and the total. The control is the read API's own list grant: each call to list
+ModuleInstances or ModulePackages needs a grant that covers `list` in the namespace asked (every
+namespace when none is named) and returns nothing outside it, so the rows Installed receives, and
+every choice and count built from them, are rows that caller may list
+(`internal/readmodel/instances.go:16-23`, `internal/ui/pages.go:142-162`). The page's namespace step is a consistency step, not the control:
+where the caller may not list a kind everywhere, the page reads that kind in the filtered
+namespace only and applies the namespace filter to the other kind's rows before it counts, so
+the two kinds' numbers cover the same namespace. The Platform tabs count over the Platform
+document's registrations and catalogs. The read API returns the registrations only to a caller who
+may `list transformerregistrations` cluster-wide (`internal/readmodel/platform.go:34,61-64`); a
+caller who may only `get` the Platform receives none, and the tabs then carry no counts. Task 3.8
+names the test: `TestInstalledCountsFollowTheCallersNamespaces`, through `apitest`, which fails
+when a count includes a row outside the caller's namespace.
 
 ## Research & Decisions
 
@@ -596,17 +615,40 @@ technology announces unreliably.
 3. Write the new count into the existing `#live` region. `#live` sits outside `#main`, so the
    swap leaves it in place, and it is already a polite status region. The visible `.live-text`
    keeps saying the stream's state; the count goes into one visually hidden child, `span.live-note`.
-**Decision**: Option 3. `portal.js` sets a flag when a `submit` or select `change` on a
-`form[data-filters]` starts a request, and on `htmx:afterSettle` with the flag set it copies the
-text of the new count region into `.live-note` when it differs from what the note holds. A
-followed refresh never sets the flag. The hidden note is the clip pattern, never `display:none`.
-A form with no count region (the owner pages' Resources reason form) announces nothing.
-**Rationale**: no new live region, one announcement per applied change, no noise from the stream.
-**Accepted**: `role="status"` is atomic, so a screen reader may read the stream state with the
-count ("Live, Showing 2 of 6"). The order of events is not checked in a screen reader here: task
-2.8 asks for a pass with VoiceOver and NVDA and records any run it could not make as not assessed.
-`layout.html` is also edited by `align-shell-and-tokens` (the worded live mark); task 1.1 checks
-the merged markup, and the note is one child element beside `.live-text`.
+   `role="status"` makes the region atomic, so every later change of `.live-text` (eight call
+   sites of `setLive`, `portal.js:199,203,295,337,483,547,553,556`) would present the whole
+   region again, the stale count included. Two ways to stop the repeat:
+   3a. Keep the region atomic and empty the note on a timer after it was announced. Cost: a timer
+       races the screen reader's queue, and the note is empty only after the delay.
+   3b. Set `aria-atomic="false"` on `#live`, so a change presents the changed child only, and
+       empty the note whenever it is no longer true. Cost: one attribute on a shared element,
+       and a screen reader that ignores `aria-atomic="false"` presents the whole region.
+**Decision**: Option 3 with 3b. `layout.html` puts `aria-atomic="false"` on `#live`. `portal.js`
+sets a flag when a `submit` or select `change` on a `form[data-filters]` starts a request. On
+`htmx:afterSettle` with the flag set it copies the text of the new count region (`#shown`,
+`#events-shown`) into `.live-note` when it differs from what the note holds, then clears the
+flag. On `htmx:afterSettle` of a boosted request that no filter change started (a link, the
+main navigation, "Clear filters") and on `htmx:historyRestore`, it empties the note: the count
+belongs to the page it was written for. A followed refresh is not a boosted request and never
+sets the flag, so it touches nothing. `setLive` writes only `.live-text`. The hidden note is the
+clip pattern, never `display:none`. A form with no count region (the owner pages' Resources
+reason form) announces nothing.
+**Rationale**: no new live region, one announcement per applied change, and no repeat. 3b makes
+the repeat impossible by structure: the note is the only node that changes when a count is
+announced, and `.live-text` the only node that changes when the stream's state does. 3a would
+rely on timing. Emptying the note on a move to another page also makes the "differs from what
+the note holds" test sound: a later filter that yields the same words on another page is
+announced, not skipped. `aria-atomic="false"` departs from the example in the accessibility
+guide of `eng-frontend-build` (`aria-atomic="true"`); the guide's reason, a message read as a
+whole, does not hold for a region that carries two independent messages.
+**Accepted**: the order of events is not checked in a screen reader here. Task 2.8 asks for a
+pass with VoiceOver and NVDA that hears the count once after typing, hears only "Reconnecting"
+when the stream drops, and hears nothing about the count after a move to another page, and it
+records any run it could not make as not assessed. If a screen reader presents the whole region
+anyway, 3a is the fallback, as a later change. `layout.html` is also edited by
+`align-shell-and-tokens` (the worded live mark, wording only at 8d5ca86); the second of the two
+changes to land keeps both edits when it merges `main`. Task 1.1 checks the merged markup, and the
+note is one child element beside `.live-text`.
 
 ### Uses options and blueprints (G10)
 
@@ -653,8 +695,9 @@ recorded". The owner may prefer the canvas words in review.
   sit above the stretched link (`position:relative; z-index:1`), and the browser test clicks the
   tooltip trigger to check it.
 - **`layout.html` is shared with `align-shell-and-tokens`.** This change adds one hidden child to
-  `#live`. If that change restructures the live mark, task 1.1 finds it and task 2.8 follows the
-  merged markup.
+  `#live` and `aria-atomic="false"` on it. If that change restructures the live mark, task 1.1
+  finds it and task 2.8 follows the merged markup; whichever change lands second keeps the
+  attribute and the child.
 - **Parallel work with align-owner-pages** on `partials.html` and `portal.css`. The split is
   above. The second change to land merges `main` into its branch (never a history rewrite) and
   adopts the first's `events-table`.
@@ -731,7 +774,7 @@ the planning PR wrote them, except the re-partition of two requirements (see "Sp
 | Id | What | Tasks | Spec | Here |
 | --- | --- | --- | --- | --- |
 | PIC-A1 | Name the SR8 count test: option counts and Uses counts leave out rows in a namespace the caller may not list | 3.8 | "Filter counts cover only what the caller may list"; scenario "A reader who may list one namespace sees that namespace only"; "One kind scoped" | Authorization |
-| PIC-A2 | Add the three pages to the `TestBrowserPhone` page list | 2.6, 3.6, 4.8, 5.5 | none: the 360 px rule is in the main `web-ui` spec | Context |
+| PIC-A2 | Add the pages this change changes to the `TestBrowserPhone` page list (paths only; the open tooltip and the open theme menu are checked at 360 px in `TestBrowserFilters` and `TestBrowserTheme`) | 2.6, 3.6, 4.7, 4.8, 5.5 | none: the 360 px rule is in the main `web-ui` spec | Context |
 | PIC-A3 | Provider tooltip opens on a tap and closes on Escape | 3.6 | "Installed lists instances and packages together"; scenario "The provider tooltip by tap and Escape" | Installed: provider badge |
 | PIC-A4 | Merge `main` into the branch; no history rewrite | 1.1 | none | Risks, "Parallel work" |
-| PIC-L1 | The live-region check: the count is announced once, through `#live` | 2.8, 4.8 | "A filter's new count is announced once" | Research & Decisions |
+| PIC-L1 | The live-region check: the count is announced once, through `#live`, and not again when the stream's state changes | 2.8, 4.8 | "A filter's new count is announced once" | Research & Decisions |

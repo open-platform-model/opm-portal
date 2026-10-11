@@ -245,11 +245,11 @@ YAML view shows objects as the cluster serves them and is exempt. Source: portal
 
 ### Requirement: Filter forms offer the values present
 
-Each filter form of the Installed, Platform and Catalog pages SHALL draw its fields in its
-view's parameter order. A filter whose values are facts of the listed rows (Installed's
-namespace, uses and module; the Providers tab's provides) SHALL be a select of the values
-present, with the empty choice named in words as its first option. A contract SHALL read by its
-last two path segments and version. A URL value outside the choices SHALL still apply and show. Source: portal:D14:R1/R2, portal:D19.
+The filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab SHALL each draw their fields in their view's parameter
+order. A filter whose values are facts of the listed rows (Installed's namespace, uses and
+module; the Providers tab's provides) SHALL be a select of the values present in the rows the
+caller may read. Source: portal:D14:R1/R2, portal:D19.
 
 #### Scenario: Namespace choices with counts
 
@@ -257,11 +257,12 @@ last two path segments and version. A URL value outside the choices SHALL still 
 - **THEN** the Namespace filter offers `cert-manager (1)`, `default (3)`, `pkg (1)` and
   `web (1)` after "All namespaces"
 
-#### Scenario: A value not among the choices
+### Requirement: Filter selects name their empty choice
 
-- **WHEN** a browser opens `/installed?namespace=team-z` on the F1 capture
-- **THEN** the Namespace select shows `team-z` selected, the list is empty, and its chip reads
-  "Namespace: team-z"
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, the first option of every select SHALL name the empty
+choice in words ("Any kind", "All namespaces", "Anyone", "Any status", "Either"). Source:
+portal:D14:R1/R2, portal:D19.
 
 #### Scenario: Provider status choices
 
@@ -269,21 +270,25 @@ last two path segments and version. A URL value outside the choices SHALL still 
 - **THEN** the Status filter offers "Any status", then each status with its count, among them
   `Accepted (1)` and `Refused (1)`
 
+### Requirement: Filter selects keep the full contract and a URL value
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, a contract SHALL show by its last two path segments
+with its version, with the full contract as its value. A value in the URL that is not among the
+choices SHALL still apply and show as selected. Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: A value not among the choices
+
+- **WHEN** a browser opens `/installed?namespace=team-z` on the F1 capture
+- **THEN** the Namespace select shows `team-z` selected, the list is empty, and its chip reads
+  "Namespace: team-z"
+
 ### Requirement: Filter counts cover only what the caller may list
 
-Every select option SHALL carry its count over the rows before filtering, and only a row the
-caller may list SHALL add to any option count, the Uses options included. An option whose rows
-come from a list the caller may not read, or that failed, SHALL carry no count, never a zero.
-When such a list is locked or failed, the form SHALL say its counts cover only what the caller
-may read, and the namespace filter SHALL stay a field the user can type into. Source:
-portal:D14:R7, portal:D7:R2.
-
-#### Scenario: A namespace-only reader
-
-- **WHEN** the caller may list ModuleInstances and ModulePackages only in namespace `default` and
-  opens `/installed`
-- **THEN** both lists render locked, the Namespace filter is a field the user can type into, and
-  no option count stands for the locked lists
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, every select option SHALL carry its count over the
+rows before filtering. A select SHALL offer as choices, and count, only values found in rows the
+caller may list, the Uses options included. Source: portal:D14:R7, portal:D7:R2.
 
 #### Scenario: A reader who may list one namespace sees that namespace only
 
@@ -292,6 +297,22 @@ portal:D14:R7, portal:D7:R2.
 - **THEN** every option count, the Uses counts included, counts rows in `default` only, the Uses
   options hold no contract that only rows in `cert-manager` or `web` use (such as `crds`), and the
   namespace choices hold `default` only
+
+### Requirement: A list the caller may not read gives no count
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, an option whose rows come from a list the caller may
+not read, or that failed, SHALL carry no count, never a zero. The form SHALL then say its counts
+cover only what the caller may read, and the namespace filter SHALL stay a field the user can
+type into, so a reader who may list only some namespaces can name one. Source: portal:D14:R7,
+portal:D7:R2.
+
+#### Scenario: A namespace-only reader
+
+- **WHEN** the caller may list ModuleInstances and ModulePackages only in namespace `default` and
+  opens `/installed`
+- **THEN** both lists render locked, the Namespace filter is a field the user can type into, and
+  no option count stands for the locked lists
 
 #### Scenario: Packages forbidden in the Kind filter
 
@@ -307,10 +328,22 @@ portal:D14:R7, portal:D7:R2.
 
 ### Requirement: Filter forms show what they apply
 
-Each active filter's chip SHALL read "Label: value". The form SHALL always show how many rows it
-shows of how many, and "Clear all" when a filter is active. The URL query SHALL stay the filters'
-source of truth, and without script the Apply button SHALL show and every filter SHALL work as a
-plain `GET`. Source: portal:D14:R1/R3.
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, each active filter's chip SHALL read "Label: value".
+The form SHALL always show how many rows it shows of how many, and "Clear all" when a filter is
+active. Source: portal:D14:R1/R3.
+
+#### Scenario: Chip, count and Clear all
+
+- **WHEN** a signed-in browser opens `/installed?namespace=default` on the F1 capture
+- **THEN** the form shows the chip "Namespace: default", the count "Showing 3 of 6" and "Clear all"
+
+### Requirement: Filter forms keep the URL as their source
+
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, the URL query SHALL stay the filters' source of truth.
+Without script the Apply button SHALL show and every filter SHALL work as a plain `GET`. Source:
+portal:D14:R1/R3.
 
 #### Scenario: Without script
 
@@ -319,10 +352,11 @@ plain `GET`. Source: portal:D14:R1/R3.
 
 ### Requirement: Filter forms apply as the user types
 
-On every page, with script, a search or text field of a `data-filters` form SHALL apply after a
-short pause in typing, with the user's focus, caret and any text typed meanwhile kept, and that
-form's Apply button SHALL be hidden until it takes keyboard focus. Source: portal:D14:R1/R2,
-portal:D19.
+On the filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent
+events, and the Catalog page's Events tab, with script, a search or text field of a `data-filters`
+form SHALL apply after a short pause in typing, with the user's focus, caret and any text typed
+meanwhile kept, and that form's Apply button SHALL be hidden until it takes keyboard focus.
+Source: portal:D14:R1/R2, portal:D19.
 
 #### Scenario: Typing applies the search
 
@@ -333,10 +367,11 @@ portal:D19.
 
 ### Requirement: A filter's new count is announced once
 
-When a change to a `data-filters` form that shows a count has applied, the page SHALL announce
-the new count ("Showing n of M") once through the header's existing polite status region, and
-SHALL NOT announce a count that only a live refresh changed. No other live region SHALL be added
-for it. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
+On the Platform page, the Installed list and the Catalog page, when a change to a `data-filters`
+form that shows a count has applied, the page SHALL announce the new count ("Showing n of M")
+once through the header's existing polite status region. A live refresh of the count, a change of
+the stream's state and a move to another page SHALL NOT announce it again. No other live region
+SHALL be added for it. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
 
 #### Scenario: Typing announces the count
 
@@ -349,6 +384,18 @@ for it. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
 - **WHEN** a live refresh changes the rows or the count of an Installed list the user has not
   touched
 - **THEN** the header's status region keeps the text it held before
+
+#### Scenario: A change of the stream's state does not repeat the count
+
+- **WHEN** the count "Showing 2 of 6" has been announced and the stream's state then changes to
+  "Reconnecting"
+- **THEN** the header's status region presents the new state only, and the count is not read again
+
+#### Scenario: A move to another page forgets the count
+
+- **WHEN** the count "Showing 2 of 6" has been announced on Installed and the user opens the
+  Platform page from the main navigation
+- **THEN** the hidden count is empty, and a later change of the stream's state does not present it
 
 ### Requirement: Installed counts every namespace the caller may list
 

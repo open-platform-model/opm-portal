@@ -40,7 +40,8 @@ shared state block partial and the shared tooltip, and this change uses all of t
   focus. An option over a list the caller may not read carries no count. A row that is always shown holds
   "Showing N of M", chips reading "Label: value" and "Clear all". The URL contract is unchanged
   (portal:D14). Once a typed or picked filter has applied, the new count is announced once to
-  screen readers through the header's existing status region, with no new live region. Every
+  screen readers through the header's existing status region, with no new live region and no
+  repeat when the stream's state changes. Every
   count, the Uses counts included, covers only rows in namespaces the caller may list, and a
   named test proves it.
 - **Installed**: when the caller may list everywhere, the list is fetched unscoped and filtered by
@@ -99,11 +100,11 @@ None.
 
 - Packages: `internal/ui` only (`filters.go`, `pages.go`, `platform.go`, `catalog.go`, `view.go`,
   templates `installed.html`, `platform.html`, `catalog.html`, `partials.html`, `layout.html`
-  (theme menu check, and one hidden note in the `#live` region), `static/portal.css`,
+  (theme menu check, and one hidden note and `aria-atomic="false"` in the `#live` region), `static/portal.css`,
   `static/portal.js`, `static/prefs.js`, tests and UI goldens), `test/browser/` (a new
-  `filters.py`), `cmd/opm-portal/browser_test.go` (`TestBrowserFilters`), `Taskfile.yml` (the
+  `filters.py`, and one check in `theme.py`), `cmd/opm-portal/browser_test.go` (`TestBrowserFilters`), `Taskfile.yml` (the
   `test:browser` pattern), and the page list of `TestBrowserPhone` (added by
-  `fix-contrast-and-add-phone-check`; this change adds pages to it and no test name).
+  `fix-contrast-and-add-phone-check`; this change adds page paths to it and no test name).
   `api/v1alpha1`, `internal/api`, `internal/readmodel`, `internal/graph` and `internal/health` do not change.
 - Pages: `/`, `/installed`, `/catalog`.
 - Shared with `align-owner-pages` (it runs after `align-shell-and-tokens`, in parallel with this
