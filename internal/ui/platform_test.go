@@ -154,3 +154,43 @@ func TestPlatformEventsFilterShowsItsChip(t *testing.T) {
 		t.Errorf("no chip for the events filter:\n%s", form)
 	}
 }
+
+// tabsOf returns the first tab strip of a page's main region.
+func tabsOf(main string) string { return between(main, `<nav class="tabs`, "</nav>") }
+
+// TestPlatformTabsCarryTheirCounts (portal:D19:R3, portal:D7): Providers and
+// Catalogs show the registrations and catalog rows the page holds, the whole
+// list whatever a filter says. When the registrations are locked or the
+// Platform is not readable, each keeps an empty count span for a live refresh
+// to empty.
+func TestPlatformTabsCarryTheirCounts(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	for _, path := range []string{"/", "/?tab=catalogs", "/?pstatus=refused", "/?tab=catalogs&csource=claim"} {
+		tabs := tabsOf(mainOf(s.get(t, path).body))
+		for _, want := range []string{
+			`Providers <span class="tab-n" id="tab-n-providers" data-follow="platform">2</span>`,
+			`Catalogs <span class="tab-n" id="tab-n-catalogs" data-follow="platform">3</span>`,
+		} {
+			if !strings.Contains(tabs, want) {
+				t.Errorf("%s: the tabs lack %s:\n%s", path, want, tabs)
+			}
+		}
+		if !strings.Contains(mainOf(s.get(t, path).body), `class="tabs tabs-lg"`) {
+			t.Errorf("%s: the Platform strip is not the large one", path)
+		}
+	}
+	for name, rule := range map[string]apitest.Rule{
+		"registrations locked": apitest.DenyResources("transformerregistrations"),
+		"Platform forbidden":   apitest.DenyResources("platforms"),
+	} {
+		tabs := tabsOf(mainOf(newSite(t, apitest.F1(t), rule).get(t, "/").body))
+		for _, want := range []string{
+			`Providers<span class="tab-n" id="tab-n-providers" data-follow="platform"></span></a>`,
+			`Catalogs<span class="tab-n" id="tab-n-catalogs" data-follow="platform"></span></a>`,
+		} {
+			if !strings.Contains(tabs, want) {
+				t.Errorf("%s: a count shows over a list the caller may not read in full, or its empty span is gone (want %s):\n%s", name, want, tabs)
+			}
+		}
+	}
+}

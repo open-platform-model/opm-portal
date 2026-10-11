@@ -1,13 +1,68 @@
+{{/* applied, health and state each draw one square badge (portal:D19:R3). The axis
+     is named by a word in the badge, visible or hidden; the colour never carries it alone. */}}
 {{define "applied" -}}
 {{with appliedBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Applied axis</span>{{.Text}}</span>{{end}}
 {{- end}}
 
 {{define "health" -}}
-{{with healthBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
+{{with healthBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
 {{- end}}
 
 {{define "state" -}}
-{{with stateBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="dot" aria-hidden="true"></span>{{.Text}}</span>{{end}}
+{{with stateBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
+{{- end}}
+
+{{/* tab is one tab of a strip. A tab that can carry a count always draws the
+     count as its own element with an id and its topics, so a live refresh swaps
+     it and leaves the strip's links as they are. With no count the element is
+     empty, and the stylesheet draws nothing for it: a refresh can then empty a
+     count whose source has become a problem. */}}
+{{define "tab" -}}
+<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .Follow}}{{if .Count}} {{end}}<span class="tab-n" id="tab-n-{{.Name}}" data-follow="{{.Follow}}">{{with .Count}}{{.}}{{end}}</span>{{end}}</a>
+{{- end}}
+
+{{/* state-block is one summary block (portal:D19:R3): an eyebrow, a recorded
+     time or words, a round icon, the state word, a summary line and the forms
+     the pages need. Build the value with newStateBlock. A problem shows the
+     eyebrow and the problem region and no state word. The state word, not the
+     colour, names the state. */}}
+{{define "state-block"}}
+<section class="state-block hue-{{.Hue}}" id="{{.ID}}" aria-label="{{.Label}}"{{with .Follow}} data-follow="{{.}}"{{end}}>
+  <div class="sb-head"><span class="sb-eyebrow">{{.Eyebrow}}</span>{{with .When}}<span class="sb-when">{{$.WhenText}} {{template "time" .}}</span>{{else}}{{with .WhenText}}<span class="sb-when">{{.}}</span>{{end}}{{end}}</div>
+  {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
+  <div class="sb-state">{{template "sb-icon" .Hue}}<span class="sb-word">{{.State}}</span></div>
+  {{with .Summary}}<p class="sb-summary">{{.}}</p>{{end}}
+  {{range .Notes}}<p class="sb-note{{with .Class}} {{.}}{{end}}">{{if .Mono}}<span class="mono">{{.Text}}</span>{{else}}{{.Text}}{{end}}</p>{{end}}
+  {{with .Caption}}<p class="sb-caption">{{.}}</p>{{end}}
+  <div class="sb-reasons">{{range .Reasons}}<a href="{{.Href}}"{{with .Class}} class="{{.}}"{{end}}>{{if .N}}<strong>{{.N}}</strong> {{end}}<span class="mono">{{.Text}}</span></a>{{else}}<span class="muted">{{.None}}</span>{{end}}</div>
+  {{with .Links}}<p class="sb-links">{{range .}}<a href="{{.Href}}">{{.Text}}</a>{{end}}</p>{{end}}
+  {{end}}
+</section>
+{{end}}
+
+{{/* sb-icon is the state block's round icon: a check for applied, healthy and
+     neutral, a bang for degraded and missing, turning arrows for progressing,
+     a clock for unknown, the lock for locked. It is decoration; the state word
+     carries the meaning. */}}
+{{define "sb-icon" -}}
+<svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/>
+{{- if eq . "progressing"}}<path d="M11 17a7.5 7.5 0 0 1 13-4.5M25 10.5v4.5h-4.5M25 19a7.5 7.5 0 0 1-13 4.5M11 25.5V21h4.5"/>
+{{- else if eq . "unknown"}}<path d="M18 10.5V18l5 3"/>
+{{- else if eq . "locked"}}<path d="M13.5 16v-2.5a4.5 4.5 0 0 1 9 0V16"/><rect x="12" y="16" width="12" height="9" rx="2"/>
+{{- else if or (eq . "degraded") (eq . "missing")}}<path d="M18 10v9M18 25v.5"/>
+{{- else}}<path d="M10.5 18.5l5.5 5.5 10-11.5"/>
+{{- end}}</svg>
+{{- end}}
+
+{{/* tip is an info tip: the trigger is a native button inside span.tip, which
+     names its box with aria-describedby; the box is the last child of span.tip
+     and holds text only, never a link or a control (WCAG 2.2 1.4.13, 4.1.2).
+     CSS shows the box on hover and focus; portal.js adds Escape, the tap and
+     the close when focus or the pointer leaves. Enter and Space press the
+     button. Data: .ID (the box's id), .Trigger (the words the trigger draws),
+     .Text (the tip). A box that sits near the right edge takes class "tip-end". */}}
+{{define "tip" -}}
+<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{.Trigger}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
 {{- end}}
 
 {{define "time" -}}
@@ -113,7 +168,7 @@
   </svg>
   </div>
   <div class="node-cards">
-  {{range .Nodes}}<div class="node-card" id="{{.Card.ID}}" role="tooltip" data-card-for="{{.ID}}" hidden>{{with .Card}}<span class="nc-kind">{{.Kind}}</span> <strong class="nc-name mono">{{.Name}}</strong>{{if or .Health .Applied}} <span class="nc-marks">{{with .Health}}<span class="{{.Class}}"><span class="dot" aria-hidden="true"></span>{{.Text}}</span>{{end}}{{with .Applied}} <span class="{{.Class}}">{{.Text}}</span>{{end}}</span>{{end}}{{with .Reason}} <span class="nc-reason mono">{{.}}</span>{{end}}{{with .Origin}} <span class="nc-origin">{{.}}</span>{{end}}{{with .Access}} <span class="nc-access">{{.}}</span>{{end}}{{end}}</div>
+  {{range .Nodes}}<div class="node-card" id="{{.Card.ID}}" role="tooltip" data-card-for="{{.ID}}" hidden>{{with .Card}}<span class="nc-kind">{{.Kind}}</span> <strong class="nc-name mono">{{.Name}}</strong>{{if or .Health .Applied}} <span class="nc-marks">{{with .Health}}<span class="label">Health</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}{{with .Applied}} <span class="label">Applied</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}</span>{{end}}{{with .Reason}} <span class="nc-reason mono">{{.}}</span>{{end}}{{with .Origin}} <span class="nc-origin">{{.}}</span>{{end}}{{with .Access}} <span class="nc-access">{{.}}</span>{{end}}{{end}}</div>
   {{end}}
   </div>
 </div>

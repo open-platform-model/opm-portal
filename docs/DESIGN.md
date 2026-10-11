@@ -1263,6 +1263,11 @@ stays out, as D17 says.
   surfaces it is drawn on, in the light and the dark theme. A test of token pairs in `internal/ui`
   holds the floor. The web-ui requirements "Muted text meets WCAG 2.2 AA contrast in both themes"
   and "Text inputs and selects have a boundary of at least 3:1" state it.
+- R7: R6's floor holds for every token pair the redesign adds. Text in a tone's ink token has a
+  contrast ratio of at least 4.5:1 on that tone's background and tint, and so do links in the accent
+  colours on the page and surface colours, and the muted and secondary ink on every tint, in the
+  light and the dark theme. Text is never drawn in a tone's border token on its fill. The same test
+  of token pairs holds it, and a canvas value that fails yields to it.
 
 **Alternatives considered:**
 
@@ -1290,7 +1295,9 @@ Catalog page, which is listed as an open deviation in `ROADMAP.md` and the OpenS
 `align-shell-and-tokens`. Gaps measured in [evidence 05](design/evidence/05-canvas-gap-report/).
 R6 (the contrast floor) is the owner's decision of 2026-10-11 to record the floor under D19; the
 floor ranks above any canvas value. The OpenSpec change `fix-contrast-and-add-phone-check` carries
-it.
+it. R7 extends the floor to the pairs of the tone, link and state block tokens: the owner answered
+yes on 2026-10-11, and the proposal gate of the same day ruled that it is a new requirement that
+cites R6. The OpenSpec change `align-shell-and-tokens` carries it.
 
 ### D20: A package's source is read as the caller, and its own state is shown
 
