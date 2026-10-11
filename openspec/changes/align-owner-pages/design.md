@@ -183,7 +183,7 @@ Problems:
 | The portal's reader denied list events in the owner's namespace | `503 not_readable_by_portal`, as today |
 | List denied in another namespace | `200` with those objects left out and `partial: true` |
 | A list in some namespace fails | `200` with those objects left out and `partial: true` |
-| The caller may not list all of ReplicaSets, Pods and Jobs in a namespace | `200` with no runtime child of that namespace and none of their events, and `partial: true` |
+| The caller may not list all of ReplicaSets, Pods and Jobs in some namespace of the owner | `200` with no runtime child of the owner in any namespace and none of their events, and `partial: true` when the owner has an inventory object of a kind that has runtime children |
 | `scope` unknown, or `scope=all` with object parameters | `400 bad_request` |
 | The read model not yet synced for the owner | `503 not_readable_by_portal`, as today |
 
@@ -195,16 +195,22 @@ Authorization, in order, each review before the lookup it covers, keeping today'
 2. The owner, then its inventory, read from held state under that grant (portal:D3:R9). A
    missing owner is `404`, as today. Each object carries the caller's `access`. Objects that are
    not `ok`, and every core Secret, are dropped. Runtime children are kept as the inventory
-   document carries them for this caller, and that rule is all or none for each namespace: the
-   document holds the children there only when the caller may list ReplicaSets, Pods and Jobs
-   together (`childrenIn`, `internal/readmodel/children.go:23,106-111`), and a caller who may not
-   list one of the three has none of the three kinds in that namespace (`childrenOf`,
-   `evaluate.go:235-238`). A caller denied Pods therefore loses the ReplicaSets and Jobs and all
-   their events too. When the children are unread, the evaluator marks the workloads that own them
-   with `ChildrenUnread` (`internal/health/rollup.go:139-143,201-209`,
-   `internal/readmodel/views.go:140-142`), and the feed sets `partial` when any inventory object
-   of the caller's view carries it. An event is kept only for an object or child that the caller's
-   own view of the owner lists (OP-A1).
+   document carries them for this caller, and that rule is all or none for each owner: a
+   namespace gives its children only when the caller may list ReplicaSets, Pods and Jobs together
+   (`childrenIn`, `internal/readmodel/children.go:23,106-111`); when any one namespace of the
+   owner fails that review, `childrenOf` reports an access other than `ok`
+   (`evaluate.go:235-238`) and the evaluation keeps no child at all (`evaluate.go:79-80`), so a
+   caller denied Pods in one namespace loses the ReplicaSets, Pods and Jobs of every namespace of
+   the owner, and all their events. When the children are unread, the evaluator marks the
+   readable, present workloads of the kinds that can own Pods (Deployment, ReplicaSet,
+   StatefulSet, DaemonSet, Job, CronJob) with `ChildrenUnread`
+   (`internal/health/rollup.go:139-143,190-210`, `internal/readmodel/views.go:140-142`), and the
+   feed sets `partial` when any inventory object of the caller's view carries it. `partial` is
+   therefore true only for an owner that holds such a workload. An owner of other kinds only (a
+   custom resource that controls Pods through its own controller) is served `partial: false` even
+   when its labeled Pods are unread; the read model is unchanged by this change, and Risks records
+   the case. An event is kept only for an object or child that the caller's own view of the owner
+   lists (OP-A1).
 3. The event namespace of every remaining object, from `readmodel.EventNamespace`: the object's
    own namespace, or `default` for a cluster-scoped object (portal:D9:R4).
 4. `list` on `events` in each other namespace, reviewed one namespace at a time so that one
@@ -232,9 +238,9 @@ say the same.
 two callers through a `readmodeltest.Rule` keyed on the user, in two rows. Each row states its
 grant in the test table.
 
-Row 1, runtime children are all or none. User A may get the instance and its Deployment, list
-events in `default`, and list ReplicaSets and Jobs, and is denied every verb on Pods; so A lacks
-`list` on one of the three child kinds, and the namespace gives A none of them. User B may do
+Row 1, runtime children are all or none for each owner. User A may get the instance and its
+Deployment, list events in `default`, and list ReplicaSets and Jobs, and is denied every verb on Pods; so A lacks
+`list` on one of the three child kinds, and the owner gives A none of them. User B may do
 everything. On `instances/default/podinfo/events?scope=all`:
 
 - B's list holds the events of the ReplicaSet and the Pods. A's holds no item that regards a
@@ -559,8 +565,10 @@ secondary line.
     a node that is locked, forbidden or not readable carries none of them and makes no object read,
     and a Secret never does.
   - An image reference is shown without userinfo (OP-A3). `imageText` keeps any leading
-    `scheme://` and cuts the rest after its last `@` that does not start a digest suffix: `@sha256:`
-    or `@sha512:` followed by hex to the end of the string. It does not look for a `/`, because a
+    `scheme://` and cuts the rest after its last `@` that does not start a digest suffix: `@sha256:`,
+    `@sha384:` or `@sha512:` followed by hex to the end of the string. The list is fixed, not
+    any `<algorithm>:<hex>`: a tag that is a 40-digit git sha would match the general form and
+    keep a password (`user:pw@app:<40 hex>`). It does not look for a `/`, because a
     password may hold one (base64 tokens often do): `user:ab/cd@registry.example/app:1` and
     `user:secret@registry.example/app:1` both read `registry.example/app:1`, and
     `user:secret@registry.example/app@sha256:<digest>` reads
@@ -853,8 +861,15 @@ cheaper than a wire change, and a Platform the caller may not read degrades to "
 - [A caller who may list Pods but not get them] → Their view of the owner lists the Pods, so their
   events follow the same rule (OP-A1, row 2 of the test). A stricter rule needs a `get` review for
   each child kind and namespace; this change does not add one.
+- [`partial` misses an owner with no workload kind] → `partial` follows `ChildrenUnread`, which the
+  evaluator sets only on Deployments, ReplicaSets, StatefulSets, DaemonSets, Jobs and CronJobs. For
+  an owner whose inventory holds none of them, and whose custom resource controls labeled Pods
+  through its own controller, an unreadable Pod's events are left out and the feed reads as
+  complete. Accepted: the read model stays as it is, and the Events count shows. A later change
+  that carries the children access on the owner view closes it.
 - [A later per-kind split of the children rule] → Today a caller denied one of ReplicaSets, Pods
-  and Jobs sees none of the three in that namespace (OP-A1, row 1 of the test). A change that lets a
+  and Jobs in any namespace of the owner sees none of the three in any of them (OP-A1, row 1 of
+  the test). A change that lets a
   caller see the ReplicaSets without the Pods would give that caller the Pod names in the
   ReplicaSets' `SuccessfulCreate` notes. That change must change the test and the note rule first.
 - [Panel object read fails or is slow] → The facts are optional: the panel renders from the graph

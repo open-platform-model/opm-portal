@@ -71,7 +71,7 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   design.md "Amendments"):
   - A two-user test for the merged feed: a caller who may list events but may not list the Pods
     sees no event of a ReplicaSet, Pod or Job (the runtime children are shown all or none for each
-    namespace) and no count that includes one (OP-A1).
+    owner) and no count that includes one (OP-A1).
   - A length cap on served event notes, and the in-cluster cases for both writers of an operator
     note (OP-A2).
   - Panel facts for a node only when the caller's access to it is `ok`, and an image reference
@@ -156,8 +156,8 @@ None.
   already serves, stripped as today (portal:D8). No write and no Secret data. The `deploy/` role
   needs no new rule. Two floors from the portal's plan hold on top of that. A caller who may list
   events but may not read an object's kind sees none of that object's events; ReplicaSets, Pods and
-  Jobs go together, so a caller who may not list one of them in a namespace sees none of the three
-  there. The test `TestMergedEventsHideWhatTheCallerCannotGet` names both cases. The panel's per-kind facts are
+  Jobs go together, so a caller who may not list one of them in a namespace of the owner sees none
+  of the three in any namespace of that owner. The test `TestMergedEventsHideWhatTheCallerCannotGet` names both cases. The panel's per-kind facts are
   a fixed list, shown only for a node whose access is `ok`, and an image reference loses any
   userinfo before it is shown.
 - Length cap: the API caps every event note it serves at 512 Unicode code points, an ellipsis

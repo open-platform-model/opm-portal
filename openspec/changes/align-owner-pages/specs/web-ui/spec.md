@@ -351,6 +351,12 @@ Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
   `user:secret@registry.example/app@sha256:` followed by a digest
 - **THEN** the panel shows `registry.example/app@sha256:` and the digest, with no userinfo
 
+#### Scenario: A sha384 digest reference
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `registry.example/app@sha384:` followed by a digest
+- **THEN** the panel shows the reference whole, repository included
+
 #### Scenario: A node the caller cannot read
 
 - **WHEN** the panel opens on a node whose access for the caller is not ok

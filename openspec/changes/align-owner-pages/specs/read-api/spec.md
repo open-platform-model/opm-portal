@@ -91,10 +91,9 @@ one-object feed omits. Source: portal:D7:R4, portal:D8:R5.
 
 ### Requirement: Runtime children are left out together
 
-The runtime children of an owner (ReplicaSets, Pods and Jobs) are read per namespace, all or none.
-A caller who may not list all three kinds in a namespace SHALL see no runtime child of the owner
-there and no event about one, and the merged feed SHALL carry `partial: true`. Source: portal:D3:R2,
-portal:D7:R4.
+The runtime children of an owner (ReplicaSets, Pods and Jobs) are read all or none for each owner.
+A caller who may not list all three kinds in some namespace of the owner SHALL see no runtime child
+of the owner in any namespace and no event about one. Source: portal:D3:R2, portal:D7:R4.
 
 #### Scenario: A caller who cannot list the Pods
 
@@ -114,6 +113,24 @@ portal:D7:R4.
   and Jobs in `default`, and may not get a Pod, reads `instances/default/podinfo/events?scope=all`
 - **THEN** every Pod that the list carries an event about is among the Pods in that caller's own
   document of the instance, and no event about any other Pod appears
+
+### Requirement: Unread runtime children make the merged feed partial
+
+The merged feed SHALL carry `partial: true` when the caller's view of the owner marks an inventory
+object of a kind that has runtime children (Deployment, ReplicaSet, StatefulSet, DaemonSet, Job,
+CronJob) as having unread children. Source: portal:D3:R2, portal:D7:R4.
+
+#### Scenario: A workload with unread children
+
+- **WHEN** a caller who may not list the Pods of `default` reads the merged feed of an instance
+  whose inventory holds a Deployment
+- **THEN** the list carries `partial: true`
+
+#### Scenario: Children read in full
+
+- **WHEN** a caller who may list ReplicaSets, Pods and Jobs in every namespace of the owner reads
+  its merged feed
+- **THEN** the list carries no `partial` for that reason
 
 ### Requirement: Served event notes are capped
 
@@ -143,8 +160,10 @@ folding sees the whole note.
 #### Scenario: Notes that differ only after the cut
 
 - **WHEN** two events about one object share their first 511 code points and differ after them
-- **THEN** the read model folds them as two lines, and the API serves two lines whose notes are
-  equal
+- **THEN** the read model folds them as two lines, and a local-mode API serves two lines whose
+  notes are equal
+- **AND** an in-cluster API serves one line with their counts added, because it folds the served
+  lines again without their notes
 
 ### Requirement: Packages carry their prune setting
 
