@@ -292,7 +292,7 @@ func TestPortalCSSHoldsAForcedColoursBorder(t *testing.T) {
 			}
 			return false
 		}
-		for _, sel := range []string{".applied", ".health", ".health-partial"} {
+		for _, sel := range []string{".applied", ".health", ".health-partial", ".state-block", ".tipbox"} {
 			d, ok := ruleFor(rules, sel)
 			if !ok || !system(d["border-color"]) {
 				bad = append(bad, sel+" sets no border color from a system color in the forced-colors block")
@@ -306,11 +306,11 @@ func TestPortalCSSHoldsAForcedColoursBorder(t *testing.T) {
 	for _, line := range check(readPortalCSS(t)) {
 		t.Error(line)
 	}
-	// The check can fail: a block without the partial rule is named.
-	if got := check("@media (forced-colors: active) { .applied, .health { border-color: CanvasText; } }"); len(got) != 2 {
-		t.Errorf("the check did not name the missing partial rule: %v", got)
+	// The check can fail: a block without the partial, state block and tip rules is named.
+	if got := check("@media (forced-colors: active) { .applied, .health { border-color: CanvasText; } }"); len(got) != 4 {
+		t.Errorf("the check did not name the missing partial, state block and tip rules: %v", got)
 	}
-	if got := check("a { color: red; }"); len(got) != 4 {
+	if got := check("a { color: red; }"); len(got) != 6 {
 		t.Errorf("the check did not name a missing block: %v", got)
 	}
 }
@@ -319,5 +319,98 @@ func TestPortalCSSHasNoPulse(t *testing.T) {
 	css := readPortalCSS(t)
 	if strings.Contains(css, "pulse") {
 		t.Error("portal.css still names pulse; the live dot is steady")
+	}
+}
+
+func TestPortalCSSDrawsTheStateBlock(t *testing.T) {
+	rules := parseCSS(readPortalCSS(t))
+	d, ok := ruleFor(rules, ".state-block")
+	if !ok {
+		t.Fatal("portal.css has no .state-block rule")
+	}
+	for prop, want := range map[string]string{"border": "2px solid var(--c)", "background": "var(--c-tint)", "border-radius": "12px"} {
+		if d[prop] != want {
+			t.Errorf(".state-block %s = %q, want %q", prop, d[prop], want)
+		}
+	}
+	if w, _ := ruleFor(rules, ".sb-word"); w["color"] != "var(--c-ink)" || w["font-size"] != "26px" {
+		t.Errorf(".sb-word draws the state in the tone's ink at 26px, got %v", w)
+	}
+	minHeight := ""
+	for _, r := range rules {
+		for _, sel := range selectorList(r.selector) {
+			if sel == ".sb-reasons a" && r.decls["min-block-size"] != "" {
+				minHeight = r.decls["min-block-size"]
+			}
+		}
+	}
+	if minHeight != "28px" {
+		t.Errorf(".sb-reasons a keeps a 28px minimum height, got %q", minHeight)
+	}
+}
+
+// tipRuleProblems returns what is wrong with the tip rules of css: the box
+// shows on hover, on focus and when opened, hides when dismissed with that
+// hide rule last, touches its trigger, and holds no style the script would
+// need to set.
+func tipRuleProblems(css string) []string {
+	rules := parseCSS(css)
+	return append(tipShowProblems(rules), tipBoxProblems(rules)...)
+}
+
+// tipShowProblems checks the rules that show and hide the box.
+func tipShowProblems(rules []cssRuleOf) []string {
+	var bad []string
+	shows := map[string]bool{".tip:hover .tipbox": false, ".tip:focus-within .tipbox": false, ".tip.is-open .tipbox": false}
+	lastDisplay, lastValue := "", ""
+	for _, r := range rules {
+		if !strings.Contains(r.selector, ".tipbox") || r.decls["display"] == "" {
+			continue
+		}
+		for _, sel := range selectorList(r.selector) {
+			if _, ok := shows[sel]; ok && r.decls["display"] == "block" {
+				shows[sel] = true
+			}
+		}
+		lastDisplay, lastValue = r.selector, r.decls["display"]
+	}
+	for sel, ok := range shows {
+		if !ok {
+			bad = append(bad, "no rule shows the box with "+sel)
+		}
+	}
+	if lastDisplay != ".tip.is-dismissed .tipbox" || lastValue != "none" {
+		bad = append(bad, "the last rule that sets the box's display is "+lastDisplay+" { display: "+lastValue+" }, not .tip.is-dismissed .tipbox { display: none }")
+	}
+	return bad
+}
+
+// tipBoxProblems checks that the box touches its trigger.
+func tipBoxProblems(rules []cssRuleOf) []string {
+	box, ok := ruleFor(rules, ".tipbox")
+	if !ok {
+		return []string{"no .tipbox rule"}
+	}
+	if box["inset-block-start"] != "100%" {
+		return []string{".tipbox does not start at the end of its trigger (inset-block-start: 100%)"}
+	}
+	if m := box["margin-block-start"]; m != "" && m != "0" {
+		if br, ok := ruleFor(rules, ".tipbox::before"); !ok || br["inset-block-end"] != "100%" || br["content"] != `""` {
+			return []string{".tipbox leaves a gap above it with no ::before bridge, so the pointer drops :hover on the way"}
+		}
+	}
+	return nil
+}
+
+func TestPortalCSSDrawsADismissableHoverableTip(t *testing.T) {
+	for _, line := range tipRuleProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	// The check can fail: a dismiss rule that is not last, and a gap with no bridge, are named.
+	bad := tipRuleProblems(`.tipbox { display: none; inset-block-start: 100%; margin-block-start: 6px; }
+.tip.is-dismissed .tipbox { display: none; }
+.tip:hover .tipbox, .tip:focus-within .tipbox, .tip.is-open .tipbox { display: block; }`)
+	if len(bad) != 2 {
+		t.Errorf("the check did not name the late show rule and the missing bridge: %v", bad)
 	}
 }

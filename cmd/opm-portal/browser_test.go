@@ -234,6 +234,35 @@ func TestBrowserPhone(t *testing.T) {
 	}
 }
 
+// tipFragment is the golden fragment-tip.html, the tip partial's output, which
+// package main cannot import from internal/ui.
+const tipFragment = "../../internal/ui/testdata/golden/fragment-tip.html"
+
+// TestBrowserTip drives the info tip in real browsers (task test:browser):
+// focus and hover show its box, Escape hides it with focus or the pointer
+// kept where they were, Enter and Space toggle it, the pointer reaches the
+// box, and a tap opens, closes and is closed by a tap outside (WCAG 2.2
+// 1.4.13). No page shows a tip yet, so the script inserts the markup of the
+// golden fragment-tip.html into the Platform page, where the real portal.css
+// and portal.js act on it; the change that puts a tip on a page adds a case
+// on that page.
+func TestBrowserTip(t *testing.T) {
+	script := browserScript(t, "tip.py")
+	markup, err := os.ReadFile(tipFragment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), strings.TrimSpace(string(markup))); err != nil {
+				t.Fatalf("the tip did not hold: %v", err)
+			}
+		})
+	}
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {

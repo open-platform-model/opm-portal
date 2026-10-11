@@ -1050,10 +1050,180 @@
     }
   });
 
-  // Escape steps back one thing per press: the theme menu, then an open
-  // hover card, then full screen, then the selection.
+  // ---- Info tips (WCAG 2.2 1.4.13) ----
+  // The CSS shows a .tip's box on hover and on focus, and the pointer can reach
+  // the box. These delegated handlers, which keep working on markup htmx swaps
+  // in, add what CSS cannot: Escape dismisses (is-dismissed), Enter, Space and a
+  // tap toggle (is-open and is-dismissed), and a tap outside closes. They set
+  // classes only, never a style attribute.
+  var tipDown = null; // {tip, shown}: the tip a pointer went down on, and whether its box was shown then
+
+  function tipOf(node) {
+    return node && node.closest ? node.closest(".tip") : null;
+  }
+
+  // tipShown says whether a tip's box is on screen now, from layout, so it
+  // follows the CSS whatever rule shows it.
+  function tipShown(tip) {
+    var box = tip.querySelector(".tipbox");
+    return !!box && box.getClientRects().length > 0;
+  }
+
+  // fitTip keeps a shown box inside the viewport: the CSS puts it under the
+  // start of its trigger, and a trigger near the right edge of a phone would
+  // push the page sideways. The offset is a CSSOM property, never a style
+  // attribute in the markup, and is read fresh each time the box shows.
+  function fitTip(tip) {
+    var box = tip.querySelector(".tipbox");
+    if (!box) {
+      return;
+    }
+    box.style.left = "";
+    if (box.getClientRects().length === 0) {
+      return;
+    }
+    var edge = 8;
+    var wide = document.documentElement.clientWidth;
+    var r = box.getBoundingClientRect();
+    var shift = 0;
+    if (r.right > wide - edge) {
+      shift = wide - edge - r.right;
+    }
+    if (r.left + shift < edge) {
+      shift = edge - r.left;
+    }
+    if (shift !== 0) {
+      // An offset, not a transform: WebKit counts a box's untranslated place in
+      // the page's scroll width. It also keeps that place when an absolute box
+      // moves after its first layout, so the box is taken out of the absolute
+      // layout for one read, which makes WebKit measure its new place.
+      var offset = r.left + shift - tip.getBoundingClientRect().left;
+      box.style.position = "static";
+      void box.offsetWidth;
+      box.style.left = offset + "px";
+      box.style.position = "";
+    }
+  }
+
+  function fitTipSoon(tip) {
+    fitTip(tip);
+    window.requestAnimationFrame(function () { fitTip(tip); });
+  }
+
+  // dismissTips hides every tip that is shown and leaves focus where it is.
+  function dismissTips() {
+    var any = false;
+    document.querySelectorAll(".tip").forEach(function (tip) {
+      if (tipShown(tip)) {
+        tip.classList.remove("is-open");
+        tip.classList.add("is-dismissed");
+        any = true;
+      }
+    });
+    return any;
+  }
+
+  function toggleTip(tip, shown) {
+    if (shown) {
+      tip.classList.remove("is-open");
+      tip.classList.add("is-dismissed");
+    } else {
+      tip.classList.remove("is-dismissed");
+      tip.classList.add("is-open");
+      fitTipSoon(tip);
+    }
+  }
+  document.addEventListener("pointerover", function (evt) {
+    var tip = tipOf(evt.target);
+    if (tip) {
+      fitTipSoon(tip);
+    }
+  });
+  document.addEventListener("focusin", function (evt) {
+    var tip = tipOf(evt.target);
+    if (tip) {
+      fitTipSoon(tip);
+    }
+  });
+
+  document.addEventListener("pointerdown", function (evt) {
+    var tip = tipOf(evt.target);
+    if (!tip) {
+      // A tap or click outside every tip closes the opened ones. A tip
+      // that still holds focus (a touch screen may not move it) is blurred, or
+      // :focus-within would keep its box on screen.
+      document.querySelectorAll(".tip.is-open").forEach(function (t) { t.classList.remove("is-open"); });
+      var held = tipOf(document.activeElement);
+      if (held) {
+        document.activeElement.blur();
+      }
+      tipDown = null;
+      return;
+    }
+    if (evt.target.closest(".tipbox")) {
+      tipDown = null;
+      return;
+    }
+    // Read the box now, before focus moves: a tap focuses the trigger, and
+    // :focus-within alone then shows the box, so reading after the focus would
+    // close the tip the tap opened. A touch has no hover, so its hover does not count.
+    var visible = tipShown(tip);
+    if (evt.pointerType === "touch" && !tip.classList.contains("is-open") && !tip.matches(":focus-within")) {
+      visible = false;
+    }
+    tipDown = { tip: tip, shown: visible };
+  });
+  document.addEventListener("click", function (evt) {
+    var tip = tipOf(evt.target);
+    if (!tip || evt.target.closest(".tipbox")) {
+      tipDown = null;
+      return;
+    }
+    var shown = tipDown && tipDown.tip === tip ? tipDown.shown : tipShown(tip);
+    tipDown = null;
+    toggleTip(tip, shown);
+  });
+  document.addEventListener("keydown", function (evt) {
+    if ((evt.key !== "Enter" && evt.key !== " ") || evt.repeat || evt.defaultPrevented) {
+      return;
+    }
+    var tip = tipOf(evt.target);
+    if (!tip || evt.target !== tip) {
+      return;
+    }
+    toggleTip(tip, tipShown(tip));
+    evt.preventDefault();
+  });
+  // is-dismissed clears when the pointer and focus have both left the tip.
+  // A pointer that leaves is known from relatedTarget; a hover that remains is
+  // read from :hover when focus leaves.
+  function releaseTip(tip, related, hoverCounts) {
+    if (tip.contains(related) || tip.contains(document.activeElement) || (hoverCounts && tip.matches(":hover"))) {
+      return;
+    }
+    tip.classList.remove("is-dismissed");
+  }
+  document.addEventListener("pointerout", function (evt) {
+    var tip = tipOf(evt.target);
+    if (tip && tip.classList.contains("is-dismissed")) {
+      releaseTip(tip, evt.relatedTarget, false);
+    }
+  });
+  document.addEventListener("focusout", function (evt) {
+    var tip = tipOf(evt.target);
+    if (tip && tip.classList.contains("is-dismissed")) {
+      releaseTip(tip, evt.relatedTarget, true);
+    }
+  });
+
+  // Escape steps back one thing per press: a shown info tip, then the theme
+  // menu, then an open hover card, then full screen, then the selection.
   document.addEventListener("keydown", function (evt) {
     if (evt.key !== "Escape" || evt.defaultPrevented) {
+      return;
+    }
+    if (dismissTips()) {
+      evt.preventDefault();
       return;
     }
     var menu = document.querySelector("details.theme[open]");

@@ -85,6 +85,7 @@ func buildContrastPairs() []contrastPair {
 		{"deep accent on secondary card", "--accent-deep", "--surface-2", textFloor, ""},
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
+		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
 	}
 	pairs := make([]contrastPair, 0, len(fixed)+5*len(tones))
 	pairs = append(pairs, fixed...)
@@ -94,6 +95,7 @@ func buildContrastPairs() []contrastPair {
 			contrastPair{tone + " ink on its tint", "--" + tone + "-ink", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"muted on " + tone + " tint", "--muted", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"secondary ink on " + tone + " tint", "--ink-2", "--" + tone + "-tint", textFloor, ""},
+			contrastPair{"locked ink on " + tone + " tint", "--locked-ink", "--" + tone + "-tint", textFloor, ""},
 		)
 	}
 	return pairs
