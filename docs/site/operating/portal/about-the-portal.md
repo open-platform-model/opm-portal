@@ -43,7 +43,7 @@ The **Events** tab merges the owner's own events with those of every object its 
 
 ### Every graph edge comes from a recorded field
 
-Each instance and package page draws a graph. It runs from the module through the instance and its components to the inventory objects, then to the ReplicaSets, Pods and Jobs found through the owner references below those objects. Each kind of edge has exactly one source field. The portal never renders a module to find an edge. The read API also serves a Platform graph of catalogs, registrations and the instances that provide them; the Platform page shows the same joins as rows instead, and where a registration's provider and the provider's inventory disagree, both are shown.
+Each instance and package page draws a graph. An instance graph starts at the instance and a package graph at the package, with its source first. Both run through the components to the inventory objects, then to the ReplicaSets, Pods and Jobs found through the owner references below those objects. The module is on the identity card, not in the graph. Each kind of edge has exactly one source field. The portal never renders a module to find an edge. The read API also serves a Platform graph of catalogs, registrations and the instances that provide them; the Platform page shows the same joins as rows instead, and where a registration's provider and the provider's inventory disagree, both are shown.
 
 ### The graph groups configuration and shows what you pick
 

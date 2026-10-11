@@ -111,9 +111,9 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      package's source read as the caller (portal:D20). It and `align-owner-pages` share files,
      no requirement, and one function, `ownerTabsOf`, where both read the `node` and `focus`
      parameters; the split is in both proposals. The visual check against the canvas boards left
-     four divergences kept on purpose, in the change's design.md under "Visual check": the group
-     frame header is small at the 0.6 fit floor, the graph pane is capped at 760 px and scrolls,
-     the band keeps half-row gaps under `group=off`, and the Applied words stay. Open for the owner:
+     eight divergences kept on purpose, in the change's design.md under "Visual check": among them
+     the group frame header is small at the 0.6 fit floor, the graph pane is capped at 760 px and
+     scrolls, the band keeps half-row gaps under `group=off`, and the Applied words stay. Open for the owner:
      the registration panel names the provider only from the controller's verdict, since the
      instance graph carries no `providerRef`.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
