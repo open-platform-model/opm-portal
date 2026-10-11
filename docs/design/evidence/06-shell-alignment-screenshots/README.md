@@ -29,8 +29,10 @@ the change. They show the F1 capture (`testdata/clusters/f1/`), served without a
   change cites; the other 22 of the 43 captured were not committed. Every page and node-selection capture had a
   scroll width of 1920 at the wide size and 360 at the phone size, so no page scrolled sideways.
 - The forced-colours capture of the instance page first showed an underline under every tab (a
-  transparent border is painted in forced colours). That was fixed in the same branch and the files
-  here are the captures after the fix.
+  transparent border is painted in forced colours). The branch fixed that, and commit 44fb224 later
+  changed the rule again: the other tabs now draw no bottom border and take 3 px of padding. The
+  forced-colours files here predate 44fb224, so they do not show the shipped tab strip. The rule is
+  held by `TestPortalCSSMarksOnlyTheCurrentTabInForcedColours`, a CSS text test.
 
 | File | Page |
 | --- | --- |
@@ -43,7 +45,7 @@ the change. They show the F1 capture (`testdata/clusters/f1/`), served without a
 | `light-provider.png` | `/instances/default/backup-provider?tab=provider` |
 | `light-catalog.png` | `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` |
 | `light-package.png` | `/packages/pkg/podinfo` |
-| `forced-installed.png`, `forced-instance-graph.png`, `forced-instance-resources.png` | forced colours: badges keep a border, only the current tab keeps an underline |
+| `forced-installed.png`, `forced-instance-graph.png`, `forced-instance-resources.png` | forced colours, taken before 44fb224: badges keep a border; they do not show the final tab rule |
 
 ## Read these with care
 
