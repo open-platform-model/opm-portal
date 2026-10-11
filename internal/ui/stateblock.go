@@ -72,4 +72,9 @@ type tipData struct {
 	Trigger string // the words the trigger draws
 	Text    string // the tip
 	End     bool   // align the box to the trigger's end, near the right edge
+	// Pill, when set, draws the trigger's words inside span.<Pill> (its
+	// classes), after the icon named Icon; Hidden is visually hidden text
+	// that follows the trigger, so a color is never the only carrier of
+	// what the pill says.
+	Pill, Icon, Hidden string
 }

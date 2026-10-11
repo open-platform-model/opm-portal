@@ -72,6 +72,7 @@
   --degraded-ink: #a3260f;
   --degraded-bg: #f8e0da;
   --degraded-tint: #fcefeb;
+  --degraded-row: #fdf3f0;
   --unknown: #b07814;
   --unknown-ink: #6e4700;
   --unknown-bg: #f6ead0;
@@ -149,6 +150,7 @@
     --degraded-ink: #ff9d88;
     --degraded-bg: #3a1712;
     --degraded-tint: #2a1310;
+    --degraded-row: #24110e;
     --unknown: #e3b45c;
     --unknown-ink: #f0c879;
     --unknown-bg: #33270f;
@@ -219,6 +221,7 @@
   --degraded-ink: #ff9d88;
   --degraded-bg: #3a1712;
   --degraded-tint: #2a1310;
+  --degraded-row: #24110e;
   --unknown: #e3b45c;
   --unknown-ink: #f0c879;
   --unknown-bg: #33270f;
@@ -550,10 +553,17 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 
 /* ---- Installed ---- */
 
+/* The panel of the list keeps no padding of its own: the table runs to its
+   edges, and the notes, locked groups and the empty state pad themselves
+   (platform-28). */
+.panel-flush { padding: 0; }
+.panel-flush > :not(.table-wrap) { margin: 14px 20px; }
+
 .row-ns { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
 .kind { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap; }
 .kind-instance { border: 1.5px solid var(--kind-instance-bg); background: var(--kind-instance-bg); color: var(--kind-instance-ink); }
 .kind-package { border: 1.5px dashed var(--accent); background: var(--accent-field); color: var(--kind-package-ink); }
+.kind-icon { flex: none; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; }
 .prov { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 2px 8px; border-radius: 5px; border: 1.5px solid var(--neutral); color: var(--neutral-ink); background: var(--neutral-bg); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .prov-active { border-color: var(--healthy); color: var(--healthy-ink); background: var(--healthy-bg); }
 .prov-inactive, .prov-pending, .prov-blocked { border-color: var(--progressing); color: var(--progressing-ink); background: var(--progressing-bg); }
@@ -561,6 +571,69 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .prov-unknown { border-color: var(--unknown); color: var(--unknown-ink); background: var(--unknown-bg); border-style: dotted; }
 .prov-locked { border-color: var(--locked); color: var(--locked-ink); background: var(--locked-bg); border-style: dashed; }
 .prov .lock-mark { margin-top: 0; width: 12px; height: 12px; }
+/* The pill of a provider tip (Installed): 11 px, 700, uppercase, coloured by
+   standing as the design names it: pending blue, removal blocked amber,
+   accepted and not active neutral. */
+.tip .prov { margin-top: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.tip .prov .kind-icon { width: 12px; height: 12px; stroke-width: 2.4; }
+.tip .prov-inactive { border-color: var(--neutral); color: var(--neutral-ink); background: var(--neutral-bg); }
+.tip .prov-blocked { border-color: var(--unknown); color: var(--unknown-ink); background: var(--unknown-bg); }
+
+/* The kind chip with its provider badges, one under the other. */
+.kind-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* The provider badge is a native button inside the tip; the pill inside it
+   draws the badge, so the tip's dotted underline is not drawn. */
+.tip .tip-t:has(.prov), .tip .tip-t:has(.prov):hover { text-decoration: none; }
+
+/* A solid ink button, the empty state's way out. */
+.btn { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; text-decoration: none; }
+.btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.empty-title { font-size: 17px; font-weight: 600; }
+
+/* The rows of Installed. The whole row is a link: the name anchor's ::after
+   covers the row, and the tooltip trigger sits above it. From 761 px up the
+   table is fixed, with the canvas's column widths, and scrolls sideways
+   below the width where it fits; the rows become cards below. */
+.installed tr { position: relative; }
+.installed .row-link::after { content: ""; position: absolute; inset: 0; }
+.installed .row-link { color: var(--ink); }
+.installed .row-link:focus-visible { outline: none; }
+.installed tbody tr:has(.row-link:focus-visible) { outline: 3px solid var(--focus); outline-offset: -3px; }
+.installed .tip { position: relative; z-index: 1; }
+.installed tr.row-degraded { background: var(--degraded-row); }
+.installed tr.row-degraded:hover { background: var(--degraded-tint); }
+.installed .src { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.installed .ver.block { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.installed .row-ns { margin-top: 2px; }
+@media (min-width: 761px) {
+  /* Column widths are the canvas's (Kind 130, Applied 150, Health 150, Objects 80,
+     Owner 90) plus the 16 px between columns, which the cells carry as 8 px each
+     side, and the 20 px at the table's edges. */
+  .installed { table-layout: fixed; min-width: 940px; }
+  .installed .c-name { width: 14%; }
+  .installed .c-kind { width: 146px; }
+  .installed .c-applied, .installed .c-health { width: 166px; }
+  .installed .c-objects { width: 96px; }
+  .installed .c-owner { width: 118px; }
+  .installed th, .installed td { padding: 14px 8px; vertical-align: middle; }
+  .installed th:first-child, .installed td:first-child { padding-left: 20px; }
+  .installed th:last-child, .installed td:last-child { padding-right: 20px; }
+  .installed thead th { padding-block: 12px; }
+  .installed th[scope="row"] a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+  .installed .row-ns { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* Where the 940 px table fits, the wrap does not clip, so a tooltip opens
+   below its badge past the last row. Below it the wrap scrolls sideways and
+   would clip an absolute box, so the box opens in the cell's flow, pushing
+   the row's content down. */
+@media (min-width: 1040px) {
+  .installed-wrap { overflow: visible; }
+}
+@media (max-width: 1039px) {
+  .installed .tip { display: block; }
+  .installed .tipbox { position: static; inline-size: auto; max-inline-size: 300px; }
+  .installed .tipbox::before { content: none; }
+}
 
 /* ---- Platform ---- */
 

@@ -64,7 +64,7 @@ func TestInstalledFilters(t *testing.T) {
 
 // rowLinks returns the Installed rows' links, in order.
 func rowLinks(main string) []string {
-	parts := strings.Split(main, `<th scope="row" data-label="Name"><a href="`)[1:]
+	parts := strings.Split(main, `<th scope="row" data-label="Name"><a class="row-link" href="`)[1:]
 	out := make([]string, 0, len(parts))
 	for _, part := range parts {
 		link, _, _ := strings.Cut(part, `"`)

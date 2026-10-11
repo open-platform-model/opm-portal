@@ -271,3 +271,35 @@ htmx.ajax("GET", p, opts);`,
 		}
 	}
 }
+
+// TestInstalledTooltipAndSourceEscapeClusterText: the provider tooltip is
+// built from the registration's reason, and the source cell shows the
+// package's recorded revision and digest; both are cluster text, shown
+// escaped and never as markup (SR11). The tooltip of a refused claim is the
+// only one that carries a reason.
+func TestInstalledTooltipAndSourceEscapeClusterText(t *testing.T) {
+	objs := apitest.F1PackageHolder(t)
+	for _, o := range objs {
+		poison(o.Object)
+		if o.GetKind() == "ModulePackage" {
+			if err := unstructured.SetNestedField(o.Object, hostile, "status", "source", "artifactRevision"); err != nil {
+				t.Fatal(err)
+			}
+			if err := unstructured.SetNestedField(o.Object, "sha256:"+hostile, "status", "source", "artifactDigest"); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	main := mainOf(newSite(t, objs, apitest.AllowAll).get(t, "/installed").body)
+	for _, raw := range []string{"<script>alert", "<img src=x"} {
+		if strings.Contains(main, raw) {
+			t.Errorf("/installed renders cluster text as markup: %q", raw)
+		}
+	}
+	tip := between(main, `href="/packages/pkg/provider"`, "</tr>")
+	if !strings.Contains(tip, `<span class="prov prov-refused">`) || !strings.Contains(tip, "is refused: ProviderMismatch") ||
+		!strings.Contains(tip, "&lt;script&gt;alert(1)&lt;/script&gt;") || !strings.Contains(tip, `title="&lt;script&gt;alert(1)&lt;/script&gt;`) ||
+		!strings.Contains(tip, `>sha256:&lt;script&gt;`) {
+		t.Errorf("the refused claim's tooltip or the source cell does not show escaped cluster text:\n%s", tip)
+	}
+}

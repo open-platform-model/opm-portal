@@ -62,7 +62,27 @@
      button. Data: .ID (the box's id), .Trigger (the words the trigger draws),
      .Text (the tip). A box that sits near the right edge takes class "tip-end". */}}
 {{define "tip" -}}
-<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{.Trigger}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
+<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{if .Pill}}<span class="{{.Pill}}">{{if eq .Icon "plug"}}{{template "icon-plug"}}{{end}}{{.Trigger}}</span>{{else}}{{.Trigger}}{{end}}{{with .Hidden}}<span class="vh">{{.}}</span>{{end}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
+{{- end}}
+
+{{/* The kind chip's icons and the provider pill's plug are inline, aria-hidden
+     SVGs drawn in the chip's colour; the word beside them names the kind. */}}
+{{define "icon-instance" -}}
+<svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>
+{{- end}}
+
+{{define "icon-package" -}}
+<svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 8l9-5 9 5-9 5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/><path d="M7.5 5.5l9 5"/></svg>
+{{- end}}
+
+{{define "icon-plug" -}}
+<svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>
+{{- end}}
+
+{{/* kind-chip is the chip of an Instance or a Package: the icon that draws the
+     two apart, then the word. Data: "instance" or "package". */}}
+{{define "kind-chip" -}}
+<span class="kind kind-{{.}}">{{if eq . "package"}}{{template "icon-package"}}Package{{else}}{{template "icon-instance"}}Instance{{end}}</span>
 {{- end}}
 
 {{define "time" -}}

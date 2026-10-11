@@ -419,3 +419,50 @@ func TestTipPartial(t *testing.T) {
 		t.Errorf("the box holds text only and is the last child of span.tip: %s", out)
 	}
 }
+
+// TestProviderPillNamesEveryStanding (installed-11, portal:D15:R2/R4): the
+// pill is colored by the registration's standing, its tooltip names the
+// registration and the standing in words from the controller's reason, and
+// the standing is in hidden text too, so color is never the only carrier. A
+// registration the caller may not read gets the locked pill and no name.
+func TestProviderPillNamesEveryStanding(t *testing.T) {
+	ok := func(c v1.ProviderClaim) v1.ProviderClaim {
+		c.Registration, c.Access = "default.x", v1.AccessOK
+		return c
+	}
+	for _, tc := range []struct {
+		name  string
+		claim v1.ProviderClaim
+		class string
+		text  string
+		vh    string
+	}{
+		{"active", ok(v1.ProviderClaim{Verdict: "Accepted", Active: true}), "prov prov-active", "Registration default.x is accepted and active.", "standing: active"},
+		{"inactive", ok(v1.ProviderClaim{Verdict: "Accepted"}), "prov prov-inactive", "Registration default.x is accepted and not active.", "standing: accepted, not active"},
+		{"refused", ok(v1.ProviderClaim{Verdict: "Refused", Reason: "CatalogUnresolved"}), "prov prov-refused", "Registration default.x is refused: CatalogUnresolved.", "standing: refused"},
+		{"pending", ok(v1.ProviderClaim{Verdict: "Pending", Reason: "Waiting"}), "prov prov-pending", "Registration default.x is pending: Waiting.", "standing: pending"},
+		{"blocked", ok(v1.ProviderClaim{Verdict: "RemovalBlocked", Reason: "StillHeld"}), "prov prov-blocked", "Registration default.x is accepted, removal blocked: StillHeld.", "standing: removal blocked"},
+		{"no reason", ok(v1.ProviderClaim{Verdict: "Refused"}), "prov prov-refused", "Registration default.x is refused.", "standing: refused"},
+		{"unknown", ok(v1.ProviderClaim{Verdict: "Odd"}), "prov prov-unknown", "Registration default.x has a standing the portal does not know.", "standing: unknown"},
+		{"locked", v1.ProviderClaim{Registration: "default.secret", Access: v1.AccessForbidden}, "prov prov-locked", "Holds a registration whose standing you may not read.", "standing: locked"},
+	} {
+		td := providerPill(tc.claim, "tip-"+strings.ReplaceAll(tc.name, " ", "-"))
+		if td.Pill != tc.class || td.Text != tc.text || td.Hidden != tc.vh || td.Trigger != "Provider" {
+			t.Errorf("%s: pill %+v; want class %q, text %q, hidden %q", tc.name, td, tc.class, tc.text, tc.vh)
+		}
+		out := renderPartialAt(t, "tip", td)
+		for _, want := range []string{`<span class="` + tc.class + `">`, `>Provider</span><span class="vh">` + tc.vh + `</span></button>`, `role="tooltip">` + tc.text} {
+			if !strings.Contains(out, want) {
+				t.Errorf("%s: the tip lacks %s:\n%s", tc.name, want, out)
+			}
+		}
+	}
+	if td := providerPill(v1.ProviderClaim{Registration: "default.secret", Access: v1.AccessForbidden}, "t"); strings.Contains(td.Text, "secret") {
+		t.Errorf("a locked pill names the registration: %q", td.Text)
+	}
+	// A hostile reason is escaped like any cluster text.
+	bad := renderPartialAt(t, "tip", providerPill(ok(v1.ProviderClaim{Verdict: "Refused", Reason: hostile}), "t"))
+	if strings.Contains(bad, "<script") || strings.Contains(bad, "<img") {
+		t.Errorf("a hostile reason is not escaped:\n%s", bad)
+	}
+}

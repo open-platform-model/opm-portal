@@ -230,6 +230,11 @@ type formInput struct {
 	// carries no count, never a zero; a parameter in NoCount carries none.
 	Counts  map[string]map[string]int
 	NoCount map[string]bool
+	// Notes name a value whose rows come from a list the caller may not
+	// read, or that failed: parameter, then value, then the word that
+	// stands in the option where its count would be ("locked"). Such an
+	// option carries no count, never a zero (portal:D14:R7).
+	Notes map[string]map[string]string
 	// Suggest are the suggestions of a text input (a datalist).
 	Suggest      map[string][]string
 	Placeholders map[string]string
@@ -308,6 +313,8 @@ func (f *filters) options(p filterParam, in formInput, values []string, cur stri
 		t := text(v)
 		if n, ok := counts[v]; ok {
 			t = fmt.Sprintf("%s (%d)", t, n)
+		} else if note := in.Notes[p.Name][v]; note != "" {
+			t = fmt.Sprintf("%s (%s)", t, note)
 		}
 		opts = append(opts, selectOption{Value: v, Text: t, Selected: cur == v})
 	}

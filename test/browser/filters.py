@@ -26,6 +26,15 @@ first failure:
    move to the Platform page empties it; the region is not atomic and is the only element with
    role status.
 
+9. The provider badge of `default/backup-provider` on Installed (installed-11, WCAG 2.2 1.4.13):
+   Tab reaches the badge and shows its tooltip; the tooltip's box lies inside the viewport and no
+   element clips it (every probe point of the box hits the box), on its own row and on the last row
+   of the table (filtered to that row), and on a 360 px viewport; a click on the badge does not
+   navigate; a click on the row's Owner cell opens /instances/default/podinfo; Escape closes the
+   tooltip with focus kept on the badge; the pointer can move from the badge onto the open box
+   without closing it; and on a touch viewport a tap opens it without leaving the page and a second
+   tap closes it (Firefox runs the click path where its touch emulation is not available).
+
 The browser script also counts what the test needs: htmx requests, and the requests it holds. With
 OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
@@ -252,9 +261,161 @@ def run(p, engine, base, context):
         page.wait_for_function("() => location.search.includes('reason=BackOff')", timeout=8000)
         check(page, True, "a text field applies when the user leaves it, on a form of another page")
         page.context.close()
+
+        # 9: the provider badge on Installed.
+        ROW = 'tr:has(a[href="/instances/default/backup-provider"])'
+        if not provider_badge(browser, fresh, base, check, engine, ROW):
+            return False
     finally:
         browser.close()
     return ok
+
+
+# Where a box is on screen and whether every probe point of it hits the box itself, so that no element
+# of the table or the page clips or covers it.
+BOX = """(sel) => {
+    const box = document.querySelector(sel);
+    box.scrollIntoView({block: "nearest", inline: "nearest"}); // the page may scroll to a box below the fold
+    const r = box.getBoundingClientRect();
+    const probes = [[0.1, 0.1], [0.9, 0.1], [0.1, 0.9], [0.9, 0.9], [0.5, 0.5]];
+    const hit = probes.every(([fx, fy]) => {
+        const el = document.elementFromPoint(r.left + r.width * fx, r.top + r.height * fy);
+        return el && el.closest(".tipbox") === box;
+    });
+    return {left: r.left, right: r.right, top: r.top, bottom: r.bottom, w: r.width, h: r.height, hit,
+            vw: window.innerWidth, vh: window.innerHeight,
+            scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+            wrap: getComputedStyle(document.querySelector(".installed-wrap")).overflowX};
+}"""
+
+
+def tab_to(page, selector, limit=60):
+    """Presses Tab until the element matching selector has focus; returns whether it got there."""
+    for _ in range(limit):
+        page.keyboard.press("Tab")
+        if page.evaluate("(s) => document.activeElement && document.activeElement.matches(s)", selector):
+            return True
+    return False
+
+
+def provider_badge(browser, fresh, base, check, engine, ROW):
+    badge_sel = f"{ROW} .tip > button.tip-t"
+    box_sel = f"{ROW} .tipbox"
+
+    def inside(b):
+        return b["left"] >= 0 and b["right"] <= b["vw"] and b["top"] >= 0 and b["bottom"] <= b["vh"]
+
+    # Keyboard on a wide viewport: the tooltip shows on Tab, opens past the row, is not clipped.
+    page = fresh()
+    page.goto(base + PATH, wait_until="load")
+    page.evaluate("document.fonts.ready.then(() => true)")
+    page.click("#f-q")
+    if not check(page, tab_to(page, ".tip-t"), "Tab reaches the provider badge"):
+        return False
+    badge, box = page.locator(badge_sel), page.locator(box_sel)
+    named = page.evaluate("() => document.activeElement.closest('tr').querySelector('a.row-link').getAttribute('href')")
+    if not check(page, named == "/instances/default/backup-provider" and box.is_visible(),
+                 f"focus on the badge of {named} shows its tooltip"):
+        return False
+    b = page.evaluate(BOX, box_sel)
+    if not check(page, inside(b) and b["hit"] and b["wrap"] == "visible",
+                 f"the tooltip lies inside the viewport ({b['left']:.0f} to {b['right']:.0f} of {b['vw']}) and nothing clips it (wrap overflow {b['wrap']!r}, hit {b['hit']})"):
+        return False
+    text = box.inner_text()
+    if not check(page, "default.backup-provider" in text and "accepted and active" in text, f"the tooltip names the registration and its standing: {text!r}"):
+        return False
+    page.keyboard.press("Escape")
+    on_badge = page.evaluate("document.activeElement.classList.contains('tip-t')")
+    if not check(page, not box.is_visible() and on_badge, f"Escape closes the tooltip with focus kept on the badge ({on_badge})"):
+        return False
+    page.context.close()
+
+    # A click on the badge does not navigate; the pointer reaches the open box; a click on the Owner cell opens the item.
+    page = fresh()
+    page.goto(base + PATH, wait_until="load")
+    badge, box = page.locator(badge_sel), page.locator(box_sel)
+    badge.click()
+    page.wait_for_timeout(400)
+    stayed = page.evaluate("location.pathname + location.search") == PATH
+    if not check(page, stayed, "a click on the badge does not navigate"):
+        return False
+    page.mouse.move(2, 790)
+    page.wait_for_timeout(100)
+    x, y = (lambda r: (r["x"] + r["width"] / 2, r["y"] + r["height"] / 2))(badge.bounding_box())
+    page.mouse.move(x, y)
+    shown = box.is_visible()
+    r = box.bounding_box()
+    page.mouse.move(r["x"] + r["width"] / 2, r["y"] + r["height"] / 2, steps=12)
+    if not check(page, shown and box.is_visible(), f"the pointer moves from the badge onto the open box without closing it ({shown})"):
+        return False
+    # The row's own link overlays the cell, so a real pointer click at the cell's centre is the test, not a
+    # click that waits for the cell itself to receive it.
+    owner = page.locator('tr:has(a[href="/instances/default/podinfo"]) td[data-label="Owner"]')
+    owner.scroll_into_view_if_needed()
+    cell = owner.bounding_box()
+    page.mouse.click(cell["x"] + cell["width"] / 2, cell["y"] + cell["height"] / 2)
+    page.wait_for_function("() => location.pathname === '/instances/default/podinfo'", timeout=8000)
+    check(page, True, "a click on the Owner cell of default/podinfo opens /instances/default/podinfo")
+    page.context.close()
+
+    # The last row of the table: the box opens past the row and is not clipped.
+    page = fresh()
+    page.goto(base + PATH + "?q=backup-provider", wait_until="load")
+    page.evaluate("document.fonts.ready.then(() => true)")
+    rows = page.evaluate("document.querySelectorAll('#list tbody tr').length")
+    page.locator(badge_sel).focus()
+    b = page.evaluate(BOX, box_sel)
+    if not check(page, rows == 1 and inside(b) and b["hit"],
+                 f"on the last row ({rows} row) the tooltip lies inside the viewport ({b['bottom']:.0f} of {b['vh']}) and nothing clips it (hit {b['hit']})"):
+        return False
+    page.context.close()
+
+    # A 360 px viewport (touch where the engine has it): a tap opens, a second tap closes, no navigation.
+    how = "tap"
+    try:
+        ctx = browser.new_context(viewport={"width": 360, "height": 700}, has_touch=True, color_scheme="light")
+        page = ctx.new_page()
+        page.goto(base + PATH + "?q=backup-provider", wait_until="load")
+        page.locator(badge_sel).tap()
+    except Exception as err:
+        how = f"click (touch emulation is not available: {str(err).splitlines()[0]})"
+        ctx = browser.new_context(viewport={"width": 360, "height": 700}, color_scheme="light")
+        page = ctx.new_page()
+        page.goto(base + PATH + "?q=backup-provider", wait_until="load")
+        page.locator(badge_sel).click()
+    print(f"{engine}: the touch checks run the {how} path")
+    badge, box = page.locator(badge_sel), page.locator(box_sel)
+    first = box.is_visible()
+
+    def activate():
+        if how == "tap":
+            badge.tap()
+        else:
+            badge.click()
+
+    if how == "tap":
+        b = page.evaluate(BOX, box_sel)
+        if not check(page, first and b["left"] >= 0 and b["right"] <= 360 and b["scroll"] <= 360 and b["hit"],
+                     f"a tap opens the tooltip ({first}); it spans {b['left']:.0f} to {b['right']:.0f} of 360, the page scrolls {b['scroll']}, hit {b['hit']}"):
+            return False
+        activate()
+        closed = not box.is_visible()
+        left = page.evaluate("location.pathname + location.search") == PATH + "?q=backup-provider"
+        if not check(page, closed and left, f"a second tap closes it ({closed}) and the page did not navigate ({left})"):
+            return False
+        activate()
+        b = page.evaluate(BOX, box_sel)
+        check(page, box.is_visible() and b["right"] <= 360, "the tooltip opens again and stays inside 360 px")
+    else:
+        activate()
+        second = box.is_visible()
+        b = page.evaluate(BOX, box_sel)
+        if not check(page, (not first) and second and b["left"] >= 0 and b["right"] <= 360 and b["hit"],
+                     f"the first click closes the hovered tooltip ({not first}), the next opens it ({second}) inside 360 px ({b['left']:.0f} to {b['right']:.0f}, hit {b['hit']})"):
+            return False
+    page.keyboard.press("Escape")
+    page.context.close()
+    return True
 
 
 def main() -> int:
