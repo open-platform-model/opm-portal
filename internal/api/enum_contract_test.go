@@ -56,6 +56,7 @@ func TestEnumsMatchTheGoConstants(t *testing.T) {
 		"ProviderClaim/verdict":             verdicts,
 		"ProviderClaim/access":              strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),
 		"HistoryEntry/outcome":              strs(readmodel.OutcomeSucceeded, readmodel.OutcomeFailed, readmodel.OutcomeUnknown),
+		"EventList/scope":                   {v1.EventScopeAll},
 		"Cluster/mode":                      strs(ModeLocal, ModeInCluster),
 		"Cluster/source":                    {v1.SourceKubeconfig, v1.SourceInCluster},
 		"GraphRegistration/verdict":         verdicts,

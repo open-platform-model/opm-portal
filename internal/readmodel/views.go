@@ -192,8 +192,11 @@ type PackageItem struct {
 	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.
-	DependsOn      []ObjectRef
-	Path           string
+	DependsOn []ObjectRef
+	Path      string
+	// Prune is spec.prune as written; nil when the package does not set it,
+	// never a default.
+	Prune          *bool
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64

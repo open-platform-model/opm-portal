@@ -299,11 +299,15 @@ promises valid text, not whole grapheme clusters.
 
 ```go
 // EventsAbout returns the folded events about each of refs, merged newest
-// first: one list per event namespace and regarded kind. grants maps an
-// event namespace to the caller's list grant there; refs whose namespace
-// has no grant are skipped and reported in skipped.
-func (m *Model) EventsAbout(ctx context.Context, who authz.Identity,
-	grants map[string]authz.Grant, refs []ObjectRef) (evs []Event, skipped int, err error)
+// first: one list per event namespace and regarded kind. owner is the
+// caller's list grant in the owner's event namespace (refs[0]), which is
+// not optional; others maps every other event namespace to the caller's
+// list grant there; refs whose namespace has no grant are skipped and
+// reported in skipped. The owner grant is a parameter of its own so that
+// the model's rule "every read takes an authz.Grant" (signature_test.go)
+// holds without a change.
+func (m *Model) EventsAbout(ctx context.Context, who authz.Identity, owner authz.Grant,
+	others map[string]authz.Grant, refs []ObjectRef) (evs []Event, skipped int, err error)
 ```
 
 The lists run concurrently, at most four at a time, under the existing `readTimeout`.

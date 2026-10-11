@@ -404,11 +404,122 @@ func regardingQuery(r *http.Request) (ref readmodel.ObjectRef, named bool, err e
 // refused with the forbidden problem, the same a forbidden caller gets
 // (portal:D7:R4).
 func (s *Server) ownerEvents(ctx context.Context, who authz.Identity, o owner, r *http.Request) (v1.EventList, error) {
+	all, err := eventScope(r)
+	if err != nil {
+		return v1.EventList{}, err
+	}
+	if all {
+		return s.ownerEventsAll(ctx, who, o)
+	}
 	about, named, err := regardingQuery(r)
 	if err != nil {
 		return v1.EventList{}, err
 	}
 	return s.ownerEventsDoc(ctx, who, o, about, named)
+}
+
+// eventScope reads the scope of an owner events request: false for owner,
+// the default, and true for all. Any other value, a repeated scope, and
+// scope=all together with an object named by group, kind, namespace or name
+// are bad requests: one request is either one object or everything.
+func eventScope(r *http.Request) (all bool, err error) {
+	q := r.URL.Query()
+	if !q.Has("scope") {
+		return false, nil
+	}
+	values := q["scope"]
+	if len(values) != 1 {
+		return false, badRequest("scope is given once")
+	}
+	switch values[0] {
+	case "owner":
+		return false, nil
+	case v1.EventScopeAll:
+		for _, key := range []string{"group", "kind", "namespace", "name"} {
+			if q.Has(key) {
+				return false, badRequest("scope=all takes no object: a request is for one object or for everything")
+			}
+		}
+		return true, nil
+	}
+	return false, badRequest("scope is owner or all")
+}
+
+// ownerEventsAll serves the events of an owner merged over everything its
+// inventory reaches that the caller may read (portal:D9:R6). Every read is
+// authorized before the lookup it covers: get on the owner and list of
+// events in the owner's namespace first, as for the owner's own feed; then
+// the owner and its inventory are read for this caller; then list of events
+// in each other event namespace, one at a time, so that one denial leaves out
+// the events there and fails nothing else. The caller's own view of the
+// owner decides which objects and runtime children count, so an event is
+// served only for an object the caller sees on the owner's page.
+func (s *Server) ownerEventsAll(ctx context.Context, who authz.Identity, o owner) (v1.EventList, error) {
+	about := o.ref()
+	og, err := s.authorize(ctx, who, o.get())
+	if err != nil {
+		return v1.EventList{}, err
+	}
+	g, err := s.authorize(ctx, who, eventsList(about))
+	if err != nil {
+		return v1.EventList{}, err
+	}
+	components, err := s.ownerComponents(ctx, who, og[0], o)
+	if err != nil {
+		return v1.EventList{}, err
+	}
+	refs, unread := mergedRefs(about, components)
+	others := map[string]authz.Grant{}
+	asked := map[string]bool{readmodel.EventNamespace(about): true}
+	partial := unread
+	for _, ref := range refs {
+		namespace := readmodel.EventNamespace(ref)
+		if asked[namespace] {
+			continue
+		}
+		asked[namespace] = true
+		gs, err := s.authorize(ctx, who, eventsList(ref))
+		if err != nil {
+			if ctx.Err() != nil {
+				return v1.EventList{}, ctx.Err()
+			}
+			// Denied, or not decidable: the events there are left out.
+			partial = true
+			continue
+		}
+		others[namespace] = gs[0]
+	}
+	evs, skipped, err := s.cfg.Model.EventsAbout(ctx, who, g[0], others, refs)
+	if err != nil {
+		return v1.EventList{}, err
+	}
+	doc := eventListDoc(about, evs)
+	doc.Scope = v1.EventScopeAll
+	doc.Partial = partial || skipped > 0
+	return doc, nil
+}
+
+// mergedRefs lists the owner first, then every object of its inventory that
+// the caller may read, and the runtime children below them, in inventory
+// order. Core Secrets are left out (portal:D8). unread says that a workload
+// of the view has runtime children the caller may not read, so their events
+// are not in the feed.
+func mergedRefs(about readmodel.ObjectRef, components []readmodel.Component) (refs []readmodel.ObjectRef, unread bool) {
+	refs = []readmodel.ObjectRef{about}
+	for i := range components {
+		for j := range components[i].Objects {
+			obj := &components[i].Objects[j]
+			if obj.Access != health.AccessOK || (obj.Ref.Group == "" && obj.Ref.Kind == "Secret") {
+				continue
+			}
+			refs = append(refs, obj.Ref)
+			unread = unread || obj.ChildrenUnread
+			for k := range obj.Children {
+				refs = append(refs, obj.Children[k].Ref)
+			}
+		}
+	}
+	return refs, unread
 }
 
 func (s *Server) ownerEventsDoc(ctx context.Context, who authz.Identity, o owner, about readmodel.ObjectRef, named bool) (v1.EventList, error) {
