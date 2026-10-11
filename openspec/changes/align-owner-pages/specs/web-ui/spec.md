@@ -486,3 +486,27 @@ portal:D15:R2/R3.
 - **WHEN** a browser opens backup-provider's Provider tab on the F1 capture
 - **THEN** its registration shows "accepted" and "active" once each, and no success reason beside
   them
+
+### Requirement: Filter forms apply as the user types
+
+On every page, with script, a search or text field of a `data-filters` form, among them the
+filter forms of the Installed list, the Platform's Providers and Catalogs tabs and recent events,
+and the Catalog page's Events tab, SHALL apply after a short pause in typing, with the user's
+focus, caret and any text typed meanwhile kept, and that form's Apply button SHALL be hidden until
+it takes keyboard focus.
+Source: portal:D14:R1/R2, portal:D19.
+
+#### Scenario: A text field applies when the user tabs out of it
+
+- **WHEN** a browser with script types `BackOff` into a text field that is not a search, in a
+  `data-filters` form whose Apply button has a stable id (as the owner page's Events form has),
+  and presses Tab
+- **THEN** focus is on that form's Apply button, the list applies, and focus is on the new Apply
+  button after the swap, because the button has a stable id
+
+#### Scenario: Typing applies the search
+
+- **WHEN** a browser with script types `backup` into Installed's search field and stops typing
+- **THEN** the page shows `/installed?q=backup` listing `default/backup-provider` and
+  `default/backup-consumer`, with focus and caret still in the search field, and no Apply button
+  is visible

@@ -65,6 +65,18 @@ From `align-platform-installed-catalog`, which runs in parallel and owns the gen
 - **The `events-table` partial** with its `eventsTable` and `eventRow` input. Whichever of the two
   changes lands first adds it, and the other adopts it.
 
+`align-platform-installed-catalog` merged first (PR 47), and this branch merged main on
+2026-10-11. The results: `providerPill` is that change's (it returns a `tipData` and takes the
+tooltip id), so the kicker draws it through the `tip` partial and the branch's own pill type is
+gone; the `events-table` partial, `eventsTable` and `eventRow` are that change's, so the branch's
+copy, its table CSS and its age form (`5m`) are gone and the Age reads "5m ago" with the time in
+`title`; `newFilterForm` stays, since a view test of main uses it. The owner Events form keeps
+`data-filters="owner-events"` and takes `id="apply-owner-events"` on its Apply button, as main's
+focus restore needs. Main's browser step that types into the Events form's Reason field cannot
+run as it was, since the reason is a chip here: the step adds a text field to the form and the
+delta spec states the scenario without the field (a MODIFIED "Filter forms apply as the user
+types").
+
 This change edits neither `filters.go`, the `filter-form` partial, nor the filter code in
 `portal.js` and `prefs.js`. Its Events, Logs and YAML forms carry `data-filters` keys (none of
 them a remembered view), so the existing select auto-submit applies them. If this change lands
@@ -708,9 +720,12 @@ secondary line.
 - **Standing once** (`provider-20`): the h3 stays as the per-claim heading. One badge row shows
   the accepted and active pills (portal:D4:R4), plus the reason only when it is not a success
   reason. The claim badge leaves the tab.
-- **"Registration conditions"** (`provider-08`): an h3 heading. Status is a square badge toned by
+- **Section headings** (ruled 2026-10-11): the claim's sections, "Registration conditions" and
+  "What it provides", use h4 headings under the claim's h3, styled at the canvas's 16 px, so the
+  outline nests and three h3 siblings do not flatten it.
+- **"Registration conditions"** (`provider-08`): an h4 heading. Status is a square badge toned by
   `Condition.Tone`. Reason is mono. The Meaning column stays (live-only).
-- **"What it provides"** (`provider-09`): a table with columns Contract and Used by, styled as a
+- **"What it provides"** (`provider-09`): an h4 heading and a table with columns Contract and Used by, styled as a
   table header. It carries the `table` class and a `data-label` on each cell, so the card fallback
   below 760 px applies (OP-A5).
   - The contract is a round amber pill (`.contract-pill`) with `contractShort` text and the full
@@ -1036,7 +1051,7 @@ where the cells draw `--line-soft`, so the rule under each row changed shade at 
 | Difference from the canvas | Why it stays |
 | --- | --- |
 | The canvas has no heading for the claim's name; the tab keeps the registration's name as an h3 under the intro | the page holds several claims when an owner holds several registrations, and the name tells them apart (decision 7: "the h3 stays") |
-| "Registration conditions" and "What it provides" are h4 headings styled at the canvas's 16 px | the name above is an h3, so the two sections nest under it; decision 7 says h3, which would put three siblings at one level |
+| "Registration conditions" and "What it provides" are h4 headings styled at the canvas's 16 px | the name above is an h3, so the two sections nest under it; the owner ruled h4 on 2026-10-11 and decision 7 now says so |
 | The canvas's "What it provides" has Definition, Kind and Contract columns and a "Transformers it ships" table; the tab has Contract and Used by | the read API does not serve a transformer or its kind; decision 7 fixes two columns |
 | The canvas's status badge is a pill with a dot; the tab's is a square badge toned by the condition's tone | decision 7: "a square badge toned by `Condition.Tone`"; the word is the status itself, so tone is not the only carrier |
 | The "Controller says" fact shows in local mode only | portal:D8:R5; in-cluster the read API omits the message |
