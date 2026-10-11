@@ -48,6 +48,7 @@ const (
 	hueDegraded    = "degraded"
 	hueUnknown     = "unknown"
 	wordUnknown    = "Unknown"
+	wordActive     = "Active"
 	ownerCLI       = "cli"
 	outcomeFailed  = "Failed"
 	outcomeOK      = "Succeeded"
@@ -537,7 +538,7 @@ var providerFallback = map[string]string{
 	"Pending":         "The controller has not decided on this claim yet.",
 	"Refused":         "The controller refused this claim.",
 	"Removal blocked": "Accepted and active; its removal waits until no module uses what it provides.",
-	"Active":          "Accepted and active.",
+	wordActive:        "Accepted and active.",
 	wordUnknown:       "The portal does not know this claim's standing.",
 }
 
@@ -546,7 +547,7 @@ var providerFallback = map[string]string{
 func providerWord(c v1.ProviderClaim) (word, hue string) {
 	switch {
 	case c.Verdict == verdictAccepted && c.Active:
-		return "Active", "healthy"
+		return wordActive, "healthy"
 	case c.Verdict == verdictAccepted:
 		return "Accepted", hueProgressing
 	case c.Verdict == verdictPending:
@@ -582,7 +583,7 @@ func registrationMeaning(reg *v1.Registration, claim v1.ProviderClaim) string {
 // wrote some, else the reason's meaning, else the fixed sentence for the
 // standing. reg is nil when the Platform did not give the registration.
 func providerSummary(c v1.ProviderClaim, reg *v1.Registration, word string) string {
-	if word == "Active" && reg != nil && len(reg.Provides) > 0 {
+	if word == wordActive && reg != nil && len(reg.Provides) > 0 {
 		names := make([]string, 0, len(reg.Provides))
 		for _, p := range reg.Provides {
 			names = append(names, contractShort(p))
@@ -601,7 +602,7 @@ func providerSummary(c v1.ProviderClaim, reg *v1.Registration, word string) stri
 	if m := registrationMeaning(reg, c); m != "" {
 		return m
 	}
-	if word == "Active" && reg != nil {
+	if word == wordActive && reg != nil {
 		return "Accepted and active; it provides no contract."
 	}
 	return providerFallback[word]
@@ -616,8 +617,8 @@ func providerWhen(reg *v1.Registration, word string) (at *time.Time, text string
 		return nil, ""
 	}
 	want := "Ready"
-	if word == "Active" {
-		want = "Active"
+	if word == wordActive {
+		want = wordActive
 	}
 	for i := range reg.Conditions {
 		if reg.Conditions[i].Type == want && reg.Conditions[i].LastTransitionTime != nil {
@@ -628,7 +629,7 @@ func providerWhen(reg *v1.Registration, word string) (at *time.Time, text string
 }
 
 func providerWhenWords(word string) string {
-	if word == "Active" {
+	if word == wordActive {
 		return "active since"
 	}
 	return strings.ToLower(word)

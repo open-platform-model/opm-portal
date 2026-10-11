@@ -97,7 +97,7 @@ func TestPanelBodyAndLinks(t *testing.T) {
 		t.Errorf("the waiting Pod's message is not in a degraded box:\n%s", pod)
 	}
 	links := regexp.MustCompile(`<a class="btn( btn-dark)?" href="([^"]*)"[^>]*>([^<]*)</a>`).FindAllStringSubmatch(between(pod, `<p class="panel-links">`, "</p>"), -1)
-	var names []string
+	names := make([]string, 0, len(links))
 	for _, l := range links {
 		names = append(names, l[3])
 	}
@@ -182,6 +182,12 @@ func TestPanelAtRest(t *testing.T) {
 	if !regexp.MustCompile(`<a class="tool-link" href="/instances/default/podinfo\?tab=graph" hx-boost="false" data-clear-selection hidden>`).MatchString(graph) {
 		t.Errorf("Clear selection at rest:\n%s", between(graph, "data-clear-selection", ">"))
 	}
+}
+
+// TestPanelOfASelection (4.3): with a node or focus the Clear link is shown and
+// plain, the panel is the selected object's, and node wins over focus.
+func TestPanelOfASelection(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	sel := mainOf(s.get(t, "/instances/default/podinfo?tab=graph&focus="+url.QueryEscape(nodeDeployment)+"&node="+url.QueryEscape(nodeDeployment)).body)
 	if !regexp.MustCompile(`<a class="tool-link" href="/instances/default/podinfo\?tab=graph" hx-boost="false" data-clear-selection>`).MatchString(sel) {
 		t.Errorf("Clear selection with a selection (a plain link without focus and node, shown):\n%s", between(sel, "data-clear-selection", ">"))

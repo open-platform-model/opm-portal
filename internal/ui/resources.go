@@ -102,8 +102,9 @@ func resourcesOf(q url.Values, v *ownerView, g *v1.Graph) resourcesTable {
 	if v.Package != nil && reason == "" {
 		b.sourceRow(v, g)
 	}
-	for _, c := range annotateResources(v.Components, byRef, groupOf, v.Base, reason) {
-		b.component(c)
+	comps := annotateResources(v.Components, byRef, groupOf, v.Base, reason)
+	for i := range comps {
+		b.component(comps[i])
 	}
 	b.flush()
 	for i := range v.Configs {
@@ -192,8 +193,8 @@ func (b *tableBuilder) sourceRow(v *ownerView, g *v1.Graph) {
 func (b *tableBuilder) component(c componentView) {
 	for i := range c.Objects {
 		rows, old := b.objectRows(&c.Objects[i], c.Name, false)
-		for _, r := range rows {
-			b.add(r)
+		for j := range rows {
+			b.add(rows[j])
 		}
 		if len(old) == 0 {
 			continue

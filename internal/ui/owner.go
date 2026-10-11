@@ -394,42 +394,60 @@ type yamlItem struct {
 	Secret bool
 }
 
-func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView, g *v1.Graph) {
-	type entry struct {
-		ref    v1.ObjectRef
-		secret bool
-	}
-	var entries []entry
-	for _, c := range v.allComponents() {
-		for j := range c.Objects {
-			o := &c.Objects[j]
+// yamlEntry is one object the YAML picker can list.
+type yamlEntry struct {
+	ref    v1.ObjectRef
+	secret bool
+}
+
+// yamlEntries lists the readable objects of the inventory, each object before
+// its children and old revisions; a Secret is listed and marked.
+func yamlEntries(v *ownerView) []yamlEntry {
+	var entries []yamlEntry
+	comps := v.allComponents()
+	for i := range comps {
+		for j := range comps[i].Objects {
+			o := &comps[i].Objects[j]
 			if o.Access != v1.AccessOK {
 				continue
 			}
-			entries = append(entries, entry{o.Ref, isSecret(o.Ref)})
+			entries = append(entries, yamlEntry{o.Ref, isSecret(o.Ref)})
 			for k := range o.Children {
-				entries = append(entries, entry{o.Children[k].Ref, false})
+				entries = append(entries, yamlEntry{o.Children[k].Ref, false})
 			}
 			for k := range o.Old {
-				entries = append(entries, entry{o.Old[k].Ref, false})
+				entries = append(entries, yamlEntry{o.Old[k].Ref, false})
 			}
 		}
 	}
+	return entries
+}
+
+// yamlDefault is the object the tab opens on when no object is picked: the
+// object of the node the page selects, else of the focus, when the picker lists
+// it and it is not a Secret, so YAML shows on arrival.
+func yamlDefault(v *ownerView, g *v1.Graph, entries []yamlEntry) string {
+	sel := v.Node
+	if sel == "" {
+		sel = v.Focus
+	}
+	n := findNode(g, sel)
+	if n == nil || n.Ref == nil || n.Access != v1.AccessOK || isSecret(*n.Ref) {
+		return ""
+	}
+	for _, e := range entries {
+		if !e.secret && resourceValue(e.ref) == resourceValue(*n.Ref) {
+			return resourceValue(e.ref)
+		}
+	}
+	return ""
+}
+
+func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView, g *v1.Graph) {
+	entries := yamlEntries(v)
 	picked := r.URL.Query().Get("object")
 	if picked == "" {
-		// The tab opens on the object of the node the page selects, else of
-		// the focus, when the picker lists it, so YAML shows on arrival.
-		sel := v.Node
-		if sel == "" {
-			sel = v.Focus
-		}
-		if n := findNode(g, sel); n != nil && n.Ref != nil && n.Access == v1.AccessOK && !isSecret(*n.Ref) {
-			for _, e := range entries {
-				if !e.secret && resourceValue(e.ref) == resourceValue(*n.Ref) {
-					picked = resourceValue(e.ref)
-				}
-			}
-		}
+		picked = yamlDefault(v, g, entries)
 	}
 	byKind := map[string][]yamlItem{}
 	var kinds []string

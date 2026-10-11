@@ -197,7 +197,7 @@ func claimBadge(c v1.ProviderClaim) badge {
 	case c.Verdict == verdictRemovalBlocked:
 		b.Text = "Removal blocked"
 	case c.Verdict == verdictAccepted && c.Active:
-		b.Text = "Active"
+		b.Text = wordActive
 	case c.Verdict == verdictAccepted:
 		b.Text = "Accepted, not active"
 	case c.Verdict == verdictRefused:

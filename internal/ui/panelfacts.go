@@ -10,7 +10,7 @@ import (
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
-// A fact is one labelled line of the details panel. Its value reaches the page
+// A fact is one labeled line of the details panel. Its value reaches the page
 // as text through html/template (SR11).
 type fact struct {
 	Label string
@@ -161,8 +161,10 @@ func at(obj map[string]any, keys ...string) any {
 }
 
 func strAt(obj map[string]any, keys ...string) string {
-	s, _ := at(obj, keys...).(string)
-	return s
+	if s, ok := at(obj, keys...).(string); ok {
+		return s
+	}
+	return ""
 }
 
 // number reads an integer a JSON document carries as a float64 (or as an
@@ -196,7 +198,10 @@ func scalar(obj map[string]any, keys ...string) string {
 
 // list reads a list of objects, leaving out an entry that is not one.
 func list(obj map[string]any, keys ...string) []map[string]any {
-	items, _ := at(obj, keys...).([]any)
+	items, ok := at(obj, keys...).([]any)
+	if !ok {
+		return nil
+	}
 	out := make([]map[string]any, 0, len(items))
 	for _, it := range items {
 		if m, ok := it.(map[string]any); ok {

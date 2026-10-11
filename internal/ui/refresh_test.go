@@ -24,7 +24,6 @@ import (
 
 var (
 	idAttr     = regexp.MustCompile(`\sid="([^"]*)"`)
-	logLinkRe  = regexp.MustCompile(`data-log-link="([^"]*)"`)
 	followAttr = regexp.MustCompile(`id="(components|logs)"[^>]*data-follow="([^"]*)"`)
 )
 
@@ -62,7 +61,7 @@ func TestALatePodGetsALogPane(t *testing.T) {
 	}
 	panel := broken.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape("obj:_/Pod/default/"+late), htmxRequest).body
 	m := regexp.MustCompile(`href="/instances/default/podinfo\?tab=logs#([^"]+)"`).FindStringSubmatch(panel)
-	if m == nil || !strings.Contains(m[1], late) {
+	if len(m) < 2 || !strings.Contains(m[1], late) {
 		t.Fatalf("the late Pod's panel has no Logs link to its pane:\n%s", panel)
 	}
 	if !ids[m[1]] {

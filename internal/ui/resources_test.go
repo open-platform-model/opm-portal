@@ -19,8 +19,9 @@ var tabLabelRe = regexp.MustCompile(`<a href="[^"]*"[^>]*>([A-Za-z]+)`)
 
 // tabLabels lists the labels of the tab strip in page order.
 func tabLabels(main string) []string {
-	var out []string
-	for _, m := range tabLabelRe.FindAllStringSubmatch(tabsOf(main), -1) {
+	matches := tabLabelRe.FindAllStringSubmatch(tabsOf(main), -1)
+	out := make([]string, 0, len(matches))
+	for _, m := range matches {
 		out = append(out, m[1])
 	}
 	return out
@@ -82,18 +83,40 @@ func TestTabLinksKeepNodeAndFocus(t *testing.T) {
 
 // rowsOf lists the <tr class="res ..."> rows of the Resources table.
 func rowsOf(main string) []string {
-	var out []string
-	for _, part := range strings.Split(between(main, `id="components"`, "</section>"), `<tr class="res`)[1:] {
+	parts := strings.Split(between(main, `id="components"`, "</section>"), `<tr class="res`)[1:]
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
 		out = append(out, `<tr class="res`+between(part, "", "</tr>"))
 	}
 	return out
 }
 
-// cell is the text of the cell of row labelled label, tags dropped.
+// cell is the text of the cell of row labeled label, tags dropped.
 func cell(row, label string) string {
 	c := between(row, `data-label="`+label+`"`, "</t")
 	c = c[strings.Index(c, ">")+1:]
 	return strings.TrimSpace(regexp.MustCompile(`<[^>]*>`).ReplaceAllString(c, ""))
+}
+
+// resourceRowWant is what a row of podinfo's Resources table shows.
+type resourceRowWant struct{ kind, name, origin, child string }
+
+// checkResourceRow holds row i to its want: the cells, the child mark, the
+// Graph link on its name and its health.
+func checkResourceRow(t *testing.T, i int, r string, w resourceRowWant) {
+	t.Helper()
+	if cell(r, "Kind") != w.kind || cell(r, "Name") != w.name || cell(r, "Origin") != w.origin || cell(r, "Component") != "podinfo" {
+		t.Errorf("row %d: %s %s %s %s; want %v", i, cell(r, "Kind"), cell(r, "Name"), cell(r, "Component"), cell(r, "Origin"), w)
+	}
+	if !strings.HasPrefix(r, `<tr class="res`+w.child+`"`) {
+		t.Errorf("row %d: class %q, want a child mark %q", i, between(r, `class="`, `"`), w.child)
+	}
+	if !regexp.MustCompile(`<a class="row-link" href="/instances/default/podinfo\?focus=[^"]+&amp;tab=graph">`).MatchString(r) {
+		t.Errorf("row %d does not link to the Graph tab focused on its node:\n%s", i, r)
+	}
+	if !strings.Contains(cell(r, "Health"), "Healthy") {
+		t.Errorf("row %d health %q", i, cell(r, "Health"))
+	}
 }
 
 // TestResourcesTableRowsOnF1 (4.2): podinfo's rows, in order, with the
@@ -108,7 +131,7 @@ func TestResourcesTableRowsOnF1(t *testing.T) {
 		}
 	}
 	rows := rowsOf(main)
-	want := []struct{ kind, name, origin, child string }{
+	want := []resourceRowWant{
 		{"Deployment", "default/podinfo-podinfo", "applied", ""},
 		{"Pod", "default/podinfo-podinfo-d9585d794-4lg6h", "made by the cluster", " row-child"},
 		{"Pod", "default/podinfo-podinfo-d9585d794-kp2jx", "made by the cluster", " row-child"},
@@ -119,19 +142,7 @@ func TestResourcesTableRowsOnF1(t *testing.T) {
 		t.Fatalf("%d rows, want %d:\n%s", len(rows), len(want), main)
 	}
 	for i, w := range want {
-		r := rows[i]
-		if cell(r, "Kind") != w.kind || cell(r, "Name") != w.name || cell(r, "Origin") != w.origin || cell(r, "Component") != "podinfo" {
-			t.Errorf("row %d: %s %s %s %s; want %v", i, cell(r, "Kind"), cell(r, "Name"), cell(r, "Component"), cell(r, "Origin"), w)
-		}
-		if !strings.HasPrefix(r, `<tr class="res`+w.child+`"`) {
-			t.Errorf("row %d: class %q, want a child mark %q", i, between(r, `class="`, `"`), w.child)
-		}
-		if !regexp.MustCompile(`<a class="row-link" href="/instances/default/podinfo\?focus=[^"]+&amp;tab=graph">`).MatchString(r) {
-			t.Errorf("row %d does not link to the Graph tab focused on its node:\n%s", i, r)
-		}
-		if !strings.Contains(cell(r, "Health"), "Healthy") {
-			t.Errorf("row %d health %q", i, cell(r, "Health"))
-		}
+		checkResourceRow(t, i, rows[i], w)
 	}
 	if !strings.Contains(cell(rows[3], "Details"), "2 desired") {
 		t.Errorf("the ReplicaSet row lacks its desired count: %q", cell(rows[3], "Details"))
