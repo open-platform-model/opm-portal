@@ -205,9 +205,12 @@ func TestBrowserTabCount(t *testing.T) {
 // here, as it adds it to f1Pages.
 var phonePages = []string{
 	"/",
+	"/?tab=providers",
 	"/?tab=catalogs",
 	"/?pstatus=refused&eresource=registration:default.refused-claim-fixture",
 	"/installed",
+	"/installed?q=backup",
+	"/installed?q=zzz",
 	"/installed?namespace=default",
 	"/installed?kind=package",
 	"/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1",
@@ -277,6 +280,26 @@ func TestBrowserTip(t *testing.T) {
 			defer cancel()
 			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), strings.TrimSpace(string(markup))); err != nil {
 				t.Fatalf("the tip did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// TestBrowserFilters drives the filter forms in real browsers (task
+// test:browser): typing in Installed's search applies after a pause and keeps
+// focus, caret and the characters typed meanwhile, and replaces the history
+// entry so Back leaves the filtered view; Enter submits once; a select
+// applies at once; the Apply button hides until it takes keyboard focus; a
+// text field applies when the user leaves it; and the new count is announced
+// once through the header's status region (PIC-L1).
+func TestBrowserFilters(t *testing.T) {
+	script := browserScript(t, "filters.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), apitest.Context); err != nil {
+				t.Fatalf("a filter form did not hold: %v", err)
 			}
 		})
 	}

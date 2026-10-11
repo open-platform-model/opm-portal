@@ -50,7 +50,7 @@
   {{if .Problem}}{{template "problem-region" .Problem}}
   {{else}}{{with .Providers}}
   {{if ne .Access "ok"}}{{template "locked" .Access}}<p class="muted">Only the providers you may read are listed.</p>
-  {{else}}<p class="shown">Showing <strong>{{len .Rows}}</strong> of {{.Total}}</p>{{end}}
+  {{end}}
   {{if .Rows}}
   <div class="table-wrap">
   <table class="table rows providers">
@@ -84,7 +84,6 @@
   <div id="catalogs" data-follow="platform">
   {{if .Problem}}{{template "problem-region" .Problem}}
   {{else}}{{with .Catalogs}}
-  <p class="shown">Showing <strong>{{len .Rows}}</strong> of {{.Total}}</p>
   {{if ne $v.Platform.RegistrationsAccess "ok"}}{{template "locked" $v.Platform.RegistrationsAccess}}<p class="muted">Claims by providers you may not read are not shown.</p>{{end}}
   {{if .Rows}}
   <div class="table-wrap">
@@ -134,7 +133,7 @@
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
   {{with .Events}}
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events" hx-sync="this:replace" hx-replace-url="true">
     {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value=""{{if not (index .Filters.Values "eresource")}} selected{{end}}>Everything</option>{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>

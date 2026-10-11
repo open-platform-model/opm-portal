@@ -313,6 +313,9 @@ a:hover { color: var(--accent-deep); }
   .masthead, .brand { transition: none; }
 }
 .live { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--hdr-muted); }
+/* The hidden count a filter change leaves for a screen reader (the clip
+   pattern, never display:none). */
+.live-note { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hdr-muted); }
 body.is-live .live-dot { background: var(--live-ok); }
 body.is-offline .live-dot { background: var(--live-off); }
@@ -381,7 +384,8 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 20px;
+  --panel-pad: 20px; /* a filter strip reaches past it to the panel's edges */
+  padding: var(--panel-pad);
   position: relative;
 }
 .fragment { min-width: 0; }
@@ -501,6 +505,19 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .field { flex: 1 1 150px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field-search { flex: 2 1 260px; }
 .field-submit { flex: 0 0 auto; }
+/* With script the Apply button hides (the clip pattern, not display:none, so
+   Enter still has a submit button) and shows again when it takes keyboard
+   focus. The same holds for the Platform's events form, whose button is
+   "Show". */
+.opm-js form[data-filters] .field-submit:not(:focus-within) {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+/* The search box: a magnifier before the input, the box carrying the border. */
+.search-box { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--control-border); background: var(--field); }
+.search-box:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+.search-box:has(input:not([value=""])) { border-color: var(--accent); background: var(--accent-field); }
+.field .search-box input, .field .search-box input:not([value=""]) { flex: 1; min-height: 40px; padding: 0; border: 0; border-radius: 0; background: transparent; outline: none; }
+.search-icon { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--muted); stroke-width: 2; }
 .field label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
 .field input, .field select { font: inherit; font-size: 14px; min-height: 42px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--control-border); background: var(--field); color: var(--ink); min-width: 0; width: 100%; }
 .field input:not([value=""]), .field select:has(option:checked:not([value=""])) { border-color: var(--accent); background: var(--accent-field); }
@@ -514,6 +531,17 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .fclear { font-size: 13px; color: var(--accent); }
 .fnote { margin: 0; flex-basis: 100%; font-size: 13px; color: var(--ink-2); padding: 6px 10px; border: 1px dashed var(--line-strong); border-radius: 8px; overflow-wrap: anywhere; }
 .shown { margin: 0 0 10px; font-size: 14px; color: var(--ink-2); }
+/* The count row of a filter form: "Showing n of M", the chips, "Clear all". */
+.filter-chips { min-height: 32px; }
+.filter-chips .shown { margin: 0 6px 0 0; }
+.fchip-label { font-weight: 600; }
+.fclear { text-decoration: underline; }
+/* The strip variant: a flat strip inside a panel, a bottom rule, the count at
+   the end of the field row. */
+.filters-strip { margin: 0 calc(var(--panel-pad) * -1) 14px; padding: 14px 24px; gap: 8px; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+.filters-strip .field { max-width: 260px; }
+.filters-strip .field-search { max-width: none; }
+.filters-strip .filter-fields > .shown { margin: 0 0 0 auto; align-self: center; }
 .empty { padding: 32px 12px; text-align: center; }
 .empty p { margin: 6px 0; }
 .locked-group { margin-bottom: 10px; }
@@ -565,7 +593,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .tabs-lg a[aria-current="page"] { font-weight: 700; }
 .tab-n { font-family: var(--font-mono); font-size: 12px; font-weight: 600; line-height: 1; padding: 3px 7px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--ink-2); }
 .tab-n:empty { display: none; } /* a tab with no count keeps the span, so a live refresh can empty it, and draws no pill */
-#parts .filters, #events-panel .filters { margin-bottom: 14px; background: var(--surface-2); }
+#events-panel .filters { margin-bottom: 14px; background: var(--surface-2); }
 .holder, .claimant { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0; }
 .holder-note { margin: 4px 0 0; font-size: 0.8rem; }
 .holder-link { font-size: 0.8rem; }

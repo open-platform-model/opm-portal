@@ -5,7 +5,6 @@
 </header>
 {{template "filter-form" .FilterForm}}
 <section class="panel panel-wide reveal" id="list" aria-label="Installed" data-follow="{{index $p.Topics 0}}">
-  <p class="shown">Showing <strong>{{len .Rows}}</strong> of {{.Total}}{{if or .InstancesLocked .PackagesLocked .InstancesProblem .PackagesProblem}} you may read{{end}}</p>
   {{if .UsesSet}}<p class="note">Packages are not included: a package does not record which contracts its render used.</p>{{end}}
   {{if .ModuleSet}}<p class="note">Packages are not included: a package records a source, not a module.</p>{{end}}
   {{with .InstancesProblem}}{{template "problem-region" .}}{{end}}

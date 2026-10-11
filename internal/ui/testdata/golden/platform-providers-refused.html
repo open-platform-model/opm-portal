@@ -30,24 +30,26 @@
 </section>
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
   <nav class="tabs tabs-lg" aria-label="Platform parts" hx-swap="outerHTML show:none"><a href="/?eresource=registration%3Adefault.refused-claim-fixture&amp;pstatus=refused&amp;tab=providers" aria-current="page">Providers <span class="tab-n" id="tab-n-providers" data-follow="platform">2</span></a><a href="/?eresource=registration%3Adefault.refused-claim-fixture&amp;pstatus=refused&amp;tab=catalogs">Catalogs <span class="tab-n" id="tab-n-catalogs" data-follow="platform">3</span></a></nav>
-  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" hx-swap="outerHTML show:none" data-filters="providers">
+  <form class="filters filters-strip" method="get" action="/" role="search" aria-label="Filter providers" hx-swap="outerHTML show:none" data-filters="providers" hx-sync="this:replace" hx-replace-url="true">
   <input type="hidden" name="eresource" value="registration:default.refused-claim-fixture">
   <div class="filter-fields">
-    <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
     
-    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="">Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused" selected>refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
+    <div class="field field-search"><label for="f-pq">Search</label><span class="search-box"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></span></div>
+    
+    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="">Any status</option><option value="accepted">Accepted</option><option value="active">Active</option><option value="refused" selected>Refused</option><option value="inactive">Inactive</option><option value="blocked">Removal blocked</option><option value="pending">Pending</option></select></div>
     
     <div class="field"><label for="f-provides">Provides</label><input id="f-provides" name="provides" value="" placeholder="a contract" list="f-provides-list" autocomplete="off" spellcheck="false"><datalist id="f-provides-list"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"></datalist></div>
     <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    <p class="shown" id="shown" data-follow="platform">Showing <strong>1</strong> of 2</p>
   </div>
   
   <div class="filter-chips">
-    <a class="fchip" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit aria-label="Remove the filter Status: refused"><span class="fchip-label">Status</span> refused<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
-    <a class="fclear" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit data-clear-filters="providers">Clear filters</a>
+    <a class="fchip" href="/?eresource=registration%3Adefault.refused-claim-fixture" title="refused" data-filters-explicit aria-label="Remove Status filter"><span class="fchip-label">Status:</span> Refused<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>
+    <a class="fclear" href="/?eresource=registration%3Adefault.refused-claim-fixture" data-filters-explicit data-clear-filters="providers">Clear all</a>
   </div>
 </form>
   <div id="providers" data-follow="platform">
-  <p class="shown">Showing <strong>1</strong> of 2</p>
+  
   <div class="table-wrap">
   <table class="table rows providers">
     <thead><tr><th scope="col">Provider</th><th scope="col">Catalog</th><th scope="col">Provides</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
@@ -89,7 +91,7 @@
 </section>
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events" hx-sync="this:replace" hx-replace-url="true">
     <input type="hidden" name="pstatus" value="refused">
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="">Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture" selected>default.refused-claim-fixture</option></optgroup></select></div>

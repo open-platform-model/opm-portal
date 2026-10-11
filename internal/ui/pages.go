@@ -117,6 +117,9 @@ type installedView struct {
 	Namespaces []string
 	Modules    []string
 	Contracts  []string
+	// Topic is the stream topic the list follows, which the count region
+	// follows too.
+	Topic string
 }
 
 func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
@@ -171,6 +174,7 @@ func (h *Handler) installedPage(w http.ResponseWriter, r *http.Request) {
 	if ns != "" && readable {
 		topic += ":" + ns
 	}
+	v.Topic = topic
 	status := max(problemStatus(v.InstancesProblem), problemStatus(v.PackagesProblem))
 	h.render(w, r, status, "installed", page{Title: "Installed", Nav: "installed", Topics: []string{topic}, Main: v})
 }
@@ -566,10 +570,15 @@ func (h *Handler) renderProblemFragment(w http.ResponseWriter, r *http.Request, 
 	h.renderFragment(w, r, problemStatus(p), "problem", page{Title: "Unavailable", Main: p})
 }
 
-// FilterForm returns the Installed filter form.
+// FilterForm returns the Installed filter form, with its count row.
 func (v installedView) FilterForm() filterForm {
-	return newFilterForm(v.Filters, "Filter what is installed", keepHidden(v.Query, installedFilters.paramNames()...),
-		map[string][]string{"namespace": v.Namespaces, "uses": v.Contracts, "module": v.Modules},
-		map[string]string{"q": "Name, namespace, module or source", "uses": "a contract the render used", "namespace": "all namespaces", "module": "a module path"},
-	)
+	scope := ""
+	if v.InstancesLocked || v.PackagesLocked || v.InstancesProblem != nil || v.PackagesProblem != nil {
+		scope = "you may read"
+	}
+	return newChoiceForm(v.Filters, "Filter what is installed", keepHidden(v.Query, installedFilters.paramNames()...), formInput{
+		Suggest:      map[string][]string{"namespace": v.Namespaces, "uses": v.Contracts, "module": v.Modules},
+		Placeholders: map[string]string{"q": "Name, namespace, module or source", "uses": "a contract the render used", "namespace": "all namespaces", "module": "a module path"},
+		Shown:        len(v.Rows), Total: v.Total, Scope: scope, ShownID: "shown", Follow: v.Topic, Variant: filtersCard,
+	})
 }

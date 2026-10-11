@@ -30,20 +30,21 @@
 </section>
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
   <nav class="tabs tabs-lg" aria-label="Platform parts" hx-swap="outerHTML show:none"><a href="/?tab=providers">Providers <span class="tab-n" id="tab-n-providers" data-follow="platform">2</span></a><a href="/?tab=catalogs" aria-current="page">Catalogs <span class="tab-n" id="tab-n-catalogs" data-follow="platform">3</span></a></nav>
-  <form class="filters" method="get" action="/" role="search" aria-label="Filter catalogs" hx-swap="outerHTML show:none" data-filters="catalogs">
+  <form class="filters filters-strip" method="get" action="/" role="search" aria-label="Filter catalogs" hx-swap="outerHTML show:none" data-filters="catalogs" hx-sync="this:replace" hx-replace-url="true">
   <input type="hidden" name="tab" value="catalogs">
   <div class="filter-fields">
-    <div class="field field-search"><label for="f-cq">Search</label><input id="f-cq" name="cq" type="search" value="" placeholder="Catalog path or claimant" autocomplete="off" spellcheck="false"></div>
     
-    <div class="field"><label for="f-csource">Source</label><select id="f-csource" name="csource"><option value="" selected>Any</option><option value="subscription">subscribed</option><option value="registration">from a provider</option><option value="claim">claimed only</option></select></div>
-    <div class="field"><label for="f-claimed">Claimed</label><select id="f-claimed" name="claimed"><option value="" selected>Any</option><option value="yes">yes</option><option value="no">no</option></select></div>
+    <div class="field field-search"><label for="f-cq">Search</label><span class="search-box"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="f-cq" name="cq" type="search" value="" placeholder="Catalog path or claimant" autocomplete="off" spellcheck="false"></span></div>
     
+    <div class="field"><label for="f-csource">Source</label><select id="f-csource" name="csource"><option value="" selected>Any source</option><option value="subscription">Subscription</option><option value="registration">Contributed</option><option value="claim">Claimed only</option></select></div>
+    
+    <div class="field"><label for="f-claimed">Claimed</label><select id="f-claimed" name="claimed"><option value="" selected>Either</option><option value="yes">Claimed</option><option value="no">Unclaimed</option></select></div>
     <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    <p class="shown" id="shown" data-follow="platform">Showing <strong>3</strong> of 3</p>
   </div>
   
 </form>
   <div id="catalogs" data-follow="platform">
-  <p class="shown">Showing <strong>3</strong> of 3</p>
   
   <div class="table-wrap">
   <table class="table rows catalogs">
@@ -100,7 +101,7 @@
 </section>
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
   <h2 id="events-h">Recent events</h2>
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
+  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events" hx-sync="this:replace" hx-replace-url="true">
     <input type="hidden" name="tab" value="catalogs">
     <div class="filter-fields">
       <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>

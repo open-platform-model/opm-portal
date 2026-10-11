@@ -218,6 +218,8 @@ func matchesProvider(r *providerRow, f map[string]string) bool {
 		return r.Active
 	case "accepted":
 		return r.Accepted
+	case "inactive":
+		return r.Accepted && !r.Active
 	case "refused":
 		return r.Verdict == verdictRefused
 	case "blocked":
@@ -450,11 +452,24 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	slices.Sort(provides)
-	v.Providers.Form = newFilterForm(pf, "Filter providers", keepHidden(q, providerFilters.paramNames()...),
-		map[string][]string{"provides": provides},
-		map[string]string{"pq": "Name, catalog, contract or holder", "provides": "a contract"})
-	v.Catalogs.Form = newFilterForm(cf, "Filter catalogs", keepHidden(q, catalogFilters.paramNames()...),
-		nil, map[string]string{"cq": "Catalog path or claimant"})
+	// A count row stands for rows the page shows: none when the source is a
+	// problem, and none for providers the caller may not list (portal:D7:R2).
+	provShown, provTotal := len(v.Providers.Rows), v.Providers.Total
+	catShown, catTotal := len(v.Catalogs.Rows), v.Catalogs.Total
+	if v.Problem != nil {
+		provTotal, catTotal = -1, -1
+	} else if v.Providers.Access != v1.AccessOK {
+		provTotal = -1
+	}
+	v.Providers.Form = newChoiceForm(pf, "Filter providers", keepHidden(q, providerFilters.paramNames()...), formInput{
+		Suggest:      map[string][]string{"provides": provides},
+		Placeholders: map[string]string{"pq": "Name, catalog, contract or holder", "provides": "a contract"},
+		Shown:        provShown, Total: provTotal, ShownID: "shown", Follow: platformTopic, Variant: filtersStrip,
+	})
+	v.Catalogs.Form = newChoiceForm(cf, "Filter catalogs", keepHidden(q, catalogFilters.paramNames()...), formInput{
+		Placeholders: map[string]string{"cq": "Catalog path or claimant"},
+		Shown:        catShown, Total: catTotal, ShownID: "shown", Follow: platformTopic, Variant: filtersStrip,
+	})
 	v.Events = h.platformEvents(r, plat)
 
 	follow := strings.Fields(v.Events.Follow)

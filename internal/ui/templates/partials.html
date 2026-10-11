@@ -219,29 +219,40 @@
 <li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{template "breakable" .Text}}</span><span class="origin">made by the cluster</span>{{with .Health.Reason}}<span class="mono obj-reason">{{.}}</span>{{end}}{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions">{{with .Focus}}<a href="{{.}}">Graph</a>{{end}}{{if .LogID}}<a href="{{.LogHref}}" data-log-link="{{.LogID}}">Logs</a>{{end}}<a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
 {{- end}}
 
-{{/* filter-form is one view's GET filter form, its chips and its notes. */}}
+{{/* filter-count is the count row's "Showing n of M", a followed region so a
+     live refresh updates it without re-rendering the fields a user may be
+     typing in. */}}
+{{define "filter-count" -}}
+<p class="shown"{{with .ShownID}} id="{{.}}"{{end}}{{with .Follow}} data-follow="{{.}}"{{end}}>Showing <strong>{{.Shown}}</strong> of {{.Total}}{{with .Scope}} {{.}}{{end}}</p>
+{{- end}}
+
+{{/* filter-form is one view's GET filter form, its count row, chips and
+     notes. Its fields come in the view's parameter order; Variant is "card"
+     (its own card, the count row beneath) or "strip" (a flat strip inside a
+     panel, the count at the end of the field row). */}}
 {{define "filter-form" -}}
-<form class="filters" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}" hx-swap="outerHTML show:none"{{with .Filters.View}}{{with .Key}} data-filters="{{.}}"{{end}}{{end}}>
+{{- $key := ""}}{{with .Filters.View}}{{$key = .Key}}{{end -}}
+<form class="filters{{with .Variant}} filters-{{.}}{{end}}" method="get" action="{{.Action}}" role="search" aria-label="{{.Aria}}" hx-swap="outerHTML show:none"{{with $key}} data-filters="{{.}}" hx-sync="this:replace" hx-replace-url="true"{{end}}>
   {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
-  {{with .Fields}}
   <div class="filter-fields">
-    {{range .Texts}}{{if .Search}}
-    <div class="field field-search"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" type="search" value="{{.Value}}" placeholder="{{.Placeholder}}" autocomplete="off" spellcheck="false"></div>
-    {{end}}{{end}}
-    {{range .Selects}}
-    <div class="field"><label for="{{.ID}}">{{.Label}}</label><select id="{{.ID}}" name="{{.Name}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
-    {{end}}
-    {{range .Texts}}{{if not .Search}}
+    {{range .Fields}}
+    {{if .Search}}
+    <div class="field field-search"><label for="{{.ID}}">{{.Label}}</label><span class="search-box"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="{{.ID}}" name="{{.Name}}" type="search" value="{{.Value}}" placeholder="{{.Placeholder}}" autocomplete="off" spellcheck="false"></span></div>
+    {{else if .IsSelect}}
+    <div class="field"><label for="{{.ID}}">{{.Label}}</label><select id="{{.ID}}" name="{{.Name}}">{{range .Select}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
+    {{else}}
     <div class="field"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" value="{{.Value}}" placeholder="{{.Placeholder}}"{{with .List}} list="{{.}}"{{end}} autocomplete="off" spellcheck="false">{{if .List}}<datalist id="{{.List}}">{{range .Suggestions}}<option value="{{.}}">{{end}}</datalist>{{end}}</div>
     {{end}}{{end}}
     <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    {{if and (eq .Variant "strip") (ge .Total 0)}}{{template "filter-count" .}}{{end}}
   </div>
-  {{end}}
-  {{with .Filters}}{{if or .Active .Ignored}}
+  {{$count := and (eq .Variant "card") (ge .Total 0)}}
+  {{with $f := .Filters}}{{if or $count $f.Active $f.Ignored}}
   <div class="filter-chips">
-    {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
-    {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
-    {{if .Active}}<a class="fclear" href="{{.Clear}}" data-filters-explicit{{with .View}}{{with .Key}} data-clear-filters="{{.}}"{{end}}{{end}}>Clear filters</a>{{end}}
+    {{if $count}}{{template "filter-count" $}}{{end}}
+    {{range $f.Active}}<a class="fchip" href="{{.Remove}}" title="{{.Value}}" data-filters-explicit aria-label="Remove {{.Label}} filter"><span class="fchip-label">{{.Label}}:</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+    {{range $f.Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
+    {{if $f.Active}}<a class="fclear" href="{{$f.Clear}}" data-filters-explicit{{with $key}} data-clear-filters="{{.}}"{{end}}>{{$.ClearText}}</a>{{end}}
   </div>
   {{end}}{{end}}
 </form>

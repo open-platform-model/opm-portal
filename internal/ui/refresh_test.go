@@ -397,3 +397,41 @@ func TestANewEventReplacesTheTabCountAndNothingElse(t *testing.T) {
 		t.Errorf("the strips differ beyond the count:\n%s\n%s", strip(before), strip(after))
 	}
 }
+
+// TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot (installed-06, PIC-L1): the
+// live refresh replaces only elements that carry an id and data-follow, so
+// "Showing n of M" in a filter form refreshes with its list and leaves the
+// fields beside it alone, and the hidden count note in the header's status
+// region has neither, so no refresh can write it. The header's region is the
+// one status region on the page, not atomic, and holds the note beside the
+// stream's text.
+func TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	region := regexp.MustCompile(`<p class="shown" id="shown" data-follow="([^"]+)">`)
+	for path, list := range map[string]string{
+		"/installed":              `id="list"`,
+		"/installed?q=zzz":        `id="list"`,
+		"/":                       `id="providers"`,
+		"/?tab=catalogs":          `id="catalogs"`,
+		"/installed?kind=package": `id="list"`,
+	} {
+		page := s.get(t, path).body
+		m := region.FindStringSubmatch(mainOf(page))
+		if m == nil {
+			t.Errorf("%s: no followed count region", path)
+			continue
+		}
+		after := between(mainOf(page), list, ">")
+		if !strings.Contains(after, `data-follow="`+m[1]+`"`) {
+			t.Errorf("%s: the count follows %q, the list %s", path, m[1], after)
+		}
+		if n := strings.Count(page, `role="status"`); n != 1 {
+			t.Errorf("%s: %d status regions; the header's is the only one", path, n)
+		}
+		live := between(page, `<p class="live"`, "</p>")
+		if !strings.Contains(live, `id="live" role="status" aria-live="polite" aria-atomic="false"`) ||
+			!strings.Contains(live, `<span class="live-text">Not live</span><span class="live-note"></span>`) {
+			t.Errorf("%s: the status region is not the atomic-free text and note: %s", path, live)
+		}
+	}
+}
