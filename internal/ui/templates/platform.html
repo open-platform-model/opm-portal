@@ -43,10 +43,7 @@
 </section>
 
 <section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
-  <nav class="tabs" aria-label="Platform parts" hx-swap="outerHTML show:none">
-    <a href="{{.ProvidersTab}}"{{if eq .Tab "providers"}} aria-current="page"{{end}}>Providers</a>
-    <a href="{{.CatalogsTab}}"{{if eq .Tab "catalogs"}} aria-current="page"{{end}}>Catalogs</a>
-  </nav>
+  <nav class="tabs tabs-lg" aria-label="Platform parts" hx-swap="outerHTML show:none">{{range .Tabs}}{{template "tab" .}}{{end}}</nav>
   {{if eq .Tab "providers"}}
   {{template "filter-form" .Providers.Form}}
   <div id="providers" data-follow="platform">

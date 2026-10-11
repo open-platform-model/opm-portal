@@ -73,7 +73,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 ## Check that it worked
 
-After the launch, the browser shows the Platform page at `http://127.0.0.1:7878/`: the Platform's status, the counts of what is installed, and its Providers and Catalogs. The page header names the context the portal reads, the user it reads as and the Kubernetes version; check that they are the cluster and the identity you meant. A **live** mark in the header says the page follows changes.
+After the launch, the browser shows the Platform page at `http://127.0.0.1:7878/`: the Platform's status, the counts of what is installed, and its Providers and Catalogs. The page header names the context the portal reads, the user it reads as and the Kubernetes version; check that they are the cluster and the identity you meant. A **Live** mark in the header says the page follows changes.
 
 Open **Installed**. Each instance and package shows two values: **Applied**, what the operator applied, and **Health**, what is running. On an instance's page, the node's outline and left rail in the graph show its health, and the small square in its corner shows its applied state. A locked group means your identity may not list ModuleInstances, or ModulePackages, in that scope: check your access with:
 
