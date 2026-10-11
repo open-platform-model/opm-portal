@@ -951,6 +951,31 @@ agent's scratch folder and are not committed; `TestBrowserPhone` holds the 360 p
 | The tab strip still lists Provider last | tab order is task 4.1 |
 | The Conditions fold sits below the tab panels, as the canvas does | none |
 
+### Section 4: the Graph and Resources tabs and the details panel (task 4.7)
+
+Chromium, over the F1 capture served by `TestDevServe` (F1 and `OPM_PORTAL_UI_DEV_BROKEN=1`), on
+2026-10-11: the Graph and Resources tabs of podinfo, cert-manager and `pkg/podinfo`, the image-break podinfo's
+Resources tab and podinfo's Graph tab with a Pod selected, in light and dark at 1440 px and in light at 360 px
+(full page). Every page measured `scrollWidth` 1440 and 360. The boards `Instance.dc.html`,
+`CertManager.dc.html` and `Package.dc.html` were opened too: they hold unfilled `{{field}}` placeholders, so
+they fix the layout, the columns and the tokens, not the wording. The screenshots are in the agent's scratch
+folder and are not committed; `TestBrowserPhone` holds the 360 px result and `TestBrowserOwner` the clicks.
+
+Found in the screenshots and fixed in this section: the owner tab panel padded twice (the `.panel` rule won
+over `.owner-panel`, so the table and the graph frame sat 40 px inside the panel instead of 20 px; at 360 px
+a row card was 246 px of 328), and the Details message held the table at its full width, so the Name column
+broke a Pod name at every hyphen over five lines. The padding rule is now `.panel.owner-panel`; the Name cell
+has a `min-width` of 24ch and the message wraps at 44ch instead of clipping.
+
+| Difference from the canvas | Why it stays |
+| --- | --- |
+| The Resources table has the columns Kind, Name, Component, Origin, Health, Details; the canvas has Kind, Name, Origin, Health, Details, Age | the spec names these six columns (task 4.2); the age of an object is in its panel and in Events |
+| Configuration groups and old ReplicaSets fold into `<details>` rows where the canvas's table is flat | decision 4, held by portal:D4:R5 (known before the screenshots) |
+| The panel at rest on the ModuleInstance is taller than the graph frame beside it (Render contracts and Edges), so the Graph tab has blank space under a 190 px frame at 1440 px | decision 5 gives the owner's panel its facts; the frame's height belongs to `align-graph` |
+| A long Details message wraps to two or three lines in cert-manager's table at 1440 px; the canvas clips it | a clipped message would widen the table past the panel or hide the reason; the full text is also in the cell's title |
+| The Resources tab of cert-manager at 360 px is 8461 px tall: 12 workload rows and the 17-component group as cards | the card fallback of OP-A5 shows every row with its labels; a closed group keeps its 35 rows out of the page |
+| The current-row tint (`--accent-soft`, translucent) is not measured for contrast | the row also carries a 3 px left border and `aria-current`; the colour is not the only mark |
+
 ## Amendments from the portal's plan
 
 Six amendments of 2026-10-11 (ids from the portal plan) add floors that the first version of this
