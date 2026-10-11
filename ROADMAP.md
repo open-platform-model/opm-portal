@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -122,6 +122,18 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      instance's own node reads "Inventory" and "Inventory revision". Left for later: the revision
      on packages waits on a page that shows it (owner ruling, 2026-10-11), and "in N components"
      after the object count waits on the owner.
+   - `add-shell-states-and-cluster-name` (built in four sections; in review): relative times keep
+     counting against the server's clock, a request open for a second draws a bar on the header
+     and marks the details panel busy, a lost stream or an expired session shows a banner with the
+     age of the data on screen and a Reload link (the banner stays until a resync has read the
+     cluster again), the header names a kubeconfig entry that differs from the context, the sticky
+     header never covers a focused element, and the details panel follows its page while a YAML or
+     Events view says when it was read. What it uncovered: absolute times are still `title` only
+     (a visible absolute time touches the state block and the history table, which other changes
+     own); a stall watchdog for a half-open connection needs the heartbeat interval on the page;
+     and a closed log region says "no longer live" only to a pointer reader (`sse:closed` adds a
+     class and a `title`). A header with two 90 character names is about 305 px tall at 360 px, an
+     owner decision to cap or accept.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **What `align-owner-pages` uncovered, none blocking:**

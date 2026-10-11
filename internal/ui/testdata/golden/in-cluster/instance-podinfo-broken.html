@@ -58,7 +58,7 @@
     <span class="graph-count" data-box-count>9 of 9 boxes</span>
     
     
-    <a class="tool-link" href="/instances/default/podinfo" hx-boost="false" data-clear-selection hidden>Clear selection</a>
+    <a class="tool-link" href="/instances/default/podinfo" hx-boost="false" data-clear-selection data-focus-key="clear-instance-graph" hidden>Clear selection</a>
     <button type="button" data-zoom="fit" aria-pressed="true">Fit</button>
     <label class="zoom-label" title="Or hold Ctrl and scroll over the graph"><span>Zoom</span> <input type="range" min="30" max="200" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" class="full-btn" data-graph-full aria-label="Show the graph full screen" title="Show the graph full screen"><svg class="ic ic-enter" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><svg class="ic ic-exit" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg></button>
@@ -199,7 +199,7 @@
 </div>
 </section>
 </div>
-<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo">
+<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo" data-topics="instance:default/podinfo" data-follow="instance:default/podinfo">
 <p class="kicker">Instance</p>
 <h2 class="frag-h mono">default/<wbr>podinfo</h2>
 <div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-degraded"><span class="axis">Health axis</span>Degraded</span></span></div>
@@ -214,7 +214,7 @@
 </dl>
 <h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
 <h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
-<p class="panel-links"><a class="btn" href="/instances/default/podinfo?tab=events">Events</a></p>
+<p class="panel-links"><a class="btn" href="/instances/default/podinfo?tab=events" data-focus-key="panel-events">Events</a></p>
 </aside>
 </div>
 <details class="panel panel-wide conditions-fold" id="conditions" data-follow="instance:default/podinfo">

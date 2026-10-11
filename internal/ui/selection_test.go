@@ -259,7 +259,7 @@ func TestRestingPanel(t *testing.T) {
 	if strings.Contains(rest[node], "aria-current") {
 		t.Error("the resting node is marked as a selection")
 	}
-	if strings.Contains(cm, "data-clear-selection") && !strings.Contains(cm, `data-clear-selection hidden`) {
+	if strings.Contains(cm, "data-clear-selection") && !strings.Contains(cm, ` hidden>Clear selection`) {
 		t.Error("the resting panel offers Clear selection")
 	}
 	if !strings.Contains(cm, `data-resting-panel="/instances/cert-manager/cert-manager/node?id=mi%3Acert-manager%2Fcert-manager"`) {

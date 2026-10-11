@@ -174,6 +174,9 @@
   // its first line. The bar ends when the last request has ended. Only
   // classes, attributes and text are set, never style.
   var openRequests = new Map();
+  // Topics whose refresh found a request open into #detail: the refresh left
+  // the panel alone, and re-marks them when that request has ended.
+  var heldTopics = new Set();
   var loadingTimer = 0;
   var loadingShown = false;
 
@@ -208,6 +211,17 @@
     }
   }
 
+  // detailBusy says a request into the details panel is open.
+  function detailBusy() {
+    var busy = false;
+    openRequests.forEach(function (target) {
+      if (target && target.id === "detail") {
+        busy = true;
+      }
+    });
+    return busy;
+  }
+
   function requestStarted(evt) {
     var xhr = evt.detail && evt.detail.xhr;
     if (!xhr) {
@@ -237,6 +251,11 @@
       loadingShown = false;
     }
     paintLoading();
+    if (heldTopics.size > 0 && !detailBusy()) {
+      var held = heldTopics;
+      heldTopics = new Set();
+      held.forEach(changed);
+    }
   }
 
   document.addEventListener("htmx:beforeRequest", requestStarted);
@@ -720,6 +739,7 @@
     // resync; one already in flight at that event reads the old render.
     var isResync = resyncing;
     var epoch = resyncEpoch;
+    markViewOld(topics);
     if (regions.length === 0) {
       if (isResync && connected && !expired) {
         settleLive();
@@ -759,6 +779,12 @@
         if (!next || !el.isConnected) {
           return;
         }
+        if (el.id === "detail" && detailBusy()) {
+          // htmx resolved its target when the request started; replacing the
+          // panel under it would drop the response. Try again when it ends.
+          words(el.getAttribute("data-follow")).forEach(function (t) { heldTopics.add(t); });
+          return;
+        }
         keepOpen(el, next);
         keepViews(el, views);
         var fresh = document.importNode(next, true);
@@ -775,6 +801,7 @@
         shown.classList.add("refreshed");
         window.setTimeout(function () { shown.classList.remove("refreshed"); }, 900);
       });
+      syncDetailFollow();
       restoreGraphs();
       restoreViews(views);
       refocus(focused);
@@ -790,6 +817,50 @@
       inflight = false;
       schedule();
     });
+  }
+
+  // The details panel follows the page while it holds a node panel: #detail
+  // carries data-topics always, and data-follow (the same topics) exactly while
+  // it holds no YAML or Events view. A view is a fragment the address does not
+  // hold, so a refresh does not replace it; markViewOld shows its note instead.
+  function syncDetailFollow() {
+    var d = document.getElementById("detail");
+    if (!d) {
+      return;
+    }
+    var topics = d.getAttribute("data-topics");
+    if (topics && !d.querySelector("[data-view]")) {
+      d.setAttribute("data-follow", topics);
+    } else {
+      d.removeAttribute("data-follow");
+    }
+  }
+
+  document.addEventListener("htmx:afterSwap", function (evt) {
+    var t = evt.detail && evt.detail.target;
+    if (t && t.id === "detail") {
+      syncDetailFollow();
+    }
+  });
+
+  // markViewOld shows the note of a YAML or Events view in the panel once a
+  // topic the panel follows has changed. Nothing else in the view changes.
+  function markViewOld(topics) {
+    var d = document.getElementById("detail");
+    var note = d && d.querySelector("[data-view] > .stale-note[hidden]");
+    if (!note) {
+      return;
+    }
+    var mine = words(d.getAttribute("data-topics"));
+    var hit = false;
+    topics.forEach(function (t) {
+      if (mine.indexOf(t) >= 0) {
+        hit = true;
+      }
+    });
+    if (hit) {
+      note.hidden = false;
+    }
   }
 
   // keepOpen carries the open state of details groups with an id from the
@@ -815,7 +886,12 @@
       return null;
     }
     var g = a.closest && a.closest(".graph[data-graph]");
-    return { id: a.id || "", graph: g ? g.getAttribute("data-graph") : "", node: a.getAttribute("data-node") || "" };
+    return {
+      id: a.id || "",
+      graph: g ? g.getAttribute("data-graph") : "",
+      node: a.getAttribute("data-node") || "",
+      key: (a.getAttribute && a.getAttribute("data-focus-key")) || ""
+    };
   }
 
   function refocus(key) {
@@ -827,6 +903,8 @@
       el = document.querySelector('.graph[data-graph="' + CSS.escape(key.graph) + '"] .node[data-node="' + CSS.escape(key.node) + '"]');
     } else if (key.id) {
       el = document.getElementById(key.id);
+    } else if (key.key) {
+      el = document.querySelector('[data-focus-key="' + CSS.escape(key.key) + '"]');
     }
     if (el && el.focus) {
       el.focus({ preventScroll: true });
@@ -1334,6 +1412,7 @@
     p.className = "muted";
     p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
     target.replaceChildren(p);
+    syncDetailFollow();
   }
 
   function clearSelection(g) {

@@ -330,7 +330,7 @@ func TestARefreshKeepsTheTabAndTheFocus(t *testing.T) {
 		!strings.Contains(focused, `class="node kind-object health-degraded dim"`) && !strings.Contains(focused, " dim\"") {
 		t.Error("the focused render does not mark the node or dim the rest")
 	}
-	if !strings.Contains(focused, `data-clear-selection>Clear selection</a>`) {
+	if !strings.Contains(focused, `>Clear selection</a>`) {
 		t.Error("the focused render offers no Clear selection")
 	}
 }

@@ -644,3 +644,19 @@ property) is not run: it needs the section 3 CSS, and task 3.8 tests it.
 **What the spike did not run.** Screen-reader behaviour of the nested `aria-live="off"` and of a
 replaced live region; the 2.4.11 case itself (section 3); a half-open connection. The scratch
 script and server are in the session scratchpad of task T4.59 and were not committed.
+
+Section 4 (task T4.65), 2026-10-11, screenshots of the Playwright image's Chromium (scratch script over
+`serveStaleSite`, not committed) at 1920 px in light and dark and at 360 px, with the Deployment node
+selected, its YAML open in the panel, the pages then rendered over the image-break capture and a topic
+upsert sent, then the stream dropped. Seen: the note is a bordered block in the lost-stream tone
+(pale blue in light, deep blue in dark) above the YAML text, reading "Read 0s ago. The object may have
+changed since." with "Reload this view" as an underlined link of 44 px height on its own line in the
+420 px panel; the YAML text did not move. The banner sits as the last row of the sticky header, light
+tint over the dark header, "Showing data read 2s ago. Reconnecting." with "Reload" at the right edge,
+and the live mark reads "Reconnecting". At 360 px the banner takes the full header width under the
+tabs, and Reload is on its own line. Not captured: the loading bar (it needs a held request, which
+`TestBrowserLoading` drives), and the pill with a long entry name (`TestBrowserPhone/<engine>/banner`
+measures it). One gap: the page render's panel has no `.fragment` wrapper, as the earlier note says,
+and nothing in the screenshots showed a difference. The details panel's group switch
+(Expand or Collapse group) shares one focus key, `panel-expand`, because one of the two is present at a
+time; the design named five keys.

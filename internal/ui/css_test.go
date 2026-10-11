@@ -715,3 +715,49 @@ func TestPortalCSSDrawsTheBannerAndKeepsClearOfTheHeader(t *testing.T) {
 		}
 	}
 }
+
+// staleNoteProblems names what is wrong with the note of a stale panel view in
+// css: hidden by its attribute, in the lost-stream tone, a link of 44 px and a
+// CanvasText border in forced colors.
+func staleNoteProblems(css string) []string {
+	rules := parseCSS(css)
+	var out []string
+	note, ok := ruleFor(rules, ".stale-note")
+	if !ok || note["--c-ink"] != "var(--progressing-ink)" || note["--c-tint"] != "var(--progressing-tint)" {
+		out = append(out, "the note is not in the tone of a lost stream")
+	}
+	if hide, ok := ruleFor(rules, ".stale-note[hidden]"); !ok || hide["display"] != "none" {
+		out = append(out, "a hidden note is not display none")
+	}
+	if link, ok := ruleFor(rules, ".stale-note a"); !ok || link["min-height"] != "44px" {
+		out = append(out, "the Reload link of the note is not 44 px high")
+	}
+	if ring, ok := ruleFor(rules, ".stale-note :focus-visible"); !ok || ring["outline-color"] != "var(--c-ink)" {
+		out = append(out, "the note's focus ring is not the tone's ink")
+	}
+	forced := false
+	for _, r := range forcedColorsRules(css) {
+		if strings.Contains(r.selector, ".stale-note") && strings.Contains(r.decls["border"], "CanvasText") {
+			forced = true
+		}
+	}
+	if !forced {
+		out = append(out, "the note has no CanvasText border in forced colors")
+	}
+	return out
+}
+
+func TestPortalCSSDrawsTheStaleNote(t *testing.T) {
+	for _, line := range staleNoteProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	for name, css := range map[string]string{
+		"no note at all":           "",
+		"a note that shows hidden": ".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note a { min-height: 44px; }",
+		"a short link":             ".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note[hidden] { display: none; } .stale-note a { min-height: 20px; }",
+	} {
+		if got := staleNoteProblems(css); len(got) < 2 {
+			t.Errorf("the check did not name %s: %v", name, got)
+		}
+	}
+}

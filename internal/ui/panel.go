@@ -120,6 +120,9 @@ type panelLink struct {
 	Href string
 	Dark bool
 	HX   bool
+	// Key names the link for the page script, which refocuses the link of the
+	// same key after a refresh replaced the panel (data-focus-key).
+	Key string
 }
 
 // notRecorded is the text of a fact the object does not record, on the panel and on the
@@ -273,28 +276,28 @@ func panelLinks(r *http.Request, n *v1.GraphNode, ctx panelContext) []panelLink 
 				href = logLink(ctx.base, logID(n.Ref.Name, c))
 			}
 		}
-		out = append(out, panelLink{Text: "Logs", Href: href, Dark: true})
+		out = append(out, panelLink{Text: "Logs", Href: href, Dark: true, Key: "panel-logs"})
 	}
 	open, yamlView, events := links(n, ctx)
 	switch {
 	case isOwnerNode(n, ctx):
-		out = append(out, panelLink{Text: "Events", Href: ctx.base + "?tab=" + tabEvents})
+		out = append(out, panelLink{Text: "Events", Href: ctx.base + "?tab=" + tabEvents, Key: "panel-events"})
 	default:
 		if events != "" {
-			out = append(out, panelLink{Text: "Events", Href: events, HX: true})
+			out = append(out, panelLink{Text: "Events", Href: events, HX: true, Key: "panel-events"})
 		}
 		if yamlView != "" {
-			out = append(out, panelLink{Text: "YAML", Href: yamlView, HX: true})
+			out = append(out, panelLink{Text: "YAML", Href: yamlView, HX: true, Key: "panel-yaml"})
 		}
 		if open != "" {
-			out = append(out, panelLink{Text: "Open page", Href: open})
+			out = append(out, panelLink{Text: "Open page", Href: open, Key: "panel-open"})
 		}
 	}
 	if n.Group != nil {
 		if slices.Contains(r.URL.Query()["expand"], n.ID) {
-			out = append(out, panelLink{Text: "Collapse group", Href: collapseLink(r, n.ID, ctx)})
+			out = append(out, panelLink{Text: "Collapse group", Href: collapseLink(r, n.ID, ctx), Key: "panel-expand"})
 		} else {
-			out = append(out, panelLink{Text: "Expand group", Href: expandLink(r, n.ID, ctx)})
+			out = append(out, panelLink{Text: "Expand group", Href: expandLink(r, n.ID, ctx), Key: "panel-expand"})
 		}
 	}
 	return out

@@ -429,6 +429,7 @@ func TestBrowserStale(t *testing.T) {
 //	POST /ctl/send?frame=...   write one frame      POST /ctl/drop     end the connection
 //	POST /ctl/refuse?on=1|0    refuse connections   POST /ctl/fetch?mode=...
 //	POST /ctl/release          release one held fetch
+//	POST /ctl/render?mode=ok|broken   render the pages over F1 or the image-break capture
 //	GET  /ctl/state            "<streams> <fetches>"
 func serveStaleSite(t *testing.T) string {
 	t.Helper()
@@ -443,8 +444,16 @@ func serveStaleSite(t *testing.T) string {
 		release = make(chan struct{}, 16)
 	)
 	mode.Store("ok")
-	wrap := func(pages http.Handler) http.Handler {
+	var broken atomic.Bool
+	wrap := func(f1 http.Handler) http.Handler {
+		// The same pages over the image-break capture: what a cluster that changed
+		// would render. The stream stays the script's; only the page renders move.
+		altPages := imageBreakPages(t)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			pages := f1
+			if broken.Load() {
+				pages = altPages
+			}
 			if r.Method != http.MethodGet || r.Header.Get("Accept") != "text/html" {
 				pages.ServeHTTP(w, r)
 				return
@@ -517,6 +526,9 @@ func serveStaleSite(t *testing.T) string {
 		mux.HandleFunc("POST /ctl/fetch", func(_ http.ResponseWriter, r *http.Request) {
 			mode.Store(r.URL.Query().Get("mode"))
 		})
+		mux.HandleFunc("POST /ctl/render", func(_ http.ResponseWriter, r *http.Request) {
+			broken.Store(r.URL.Query().Get("mode") == "broken")
+		})
 		mux.HandleFunc("POST /ctl/release", func(_ http.ResponseWriter, _ *http.Request) {
 			release <- struct{}{}
 		})
@@ -524,6 +536,17 @@ func serveStaleSite(t *testing.T) string {
 			_, _ = io.WriteString(w, strconv.Itoa(int(streams.Load()))+" "+strconv.Itoa(int(fetches.Load())))
 		})
 	})
+}
+
+// imageBreakPages are the pages over the image-break capture, on the clock of
+// the F1 pages.
+func imageBreakPages(t *testing.T) http.Handler {
+	t.Helper()
+	pages, err := ui.New(ui.Config{API: apitest.New(t, apitest.F1Broken(t), apitest.AllowAll), Now: func() time.Time { return apitest.Now }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pages
 }
 
 // serveF1Site serves, on a free loopback port, the read API and the pages

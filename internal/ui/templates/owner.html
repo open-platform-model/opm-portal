@@ -204,7 +204,7 @@
 {{end}}{{end}}
 
 {{define "detail"}}
-<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite"{{with .PanelRoot}} data-root-panel="{{.}}"{{end}}>
+<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite"{{with .PanelRoot}} data-root-panel="{{.}}"{{end}}{{if .Panel}} data-topics="{{.Topic}}" data-follow="{{.Topic}}"{{end}}>
   {{if .Panel}}{{template "panel-body" .Panel}}{{else if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}<p class="muted">The graph has no node to show details for.</p>{{end}}
 </aside>
 {{end}}

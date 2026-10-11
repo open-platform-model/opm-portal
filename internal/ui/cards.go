@@ -558,7 +558,7 @@ func providerWord(c v1.ProviderClaim) (word, hue string) {
 	case c.Verdict == verdictAccepted && c.Active:
 		return wordActive, "healthy"
 	case c.Verdict == verdictAccepted:
-		return "Accepted", hueProgressing
+		return verdictAccepted, hueProgressing
 	case c.Verdict == verdictPending:
 		return "Pending", hueProgressing
 	case c.Verdict == verdictRefused:

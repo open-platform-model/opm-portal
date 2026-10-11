@@ -396,6 +396,20 @@ body.is-loading .masthead::after {
   body.is-loading .masthead::after { background: Highlight; }
 }
 .detail-loading { margin: 0 0 8px; color: var(--muted); font-size: 0.85rem; }
+/* A YAML or Events view is not re-fetched by a refresh. After a change the page
+   script shows this note, which says when the view was read. Plain text from the
+   template, in the tone of a lost stream; hidden until the script shows it. */
+.stale-note {
+  --c: var(--progressing); --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint);
+  margin: 0 0 12px; padding: 6px 12px; border: 1px solid var(--c); border-radius: 8px;
+  background: var(--c-tint); color: var(--c-ink); font-size: 0.85rem; overflow-wrap: anywhere;
+}
+.stale-note[hidden] { display: none; }
+.stale-note a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; color: var(--c-ink); font-weight: 600; text-underline-offset: 3px; }
+.stale-note :focus-visible { outline-color: var(--c-ink); }
+@media (forced-colors: active) {
+  .stale-note { border: 1px solid CanvasText; }
+}
 /* A ticking time keeps its width as the digits change. */
 time[data-relative] { font-variant-numeric: tabular-nums; }
 .live { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--hdr-muted); }

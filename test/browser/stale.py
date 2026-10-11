@@ -27,6 +27,19 @@ Checks, each printing one line, exit 1 on the first failure:
    the top. Shift+Tab to a link above the viewport and a fragment link leave the target below the
    header, with the banner and without it.
 
+8. The details panel follows its page (the Graph tab, the Deployment node selected): the object
+   changes (the pages render over the image-break capture, a topic upsert arrives), and the panel and
+   the graph node agree on the new health, the node stays selected and the address keeps `node`.
+9. Focus on the panel's YAML link, and on its Clear selection pill, is on the same control of the new
+   panel after a replacement.
+10. A YAML view does not follow: after a change its text and element stay, a note appears with a
+    `time` (datetime, UTC title, data-relative) and the words "The object may have changed since";
+    "Reload this view" shows the object's current YAML and no note.
+11. A request into the panel that is open during a change keeps its response; the refresh runs once
+    the request has ended and leaves the selected node's panel.
+12. The selected node's object is gone: the panel returns to the resting node and `node` leaves the
+    address.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -155,6 +168,7 @@ class Run:
         # Every drop below is a clean end of the connection; the browser retries after 300 ms.
         self.ctl("fetch", mode="ok")
         self.ctl("refuse", on=0)
+        self.ctl("render", mode="ok")
         self.page.clock.install(time=self.start)
         self.page.clock.pause_at(self.start + timedelta(seconds=1))
         self.page.goto(self.base + path)
@@ -182,7 +196,7 @@ def main() -> int:
     with sync_playwright() as p:
         r = Run(p, engine, base, served_iso)
         try:
-            return 0 if steps(r) and r.ok else 1
+            return 0 if steps(r) and panel_steps(r) and r.ok else 1
         finally:
             r.close()
 
@@ -363,6 +377,168 @@ def steps(r: Run) -> bool:
         pos = page.evaluate("() => ({top: document.getElementById('probe-h').getBoundingClientRect().top, hb: document.getElementById('masthead').getBoundingClientRect().bottom})")
         if not r.check(pos["top"] >= pos["hb"] - 0.5, f"{label}: a fragment link puts its heading at {pos['top']:.1f}, below the header bottom {pos['hb']:.1f}"):
             return False
+    return True
+
+DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
+POD = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
+SERVICE = "obj:_/Service/default/podinfo-podinfo"
+GRAPH = PATH + "?tab=graph&node="
+UPSERT = 'event: upsert\ndata: {"topic":"instance:default/podinfo"}'
+
+PANEL = """() => {
+    const d = document.getElementById("detail");
+    const hp = d.querySelector(".axes .health");
+    const node = document.querySelector('.node[data-node="%s"]');
+    const tok = (el) => el ? ((el.getAttribute("class") || "").match(/health-\\w+/) || [""])[0] : "";
+    const sel = document.querySelector('.node[aria-current="true"]');
+    const v = d.querySelector("[data-view]");
+    return {
+        follow: d.getAttribute("data-follow"), topics: d.getAttribute("data-topics"),
+        panelHealth: tok(hp), nodeHealth: tok(node), search: location.search,
+        selected: sel ? sel.getAttribute("data-node") : "",
+        heading: (d.querySelector("h2") || {textContent: ""}).textContent.trim(),
+        kicker: (d.querySelector(".kicker") || {textContent: ""}).textContent.trim(),
+        view: v ? v.getAttribute("data-view") : "",
+    };
+}""" % DEPLOY
+
+NOTE = """() => {
+    const n = document.querySelector("#detail [data-view] > .stale-note");
+    if (!n) return null;
+    const t = n.querySelector("time");
+    return {hidden: n.hidden, text: n.textContent.replace(/\\s+/g, " ").trim(),
+            datetime: t.getAttribute("datetime"), title: t.getAttribute("title"), relative: t.hasAttribute("data-relative"),
+            reload: n.querySelector("a").textContent};
+}"""
+
+
+class Held:
+    """Requests the script holds until it releases them."""
+
+    def __init__(self, page, match):
+        self.routes = []
+        page.route(match, lambda route: self.routes.append(route))
+
+    def release(self):
+        routes, self.routes = self.routes, []
+        for r in routes:
+            r.continue_()
+
+
+def settle(page, ms=900):
+    """Moves the paused page clock so the refresh timer, htmx's settle and the swaps run."""
+    for _ in range(ms // 100):
+        page.clock.run_for(100)
+        page.wait_for_timeout(40)
+
+
+def mark(page):
+    page.evaluate("() => { window.__same = document.getElementById('detail'); }")
+
+
+def replaced(page):
+    return page.evaluate("() => document.getElementById('detail') !== window.__same")
+
+
+def panel_steps(r: Run) -> bool:
+    page = r.new_page(GRAPH + quote(DEPLOY))
+    page.wait_for_selector("#detail .axes .health")
+    s0 = page.evaluate(PANEL)
+    if not r.check(s0["follow"] == s0["topics"] and (s0["topics"] or "").startswith("instance:") and s0["selected"] == DEPLOY and "node=" in s0["search"],
+                   f"8: a node panel follows its topic ({s0['follow']!r}), the node is selected"):
+        return False
+
+    # 8. The object changes: graph and panel agree on the new health.
+    mark(page)
+    r.ctl("render", mode="broken")
+    r.ctl("send", frame=UPSERT)
+    if not r.until(lambda: replaced(page), "the panel to be replaced", step_ms=100):
+        return False
+    settle(page)
+    s1 = page.evaluate(PANEL)
+    if not r.check(s1["panelHealth"] == s1["nodeHealth"] and s1["panelHealth"] != s0["panelHealth"] and s1["selected"] == DEPLOY and "node=" in s1["search"],
+                   f"8: after the change the panel ({s1['panelHealth']}) and the node ({s1['nodeHealth']}) agree, were {s0['panelHealth']}; the node stays selected, the address keeps node"):
+        return False
+
+    # 9. Focus on a panel link, and on the Clear selection pill, survives a replacement.
+    for key in ("panel-yaml", "panel-clear"):
+        page.evaluate("(k) => document.querySelector('#detail [data-focus-key=\"' + k + '\"]').focus()", key)
+        mark(page)
+        r.ctl("render", mode="ok" if key == "panel-yaml" else "broken")
+        r.ctl("send", frame=UPSERT)
+        if not r.until(lambda: replaced(page), f"the panel to be replaced under focus on {key}", step_ms=100):
+            return False
+        settle(page, 600)
+        got = page.evaluate("() => { const a = document.activeElement; return {key: a.getAttribute('data-focus-key'), inside: !!a.closest('#detail')}; }")
+        if not r.check(got["key"] == key and got["inside"], f"9: focus on {key} is on the same control of the new panel ({got})"):
+            return False
+
+    # 10. A YAML view does not follow; it says when it was read.
+    r.ctl("render", mode="ok")
+    page.locator('#detail [data-focus-key="panel-yaml"]').click()
+    if not r.until(lambda: page.evaluate(PANEL)["view"] == "yaml", "the YAML view to load", step_ms=100):
+        return False
+    settle(page, 300)
+    s2 = page.evaluate(PANEL)
+    n0 = page.evaluate(NOTE)
+    if not r.check(s2["follow"] is None and s2["topics"] and n0 and n0["hidden"],
+                   f"10: a YAML view drops data-follow ({s2['follow']!r}) and holds a hidden note"):
+        return False
+    page.evaluate("() => { window.__pre = document.querySelector('#detail pre'); window.__text = window.__pre.textContent; }")
+    r.ctl("render", mode="broken")
+    r.ctl("send", frame=UPSERT)
+    if not r.until(lambda: (page.evaluate(NOTE) or {}).get("hidden") is False, "the note to show", step_ms=100):
+        return False
+    n1 = page.evaluate(NOTE)
+    same = page.evaluate("() => document.querySelector('#detail pre') === window.__pre && window.__pre.textContent === window.__text")
+    if not r.check(same and "The object may have changed since" in n1["text"] and re.fullmatch(r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d UTC", n1["title"] or "")
+                   and n1["relative"] and n1["datetime"].endswith("Z") and n1["reload"] == "Reload this view",
+                   f"10: after a change the YAML stays and the note reads {n1['text']!r} ({n1['datetime']}, {n1['title']})"):
+        return False
+    page.locator("#detail .stale-note a").click()
+    if not r.until(lambda: page.evaluate("() => document.querySelector('#detail pre') !== window.__pre"), "the view to reload", step_ms=100):
+        return False
+    settle(page, 300)
+    n2 = page.evaluate(NOTE)
+    s3 = page.evaluate(PANEL)
+    if not r.check(n2 is not None and n2["hidden"] and s3["view"] == "yaml" and s3["follow"] is None,
+                   "10: Reload this view shows the current YAML and a note that is hidden again"):
+        return False
+
+    # 11. A request into the panel that is open during a change keeps its response.
+    page = r.new_page(GRAPH + quote(DEPLOY))
+    page.wait_for_selector("#detail .axes .health")
+    mark(page)
+    held = Held(page, "**/instances/default/podinfo/node?*")
+    page.evaluate("(n) => document.querySelector('.node[data-node=\"' + n + '\"]').dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}))", SERVICE)
+    page.wait_for_timeout(300)
+    if not r.check(len(held.routes) == 1, f"11: the panel request of the Service node is held ({len(held.routes)})"):
+        return False
+    r.ctl("render", mode="broken")
+    r.ctl("send", frame=UPSERT)
+    settle(page, 1200)
+    if not r.check(not replaced(page), "11: the refresh left the panel alone while its request was open"):
+        return False
+    held.release()
+    page.unroute_all()
+    settle(page, 2000)
+    s4 = page.evaluate(PANEL)
+    if not r.check(s4["selected"] == SERVICE and "Service" in page.inner_text("#detail") and "Deployment" not in page.inner_text("#detail").split("Edges")[0][:120],
+                   f"11: the panel the request returned is the one shown ({s4['kicker']!r}, {s4['search']})"):
+        return False
+
+    # 12. The selected node is gone.
+    page = r.new_page(GRAPH + quote(POD))
+    page.wait_for_selector("#detail .axes .health")
+    r.ctl("render", mode="broken")
+    r.ctl("send", frame=UPSERT)
+    if not r.until(lambda: "node=" not in page.evaluate("location.search"), "the address to stop naming the node", step_ms=100):
+        return False
+    settle(page, 1500)
+    s5 = page.evaluate(PANEL)
+    if not r.check(s5["selected"] == "" and "no such node" not in page.inner_text("#detail") and s5["kicker"] != "",
+                   f"12: the selection cleared and the panel is the resting node's ({s5['kicker']!r}, {s5['heading']!r})"):
+        return False
     return True
 
 

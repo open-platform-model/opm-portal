@@ -312,7 +312,10 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   until a resync succeeds, one fetch before the banner goes, a failed fetch tried again on the next
   heartbeat, the live mark as the only live region that changes, and the sticky header's height in
   `scroll-padding-top` and the details panel's offset, with a focus move and a fragment link that stay
-  below the header. `TestBrowserExpired` also checks the expired banner and its Reload link, and
+  below the header, and the details panel: it follows a changed object beside the graph, keeps focus on
+  its links, keeps a request that is open, returns to the resting node when the selected node is gone,
+  and a YAML view stays as it is and shows its note (the pages render over the image-break capture when
+  the test says so). `TestBrowserExpired` also checks the expired banner and its Reload link, and
   `TestBrowserPhone/<engine>/banner` holds 360 px with the banner and two 90 character names. Run
   `TestBrowserStale` after any change to the page script's stream, banner or resync code.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
