@@ -382,8 +382,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - A change that implements portal decisions cites them as `portal:Dn` in its proposal and
   design, and updates `docs/DESIGN.md` in the same PR when it changes or adds one. Only a change
   that delivers a line of an enhancement's `tasks.md` (enhancement 0027, for V2) adds `## Enhancement`
-  to its proposal with one line `Delivers NNNN, task X.Y.` per task; otherwise it says `None.` Read
-  an entry with `openspec show <id>-<slug> --store opm-enhancements`.
+  to its proposal with one line `Delivers NNNN, task X.Y.` per task; otherwise it says `None.` Name
+  the delivered line in the PR body; after the repo PR merges, a PR on `enhancements` ticks that
+  line. Read an entry with `openspec show <id>-<slug> --store opm-enhancements`. If OpenSpec warns
+  that the store `opm-enhancements` is not registered, report the warning and go on; the human runs
+  `task enhancements:register`.
 - The PR that lands a change updates `ROADMAP.md`.
 - Go changes → `task check` before committing.
 - Workflow changes → `actionlint` as well.
@@ -410,7 +413,7 @@ Default is none: a comment says what the code does and why, in its own words.
   decision in `docs/DESIGN.md` is `portal:D9`. Several decisions share a head: `portal:D6/D7`. A
   single requirement is `portal:D9:R2`; several
   under one decision share it (`portal:D9:R1/R2`). An open question is `portal:OQ20`.
-- Cite an enhancement only by its id beside a reason in words, such as "(enhancement 0027, the
+- In any text (proposal, design, specs, comments), cite an enhancement only by its id beside a reason in words, such as "(enhancement 0027, the
   self-service kinds)". Never write an enhancement id alone, and never write one of its decision
   numbers. The portal enhancement was withdrawn on 2026-10-05 and its numbers moved unchanged into
   `docs/DESIGN.md`; cite them as `portal:Dn`.
