@@ -922,7 +922,7 @@ components:
       required: [access]
       properties:
         access:
-          description: "Whether the caller may read the source and the portal could: ok, forbidden (the caller's get was refused, so nothing was read) or notReadable (the portal's own read was refused or failed)."
+          description: "Whether the caller may read the source and the portal could: ok, forbidden (the caller's get was refused, or the sourceRef names a namespace or name no object could have, so nothing was read) or notReadable (the portal's own read was refused or failed)."
           x-extensible-enum: [ok, forbidden, notReadable]
           type: string
         state:

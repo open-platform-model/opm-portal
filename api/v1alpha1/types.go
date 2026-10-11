@@ -308,8 +308,8 @@ type Package struct {
 }
 
 // SourceState is a package's Flux source (OCIRepository, GitRepository or
-// Bucket) as the caller read it, with get only. Access is ok, forbidden or
-// notReadable. State is absent unless Access is ok: ready, notReady,
+// Bucket) as the caller read it, with get only. Access is ok, forbidden (the
+// caller's get was refused, or the reference is malformed) or notReadable. State is absent unless Access is ok: ready, notReady,
 // noArtifact (the Ready condition is True and the source has no artifact),
 // unknown, notFound, kindNotServed or unsupportedKind. Reason, Message and
 // Revision are the Ready condition's reason and message and the artifact's
