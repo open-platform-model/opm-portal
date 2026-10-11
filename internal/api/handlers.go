@@ -468,10 +468,9 @@ func (s *Server) ownerEventsAll(ctx context.Context, who authz.Identity, o owner
 	if err != nil {
 		return v1.EventList{}, err
 	}
-	refs, unread := mergedRefs(about, components)
+	refs, partial := mergedRefs(about, components)
 	others := map[string]authz.Grant{}
 	asked := map[string]bool{readmodel.EventNamespace(about): true}
-	partial := unread
 	for _, ref := range refs {
 		namespace := readmodel.EventNamespace(ref)
 		if asked[namespace] {
@@ -501,25 +500,32 @@ func (s *Server) ownerEventsAll(ctx context.Context, who authz.Identity, o owner
 
 // mergedRefs lists the owner first, then every object of its inventory that
 // the caller may read, and the runtime children below them, in inventory
-// order. Core Secrets are left out (portal:D8). unread says that a workload
-// of the view has runtime children the caller may not read, so their events
-// are not in the feed.
-func mergedRefs(about readmodel.ObjectRef, components []readmodel.Component) (refs []readmodel.ObjectRef, unread bool) {
+// order. Core Secrets are left out for every caller (portal:D8), and that
+// omission is not a partial mark: it says nothing about the caller's grants.
+// partial says that the feed is not everything the owner reaches: an
+// inventory object the caller may not read was dropped, or a workload of the
+// view has runtime children the caller may not read, so their events are not
+// in the feed.
+func mergedRefs(about readmodel.ObjectRef, components []readmodel.Component) (refs []readmodel.ObjectRef, partial bool) {
 	refs = []readmodel.ObjectRef{about}
 	for i := range components {
 		for j := range components[i].Objects {
 			obj := &components[i].Objects[j]
-			if obj.Access != health.AccessOK || (obj.Ref.Group == "" && obj.Ref.Kind == "Secret") {
+			if obj.Ref.Group == "" && obj.Ref.Kind == "Secret" {
+				continue
+			}
+			if obj.Access != health.AccessOK {
+				partial = true
 				continue
 			}
 			refs = append(refs, obj.Ref)
-			unread = unread || obj.ChildrenUnread
+			partial = partial || obj.ChildrenUnread
 			for k := range obj.Children {
 				refs = append(refs, obj.Children[k].Ref)
 			}
 		}
 	}
-	return refs, unread
+	return refs, partial
 }
 
 func (s *Server) ownerEventsDoc(ctx context.Context, who authz.Identity, o owner, about readmodel.ObjectRef, named bool) (v1.EventList, error) {

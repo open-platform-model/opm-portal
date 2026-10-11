@@ -204,6 +204,42 @@ func TestMergedEventsLeaveOutAnObjectTheCallerCannotRead(t *testing.T) {
 	if n := listsOf(e); n != 4 {
 		t.Errorf("%d event lists in default, want 4: no list for the Service the caller cannot read", n)
 	}
+	// The feed is not everything the owner reaches, and the caller is told so
+	// (portal:D9:R6): a reader of `partial` absent takes the feed for complete.
+	if !l.Partial {
+		t.Error("partial = false for a feed that left out an inventory object the caller may not read")
+	}
+	// A caller who reads every object gets no such mark.
+	if all := decode[v1.EventList](t, newEnv(t, loadF1(t), readmodeltest.AllowAll).get(t, podinfoAll)); all.Partial {
+		t.Error("partial for a caller who reads every object")
+	}
+}
+
+// TestMergedEventsSecretOmissionIsNotPartial: a core Secret in the inventory
+// is left out for every caller, whatever the caller's grants (portal:D8), so
+// the omission says nothing about the caller and does not mark the feed
+// partial; and no Secret is read or reviewed.
+func TestMergedEventsSecretOmissionIsNotPartial(t *testing.T) {
+	objs := loadF1(t)
+	podinfo := readmodeltest.Find(t, objs, "ModuleInstance", "podinfo")
+	entries, _, err := unstructured.NestedSlice(podinfo.Object, "status", "inventory", "entries")
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries = append(entries, map[string]any{"component": "app", "kind": "Secret", "v": "v1", "namespace": "default", "name": "db-password"})
+	if err := unstructured.SetNestedSlice(podinfo.Object, entries, "status", "inventory", "entries"); err != nil {
+		t.Fatal(err)
+	}
+	for name, rule := range map[string]readmodeltest.Rule{
+		"a caller who reads everything": readmodeltest.AllowAll,
+		"a caller denied secrets":       readmodeltest.DenyResources("secrets"),
+	} {
+		e := newEnv(t, objs, rule)
+		l := decode[v1.EventList](t, e.get(t, podinfoAll))
+		if l.Partial || len(l.Items) == 0 || kindsOf(l)["Secret"] != 0 {
+			t.Errorf("%s: partial %v, %d items, kinds %v; want the usual feed, not partial, nothing about a Secret", name, l.Partial, len(l.Items), kindsOf(l))
+		}
+	}
 }
 
 // TestMergedEventsProblems: every row of the problem table of design.md.
@@ -397,6 +433,46 @@ func TestMergedEventsInCluster(t *testing.T) {
 	}
 	if kubelet == 0 {
 		t.Fatal("no kubelet Pod event in the merged feed, so the in-cluster case proves nothing")
+	}
+}
+
+// TestMergedEventsInClusterOtherObjects (OP-A2, portal:D8:R5): the in-cluster
+// omission of an operator note applies to every item of the merged feed, not
+// to the events about the owner only. backup-provider reaches the
+// TransformerRegistration default.backup-provider, an OPM object other than
+// the owner; an event of each writer about it loses its note in-cluster and
+// keeps it in local mode.
+func TestMergedEventsInClusterOtherObjects(t *testing.T) {
+	const feed = base + "/instances/default/backup-provider/events?scope=all"
+	registrationEvent := func(name, reason, note, controller string) *unstructured.Unstructured {
+		ev := operatorEvent(name, reason, note, controller)
+		ev.Object["regarding"] = map[string]any{
+			"apiVersion": "opmodel.dev/v1alpha1", "kind": "TransformerRegistration", "name": "default.backup-provider",
+		}
+		return ev
+	}
+	objs := append(loadF1(t),
+		registrationEvent("registration-by-the-operator", "RegistrationOperatorSaid", "registration text one", "opm-controller"),
+		registrationEvent("registration-by-nobody-we-know", "RegistrationSomebodySaid", "registration text two", ""),
+	)
+	notes := func(l v1.EventList) map[string]string {
+		out := map[string]string{}
+		for _, ev := range l.Items {
+			if ev.Regarding.Kind == "TransformerRegistration" && strings.HasPrefix(ev.Reason, "Registration") {
+				out[ev.Reason] = ev.Note
+			}
+		}
+		return out
+	}
+	local := notes(decode[v1.EventList](t, newEnv(t, objs, readmodeltest.AllowAll).get(t, feed)))
+	in := notes(decode[v1.EventList](t, newEnv(t, objs, readmodeltest.AllowAll, inCluster).get(t, feed)))
+	for _, reason := range []string{"RegistrationOperatorSaid", "RegistrationSomebodySaid"} {
+		if local[reason] == "" {
+			t.Errorf("local mode serves no note for %s: %v", reason, local)
+		}
+		if note, ok := in[reason]; !ok || note != "" {
+			t.Errorf("in-cluster note for %s = %q (present %v); want the event with no note", reason, note, ok)
+		}
 	}
 }
 
