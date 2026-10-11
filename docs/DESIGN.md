@@ -368,7 +368,7 @@ The operator's failure counters and drift flag are diagnostics, never health.
   the break.
 - **Failure counters as a health hint.** The drift counter climbs on healthy instances because the
   operator's drift check ignores the instance's ServiceAccount (opm-operator issue 209).
-- **Wait for an operator `Healthy` condition.** No health wait exists or is planned (enhancement 0015, "The registration CR is excluded by kind from its package's readiness; pure-registration modules are legal"), and
+- **Wait for an operator `Healthy` condition.** No health wait exists or is planned (enhancement 0015: readiness means apply success), and
   health in the operator is OQ3, not a V1 prerequisite.
 - **Health computed per request** (one read per inventory object). Measured at 7.4 to 9.4 s for
   cert-manager's graph at client-go's default rate limit.
@@ -1566,7 +1566,7 @@ in the API server's audit log, so the portal's access log is the only record of 
 | Entry | Why |
 | --- | --- |
 | 0015 (archived) | Catalog contracts and transformer registration: the registration verdicts the Platform view reads, and the readiness rule behind "Applied" (D3, D4) |
-| 0027 | Self-service kinds, which V2's writes build on; its OQ17 to OQ29 hold the marketplace contract questions |
+| 0027 | Self-service kinds, which V2's writes build on; its open questions hold the marketplace contract |
 | 0013 | Secrets, and the diagnostics redaction rule behind D8:R5 |
 | The portal enhancement (withdrawn 2026-10-05) | This design's former home |
 | The module presentation enhancement (withdrawn 2026-10-05) | The module presentation contract draft; its evidence informs V2 |
