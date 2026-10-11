@@ -156,16 +156,17 @@ func instanceSummary(it readmodel.InstanceItem) v1.InstanceSummary {
 		contracts = []string{}
 	}
 	return v1.InstanceSummary{
-		Ref:             objectRef(it.Ref),
-		UID:             it.UID,
-		Module:          v1.Module{Path: it.Module.Path, Version: it.Module.Version},
-		Owner:           string(it.Owner),
-		Reconcile:       reconcile(it.Applied),
-		Health:          healthSummary(it.Health),
-		InventoryCount:  it.InventoryCount,
-		LastAppliedAt:   timePtr(it.LastAppliedAt),
-		RenderContracts: contracts,
-		ProviderOf:      providerClaims(it.ProviderOf),
+		Ref:               objectRef(it.Ref),
+		UID:               it.UID,
+		Module:            v1.Module{Path: it.Module.Path, Version: it.Module.Version},
+		Owner:             string(it.Owner),
+		Reconcile:         reconcile(it.Applied),
+		Health:            healthSummary(it.Health),
+		InventoryCount:    it.InventoryCount,
+		InventoryRevision: it.InventoryRevision,
+		LastAppliedAt:     timePtr(it.LastAppliedAt),
+		RenderContracts:   contracts,
+		ProviderOf:        providerClaims(it.ProviderOf),
 	}
 }
 

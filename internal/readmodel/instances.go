@@ -71,13 +71,14 @@ func (m *Model) InstanceExists(ctx context.Context, who authz.Identity, g authz.
 
 func instanceItem(u *unstructured.Unstructured) InstanceItem {
 	return InstanceItem{
-		Ref:             refOf(u),
-		UID:             string(u.GetUID()),
-		Module:          ModuleRef{Path: str(u.Object, "spec", "module", "path"), Version: str(u.Object, "spec", "module", "version")},
-		Owner:           ownerOf(u),
-		Applied:         health.ReadApplied(u),
-		InventoryCount:  inventoryCount(u, inventory(u)),
-		LastAppliedAt:   timestamp(u.Object, "status", "lastAppliedAt"),
-		RenderContracts: strs(u.Object, "status", "requiredContracts"),
+		Ref:               refOf(u),
+		UID:               string(u.GetUID()),
+		Module:            ModuleRef{Path: str(u.Object, "spec", "module", "path"), Version: str(u.Object, "spec", "module", "version")},
+		Owner:             ownerOf(u),
+		Applied:           health.ReadApplied(u),
+		InventoryCount:    inventoryCount(u, inventory(u)),
+		InventoryRevision: inventoryRevision(u),
+		LastAppliedAt:     timestamp(u.Object, "status", "lastAppliedAt"),
+		RenderContracts:   strs(u.Object, "status", "requiredContracts"),
 	}
 }

@@ -39,6 +39,7 @@
         "live": true
       },
       "inventoryCount": 42,
+      "inventoryRevision": 1,
       "lastAppliedAt": "2026-10-04T18:04:05Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/container@v1beta1",
@@ -94,6 +95,7 @@
         "live": true
       },
       "inventoryCount": 1,
+      "inventoryRevision": 1,
       "lastAppliedAt": "2026-10-04T18:04:24Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/volumes@v1beta1",
@@ -136,6 +138,7 @@
         "live": true
       },
       "inventoryCount": 1,
+      "inventoryRevision": 1,
       "lastAppliedAt": "2026-10-04T18:04:21Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
@@ -188,6 +191,7 @@
         "live": true
       },
       "inventoryCount": 2,
+      "inventoryRevision": 1,
       "lastAppliedAt": "2026-10-04T18:04:06Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/container@v1beta1",
@@ -235,6 +239,7 @@
         "live": true
       },
       "inventoryCount": 2,
+      "inventoryRevision": 1,
       "lastAppliedAt": "2026-10-04T18:04:30Z",
       "renderContracts": []
     }

@@ -84,7 +84,10 @@ type InstanceItem struct {
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64
-	LastAppliedAt  time.Time
+	// InventoryRevision is status.inventory.revision when the operator
+	// recorded an integer of at least 1, else 0 (not recorded).
+	InventoryRevision int64
+	LastAppliedAt     time.Time
 	// RenderContracts are every contract the instance's render used, most
 	// of them fulfilled by the catalog itself. They are not the provider
 	// contracts the instance demands (portal:D4:R3).

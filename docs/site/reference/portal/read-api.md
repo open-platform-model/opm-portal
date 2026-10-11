@@ -52,6 +52,7 @@ These fields join objects the portal already reads, or read fields of them; none
 | `heldBy` | each registration of a `Platform` | The ModuleInstances and ModulePackages you may read whose inventory holds the registration, whatever their kind. `provider` still names the ModuleInstance `spec.providerRef` names, so the two can differ. |
 | `heldByPartial` | each registration of a `Platform` | `true` when you may not list every ModuleInstance and ModulePackage, or the portal does not hold every namespace (it was started with `--namespaces`), so `heldBy` may lack a holder, even when it is empty. |
 | `conditions` | each registration of a `Platform` | The registration's own status conditions, with `tone`, `meaning` and `nextStep` as on every condition. |
+| `inventoryRevision` | `Instance` and its list items | The controller's `status.inventory.revision`: an integer from 1 that counts the successful applies that wrote an inventory. Absent when the controller recorded none, and never a default. Packages do not serve it. |
 | `renderContracts` | `InstanceList` items, as on `Instance` | The contracts the instance's last successful render used. Not what it demands of a provider. Packages record none. |
 | `interval` | `Package` and its list items | `spec.interval` as written; absent when the package sets none. |
 | `prune` | `Package` and its list items | `spec.prune` as written; absent when the package does not set it, never a default. |
