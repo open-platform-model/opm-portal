@@ -976,6 +976,33 @@ has a `min-width` of 24ch and the message wraps at 44ch instead of clipping.
 | The Resources tab of cert-manager at 360 px is 8461 px tall: 12 workload rows and the 17-component group as cards | the card fallback of OP-A5 shows every row with its labels; a closed group keeps its 35 rows out of the page |
 | The current-row tint (`--accent-soft`, translucent) is not measured for contrast | the row also carries a 3 px left border and `aria-current`; the colour is not the only mark |
 
+### Section 5: the Events, Logs and YAML tabs (task 5.6)
+
+Chromium, over the F1 capture served by `TestDevServe` (F1 and `OPM_PORTAL_UI_DEV_BROKEN=1`), on
+2026-10-11: the Events, Logs and YAML tabs of podinfo and of the image-break podinfo, podinfo's Events with
+`type=Warning`, and `pkg/podinfo`'s Events, in light and dark at 1440 px and in light at 360 px (full page).
+Every page measured `scrollWidth` 1440 and 360. `Instance.dc.html` was opened too: its Events, Logs and YAML
+sections hold unfilled `{{field}}` placeholders, so it fixes the filter row, the table columns and the pane
+layout, not the wording. The screenshots are in the agent's scratch folder and are not committed;
+`TestBrowserPhone` holds the 360 px result, `TestBrowserOwner` the clicks and the insets, `TestBrowserLogs` the
+following pane.
+
+Found in the screenshots and fixed in this section (d751fda): the inset rule of the tab panel had one class, so
+the `margin` of `.note`, `.yaml` and `.log-hint` beat it. The Events and Logs notes, the not-started hint and
+the YAML pane touched the panel's edges while the form and table sat 20 px in. The rule is now
+`.panel.owner-panel > *`, and `TestBrowserOwner` step 6 fails if any section of the three tabs touches an edge
+(shown failing first on the Events note).
+
+| Difference from the canvas | Why it stays |
+| --- | --- |
+| The Events table has an optional Resource column with a link under the kind; the canvas shows the same column but with the Reason chip on the filter row | the chip appears only when a Reason filter is set (task 5.1); the unfiltered screenshots cannot show it |
+| The filter row has an Apply filters button after the selects | the `opm-js` class that hides it lands with `align-platform-installed-catalog`; the select applies on change with script |
+| The Logs and YAML selects carry the "a value is set" border and tint of `.field select`, where the canvas draws them plain | the tint says a value is chosen, which is true; these two selects always hold one, and a rule that cancels it for them would fight the shared `.field` rule |
+| The log pane is black with the word "connecting" under `TestDevServe` | the dev server has no log stream; the pane's dark colour is the `--logbg` token in both themes (portal.css), and `TestBrowserLogs` drives lines in |
+| The header reads "Topics refused" on the Logs tab under `TestDevServe` | the dev server has no stream endpoint; not checked against a cluster in this section (task 6.4 does) |
+| The Events table is a card list at 360 px, 18 podinfo rows 8164 px tall | the card fallback of OP-A5 shows every row with its labels |
+| The YAML pane shows the first 60 vh and scrolls inside itself; the canvas draws the whole text | a long object would push the page down; the pane scrolls and keeps its width at 360 px |
+
 ## Amendments from the portal's plan
 
 Six amendments of 2026-10-11 (ids from the portal plan) add floors that the first version of this
