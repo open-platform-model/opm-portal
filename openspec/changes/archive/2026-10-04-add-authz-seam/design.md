@@ -24,7 +24,7 @@ them (`enhancement.yaml`).
 
 - Resolving who the kubeconfig is at startup. `NewLocal` takes the identity from its caller;
   `add-local-mode` decides how to obtain it (see Open Questions).
-- List filtering, per-item access states and the inventory reach check (0030:D7:R2-R4).
+- List filtering, per-item access states and the inventory reach check.
 - An HTTP surface, an access log, identity mapping.
 
 ## Decisions
@@ -132,7 +132,7 @@ sorted groups, sorted extra), so group order does not matter.
 Principle V); a subresource other than none, `status` or `log` is `forbidden`, because a `get` on
 `pods/exec`, `pods/attach`, `pods/portforward` or a `proxy` subresource opens a stream into a
 workload or node (`nodes/proxy` is a known exec path) and 0030 needs only `pods/log` (0030:D10,
-0030:D11) and status; core `secrets` is `forbidden` whatever RBAC says (0030:D8:R1); an empty verb
+0030:D11) and status; core `secrets` is `forbidden` whatever RBAC says; an empty verb
 or resource or a `*` in any attribute is `invalid`. None reaches a backend or the cache.
 **Rationale**: these are portal policy, not RBAC questions; asking the cluster would only add a
 way to get them wrong.
@@ -170,7 +170,7 @@ names the identity or the object.
 #### Grant lifetime
 
 **Context**: a grant with no lifetime would let a long-lived holder (the change stream of
-0030:D2:R5, a log stream) keep reading after a revocation that new checks see within one TTL.
+A log stream) keep reading after a revocation that new checks see within one TTL.
 **Decision**: a grant expires when the decision it was issued from expires: a fresh decision's
 expiry is issue time plus the TTL, a cached decision's is the cached entry's expiry, and a decision
 the full cache could not store still gets one TTL. The grant keeps the cache's clock, so tests
@@ -191,8 +191,8 @@ which the architecture's per-node locked state cannot afford).
 
 The change reads no object. Its only cluster call is `create` on `authorization.k8s.io/v1`
 `selfsubjectaccessreviews`, made with the user's own kubeconfig and never stored. Principle V
-allows it in local mode only (0030:D5:R6) once this PR amends the constitution (see Open
-Questions); in-cluster, the backend creates `subjectaccessreviews` only (0030:D6:R9).
+allows it in local mode only once this PR amends the constitution (see Open
+Questions); in-cluster, the backend creates `subjectaccessreviews` only.
 
 ## Risks / Trade-offs
 
@@ -216,8 +216,8 @@ Questions); in-cluster, the backend creates `subjectaccessreviews` only (0030:D6
   with no seam rewrite. This PR amends Principle V in `CONSTITUTION.md`, the Security Rules in
   `AGENTS.md` and `openspec/config.yaml` so the only allowed writes are `create` on review APIs
   that store nothing, per mode: local mode creates only `authorization.k8s.io`
-  `selfsubjectaccessreviews` and `authentication.k8s.io` `selfsubjectreviews` (0030:D5:R6), and
-  in-cluster mode creates only `authorization.k8s.io` `subjectaccessreviews` (0030:D6:R9). A
+  `selfsubjectaccessreviews` and `authentication.k8s.io` `selfsubjectreviews`, and
+  in-cluster mode creates only `authorization.k8s.io` `subjectaccessreviews`. A
   self review in-cluster would check the portal's own ServiceAccount, not the user, so it is
   forbidden there. The 0030 amendment is enhancements PR 98, which merges before this PR.
 - Resolved by the same answer: `add-local-mode` may learn the kubeconfig's identity with a

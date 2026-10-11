@@ -13,7 +13,7 @@ cluster served SHALL be `default`. Any other cluster name SHALL be answered `404
 `not_found` before any authorization review. A method a resource does not take SHALL be answered
 `405` with code `method_not_allowed`. A namespace that is not a DNS-1123 label, or a name that is
 not a DNS-1123 subdomain, SHALL be answered `400` with code `bad_request` before any
-authorization review. Source: 0030:D2:R2.
+authorization review.
 
 #### Scenario: The default cluster
 

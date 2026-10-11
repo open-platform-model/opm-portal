@@ -63,6 +63,6 @@ None.
 - Principle V: no effect. The package reads nothing from a cluster; it evaluates objects it is
   handed and refuses to evaluate a Secret it is handed. Testdata holds no Secret, kubeconfig,
   token or instance values.
-- Principle VII: kstatus is the dependency the design names (0030:D3) and the operator's own;
+- Principle VII: kstatus is the dependency the design names and the operator's own;
   re-implementing the per-kind status rules would make the portal disagree with the operator
   and with Flux.

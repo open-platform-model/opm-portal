@@ -62,7 +62,7 @@ var ErrNotAdmitted = errors.New("stream: topic not admitted")
 ```
 
 **Rationale**: It keeps authorize-before-lookup (Admit runs only after the caller's `pods/log`
-grant), one denial for every refusal, and reconnects re-run it (0030:D10:R2) because `reattach`
+grant), one denial for every refusal, and reconnects re-run it because `reattach`
 goes through `authorize` too. Delivery-time gating needs nothing new: log items carry the
 topic's own read, so they ride the topic's grants through `send`.
 

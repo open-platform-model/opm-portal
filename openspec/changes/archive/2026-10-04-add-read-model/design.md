@@ -31,9 +31,9 @@ Evidence used throughout:
 - The four tiers of the portal design (T1 OPM kinds, T2 inventory kinds, T3 runtime children,
   T4 events) plus the polling fallback, behind one type, `readmodel.Model`.
 - Every public read takes the caller's identity and a grant and checks it before reading; every
-  read inside a view is authorized for the caller on its own (0030:D7:R2/R3).
+  read inside a view is authorized for the caller on its own.
 - Stripping per 0030:D8 at the point objects enter memory, so no later layer can leak them.
-- Views shaped for the portal, built from held state (0030:D3:R9).
+- Views shaped for the portal, built from held state.
 - Latency and memory on the F1 set measured and recorded here.
 
 **Non-Goals:**
@@ -43,7 +43,7 @@ Evidence used throughout:
 - Change notification to subscribers (the broker), and the events watch while a feed is open:
   `add-stream-broker`. This change keeps a hook point (the informers' handlers) and no more.
 - The graph and its node ids: `add-graph-model`.
-- The YAML view of an object and the not-in-inventory refusal (0030:D7:R4): `add-read-api`.
+- The YAML view of an object and the not-in-inventory refusal: `add-read-api`.
 - The in-cluster reader. Milestone 2 reads as the portal's ServiceAccount after a
   SubjectAccessReview for the user; how the read model's own background reads are authorized
   there is that milestone's decision (Open Questions).
@@ -109,7 +109,7 @@ that shared state.
 ### Tier 1: the OPM kinds
 
 One informer per kind and scope: cluster-wide when `Config.Namespaces` is empty, else one per
-listed namespace (0030:D5:R5); Platform and TransformerRegistration are cluster-scoped and always
+listed namespace; Platform and TransformerRegistration are cluster-scoped and always
 cluster-wide. `Start` checks the reader's grants and starts what it may; a kind whose grant is
 denied, or whose list fails, is recorded **unavailable**, and every read of it returns
 `ErrUnavailable` instead of an empty answer (Principle IV). `Start` waits for the started
@@ -166,7 +166,7 @@ API knows which namespace the caller's list grant must name), with the field sel
 fields client-side (a fake client ignores field selectors; a real one has filtered already).
 Lines are folded on (regarding uid, type, reason, note): the count sums each event's
 `series.count`, else `deprecatedCount`, else 1; the time is the latest of `series.lastObservedTime`,
-`eventTime`, `deprecatedLastTimestamp` and `metadata.creationTimestamp` (0030:D9:R3). Lines are
+`eventTime`, `deprecatedLastTimestamp` and `metadata.creationTimestamp`. Lines are
 returned newest first. No cache: the feed is read when a page opens it, and the stream broker
 adds the watch.
 
@@ -281,7 +281,7 @@ SelfSubjectAccessReview `Checker`. Each figure is the range over two or three ru
 
 What the numbers say:
 
-- The capture's 7.4 to 9.4 s per graph (0030:D3:R9) is reproduced at client-go's default
+- The capture's 7.4 to 9.4 s per graph is reproduced at client-go's default
   rate limit even with the tiers in place: a cold read sends 52 requests, and most of them are
   access reviews (two per kind for the reader, one per kind and namespace for the caller, three
   for the children). The rate limit, not the reads, is the cost. `TuneConfig` brings the cold read
@@ -317,5 +317,5 @@ What the numbers say:
 - Milestone 2: the read model's reader reads (informers, polls) need a grant for the reader
   identity. Locally that is the kubeconfig's identity and the self review answers for it.
   In-cluster the reader is the portal's ServiceAccount and the only review allowed is
-  `subjectaccessreviews` (0030:D6:R9); whether the portal reviews its own ServiceAccount that
+  `subjectaccessreviews`; whether the portal reviews its own ServiceAccount that
   way or trusts its role is for `add-sar-authorizer` to decide. No owner input is needed now.

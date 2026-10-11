@@ -4,7 +4,7 @@ Enhancement 0030 puts the portal's documentation on opmodel.dev, and 0030:D8:R4 
 documentation to say that values rendered into non-Secret objects stay readable to anyone who
 may read those objects. Every other OPM repository publishes its pages as a docs-kit bundle that
 the site pulls; the portal publishes nothing, so the site has nothing to pull and the security
-posture of local mode (0030:D5) is written down only in the enhancement and the code.
+posture of local mode is written down only in the enhancement and the code.
 
 ## What Changes
 

@@ -97,7 +97,7 @@ kind the stream serves; a test SHALL fail on either drift.
 The security page SHALL state that local mode listens on loopback only, admits a browser only
 through a one-time launch token exchanged for a session cookie, refuses a request whose `Host` is
 not the loopback address and port, and checks each read with a SelfSubjectAccessReview before
-making it, per 0030:D5. It SHALL state that the portal never reads Secret data and serves no
+making it. It SHALL state that the portal never reads Secret data and serves no
 instance's or package's `spec.values`, and that values a module renders into a non-Secret object
 stay readable to anyone who may read that object, in the portal as in `kubectl`. Source:
 0030:D8:R4. It SHALL state that condition messages and event notes are shown verbatim, as the

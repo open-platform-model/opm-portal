@@ -12,7 +12,7 @@ to catalog; the registration's
 `spec.sourceRef` and `spec.dependsOn` for package to source and to package; `status.inventory`
 for owner to component and component to object; controller `metadata.ownerReferences` for object
 to runtime child. A `spec.dependsOn` entry naming another namespace, which the operator refuses,
-SHALL be drawn unverified with reason `ForeignNamespace`. Source: 0030:D4:R1.
+SHALL be drawn unverified with reason `ForeignNamespace`.
 
 #### Scenario: cert-manager's edges
 
@@ -105,7 +105,7 @@ When an instance or package has two or more components that hold no workload (no
 StatefulSet, DaemonSet, ReplicaSet, Job, CronJob or Pod entry), they SHALL be shown as one group
 node whose health is the worst of theirs, partial when any is, with their objects hidden and
 their names listed sorted, so a reordered inventory yields the same group. The group SHALL be
-shown expanded when the graph is asked to expand its id. Source: 0030:D4:R5.
+shown expanded when the graph is asked to expand its id.
 
 #### Scenario: cert-manager collapsed
 
@@ -122,7 +122,7 @@ shown expanded when the graph is asked to expand its id. Source: 0030:D4:R5.
 
 Node ids SHALL have the form `<prefix>:<parts>`, built from kind, group, namespace and name only,
 never from a UID, so that the id of an object survives a portal restart and a delete and
-recreate of the object. Source: 0030:D4:R6.
+recreate of the object.
 
 #### Scenario: Recreated Deployment
 
@@ -188,7 +188,7 @@ a route. Building the same graph from the same views SHALL produce identical lay
 
 An object the caller may not read SHALL be a node marked with its access and no health, and a
 platform whose registrations the caller may not list SHALL say so on its node instead of showing
-none. Source: 0030:D7:R3.
+none.
 
 #### Scenario: Registrations forbidden
 

@@ -9,7 +9,7 @@ import only `api/v1alpha1`, and a test SHALL fail when a file of `internal/ui` i
 package of the module. A problem document SHALL render as a region of the page: `forbidden` as
 locked, `not_readable_by_portal` and `upstream_unavailable` as degraded with the code,
 `not_found` as a not-found page with status `404`, `unauthenticated` as a sign-in page with
-status `401`. Source: 0030:D2:R1.
+status `401`.
 
 #### Scenario: The UI reads through the API
 
@@ -44,7 +44,7 @@ refreshed by polling SHALL say it is not live and show when it was evaluated. An
 UI does not know SHALL render as "unknown", never as an error. The red family SHALL be used only
 for degraded, failed, stalled and refused states, broken edges, Warning events and a lost stream; reasons, versions, kinds and
 other decoration SHALL not use it. A condition SHALL be coloured by its `tone`, never by its
-status alone. Source: 0030:D3:R1/R5/R6/R8, 0030:D2:R3.
+status alone.
 
 #### Scenario: The image-break sample
 
@@ -75,7 +75,7 @@ not read it or the portal cannot, showing only what the API document carries, wi
 detail it cannot open. A forbidden instance or package list SHALL render as a locked list with no
 count. A Secret in an inventory SHALL show that Secret data is never read, with no YAML action.
 An edge the portal cannot confirm because its far end is locked or unreadable SHALL be drawn in
-the locked style, apart from an edge confirmed broken. Source: 0030:D5:R7, 0030:D7:R3.
+the locked style, apart from an edge confirmed broken.
 
 #### Scenario: A forbidden kind inside an instance
 
@@ -132,7 +132,7 @@ document order. A node's box outline SHALL carry its health only, and a separate
 SHALL carry its applied state. A label too long for its node SHALL keep the part that tells nodes
 apart. Activating a node SHALL show its detail panel and mark the node as selected; activating a
 group node SHALL show it expanded. A graph SHALL open fitted to its frame and SHALL pan and zoom
-with pointer, wheel and buttons. Source: 0030:D4:R1/R3/R5, 0030:D3:R1.
+with pointer, wheel and buttons.
 
 #### Scenario: Keyboard focus
 

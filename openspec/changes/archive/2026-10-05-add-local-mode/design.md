@@ -42,7 +42,7 @@ opm-portal serve [--kubeconfig PATH] [--context NAME] [--addr HOST:PORT]
   other name, and any non-loopback IP are refused with exit code 2 before the kubeconfig is read
   (0030:D5:R2). After `net.Listen` the bound address is checked again.
 - `--namespaces` limits the namespaced OPM kinds to those namespaces, so a user who cannot list
-  them cluster-wide can still use the portal on the namespaces they can read (0030:D5:R5). The
+  them cluster-wide can still use the portal on the namespaces they can read. The
   read model already takes `Namespaces`; the flag was not in the task's list but R5 is not
   reachable without it.
 - `--open` opens the launch link in the default browser (below).
@@ -75,13 +75,13 @@ func selfIdentity(ctx context.Context, reviews authenticationv1client.SelfSubjec
 One `authentication.k8s.io/v1` SelfSubjectReview at startup, with a 10 s timeout; its
 `status.userInfo` becomes the `authz.Identity` (username, UID, groups, extra). An error, or an
 identity `authz.Identity.Authenticated` refuses (empty, blank, `system:anonymous`), stops the
-binary with exit 1 before it listens or reads (0030:D6:R2). Local mode does not strip `system:`
+binary with exit 1 before it listens or reads. Local mode does not strip `system:`
 names or groups: they are the user's own credential's, unlike an identity provider's claims in
 0030:D6:R3.
 
 **Authorization**: the startup review is `create` on `selfsubjectreviews`; every read after it is
 preceded by `create` on `selfsubjectaccessreviews` through `authz.NewLocal`. Those are the only
-creates (0030:D5:R6). The reads themselves are those of the read model, the read API and the logs
+creates. The reads themselves are those of the read model, the read API and the logs
 producer: `get`, `list`, `watch` on the OPM kinds and inventory kinds, `list` on events, `get` on
 `pods` and `pods/log`; never `secrets`.
 
@@ -171,7 +171,7 @@ func (l *Local) Handler(next http.Handler) http.Handler
 
 `Authenticate` returns the identity and a session key for a request carrying a live session
 cookie, and an error otherwise; the read API turns the error into `401 unauthenticated` before
-anything else runs (0030:D5:R3). The session key handed to the broker is a separate random id,
+anything else runs. The session key handed to the broker is a separate random id,
 not the cookie value, so a broker log line can never carry the credential.
 
 **Token and session**: `crypto/rand.Text()` (26 base32 characters, 130 bits) for the launch token

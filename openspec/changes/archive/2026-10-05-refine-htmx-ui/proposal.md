@@ -6,8 +6,8 @@ components still showed the old, healthy ReplicaSet. A live trace showed the rea
 new Pod within 0.7 s, but the page sent only two of its five region refreshes: every region
 refreshed through `htmx.ajax` without a source element, so htmx synchronised them on one element
 and dropped the rest. The review also found that the page showed condition meanings the read
-API does not serve, so the UI read something an API client cannot (0030:D2:R1); that the graph
-drew both axes on one stroke (0030:D3:R1); that the accent colour sat in the degraded red; that
+API does not serve, so the UI read something an API client cannot; that the graph
+drew both axes on one stroke; that the accent colour sat in the degraded red; that
 condition stripes were coloured by status only; and a set of graph, phone-width and repetition
 problems visible in the screenshots. No test failed if a page stopped escaping cluster text.
 

@@ -1,7 +1,7 @@
 ## Why
 
 Milestone 2 of enhancement 0030 runs the portal in-cluster for many people, so it must know who
-each request is before it can ask a SubjectAccessReview on their behalf (0030:D6). Local mode
+each request is before it can ask a SubjectAccessReview on their behalf. Local mode
 borrows the kubeconfig's identity; in-cluster there is no such identity, and the bug class this
 must avoid is concrete: CVE-2026-23990 let empty OIDC claims in the Flux Operator UI fall through
 to the server's own identity. This change adds the identity half of milestone 2 in `internal/auth`:
@@ -11,7 +11,7 @@ closed. The in-cluster command that wires it is a later change.
 ## What Changes
 
 - New `auth.OIDC`, constructed by `auth.NewOIDC(ctx, OIDCConfig)`: OIDC discovery against the
-  configured issuer, refusing to construct on an invalid configuration (0030:D6:R6).
+  configured issuer, refusing to construct on an invalid configuration.
 - Browser sign-in through the authorization code flow with PKCE (`S256`), `state` and `nonce`,
   carried between `/auth/login` and `/auth/callback` in a short-lived sealed cookie.
 - Server-side, in-memory sessions behind a random `__Host-` cookie (`Secure`, `HttpOnly`,
@@ -22,7 +22,7 @@ closed. The in-cluster command that wires it is a later change.
   (0030:D6:R8). Signing keys are cached and refetched on an unknown key at most once per interval.
 - Identity mapping from configurable username and groups claims and prefixes: an empty username
   claim is refused before prefixing, a `system:` username is refused, every `system:` group is
-  stripped and `system:authenticated` is added (0030:D6:R2/R3). A regression test for
+  stripped and `system:authenticated` is added. A regression test for
   CVE-2026-23990 drives empty and missing claims through the read API and asserts zero reviews and
   zero reads.
 - `OIDC.Authenticate` keeps local mode's hook contract (identity, session key, error);

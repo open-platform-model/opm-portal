@@ -13,7 +13,7 @@ read path SHALL NOT be able to read without the proof of an allow for that read.
 SHALL be made without reading the object, so a caller without access receives the same refusal
 for an object that exists and for one that does not, and the refusal SHALL NOT name the object
 or the caller. The proof SHALL cover only the identity it was issued to and only its own read, and
-SHALL stop covering any read when the decision it was issued from expires. Source: 0030:D7:R1.
+SHALL stop covering any read when the decision it was issued from expires.
 
 #### Scenario: Existing and missing objects are refused alike
 
@@ -122,7 +122,7 @@ carry the failure's own text, which can name the API server, users, roles or obj
 In local mode the portal SHALL decide each read with a SelfSubjectAccessReview carrying the
 read's exact attributes, sent with the user's kubeconfig, so the user's RBAC is the boundary. It
 SHALL serve only the identity it was started for and refuse any other identity without a
-cluster call. Source: 0030:D5:R1.
+cluster call.
 
 #### Scenario: Exact attributes are reviewed
 

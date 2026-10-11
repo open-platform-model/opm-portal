@@ -1,12 +1,12 @@
 ## Why
 
-The portal promises that a broken rollout looks broken within seconds (0030:D3), and its read API
+The portal promises that a broken rollout looks broken within seconds, and its read API
 carries a change stream with the same document shapes as its `GET`s, resumable or answered with a
-re-read (0030:D2:R5). In local mode the browser speaks HTTP/1.1 to loopback, so every tab shares
+re-read. In local mode the browser speaks HTTP/1.1 to loopback, so every tab shares
 six connections per host: one stream per tab, carrying every topic the page needs, is the only
 shape that leaves connections for ordinary requests. The broker also sits exactly where a shared
 cache meets many readers, so it must deliver to each subscriber only what that subscriber may
-read (0030:D7). The read model (change `add-read-model`) and the read API (`add-read-api`) are
+read. The read model (change `add-read-model`) and the read API (`add-read-api`) are
 built next to and after this change; both need the broker's contract fixed first.
 
 ## What Changes

@@ -230,4 +230,4 @@ beta.5, was not taken: it would pin a superseded release and double the capture.
 - [A tag-pinned fixture image is re-pushed] → cert-manager's and podinfo's images are pinned by
   tag only; the Pods' `imageID` in the capture shows the digest that ran.
 - [Rendered values reach non-Secret objects, such as a ConfigMap or a container env] → the same
-  holds in `kubectl` and for the portal (0030:D8:R4); the fixtures carry no secret material.
+  holds in `kubectl` and for the portal; the fixtures carry no secret material.

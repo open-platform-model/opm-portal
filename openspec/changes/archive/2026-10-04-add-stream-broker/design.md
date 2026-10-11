@@ -189,7 +189,7 @@ it, or both.
 Event ids are `<epoch>.<stream id>.<n>`, where `n` counts the stream's own delivered events; the
 epoch is random per broker, so ids from a previous process never resume. The broker-wide sequence
 never leaves the process: its gaps would count other users' activity and the items left out for
-this reader (0030:D7:R2). Each stream remembers the sequence behind its last `QueueSize` ids, and a
+this reader. Each stream remembers the sequence behind its last `QueueSize` ids, and a
 resume from an id it no longer remembers snapshots every topic. A disconnected stream stays registered, detached, for `ResumeWindow`, keeping
 its topic subscriptions (and so the topics' rings) alive. `Open` with a `Last-Event-ID` naming a
 detached or still-attached stream of the same session reattaches it (a still-attached one is
@@ -230,7 +230,7 @@ sent on a list topic. Event ids are numbered per stream (per subscriber connecti
 broker-wide, and `Last-Event-ID` resumes within that stream's own numbering.
 **Rationale**:
 - One rule for `GET` and stream: a list topic shows exactly what the list endpoint would, under
-  the same grant and the same denial (0030:D7:R2).
+  the same grant and the same denial.
 - Bounded review cost: one review per topic, not per item. Option (a) cost 202 reviews for one
   snapshot in the last review, and per-item decisions could fill the 4096-entry authz cache and evict
   decisions other readers rely on.
@@ -238,7 +238,7 @@ broker-wide, and `Last-Event-ID` resumes within that stream's own numbering.
   the whole topic, which told the reader something about a hidden item.
 How the UI learns which namespaces a reader may list is out of scope here: the UI change offers
 the kubeconfig's namespace plus namespaces the user enters, and a discovery helper may come
-later (0030:D5:R5). Per-stream ids keep a subscriber from counting hidden or other-tenant
+later. Per-stream ids keep a subscriber from counting hidden or other-tenant
 activity from gaps in the ids.
 
 ### How a reconnect learns it missed too much

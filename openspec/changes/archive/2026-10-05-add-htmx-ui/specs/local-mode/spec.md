@@ -15,7 +15,7 @@ document) it withholds the new `SameSite=Strict` cookie from the landing request
 wrong or already-spent token SHALL be refused with `403` and the same body for each. A request
 that does not carry a live session SHALL be refused before any authorization review or read: the
 read API answers it `401` with code `unauthenticated`. `--open` SHALL open the launch URL in the
-default browser without putting the token on any process's command line. Source: 0030:D5:R3.
+default browser without putting the token on any process's command line.
 
 #### Scenario: Launch and read
 

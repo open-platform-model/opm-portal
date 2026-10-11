@@ -32,7 +32,7 @@ Evidence used throughout:
 
 - Instance, package and platform graphs as pure functions of read-model views.
 - One named source per edge kind; a disagreement between two sources shown, not resolved.
-- Ids stable across restarts and across a delete and recreate (0030:D4:R6).
+- Ids stable across restarts and across a delete and recreate.
 - Collapse rules that keep cert-manager readable by default, with expansion by group id.
 - Layout data deterministic to the byte, so golden JSON and SVG tests are stable.
 
@@ -43,7 +43,7 @@ Evidence used throughout:
 - The SVG the UI serves, CSS, pan and zoom, and expansion clicks: `add-htmx-ui`. This change's
   SVG writer lives in a test file and exists so a reviewer can look at a golden layout.
 - Assembling the platform graph's provider lookups from the read model (which grants to ask
-  for): the API handler does it, because grants are its job (0030:D7).
+  for): the API handler does it, because grants are its job.
 - Requires edges, and a column of consumer instances: 0030:D4:R3 defers them until the operator
   records provider demand.
 
@@ -57,7 +57,7 @@ inventory object's resource checked as the caller, and `get platforms` with
 
 The platform graph needs one more read the caller makes before calling `Platform`: for each
 distinct `spec.providerRef`, `get moduleinstances` on that name in that namespace, under its own
-grant (0030:D7). `add-read-api` owns obtaining that grant. A denial is passed as a lookup with
+grant. `add-read-api` owns obtaining that grant. A denial is passed as a lookup with
 access `forbidden`, and a provider the handler did not look up is drawn with reason
 `ProviderNotLookedUp`, so a missing grant never shows as an unreadable provider.
 
@@ -130,7 +130,7 @@ changes on upgrade.
 | `owns` | component -> object | `status.inventory` entries |
 | `controls` | object -> runtime child or Pod group | controller `metadata.ownerReferences` below an inventory object |
 
-Each edge carries its source string, so the API can show where an edge came from (0030:D4:R1).
+Each edge carries its source string, so the API can show where an edge came from.
 
 ### Collapse rules
 
@@ -253,4 +253,4 @@ The 19 default nodes are the module, the instance, the three workload components
 components and 42 inventory objects are all nodes; that is 70 against the spike's 86, which also
 drew contract and platform nodes. The graph build is a small part of a request: the read model's
 own view dominates, and both are four orders of magnitude below the spike's 7.4 to 9.4 s
-per-request graph (0030:D3:R9).
+per-request graph.

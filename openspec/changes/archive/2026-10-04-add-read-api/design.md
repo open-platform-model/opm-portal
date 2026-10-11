@@ -118,7 +118,7 @@ Mapping read-model and authz errors:
 
 The forbidden document is one constant (`detail`: "The request was refused: you may not read
 this, or the portal does not serve it."), so a caller cannot tell which check failed or whether
-the object exists (0030:D7:R1). Problem `type` is `about:blank` with the status's reason phrase
+the object exists. Problem `type` is `about:blank` with the status's reason phrase
 as `title`; `code` is the machine-readable part. A problem carries no `instance` member: echoing
 the path would make the refusal for an existing object and a missing one differ by their names,
 and one constant body is simpler to hold to 0030:D7:R1.
@@ -149,7 +149,7 @@ from its session cookie; tests supply a fixed principal.
 
 ### D-d: The stream producer over the read model
 
-Each topic carries one document, the one its GET returns (0030:D2:R5): `Snapshot` returns one
+Each topic carries one document, the one its GET returns: `Snapshot` returns one
 `Item` whose `Render(ctx, who)` runs the GET's own code path for `who` (authorize, read, map).
 List topics carry the whole `InstanceList` under the list attributes the broker requires. A
 missing object renders as `Removed`. The topics served: `platform`, `instances[:ns]`,
@@ -231,7 +231,7 @@ exactly one list read, items outside it dropped).
 2. One item per topic carrying the GET's document, rendered for the subscriber - same shape as
    the GET by construction; a list change re-renders the whole list.
 **Decision**: 2.
-**Rationale**: Exact parity with the GET (0030:D2:R5), no identity in `Snapshot`, and list sizes
+**Rationale**: Exact parity with the GET, no identity in `Snapshot`, and list sizes
 in V1 are small.
 
 ### Events gate: same denial as forbidden

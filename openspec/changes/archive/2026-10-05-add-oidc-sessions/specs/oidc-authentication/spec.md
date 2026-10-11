@@ -9,7 +9,7 @@ groups claim is configured with an empty groups prefix, unless the configuration
 the API server trusts the same issuer with the same prefixes. It SHALL also fail for any prefix
 that is a prefix of `system:` or starts with `system:`. It SHALL then fail when discovery or the
 first fetch of the issuer's signing keys fails, or when the discovered issuer differs from the
-configured one. Source: 0030:D6:R6.
+configured one.
 
 #### Scenario: Empty username prefix
 

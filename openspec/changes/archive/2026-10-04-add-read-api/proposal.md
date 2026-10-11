@@ -16,22 +16,22 @@ the portal's first user-visible surface and its first release, 0.1.0.
   last apply, render contracts), `PackageList`, `Package`, `Platform` (subscriptions, catalogs with
   their claimants and the registration that contributed them, registrations), `EventList`,
   `Graph` (nodes, edges, layout) and `Removed`; `Problem` for errors. An instance or package
-  carries the operator's axis (`reconcile`) and the portal's (`health`) apart (0030:D3).
+  carries the operator's axis (`reconcile`) and the portal's (`health`) apart.
 - New package `internal/api`: `GET` handlers on `net/http.ServeMux` under
   `/api/v1alpha1/clusters/{cluster}/` for `instances`, `instances/{ns}/{name}`,
   `instances/{ns}/{name}/graph`, `instances/{ns}/{name}/events`, the same four for `packages`,
   `platform`, `platform/graph`, `platform/events`, `platform/registrations/{name}/events`, and
   `stream`. Only cluster `default` is served in milestone 1; the path keeps room for more.
   - Every handler authorizes the request's reads through `internal/authz` before it looks
-    anything up (0030:D7). A forbidden caller gets the same RFC 9457 problem document for an
+    anything up. A forbidden caller gets the same RFC 9457 problem document for an
     object that exists and one that does not; a list the caller may not read is empty and says
     `forbidden`, with no count or name. Errors are `application/problem+json` with an open set
     of `code` values.
   - The events resources serve the feed about the owner or about one object its inventory or
-    runtime children reach; any other object is refused with the forbidden denial (0030:D7:R4).
+    runtime children reach; any other object is refused with the forbidden denial.
   - The platform graph's provider instances are authorized and read per provider here, not in
     the read model.
-  - No document carries `spec.values`, a Secret or the last-applied annotation (0030:D8).
+  - No document carries `spec.values`, a Secret or the last-applied annotation.
     Condition, history and event messages are shown verbatim; design.md records the caveat.
   - `stream` serves `internal/stream` with a `Producer` implemented here over the read model:
     each topic carries the same document its `GET` returns.

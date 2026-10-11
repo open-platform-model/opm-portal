@@ -16,7 +16,7 @@ and a node cap are part of the model, not of a renderer.
   - **Node kinds**: platform, catalog, registration, instance, package, module, source,
     component, object, runtime child and group (configuration components, Pods, the over-cap
     summary). Ids are `<prefix>:<parts>` with percent-encoded parts and no UID, so they survive
-    a restart and a delete-and-recreate (0030:D4:R6).
+    a restart and a delete-and-recreate.
   - **Edge kinds**, each with one named source: Platform `status.registry` (platform to
     catalog); the registry entries a registration contributed, joined on its `spec.catalog`
     (registration to catalog); `spec.providerRef`, drawn verified only when the provider's
@@ -24,11 +24,11 @@ and a node cap are part of the model, not of a renderer.
     instance, 0030:D4:R2); `spec.module` (instance to module); `spec.sourceRef` and
     `spec.dependsOn` (package to source and to package); `status.inventory` (owner to component,
     component to object); controller `ownerReferences` below inventory objects only (object to
-    runtime child). No edge from an instance to a contract (0030:D4:R3); render contracts are a
+    runtime child). No edge from an instance to a contract; render contracts are a
     text field on the instance node.
   - Per-node applied state, health, access and registration standing, copied from the views
     `internal/health` already filled.
-  - **Collapse rules**: configuration-only components grouped into one node (0030:D4:R5),
+  - **Collapse rules**: configuration-only components grouped into one node,
     ReplicaSets scaled to zero hidden behind a count on their parent, more than five Pods under
     one parent grouped, and a node cap that replaces what it drops with one summary node.
   - **Layout data**: a column per node kind, barycenter ordering with a stable tie-break, x/y

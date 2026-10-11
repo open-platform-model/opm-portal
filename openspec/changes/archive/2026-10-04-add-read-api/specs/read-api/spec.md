@@ -17,7 +17,7 @@ milestone 1 the only cluster served SHALL be `default`. Any other cluster name S
 `404` with code `not_found` before any authorization review. A method other than `GET` SHALL be
 answered `405` with code `method_not_allowed`. A namespace that is not a DNS-1123 label, or a
 name that is not a DNS-1123 subdomain, SHALL be answered `400` with code `bad_request` before any
-authorization review. Source: 0030:D2:R2.
+authorization review.
 
 #### Scenario: The default cluster
 
@@ -68,7 +68,7 @@ Every resource SHALL authorize each Kubernetes read it is about to serve, for th
 identity, before it looks anything up. A caller who may not make one of those reads SHALL
 receive `403` with code `forbidden` and a detail that names neither the object nor the check
 that failed, identical whether or not the object exists. A caller who may make them and asks for
-an object that does not exist SHALL receive `404` with code `not_found`. Source: 0030:D7:R1.
+an object that does not exist SHALL receive `404` with code `not_found`.
 
 #### Scenario: Forbidden, existing and missing alike
 
@@ -105,7 +105,7 @@ A list resource SHALL authorize `list` on its kind in its scope: cluster-wide, o
 Inside a readable document, an inventory object the caller may not read SHALL be marked
 `forbidden` and one the portal could not read `notReadable`, and neither SHALL fail the request.
 When the caller may not list TransformerRegistrations, the platform document SHALL say
-`registrationsAccess: forbidden` rather than show none. Source: 0030:D7:R3, 0030:D11:R5.
+`registrationsAccess: forbidden` rather than show none.
 
 #### Scenario: A forbidden kind inside an instance
 
@@ -121,7 +121,7 @@ Every error SHALL be an RFC 9457 `application/problem+json` document with `type`
 `not_readable_by_portal` (503: the portal holds no readable copy of the kind) and
 `upstream_unavailable` (503: an authorization review or the API server failed). The set SHALL be
 documented as open. No problem document SHALL carry a credential, an identity or a review's
-error text. Source: 0030:D2:R6.
+error text.
 
 #### Scenario: Authorization unavailable
 
@@ -133,7 +133,7 @@ error text. Source: 0030:D2:R6.
 Every request SHALL be resolved to a principal (an identity and a session) by the mode that
 serves the API before any handler runs. A request with no principal, or whose identity has an
 empty or anonymous username, SHALL be answered `401` with code `unauthenticated` and SHALL cause
-no authorization review and no read. Source: 0030:D6:R2.
+no authorization review and no read.
 
 #### Scenario: Empty identity
 
@@ -145,7 +145,7 @@ no authorization review and no read. Source: 0030:D6:R2.
 
 No document SHALL contain an instance's or package's `spec.values`, Secret data, or the
 `kubectl.kubernetes.io/last-applied-configuration` annotation. Condition, history and event
-messages SHALL be served as the operator and the API server wrote them. Source: 0030:D8:R2/R3.
+messages SHALL be served as the operator and the API server wrote them.
 
 #### Scenario: No values in any document
 
@@ -161,7 +161,7 @@ authorize get on the owner, get on the named object, and list of events in the n
 events live in, before any lookup. An object that is neither the owner, nor in its inventory,
 nor a runtime child below an inventory object SHALL be refused with the same `403` document as a
 forbidden read. Lines SHALL carry type, reason, note, reporting controller, the object regarded,
-a count and the latest occurrence time. Source: 0030:D7:R4, 0030:D9:R3/R4.
+a count and the latest occurrence time.
 
 #### Scenario: An inventory object's events
 
@@ -187,7 +187,7 @@ the field they were drawn from, verification and route; and the layout's size an
 `expand` query parameter, repeatable, SHALL expand the group node it names, and
 `showScaledDown=true` SHALL show ReplicaSets scaled to zero. The platform graph SHALL authorize
 get on each registration's provider instance for the caller and show a provider the caller may
-not read as such. Source: 0030:D4.
+not read as such.
 
 #### Scenario: The platform graph with a forbidden provider
 
@@ -201,7 +201,7 @@ not read as such. Source: 0030:D4.
 Each catalog in the platform document SHALL list as `claimants` the readable registrations that
 claim it, and SHALL name as `contributedBy` the one accepted and active registration the
 registry's contribution is joined to, by the same rule the platform graph draws its
-`contributes` edge. Source: 0030:D4:R4.
+`contributes` edge.
 
 #### Scenario: The accepted claim contributed the backup catalog
 
@@ -220,7 +220,7 @@ the subscriber. When the object is deleted, or does not exist at the snapshot, t
 carry a `Removed` document naming it. A change to an OPM object, to an inventory object or to a
 runtime child below one SHALL reach the topics showing it. Topics the broker does not serve
 SHALL be refused with `400` and code `bad_request`; a stream beyond the session's cap with `429`
-and code `too_many_streams`. Source: 0030:D2:R5.
+and code `too_many_streams`.
 
 #### Scenario: An instance topic follows a health change
 
@@ -239,7 +239,7 @@ The repository SHALL hold an OpenAPI 3.1 document of the read API. Every served 
 appear in it with the document its success response returns, and every wire type SHALL match its
 schema by field names and types; a test SHALL fail otherwise. A pull request that changes the
 document in a way `oasdiff breaking` reports as an error SHALL fail the required `Lint` check
-unless its title marks a breaking change with `!`. Source: 0030:D2:R2.
+unless its title marks a breaking change with `!`.
 
 #### Scenario: A field renamed without a breaking title
 

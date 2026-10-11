@@ -14,8 +14,8 @@ into `internal/health/testdata/`, and opm-operator `main` at 8d34b6b
 
 **Goals:**
 
-- Object, component and instance health per 0030:D3, with the Pod rule the capture forced.
-- The Applied axis for the four operator kinds, and registration verdicts per 0030:D4:R4/R7.
+- Object, component and instance health, with the Pod rule the capture forced.
+- The Applied axis for the four operator kinds, and registration verdicts.
 - One explanation per operator condition reason, kept in step with the operator by a test.
 - Every claim about operator or kstatus output tested against a captured object.
 
@@ -102,7 +102,7 @@ Deployment's own status already reflects its Pods, so counting both would double
 included) skips the Pod rule, marks every readable Deployment, ReplicaSet, StatefulSet,
 DaemonSet, Job and CronJob `ChildrenUnread`, and makes its component and the instance partial:
 a reader who may see the Deployment but not its Pods would otherwise see a broken rollout as
-merely progressing (0030:D3:R4).
+merely progressing.
 
 ### Roll-up
 
@@ -111,7 +111,7 @@ components (the inventory entry's `component`; an entry without one goes under t
 name) to the instance. Only entries with `Access=ok` count. `forbidden` and `notReadable`
 entries are excluded and set `Partial`. A core `Secret` entry is `withheld` whatever the
 caller passed: the package never evaluates one, and it neither counts nor makes the result
-partial (0030:D3:R4). A summary with nothing counted is Unknown and not live, with a zero `EvaluatedAt`. `EvaluatedAt` is the oldest
+partial. A summary with nothing counted is Unknown and not live, with a zero `EvaluatedAt`. `EvaluatedAt` is the oldest
 evaluation among counted entries, and `Live` is false when any counted entry is not live
 (0030:D3:R5). Counts per state and per non-ok access ride along for the list pages.
 
@@ -145,7 +145,7 @@ Suspended are deliberate states that would otherwise read as faults.
 ### Registration verdicts
 
 From `status.accepted` and `status.active` (absent means false, observation 9), never from the
-condition pair (0030:D4:R4). Verdict: `Ready` reason `DependentsRemain` is RemovalBlocked
+condition pair. Verdict: `Ready` reason `DependentsRemain` is RemovalBlocked
 (phase 9: accepted and active stay true, 0030:D4:R7); otherwise `accepted` is Accepted; otherwise
 `Ready=False` is Refused with its reason; `Ready=Unknown` is Pending
 (`ProviderInventoryPending` or reconciling); no `Ready` is Unknown. The `Active` condition's

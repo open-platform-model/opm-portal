@@ -3,7 +3,7 @@
 `main` serves local mode: `internal/auth.Local` admits one browser through a launch token and
 answers `Authenticate(r) (authz.Identity, string, error)`, which `cmd/opm-portal` adapts into
 `api.Config.Authenticate`. The read API refuses any request whose identity is not
-`Authenticated()` or whose session key is empty, before any review (0030:D6:R2). Milestone 2 needs
+`Authenticated()` or whose session key is empty, before any review. Milestone 2 needs
 a second implementation of the same hook for many users signing in through an OIDC issuer.
 
 Sources: 0030:D6 (R2, R3, R5, R6, R8), 0030:D7 (refusals before lookup), and the risk entry for
@@ -84,7 +84,7 @@ func (m claimMapper) identity(claims map[string]any) (authz.Identity, error)
 4. The groups claim, when configured, MUST be absent, a string, or an array of strings; anything
    else is refused. Empty strings and raw `system:` groups are dropped, each remaining group is
    prefixed, mapped groups starting with `system:` are dropped again, then duplicates go, and
-   `system:authenticated` is appended (0030:D6:R3).
+   `system:authenticated` is appended.
 5. UID and Extra stay empty.
 
 The result is always `Authenticated()`. A refusal names the rule, never a claim value.
@@ -99,7 +99,7 @@ the asymmetric ones discovery advertises (RS256 when it advertises none; never `
 The session key is `bearer:` plus an HMAC-SHA-256 of the token under a per-process random key:
 stable for one token (so its streams count against one session), unlinkable to the token outside
 the process. A bearer client maps through the same claim mapper as a browser, so both see the
-same identity (0030:D6:R5).
+same identity.
 
 ### Signing keys: the portal's own cached key set
 

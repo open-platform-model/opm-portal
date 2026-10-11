@@ -78,7 +78,7 @@ readable workload that can own Pods SHALL be marked as having unread children, a
 component and the instance SHALL be partial. A Secret SHALL never be evaluated, SHALL be excluded, and SHALL NOT mark the result
 partial. A result with nothing counted SHALL be Unknown. Each result SHALL carry the oldest
 evaluation time among the objects it counts, and SHALL say it is not live when any counted
-object was refreshed by polling. Source: 0030:D3:R4/R5.
+object was refreshed by polling.
 
 #### Scenario: Forbidden object
 
@@ -120,7 +120,7 @@ a CLI owner or `ManagedExternally` reason is ManagedExternally; suspension is Su
 Applied; anything else is Unknown. `Ready=True` SHALL be Applied and never Healthy, and the
 applied state SHALL NOT be derived from health nor health from it. Failure counters SHALL never
 change either axis. `ContractsFulfilled=False` and `Drifted=True` SHALL be informational notes
-that never change the state. Source: 0030:D3:R1/R6/R7/R8.
+that never change the state.
 
 #### Scenario: Ready instance with a broken rollout
 

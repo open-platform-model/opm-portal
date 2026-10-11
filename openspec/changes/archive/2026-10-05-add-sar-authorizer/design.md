@@ -13,16 +13,16 @@ the portal's own ServiceAccount, at startup and per TTL.
 
 **Goals:**
 
-- An in-cluster backend that asks as the person (0030:D6:R1) through `subjectaccessreviews` only
+- An in-cluster backend that asks as the person through `subjectaccessreviews` only
   (0030:D6:R9), behind the unchanged seam.
 - The reader's grant from a review naming the portal's ServiceAccount, renewed by the cache TTL.
 - No path on which a person is answered as the portal's ServiceAccount: an empty identity, a
   system username and a system group are refused before any call.
-- A per-user access log line for every decision about a person (0030:D6:R7).
+- A per-user access log line for every decision about a person.
 
 **Non-Goals:**
 
-- OIDC sign-in, bearer tokens, identity mapping, prefixes (0030:D6:R3/R5/R6/R8): the in-cluster
+- OIDC sign-in, bearer tokens, identity mapping, prefixes: the in-cluster
   wiring change. That change also adds the `--service-account` flag and a request id; this change
   adds no flag and no command.
 - Hiding condition and event messages in-cluster (owner decision on 0030:OQ8) and the
@@ -76,7 +76,7 @@ ServiceAccount username, and copies it, so the caller cannot change it afterward
 ### Background grant: review the ServiceAccount, renewed by the TTL
 
 **Context**: every read must hold a grant; the informers read as the ServiceAccount, and
-in-cluster only `subjectaccessreviews` may be created (0030:D6:R9).
+in-cluster only `subjectaccessreviews` may be created.
 **Options considered**:
 1. Trust the ServiceAccount's role: issue the reader a grant with no review. Adds an exception
    to "only a decision issues a grant" and hides a missing role behind failed reads.
@@ -98,7 +98,7 @@ people and the reader.
 1. One `Checker`, routed on a reader mark only `ServiceAccountIdentity` sets, with people barred
    from system names and groups (chosen). An identity built from claims never carries the mark,
    so one with the ServiceAccount's exact username and groups takes the person route and is
-   refused there (0030:D6:R3). The first draft's key lacked the mark; review found that such
+   refused there. The first draft's key lacked the mark; review found that such
    claims matched it, were answered with the ServiceAccount's access and left out of the access
    log. The key now includes the mark, so routing on the key alone is safe.
 2. A second `Authorizer` field for the reader in three packages' configs. Stronger separation,
@@ -123,7 +123,7 @@ read path.
 ### Authorization
 
 The change reads no object. Its only cluster call is `create` on `authorization.k8s.io/v1`
-`subjectaccessreviews`, which the API server evaluates and does not store (0030:D6:R9). The
+`subjectaccessreviews`, which the API server evaluates and does not store. The
 portal's ServiceAccount needs `create` on `subjectaccessreviews` (the in-cluster role ships with
 the wiring change).
 
@@ -136,4 +136,4 @@ the wiring change).
 - [The access log grows with every per-item check of a view] -> it is the record 0030:D6:R7
   asks for; cached decisions are marked so they can be filtered.
 - [A person with no `system:authenticated` group is reviewed without it] -> the review then
-  under-reports access, which fails closed; identity mapping adds it (0030:D6:R3).
+  under-reports access, which fails closed; identity mapping adds it.

@@ -5,7 +5,7 @@ document. The owner's first ask is a page: "showing what is installed in the clu
 events logs, and ability to view the resources, with a generated DAG showing the relationships",
 and the owner wants to use OPM to define and build platforms, so the Platform (its catalogs,
 claimants and contracts) is the landing page, not an afterthought. The read API was built to have
-the web UI as its first consumer (0030:D2); this change is that consumer.
+the web UI as its first consumer; this change is that consumer.
 
 ## What Changes
 
@@ -15,7 +15,7 @@ the web UI as its first consumer (0030:D2); this change is that consumer.
   (`prefers-color-scheme`), two vendored OFL fonts, and a layout that works at phone width
   without horizontal scroll.
 - Pages, every fact read through the read API's handler chain in-process, under the caller's
-  session (0030:D2):
+  session:
   - **Platform** (the landing page, `/`): catalog subscriptions and the resolved registry with
     versions and sources, registrations with separate accepted and active pills, verdicts,
     removal-blocked shown as its own state, refusal reasons, the catalogs each registration
@@ -31,7 +31,7 @@ the web UI as its first consumer (0030:D2); this change is that consumer.
   - **Packages** and **Package** (`/packages`, `/packages/{ns}/{name}`): the same shape for
     ModulePackages.
   - Every object, row, node or section the identity may not read renders **locked**, with no
-    name of anything hidden beyond what the API document carries (0030:D5:R7).
+    name of anything hidden beyond what the API document carries.
 - A server-rendered SVG graph from the API's laid-out graph documents: CSS classes for health
   and access, keyboard-focusable nodes, a node detail panel fetched with `hx-get`, collapse groups
   expandable through the API's `expand` parameter, and a hand-written pan and zoom.

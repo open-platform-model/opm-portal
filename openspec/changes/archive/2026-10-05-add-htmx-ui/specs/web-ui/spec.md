@@ -8,7 +8,7 @@ read the same fact with the same filtering. `internal/ui` SHALL NOT import `inte
 any package below it, and a test SHALL fail when a file of `internal/ui` does. A problem document
 SHALL render as a region of the page: `forbidden` as locked, `not_readable_by_portal` and
 `upstream_unavailable` as degraded with the code, `not_found` as a not-found page with status
-`404`, `unauthenticated` as a sign-in page with status `401`. Source: 0030:D2:R1.
+`404`, `unauthenticated` as a sign-in page with status `401`.
 
 #### Scenario: The UI reads through the API
 
@@ -59,7 +59,7 @@ different shapes. `Ready=True` SHALL be shown as "Applied" and never as healthy.
 `ManagedExternally` SHALL render in a neutral style without an error colour. A partial health
 SHALL say partial; a health with an object refreshed by polling SHALL say it is not live and show
 when it was evaluated. An enum value the UI does not know SHALL render as "unknown", never as an
-error. Source: 0030:D3:R1/R5/R6, 0030:D2:R3.
+error.
 
 #### Scenario: The image-break sample
 
@@ -135,7 +135,7 @@ Each graph SHALL render server-side as SVG from the read API's laid-out graph do
 edge from an instance to a contract. Nodes SHALL carry CSS classes for kind, health and access, an
 accessible name, and SHALL be reachable with the keyboard in document order. Activating a node
 SHALL show its detail panel; activating a group node SHALL show it expanded. The graph SHALL pan
-and zoom with pointer, wheel and buttons. Source: 0030:D4:R1/R3/R5.
+and zoom with pointer, wheel and buttons.
 
 #### Scenario: Keyboard focus
 

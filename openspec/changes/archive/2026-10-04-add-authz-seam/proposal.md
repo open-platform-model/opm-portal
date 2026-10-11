@@ -2,7 +2,7 @@
 
 Every later read path (read model, API, streams, logs) must take its authorization decision
 before it looks anything up, and a shared cache serving many users is exactly where a
-cross-tenant leak happens (0030:D7). If the seam arrives after the first read path, each handler
+cross-tenant leak happens. If the seam arrives after the first read path, each handler
 has to be audited for it; if it arrives first, every read path takes a `Grant` and calls
 `Covers` with the caller and the read before reading, and a grant covers only the caller it was
 issued to, only its own read, and only while its decision lasts. This change lands the seam before
@@ -18,10 +18,10 @@ any code reads the cluster.
   refused with no Kubernetes call (the 0030:D6:R2 rule, applied in both milestones), any verb other
   than `get`, `list` or `watch` is refused, any subresource other than none, `status` or `log` is
   refused (exec, attach, portforward and proxy open streams), core `secrets` are refused whatever
-  the caller's RBAC (0030:D8:R1), and malformed or wildcard attributes are refused.
+  the caller's RBAC, and malformed or wildcard attributes are refused.
 - Deny on error: a failed, timed-out or unevaluable access review is a denial, never an allow,
-  and is never cached (0030:D6:R4).
-- The local-mode backend: SelfSubjectAccessReviews sent with the user's kubeconfig (0030:D5:R1),
+  and is never cached.
+- The local-mode backend: SelfSubjectAccessReviews sent with the user's kubeconfig,
   serving exactly the one identity it was built for.
 - A decision cache with a 30-second TTL keyed by the canonical identity and attributes.
 - Tests: the empty-identity regression modelled on Flux Operator CVE-2026-23990, identical
@@ -63,4 +63,4 @@ None.
 Not in this change: the in-cluster SubjectAccessReview backend and identity mapping (changes
 `add-sar-authorizer`, `add-oidc-sessions`), resolving the kubeconfig's identity at startup and
 the launch token (`add-local-mode`), list filtering and per-item access states (0030:D7:R2/R3,
-`add-read-model` and `add-read-api`), and the not-in-inventory refusal (0030:D7:R4).
+`add-read-model` and `add-read-api`), and the not-in-inventory refusal.

@@ -12,19 +12,19 @@ a followed stream outright. The stream broker (`add-stream-broker`) reserved the
 - New package `internal/logs`: a bounded Pod log reader and a `stream.Producer` for log topics.
   - Reachability: a Pod is served only when it is a runtime child of an inventory object the
     caller may read, decided by the read model's runtime-children join. An unreachable Pod is
-    refused with the same `forbidden` closing as a missing permission (0030:D10:R1, 0030:D7).
+    refused with the same `forbidden` closing as a missing permission.
   - `get pods/log` is the topic's read, so the broker authorizes it before the upstream stream
     opens, re-checks it before every delivery through its single send funnel, and authorizes it
-    again on reconnect (0030:D10:R2). The reading identity is checked too before any upstream read.
+    again on reconnect. The reading identity is checked too before any upstream read.
   - Follow mode through client-go `GetLogs` with `timestamps` and a capped `tailLines`; never
-    `limitBytes` (0030:D10). Bounds enforced in the portal: an oversize line is cut and marked
+    `limitBytes`. Bounds enforced in the portal: an oversize line is cut and marked
     `truncated` with the bytes cut, lines over the per-topic line and byte rate are dropped and
     reported by a `rate-limited` marker with a count, and an oversize initial tail skips ahead past
     its older lines, announced by a `skipped` marker with a count, keeping its newest lines
-    within the cap (0030:D10:R3).
+    within the cap.
   - Container selection against the Pod's containers, init containers and ephemeral containers,
     and the previous container's logs for a crash loop (`log:<ns>/<pod>/<container>/previous`).
-  - A container that stops ends its topic with an explicit `logend` message (0030:D10:R4).
+  - A container that stops ends its topic with an explicit `logend` message.
   - One upstream stream per topic, shared by its subscribers and closed when the last one leaves.
   - Log content never reaches the portal's own logs.
 - `internal/stream`: serves log topics. The grammar gains the optional `/previous` segment, items

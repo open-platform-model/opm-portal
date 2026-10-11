@@ -3,20 +3,20 @@
 `main` has every part of the portal's read path (authorization, read model, graph, health, the
 change stream, pod logs and the `/api/v1alpha1` handlers) but the binary only prints its version:
 nobody can use any of it. Milestone 1 of enhancement 0030 is the portal running on the user's
-machine against their kubeconfig, with their RBAC as the boundary and no login code (0030:D5).
+machine against their kubeconfig, with their RBAC as the boundary and no login code.
 This change is that runnable binary.
 
 ## What Changes
 
 - New subcommand `opm-portal serve` with `--kubeconfig`, `--context`, `--addr` (default
   `127.0.0.1:0`), `--namespaces` and `--open`. It refuses any non-loopback address before it
-  touches a cluster (0030:D5:R2).
+  touches a cluster.
 - Startup: load the kubeconfig, raise client-go's request rate on the one REST config every
   client is built from (dynamic, discovery and the review client, QPS 50 and burst 100), learn the
   kubeconfig's identity with a SelfSubjectReview and refuse to start when it is empty or anonymous,
   then build the local authorizer, the read model, the logs producer, the read API and the
   local-mode HTTP layer, and serve until `SIGINT` or `SIGTERM`, then shut down in order.
-- New package `internal/auth`, local mode's front door (0030:D5:R3/R4):
+- New package `internal/auth`, local mode's front door:
   - a one-time launch token, printed in the URL on standard output (never in a log line) and,
     with `--open`, handed to the browser through a private redirect file instead of a command
     line other local users could read;
@@ -59,7 +59,7 @@ This change is that runnable binary.
 - Principle V: the portal reads as the kubeconfig's identity, through that identity's RBAC. It
   creates exactly two kinds of object, both review APIs the API server stores nothing for:
   `authentication.k8s.io` `selfsubjectreviews` once at startup, and `authorization.k8s.io`
-  `selfsubjectaccessreviews` before each read (0030:D5:R6). No Secret is read. An empty or
+  `selfsubjectaccessreviews` before each read. No Secret is read. An empty or
   anonymous kubeconfig identity stops the binary before it listens. The launch token and the
   session cookie never appear in a log line, an error or an API response.
 - Principle VII: no new dependency. client-go's `clientcmd` (already a dependency through

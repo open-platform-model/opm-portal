@@ -137,7 +137,7 @@ and any map of kind `Secret` carrying `data` or `stringData` as a Secret. A file
 of these rules, or does not parse, SHALL fail it. `test/e2e/check-capture_test.sh` SHALL run the
 check against scratch cases for each rule before `task e2e:capture:check` checks the committed
 captures. The capture runs it last, and `task check` and
-the `Test` check run it on every pull request. Source: 0030:D8.
+the `Test` check run it on every pull request.
 
 #### Scenario: Clean capture
 

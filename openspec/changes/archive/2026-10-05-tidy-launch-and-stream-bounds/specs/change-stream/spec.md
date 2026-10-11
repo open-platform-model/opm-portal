@@ -24,7 +24,7 @@ nothing; a closed message not written before its connection ends, including one 
 denied while the stream is disconnected, SHALL be sent first thing on the stream's next
 connection; an authorization error SHALL close the topic with an `upstream_unavailable` code and
 SHALL deliver nothing. A stream SHALL NOT open for an unauthenticated identity, and no
-authorization review SHALL be sent for one. Source: 0030:D7:R2, 0030:D5:R5, 0030:D6:R4.
+authorization review SHALL be sent for one.
 
 #### Scenario: A subscriber receives only what it may read
 
