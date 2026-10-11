@@ -411,8 +411,8 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		v.Tab = tabCatalogs
 	}
 	v.Tabs = []tabLink{
-		{Name: tabProviders, Label: "Providers", Href: linkWith("/", q, "tab", tabProviders), Current: v.Tab == tabProviders},
-		{Name: tabCatalogs, Label: "Catalogs", Href: linkWith("/", q, "tab", tabCatalogs), Current: v.Tab == tabCatalogs},
+		{Name: tabProviders, Label: "Providers", Href: linkWith("/", q, "tab", tabProviders), Current: v.Tab == tabProviders, Follow: "platform"},
+		{Name: tabCatalogs, Label: "Catalogs", Href: linkWith("/", q, "tab", tabCatalogs), Current: v.Tab == tabCatalogs, Follow: "platform"},
 	}
 	v.Problem = h.fetch(r, "/platform", nil, &v.Platform)
 	if unauthenticated(v.Problem) {
@@ -439,8 +439,8 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 		if v.Platform.RegistrationsAccess == v1.AccessOK {
 			// Both lists come from the registrations; without them a
 			// count would be short (portal:D7).
-			setCount(v.Tabs, tabProviders, v.Providers.Total, "platform")
-			setCount(v.Tabs, tabCatalogs, v.Catalogs.Total, "platform")
+			setCount(v.Tabs, tabProviders, v.Providers.Total)
+			setCount(v.Tabs, tabCatalogs, v.Catalogs.Total)
 		}
 	}
 	var provides []string

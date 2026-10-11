@@ -160,8 +160,9 @@ func tabsOf(main string) string { return between(main, `<nav class="tabs`, "</na
 
 // TestPlatformTabsCarryTheirCounts (portal:D19:R3, portal:D7): Providers and
 // Catalogs show the registrations and catalog rows the page holds, the whole
-// list whatever a filter says, and neither shows when the registrations are
-// locked or the Platform is not readable.
+// list whatever a filter says. When the registrations are locked or the
+// Platform is not readable, each keeps an empty count span for a live refresh
+// to empty.
 func TestPlatformTabsCarryTheirCounts(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for _, path := range []string{"/", "/?tab=catalogs", "/?pstatus=refused", "/?tab=catalogs&csource=claim"} {
@@ -183,8 +184,13 @@ func TestPlatformTabsCarryTheirCounts(t *testing.T) {
 		"Platform forbidden":   apitest.DenyResources("platforms"),
 	} {
 		tabs := tabsOf(mainOf(newSite(t, apitest.F1(t), rule).get(t, "/").body))
-		if strings.Contains(tabs, "tab-n") || !strings.Contains(tabs, "Providers</a>") || !strings.Contains(tabs, "Catalogs</a>") {
-			t.Errorf("%s: a count shows over a list the caller may not read in full:\n%s", name, tabs)
+		for _, want := range []string{
+			`Providers<span class="tab-n" id="tab-n-providers" data-follow="platform"></span></a>`,
+			`Catalogs<span class="tab-n" id="tab-n-catalogs" data-follow="platform"></span></a>`,
+		} {
+			if !strings.Contains(tabs, want) {
+				t.Errorf("%s: a count shows over a list the caller may not read in full, or its empty span is gone (want %s):\n%s", name, want, tabs)
+			}
 		}
 	}
 }

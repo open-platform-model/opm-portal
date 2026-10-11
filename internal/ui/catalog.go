@@ -87,12 +87,16 @@ func (h *Handler) catalogPage(w http.ResponseWriter, r *http.Request) {
 	}
 	base := catalogHref(path)
 	for _, t := range []struct{ Name, Label string }{{tabClaims, "Claims"}, {tabEvents, "Events"}} {
-		v.Tabs = append(v.Tabs, tabLink{Name: t.Name, Label: t.Label, Href: base + "&tab=" + t.Name, Current: v.Tab == t.Name})
+		tab := tabLink{Name: t.Name, Label: t.Label, Href: base + "&tab=" + t.Name, Current: v.Tab == t.Name}
+		if t.Name == tabClaims {
+			tab.Follow = "platform"
+		}
+		v.Tabs = append(v.Tabs, tab)
 	}
 	// Claims are counted when the caller may read every registration; the
 	// Events tab is read only when it opens, so it carries no count.
 	if v.ClaimsLocked == "" {
-		setCount(v.Tabs, tabClaims, len(v.Claims), "platform")
+		setCount(v.Tabs, tabClaims, len(v.Claims))
 	}
 	topics := []string{"platform"}
 	if v.Tab == tabEvents {

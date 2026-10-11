@@ -43,15 +43,20 @@ type tabLink struct {
 	Href    string
 	Current bool
 	Count   *int
-	Follow  string // the topics the count follows, so a live refresh swaps it
+	// Follow is the topics the tab's count follows, so a live refresh swaps
+	// it. A tab that can carry a count has it whether or not the page holds
+	// one now: the count span is then empty, and a refresh can fill it or
+	// empty it (portal:D19:R3). A tab that never carries a count has none.
+	Follow string
 }
 
-// setCount sets the count of the tab called name, following topics. The
-// strip keeps its links; only the count is a followed region.
-func setCount(tabs []tabLink, name string, n int, follow string) {
+// setCount sets the count of the tab called name. The strip keeps its links;
+// only the count is a followed region. A tab with no count set keeps an empty
+// span, so a refresh that finds the source unreadable removes the old number.
+func setCount(tabs []tabLink, name string, n int) {
 	for i := range tabs {
 		if tabs[i].Name == name {
-			tabs[i].Count, tabs[i].Follow = &n, follow
+			tabs[i].Count = &n
 		}
 	}
 }
@@ -545,7 +550,11 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 			}
 		}
 		for _, t := range tabs {
-			v.Tabs = append(v.Tabs, tabLink{Name: t.Name, Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab})
+			tab := tabLink{Name: t.Name, Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab}
+			if t.Name == tabResources || t.Name == tabEvents {
+				tab.Follow = v.countFollow()
+			}
+			v.Tabs = append(v.Tabs, tab)
 		}
 		if v.Problem == nil {
 			h.ownerTabsOf(r, &v)
@@ -586,7 +595,7 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	// The Resources count comes before the tab switch: annotateResources
 	// drops the rows a reason filter does not match, and the count is the
 	// tab's whole list (portal:D19:R3).
-	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Config), v.countFollow())
+	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Config))
 	v.Logs = logPanes(v.Components)
 	if v.Config != nil {
 		v.Logs = append(v.Logs, logPanes(v.Config.Components)...)
@@ -638,7 +647,7 @@ func (v *ownerView) countFollow() string { return v.Topic + " events:" + v.Topic
 // with, and no count when that feed is a problem.
 func (v *ownerView) countEvents() {
 	if v.Events.Problem == nil {
-		setCount(v.Tabs, tabEvents, len(v.Events.Items), v.countFollow())
+		setCount(v.Tabs, tabEvents, len(v.Events.Items))
 	}
 }
 

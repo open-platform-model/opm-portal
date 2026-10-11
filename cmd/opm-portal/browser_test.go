@@ -180,6 +180,25 @@ func TestBrowserGraph(t *testing.T) {
 	}
 }
 
+// TestBrowserTabCount drives a live tab count in real browsers (task
+// test:browser): a stream event makes the page fetch its own render, and the
+// real portal.js replaces the count span with the render's, whether the count
+// changed, the source became a problem and left the span empty, or the count
+// came back (portal:D19:R3). The F1 capture is static, so the script answers
+// that fetch with the real render edited as a later render would be.
+func TestBrowserTabCount(t *testing.T) {
+	script := browserScript(t, "tabcount.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("a tab count did not follow the page: %v", err)
+			}
+		})
+	}
+}
+
 // phonePages lists the pages TestBrowserPhone opens: the 25 non-fragment
 // paths of f1Pages in internal/ui/ui_test.go, which package main cannot
 // import, and the not-found page. A UI change that adds a page adds its path

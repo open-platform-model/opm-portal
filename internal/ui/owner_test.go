@@ -210,8 +210,10 @@ func TestPodPanelLogsOpenItsPane(t *testing.T) {
 
 // TestOwnerTabsCarryTheirCounts (portal:D19:R3): Resources counts the
 // objects and the runtime children below them, Events the folded lines of
-// the owner's feed; both count the whole list when a filter narrows the tab,
-// and neither shows when the owner document is a problem.
+// the owner's feed; both count the whole list when a filter narrows the tab.
+// A tab whose source is a problem keeps an empty count span, so a live refresh
+// can remove the old number; when the owner document itself is a problem the
+// page draws no strip.
 func TestOwnerTabsCarryTheirCounts(t *testing.T) {
 	follow := `instance:default/podinfo events:instance:default/podinfo`
 	count := func(name string, n int) string {
@@ -244,10 +246,20 @@ func TestOwnerTabsCarryTheirCounts(t *testing.T) {
 	if !strings.Contains(unfiltered, count("resources", 7)) {
 		t.Errorf("the broken rollout lists seven rows:\n%s", unfiltered)
 	}
-	// No count over a source that is a problem: the owner document itself.
+	// The owner document itself is a problem: the page draws no strip at all.
 	denied := newSite(t, apitest.F1(t), apitest.DenyResources("moduleinstances")).get(t, "/instances/default/podinfo").body
 	if strings.Contains(denied, "tab-n") {
 		t.Error("a tab count shows while the owner document is a problem")
+	}
+	// The events read is a problem on an otherwise readable instance: the strip still
+	// draws, with the Resources count and an Events span that is empty but present and
+	// followed, so a refresh replaces the number the page showed before.
+	noEvents := tabsOf(mainOf(newSite(t, apitest.F1(t), apitest.DenyResources("events")).get(t, "/instances/default/podinfo").body))
+	if !strings.Contains(noEvents, "Resources "+count("resources", 5)) {
+		t.Errorf("an unreadable feed takes the Resources count with it:\n%s", noEvents)
+	}
+	if want := `Events<span class="tab-n" id="tab-n-events" data-follow="` + follow + `"></span>`; !strings.Contains(noEvents, want) {
+		t.Errorf("an unreadable events feed leaves no empty, followed Events count span (want %s):\n%s", want, noEvents)
 	}
 }
 

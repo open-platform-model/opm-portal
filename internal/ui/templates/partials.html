@@ -12,11 +12,13 @@
 {{with stateBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Health axis</span>{{.Text}}</span>{{end}}
 {{- end}}
 
-{{/* tab is one tab of a strip. The count, when the page holds one, is its own
-     element with an id and its topics, so a live refresh swaps it and leaves
-     the strip's links as they are. */}}
+{{/* tab is one tab of a strip. A tab that can carry a count always draws the
+     count as its own element with an id and its topics, so a live refresh swaps
+     it and leaves the strip's links as they are. With no count the element is
+     empty, and the stylesheet draws nothing for it: a refresh can then empty a
+     count whose source has become a problem. */}}
 {{define "tab" -}}
-{{$t := .}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{with .Count}} <span class="tab-n" id="tab-n-{{$t.Name}}"{{with $t.Follow}} data-follow="{{.}}"{{end}}>{{.}}</span>{{end}}</a>
+<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}{{if .Follow}}{{if .Count}} {{end}}<span class="tab-n" id="tab-n-{{.Name}}" data-follow="{{.Follow}}">{{with .Count}}{{.}}{{end}}</span>{{end}}</a>
 {{- end}}
 
 {{/* state-block is one summary block (portal:D19:R3): an eyebrow, a recorded
