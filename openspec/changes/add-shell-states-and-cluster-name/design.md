@@ -3,28 +3,29 @@
 The pages are server-rendered HTML with htmx boosts and one `EventSource` per tab. A change on a
 followed topic marks it dirty; 400 ms later `refresh()` in `static/portal.js` fetches the current
 page once and replaces every `[data-follow]` region that follows a dirty topic, by id, from that
-one document (`portal.js:245-345`). The header has a live mark `#live` (`role="status"`
-`aria-live="polite"`), written only by `setLive` (`portal.js:224-231`). Everything else on the
+one document (`portal.js:413-493`). The header has a live mark `#live` (`role="status"`
+`aria-live="polite"`), written only by `setLive` (`portal.js:373-380`). Everything else on the
 screen is whatever the server wrote at render.
 
-What is missing, each traced to source on the base `e4fd2e9`:
+What is missing, each traced to source on `main` at `360382a` (E0 to E4 merged), as section 1 re-read it:
 
 | Gap | Today | Evidence |
 | --- | --- | --- |
-| Relative times freeze | The `time` partial prints `<time datetime title>` with the server's relative text; no script touches it | `templates/partials.html:13-15`, `internal/ui/view.go:223-249` |
+| Relative times freeze | The `time` partial prints `<time datetime title>` with the server's relative text; no script touches it | `templates/partials.html:106-108`, `internal/ui/view.go:271-302` |
 | A slow request shows nothing | `includeIndicatorStyles` is false and no `hx-indicator` is set, so no element carries `htmx-request` | `templates/layout.html:9`, no `hx-indicator` in `templates/` |
-| A lost stream is a few words | `setLive(false, "reconnecting")` and `"offline"` change the live mark and nothing else | `portal.js:336-338,553` |
-| An expired session is a few words | `sse:expired` closes the stream and sets the mark | `portal.js:544-549` |
-| After a reconnect the regions are not re-fetched | `sse:open` clears `primed`, so the first snapshot of each topic is ignored as "what the page already shows" | `portal.js:489,507` |
-| The panel is outside the refresh | `#detail` has no `data-follow`; `refresh()` only replaces elements that follow a topic | `templates/owner.html:208-212`, `portal.js:276-345` |
-| The header shows the context only | `header()` copies `c.Context`; the entry name in the document is dropped | `internal/ui/ui.go:213-228`; `api/v1alpha1/types.go:381-384` |
+| A lost stream is a few words | `setLive(false, "Reconnecting")`, `"Offline"`, `"Topics refused"` and `"Signed out"` change the live mark and nothing else | `portal.js:348,352,444,486,702` |
+| An expired session is a few words | `sse:expired` closes the stream and sets the mark | `portal.js:693-698` |
+| After a reconnect the regions are not re-fetched | `sse:open` clears `primed`, so the first snapshot of each topic is ignored as "what the page already shows" | `portal.js:634,654-657` |
+| The panel is outside the refresh | `#detail` has no `data-follow`; `refresh()` only replaces elements that follow a topic | `templates/owner.html:206-209`, `portal.js:425-493` |
+| The header shows the context only | `header()` copies `c.Context`; the entry name in the document is dropped | `internal/ui/ui.go:213-227`; `api/v1alpha1/types.go:404-407` |
 
 The server already sends a `heartbeat` event every 15 seconds on every open stream
 (`internal/stream/stream.go:90,144`, `broker.go:145,183`). The page does not listen for it: the
 hidden `#stream-events` element lists the events it hooks (`templates/layout.html:21`).
 
-This change is written against the designed behaviour of four changes that are merged as plans
-(proposal, "Builds on"). Where a decision here depends on one of them, it says so.
+This change builds on the five canvas changes now merged and built on `main` (E0 to E4, PRs 43, 44,
+47, 48 and 49; proposal, "Builds on"). Section 1 re-read the files they changed; where a decision
+here depends on one of them, it says so.
 
 ## Goals / Non-Goals
 
@@ -68,11 +69,13 @@ type header struct {
 }
 ```
 
-The pill, when `Entry` is set:
+The pill on `main` is one span, `<span class="conn-cluster mono" title="The kubeconfig context the
+portal reads with">` (`templates/layout.html`, `portal.css:322`, a bordered 999 px pill). When
+`Entry` is set, the span keeps `conn-cluster` and its `title`, loses `mono`, and holds two parts:
 
 ```html
-<span class="conn-cluster">
-  <span class="mono" title="The kubeconfig context the portal reads with">{{.Header.Cluster}}</span>
+<span class="conn-cluster" title="The kubeconfig context the portal reads with">
+  <span class="mono">{{.Header.Cluster}}</span>
   <span class="conn-entry"><span class="conn-k">cluster</span> <span class="mono">{{.Header.Entry}}</span></span>
 </span>
 ```
@@ -82,7 +85,7 @@ The words "context" and "cluster" are not both shown as labels: the first value 
 the kubeconfig's own term for the entry. `data-context` on `<html>` keeps the context alone, so
 what the browser remembers per cluster does not change (portal:D14). The pill wraps: at 760 px and
 below `.conn-cluster` drops the 999 px radius for 12 px and the two parts stack; `.conn .mono`
-already breaks anywhere (`portal.css:239`), so a name of 90 characters (an EKS ARN) wraps inside
+already breaks anywhere (`portal.css:321`), so a name of 90 characters (an EKS ARN) wraps inside
 the 328 px column. In-cluster the pill reads "in cluster" with no entry. When the document cannot
 be fetched, the pill reads "unknown" in the degraded style with no entry.
 
@@ -164,7 +167,7 @@ S3, nit a).
   words are in `#detail` or, for a page navigation, nowhere, which is why it never carries meaning
   alone: the browser's own page transition and the arrival of the page are the outcome.
 - **What it does not show.** The stream's background refresh uses `fetch`, not htmx
-  (`portal.js:293`), so it never starts the timer. A pending log or topic POST uses `fetch` too.
+  (`portal.js:442`), so it never starts the timer. A pending log or topic POST uses `fetch` too.
 - **Announcement.** None added. `aria-busy` on the polite region defers its announcements until
   it clears; the arriving panel is announced once, as today.
 
@@ -222,7 +225,7 @@ now" over them. A resync that returned 200 and replaced its regions sets `lastRe
 of its answer and ends the freeze. The time the banner states is therefore always the time of the
 data on screen.
 **The time's form is the `time` partial's.** The banner prints the read time the way every other
-time on the pages is printed (`templates/partials.html:13-15`, `internal/ui/view.go:216-232`):
+time on the pages is printed (`templates/partials.html:106-108`, `internal/ui/view.go:271-288`):
 relative text, the ISO time in `datetime` and the absolute time in `title`
 (`2006-01-02 15:04:05 UTC`). The script sets `datetime` from `new Date(lastRead + skew)`, in UTC,
 and `title` from the same instant in the `title` form, with `setAttribute`; the text comes from
@@ -253,8 +256,10 @@ header that grows by a banner can cover a focused element: Shift+Tab to a link a
 or a fragment link, scrolls it to the top edge, under the header. The base has no
 `scroll-padding`. So `html` carries `scroll-padding-top: calc(var(--masthead-h, 4.5rem) + 8px)`,
 and the sticky details panel takes its offset from the same variable
-(`#detail { top: calc(var(--masthead-h, 72px) + 8px) }`, today `80px`, and its `max-height`
-subtracts the same). The script sets `--masthead-h` from the header's measured height with
+(`#detail { top: calc(var(--masthead-h, 72px) + 8px) }`, today `80px` at `portal.css:387`, and its
+`max-height` subtracts the same). The script sets `--masthead-h` from the header's border-box height
+(`offsetHeight`, or `borderBoxSize` from the observer; `contentRect` leaves out the padding and read
+40 of 68 px in the spike) with
 `document.documentElement.style.setProperty` (CSSOM, never a `style` attribute), at load and from a
 `ResizeObserver` on `.masthead`, so it follows the slimmed header after a scroll of 48 px, the wrapped
 header on a phone, a text size of 200 percent and the banner coming and going. Without script the
@@ -265,7 +270,7 @@ full header and the banner cap, which is coarser and covers the same cases.
 ### Reconnecting: the page is true again before the banner goes
 
 `sse:open` today clears `primed` so the first snapshot of every topic after it is treated as
-"the page already shows this" and dropped (`portal.js:489,507`). That holds at page load.
+"the page already shows this" and dropped (`portal.js:634,654-657`). That holds at page load.
 It does not hold after a reconnect: the page may have missed changes during the outage, and if the
 server could not resume the stream (a new stream id) nothing re-renders the regions. Clearing the
 banner then would claim freshness the page does not have.
@@ -274,8 +279,8 @@ Decision: the script remembers whether a stream has opened before (`everOpened`)
 of a page sets "Live" as today. After a loss, the page is `resyncing` from the first sign of the
 new connection until its resync settles, and the rules are these:
 
-- `htmx:sseOpen` (the connection opened, `portal.js:556`) and the server's `open` event
-  (`portal.js:477`) do not set "Live" and do not hide the banner. The live mark keeps the word of
+- `htmx:sseOpen` (the connection opened, `portal.js:705`) and the server's `open` event
+  (`portal.js:626`) do not set "Live" and do not hide the banner. The live mark keeps the word of
   the loss ("Reconnecting") and the banner stays, so a reader never sees "Live" or an empty header
   before the page is true again. They do not move `lastRead` either (see "Data time").
 - On the server's `open` event that is not the first, the script keeps `primed` cleared (so
@@ -286,10 +291,10 @@ new connection until its resync settles, and the rules are these:
 - The resync settles in one of four ways. The fetch answered 200 and the regions are replaced:
   only then `setStream("live", "live")` runs, the live mark reads "Live" and the banner hides.
   The fetch answered 401: `setStream("signedout")` runs and the banner stays, reading "Signed
-  out" (the same 401 path as `portal.js:294-297`, which settles `refresh()` without an error and
+  out" (the same 401 path as `portal.js:443-446`, which settles `refresh()` without an error and
   must not be read as success). The fetch failed or answered another status than 200 or 401: the
   `catch` sets "Offline" and the banner stays. The page moved on while the fetch ran
-  (`portal.js:304-308`): the topics are marked dirty again and the banner stays until the next
+  (`portal.js:452-458`): the topics are marked dirty again and the banner stays until the next
   resync settles.
 - **A failed resync is tried again.** While the page is still `resyncing`, the next stream event of
   any kind (`open`, a topic snapshot, a heartbeat) marks every followed topic dirty again and
@@ -312,7 +317,7 @@ does not hide the banner.
 
 The panel holds one of three things: a node panel (the page render holds it for the address's
 `node` or `focus`, or the resting node), a YAML view, or an Events view. The YAML and Events views
-are fragments fetched into `#detail` by their links (`panel-body.html:27-28`); the address does
+are fragments fetched into `#detail` by their links (`panel-body.html:40`); the address does
 not hold them.
 
 **A node panel follows.** `#detail` carries `data-topics="<owner topic>"` (the value the owner
@@ -321,12 +326,14 @@ a node panel. `refresh()` then replaces `#detail` by id from the one fetch, as i
 other followed region, and `keepOpen` carries open `details` across. Focus is carried by `focusKey` and `refocus`, which
 today restore only an element with an `id` or a graph node (`portal.js` `focusKey`, `refocus`),
 and the panel links (Open page, Expand this group, YAML, Events, Logs) have no `id`
-(`templates/panel-body.html:26-32`). So this change gives each panel link a stable key,
+(`templates/panel-body.html:40`). So this change gives each panel link a stable key,
 `data-focus-key="panel-open"`, `"panel-expand"`, `"panel-yaml"`, `"panel-events"` and
 `"panel-logs"` (one panel on a page, so each is unique), and `focusKey` records
 `data-focus-key` beside the `id` and the graph node, and `refocus` finds the element with the
-same `data-focus-key`. The Clear selection pill (`partials.html`, `data-clear-selection`) takes
-the key `clear-<graph id>` for the same reason. A keyboard reader on the YAML link then keeps
+same `data-focus-key`. There are two Clear selection controls
+(`data-clear-selection`): the pill at the top of a node panel (`panel-body.html:4`, inside
+`#detail`) takes the key `panel-clear`, and the toolbar link of the graph (`partials.html:212`,
+inside `#graph`, which `refresh()` already replaces) takes `clear-<graph id>`, for the same reason. A keyboard reader on the YAML link then keeps
 focus through each refresh. The key is an attribute of the template, never text from the cluster. The replacement is the page render for the current address, which holds the selected
 node's panel because a click writes `node` to the address (E4) and the resting panel when no
 parameter is set (E3, E4).
@@ -368,7 +375,12 @@ readers do not announce as a change. The panel's refresh is silent, as the summa
 This rests on screen-reader behaviour that this change does not test (Unverified); the stale note
 is the one new text, and it is a short sentence inside the polite region, which is wanted.
 
-**Fallback if the spike shows the page render does not hold the panel.** If the node panel can
+**The spike shows the page render holds the panel,** so the fallback below is not built (see "Live
+checks", assumption 2). One difference to look at in the screenshots of task 4.7: the panel the page
+renders inside `#detail` has no `<div class="fragment">` wrapper, which the `/node` fragment has;
+`portal.css:420` gives `.fragment` only `min-width: 0`.
+
+**Fallback if the page render did not hold the panel.** If the node panel could
 differ from what the address renders, the node-panel fragment gets `data-panel-url` and the
 script re-fetches that URL into `#detail` instead of replacing from the page render. Same rules,
 same skip while a request is open, one more request per dirty refresh. The spec does not change.
@@ -390,7 +402,7 @@ here:
 | `templates/catalog.html`, `installed.html`, `message.html`, `platform.html` | the `reveal` class removed (SH-A5 removed the CSS; E5 lands last) | none |
 | `templates/object.html`, `events.html` | the fragment root's `data-view` and note | E3: the Events view uses `events-table` |
 | `static/portal.css` | `.region-banner`, `.rb-*`, `.detail-loading`, `.masthead::after`, `.conn-entry`, `time[data-relative]`, `html` `scroll-padding-top`, the `top` and `max-height` of `#detail` | E1: tokens |
-| `internal/ui/refresh_test.go`, `internal/ui/testdata/golden/` | the `reveal` class in the fixture string at `refresh_test.go:72`; goldens regenerated | none |
+| `internal/ui/refresh_test.go`, `internal/ui/testdata/golden/` | the `reveal` class in the fixture string at `refresh_test.go:67`; goldens regenerated | none |
 | `Taskfile.yml:90` | names added to the `-run` pattern | E0, E2, E3 add names too; a conflict resolves by keeping every name |
 
 Merge `main` into the branch first (`PROTOCOL.md`), re-run the goldens with `-update` and read
@@ -403,12 +415,12 @@ the diff.
 **Context**: `design/T3.4.md` section 3.8 left "where the cluster entry name comes from, and
 whether it needs a read" open, and asked for the effect on Principle V if it does.
 
-**Explored**: `api/v1alpha1/types.go:373-390` (the `Cluster` document has `Context` and
+**Explored**: `api/v1alpha1/types.go:396-409` (the `Cluster` document has `Context` and
 `ClusterEntry`, both absent in-cluster); `internal/api/handlers.go:116-134` (`getCluster` copies
 both from `s.cfg.Connection` and "reads nothing from the cluster and sends no review");
 `cmd/opm-portal/serve.go:218-232` (`configSource` fills `ClusterEntry` from
 `raw.Contexts[contextName].Cluster`, and names no server URL, user entry or credential);
-`internal/ui/ui.go:213-228` (the header reads the document and drops the entry).
+`internal/ui/ui.go:213-227` (the header reads the document and drops the entry).
 
 **Options considered**:
 1. Show the entry the document already carries. No read, no API change, no new data on the wire.
@@ -473,20 +485,20 @@ not depend on a time zone.
 
 ## Assumptions
 
-These are read from source and not run. Section 1 runs them in the browser harness
-(`cmd/opm-portal/browser_test.go`, `serveExpiringPage` style fake streams) and writes the answers
-under "Live checks" below before any code of sections 2 to 4.
+These were read from source. Section 1 ran them in the browser harness
+(`cmd/opm-portal/browser_test.go`) and wrote the answers under "Live checks" below before any code
+of sections 2 to 4. All six held.
 
 1. **A refresh leaves `#detail` alone.** After a region refresh, a YAML or Events view in `#detail`
    is unchanged, and a node panel is also unchanged (stale). Traced: `#detail` has no
-   `data-follow` (`owner.html:209`) and `refresh()` replaces only followed regions
-   (`portal.js:276-313`). This is the question `design/T2.3.md` section 18 left open.
+   `data-follow` (`owner.html:207`) and `refresh()` replaces only followed regions
+   (`portal.js:425-461`). This is the question `design/T2.3.md` section 18 left open.
 2. **A replaced `#detail` holds.** Replacing the `aside` from the page render keeps the focus that
    `refocus` restores, keeps a `details` open state, and the graph's `markSelected` still finds its
    node. An htmx request into `#detail` that started before the replacement is the unsafe case.
 3. **A reconnect with a new stream id re-renders nothing today.** After `htmx:sseOpen` the server
    either resumes (backlog events reach `changed()`) or starts a new stream (the first snapshot of
-   each topic is dropped as `primed`). Traced for the second case at `portal.js:507`.
+   each topic is dropped as `primed`). Traced for the second case at `portal.js:654-657`.
 4. **Every htmx request ends with `htmx:afterRequest` carrying its `xhr`,** including a boosted
    navigation, an `htmx.ajax` into `#detail`, a request aborted, and a request replaced by a newer
    one on the same element through `hx-sync`. Read from the vendored htmx 2.0.11
@@ -555,10 +567,80 @@ banner when the element is missing).
    heartbeat. Needs the interval on the page (a `meta` or a field in the `open` event). Not
    scheduled in track 1; it can become a later change on the owner's ask.
 3. **"No longer live" on a closed region.** `sse:closed` adds a class and a `title`
-   (`portal.js:534-537`); a sighted keyboard or touch reader sees nothing. Not scheduled in track 1; it can become a later
+   (`portal.js:676-688`); a sighted keyboard or touch reader sees nothing. Not scheduled in track 1; it can become a later
    change on the owner's ask.
 
 ## Live checks
 
-To be written by section 1 (the spike): for each of assumptions 1 to 6, the browser, the page, the
-steps and what was seen, with the version of Playwright the image pins.
+Section 1 (task T4.59), 2026-10-11, on `main` at `360382a` merged into the branch. Browsers:
+Chromium, Firefox and WebKit of the Playwright image `mcr.microsoft.com/playwright/python:v1.63.0-noble`
+(the digest pinned at `cmd/opm-portal/browser_test.go:35`), driven by a scratch script and a scratch
+Go test (neither committed) over the real UI and the real read API on the F1 capture. The scratch
+server proxied the stream so that a test could cut it, refuse reconnects and drop `Last-Event-ID`,
+and it changed the Deployment `default/podinfo-podinfo` through the fake dynamic client, so every
+stream event below came from the real broker. Page: `/instances/default/podinfo?tab=graph`, with
+the Deployment node selected (the address then carries `node=obj:apps/Deployment/default/podinfo-podinfo`).
+The three engines gave the same result in every row unless a row says otherwise.
+
+**1. A refresh leaves `#detail` alone: holds.**
+Steps: select the Deployment node, change the object (replicas 2 to 11, ready 1), wait for the
+refresh. Seen: one page fetch; `#graph` was replaced; `#detail` was the same element, with the same
+content apart from htmx's transient `htmx-added` class. The panel read "Healthy / Deployment is
+available / Replicas: 2" while a fresh render of the same address read "Progressing / Replicas:
+2/11": the panel contradicted the graph beside it, as the proposal says. A YAML view and an Events
+view (which holds one `time` element) stayed the same element with the same content after the same
+change (the YAML view's HTML differed in one engine run from the transient class only). Conclusion:
+section 4 builds as designed. `#detail` carries `aria-live="polite"` and no `data-follow`.
+
+**2. A replaced `#detail` holds, with two findings: holds.**
+Steps: set `data-follow` on `#detail` by hand and change the object, so the existing `refresh()`
+replaces the `aside` by id from the page render. Seen: the replacement equals a fresh render of the
+address; the selected node stays selected (`aria-current`); the panel holds no `details`, so there is
+no open state to carry. Focus on the panel's YAML link is lost to `body`, in all three engines: the
+panel links have no `id`, so the `data-focus-key` extension of section 4 is needed as designed. An
+htmx request into `#detail` that started 0.5 s before the replacement ended with its
+`htmx:afterRequest` but its response never appeared in the page (the panel showed the node panel,
+not the YAML): the response is lost, so `refresh()` must skip `#detail` while a request into it is
+open, as designed. The page render holds the panel for the address, so the `data-panel-url` fallback
+is not built. The page render's panel has no `<div class="fragment">` wrapper (see the note under
+"The details panel follows the page").
+
+**3. A reconnect: holds, and shows both cases.**
+Steps: cut the stream, refuse reconnects for 1.5 s while the object changes, then allow them. The
+live mark read "Reconnecting" during the loss. (a) The server resumed (`Last-Event-ID` sent): the
+page saw `htmx:sseError`, `htmx:sseOpen`, `sse:open` (no data, the connection event), `htmx:sseOpen`
+again, `sse:open` with the stream id, then `sse:upsert` of the instance topic: the backlog reached
+`changed()` and one page fetch followed. (b) The stream was new (`Last-Event-ID` dropped): the page
+saw the same opens, then two `sse:snapshot` events (instance and events topics), and made no fetch:
+the snapshots are dropped as the first of their topic (`primed`), so the regions stayed as they were
+while the live mark read "Live". In both cases `htmx:sseOpen` fires twice per reconnect and the mark
+read "Live" before any fetch. The resync of "Reconnecting" is needed as designed, and both
+`htmx:sseOpen` events and the data-less `sse:open` must leave the mark alone after a loss.
+
+**4. Every request ends with exactly one `htmx:afterRequest` carrying its `xhr`: holds.**
+Steps: a boosted navigation, `htmx.ajax` into `#detail`, an answer of 500, a network failure
+(`route.abort`), `htmx:abort` triggered in flight, two clicks on one element with
+`hx-sync="this:replace"`, and two overlapping `htmx.ajax` calls into `#detail`. Seen: each `xhr` got
+one `beforeRequest` and one `afterRequest`. An answer of 500 gave no `responseError` (the page's
+`responseHandling` swaps it); a network failure gave `sendError` after `afterRequest`; `htmx:abort`
+carries no `xhr` (a separate event with an empty request); the aborted request ended with
+`afterRequest`, and with `sendAbort` after it in Chromium and Firefox but not in WebKit. The registry
+therefore keys on `afterRequest` alone, and `sendAbort` is not an end event.
+
+**5. `sse:heartbeat` reaches the page when the hook lists it: holds.**
+Steps: wait 17.5 s on an open stream, first with the base hook list, then with `sse:heartbeat`
+added to `#stream-events` (scratch edit of `layout.html`, restored). Seen: no heartbeat event
+without the name; one with it, in all three engines, inside the interval.
+
+**6. A script can set a custom property on `html` under the page policy: holds.**
+Steps: from the page, `document.documentElement.style.setProperty("--masthead-h", "88px")`,
+`style.cssText` and `setAttribute("style", ...)`, with a `securitypolicyviolation` listener, and a
+`ResizeObserver` on `#masthead`. Seen: `setProperty` took effect and raised no violation;
+`setAttribute("style", ...)` was blocked (`style-src-attr`), as the policy says; `ResizeObserver`
+exists and fired. `contentRect` height was 40 px against a border box of 68 px, so the script
+reads the border box. The CSS side (`scroll-padding-top` and the `#detail` offset following the
+property) is not run: it needs the section 3 CSS, and task 3.8 tests it.
+
+**What the spike did not run.** Screen-reader behaviour of the nested `aria-live="off"` and of a
+replaced live region; the 2.4.11 case itself (section 3); a half-open connection. The scratch
+script and server are in the session scratchpad of task T4.59 and were not committed.

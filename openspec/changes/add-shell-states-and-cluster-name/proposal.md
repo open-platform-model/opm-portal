@@ -2,7 +2,8 @@
 
 The portal's pages say "live" and then go quiet when something is wrong. Four gaps remain after
 the canvas alignment (`align-shell-and-tokens`, `align-platform-installed-catalog`,
-`align-owner-pages`, `align-graph`, all merged as plans and not yet built):
+`align-owner-pages`, `align-graph` and `fix-contrast-and-add-phone-check`, all merged and built on
+`main`):
 
 - A relative time such as "4m ago" is written once at render and freezes. An operator who leaves a
   page open reads a time that was true when the page loaded.
@@ -58,9 +59,9 @@ Section 1 is a spike. The facts the stale panel, the banner and the header's hei
 read from source and not yet run in a browser (design.md, "Assumptions"). The spike runs them and writes the finding
 into design.md before any code.
 
-**Builds on changes that are merged as plans and not yet implemented.** This proposal is written
-against their designed behaviour. Where it relies on one, it names the file the change is
-expected to touch first:
+**Builds on changes now merged and built on `main`** (PRs 43, 44, 47, 48 and 49). The table names
+the files each touched and what this change relies on; section 1 re-read them and design.md carries
+the current line numbers:
 
 | Change | Expected to touch first | What this change relies on |
 | --- | --- | --- |
