@@ -81,6 +81,152 @@
     }).observe(sentinel);
   }
 
+  // ---- Relative times ----
+  // The server writes each time as "4m ago" and nothing updates it, so the
+  // script counts: every 30 seconds, and once when the tab shows again, it
+  // rewrites the text of each time[data-relative] from its datetime. The
+  // table is relative() in internal/ui/view.go; internal/ui/testdata/
+  // relative-time.json holds both copies to the same rows. Ages run against
+  // the server's clock, read once from the page's meta (the browser clock
+  // may be minutes off, and a clock offset does not change in a session).
+  // Only the text node is written, and only when it differs, so a tick
+  // that changes nothing touches nothing, and tabular numerals keep the
+  // width still. A page without the meta, or an element without a
+  // parseable datetime, is left as the server wrote it.
+  var clockSkew = null;
+  (function () {
+    var meta = document.querySelector('meta[name="opm-portal-now"]');
+    var served = meta ? Date.parse(meta.getAttribute("content") || "") : NaN;
+    if (!isNaN(served)) {
+      clockSkew = served - Date.now();
+    }
+  })();
+
+  function relativeText(ageMs) {
+    if (ageMs < 0) {
+      return "just now";
+    }
+    var s = Math.floor(ageMs / 1000);
+    if (s < 60) {
+      return s + "s ago";
+    }
+    var m = Math.floor(s / 60);
+    if (m < 60) {
+      return m + "m ago";
+    }
+    var h = Math.floor(s / 3600);
+    if (h < 48) {
+      return h + "h ago";
+    }
+    return Math.floor(s / 86400) + "d ago";
+  }
+
+  function tickTimes() {
+    if (clockSkew === null) {
+      return;
+    }
+    var now = Date.now() + clockSkew;
+    var els = document.querySelectorAll("time[data-relative]");
+    for (var i = 0; i < els.length; i++) {
+      var at = Date.parse(els[i].getAttribute("datetime") || "");
+      var node = els[i].firstChild;
+      if (isNaN(at) || !node || node.nodeType !== 3) {
+        continue;
+      }
+      var text = relativeText(now - at);
+      if (node.nodeValue !== text) {
+        node.nodeValue = text;
+      }
+    }
+  }
+  window.setInterval(tickTimes, 30000);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+      tickTimes();
+    }
+  });
+
+  // ---- Loading ----
+  // htmx requests are the only ones counted (the stream's refresh, a log
+  // or topic POST use fetch). The registry is a Map keyed by the request,
+  // not a counter: one request may fire more than one end event (an
+  // error answer fires responseError, then afterRequest), and a second
+  // delete of the same key does nothing. A request that runs for a second
+  // sets body.is-loading (the bar on the header); while one of them
+  // targets #detail, that panel is aria-busy and says "Loading..." in
+  // its first line. The bar ends when the last request has ended. Only
+  // classes, attributes and text are set, never style.
+  var openRequests = new Map();
+  var loadingTimer = 0;
+  var loadingShown = false;
+
+  function paintLoading() {
+    body.classList.toggle("is-loading", loadingShown);
+    var detail = document.getElementById("detail");
+    if (!detail) {
+      return;
+    }
+    var busy = false;
+    if (loadingShown) {
+      openRequests.forEach(function (target) {
+        if (target === detail || (target && target.id === "detail")) {
+          busy = true;
+        }
+      });
+    }
+    var line = detail.querySelector(":scope > .detail-loading");
+    if (busy) {
+      detail.setAttribute("aria-busy", "true");
+      if (!line) {
+        line = document.createElement("p");
+        line.className = "detail-loading";
+        line.textContent = "Loading...";
+        detail.insertBefore(line, detail.firstChild);
+      }
+    } else {
+      detail.removeAttribute("aria-busy");
+      if (line) {
+        line.remove();
+      }
+    }
+  }
+
+  function requestStarted(evt) {
+    var xhr = evt.detail && evt.detail.xhr;
+    if (!xhr) {
+      return;
+    }
+    openRequests.set(xhr, evt.detail.target || null);
+    if (!loadingTimer && !loadingShown) {
+      loadingTimer = window.setTimeout(function () {
+        loadingTimer = 0;
+        loadingShown = openRequests.size > 0;
+        paintLoading();
+      }, 1000);
+    } else if (loadingShown) {
+      paintLoading();
+    }
+  }
+
+  function requestEnded(evt) {
+    var xhr = evt.detail && evt.detail.xhr;
+    if (!xhr) {
+      return;
+    }
+    openRequests.delete(xhr);
+    if (openRequests.size === 0) {
+      window.clearTimeout(loadingTimer);
+      loadingTimer = 0;
+      loadingShown = false;
+    }
+    paintLoading();
+  }
+
+  document.addEventListener("htmx:beforeRequest", requestStarted);
+  ["htmx:afterRequest", "htmx:sendError", "htmx:responseError", "htmx:timeout"].forEach(function (name) {
+    document.addEventListener(name, requestEnded);
+  });
+
   // ---- Remembered filters ----
   // A boosted link to a remembered list view whose URL carries none of the
   // view's filters is requested, and pushed, with the filters the browser

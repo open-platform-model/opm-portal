@@ -1,6 +1,6 @@
 <main id="main" tabindex="-1" data-topics="package:pkg/podinfo events:package:pkg/podinfo" data-canonical="/packages/pkg/podinfo">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=package">Installed</a> <span aria-hidden="true">/</span> <span class="mono">pkg</span> <span aria-hidden="true">/</span> <span>podinfo</span></nav>
-<div class="summary reveal">
+<div class="summary">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="package:pkg/podinfo">
     <p class="kicker">Package</p>
     <h1>podinfo</h1>
@@ -21,7 +21,7 @@
   </section>
   
 <section class="state-block hue-degraded" id="applied-card" aria-label="Applied status" data-follow="package:pkg/podinfo events:package:pkg/podinfo">
-  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
   <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10v9M18 25v.5"/></svg><span class="sb-word">Failed, retrying</span></div>
   <p class="sb-summary">Failed on the last 3 attempts, retrying every 1 min</p>
   <p class="sb-note">The package&#39;s source is not ready or does not exist.</p><p class="sb-note says">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p><p class="sb-note reconciling">Reconciling: Progressing, since 6m ago</p>
@@ -35,15 +35,15 @@
     <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
 <ol class="timeline">
   <li class="tl-item">
-    <div class="tl-head"><span class="tl-seq">#3</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <div class="tl-head"><span class="tl-seq">#3</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
     <p class="tl-meta mono">reconcile · 0 objects</p>
   </li>
   <li class="tl-item">
-    <div class="tl-head"><span class="tl-seq">#2</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+    <div class="tl-head"><span class="tl-seq">#2</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
     <p class="tl-meta mono">reconcile · 0 objects</p>
   </li>
   <li class="tl-item">
-    <div class="tl-head"><span class="tl-seq">#1</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
     <p class="tl-meta mono">reconcile · 0 objects</p>
   </li>
 </ol>
@@ -63,7 +63,7 @@
 </div>
 <nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph">Graph</a><a href="/packages/pkg/podinfo?tab=resources" aria-current="page">Resources <span class="tab-n" id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span></a><a href="/packages/pkg/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span></a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
 <div class="owner-row">
-<section class="panel owner-panel owner-main reveal" id="components" aria-labelledby="components-h" data-follow="package:pkg/podinfo">
+<section class="panel owner-panel owner-main" id="components" aria-labelledby="components-h" data-follow="package:pkg/podinfo">
   <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
   
   <div class="table-wrap"><table class="table rows resources-table">
@@ -81,7 +81,7 @@
   </table></div>
   <p class="muted resources-empty">Nothing applied yet. The package has never fetched its source.</p>
 </section>
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo">
+<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo">
 <p class="kicker">Package</p>
 <h2 class="frag-h mono">pkg/<wbr>podinfo</h2>
 <div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-unknown"><span class="axis">Health axis</span>Unknown</span></span></div>
@@ -99,16 +99,16 @@
 <p class="panel-links"><a class="btn" href="/packages/pkg/podinfo?tab=events">Events</a></p>
 </aside>
 </div>
-<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="package:pkg/podinfo">
+<details class="panel panel-wide conditions-fold" id="conditions" data-follow="package:pkg/podinfo">
   <summary><h2 id="conditions-h">Conditions</h2></summary>
 <ol class="conditions">
   <li class="condition tone-progressing">
-    <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
     <p class="cond-message">Reconciliation in progress</p>
     <p class="cond-meaning">The operator is working on the latest change.</p>
   </li>
   <li class="condition tone-abnormal">
-    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
     <p class="cond-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
     <p class="cond-meaning">The package&#39;s source is not ready or does not exist.</p><p class="cond-next"><span class="label">Next step</span> Check the source object the package names; the operator retries.</p>
   </li>

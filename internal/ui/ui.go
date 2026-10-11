@@ -129,6 +129,7 @@ func (h *Handler) render(w http.ResponseWriter, r *http.Request, status int, nam
 	p.StreamURL = h.cfg.APIBase + "/stream"
 	p.Header = h.header(r)
 	p.FilterSpec = filterSpec()
+	p.Now = h.cfg.Now().UTC().Format(time.RFC3339)
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, "layout", p); err != nil {
 		h.log.Error("rendering a page", "page", name, "error", err)
@@ -184,6 +185,10 @@ type page struct {
 	// FilterSpec is the remembered views' filter parameters, for the page
 	// scripts.
 	FilterSpec string
+	// Now is the handler's clock when the page was rendered, in RFC 3339;
+	// the page script measures its browser's clock against it, so a relative
+	// time reads the same age whatever the browser clock says.
+	Now string
 	// Topics are the stream topics the page follows.
 	Topics []string
 	// Canonical is the page's own address; after a launch the page script

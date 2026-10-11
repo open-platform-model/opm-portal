@@ -104,7 +104,7 @@
 {{- end}}
 
 {{define "time" -}}
-{{with stamp .}}<time datetime="{{.ISO}}" title="{{.Absolute}}">{{.Relative}}</time>{{else}}<span class="muted">never</span>{{end}}
+{{with stamp .}}<time datetime="{{.ISO}}" title="{{.Absolute}}" data-relative aria-live="off">{{.Relative}}</time>{{else}}<span class="muted">never</span>{{end}}
 {{- end}}
 
 {{define "lock" -}}

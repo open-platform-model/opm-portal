@@ -576,3 +576,71 @@ func TestPortalCSSDrawsADismissableHoverableTip(t *testing.T) {
 		t.Errorf("the check did not name the late show rule, the missing bridge and the missing trigger reset: %v", bad)
 	}
 }
+
+// loadingBarProblems names what is wrong with the loading bar and its line
+// in css: the bar takes no pointer and draws in the header's accent token,
+// moves only where motion is welcome, is a system color in forced colors,
+// and the panel's line and the ticking times are drawn as designed.
+func loadingBarProblems(css string) []string {
+	rules := parseCSS(css)
+	out := loadingBarRuleProblems(rules)
+	const guard = "@media (prefers-reduced-motion: no-preference)"
+	if i := strings.Index(css, guard); i < 0 {
+		out = append(out, "no reduced-motion guard for the loading bar")
+	} else if j := strings.Index(css[i:], "}"); j < 0 || !strings.Contains(css[i:i+j], "animation: loading-bar") {
+		out = append(out, "the loading bar's animation is not inside the no-preference guard")
+	}
+	forced := false
+	for _, r := range forcedColorsRules(css) {
+		if strings.Contains(r.selector, "body.is-loading .masthead::after") && r.decls["background"] == "Highlight" {
+			forced = true
+		}
+	}
+	if !forced {
+		out = append(out, "the loading bar is not Highlight in forced colors")
+	}
+	if line, ok := ruleFor(rules, ".detail-loading"); !ok || line["color"] != "var(--muted)" {
+		out = append(out, "the panel's loading line is not drawn in --muted")
+	}
+	if tm, ok := ruleFor(rules, "time[data-relative]"); !ok || tm["font-variant-numeric"] != "tabular-nums" {
+		out = append(out, "a ticking time does not take tabular numerals")
+	}
+	return out
+}
+
+// loadingBarRuleProblems checks the bar's own rule: it exists, takes no
+// pointer, is drawn in a token and does not move outside the guard.
+func loadingBarRuleProblems(rules []cssRuleOf) []string {
+	bar, ok := ruleFor(rules, "body.is-loading .masthead::after")
+	if !ok {
+		return []string{"no rule for body.is-loading .masthead::after"}
+	}
+	var out []string
+	if bar["pointer-events"] != "none" {
+		out = append(out, "the loading bar takes the pointer")
+	}
+	if bar["background"] != "var(--hdr-accent)" {
+		out = append(out, "the loading bar is not drawn in --hdr-accent: "+bar["background"])
+	}
+	if _, moves := bar["animation"]; moves {
+		out = append(out, "the loading bar moves outside the no-preference guard")
+	}
+	return out
+}
+
+func TestPortalCSSDrawsTheLoadingBar(t *testing.T) {
+	for _, line := range loadingBarProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	// The check can fail.
+	for name, css := range map[string]string{
+		"a bar that takes the pointer":  ".detail-loading { color: var(--muted); } body.is-loading .masthead::after { background: var(--hdr-accent); }",
+		"a bar that always moves":       "body.is-loading .masthead::after { background: var(--hdr-accent); pointer-events: none; animation: loading-bar 1s; }",
+		"a bar in a raw color":          "body.is-loading .masthead::after { background: #e3b45c; pointer-events: none; }",
+		"a panel line in the ink token": ".detail-loading { color: var(--ink); }",
+	} {
+		if got := loadingBarProblems(css); len(got) < 2 {
+			t.Errorf("the check did not name %s: %v", name, got)
+		}
+	}
+}

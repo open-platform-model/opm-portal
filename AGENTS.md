@@ -299,6 +299,13 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   panel, the Resources table or the selection code of the page script.
   `TestBrowserPhone` opens every F1 page at 360 px wide and fails on a scroll width above 360; run it
   after any change to layout CSS.
+  `TestBrowserLoading` holds requests the way a slow cluster would, against Playwright's clock: no
+  bar before a second, the header bar and the panel's "Loading..." after it, the bar until the last
+  of two requests ends, an end through an error or an abort, and nothing for the stream's
+  background refresh; its second case sets the browser clock ten minutes off the page's and checks
+  that relative times count by the rows of `internal/ui/testdata/relative-time.json` without a layout
+  shift. Run it after any change to the page script's loading or tick code, or to `relative` in
+  `internal/ui/view.go`.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,

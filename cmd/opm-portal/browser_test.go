@@ -340,6 +340,46 @@ func TestBrowserFilters(t *testing.T) {
 	}
 }
 
+// relativeTimeTable is the table the page script's tick and the UI's
+// relative both follow, which package main cannot import from internal/ui.
+const relativeTimeTable = "../../internal/ui/testdata/relative-time.json"
+
+// TestBrowserLoading drives the loading bar and the ticking times in real
+// browsers (task test:browser). loading.py holds requests the way a slow
+// cluster would and checks the bar, the details panel's busy state and the
+// line it carries, against Playwright's clock: nothing before a second, the
+// bar and "Loading..." after it, the bar until the last of two requests ends,
+// an end through an error or an abort, and nothing for a background refresh.
+// time.py sets a browser clock ten minutes off the page's, then checks the
+// script's text against the rows of relative-time.json, that a tick writes
+// only the text of a time that changed, and that a counting time keeps its
+// width to a glyph.
+func TestBrowserLoading(t *testing.T) {
+	loading := browserScript(t, "loading.py")
+	timing := browserScript(t, "time.py")
+	table, err := os.ReadFile(relativeTimeTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser+"/loading", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, loading, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("a slow request did not show as designed: %v", err)
+			}
+		})
+		t.Run(browser+"/time", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			url := serveSiteAt(t, apitest.F1(t), func() time.Time { return apitest.Now })
+			if err := playwright(ctx, t, timing, nil, browser, url, apitest.Now.UTC().Format(time.RFC3339), strings.TrimSpace(string(table))); err != nil {
+				t.Fatalf("a relative time did not count as designed: %v", err)
+			}
+		})
+	}
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {
@@ -350,13 +390,20 @@ func serveF1Site(t *testing.T) string {
 // serveSite is serveF1Site over objs.
 func serveSite(t *testing.T, objs []*unstructured.Unstructured) string {
 	t.Helper()
+	return serveSiteAt(t, objs, nil)
+}
+
+// serveSiteAt is serveSite with the clock the pages read relative times
+// against; a nil clock is the wall clock.
+func serveSiteAt(t *testing.T, objs []*unstructured.Unstructured, now func() time.Time) string {
+	t.Helper()
 	var lc net.ListenConfig
 	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
 	srv := apitest.New(t, objs, apitest.AllowAll)
-	pages, err := ui.New(ui.Config{API: srv})
+	pages, err := ui.New(ui.Config{API: srv, Now: now})
 	if err != nil {
 		t.Fatal(err)
 	}

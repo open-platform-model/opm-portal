@@ -64,7 +64,7 @@ func TestALatePodGetsALogPane(t *testing.T) {
 		t.Errorf("Logs link %q names no option in the Pod / container select", m[1])
 	}
 
-	got := strings.TrimSpace(collapse(`<section class="panel panel-wide reveal" `+logs+"</section>")) + "\n"
+	got := strings.TrimSpace(collapse(`<section class="panel panel-wide" `+logs+"</section>")) + "\n"
 	golden := filepath.Join("testdata", "golden", "logs-podinfo-late-pod.html")
 	if *update {
 		if err := os.WriteFile(golden, []byte(got), 0o644); err != nil {

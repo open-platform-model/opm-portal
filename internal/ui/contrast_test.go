@@ -86,6 +86,10 @@ func buildContrastPairs() []contrastPair {
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
+		// The loading bar is drawn on the foot of the header (1.4.11).
+		{"loading bar on the header", "--hdr-accent", "--hdr-bg", boundaryFloor, ""},
+		// The details panel's loading line is drawn in the muted ink on the card.
+		{"loading line on the panel", "--muted", "--surface", textFloor, ""},
 		// The graph's own pairs (align-graph): the frame's header and the
 		// Collapse pill, the ghost's text and the legend on the pane, the
 		// hover card's lines on its dark fill, the node name on the tints.
