@@ -330,8 +330,10 @@ func TestARefreshKeepsTheTabAndTheFocus(t *testing.T) {
 		!strings.Contains(focused, `class="node kind-object health-degraded dim"`) && !strings.Contains(focused, " dim\"") {
 		t.Error("the focused render does not mark the node or dim the rest")
 	}
-	if !strings.Contains(focused, `>Clear selection</a>`) {
-		t.Error("the focused render offers no Clear selection")
+	// The shown link ends its tag right after the focus key; the hidden one
+	// the toolbar renders with no node focused carries a hidden attribute.
+	if !regexp.MustCompile(`data-clear-selection data-focus-key="clear-[^"]+">Clear selection</a>`).MatchString(focused) {
+		t.Error("the focused render offers no visible Clear selection")
 	}
 }
 
