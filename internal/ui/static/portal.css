@@ -353,7 +353,7 @@ main > .owner-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-i
 .owner-row > .owner-main { flex: 999 1 900px; min-width: 0; }
 .owner-row > .detail { flex: 1 1 420px; min-width: 0; }
 /* An owner tab panel has no inner padding; its sections pad themselves (platform-28). */
-.owner-panel { padding: 16px 0; }
+.panel.owner-panel { padding: 16px 0; }
 .owner-panel > * { margin-inline: 20px; }
 main > .panel-7 { grid-column: span 7; }
 main > .panel-5 { grid-column: span 5; }
@@ -699,7 +699,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 
 .resources-table { table-layout: auto; }
 .resources-table tbody tr { position: relative; }
-.resources-table th[scope="row"] { font-weight: 600; font-size: 0.95rem; }
+.resources-table th[scope="row"] { font-weight: 600; font-size: 0.95rem; min-width: 24ch; }
 .row-link { text-decoration: none; color: inherit; font-weight: 600; }
 .row-link::after { content: ""; position: absolute; inset: 0; }
 .row-link:hover { text-decoration: underline; }
@@ -712,7 +712,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .resources-table tr.row-child th[scope="row"] { padding-left: 30px; font-weight: 400; }
 .resources-table tr.member th[scope="row"] { padding-left: 30px; }
 .resources-table tr.member.row-child th[scope="row"] { padding-left: 48px; }
-.resources-table .res-msg { display: block; max-width: 56ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resources-table .res-msg { display: block; max-width: 44ch; overflow-wrap: anywhere; }
 .resources-table .res-reason { margin-right: 6px; }
 .resources-table .group-head td { padding: 0; }
 .resources-table .group-head summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 10px 12px; min-height: 40px; background: var(--surface-2); }
