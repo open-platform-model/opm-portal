@@ -361,9 +361,10 @@ main > .graph-row { grid-column: 1 / -1; }
 main > .owner-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 20px; }
 .owner-row > .owner-main { flex: 999 1 900px; min-width: 0; }
 .owner-row > .detail { flex: 1 1 420px; min-width: 0; }
-/* An owner tab panel has no inner padding; its sections pad themselves (platform-28). */
+/* An owner tab panel has no inner padding; its sections pad themselves (platform-28).
+   The inset rule has two classes so it beats a section's own `margin` (.note, .yaml, .log-hint). */
 .panel.owner-panel { padding: 16px 0; }
-.owner-panel > * { margin-inline: 20px; }
+.panel.owner-panel > * { margin-inline: 20px; }
 main > .panel-7 { grid-column: span 7; }
 main > .panel-5 { grid-column: span 5; }
 main > .panel-8 { grid-column: span 8; }

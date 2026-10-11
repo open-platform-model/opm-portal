@@ -18,6 +18,9 @@ one line, exiting 1 on the first failure:
    Clear filters brings the whole feed back, and a Resource cell is a link that narrows the table
    to that one resource.
 
+6. The Events, Logs and YAML panels inset every section by the same 20 px: no direct child of the
+   tab panel (a note, the form, the table, a log or YAML pane) touches the panel's left or right edge.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -114,7 +117,7 @@ def run(p, engine, base):
         panel_is(page, DEP)
         if not check(engine, "focus=" in page.url, f"a click on the row opened {page.url} with the panel filled"):
             return False
-        return events_tab(page, engine, base)
+        return events_tab(page, engine, base) and panel_insets(page, engine, base)
     except Exception:
         print(f"{engine}: FAIL at {page.url}")  # the address shows which step stopped
         shoot(page)
@@ -147,6 +150,28 @@ def events_tab(page, engine, base):
     if not check(engine, names == {name} and rows.count() < total,
                  f"a resource link narrowed the table to {name}: {sorted(names)}, {rows.count()} of {total} rows"):
         return False
+    return True
+
+
+INSETS = """() => {
+  const panel = document.querySelector('.panel.owner-panel');
+  const p = panel.getBoundingClientRect();
+  return [...panel.children].filter(c => !c.classList.contains('vh') && c.getBoundingClientRect().height > 0)
+    .map(c => { const r = c.getBoundingClientRect();
+      return [c.tagName.toLowerCase() + '.' + c.className, Math.round(r.left - p.left), Math.round(p.right - r.right)]; });
+}"""
+
+
+def panel_insets(page, engine, base):
+    """6. Every section of the Events, Logs and YAML panels sits 20 px in from each edge."""
+    for tab in ("events", "logs", "yaml"):
+        page.goto(base + PODINFO + "?tab=" + tab)
+        page.wait_for_selector(".panel.owner-panel")
+        sections = page.evaluate(INSETS)
+        bad = [s for s in sections if s[1] < 19 or s[2] < 19]
+        if not check(engine, sections and not bad,
+                     f"{tab}: {len(sections)} sections inset by at least 19 px each side; touching the edge: {bad}"):
+            return False
     return True
 
 
