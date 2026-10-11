@@ -249,10 +249,15 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   so it stays reachable. At phone width (`tr` is a block card) the same overlay covers the card.
 - **Table geometry** (installed-08): from 761 px up, `table.installed` uses
   `table-layout:fixed; min-width:940px` inside `.table-wrap` (horizontal scroll). A `<colgroup>`
-  sets Kind 130 px, Applied 150 px, Health 150 px, Objects 80 px and Owner 90 px, and Name and
-  Module or source share the rest about 1.2 : 2. Cells pad 14 px 20 px. Names do not break at
-  hyphens (`white-space:nowrap`, ellipsis, full name in `title`). The phone card layout is
-  untouched.
+  sets Kind 130 px, Applied 150 px, Health 150 px, Objects 80 px and Owner 90 px, plus 16 px
+  between columns (cells pad 8 px each side and 20 px at the table's edges), and Name takes 14 %
+  with Module or source taking the rest: `table-layout:fixed` cannot express the canvas's
+  1.2 : 2 ratio, so the Name column is a percentage. Names do not break at hyphens
+  (`white-space:nowrap`, ellipsis, full name in `title`). The phone card layout is untouched.
+  Between 761 and 1039 px the `web-ui` requirement "Every F1 page holds its width at a phone
+  viewport" decides: the rows stay a table, not cards, and the table scrolls sideways inside its
+  own `.table-wrap` while the page never scrolls sideways (`TestBrowserFilters` measures the page
+  at 900 px). Only below 761 px are the rows cards.
 - **Kind chip icons** (installed-09): the template partials `icon-instance` (hexagon) and
   `icon-package` (box) are inline `aria-hidden` SVGs with the canvas paths, sized by
   `.kind svg`. They are used in every kind chip on the three pages: Installed, Platform
@@ -280,9 +285,9 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   placed box would be clipped on the last rows or add a scrollbar; the canvas has the same flaw
   (`Instances.dc.html:105`), so this does not copy it. From the viewport width where the 940 px
   table fits without scrolling, `.table-wrap` on Installed overflows visibly and the box opens
-  below the badge, aligned to its end near the right edge. Below that width, where the wrap must
-  scroll and the rows are cards, the box opens in the row's flow (`position: static`), pushing the
-  row's content down, so it is never clipped. No script places it. The
+  below the badge, aligned to its end near the right edge. Below that width (the table scrolls inside its wrap from 761 to 1039 px, and from 760 px
+  down the rows are cards), the box opens in the row's flow (`position: static`, at most 300 px
+  wide), pushing the row's content down, so it is never clipped. No script places it. The
   tooltip is composed in `view.go` from `ProviderClaim`: "Registration default.x is accepted and
   active.", "... is refused: <Reason>.", "... is pending: <Reason>.", "... is accepted, removal
   blocked: <Reason>.", "... is accepted and not active.", or "Holds a registration whose standing
