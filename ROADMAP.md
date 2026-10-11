@@ -132,8 +132,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      (a visible absolute time touches the state block and the history table, which other changes
      own); a stall watchdog for a half-open connection needs the heartbeat interval on the page;
      and a closed log region says "no longer live" only to a pointer reader (`sse:closed` adds a
-     class and a `title`). A header with two 90 character names is about 305 px tall at 360 px, an
-     owner decision to cap or accept.
+     class and a `title`).
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **What `align-owner-pages` uncovered, none blocking:**

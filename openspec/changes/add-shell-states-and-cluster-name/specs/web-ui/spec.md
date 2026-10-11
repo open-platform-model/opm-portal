@@ -38,7 +38,9 @@ portal:D17:R1.
 
 - **WHEN** the context and the cluster entry are each 90 characters with no space, on a 360 px
   wide screen
-- **THEN** both names wrap inside the header and the page does not scroll sideways
+- **THEN** each name is cut to one line with an ellipsis inside the pill, the full values are in
+  the pill's tip and in its text, the header is as tall as with short names (within 2 px), with
+  and without the banner, and the page does not scroll sideways
 
 #### Scenario: Version not read
 
@@ -290,7 +292,7 @@ again.
 ### Requirement: The sticky header never covers a focused element
 
 The page SHALL scroll a focused element or the target of a fragment link clear of the sticky
-header: `html` SHALL carry a `scroll-padding-top` equal to the header's height, raised while the
+header: `html` SHALL carry a `scroll-padding-top` at least the header's height, raised while the
 banner shows and lowered after it goes, and the sticky details panel SHALL take its offset from
 the same height.
 

@@ -43,10 +43,11 @@ not here: `align-shell-and-tokens` owns it.
   the banner goes; until that fetch succeeds the live mark keeps the word of the loss, and the
   banner keeps the time of the data on screen, which the reopened stream does not move. A failed
   fetch is tried again on the next stream event. The page keeps clear of the taller header:
-  `html` carries `scroll-padding-top` equal to the header's height.
+  `html` carries `scroll-padding-top` at least the header's height.
 - **The header names the cluster entry.** When the `Cluster` document carries an entry name that
-  differs from the context name, the cluster pill shows both, each with its word. It wraps at
-  360 px with the longest name. No read, no API change (design.md, "The cluster entry name").
+  differs from the context name, the cluster pill shows both, each with its word. Each name is
+  one line cut with an ellipsis inside the pill, the full values in the tip, so the longest names
+  do not grow the phone header. No read, no API change (design.md, "The cluster entry name").
 - **The details panel follows the page, or says it is old.** A panel that shows a graph node (or
   the resting node) is replaced when the page's topic changes, from the same one fetch as the
   other regions. A YAML or Events view is not re-fetched: it shows a note, "Read 4m ago. The

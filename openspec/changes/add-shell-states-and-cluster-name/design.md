@@ -74,20 +74,28 @@ portal reads with">` (`templates/layout.html`, `portal.css:322`, a bordered 999 
 `Entry` is set, the span keeps `conn-cluster` and its `title`, loses `mono`, and holds two parts:
 
 ```html
-<span class="conn-cluster" title="The kubeconfig context the portal reads with">
-  <span class="mono">{{.Header.Cluster}}</span>
-  <span class="conn-entry"><span class="conn-k">cluster</span> <span class="mono">{{.Header.Entry}}</span></span>
+<span class="conn-cluster conn-two" title="Context {{.Header.Cluster}}, cluster {{.Header.Entry}}">
+  <span class="conn-name mono">{{.Header.Cluster}}</span>
+  <span class="conn-entry"><span class="conn-k">cluster</span> <span class="conn-name mono">{{.Header.Entry}}</span></span>
 </span>
 ```
 
 The words "context" and "cluster" are not both shown as labels: the first value is the context
-(its `title` says so, as today) and the second carries the visible word "cluster" because that is
-the kubeconfig's own term for the entry. `data-context` on `<html>` keeps the context alone, so
-what the browser remembers per cluster does not change (portal:D14). The pill wraps: at 760 px and
-below `.conn-cluster` drops the 999 px radius for 12 px and the two parts stack; `.conn .mono`
-already breaks anywhere (`portal.css:321`), so a name of 90 characters (an EKS ARN) wraps inside
-the 328 px column. In-cluster the pill reads "in cluster" with no entry. When the document cannot
-be fetched, the pill reads "unknown" in the degraded style with no entry.
+and the second carries the visible word "cluster" because that is the kubeconfig's own term for
+the entry. The tip holds the full values, "Context X" for one name and "Context X, cluster Y" for
+two (a fixed sentence about the kubeconfig would add nothing the reader can use). `data-context`
+on `<html>` keeps the context alone, so what the browser remembers per cluster does not change
+(portal:D14).
+
+**The pill never grows the header** (owner ruling T4.64, applied in T4.67). Each name is one line,
+cut with an ellipsis inside the pill (`white-space: nowrap; overflow: hidden; text-overflow:
+ellipsis`), never wrapped. The text of both names stays in the page, so a screen reader reads the
+full values and the tip shows them. At 760 px and below the pill takes its own row (`flex: 0 1
+100%`), drops the 999 px radius for 12 px, and the two parts stack, so 90 character names and short
+names make the same header height (within 2 px, asserted in three engines, with and without the
+banner). Above 760 px a name is cut at the pill's cap (about 44 characters for one name, 76 for
+two). In-cluster the pill reads "in cluster" with no entry. When the document cannot be fetched,
+the pill reads "unknown" in the degraded style with no entry.
 
 **Research & Decisions entry** is below ("Where the cluster entry name comes from").
 
@@ -570,6 +578,47 @@ banner when the element is missing).
    (`portal.js:676-688`); a sighted keyboard or touch reader sees nothing. Not scheduled in track 1; it can become a later
    change on the owner's ask.
 
+## Deviations
+
+What the built change does differently from the text above. Each was accepted by the supervisor
+(`DECISIONS.md`, the rows for T4.61, T4.64, T4.65 and T4.66), and none changes a requirement.
+
+- **A loading line is removed by `paintLoading`, not only by the swap** (T4.61). One function
+  repaints the bar, the busy state and the line from the registry, so an abort or a 500 leaves no
+  stale line. The page's `Now` meta is RFC 3339 at second precision, which the 30 s tick does not
+  outgrow.
+- **Task 2.10's second half is not built** (T4.61). The bar and the line do not change the scroll
+  width (`loading.py`, step 7), so the Graph pages are not added to `TestBrowserPhone`.
+- **`conn-two`** (T4.64). The two-name pill carries a second class, so the 12 px radius and the
+  stacking apply to it alone, with no `:has()`.
+- **Recovery after a failed topic POST** (T4.64). A refused or offline POST sets a flag, and the
+  next POST that succeeds, while the page is lost and the stream is connected, starts the resync,
+  so the banner does not wait for the stream to reconnect.
+- **A non-200 is "Offline" only for the resync fetch** (T4.64). Outside a resync the refresh fetch
+  keeps its old handling, so the 404 page of a deleted object does not raise the banner.
+- **`phone_banner.py` runs as `TestBrowserPhone/<engine>/banner`**, not as new entries of
+  `phonePages` (T4.64). Its "200 percent" leg sets the root font size to 200 percent, not a browser
+  zoom: only rem sizes follow it. The banner and the "cluster" label are in rem since T4.67, and
+  the leg asserts that the header grows by at least 8 px, so it fails when the header stops
+  following the text size. Other header text is still in px (an old rule of `portal.css`, outside
+  this change).
+- **`TestBrowserExpired` expects two streams** (T4.64): the page's and the one the Reload link opens.
+- **`scroll-padding-top` is the header's height plus 8 px** (T4.64, ruled). The spec says "at least
+  the header's height".
+- **Task 4.5 is built in `stale.py` only** (T4.65). `TestBrowserGraph` serves the capture with the
+  real broker and cannot change the cluster; the stale site lets the script move the page renders
+  and send frames. `graph.py` is not edited.
+- **One focus key for Expand group and Collapse group** (T4.65): `panel-expand`, because one of the
+  two shows at a time; the note's Reload link carries `stale-reload`; the Events link of the
+  owner's own node carries `panel-events`. The design named five keys.
+- **`data-view` and the note only on a document that did not fail** (T4.65). A failed view is a
+  problem block, which the next refresh may replace.
+- **`heldTopics` is marked again when a request ends, whatever the answer** (T4.65), so a YAML view
+  loaded in the meantime gets its note at once (conservative: that read may be newer than the
+  change).
+- **The pill's tip is the value, not a fixed sentence, and the names are cut, not wrapped**
+  (T4.67, from the T4.64 ruling). The sections above say so.
+
 ## Live checks
 
 Section 1 (task T4.59), 2026-10-11, on `main` at `360382a` merged into the branch. Browsers:
@@ -660,3 +709,17 @@ measures it). One gap: the page render's panel has no `.fragment` wrapper, as th
 and nothing in the screenshots showed a difference. The details panel's group switch
 (Expand or Collapse group) shares one focus key, `panel-expand`, because one of the two is present at a
 time; the design named five keys.
+
+Section 4 fixes (task T4.67), 2026-10-12, screenshots of the Playwright image's Chromium (scratch
+script over a site with a 90 character context and a different 90 character entry, and over the F1
+capture, not committed), after the pill fix, in light and dark, at 360 px and at 1280 or 1440 px.
+Seen, long-entry pill: at 360 px the pill is its own row under the brand, two lines inside one
+rounded box, the context on the first and the word "cluster" in small uppercase letters with the entry on the
+second, each cut with "..." at the box's right edge; "reading as alice", "Kubernetes v1.36.1" and the live mark
+sit on the next row, and the header is 208 px tall (305.5 px before the fix), with the banner 293 px
+(390.5 px before). At 1280 px the pill is one row of two parts split by a thin rule, each cut with
+"...", with the same row's other items after it. With the banner at 360 px (dark) the banner is the
+last row, "Showing data read 0s ago. Reconnecting." with "Reload" on its own line, and the pill above
+is unchanged. Seen, loading bar: with a node panel request held, a brass line of 2 px on the foot of
+the header (partly drawn in the capture because it is animated: about 230 of 1440 px at 1440 px, and
+across the tabs row at 360 px), in light and dark. No gap remains for task 4.7.
