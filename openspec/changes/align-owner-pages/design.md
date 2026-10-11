@@ -74,7 +74,7 @@ before `align-platform-installed-catalog`, the owner-page Apply and Show buttons
 `align-graph` runs in parallel and decides the node the details panel rests on and the
 `resetDetail` script (its `graph-23` and `provider-21`). This change's `instance-27` is the same
 behaviour: decision 5 builds it only if `align-graph` has not landed it, and whichever change
-lands second rebases.
+lands second merges `main` into its branch (never a history rewrite).
 
 `align-graph` also splits selection from spotlight: a click, or a no-script node link, selects
 through a new `node` parameter, and `focus` stays the hand-off spotlight from Resources and the
@@ -194,7 +194,11 @@ Authorization, in order, each review before the lookup it covers, keeping today'
 2. The owner, then its inventory, read from held state under that grant (portal:D3:R9). A
    missing owner is `404`, as today. Each object carries the caller's `access`. Objects that are
    not `ok`, and every core Secret, are dropped. Runtime children are kept as the inventory
-   document carries them.
+   document carries them for this caller: the document holds a child kind only when the caller
+   may list it in that namespace (`childrenIn`, `internal/readmodel/children.go:106-113`), so a
+   caller who may not read Pods has no Pod in the inventory and none of their events are listed.
+   An event is kept only for an object or child that the caller's own view of the owner lists
+   (OP-A1).
 3. The event namespace of every remaining object, from `readmodel.EventNamespace`: the object's
    own namespace, or `default` for a cluster-scoped object (portal:D9:R4).
 4. `list` on `events` in each other namespace, reviewed one namespace at a time so that one
@@ -217,6 +221,48 @@ re-rendering the merged feed per subscriber on every child event, or a new per-o
 costs a producer change this plan does not make. The docs page says so, a test pins it, and
 `ROADMAP.md` keeps it as a follow-up. The comment at `internal/ui/owner.go:391-392` is corrected to
 say the same.
+
+**The two-user test (OP-A1).** `TestMergedEventsHideWhatTheCallerCannotGet` in `internal/api` runs
+two callers through a `readmodeltest.Rule` keyed on the user. User A may get the instance and its
+Deployment and ReplicaSets, and list events in `default`, and is denied every verb on Pods. User B
+may do everything. On `instances/default/podinfo/events?scope=all`:
+
+- B's list holds the Pods' events; A's holds none, and no Pod name and no Pod event note appears
+  anywhere in A's body.
+- A's list carries `partial: true`, and A's item counts equal B's without the Pod items: counts
+  are taken after the filter, never before.
+- A reading one Pod's events through the object parameters gets the `403` document, as today.
+- A second row denies A only `get` on Pods and asserts that every Pod in A's events is among the
+  Pods in A's instance document. An event follows the caller's own view of the owner: a caller who
+  may list Pods sees them on the Resources tab, so their events are no further disclosure, and a
+  caller who may not list them sees neither.
+
+**Served text is capped (OP-A2).** `eventListDoc` (`internal/api/convert.go:309`) caps `Event.Note`
+at `eventNoteCap` = 512 runes with `capText(s string, limit int) string`: a string of at most
+`limit` runes is returned unchanged, a longer one as its first `limit-1` runes and an ellipsis, always
+cut between runes.
+
+- Every route that builds an `EventList` through `eventListDoc` is capped: the owner feed, the
+  one-object feed, the merged feed (built through `eventListDoc` too), the Platform and registration
+  feeds, and the stream snapshot, which is the same
+  document.
+- The cap is applied when the note is served, so a client of the API and the page see the same
+  text, and the page clips nothing a second time.
+- The cap runs before the in-cluster refold of `foldWithoutNotes` (`internal/api/mode.go:100`).
+  Two notes that share their first 511 runes fold into one in-cluster line, with their counts
+  added. In local mode they stay two lines that look alike, as served.
+- 512 is a design choice, not a platform limit: one note is one table line, and the rest of a
+  longer note stays in the cluster's own record. `align-graph`'s 120-rune clip of a health message
+  in the hover card is a display clip in the UI, a precedent and not this rule.
+- Only `note` is capped. It is the one free-text field of the merged feed that grows with the
+  number of reached objects.
+- The in-cluster walk covers both writers of an operator note, as `omitOperatorText` treats them:
+  an event whose `reportingController` is `opm-controller`, and an event with none that regards an
+  OPM object (`operatorReported`, `internal/api/mode.go:136`). Both carry no note in-cluster. The
+  kubelet's and the scheduler's notes are served as written, up to the cap.
+- `capText` is a shared helper. `align-graph` uses it for the Flux condition message with its own
+  limit. Whichever change merges first adds `internal/api/cap.go` and its tests; the other adopts
+  the file (see "Where the length cap lives").
 
 `internal/readmodel` gains:
 
@@ -252,6 +298,7 @@ The lists run concurrently, at most four at a time, under the existing `readTime
 | Provider | Accepted and not active, or Pending | progressing | Accepted, Pending |
 | Provider | Refused | degraded | Refused |
 | Provider | Removal blocked | unknown | Removal blocked |
+| Provider | Unknown, or a verdict the UI does not know (OP-A4) | unknown | Unknown |
 | Provider | Claim not readable | `Problem` set to the claim's access | none (the block renders locked, per `align-shell-and-tokens`) |
 
 The Applied words are today's, by supervisor ruling: the canvas's "Ready / Not ready" merges
@@ -335,7 +382,17 @@ secondary line.
   - Otherwise, in local mode: `Registration.ActiveMessage` when the claim is accepted and not
     active, else `Registration.Message`, verbatim (portal:D15:R2/R3).
   - Otherwise, in-cluster: the reason's meaning, or the reason alone.
-  - The portal composes no verdict of its own.
+  - The portal composes no verdict of its own. When the controller wrote no text and the reason has
+    no known meaning, the summary is a fixed sentence for the recorded standing (OP-A4), so a state
+    word never stands over an empty summary:
+
+    | Standing | Fallback summary |
+    | --- | --- |
+    | Accepted, not active | "Accepted; not active yet, so it provides nothing yet." |
+    | Pending | "The controller has not decided on this claim yet." |
+    | Refused | "The controller refused this claim." |
+    | Removal blocked | "Accepted and active; its removal waits until no module uses what it provides." (portal:D4:R7) |
+    | Unknown, or a verdict the UI does not know | "The portal does not know this claim's standing." |
 - Reasons (`provider-03`, `provider-22`): a non-success reason renders as "1 <Reason>", linking
   to `?tab=provider`. Success shows "No registration problems". The card carries one "Open the
   Provider tab" link (`Links`) instead of linking each registration name. Further claims are
@@ -447,8 +504,8 @@ secondary line.
     - `resetDetail` fetches that URL with `select: 'unset'`.
     - Without script, Clear selection is a link without `focus`, so the server renders the
       resting panel.
-    `align-graph` then extends `restingNode`, marks the resting node with its own attribute, and
-    rebases.
+    `align-graph` then extends `restingNode`, marks the resting node with its own attribute, after
+    merging `main` into its branch.
   - When `align-graph` lands first, this change only renders the resting panel on the Resources
     tab through that change's function, and adds its tests.
 - **Body** (`instance-28`):
@@ -473,6 +530,15 @@ secondary line.
     could not be read". It is never an error page.
   - No `env`, `args`, `command` or volume is shown: the panel shows what the YAML view shows,
     narrowed.
+  - The facts are a fixed list (OP-A3). They are read only for a node whose caller `access` is `ok`:
+    a node that is locked, forbidden or not readable carries none of them and makes no object read,
+    and a Secret never does.
+  - An image reference is shown without userinfo (OP-A3). `imageText` takes the authority, the text
+    after any `scheme://` and before the first `/`, and cuts it at its last `@` when a `/` follows.
+    `user:secret@registry.example/app:1` reads `registry.example/app:1`; a digest reference such as
+    `registry.example/app@sha256:<digest>`, or `app@sha256:<digest>` with no `/`, is shown whole.
+    The same function runs on every container's image of the fact, and the result goes through
+    `html/template` as text.
 - **Component** (`instance-29`): "Rendered" as the state word, the canvas's sentence ("A
   Component is not a Kubernetes object: it is a part of the module, so it has no events or YAML of
   its own."), and a Renders fact listing the kinds and names of its outgoing edges' targets.
@@ -575,17 +641,33 @@ secondary line.
   | Registration | "TransformerRegistration <name>", mono |
   | Claims catalog | link and version |
   | Registry | today's sentence |
-  | Contracts | "N provided, M in use", where M counts contracts whose Used by total > 0; "N provided; use not fully readable" when any Used-by list is incomplete or locked, since M would be an undercount (portal:D7:R2, portal:D14:R7); or "none: the claim is refused" |
+  | Contracts | "N provided, M in use", where M counts contracts whose Used by total > 0; "N provided; use not fully readable" when any Used-by list is incomplete or locked, since M would be an undercount (portal:D7:R2, portal:D14:R7); or "none: the claim is refused". The other standings have their own text (below) |
   | providerRef | as today (portal:D15) |
   | Controller says | local mode only |
 
+- **Contracts text per standing** (OP-A4). N is the number of contracts the claim's
+  `spec.provides` lists. A claim that provides nothing never reads "N provided, M in use":
+
+  | Standing | Contracts |
+  | --- | --- |
+  | Accepted and active | "N provided, M in use", or "N provided; use not fully readable" |
+  | Accepted, not active | "N listed; none provided until the claim is active" |
+  | Pending | "N listed; none provided until the controller decides" |
+  | Refused | "none: the claim is refused" |
+  | Removal blocked | the Accepted and active text, then "; removal is blocked": it still provides (portal:D4:R7) |
+  | Unknown, or a verdict the UI does not know | "not known: the portal does not know this claim's standing" |
+  | Locked (the Platform or the registration not readable) | as the page renders locked parts today |
+
+  The wording is this change's; a table test runs every row so that a new verdict cannot fall
+  through to the counts.
 - **Standing once** (`provider-20`): the h3 stays as the per-claim heading. One badge row shows
   the accepted and active pills (portal:D4:R4), plus the reason only when it is not a success
   reason. The claim badge leaves the tab.
 - **"Registration conditions"** (`provider-08`): an h3 heading. Status is a square badge toned by
   `Condition.Tone`. Reason is mono. The Meaning column stays (live-only).
 - **"What it provides"** (`provider-09`): a table with columns Contract and Used by, styled as a
-  table header.
+  table header. It carries the `table` class and a `data-label` on each cell, so the card fallback
+  below 760 px applies (OP-A5).
   - The contract is a round amber pill (`.contract-pill`) with `contractShort` text and the full
     path in `title`.
 - **Used by** (`provider-11`):
@@ -594,6 +676,24 @@ secondary line.
     →", titled "Open Installed filtered to everything that uses <contract>".
   - Total 0 on a complete list: "No installed module uses it yet", and no button.
   - The permission wording stays when the list is incomplete or locked.
+
+### 8. Owner pages at 360 px and the tips in the browser (OP-A5)
+
+The 360 px rule is the main spec's (a page does not scroll sideways at a 360 px viewport) and
+`TestBrowserPhone`, added by `fix-contrast-and-add-phone-check`, enforces it. This change adds its
+pages to that test's page list in the section that builds each page, and adds no test name (so the
+`-run` pattern of `test:browser` needs no edit):
+
+| Section | Pages added | Also asserted |
+| --- | --- | --- |
+| 3 | `/instances/default/podinfo`, `/instances/cert-manager/cert-manager`, `/instances/default/backup-provider`, `/packages/pkg/podinfo` | the identity card's `.facts` list computes to one grid column below 520 px |
+| 4 | `?tab=graph` and `?tab=resources` of podinfo, cert-manager and `pkg/podinfo`, panel at rest | the Graph frame may scroll inside itself, the page may not; Resources rows compute to `display: block` as cards; the header row is not displayed |
+| 5 | `?tab=events`, `?tab=logs`, `?tab=yaml` of podinfo | the filter row wraps; Events rows are cards; a log or YAML pane may scroll inside itself |
+| 6 | `?tab=provider` of backup-provider and of a package holding a refused claim | "What it provides" rows are cards; the facts grid is one column |
+
+The screenshots at 360 px stay as evidence beside the test. The Owner and Applier tips of the
+identity card join the tip case that `align-shell-and-tokens` adds (a tap opens, a second tap or
+Escape closes, the pointer may move onto the box), in the same browser engines.
 
 ### Scale and refresh
 
@@ -631,6 +731,31 @@ events list, then `ownerReaches` walks the inventory for every named object);
 **Rationale**: It keeps the page cost independent of inventory size, keeps every list reviewed
 for the caller, and gives any API client the same merged feed (Principle III), so the UI still
 reads only what the API serves.
+
+### Where the length cap lives
+
+**Context**: The portal's plan asks for a portal-side cap on every new cluster text this change
+serves (event notes), and `align-graph` needs the same cap for the Flux condition message. A
+supervisor ruling of 2026-10-11 named the shared helper `capText` in `internal/ui`, unless the
+existing code holds a better place.
+**Explored**: `internal/api/convert.go:309-322` (`eventListDoc` builds the `Event` values and sets
+`Note`); `internal/api/mode.go:100-122` (the in-cluster fold works on the served document);
+`internal/ui/doc.go` (the UI reads only through the API); `internal/ui/harness_test.go:14` and
+`internal/api/apitest/apitest.go:17` (the UI's tests import `apitest`, which imports
+`internal/api`).
+**Options considered**:
+1. `internal/ui`. The page would clip what the API served. A client of the API still gets the
+   uncapped note, so the cap would not be portal-side for the API, and `internal/api` cannot import
+   `internal/ui`: the UI's own tests import `apitest`, which imports `internal/api`, and a cycle
+   results.
+2. `internal/readmodel`, where the note is read (`events.go:113`). The model returns raw cluster
+   data; it would cap before the fold, so the stored model changes shape for a presentation limit.
+3. `internal/api`, in the conversion to the wire type. One place for every document the API
+   serves, shared by `align-graph`, which converts the Flux message in the same package.
+**Decision**: Option 3: `capText` in `internal/api/cap.go`, called from `eventListDoc`.
+**Rationale**: The cap protects every reader of the wire document, not one page, and the note is
+shaped in this package. The name `capText` is the ruling's; only the package differs, and the
+supervisor decides whether `align-graph` follows.
 
 ### Per-kind panel facts
 
@@ -675,10 +800,16 @@ cheaper than a wire change, and a Platform the caller may not read degrades to "
 - [`partial` hides why] → The note says objects were left out. The per-object option still
   returns the precise `403` for one object.
 - [Shared files with `align-graph` and `align-platform-installed-catalog`] → The proposal lists
-  each overlap. Each change rebases on the other's merge and re-runs `task check` and
+  each overlap. Each change merges `main` into its branch after the other's merge and re-runs `task check` and
   `task test:browser`.
 - [The Applied summary looks like a verdict] → It uses only recorded counts and the condition
   reason. The controller's own message stays visible beneath it in local mode.
+- [Two notes that differ only after the cap look alike in local mode] → Their counts stay right and
+  the lines are served as folded by the model. In-cluster they fold into one line. Accepted: a note
+  past 511 runes is rare, and the full text is in the cluster's own record.
+- [A caller who may list Pods but not get them] → Their view of the owner lists the Pods, so their
+  events follow the same rule (OP-A1, second row of the test). A stricter rule needs a `get`
+  review for each child kind and namespace; this change does not add one.
 - [Panel object read fails or is slow] → The facts are optional: the panel renders from the graph
   document first and says when object details are missing.
 
@@ -696,6 +827,21 @@ remaining difference here and say why it stays.
 
 Known before the screenshots: the Resources table folds configuration groups and old
 ReplicaSets, where the canvas's table is flat (decision 4, held by portal:D4:R5).
+
+## Amendments from the portal's plan
+
+Six amendments of 2026-10-11 (ids from the portal plan) add floors that the first version of this
+change lacked. Each is a task with a verify line, and a requirement or scenario where it changes
+behaviour.
+
+| Id | What | Tasks | Spec delta |
+| --- | --- | --- | --- |
+| OP-A1 | The two-user test: no event of a kind the caller cannot read, no count that includes one | 2.5 | `read-api`: merged feed scenario; `web-ui`: Events scenario |
+| OP-A2 | A length cap on served event notes, one shared `capText`; both writers of an operator note in the in-cluster walk | 2.4, 2.5, 5.2 | `read-api`: capped notes requirement |
+| OP-A3 | Panel facts only for a node whose access is `ok`; an image reference without userinfo | 4.4, 4.5 | `web-ui`: tabs requirement |
+| OP-A4 | A text for Pending, Removal blocked and Unknown (and an accepted claim not yet active) in the Provider card and the Contracts fact | 3.1, 6.1 | `web-ui`: summary and Provider tab requirements |
+| OP-A5 | The owner pages in `TestBrowserPhone`; the tip case for the Owner and Applier tips | 3.7, 4.8, 5.7, 6.6 | `web-ui`: phone scenarios |
+| OP-A6 | "Merge `main` into the branch" in place of the history-rewrite wording | 1.1, proposal, design | none |
 
 ## Gap map (section C of gaps.md)
 
