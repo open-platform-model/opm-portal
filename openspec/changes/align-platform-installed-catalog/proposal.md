@@ -22,7 +22,8 @@ ruled that everything not decided otherwise follows the canvas, that events beco
 the Applied axis keeps today's words (portal:D19:R3). This change applies that to the three
 list-and-summary pages.
 
-**Gate:** depends on `align-shell-and-tokens`. That change lands the flat look, the 1840 px
+**Gate:** depends on `align-shell-and-tokens` (and, through it, on `fix-contrast-and-add-phone-check`,
+which adds `TestBrowserPhone`). That change lands the flat look, the 1840 px
 column, the tone ink and kind chip tokens, the square badges, the underline tabs with counts, the
 shared state block partial and the shared tooltip, and this change uses all of them. Start this change only after
 `align-shell-and-tokens` has merged.
@@ -38,14 +39,17 @@ shared state block partial and the shared tooltip, and this change uses all of t
   instead of pushing one, and the Apply button is hidden when script runs until it takes keyboard
   focus. An option over a list the caller may not read carries no count. A row that is always shown holds
   "Showing N of M", chips reading "Label: value" and "Clear all". The URL contract is unchanged
-  (portal:D14).
+  (portal:D14). Once a typed or picked filter has applied, the new count is announced once to
+  screen readers through the header's existing status region, with no new live region. Every
+  count, the Uses counts included, covers only rows in namespaces the caller may list, and a
+  named test proves it.
 - **Installed**: when the caller may list everywhere, the list is fetched unscoped and filtered by
   namespace on the server, so the total and the counts cover every readable namespace. A reader
   who may not list everywhere keeps today's scoped read and a typed namespace. The module filter
   also matches a package by its source. Search matches the kind word. Whole rows are links, and
   Degraded rows are tinted. The table has fixed column widths. Kind chips get icons. The provider
-  badge reads "Provider" with a keyboard-reachable tooltip naming its standing. The module or
-  source cell has a version line, or for a package its short revision digest. A styled empty
+  badge reads "Provider" with a tooltip naming its standing, which opens on hover, focus
+  and tap and closes on Escape. The module or source cell has a version line, or for a package its short revision digest. A styled empty
   state is shown when nothing matches.
 - **Platform page**: the status card becomes a state block: the applied state word, "since",
   the summary line, and reason counts for refused or removal-blocked registrations and unfulfilled
@@ -65,6 +69,14 @@ shared state block partial and the shared tooltip, and this change uses all of t
   filter, "Showing X of N" and the events table.
 - No read API change, no new read, no new route.
 
+Uses options and blueprints: the Uses select lists only the contracts the readable rows hold,
+which are resource and trait keys, so blueprints such as `StatelessWorkload` are not offered. That is
+the plan's default (G10: leave blueprints out), met by how the options are built; see design.md,
+"Uses options and blueprints". Owner answers of 2026-10-11 that bind this change: the Catalog
+"Used by" tab and the `DefinitionPill` popover stay dropped, as the planning PR decided; the
+Catalog Events tab shows no count in its tab label; the Kubernetes version and Context facts stay
+in the header only.
+
 Not in this change: the Applied axis words "Ready / Not ready" (platform-41; supervisor ruling,
 portal:D19:R3: the canvas's words lose Failed, Stalled and Reconciling); per-catalog resolve time,
 registry and digest (catalog-06, catalog-09; portal:OQ26, opm-operator#230); the gaps assigned to the other three
@@ -79,25 +91,28 @@ None.
 ### Modified Capabilities
 
 - `web-ui`: the Platform page, the Installed list, the Catalog page and page vocabulary change
-  as above. New requirements cover filter forms (choices with counts, applying as the user
-  types), counting Installed across namespaces, and matching a package's source with the module
-  filter.
+  as above. New requirements cover filter forms (choices with counts, counts limited to what the
+  caller may list, applying as the user types, announcing the new count), counting Installed
+  across namespaces, and matching a package's source with the module filter.
 
 ## Impact
 
 - Packages: `internal/ui` only (`filters.go`, `pages.go`, `platform.go`, `catalog.go`, `view.go`,
   templates `installed.html`, `platform.html`, `catalog.html`, `partials.html`, `layout.html`
-  (theme menu check only), `static/portal.css`, `static/portal.js`, `static/prefs.js`, tests and
-  UI goldens), `test/browser/` (a new `filters.py`), `cmd/opm-portal/browser_test.go`
-  (`TestBrowserFilters`), and `Taskfile.yml` (the `test:browser` pattern). `api/v1alpha1`,
-  `internal/api`, `internal/readmodel`, `internal/graph` and `internal/health` do not change.
+  (theme menu check, and one hidden note in the `#live` region), `static/portal.css`,
+  `static/portal.js`, `static/prefs.js`, tests and UI goldens), `test/browser/` (a new
+  `filters.py`), `cmd/opm-portal/browser_test.go` (`TestBrowserFilters`), `Taskfile.yml` (the
+  `test:browser` pattern), and the page list of `TestBrowserPhone` (added by
+  `fix-contrast-and-add-phone-check`; this change adds pages to it and no test name).
+  `api/v1alpha1`, `internal/api`, `internal/readmodel`, `internal/graph` and `internal/health` do not change.
 - Pages: `/`, `/installed`, `/catalog`.
 - Shared with `align-owner-pages` (it runs after `align-shell-and-tokens`, in parallel with this
   change): both changes render events as a table and both use the filter-form behaviour. This
   change owns the generic filter code: the `filter-form` partial, `filters.go`, the filter
   handlers in `portal.js`, and the `opm-js` class `prefs.js` sets. The `events-table` partial in
   `partials.html` belongs to whichever of the two changes lands first, and the second one adopts
-  it rather than redefining it. design.md gives the partial's shape so both build the same one.
+  it rather than redefining it, and merges `main` into its branch first (the repo's flow never
+  rewrites branch history). design.md gives the partial's shape so both build the same one.
   The two changes modify different `web-ui` requirements. This change does not touch owner
   pages, the details panel, the graph or `internal/ui/graph.go`.
 - Three edits reach pieces `align-owner-pages` owns or uses, each made so that its files keep
@@ -109,13 +124,15 @@ None.
 - `align-shell-and-tokens`' `state-block` partial is used as it ships: it already gives a reason
   its own class, lets a reason show without a count, and carries note lines (the locked refusals
   line). This change does not edit it.
-- Principle V: no new kind is read, no new verb, no new identity. Installed makes one extra
+- Principle V: no new kind is read, no new verb, no new identity, and no count includes a row the
+  caller may not list (portal:D14:R7). Installed makes one extra
   `list` call per kind only when the unscoped read comes back forbidden and a namespace filter
   is set. That call is the scoped read the page makes today. Every new fact (registration
   reasons and condition times, package revision digests, event counts) comes from documents the
   page already fetches.
 - Principle VII: no dependency and no build step. The script additions are a debounced submit and
-  focus handling in `portal.js`, plus one class set in `prefs.js`. Tooltips are pure CSS.
+  focus handling and the count announcement in `portal.js`, plus one class set in `prefs.js`.
+  Tooltips are CSS, with the tap and Escape script of `align-shell-and-tokens`' `tip` partial.
 - SemVer: MINOR after 1.0 (UI behaviour and look, no API change). On the 0.x line it ships as one
   PR titled `feat(ui): align the Platform, Installed and Catalog pages with the canvas`, which
   cuts a minor release.

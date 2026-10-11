@@ -18,7 +18,10 @@ The change starts after `align-shell-and-tokens` (A) merges, and uses what A pro
 - sans field labels (`.facts dt`, catalog-04), kickers and table heads (platform-40),
 - hidden panel headings inside tabbed panels (catalog-27),
 - the shared **state block** partial,
-- and the shared **tooltip** (`tip` partial, `.tipbox` CSS).
+- and the shared **tooltip** (`tip` partial, `.tipbox` CSS), which opens on tap and closes on
+  Escape (PIC-A3, below),
+- and, through `fix-contrast-and-add-phone-check`, the `TestBrowserPhone` page list that this
+  change extends (PIC-A2).
 
 A defines the state block (its design.md, "The state block"): a `stateBlock` struct with
 `ID`, `Label`, `Eyebrow`, `When *time.Time`, `WhenText`, `Hue`, `State`, `Summary`, `Notes`,
@@ -52,7 +55,8 @@ redesign design.md, checked against opm-operator 277ca18 and the F1 capture
 - Keep URLs, the remembered-filter contract and locked behaviour exactly as they are
   (portal:D14, portal:D7).
 - Script stays optional: every filter, link and tooltip works without script. Script only adds
-  apply-as-you-type and hides the Apply button.
+  apply-as-you-type, the announced count, tap and Escape on the tooltip, and hides the Apply
+  button.
 
 **Non-Goals:**
 
@@ -262,7 +266,12 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   blocked, the progressing blue when pending, neutral when accepted and inactive, the lock style
   when locked. Next
   to it is the `tip` partial's `span.tipbox role=tooltip`, shown on `:hover` and `:focus-within`
-  by CSS alone. **Placement**: the table sits in `.table-wrap { overflow-x:auto }`
+  by CSS, which stays the base. **Tap and Escape** (PIC-A3): the `tip` partial's small script from
+  `align-shell-and-tokens` adds a tap that opens the box, a second tap that closes it, Escape that
+  closes it with focus kept on the badge, and a box the pointer can move onto without closing it
+  (WCAG 2.2 success criterion 1.4.13: dismissable, hoverable, persistent). The badge sits above
+  the row's stretched link, so a tap opens the tip and does not navigate. This change adds no
+  script of its own for it; task 3.6 tests it on the Installed badge. **Placement**: the table sits in `.table-wrap { overflow-x:auto }`
   (`portal.css:420`), and a non-visible `overflow-x` forces `overflow-y` to auto, so an absolutely
   placed box would be clipped on the last rows or add a scrollbar; the canvas has the same flaw
   (`Instances.dc.html:105`), so this does not copy it. From the viewport width where the 940 px
@@ -474,15 +483,21 @@ that C's files keep working whichever change lands first:
 
 `web-ui` only. MODIFIED: "The Platform page is the landing page", "Installed lists instances and
 packages together", "The Catalog page shows one catalog as the cluster records it", "Pages use the
-words a platform team uses". ADDED: "Filter forms offer the values present and apply as the user
-types", "Installed counts every namespace the caller may list", "The module filter matches a
-package by its source". The MODIFIED requirements keep every scenario of the main spec, and none
+words a platform team uses". ADDED: "Filter forms offer the values present", "Filter counts cover only what
+the caller may list", "Filter forms show what they apply", "Filter forms apply as the user types",
+"A filter's new count is announced once", "Installed counts every namespace the caller may list",
+"Installed counts one namespace when a kind's full list is forbidden", "The module filter matches
+a package by its source". (The first four filter requirements were one requirement in the
+planning PR; the split keeps each under the 500-character guidance of `openspec validate --strict`.
+It drops only examples that "Filter forms" above already carries: the list of "any" words and the
+full contract kept as the option value.) The MODIFIED requirements keep every scenario of the main spec, and none
 of them is touched by `align-owner-pages` or `align-graph`. "List filters live in the URL and are
 remembered per browser" is left as it is: the new behaviour is additive and sits in the ADDED
-requirements. The ADDED filter-form requirement names the forms it covers (Installed, the
-Providers and Catalogs tabs, Platform events, Catalog events), so it does not bind the owner-page
+requirements. The ADDED filter requirements name the forms they cover (Installed, the
+Providers and Catalogs tabs, Platform events, Catalog events), so they do not bind the owner-page
 forms `align-owner-pages` specifies ("Clear filters", no count on the Resources reason form); only
-its last sentence, apply-as-you-type for every `data-filters` form, holds on every page.
+"Filter forms apply as the user types", for every `data-filters` form, and "A filter's new count
+is announced once", for every such form that shows a count, hold on every page.
 
 ### Design record
 
@@ -501,6 +516,16 @@ that namespace, which is today's read. Platform and Catalog: `get platforms` and
 transformerregistrations` through the Platform document, plus the events resources the pages
 already read (`get` on the owner and `list events` in its namespace, portal:D7:R4). None of these
 changes. `internal/ui` still reads only through the read API.
+
+**Counts leave out unlisted namespaces (PIC-A1; portal:D14:R7).** Every number the filter forms
+show is a count over rows the caller may list: the option counts, the Uses counts, the namespace
+choices and the total. Where the caller may not list a kind everywhere, the page reads that kind
+in the filtered namespace only and applies the namespace filter to the other kind's rows before
+it counts anything (Installed, above), so a count never includes a row in a namespace the caller
+may not list. The Platform tabs count over the Platform document's registrations and catalogs,
+which the read API returns for a caller who may get the Platform. Task 3.8 names the test:
+`TestInstalledCountsFollowTheCallersNamespaces`, through `apitest`, which fails when a count
+includes a row outside the caller's namespace.
 
 ## Research & Decisions
 
@@ -550,6 +575,57 @@ canvas).
 **Rationale**: the source is recorded, so matching it guesses nothing. portal:D16:R2 is about
 `uses` only.
 
+### Announcing the count after a filter applies (PIC-L1)
+
+**Context**: with apply-as-you-type, a filter changes the list and its "Showing n of M" count
+while focus stays in the search field. A screen reader user hears nothing, though the count is a
+status message (WCAG 2.2 success criterion 4.1.3).
+**Explored**: the live regions that exist today. `#live` (`layout.html:44`, `role="status"`
+`aria-live="polite"`) is the header's stream-state mark; `setLive` writes only its
+`.live-text` (`portal.js:224-231`). `#detail` has `aria-live="polite"` on owner pages only
+(`owner.html:209`). `.log-state` is the log pane's (`owner.html:138`). No template of Installed,
+the Platform page or the Catalog page carries a live region, and `#shown` is a followed region
+(it refreshes by `data-follow`), not a live one. A filter submit swaps `#main` by `outerHTML`
+(`layout.html:24`), so any region inside `#main` is injected with its content, which assistive
+technology announces unreliably.
+**Options considered**:
+1. Announce nothing. The page then fails 4.1.3 for its main new interaction.
+2. Make `#shown` a `role="status"` region. It is replaced by the swap, so it is injected with its
+   content, and a followed refresh would announce every row change, which the plan's floor on live
+   regions rules out ("no announcement for ticking times", and no new live region).
+3. Write the new count into the existing `#live` region. `#live` sits outside `#main`, so the
+   swap leaves it in place, and it is already a polite status region. The visible `.live-text`
+   keeps saying the stream's state; the count goes into one visually hidden child, `span.live-note`.
+**Decision**: Option 3. `portal.js` sets a flag when a `submit` or select `change` on a
+`form[data-filters]` starts a request, and on `htmx:afterSettle` with the flag set it copies the
+text of the new count region into `.live-note` when it differs from what the note holds. A
+followed refresh never sets the flag. The hidden note is the clip pattern, never `display:none`.
+A form with no count region (the owner pages' Resources reason form) announces nothing.
+**Rationale**: no new live region, one announcement per applied change, no noise from the stream.
+**Accepted**: `role="status"` is atomic, so a screen reader may read the stream state with the
+count ("Live, Showing 2 of 6"). The order of events is not checked in a screen reader here: task
+2.8 asks for a pass with VoiceOver and NVDA and records any run it could not make as not assessed.
+`layout.html` is also edited by `align-shell-and-tokens` (the worded live mark); task 1.1 checks
+the merged markup, and the note is one child element beside `.live-text`.
+
+### Uses options and blueprints (G10)
+
+**Context**: the plan's G10 default is to leave blueprints out of the Uses filter, because the
+cluster does not record which blueprints a render used.
+**Explored**: the Uses choices are built from the readable rows' `renderContracts`
+(`internal/ui/pages.go:156-158`), which `internal/readmodel/instances.go:81` reads from
+`status.requiredContracts`. The plan's G10 finding is that the render computes this list from
+each component's resource and trait keys only, so blueprint keys never enter it (read from the
+library's render source in that finding; not re-read for this change). The F1 capture agrees: no
+contract in `testdata/clusters/f1/` has a `blueprints/` path. A package records no contracts (portal:D16:R2; installed-20).
+**Decision**: this change's Uses options already exclude blueprints, by construction: the portal
+offers no name that no readable row holds. No code is needed. Task 3.8 (case 4) asserts that the
+choices equal the union of the rows' `renderContracts`, so a later change that adds a blueprint
+name from elsewhere fails the test.
+**Rationale**: the canvas lists `StatelessWorkload` and `StatefulWorkload` among the Uses options;
+the portal cannot back them (Principle IV). If the controller later records blueprint keys, the
+options follow with no portal change.
+
 ### Canvas copy the portal cannot back
 
 **Context**: two canvas phrases claim things nothing records: "Pulled <version>" on the Resolved
@@ -576,8 +652,12 @@ recorded". The owner may prefer the canvas words in review.
 - **Whole-row links can capture clicks** meant for the tooltip or a holder link. Those elements
   sit above the stretched link (`position:relative; z-index:1`), and the browser test clicks the
   tooltip trigger to check it.
+- **`layout.html` is shared with `align-shell-and-tokens`.** This change adds one hidden child to
+  `#live`. If that change restructures the live mark, task 1.1 finds it and task 2.8 follows the
+  merged markup.
 - **Parallel work with align-owner-pages** on `partials.html` and `portal.css`. The split is
-  above. The second change to land rebases and adopts the first's `events-table`.
+  above. The second change to land merges `main` into its branch (never a history rewrite) and
+  adopts the first's `events-table`.
 
 ## Migration Plan
 
@@ -641,3 +721,17 @@ overturns it.
 | catalog-24 | Catalog: Headline | 5.1 |
 | catalog-25 | Catalog: Source | 5.2 |
 | catalog-26 | Catalog: Resolved state block | 5.3 |
+
+## Amendments
+
+Four amendments from the plan that follows the planning PR, and one check, each traced to the
+artifacts that carry it. The remaining tasks, requirements and decisions of this change are as
+the planning PR wrote them, except the re-partition of two requirements (see "Spec deltas").
+
+| Id | What | Tasks | Spec | Here |
+| --- | --- | --- | --- | --- |
+| PIC-A1 | Name the SR8 count test: option counts and Uses counts leave out rows in a namespace the caller may not list | 3.8 | "Filter counts cover only what the caller may list"; scenario "A reader who may list one namespace sees that namespace only"; "One kind scoped" | Authorization |
+| PIC-A2 | Add the three pages to the `TestBrowserPhone` page list | 2.6, 3.6, 4.8, 5.5 | none: the 360 px rule is in the main `web-ui` spec | Context |
+| PIC-A3 | Provider tooltip opens on a tap and closes on Escape | 3.6 | "Installed lists instances and packages together"; scenario "The provider tooltip by tap and Escape" | Installed: provider badge |
+| PIC-A4 | Merge `main` into the branch; no history rewrite | 1.1 | none | Risks, "Parallel work" |
+| PIC-L1 | The live-region check: the count is announced once, through `#live` | 2.8, 4.8 | "A filter's new count is announced once" | Research & Decisions |
