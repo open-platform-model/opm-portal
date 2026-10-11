@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-owner-pages` built in six sections on its branch, main merged in, in review; `align-platform-installed-catalog` and `align-shell-and-tokens` reviewed, fixed and archived on their branches, PRs pending; phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`align-owner-pages` built in six sections on its branch, main merged in, in review; `align-platform-installed-catalog` and `align-shell-and-tokens` merged (PR 44, PR 47) and archived; phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -114,7 +114,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **What `align-owner-pages` uncovered, none blocking:**
-   - The merged feed costs 11 to 26 ms more than the owner's own feed for cert-manager at the pace
+   - The merged feed costs 6 to 26 ms more than the owner's own feed for cert-manager at the pace
      of a person, on a kind cluster (95th percentile over 50 reads, measured twice: before the
      build and on the built read). Back to back it costs 281 ms, which is the reading client's
      rate limit (50 requests a second, 14 lists a read). A configurable rate, or a short cache of
