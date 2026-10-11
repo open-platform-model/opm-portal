@@ -431,10 +431,14 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 
 // serveLogsPage serves, on a free loopback port, a page holding a logs
 // region shaped as the owner page renders it: a Pod / container select form
-// and one open pane. Its first render lists Pod a's pane, its second adds
+// and one open pane. The page loads portal.js but not htmx, so a select
+// change is a full page load and the page's htmx:afterSettle listeners do
+// not run here (see the report of T4.47). Its first render lists Pod a's pane, its second adds
 // Pod b's, and every later one lists no Pod; a request that names a pane
 // (log=) is rendered at once, with that one pane open. The stream's topics
-// endpoint records what the page subscribes to, and /subs lists it.
+// endpoint records what each stream is subscribed to, and /subs?stream=ID
+// lists it; POST /subs/reset forgets all of it, so a step starts from nothing
+// and a topic listed afterwards was subscribed in that step.
 func serveLogsPage(t *testing.T) string {
 	t.Helper()
 	var lc net.ListenConfig
@@ -472,7 +476,7 @@ func serveLogsPage(t *testing.T) string {
 	var (
 		renders atomic.Int32
 		mu      sync.Mutex
-		subs    []string
+		subs    = map[string][]string{}
 	)
 	mux := http.NewServeMux()
 	mux.Handle("/static/", pages)
@@ -482,15 +486,25 @@ func serveLogsPage(t *testing.T) string {
 		}
 		if json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body) == nil {
 			mu.Lock()
-			subs = append(subs, body.Add...)
+			subs[r.PathValue("id")] = append(subs[r.PathValue("id")], body.Add...)
 			mu.Unlock()
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
-	mux.HandleFunc("/subs", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("GET /subs", func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
 		defer mu.Unlock()
-		_ = json.NewEncoder(w).Encode(subs)
+		got := subs[r.URL.Query().Get("stream")]
+		if got == nil {
+			got = []string{}
+		}
+		_ = json.NewEncoder(w).Encode(got)
+	})
+	mux.HandleFunc("POST /subs/reset", func(w http.ResponseWriter, _ *http.Request) {
+		mu.Lock()
+		subs = map[string][]string{}
+		mu.Unlock()
+		w.WriteHeader(http.StatusNoContent)
 	})
 	mux.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
 		var panes, note, picker string

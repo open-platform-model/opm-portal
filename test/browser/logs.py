@@ -2,12 +2,12 @@
 
 Usage: python3 logs.py <browser> <page URL>
 
-The page is a logs region the Go test serves under the page policy with the page script: a Pod /
-container select and one pane, rendered open. Its first render lists Pod a's pane, its second adds
-Pod b's, and every later one lists no Pod. On load, with no click, the open pane must follow its
-topic (data-following, the "connecting" state) and the stream must be told to subscribe to it; after a
-select change (a new page load, as the server renders it) the new open pane must do the same. Stream events
-are dispatched on the page's stream listener the way the SSE extension does. The pane, scrolled to
+The page is a logs region the Go test serves under the page policy with the page script (not htmx): a Pod / container select and one pane, rendered open. Its first
+render lists Pod a's pane, its second adds Pod b's, and every later one lists no Pod. On load, with no
+click, the open pane must follow its topic (data-following, the "connecting" state) and the stream must be
+told to subscribe to it. The test server records the topics of each stream apart and forgets them all
+before each check, so a topic listed for a stream was subscribed after that point; the select change opens a
+new page and a new stream, and only that stream's list counts. Stream events are dispatched on the page's stream listener the way the SSE extension does. The pane, scrolled to
 its bottom and focused, must keep its scroll offset, its focus and its tail through a refresh that
 adds a pane and one that leaves no Pod, and a new line must scroll into view. Prints one line per
 check and exits 1 on the first failure. With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a
@@ -115,27 +115,51 @@ def check(page, engine: str, url: str) -> int:
     return select_change(page, url, engine)
 
 
-def subscribed(page, url: str, topic: str, stream: str, engine: str, when: str) -> int:
-    """Open the stream the way the extension does, then ask the server what was subscribed."""
-    page.evaluate(SEND, ["sse:open", {"stream": stream}])
+def forget(page, url: str) -> None:
+    """Make the test server forget every subscription it recorded, so a topic listed after this
+    call was subscribed after it."""
+    base = url.rsplit("/", 1)[0]
+    page.evaluate("""async (base) => { await fetch(base + "/subs/reset", { method: "POST" }); }""", base)
+
+
+def subs(page, url: str, stream: str) -> list:
+    base = url.rsplit("/", 1)[0]
+    return page.evaluate(
+        """async ([base, stream]) => await (await fetch(base + "/subs?stream=" + stream)).json()""", [base, stream]
+    )
+
+
+def await_topic(page, url: str, topic: str, stream: str, engine: str, when: str) -> int:
+    """Wait for the server to list topic for stream, then report what it listed."""
     base = url.rsplit("/", 1)[0]
     try:
         page.wait_for_function(
-            """async ([base, topic]) => (await (await fetch(base + "/subs")).json()).includes(topic)""",
-            arg=[base, topic],
+            """async ([base, topic, stream]) =>
+                (await (await fetch(base + "/subs?stream=" + stream)).json()).includes(topic)""",
+            arg=[base, topic, stream],
             timeout=10000,
         )
     except Exception:
         pass  # the check below reports what was subscribed
-    got = page.evaluate("""async (base) => await (await fetch(base + "/subs")).json()""", base)
-    print(f"{engine} subscribed {when}: {got}")
+    got = subs(page, url, stream)
+    print(f"{engine} subscribed {when} (stream {stream}): {got}")
     if topic not in got:
-        return fail(engine, f"{when}: topic {topic} was not subscribed ({got})")
+        return fail(engine, f"{when}: topic {topic} was not subscribed on stream {stream} ({got})")
     return 0
 
 
+def subscribed(page, url: str, topic: str, stream: str, engine: str, when: str) -> int:
+    """Forget the record, open the stream the way the extension does, then ask the server what that
+    stream subscribed."""
+    forget(page, url)
+    page.evaluate(SEND, ["sse:open", {"stream": stream}])
+    return await_topic(page, url, topic, stream, engine, when)
+
+
 def select_change(page, url: str, engine: str) -> int:
-    """Pick Pod b with the select: the new page's open pane follows and subscribes with no click."""
+    """Open Pod b's page, then pick Pod a with the select (a new page load, as the server renders
+    it). The record is forgotten first and the new page opens its own stream, s3, so Pod a's topic
+    is listed for s3 only if the new page subscribed it."""
     page.goto(url + "?log=log_b_c")
     page.wait_for_load_state("load")
     page.wait_for_function('() => document.querySelector("#log_b_c").getAttribute("data-following") === "log:ns/b/c"')
