@@ -472,3 +472,39 @@ func TestANewPlatformEventReplacesTheEventsCount(t *testing.T) {
 		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
 	}
 }
+
+// TestANewEventReplacesTheCatalogEventsCount: the Catalog page's Events count
+// is a followed region, and a new Platform event changes it.
+func TestANewEventReplacesTheCatalogEventsCount(t *testing.T) {
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		if kind, _, _ := unstructured.NestedString(o.Object, "regarding", "kind"); o.GetKind() != "Event" || kind != "Platform" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("platform.new-catalog-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e2e3")
+		if err := unstructured.SetNestedField(extra.Object, "NewReason", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of the Platform to copy")
+	}
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events"
+	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
+	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, path).body))
+	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, path).body))
+	if before == nil || after == nil {
+		t.Fatal("the Catalog Events tab has no followed #events-shown region")
+	}
+	if !slices.Contains(strings.Fields(before[1]), "events:platform") {
+		t.Errorf("the count follows %q, not events:platform", before[1])
+	}
+	if before[2] == after[2] || !strings.Contains(after[2], "<strong>3</strong> of 3") {
+		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
+	}
+}

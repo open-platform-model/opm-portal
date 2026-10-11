@@ -86,7 +86,7 @@ func statusOf(p *v1.Platform) platformStatus {
 func reconcileHue(state string) string {
 	switch state {
 	case "Applied":
-		return "applied"
+		return hueAppliedWord
 	case "Reconciling":
 		return "progressing"
 	case stateFailed, "Stalled":
@@ -113,7 +113,7 @@ func platformStatusBlock(p *v1.Platform) stateBlock {
 		None: "Nothing refused or unfulfilled", Follow: platformTopic,
 	}
 	if p.Reconcile.Since != nil {
-		b.When, b.WhenText = p.Reconcile.Since, "since"
+		b.When, b.WhenText = p.Reconcile.Since, sinceWord
 	}
 	claims := fmt.Sprintf("%d %s active", st.Active, plural(st.Active, "claim", "claims"))
 	if locked {

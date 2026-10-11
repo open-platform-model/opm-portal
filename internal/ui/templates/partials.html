@@ -172,6 +172,23 @@
 {{else}}<p class="muted">{{.Empty}}</p>{{end}}
 {{- end}}
 
+{{/* reg-status is a registration's standing: the acceptance and activation
+     badges (and "Removal blocked"), the reason line in the verdict's ink, and
+     the activation reason of an accepted registration that is not active. It
+     takes a providerRow or a catalogClaim. */}}
+{{/* claim-link names a registration on the Source row. One holder makes the
+     name a link to that holder's Provider tab; several follow the name as a
+     muted "held by"; none leaves the name plain. */}}
+{{define "claim-link" -}}
+{{if .Href}}<a class="mono" href="{{.Href}}">{{template "breakable" .Name}}</a>{{else}}<span class="mono">{{template "breakable" .Name}}</span>{{if gt (len .Holders) 1}} <span class="muted">held by {{range $i, $h := .Holders}}{{if $i}}, {{end}}<a class="mono" href="{{$h.Href}}">{{$h.Text}}</a>{{end}}</span>{{end}}{{end}}
+{{- end}}
+
+{{define "reg-status" -}}
+<p class="pills">{{range .Badges}}<span class="sq hue-{{.Hue}}">{{.Text}}</span>{{end}}</p>
+{{if or (ne .Verdict "Accepted") .Message}}{{if or .Reason .Message}}<p class="verdict-why {{.Why}}">{{$why := ""}}{{if ne .Reason .Verdict}}{{$why = .Reason}}{{end}}{{with $why}}<span class="mono">{{.}}</span>{{end}}{{if and $why .Message}}: {{end}}{{with .Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}{{end}}
+{{if and .Accepted (not .Active)}}{{if or .ActiveReason .ActiveMessage}}<p class="verdict-why"><span class="label">Activation</span> {{with .ActiveReason}}<span class="mono">{{.}}</span>{{end}}{{with .ActiveMessage}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}{{end}}
+{{- end}}
+
 {{define "events-note" -}}
 <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
 {{- end}}

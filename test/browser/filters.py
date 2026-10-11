@@ -41,6 +41,11 @@ first failure:
    change to a registration filters the table and announces "Showing 1 of 2, newest first, repeats
    folded".
 
+11. The Catalog page's Events tab (catalog-18, catalog-19, PIC-L1): opened on the deep link of the
+   claim's refusal reason (reason=CatalogUnresolved), the Type select's change to Warning keeps
+   the reason and the tab in the address (a boosted request, the page not reloaded), filters the
+   table and announces "Showing 1 of 2"; the reason chip's remove link then shows both events.
+
 The browser script also counts what the test needs: htmx requests, and the requests it holds. With
 OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
@@ -293,6 +298,28 @@ def run(p, engine, base, context):
         note = page.inner_text("#live .live-note")
         if not check(page, kinds == ["TransformerRegistration"] and note == "Showing 1 of 2, newest first, repeats folded",
                      f"the Resource select's change filters the events ({kinds}) and announces {note!r}"):
+            return False
+        page.context.close()
+
+        # 11: the Catalog page's Events tab: a Type change keeps the reason and announces the count.
+        CAT = "/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0"
+        page = fresh()
+        page.goto(base + CAT + "&reason=CatalogUnresolved&tab=events", wait_until="load")
+        page.evaluate("window.__m = 1")
+        wait_settled(page)
+        page.select_option("#f-type", "Warning")
+        wait_path(page, CAT + "&reason=CatalogUnresolved&tab=events&type=Warning")
+        wait_note(page, "Showing 1 of 2")
+        reasons = page.evaluate("[...document.querySelectorAll('#events tbody .ev-reason')].map(e => e.textContent)")
+        kept = page.evaluate("window.__m")
+        if not check(page, kept == 1 and reasons == ["CatalogUnresolved"],
+                     f"a Type change on the Catalog Events tab keeps the reason ({reasons}) without reloading (marker {kept}) and announces the count"):
+            return False
+        page.click('a.fchip[aria-label="Remove Reason filter"]')
+        wait_path(page, CAT + "&tab=events&type=Warning")
+        wait_note(page, "Showing 1 of 2")
+        shown = page.inner_text("#events-shown")
+        if not check(page, shown.startswith("Showing 1 of 2"), f"removing the reason chip keeps the type filter ({shown!r})"):
             return False
         page.context.close()
 

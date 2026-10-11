@@ -193,7 +193,7 @@ func TestLockedRegistrationsLockTheirClaims(t *testing.T) {
 // it applies, like every other filter form.
 func TestPlatformEventsFilterShowsItsChip(t *testing.T) {
 	form := between(mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/?eresource=platform").body), `aria-label="Filter recent events"`, "</form>")
-	if !strings.Contains(form, `<span class="fchip-label">Resource</span> the Platform`) {
+	if !strings.Contains(form, `aria-label="Remove Resource filter"><span class="fchip-label">Resource:</span> the Platform`) {
 		t.Errorf("no chip for the events filter:\n%s", form)
 	}
 }

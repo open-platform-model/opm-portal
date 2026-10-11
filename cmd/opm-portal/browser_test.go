@@ -199,7 +199,7 @@ func TestBrowserTabCount(t *testing.T) {
 	}
 }
 
-// phonePages lists the pages TestBrowserPhone opens: the 25 non-fragment
+// phonePages lists the pages TestBrowserPhone opens: the 28 non-fragment
 // paths of f1Pages in internal/ui/ui_test.go, which package main cannot
 // import, and the not-found page. A UI change that adds a page adds its path
 // here, as it adds it to f1Pages.
@@ -225,6 +225,9 @@ var phonePages = []string{
 	"/instances/default/backup-provider?tab=provider",
 	"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0",
 	"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved",
+	"/catalog?path=opmodel.dev/catalogs/opm@v4",
 	"/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events",
 	"/instances/cert-manager/cert-manager?tab=resources",
 	"/instances/cert-manager/cert-manager",

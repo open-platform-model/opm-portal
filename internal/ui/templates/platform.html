@@ -51,9 +51,7 @@
       <td data-label="Provides">{{range .Provides}}<span class="mono chip-contract" title="{{.}}">{{contractShort .}}</span> {{else}}<span class="muted">nothing</span>{{end}}</td>
       <td data-label="Installed as">{{range .Holders}}<span class="holder">{{template "kind-chip" .Kind}} <a class="mono" href="{{.Href}}">{{.Text}}</a></span> {{else}}<span class="muted">held by nothing you may read</span>{{end}}{{if .HeldByPartial}}<p class="muted holder-note">You may not see every instance and package, so a holder may be missing.</p>{{end}}{{if .RefElsewhere}}{{with .Provider}}<p class="muted holder-note">spec.providerRef names ModuleInstance <span class="mono">{{.Namespace}}/{{.Name}}</span>.</p>{{end}}{{end}}</td>
       <td data-label="Status">
-        <p class="pills">{{range .Badges}}<span class="sq hue-{{.Hue}}">{{.Text}}</span>{{end}}</p>
-        {{if or (ne .Verdict "Accepted") .Message}}{{if or .Reason .Message}}<p class="verdict-why {{.Why}}">{{$why := ""}}{{if ne .Reason .Verdict}}{{$why = .Reason}}{{end}}{{with $why}}<span class="mono">{{.}}</span>{{end}}{{if and $why .Message}}: {{end}}{{with .Message}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}{{end}}
-        {{if and .Accepted (not .Active)}}{{if or .ActiveReason .ActiveMessage}}<p class="verdict-why"><span class="label">Activation</span> {{with .ActiveReason}}<span class="mono">{{.}}</span>{{end}}{{with .ActiveMessage}}<span class="msg">{{.}}</span>{{end}}</p>{{end}}{{end}}
+        {{template "reg-status" .}}
       </td>
     </tr>
     {{end}}
@@ -128,7 +126,7 @@
     <p class="shown" id="events-shown" data-follow="{{.Follow}}">{{if not .Feed.Problem}}Showing <strong>{{len .Feed.Items}}</strong> of {{.Total}}, newest first, repeats folded{{end}}</p>
     {{with .Filters}}{{if or .Active .Ignored}}
     <div class="filter-chips">
-      {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+      {{range .Active}}<a class="fchip" href="{{.Remove}}" title="{{.Value}}" data-filters-explicit aria-label="Remove {{.Label}} filter"><span class="fchip-label">{{.Label}}:</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
       {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a resource this page shows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
     </div>
     {{end}}{{end}}

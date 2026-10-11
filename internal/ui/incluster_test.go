@@ -15,6 +15,7 @@ import (
 // local mode, rendered over an in-cluster read API.
 var inClusterPages = []goldenPage{
 	{"in-cluster/platform", "/", false},
+	{"in-cluster/catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events", false},
 	{"in-cluster/instance-podinfo", "/instances/default/podinfo", false},
 	{"in-cluster/package-podinfo", "/packages/pkg/podinfo", false},
 	{"in-cluster/fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
@@ -155,5 +156,25 @@ func TestInClusterPlatformPageShowsReasonsOnly(t *testing.T) {
 	status := between(main, `id="platform-status"`, "</section>")
 	if !strings.Contains(status, "CatalogUnresolved") || strings.Contains(status, "Generated") {
 		t.Errorf("the in-cluster status block does not read from reasons:\n%s", status)
+	}
+}
+
+// TestInClusterCatalogEventsShowReasonsOnly: the Catalog page's events table
+// keeps the reason and drops the controller's note in-cluster, and the
+// resolved block and claim rows show no controller message (portal:D8:R5).
+func TestInClusterCatalogEventsShowReasonsOnly(t *testing.T) {
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0"
+	local := newSite(t, apitest.F1(t), apitest.AllowAll)
+	in := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
+	events := between(mainOf(in.get(t, path+"&tab=events").body), `<table class="table rows events-table">`, "</table>")
+	if !strings.Contains(events, "CatalogUnresolved") || strings.Contains(events, `class="ev-note"`) {
+		t.Errorf("the in-cluster Catalog events show a controller note, or lose the reason:\n%s", events)
+	}
+	if !strings.Contains(between(mainOf(local.get(t, path+"&tab=events").body), `<table class="table rows events-table">`, "</table>"), `class="ev-note"`) {
+		t.Error("the local Catalog events have no note, so the in-cluster check proves nothing")
+	}
+	claims := between(mainOf(in.get(t, path).body), `id="claims"`, "</section>")
+	if !strings.Contains(claims, `<span class="mono">CatalogUnresolved</span>`) || strings.Contains(claims, `class="msg"`) {
+		t.Errorf("the in-cluster claim row shows a message, or loses the reason:\n%s", claims)
 	}
 }

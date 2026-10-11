@@ -701,6 +701,18 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .claims .prov { margin-top: 0; }
 .owner-tabs { margin: 4px 0 0; }
 .origin { font-size: 0.75rem; color: var(--muted); }
+/* The Catalog page: the origin pill beside the kicker, the display-font headline and the
+   path line under it (catalog-01, catalog-02). Text is drawn in the tone's ink on its fill. */
+#catalog-head .kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.origin-subscription, .origin-registration, .origin-claim {
+  display: inline-flex; align-items: center; padding: 2px 9px; border: 1.5px solid var(--c); border-radius: 999px;
+  color: var(--c-ink); background: var(--c-bg); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.origin-subscription { --c: var(--applied); --c-ink: var(--applied-ink); --c-bg: var(--applied-bg); }
+.origin-registration { --c: var(--unknown); --c-ink: var(--unknown-ink); --c-bg: var(--unknown-bg); }
+.origin-claim { --c: var(--neutral); --c-ink: var(--neutral-ink); --c-bg: transparent; border-style: dashed; }
+.catalog-path { margin: 0 0 12px; color: var(--ink-2); font-size: 13px; overflow-wrap: anywhere; }
+.crumb-here { color: var(--ink); }
 .obj-reason { font-size: 0.75rem; color: var(--ink-2); }
 .yaml-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .yaml-list a[aria-current] { font-weight: 700; color: var(--accent); }

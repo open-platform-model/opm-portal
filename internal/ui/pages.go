@@ -445,7 +445,7 @@ func matchesInstalled(row *installedRow, f map[string]string) bool {
 		ok    func(string) bool
 	}{
 		{"kind", func(want string) bool { return row.Kind == want }},
-		{"provider", func(want string) bool { return (len(row.ProviderOf) > 0) == (want == "yes") }},
+		{"provider", func(want string) bool { return (len(row.ProviderOf) > 0) == (want == yesWord) }},
 		{"uses", func(want string) bool { return slices.Contains(row.RenderContracts, want) }},
 		{"namespace", func(want string) bool { return row.Namespace == want }},
 		{"health", func(want string) bool { return row.Health.State == want }},
