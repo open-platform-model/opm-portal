@@ -488,9 +488,16 @@ type GraphKindCount struct {
 // GraphGroup is what a group node stands in for: configuration, pods or
 // more.
 type GraphGroup struct {
-	Kind    string           `json:"kind"`
-	Members []string         `json:"members,omitempty"`
-	Hidden  []GraphKindCount `json:"hidden,omitempty"`
+	Kind string `json:"kind"`
+	// Family is a configuration group's kind family: crds, rbac, webhooks or
+	// other. A client that does not know one still has the group's kind,
+	// members and health.
+	Family  string   `json:"family,omitempty"`
+	Members []string `json:"members,omitempty"`
+	// ObjectKinds counts the inventory objects a configuration group's
+	// members hold, by kind, sorted by kind.
+	ObjectKinds []GraphKindCount `json:"objectKinds,omitempty"`
+	Hidden      []GraphKindCount `json:"hidden,omitempty"`
 }
 
 // GraphNode is one node. Ids are stable across restarts and never hold a
@@ -533,7 +540,8 @@ type GraphPoint struct {
 
 // GraphEdge is one edge, with the field it was drawn from. Verified is set
 // on an edge a second source can confirm, false with Reason when it does
-// not.
+// not. Route holds four points, the corners of the elbow the edge is
+// drawn as.
 type GraphEdge struct {
 	ID       string       `json:"id"`
 	Kind     string       `json:"kind"`

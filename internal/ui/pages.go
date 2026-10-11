@@ -323,27 +323,41 @@ func (k ownerKind) base(ns, name string) string {
 	return "/" + k.Path + "/" + url.PathEscape(ns) + "/" + url.PathEscape(name)
 }
 
+// Health states the Resources tab compares.
+const (
+	stateHealthy = "Healthy"
+	stateUnknown = "Unknown"
+)
+
 // foldConfig moves the components the graph folds into its configuration
-// group out of cs, in their order, so the list folds what the graph folds
-// (portal:D4:R5).
+// groups out of cs, in their order, so the list folds what the graph folds
+// (portal:D4:R5). The graph folds one group per kind family; the list still
+// shows them as one entry, with the worst health of the groups, until the
+// Resources tab folds per family (change align-owner-pages).
 func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup) {
-	var group *v1.GraphNode
+	var groups []*v1.GraphNode
 	for i := range g.Nodes {
 		if n := &g.Nodes[i]; n.Kind == "group" && n.Group != nil && n.Group.Kind == "configuration" {
-			group = n
+			groups = append(groups, n)
 		}
 	}
-	if group == nil {
+	if len(groups) == 0 {
 		return cs, nil
 	}
-	cg := &configGroup{Health: "Unknown"}
-	if group.Health != nil {
-		cg.Health = group.Health.State
+	cg := &configGroup{Health: stateUnknown}
+	for i, group := range groups {
+		state := stateUnknown
+		if group.Health != nil {
+			state = group.Health.State
+		}
+		if i == 0 || worseState(state, cg.Health) {
+			cg.Health = state
+		}
 	}
-	cg.Open = cg.Health != "Healthy"
+	cg.Open = cg.Health != stateHealthy
 	rest := make([]componentView, 0, len(cs))
 	for i := range cs {
-		if slices.Contains(group.Group.Members, cs[i].Name) {
+		if slices.ContainsFunc(groups, func(n *v1.GraphNode) bool { return slices.Contains(n.Group.Members, cs[i].Name) }) {
 			cg.Components = append(cg.Components, cs[i])
 		} else {
 			rest = append(rest, cs[i])
@@ -353,6 +367,26 @@ func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup)
 		return cs, nil
 	}
 	return rest, cg
+}
+
+// worseState reports whether health state a is worse than b in the roll-up
+// order of internal/health: Degraded, Missing, Progressing, Unknown,
+// Healthy.
+func worseState(a, b string) bool {
+	rank := func(s string) int {
+		switch s {
+		case "Degraded":
+			return 4
+		case "Missing":
+			return 3
+		case "Progressing":
+			return 2
+		case stateHealthy:
+			return 0
+		}
+		return 1
+	}
+	return rank(a) > rank(b)
 }
 
 // components adds the links each object offers: its YAML and its events,

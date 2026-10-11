@@ -65,6 +65,9 @@ func (c *claims) of(owner *unstructured.Unstructured) []ProviderClaim {
 			switch {
 			case err == nil:
 				pc.Standing = health.ReadRegistration(u)
+				pc.Catalog = str(u.Object, "spec", "catalog")
+				pc.Version = str(u.Object, "spec", "version")
+				pc.Provides = strs(u.Object, "spec", "provides")
 				matches := owner.GetKind() == string(ChangeInstance) &&
 					str(u.Object, "spec", "providerRef", "namespace") == owner.GetNamespace() &&
 					str(u.Object, "spec", "providerRef", "name") == owner.GetName()

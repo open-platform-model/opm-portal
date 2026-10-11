@@ -61,6 +61,7 @@ func TestEnumsMatchTheGoConstants(t *testing.T) {
 		"GraphRegistration/verdict":         verdicts,
 		"Graph/scope":                       strs(graph.ScopeInstance, graph.ScopePackage, graph.ScopePlatform),
 		"GraphGroup/kind":                   strs(graph.GroupConfiguration, graph.GroupPods, graph.GroupMore),
+		"GraphGroup/family":                 strs(graph.Families...),
 		"GraphNode/kind": strs(graph.KindPlatform, graph.KindCatalog, graph.KindRegistration, graph.KindInstance, graph.KindPackage,
 			graph.KindModule, graph.KindSource, graph.KindComponent, graph.KindObject, graph.KindRuntime, graph.KindGroup),
 		"GraphEdge/kind": strs(graph.EdgeResolves, graph.EdgeContributes, graph.EdgeProvidedBy, graph.EdgeInstantiates,

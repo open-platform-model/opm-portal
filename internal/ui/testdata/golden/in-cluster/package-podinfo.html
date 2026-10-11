@@ -78,37 +78,37 @@
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
   </div>
   <div class="graph-frame">
-  <svg viewBox="0 0 496 104" width="496" height="104" role="group" aria-label="Relationship graph">
+  <svg viewBox="0 0 512 132" width="512" height="132" role="group" aria-label="Relationship graph">
     <defs>
       <marker id="package-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
       <pattern id="package-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
     </defs>
     <g class="viewport">
-      <text class="col-title" x="16" y="20">Source</text><text class="col-title" x="280" y="20">Package</text>
-      <path class="edge edge-sourcedFrom" d="M280 66 C248 66, 248 66, 216 66" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" marker-end="url(#package-graph-arrow)"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
-      <a class="node kind-source" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release" aria-describedby="package-graph-card-0">
-        <title>OCIRepository podinfo-release</title>
-        <rect class="node-ring" x="16" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="16" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="16" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="63">OCIReposi…odinfo-release</text>
-        <text class="node-sub" x="28" y="78">OCIRepository</text>
-      </a>
-      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?focus=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, health Unknown, Failed, retrying" aria-describedby="package-graph-card-1">
+      <text class="col-title" x="16" y="20">Package</text><text class="col-title" x="280" y="20">Source and components</text>
+      <path class="edge edge-sourcedFrom" d="M232 80 C256 80, 256 80, 280 80" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" marker-end="url(#package-graph-arrow)"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
+      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?focus=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, health Unknown, Failed, retrying" aria-describedby="package-graph-card-0">
         <title>pkg/podinfo</title>
-        <rect class="node-ring" x="280" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="280" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="280" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="292" y="63">pkg/podinfo</text>
-        <text class="node-sub" x="292" y="78">Package</text>
-        <rect class="node-stamp" x="464" y="50" width="10" height="10" rx="1"/>
+        <rect class="node-ring" x="16" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-box" x="16" y="44" width="216" height="72" rx="6"/>
+        <rect class="node-rail" x="16" y="44" width="5" height="72" rx="2"/>
+        <text class="node-label" x="28" y="63">pkg/podinfo</text>
+        <text class="node-sub" x="28" y="78">Package</text>
+        <rect class="node-stamp" x="216" y="50" width="10" height="10" rx="1"/>
+      </a>
+      <a class="node kind-source" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release" aria-describedby="package-graph-card-1">
+        <title>OCIRepository podinfo-release</title>
+        <rect class="node-ring" x="280" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-box" x="280" y="44" width="216" height="72" rx="6"/>
+        <rect class="node-rail" x="280" y="44" width="5" height="72" rx="2"/>
+        <text class="node-label" x="292" y="63">OCIReposi…odinfo-release</text>
+        <text class="node-sub" x="292" y="78">OCIRepository</text>
       </a>
     </g>
   </svg>
   </div>
   <div class="node-cards">
-  <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">OCIRepository podinfo-release</strong> <span class="nc-origin">The source the package reads</span></div>
-  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-unknown">Unknown</span> <span class="label">Applied</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">The ModulePackage</span></div>
+  <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-unknown">Unknown</span> <span class="label">Applied</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">The ModulePackage</span></div>
+  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">OCIRepository podinfo-release</strong> <span class="nc-origin">The source the package reads</span></div>
   </div>
 </div>
 </section>

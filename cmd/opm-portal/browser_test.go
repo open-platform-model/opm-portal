@@ -225,7 +225,7 @@ var phonePages = []string{
 	"/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events",
 	"/instances/cert-manager/cert-manager?tab=resources",
 	"/instances/cert-manager/cert-manager",
-	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager",
+	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
 	"/instances/web/web",
 	"/packages/pkg/podinfo",
 	"/packages/pkg/podinfo?tab=resources",

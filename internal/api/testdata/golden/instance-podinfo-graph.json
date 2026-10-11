@@ -4,10 +4,10 @@
   "scope": "instance",
   "root": "mi:default/podinfo",
   "layout": {
-    "width": 1552,
-    "height": 160,
-    "nodeWidth": 200,
-    "nodeHeight": 44,
+    "width": 1568,
+    "height": 228,
+    "nodeWidth": 216,
+    "nodeHeight": 72,
     "columns": [
       {
         "title": "Module",
@@ -26,11 +26,11 @@
         "x": 808
       },
       {
-        "title": "Runtime",
+        "title": "ReplicaSets",
         "x": 1072
       },
       {
-        "title": "Runtime",
+        "title": "Pods",
         "x": 1336
       }
     ]
@@ -44,7 +44,7 @@
       "column": 0,
       "row": 0,
       "x": 16,
-      "y": 72
+      "y": 92
     },
     {
       "id": "mi:default/podinfo",
@@ -89,7 +89,7 @@
       "column": 1,
       "row": 0,
       "x": 280,
-      "y": 72
+      "y": 92
     },
     {
       "id": "comp:mi/default/podinfo/podinfo",
@@ -111,7 +111,7 @@
       "column": 2,
       "row": 0,
       "x": 544,
-      "y": 72
+      "y": 92
     },
     {
       "id": "obj:_/Service/default/podinfo-podinfo",
@@ -154,7 +154,7 @@
       "column": 3,
       "row": 1,
       "x": 808,
-      "y": 100
+      "y": 140
     },
     {
       "id": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
@@ -177,7 +177,7 @@
       "column": 4,
       "row": 0,
       "x": 1072,
-      "y": 72
+      "y": 92
     },
     {
       "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
@@ -219,7 +219,7 @@
       "column": 5,
       "row": 1,
       "x": 1336,
-      "y": 100
+      "y": 140
     }
   ],
   "edges": [
@@ -231,20 +231,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1008,
-          "y": 122
+          "x": 1024,
+          "y": 176
         },
         {
-          "x": 1040,
-          "y": 122
+          "x": 1048,
+          "y": 176
         },
         {
-          "x": 1040,
-          "y": 94
+          "x": 1048,
+          "y": 128
         },
         {
           "x": 1072,
-          "y": 94
+          "y": 128
         }
       ]
     },
@@ -256,20 +256,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1272,
-          "y": 94
+          "x": 1288,
+          "y": 128
         },
         {
-          "x": 1304,
-          "y": 94
+          "x": 1312,
+          "y": 128
         },
         {
-          "x": 1304,
-          "y": 66
+          "x": 1312,
+          "y": 80
         },
         {
           "x": 1336,
-          "y": 66
+          "y": 80
         }
       ]
     },
@@ -281,20 +281,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1272,
-          "y": 94
+          "x": 1288,
+          "y": 128
         },
         {
-          "x": 1304,
-          "y": 94
+          "x": 1312,
+          "y": 128
         },
         {
-          "x": 1304,
-          "y": 122
+          "x": 1312,
+          "y": 176
         },
         {
           "x": 1336,
-          "y": 122
+          "y": 176
         }
       ]
     },
@@ -306,20 +306,20 @@
       "source": "status.inventory entries, by component",
       "route": [
         {
-          "x": 480,
-          "y": 94
+          "x": 496,
+          "y": 128
         },
         {
-          "x": 512,
-          "y": 94
+          "x": 520,
+          "y": 128
         },
         {
-          "x": 512,
-          "y": 94
+          "x": 520,
+          "y": 128
         },
         {
           "x": 544,
-          "y": 94
+          "y": 128
         }
       ]
     },
@@ -332,19 +332,19 @@
       "route": [
         {
           "x": 280,
-          "y": 94
+          "y": 128
         },
         {
-          "x": 248,
-          "y": 94
+          "x": 256,
+          "y": 128
         },
         {
-          "x": 248,
-          "y": 94
+          "x": 256,
+          "y": 128
         },
         {
-          "x": 216,
-          "y": 94
+          "x": 232,
+          "y": 128
         }
       ]
     },
@@ -356,20 +356,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 94
+          "x": 760,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 94
+          "x": 784,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 66
+          "x": 784,
+          "y": 80
         },
         {
           "x": 808,
-          "y": 66
+          "y": 80
         }
       ]
     },
@@ -381,20 +381,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 94
+          "x": 760,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 94
+          "x": 784,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 122
+          "x": 784,
+          "y": 176
         },
         {
           "x": 808,
-          "y": 122
+          "y": 176
         }
       ]
     }

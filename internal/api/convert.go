@@ -410,7 +410,10 @@ func graphNode(n *graph.Node) v1.GraphNode {
 		out.Platform = &v1.GraphPlatform{Type: p.Type, OperatorVersion: p.OperatorVersion, RegistrationsAccess: string(p.RegistrationsAccess)}
 	}
 	if g := n.Group; g != nil {
-		gg := &v1.GraphGroup{Kind: string(g.Kind), Members: g.Members}
+		gg := &v1.GraphGroup{Kind: string(g.Kind), Family: string(g.Family), Members: g.Members}
+		for _, k := range g.ObjectKinds {
+			gg.ObjectKinds = append(gg.ObjectKinds, v1.GraphKindCount{Kind: k.Kind, Count: k.Count})
+		}
 		for _, h := range g.Hidden {
 			gg.Hidden = append(gg.Hidden, v1.GraphKindCount{Kind: h.Kind, Count: h.Count})
 		}

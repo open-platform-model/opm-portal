@@ -1293,10 +1293,19 @@ components:
         kind:
           x-extensible-enum: [configuration, pods, more]
           type: string
+        family:
+          description: "A configuration group's kind family, from the API group of its members' objects. A client that does not know a value still has the group's kind, members and health."
+          x-extensible-enum: [crds, rbac, webhooks, other]
+          type: string
         members:
           type: array
           items:
             type: string
+        objectKinds:
+          description: "The inventory objects a configuration group's members hold, counted by kind and sorted by kind."
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphKindCount'
         hidden:
           type: array
           items:
@@ -1387,6 +1396,7 @@ components:
         reason:
           type: string
         route:
+          description: "Four points: the start, the two corners of the elbow in the middle of the gutter between the columns, and the end. The edge is drawn as a horizontal run from the start to the first corner's x, a vertical run to the end's y and a horizontal run to the end."
           type: array
           items:
             $ref: '#/components/schemas/GraphPoint'

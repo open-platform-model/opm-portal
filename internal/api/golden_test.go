@@ -32,6 +32,8 @@ var f1Goldens = []goldenCase{
 	{"instance-backup-provider", base + "/instances/default/backup-provider"},
 	{"instance-podinfo-graph", base + "/instances/default/podinfo/graph"},
 	{"instance-cert-manager-graph", base + "/instances/cert-manager/cert-manager/graph"},
+	{"instance-cert-manager-graph-rbac-open", base + "/instances/cert-manager/cert-manager/graph?expand=grp:configuration/mi/cert-manager/cert-manager/rbac"},
+	{"instance-backup-provider-graph", base + "/instances/default/backup-provider/graph"},
 	{"instance-podinfo-events", base + "/instances/default/podinfo/events"},
 	{"instance-podinfo-events-deployment", base + "/instances/default/podinfo/events?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo"},
 	{"instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
