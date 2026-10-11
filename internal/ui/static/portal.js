@@ -81,6 +81,23 @@
     }).observe(sentinel);
   }
 
+  // The header's height is a custom property on the root, so the page keeps
+  // clear of it (WCAG 2.2 2.4.11): portal.css reads it for scroll-padding-top
+  // and for the sticky details panel's offset. The border box is read, not
+  // the content box, which leaves out the padding. It is set through the
+  // CSSOM (a style attribute would break the page policy), at load, when
+  // the banner comes or goes, and whenever the header's size changes (the
+  // slimmed header, a wrapped header on a phone, a larger text size).
+  function syncMastheadHeight() {
+    if (masthead) {
+      document.documentElement.style.setProperty("--masthead-h", masthead.getBoundingClientRect().height + "px");
+    }
+  }
+  syncMastheadHeight();
+  if (masthead && "ResizeObserver" in window) {
+    new ResizeObserver(syncMastheadHeight).observe(masthead);
+  }
+
   // ---- Relative times ----
   // The server writes each time as "4m ago" and nothing updates it, so the
   // script counts: every 30 seconds, and once when the tab shows again, it
@@ -491,11 +508,20 @@
       body: JSON.stringify({ add: add, remove: remove })
     }).then(function (res) {
       if (!res.ok && !expired) {
-        setLive(false, "Topics refused");
+        postFailed = true;
+        setStream("lost", "Topics refused");
+      } else if (res.ok && postFailed) {
+        // The topics reached the server again: what the page missed while
+        // they did not is read back before the banner goes.
+        postFailed = false;
+        if (lost && !expired && connected) {
+          beginResync();
+        }
       }
     }).catch(function () {
       if (!expired) {
-        setLive(false, "Offline");
+        postFailed = true;
+        setStream("lost", "Offline");
       }
     });
   }
@@ -522,6 +548,116 @@
     var el = document.querySelector("#live .live-text");
     if (el) {
       el.textContent = text;
+    }
+  }
+
+  // ---- The stream's state and the banner ----
+  // One function sets the live mark and the banner, so they cannot
+  // disagree. The mark is the one announcer (#live is a polite status
+  // region); the banner has no role and no live region of its own, and
+  // holds the same words with the time of the data on screen.
+  //
+  // lastRead is that time, in the browser's clock: the page's load, then the
+  // last message the stream delivered (a heartbeat counts) while it is
+  // healthy. It freezes at the first sign of a loss and moves again only
+  // when a resync has re-rendered the followed regions, so the banner never
+  // says "read just now" over regions that were drawn before the outage.
+  var banner = document.getElementById("region-banner");
+  var lastRead = Date.now();
+  var lost = false;
+  var resyncing = false;
+  var resyncEpoch = 0;
+  var everOpened = false;
+  var connected = true;
+  var postFailed = false;
+
+  // state: "live" | "lost" | "expired" | "signedout". word is the live
+  // mark's text ("Reconnecting"); it also ends a lost banner.
+  function setStream(state, word) {
+    lost = state !== "live";
+    setLive(state === "live", word);
+    showBanner(state, word);
+  }
+
+  function pad2(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  function showBanner(state, word) {
+    if (!banner) {
+      return;
+    }
+    if (state === "live") {
+      banner.hidden = true;
+      banner.removeAttribute("data-state");
+    } else {
+      var lead = banner.querySelector(".rb-lead");
+      var tail = banner.querySelector(".rb-word");
+      var when = banner.querySelector("time");
+      if (lead) {
+        lead.textContent = state === "expired" ? "Session expired. " : (state === "signedout" ? "Signed out. " : "");
+      }
+      if (tail) {
+        tail.textContent = state === "lost" ? " " + word + "." : "";
+      }
+      if (when) {
+        // The time partial's form: the instant in datetime, the same instant
+        // in UTC in title, and the relative words, which the tick keeps true.
+        var skew = clockSkew === null ? 0 : clockSkew;
+        var at = new Date(Math.floor((lastRead + skew) / 1000) * 1000);
+        when.setAttribute("datetime", at.toISOString().replace(".000Z", "Z"));
+        when.setAttribute("title", at.getUTCFullYear() + "-" + pad2(at.getUTCMonth() + 1) + "-" + pad2(at.getUTCDate()) +
+          " " + pad2(at.getUTCHours()) + ":" + pad2(at.getUTCMinutes()) + ":" + pad2(at.getUTCSeconds()) + " UTC");
+        when.textContent = relativeText(Date.now() + skew - at.getTime());
+      }
+      banner.setAttribute("data-state", state);
+      banner.hidden = false;
+    }
+    syncMastheadHeight();
+  }
+
+  // streamMessage records the time of a message the healthy stream delivered.
+  function streamMessage() {
+    if (!lost && !expired) {
+      lastRead = Date.now();
+    }
+  }
+
+  // The resync: after a loss, every followed region is read again from one
+  // fetch of the page, and the mark and the banner are true again only when
+  // that fetch has been answered 200 and the regions are replaced.
+  function markAllDirty() {
+    pageTopics().forEach(function (t) { changed(t); });
+  }
+
+  function settleLive() {
+    resyncing = false;
+    lastRead = Date.now();
+    setStream("live", "Live");
+  }
+
+  function beginResync() {
+    resyncing = true;
+    resyncEpoch++;
+    var any = false;
+    pageTopics().forEach(function (t) {
+      if (following(t).some(function (el) { return el.id; })) {
+        any = true;
+      }
+    });
+    if (!any) {
+      // Nothing follows a topic: there is nothing to read again.
+      settleLive();
+      return;
+    }
+    markAllDirty();
+  }
+
+  // A resync that failed is tried again on the next stream event of any
+  // kind, once the failed fetch has settled and nothing else waits.
+  function retryResync() {
+    if (resyncing && !inflight && !refreshTimer && dirty.size === 0) {
+      markAllDirty();
     }
   }
 
@@ -580,15 +716,29 @@
         }
       });
     });
+    // Only the first fetch that starts after the stream's open event is the
+    // resync; one already in flight at that event reads the old render.
+    var isResync = resyncing;
+    var epoch = resyncEpoch;
     if (regions.length === 0) {
+      if (isResync && connected && !expired) {
+        settleLive();
+      }
       return;
     }
     inflight = true;
     var url = location.pathname + location.search;
     fetch(url, { credentials: "same-origin", headers: { "Accept": "text/html" } }).then(function (res) {
       if (res.status === 401) {
-        setLive(false, "Signed out");
+        // The session is gone; a fetch answered so is not tried again.
+        resyncing = false;
+        if (!expired) {
+          setStream("signedout", "Signed out");
+        }
         return null;
+      }
+      if (isResync && res.status !== 200) {
+        throw new Error("status " + res.status);
       }
       return res.text();
     }).then(function (text) {
@@ -628,8 +778,14 @@
       restoreGraphs();
       restoreViews(views);
       refocus(focused);
+      if (isResync && epoch === resyncEpoch && connected && !expired) {
+        settleLive();
+      }
     }).catch(function () {
-      setLive(false, "Offline");
+      if (!expired) {
+        resyncing = true;
+        setStream("lost", "Offline");
+      }
     }).then(function () {
       inflight = false;
       schedule();
@@ -775,7 +931,16 @@
         return;
       }
       streamID = data.stream;
-      setLive(true, "Live");
+      connected = true;
+      streamMessage();
+      var reopened = lost && everOpened;
+      everOpened = true;
+      if (!reopened) {
+        // The first open of a page, or a loss before it: the page was drawn
+        // a moment ago and nothing was missed.
+        postFailed = false;
+        setStream("live", "Live");
+      }
       var want = pageTopics();
       var remove = [];
       opened.forEach(function (t) { if (!want.has(t)) { remove.push(t); } });
@@ -783,6 +948,21 @@
       subscribed = want;
       primed.clear();
       post(Array.from(want), remove);
+      if (reopened) {
+        // The mark keeps the word of the loss and the banner stays, until
+        // the resync is answered.
+        beginResync();
+      }
+    });
+
+    // Every message of a healthy stream is the time of the data on screen;
+    // after a loss it also retries a resync that failed. The expired event
+    // is not one: it ends the stream.
+    ["sse:snapshot", "sse:upsert", "sse:delete", "sse:k8sevent", "sse:log", "sse:logend", "sse:closed", "sse:heartbeat"].forEach(function (name) {
+      listener.addEventListener(name, function () {
+        streamMessage();
+        retryResync();
+      });
     });
 
     ["sse:snapshot", "sse:upsert", "sse:delete", "sse:k8sevent"].forEach(function (name) {
@@ -839,16 +1019,27 @@
     listener.addEventListener("sse:expired", function () {
       streamID = "";
       expired = true;
-      setLive(false, "Session expired, reload");
+      connected = false;
+      resyncing = false;
+      setStream("expired", "Session expired, reload");
     });
   }
 
   body.addEventListener("htmx:sseError", function () {
     if (!expired) {
-      setLive(false, "Reconnecting");
+      connected = false;
+      resyncing = false;
+      setStream("lost", "Reconnecting");
     }
   });
-  body.addEventListener("htmx:sseOpen", function () { setLive(true, "Live"); });
+  // The connection opened. After a loss it is not yet true: the mark and the
+  // banner wait for the resync.
+  body.addEventListener("htmx:sseOpen", function () {
+    connected = true;
+    if (!lost) {
+      setLive(true, "Live");
+    }
+  });
 
   // A boosted navigation swaps #main: move the stream to the new page.
   document.addEventListener("htmx:afterSettle", function () {

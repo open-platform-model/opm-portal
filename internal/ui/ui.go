@@ -208,6 +208,11 @@ type header struct {
 	OK bool
 	// Cluster is the kubeconfig context, or "in cluster".
 	Cluster string
+	// Entry is the name of the kubeconfig's cluster entry, only when it adds
+	// something: the source is a kubeconfig, the document carries a name and
+	// the name differs from Cluster (portal:D18:R1). Empty otherwise, and
+	// the pill then reads as it always did.
+	Entry string
 	// Context keys what the browser remembers: the context name, or
 	// in-cluster.
 	Context  string
@@ -228,6 +233,9 @@ func (h *Handler) header(r *http.Request) header {
 	case c.Context == "":
 		// No context to key remembered filters by: the browser keeps none.
 		hd.Cluster = unknownWord
+	}
+	if c.Source == v1.SourceKubeconfig && c.ClusterEntry != "" && c.ClusterEntry != hd.Cluster {
+		hd.Entry = c.ClusterEntry
 	}
 	return hd
 }

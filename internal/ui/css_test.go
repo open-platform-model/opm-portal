@@ -644,3 +644,74 @@ func TestPortalCSSDrawsTheLoadingBar(t *testing.T) {
 		}
 	}
 }
+
+// bannerProblems names what is wrong with the banner and the header height
+// in css: the banner row is hidden by its attribute and fits the header,
+// its link is 44 px high, its focus ring is the tone's ink, forced colors
+// draw its border, and the page keeps clear of the sticky header through the
+// height the script writes (WCAG 2.2 2.4.11).
+func bannerProblems(css string) []string {
+	rules := parseCSS(css)
+	var out []string
+	row, ok := ruleFor(rules, ".region-banner")
+	switch {
+	case !ok:
+		out = append(out, "no rule for .region-banner")
+	case row["flex-basis"] != "100%" || row["max-height"] != "8rem" || row["overflow-y"] != "auto":
+		out = append(out, "the banner is not a full-width row capped at 8rem that scrolls")
+	}
+	if hide, ok := ruleFor(rules, ".region-banner[hidden]"); !ok || hide["display"] != "none" {
+		out = append(out, "a hidden banner is not display none")
+	}
+	if link, ok := ruleFor(rules, ".rb-reload"); !ok || link["min-height"] != "44px" {
+		out = append(out, "the Reload link is not 44 px high")
+	}
+	if ring, ok := ruleFor(rules, ".region-banner :focus-visible"); !ok || ring["outline-color"] != "var(--c-ink)" {
+		out = append(out, "the banner's focus ring is not the tone's ink")
+	}
+	return append(out, headerClearanceProblems(css, rules)...)
+}
+
+// headerClearanceProblems checks the banner in forced colors and the pages'
+// clearance of the sticky header.
+func headerClearanceProblems(css string, rules []cssRuleOf) []string {
+	var out []string
+	forced := false
+	for _, r := range forcedColorsRules(css) {
+		if strings.Contains(r.selector, ".region-banner") && strings.Contains(r.decls["border"], "CanvasText") {
+			forced = true
+		}
+	}
+	if !forced {
+		out = append(out, "the banner has no CanvasText border in forced colors")
+	}
+	pads := false
+	for _, r := range rules {
+		if r.selector == "html" && strings.Contains(r.decls["scroll-padding-top"], "var(--masthead-h") {
+			pads = true
+		}
+	}
+	if !pads {
+		out = append(out, "html does not keep clear of the header through --masthead-h")
+	}
+	if d, ok := ruleFor(rules, "#detail"); !ok || !strings.Contains(d["top"], "var(--masthead-h") || !strings.Contains(d["max-height"], "var(--masthead-h") {
+		out = append(out, "the sticky details panel does not take its offset and height from --masthead-h")
+	}
+	return out
+}
+
+func TestPortalCSSDrawsTheBannerAndKeepsClearOfTheHeader(t *testing.T) {
+	for _, line := range bannerProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	// The check can fail.
+	for name, css := range map[string]string{
+		"no banner at all":     "html { scroll-padding-top: calc(var(--masthead-h, 4.5rem) + 8px); } #detail { top: calc(var(--masthead-h, 72px) + 8px); max-height: calc(100vh - var(--masthead-h) - 28px); }",
+		"a fixed scroll pad":   ".region-banner { flex-basis: 100%; max-height: 8rem; overflow-y: auto; } .region-banner[hidden] { display: none; } html { scroll-padding-top: 4rem; }",
+		"a fixed panel offset": "#detail { top: 80px; max-height: calc(100vh - 100px); } html { scroll-padding-top: var(--masthead-h); }",
+	} {
+		if got := bannerProblems(css); len(got) < 2 {
+			t.Errorf("the check did not name %s: %v", name, got)
+		}
+	}
+}

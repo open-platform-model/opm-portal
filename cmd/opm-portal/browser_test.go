@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -278,6 +279,7 @@ var phonePages = []string{
 // the details panel filled.
 func TestBrowserPhone(t *testing.T) {
 	script := browserScript(t, "phone.py")
+	banner := browserScript(t, "phone_banner.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
 		t.Run(browser, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
@@ -286,6 +288,18 @@ func TestBrowserPhone(t *testing.T) {
 			args := append([]string{browser, serveSite(t, apitest.F1PackageHolder(t))}, phonePages...)
 			if err := playwright(ctx, t, script, nil, args...); err != nil {
 				t.Fatalf("a page is wider than 360 px: %v", err)
+			}
+		})
+		t.Run(browser+"/banner", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			// A 90 character context and a different 90 character cluster
+			// entry, with no space in either, and the banner shown.
+			longContext, longEntry := strings.Repeat("c", 90), strings.Repeat("e", 90)
+			srv := apitest.NewWithCluster(t, apitest.F1(t), apitest.AllowAll, longContext, longEntry)
+			url := serveHandlerWith(t, srv, nil, nil, nil)
+			if err := playwright(ctx, t, banner, nil, browser, url, "/", "/instances/default/podinfo"); err != nil {
+				t.Fatalf("the header with a banner and two long names does not hold 360 px: %v", err)
 			}
 		})
 	}
@@ -380,6 +394,138 @@ func TestBrowserLoading(t *testing.T) {
 	}
 }
 
+// TestBrowserStale drives the banner of a lost stream in real browsers (task
+// test:browser). stale.py holds a page open on a stream the test controls
+// (serveStaleSite): it sends heartbeats and changes, drops the connection,
+// refuses reconnects, and holds, fails and answers 401 to the page's refresh
+// fetch with routes. It checks the banner's words and time at each step, that
+// the live mark is the only status text that changes, that the banner goes
+// only after one fetch has replaced the followed regions, that a failed
+// fetch is tried again on the next heartbeat, and that a reader scrolled far
+// down still sees the banner. Run it after any change to the page script's
+// stream, banner or resync code.
+func TestBrowserStale(t *testing.T) {
+	script := browserScript(t, "stale.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 8*time.Minute)
+			defer cancel()
+			url := serveStaleSite(t)
+			if err := playwright(ctx, t, script, nil, browser, url, apitest.Now.UTC().Format(time.RFC3339)); err != nil {
+				t.Fatalf("the banner did not hold as designed: %v", err)
+			}
+		})
+	}
+}
+
+// serveStaleSite serves the pages over the F1 capture with a stream and a
+// page fetch the script drives. GET /api/v1alpha1/clusters/default/stream
+// answers 503 while refusing, else opens a stream with a fresh id (retry
+// 300 ms) and writes the frames the script posts until it asks to drop.
+// The page's refresh fetch (a GET asking for exactly text/html) is counted
+// and answered by mode: ok, hold (until released), abort (the connection
+// is reset), 500 or 401.
+//
+//	POST /ctl/send?frame=...   write one frame      POST /ctl/drop     end the connection
+//	POST /ctl/refuse?on=1|0    refuse connections   POST /ctl/fetch?mode=...
+//	POST /ctl/release          release one held fetch
+//	GET  /ctl/state            "<streams> <fetches>"
+func serveStaleSite(t *testing.T) string {
+	t.Helper()
+	const apiBase = "/api/v1alpha1/clusters/default"
+	var (
+		mu      sync.Mutex
+		frames  = make(chan string, 16)
+		refuse  atomic.Bool
+		streams atomic.Int32
+		fetches atomic.Int32
+		mode    atomic.Value
+		release = make(chan struct{}, 16)
+	)
+	mode.Store("ok")
+	wrap := func(pages http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet || r.Header.Get("Accept") != "text/html" {
+				pages.ServeHTTP(w, r)
+				return
+			}
+			fetches.Add(1)
+			switch mode.Load().(string) {
+			case "hold":
+				select {
+				case <-release:
+				case <-r.Context().Done():
+					return
+				}
+			case "abort":
+				panic(http.ErrAbortHandler)
+			case "500":
+				http.Error(w, "boom", http.StatusInternalServerError)
+				return
+			case "401":
+				http.Error(w, "signed out", http.StatusUnauthorized)
+				return
+			}
+			pages.ServeHTTP(w, r)
+		})
+	}
+	return serveSiteWith(t, apitest.F1(t), func() time.Time { return apitest.Now }, wrap, func(mux *http.ServeMux) {
+		mux.HandleFunc("GET "+apiBase+"/stream", func(w http.ResponseWriter, r *http.Request) {
+			n := streams.Add(1)
+			if refuse.Load() {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+			mu.Lock()
+			mine := make(chan string, 16)
+			frames = mine
+			mu.Unlock()
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Cache-Control", "no-store")
+			rc := http.NewResponseController(w)
+			_, _ = io.WriteString(w, "retry: 300\nevent: open\ndata: {\"stream\":\"s"+strconv.Itoa(int(n))+"\"}\n\n")
+			_ = rc.Flush()
+			for {
+				select {
+				case f := <-mine:
+					if f == "" {
+						return
+					}
+					_, _ = io.WriteString(w, f)
+					_ = rc.Flush()
+				case <-r.Context().Done():
+					return
+				}
+			}
+		})
+		mux.HandleFunc("POST "+apiBase+"/stream/{stream}/topics", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
+		mux.HandleFunc("POST /ctl/send", func(_ http.ResponseWriter, r *http.Request) {
+			mu.Lock()
+			defer mu.Unlock()
+			frames <- r.URL.Query().Get("frame") + "\n\n"
+		})
+		mux.HandleFunc("POST /ctl/drop", func(_ http.ResponseWriter, _ *http.Request) {
+			mu.Lock()
+			defer mu.Unlock()
+			frames <- ""
+		})
+		mux.HandleFunc("POST /ctl/refuse", func(_ http.ResponseWriter, r *http.Request) {
+			refuse.Store(r.URL.Query().Get("on") == "1")
+		})
+		mux.HandleFunc("POST /ctl/fetch", func(_ http.ResponseWriter, r *http.Request) {
+			mode.Store(r.URL.Query().Get("mode"))
+		})
+		mux.HandleFunc("POST /ctl/release", func(_ http.ResponseWriter, _ *http.Request) {
+			release <- struct{}{}
+		})
+		mux.HandleFunc("GET /ctl/state", func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = io.WriteString(w, strconv.Itoa(int(streams.Load()))+" "+strconv.Itoa(int(fetches.Load())))
+		})
+	})
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {
@@ -397,19 +543,39 @@ func serveSite(t *testing.T, objs []*unstructured.Unstructured) string {
 // against; a nil clock is the wall clock.
 func serveSiteAt(t *testing.T, objs []*unstructured.Unstructured, now func() time.Time) string {
 	t.Helper()
+	return serveSiteWith(t, objs, now, nil, nil)
+}
+
+// serveSiteWith is serveSiteAt with wrap, which may stand in front of the
+// pages, and extra, which may add handlers to the mux beside the read API
+// and the pages (a more specific pattern wins).
+func serveSiteWith(t *testing.T, objs []*unstructured.Unstructured, now func() time.Time, wrap func(http.Handler) http.Handler, extra func(*http.ServeMux)) string {
+	t.Helper()
+	return serveHandlerWith(t, apitest.New(t, objs, apitest.AllowAll), now, wrap, extra)
+}
+
+// serveHandlerWith is serveSiteWith over a read API the caller built.
+func serveHandlerWith(t *testing.T, srv http.Handler, now func() time.Time, wrap func(http.Handler) http.Handler, extra func(*http.ServeMux)) string {
+	t.Helper()
 	var lc net.ListenConfig
 	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := apitest.New(t, objs, apitest.AllowAll)
 	pages, err := ui.New(ui.Config{API: srv, Now: now})
 	if err != nil {
 		t.Fatal(err)
 	}
 	mux := http.NewServeMux()
 	mux.Handle("/api/", srv)
-	mux.Handle("/", pages)
+	var front http.Handler = pages
+	if wrap != nil {
+		front = wrap(pages)
+	}
+	mux.Handle("/", front)
+	if extra != nil {
+		extra(mux)
+	}
 	httpSrv := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.AddCookie(&http.Cookie{Name: apitest.SessionCookie, Value: apitest.SessionValue})
@@ -424,8 +590,10 @@ func serveSiteAt(t *testing.T, objs []*unstructured.Unstructured, now func() tim
 
 // TestBrowserExpired ends a page's stream with the expired event in real
 // browsers (task test:browser). Only a browser shows that the EventSource
-// closes for good instead of reconnecting into a refusal, and that the page
-// says the session expired.
+// closes for good instead of reconnecting into a refusal, that the page
+// says the session expired in the live mark and in the banner with the time
+// of the data and a Reload link, and that the link loads a new page with a
+// new stream.
 func TestBrowserExpired(t *testing.T) {
 	script := browserScript(t, "expired.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -436,8 +604,10 @@ func TestBrowserExpired(t *testing.T) {
 			if err := playwright(ctx, t, script, nil, browser, url); err != nil {
 				t.Fatalf("the page did not show the expired session: %v", err)
 			}
-			if n := streams.Load(); n != 1 {
-				t.Errorf("the page opened %d streams; want 1, and no reconnect after expired", n)
+			// One stream for the page, none after expired (the script counts
+			// that before it acts), and one for the page its Reload link loads.
+			if n := streams.Load(); n != 2 {
+				t.Errorf("the page opened %d streams; want 2: the page's, no reconnect after expired, and the reload's", n)
 			}
 		})
 	}
@@ -476,6 +646,9 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 	})
 	mux.HandleFunc("POST "+apiBase+"/stream/{stream}/topics", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("GET /streams", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, strconv.Itoa(int(streams.Load())))
 	})
 	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	go func() { _ = srv.Serve(ln) }()

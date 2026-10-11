@@ -306,6 +306,15 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   that relative times count by the rows of `internal/ui/testdata/relative-time.json` without a layout
   shift. Run it after any change to the page script's loading or tick code, or to `relative` in
   `internal/ui/view.go`.
+  `TestBrowserStale` holds a page open on a stream the test drives (`serveStaleSite`: heartbeats,
+  changes, a drop, refused connections, and a page fetch it holds, resets, answers 500 or 401) against
+  Playwright's clock: the banner's words and its time in the `time` partial's form, the time frozen
+  until a resync succeeds, one fetch before the banner goes, a failed fetch tried again on the next
+  heartbeat, the live mark as the only live region that changes, and the sticky header's height in
+  `scroll-padding-top` and the details panel's offset, with a focus move and a fragment link that stay
+  below the header. `TestBrowserExpired` also checks the expired banner and its Reload link, and
+  `TestBrowserPhone/<engine>/banner` holds 360 px with the banner and two 90 character names. Run
+  `TestBrowserStale` after any change to the page script's stream, banner or resync code.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,

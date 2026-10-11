@@ -83,11 +83,11 @@ tasks:
       - go tool cover -html=coverage.out -o coverage.html
 
   test:browser:
-    desc: 'In Chromium, Firefox and WebKit, launch a local session from the --open page and the printed link, keep a tailed log pane through refreshes, and keep the theme and remembered filters, drive the graph, drive the details panel of an owner page and its Resources hand-off, keep every F1 page within 360 px wide, drive the info tip (dismiss, hover, tap, tab away), follow a tab count live, drive the filter forms (apply as you type, the announced count), and show a slow request and keep relative times counting (Playwright image; OPM_PORTAL_CONTAINER_ENGINE=podman|docker)'
+    desc: 'In Chromium, Firefox and WebKit, launch a local session from the --open page and the printed link, keep a tailed log pane through refreshes, and keep the theme and remembered filters, drive the graph, drive the details panel of an owner page and its Resources hand-off, keep every F1 page within 360 px wide, drive the info tip (dismiss, hover, tap, tab away), follow a tab count live, drive the filter forms (apply as you type, the announced count), show a slow request and keep relative times counting, and show the banner of a lost stream and resync (Playwright image; OPM_PORTAL_CONTAINER_ENGINE=podman|docker)'
     env:
       OPM_PORTAL_CONTAINER_ENGINE: '{{.OPM_PORTAL_CONTAINER_ENGINE}}'
     cmds:
-      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs|Expired|Theme|Graph|Owner|Phone|Tip|TabCount|Filters|Loading)$' -v ./cmd/opm-portal
+      - go test -tags browser -count=1 -run '^TestBrowser(Launch|Logs|Expired|Theme|Graph|Owner|Phone|Tip|TabCount|Filters|Loading|Stale)$' -v ./cmd/opm-portal
 
   #########################
   ## e2e fixture cluster (test/e2e)

@@ -111,7 +111,20 @@ func NewInCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *a
 	return newServer(t, objs, rule, api.ModeInCluster)
 }
 
+// NewWithCluster is New over a kubeconfig whose context is named context and
+// whose cluster entry is named entry. The other constructors name both
+// Context, so the API goldens keep one name.
+func NewWithCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule, context, entry string) *api.Server {
+	t.Helper()
+	return newServerAs(t, objs, rule, api.ModeLocal, context, entry)
+}
+
 func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode api.Mode) *api.Server {
+	t.Helper()
+	return newServerAs(t, objs, rule, mode, Context, Context)
+}
+
+func newServerAs(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode api.Mode, context, entry string) *api.Server {
 	t.Helper()
 	caller, _ := readmodeltest.NewChecker(t, Caller, rule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readmodeltest.AllowAll, authz.Options{})
@@ -131,7 +144,7 @@ func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode 
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
-	conn := api.Connection{Source: v1.SourceKubeconfig, Context: Context, ClusterEntry: Context}
+	conn := api.Connection{Source: v1.SourceKubeconfig, Context: context, ClusterEntry: entry}
 	if mode == api.ModeInCluster {
 		conn = api.Connection{Source: v1.SourceInCluster}
 	}
