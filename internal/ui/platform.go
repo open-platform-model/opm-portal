@@ -16,6 +16,9 @@ import (
 // No Platform health and no platform graph: the graph stays in the read
 // API.
 
+// kindPlatform is the Kubernetes kind of the Platform, and its heading.
+const kindPlatform = "Platform"
+
 // Platform tabs.
 const (
 	tabProviders = "providers"
@@ -255,7 +258,7 @@ type holderLink struct {
 // holderOf links a holder to its Provider tab.
 func holderOf(ref v1.ObjectRef) holderLink {
 	k := instanceKind
-	if ref.Kind == "ModulePackage" {
+	if ref.Kind == kindModulePackage {
 		k = packageKind
 	}
 	return holderLink{Kind: k.Topic, Href: k.base(ref.Namespace, ref.Name) + "?tab=" + tabProvider, Text: ref.Namespace + "/" + ref.Name}
@@ -529,7 +532,7 @@ type platformEvents struct {
 // the Platform, or a registration; "" for any other object.
 func eventResource(ref v1.ObjectRef) string {
 	switch ref.Kind {
-	case "Platform":
+	case kindPlatform:
 		return eventPlatform
 	case "TransformerRegistration":
 		return "registration:" + ref.Name
@@ -592,7 +595,7 @@ func (h *Handler) platformEvents(r *http.Request, p *v1.Platform) platformEvents
 	if len(ev.Unread) == 0 && platform.Problem == nil {
 		all.Text += fmt.Sprintf(" (%d)", ev.Total)
 	}
-	groups := []optionGroup{{Label: "Everything", Options: []selectOption{all}}, {Label: "Platform", Options: []selectOption{platformOpt}}}
+	groups := []optionGroup{{Label: "Everything", Options: []selectOption{all}}, {Label: kindPlatform, Options: []selectOption{platformOpt}}}
 	if len(providers.Options) > 0 {
 		groups = append(groups, providers)
 	}
@@ -691,7 +694,7 @@ func (h *Handler) platformPage(w http.ResponseWriter, r *http.Request) {
 	topics = append(topics, platformTopic, "instances")
 	topics = append(topics, follow...)
 	h.render(w, r, problemStatus(v.Problem), "platform", page{
-		Title:  "Platform",
+		Title:  kindPlatform,
 		Nav:    "platform",
 		Topics: topics,
 		Main:   v,
