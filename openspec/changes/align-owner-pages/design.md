@@ -793,6 +793,21 @@ again against these figures, and `ROADMAP.md` keeps the rate limiter as a follow
 QPS, or a short cache of the merged feed per owner) for a portal that serves many readers of one
 large owner.
 
+Measured again on the built read (section 6, task 6.4, 2026-10-11): the same cert-manager document, `GET
+/instances/cert-manager/cert-manager/events` and the same with `?scope=all`, through the built binary in local
+mode on a throwaway kind cluster (`opm-portal-e2e-align-owner-pages`), 50 reads after 3 warm-up reads, 95th
+percentile (a throwaway e2e test, not kept; the log is in the report):
+
+| Setting | Owner-only (1 list) | Merged (`scope=all`) | Added | Section 1's merged figure |
+| --- | --- | --- | --- | --- |
+| Reads 250 ms apart | 4.0 ms | 29.9 ms | 25.9 ms | 10.0 ms |
+| Reads 1 s apart | 5.6 ms | 16.6 ms | 11.0 ms | 24.5 ms |
+| Reads back to back | 3.2 ms | 281 ms | 278 ms | 281 ms |
+
+The built read sits where section 1 put the spike. The 250 ms row is higher than section 1's: the maximum of that run was 30.8 ms and the median 10.0 ms, so a few of the 50 reads were slow. The 1 s row is lower; the pace of a person stays at 11 to 26 ms, a seventh of the 200 ms limit. Back to back the figure is the reading client's
+rate limit as before (281 ms for 14 lists). The page body of the merged read is 8.5 KB for cert-manager's 42 entries. The settled default (merged feed on every tab) holds, and the follow-up in `ROADMAP.md` stands.
+
+
 ## Research & Decisions
 
 ### Where the merged feed is built
@@ -1002,6 +1017,30 @@ the YAML pane touched the panel's edges while the form and table sat 20 px in. T
 | The header reads "Topics refused" on the Logs tab under `TestDevServe` | the dev server has no stream endpoint; not checked against a cluster in this section (task 6.4 does) |
 | The Events table is a card list at 360 px, 18 podinfo rows 8164 px tall | the card fallback of OP-A5 shows every row with its labels |
 | The YAML pane shows the first 60 vh and scrolls inside itself; the canvas draws the whole text | a long object would push the page down; the pane scrolls and keeps its width at 360 px |
+
+### Section 6: the Provider tab (task 6.3)
+
+Chromium, over the F1 capture with the package that holds a refused claim (`TestDevServe` with
+`OPM_PORTAL_UI_DEV_HOLDER=1`, added in this section), on 2026-10-11: the Provider tab of
+`default/backup-provider` and of `pkg/provider`, in light and dark at 1440 px and in light at 360 px (full
+page, and the tab alone). `scrollWidth` measured 1440 and 360. `Provider.dc.html` and
+`ProviderPackage.dc.html` were opened too: their fields are unfilled `{{field}}` placeholders, so they fix the
+layout (label-above-value facts grid, conditions table, contract pill and the right-aligned pill button), not the
+wording. The screenshots are in the agent's scratch folder and are not committed; `TestBrowserPhone` holds the
+360 px result (facts in one column, both tables as cards).
+
+Found in the screenshots and fixed in the same section: a table's row header drew the darker `--line` hairline
+where the cells draw `--line-soft`, so the rule under each row changed shade at the first column. One rule
+(`.claim .table tbody th`) gives them the same hairline.
+
+| Difference from the canvas | Why it stays |
+| --- | --- |
+| The canvas has no heading for the claim's name; the tab keeps the registration's name as an h3 under the intro | the page holds several claims when an owner holds several registrations, and the name tells them apart (decision 7: "the h3 stays") |
+| "Registration conditions" and "What it provides" are h4 headings styled at the canvas's 16 px | the name above is an h3, so the two sections nest under it; decision 7 says h3, which would put three siblings at one level |
+| The canvas's "What it provides" has Definition, Kind and Contract columns and a "Transformers it ships" table; the tab has Contract and Used by | the read API does not serve a transformer or its kind; decision 7 fixes two columns |
+| The canvas's status badge is a pill with a dot; the tab's is a square badge toned by the condition's tone | decision 7: "a square badge toned by `Condition.Tone`"; the word is the status itself, so tone is not the only carrier |
+| The "Controller says" fact shows in local mode only | portal:D8:R5; in-cluster the read API omits the message |
+| For a claim that does not provide, "What it provides" lists the registration's contracts as "Not provided until ..." (accepted, not active; pending) or says "Nothing" (refused, unknown) instead of a Used by list | OP-A4: a claim that serves nothing never shows users or an in-use count; the canvas's refused board says "Nothing" in the same place |
 
 ## Amendments from the portal's plan
 
