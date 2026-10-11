@@ -326,6 +326,10 @@ type logPane struct {
 	Pod       string
 	Container string
 	Previous  string
+	// PodValue names the Pod in the Events resource filter; Reason is the
+	// Pod's health reason, which says whether the container has started.
+	PodValue string
+	Reason   string
 }
 
 func (k ownerKind) base(ns, name string) string {
@@ -404,7 +408,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 		cv := childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q}
 		if isPod(ch.Ref) && len(ch.Containers) > 0 {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
-			cv.LogHref = base + "?tab=" + tabLogs + "#" + cv.LogID
+			cv.LogHref = logLink(base, cv.LogID)
 		}
 		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)
@@ -427,7 +431,8 @@ func logPanes(cs []componentView) []logPane {
 				}
 				for _, c := range ch.Containers {
 					topic := "log:" + ch.Ref.Namespace + "/" + ch.Ref.Name + "/" + c
-					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c})
+					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c,
+						PodValue: resourceValue(ch.Ref), Reason: ch.Health.Reason})
 				}
 			}
 		}
@@ -436,6 +441,11 @@ func logPanes(cs []componentView) []logPane {
 }
 
 func isPod(r v1.ObjectRef) bool { return r.Kind == "Pod" && r.Group == "" }
+
+// logLink is the Logs tab opened on the pane id: ?tab=logs&log=<id>.
+func logLink(base, id string) string {
+	return base + "?tab=" + tabLogs + "&log=" + url.QueryEscape(id)
+}
 
 // logID is the id of a container's log pane.
 func logID(pod, container string) string { return domID("log", pod, container) }

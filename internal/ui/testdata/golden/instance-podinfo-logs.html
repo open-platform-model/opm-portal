@@ -49,20 +49,23 @@
 </div>
 <nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">18</span></a><a href="/instances/default/podinfo?tab=logs" aria-current="page">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
 <section class="panel owner-panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="instance:default/podinfo">
-  <h2 class="vh" id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
+  <h2 class="vh" id="logs-h">Logs</h2>
+  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Pick a container" hx-swap="outerHTML show:none" data-filters="owner-logs">
+    <input type="hidden" name="tab" value="logs">
+    <div class="filter-fields">
+      <div class="field field-log"><label for="f-log">Pod / container</label><select id="f-log" name="log" class="mono"><optgroup label="podinfo-podinfo-d9585d794-4lg6h"><option value="log_podinfo-podinfo-d9585d794-4lg6h_podinfo" selected>podinfo</option></optgroup><optgroup label="podinfo-podinfo-d9585d794-kp2jx"><option value="log_podinfo-podinfo-d9585d794-kp2jx_podinfo">podinfo</option></optgroup></select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+    </div>
+  </form>
+  
   <div class="logs">
-    <details class="log" id="log_podinfo-podinfo-d9585d794-4lg6h_podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo">
+    <details class="log" id="log_podinfo-podinfo-d9585d794-4lg6h_podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo" open>
       <summary><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span> <span class="log-container">podinfo</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-d9585d794-4lg6h/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-d9585d794-4lg6h"></pre>
     </details>
-    <details class="log" id="log_podinfo-podinfo-d9585d794-kp2jx_podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-kp2jx/podinfo">
-      <summary><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span> <span class="log-container">podinfo</span></summary>
-      <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-d9585d794-kp2jx/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
-      <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-d9585d794-kp2jx"></pre>
-    </details>
   </div>
-  <p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
+  <p class="note">Logs stream only while the pane is open and need script. Lines are shown as text, never as markup.</p>
 </section>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">
   <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>

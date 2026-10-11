@@ -32,6 +32,11 @@ Checks, each printing one line per page, then exiting 1 if any failed:
    viewport, and the member rows of a closed configuration group (cert-manager) compute to display none
    until the group's <details> opens, and to display block after.
 
+6. The Events, Logs and YAML tabs (OP-A5): on `?tab=events`, `?tab=logs` and `?tab=yaml` of
+   OWNER_TEXT_PAGES the page's scrollWidth is at most 360 (a log or YAML pane may scroll inside itself).
+   On the Events tab the filter row wraps (its fields sit on more than one line, none past the edge) and the
+   table's body rows compute to display block as cards.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -62,6 +67,23 @@ OWNER_TABS_PAGES = [
     "/instances/cert-manager/cert-manager",
     "/packages/pkg/podinfo",
 ]
+
+# The pages whose Events, Logs and YAML tabs step 6 opens.
+OWNER_TEXT_PAGES = ["/instances/default/podinfo"]
+
+# The Events tab's filter row and table at this width: the distinct top offsets of the filter fields
+# (more than one when the row wraps), the right edge of the furthest field, and the display of every
+# body row.
+EVENTS_FACTS = """
+width => {
+  const fields = Array.from(document.querySelectorAll('#events .filter-fields > *'));
+  const tops = new Set(fields.map(f => Math.round(f.getBoundingClientRect().top)));
+  const right = Math.max(...fields.map(f => f.getBoundingClientRect().right));
+  const rows = Array.from(document.querySelectorAll('#events .events-table tbody tr'));
+  return {lines: tops.size, right: right, rows: rows.length,
+          cards: rows.every(r => getComputedStyle(r).display === 'block' && r.getBoundingClientRect().width <= width)};
+}
+"""
 
 # What the Resources table is at this width: the header's box, the displayed body rows and their
 # display and width, and the member rows with their display.
@@ -231,6 +253,25 @@ def run(p, engine, base, paths):
                 print(f"{engine}: FAIL {url} scrollWidth {width} (panel at rest {rest}); past the edge: {'; '.join(past) or 'none found'}")
                 shoot(page, len(paths) + 2)
 
+        for path in OWNER_TEXT_PAGES:
+            for tab in ("events", "logs", "yaml"):
+                url = f"{path}?tab={tab}"
+                open_page(page, base + url)
+                width = page.evaluate(MEASURE)
+                ok = width <= WIDTH
+                note = ""
+                if tab == "events":
+                    facts = page.evaluate(EVENTS_FACTS, WIDTH)
+                    ok = ok and facts["lines"] > 1 and facts["right"] <= WIDTH and facts["rows"] > 0 and facts["cards"]
+                    note = f", filter row on {facts['lines']} lines, {facts['rows']} rows as cards: {facts['cards']}"
+                if ok:
+                    print(f"{engine}: {url} scrollWidth {width}{note}")
+                    continue
+                failed.append(url + " (owner text tab)")
+                past = page.evaluate(PAST_EDGE, WIDTH)
+                print(f"{engine}: FAIL {url} scrollWidth {width}{note}; past the edge: {'; '.join(past) or 'none found'}")
+                shoot(page, len(paths) + 3)
+
         open_page(page, base + PANEL_PAGE)
         page.locator(f'.node[data-node="{DEPLOY}"]').first.focus()
         page.keyboard.press("Enter")
@@ -247,7 +288,7 @@ def run(p, engine, base, paths):
             shoot(page, len(paths))
     finally:
         browser.close()
-    total = len(paths) + 1 + len(OWNER_PAGES) + 2 * len(OWNER_TABS_PAGES)
+    total = len(paths) + 1 + len(OWNER_PAGES) + 2 * len(OWNER_TABS_PAGES) + 3 * len(OWNER_TEXT_PAGES)
     print(f"{engine}: {total - len(failed)} of {total} checks hold {WIDTH} px")
     return not failed
 

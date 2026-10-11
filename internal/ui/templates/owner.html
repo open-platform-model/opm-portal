@@ -64,57 +64,71 @@
 </div>
 {{else if eq .Tab "events"}}
 <section class="panel owner-panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
-  <h2 class="vh" id="events-h">Events{{with .Events.About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
+  <h2 class="vh" id="events-h">Events</h2>
   {{with .EventsForm}}
   <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
     <input type="hidden" name="tab" value="events">
+    {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
     <div class="filter-fields">
-      <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource"><option value=""{{if not (index .Filters.Values "resource")}} selected{{end}}>This {{$v.Kind.Topic}}</option>{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
-      <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any</option>{{range .Types}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
-      <div class="field"><label for="f-reason">Reason</label><input id="f-reason" name="reason" value="{{.Reason}}" placeholder="an event reason" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource">{{range .Resource}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
+      <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any type</option>{{range .Types}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
       <div class="field field-submit"><button type="submit">Apply filters</button></div>
+      <div class="filter-meta"><p class="shown">Showing <strong>{{.Shown}}</strong> of {{.Total}}</p>{{if .Filters.Active}}<a class="fclear" href="{{.Filters.Clear}}" data-filters-explicit>Clear filters</a>{{end}}</div>
     </div>
     {{with .Filters}}{{if or .Active .Ignored}}
     <div class="filter-chips">
-      {{range .Active}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}
+      {{range .Active}}{{if eq .Name "reason"}}<a class="fchip" href="{{.Remove}}" data-filters-explicit aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a>{{end}}{{end}}
       {{range .Ignored}}<p class="fnote" role="note">Ignored filter <span class="mono">{{.Name}}={{.Value}}</span>: not a value this view knows. <a href="{{.Remove}}" data-filters-explicit>Dismiss</a></p>{{end}}
-      {{if .Active}}<a class="fclear" href="{{.Clear}}" data-filters-explicit>Clear filters</a>{{end}}
     </div>
     {{end}}{{end}}
   </form>
-  <p class="shown">Showing <strong>{{.Shown}}</strong> of {{.Total}}, newest first, repeats folded</p>
+  {{if .Partial}}<p class="note" role="note">Some objects' events could not be read and are left out.</p>{{end}}
   {{end}}
-  {{template "events-note"}}
-  <p class="note">Render warnings are recorded only as events, so a warning older than about an hour is gone.</p>
-  {{template "events-list" .Events}}
+  {{template "events-recent"}}
+  {{template "events-table" .EventsTable}}
 </section>
 {{else if eq .Tab "logs"}}
 <section class="panel owner-panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
-  <h2 class="vh" id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
+  <h2 class="vh" id="logs-h">Logs</h2>
+  {{with .Logs}}{{if .Pane}}
+  <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Pick a container" hx-swap="outerHTML show:none" data-filters="owner-logs">
+    <input type="hidden" name="tab" value="logs">
+    {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
+    <div class="filter-fields">
+      <div class="field field-log"><label for="f-log">Pod / container</label><select id="f-log" name="log" class="mono">{{range .Groups}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+    </div>
+  </form>
+  {{with .Hint.Text}}<p class="note log-hint" role="note">{{.}} <a href="{{$v.Logs.Hint.Href}}">See Events for why.</a></p>{{end}}
+  {{end}}
   <div class="logs">
-  {{range .Logs}}
-    <details class="log" id="{{.ID}}" data-log-topic="{{.Topic}}">
+    {{with .Pane}}
+    <details class="log" id="{{.ID}}" data-log-topic="{{.Topic}}" open>
       <summary><span class="mono">{{.Pod}}</span> <span class="log-container">{{.Container}}</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="{{.Previous}}"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of {{.Container}} in {{.Pod}}"></pre>
     </details>
-  {{end}}
+    {{end}}
   </div>
-  {{if .Logs}}<p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
-  {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}
+  {{if .Pane}}<p class="note">Logs stream only while the pane is open and need script. Lines are shown as text, never as markup.</p>
+  {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}{{end}}
 </section>
 {{else if eq .Tab "yaml"}}
-<section class="panel owner-panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="{{.Topic}}">
-  <h2 class="vh" id="yaml-picker-h">Objects</h2>
-  {{range .YAML.Groups}}
-  <h3 class="sub-h">{{.Kind}}</h3>
-  <ul class="yaml-list">{{range .Items}}<li>{{if .Secret}}<span class="mono muted">{{template "breakable" .Text}}</span> <span class="muted">Secret data is never read</span>{{else}}<a class="mono" href="{{.Href}}"{{if .Current}} aria-current="true"{{end}}>{{template "breakable" .Text}}</a>{{end}}</li>{{end}}</ul>
-  {{else}}<p class="muted">No object you may read.</p>{{end}}
-</section>
-<section class="panel owner-panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
+<section class="panel owner-panel panel-wide reveal" id="yaml" aria-labelledby="yaml-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="yaml-h">YAML</h2>
-  {{if .YAML.Has}}{{with .YAML.Picked}}{{if .Problem}}{{template "problem-region" .Problem}}{{else}}<p class="mono muted">{{.Text}}</p><pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>{{end}}{{end}}
-  {{else}}<p class="muted">Pick an object. Every object is shown as the cluster serves it, without managed fields, the last-applied annotation or values.</p>{{end}}
+  {{with .YAML}}{{if .Groups}}
+  <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Pick an object" hx-swap="outerHTML show:none" data-filters="owner-yaml">
+    <input type="hidden" name="tab" value="yaml">
+    {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
+    <div class="filter-fields">
+      <div class="field field-log"><label for="f-object">Resource</label><select id="f-object" name="object" class="mono">{{range .Groups}}<optgroup label="{{.Kind}}">{{range .Items}}<option value="{{.Value}}"{{if .Secret}} disabled{{end}}{{if .Current}} selected{{end}}>{{.Text}}{{if .Secret}} (Secret data is never read){{end}}</option>{{end}}</optgroup>{{end}}</select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+      <p class="yaml-note">Secrets and values are never shown.</p>
+    </div>
+  </form>
+  {{if .Has}}{{with .Picked}}{{if .Problem}}{{template "problem-region" .Problem}}{{else}}<p class="mono muted">{{.Text}}</p><pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>{{end}}{{end}}
+  {{else}}<p class="muted">No object you may read.</p>{{end}}
+  {{else}}<p class="muted">No object you may read.</p>{{end}}{{end}}
 </section>
 {{else if eq .Tab "provider"}}
 <section class="panel owner-panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">

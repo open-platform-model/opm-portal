@@ -119,7 +119,7 @@ func appliedBlockHue(state string, reconciling bool) string {
 	case stateFailed, stateStalled:
 		return hueDegraded
 	case stateSuspended, stateManaged:
-		return "neutral"
+		return hueNeutral
 	}
 	return hueUnknown
 }

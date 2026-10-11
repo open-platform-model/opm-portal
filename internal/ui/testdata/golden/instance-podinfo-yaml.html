@@ -48,19 +48,16 @@
   
 </div>
 <nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">18</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml" aria-current="page">YAML</a></nav>
-<section class="panel owner-panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="instance:default/podinfo">
-  <h2 class="vh" id="yaml-picker-h">Objects</h2>
-  <h3 class="sub-h">Deployment</h3>
-  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=apps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=yaml" aria-current="true">default/<wbr>podinfo-podinfo</a></li></ul>
-  <h3 class="sub-h">Pod</h3>
-  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=yaml">default/<wbr>podinfo-podinfo-d9585d794-4lg6h</a></li><li><a class="mono" href="/instances/default/podinfo?object=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=yaml">default/<wbr>podinfo-podinfo-d9585d794-kp2jx</a></li></ul>
-  <h3 class="sub-h">ReplicaSet</h3>
-  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=apps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=yaml">default/<wbr>podinfo-podinfo-d9585d794</a></li></ul>
-  <h3 class="sub-h">Service</h3>
-  <ul class="yaml-list"><li><a class="mono" href="/instances/default/podinfo?object=%2FService%2Fdefault%2Fpodinfo-podinfo&amp;tab=yaml">default/<wbr>podinfo-podinfo</a></li></ul>
-</section>
-<section class="panel owner-panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
+<section class="panel owner-panel panel-wide reveal" id="yaml" aria-labelledby="yaml-h" data-follow="instance:default/podinfo">
   <h2 class="vh" id="yaml-h">YAML</h2>
+  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Pick an object" hx-swap="outerHTML show:none" data-filters="owner-yaml">
+    <input type="hidden" name="tab" value="yaml">
+    <div class="filter-fields">
+      <div class="field field-log"><label for="f-object">Resource</label><select id="f-object" name="object" class="mono"><optgroup label="Deployment"><option value="apps/Deployment/default/podinfo-podinfo" selected>default/podinfo-podinfo</option></optgroup><optgroup label="Pod"><option value="/Pod/default/podinfo-podinfo-d9585d794-4lg6h">default/podinfo-podinfo-d9585d794-4lg6h</option><option value="/Pod/default/podinfo-podinfo-d9585d794-kp2jx">default/podinfo-podinfo-d9585d794-kp2jx</option></optgroup><optgroup label="ReplicaSet"><option value="apps/ReplicaSet/default/podinfo-podinfo-d9585d794">default/podinfo-podinfo-d9585d794</option></optgroup><optgroup label="Service"><option value="/Service/default/podinfo-podinfo">default/podinfo-podinfo</option></optgroup></select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+      <p class="yaml-note">Secrets and values are never shown.</p>
+    </div>
+  </form>
   <p class="mono muted">Deployment.apps default/podinfo-podinfo</p><pre class="yaml" tabindex="0" aria-label="YAML of Deployment.apps default/podinfo-podinfo"><code>apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -161,6 +158,7 @@ status:
   terminatingReplicas: 0
   updatedReplicas: 2
 </code></pre>
+  
 </section>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">
   <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>

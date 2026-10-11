@@ -104,7 +104,7 @@ func TestPanelBodyAndLinks(t *testing.T) {
 	if strings.Join(names, ",") != "Logs,Events,YAML" || links[0][1] == "" || links[1][1] != "" || links[2][1] != "" {
 		t.Errorf("Pod buttons %v (dark %q), want Logs dark first, then Events and YAML", names, links[0][1])
 	}
-	if !strings.Contains(links[0][2], "?tab=logs#log_") {
+	if !strings.Contains(links[0][2], "?tab=logs&amp;log=log_") {
 		t.Errorf("the Logs button %q does not open the pane", links[0][2])
 	}
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)

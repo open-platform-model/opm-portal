@@ -67,7 +67,7 @@ type attemptDot struct {
 // locked standing.
 var stateBlockHues = map[string]bool{
 	"applied": true, "healthy": true, "progressing": true, "degraded": true,
-	"unknown": true, "neutral": true, "missing": true, "locked": true,
+	"unknown": true, hueNeutral: true, "missing": true, "locked": true,
 }
 
 // newStateBlock returns b with its hue settled. A hue the block does not know
@@ -79,7 +79,7 @@ func newStateBlock(b stateBlock) stateBlock {
 	case b.Problem != nil && b.Problem.Code == v1.CodeForbidden:
 		b.Hue = "locked"
 	case b.Problem != nil:
-		b.Hue = "neutral"
+		b.Hue = hueNeutral
 	case !stateBlockHues[b.Hue]:
 		b.Hue = "unknown"
 	}
@@ -95,3 +95,6 @@ type tipData struct {
 	Text    string // the tip
 	End     bool   // align the box to the trigger's end, near the right edge
 }
+
+// hueNeutral is the hue of a block with nothing to say about health.
+const hueNeutral = "neutral"

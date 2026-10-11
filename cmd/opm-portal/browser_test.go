@@ -5,6 +5,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -391,8 +393,11 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 }
 
 // serveLogsPage serves, on a free loopback port, a page holding a logs
-// region shaped as the owner page renders it. Its first render lists Pod
-// a's pane, its second adds Pod b's, and every later one lists no Pod.
+// region shaped as the owner page renders it: a Pod / container select form
+// and one open pane. Its first render lists Pod a's pane, its second adds
+// Pod b's, and every later one lists no Pod; a request that names a pane
+// (log=) is rendered at once, with that one pane open. The stream's topics
+// endpoint records what the page subscribes to, and /subs lists it.
 func serveLogsPage(t *testing.T) string {
 	t.Helper()
 	var lc net.ListenConfig
@@ -404,32 +409,74 @@ func serveLogsPage(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pane := func(pod string) string {
-		return `<details class="log" id="log_` + pod + `_c" data-log-topic="log:ns/` + pod + `/c">` +
+	pane := func(pod string, open bool) string {
+		attr := ""
+		if open {
+			attr = " open"
+		}
+		return `<details class="log" id="log_` + pod + `_c" data-log-topic="log:ns/` + pod + `/c"` + attr + `>` +
 			`<summary><span class="mono">` + pod + `</span> <span class="log-container">c</span></summary>` +
 			`<div class="log-tools"><label><input type="checkbox" data-log-previous="log:ns/` + pod + `/c/previous"> Previous instance</label>` +
 			`<span class="log-state" aria-live="polite"></span></div>` +
 			`<pre class="log-pane" tabindex="0" aria-label="Log of c in ` + pod + `"></pre></details>`
 	}
-	var renders atomic.Int32
+	form := func(picked string) string {
+		opt := func(pod string) string {
+			sel := ""
+			if pod == picked {
+				sel = " selected"
+			}
+			return `<option value="log_` + pod + `_c"` + sel + `>c</option>`
+		}
+		return `<form class="filters" method="get" action="/logs" data-filters="owner-logs"><input type="hidden" name="tab" value="logs">` +
+			`<select id="f-log" name="log"><optgroup label="a">` + opt("a") + `</optgroup><optgroup label="b">` + opt("b") + `</optgroup></select>` +
+			`<button type="submit">Show</button></form>`
+	}
+	var (
+		renders atomic.Int32
+		mu      sync.Mutex
+		subs    []string
+	)
 	mux := http.NewServeMux()
 	mux.Handle("/static/", pages)
-	mux.HandleFunc("/logs", func(w http.ResponseWriter, _ *http.Request) {
-		var panes, note string
-		switch renders.Add(1) {
-		case 1:
-			panes, note = pane("a"), `<p class="note">Logs stream only while a pane is open.</p>`
-		case 2:
-			panes, note = pane("a")+pane("b"), `<p class="note">Logs stream only while a pane is open.</p>`
-		default:
-			note = `<p class="muted">No Pod below this inventory that you may read.</p>`
+	mux.HandleFunc("POST /stream/{id}/topics", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Add []string `json:"add"`
+		}
+		if json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body) == nil {
+			mu.Lock()
+			subs = append(subs, body.Add...)
+			mu.Unlock()
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("/subs", func(w http.ResponseWriter, _ *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		_ = json.NewEncoder(w).Encode(subs)
+	})
+	mux.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
+		var panes, note, picker string
+		note = `<p class="note">Logs stream only while the pane is open.</p>`
+		if pick := r.URL.Query().Get("log"); pick != "" {
+			pod := strings.TrimSuffix(strings.TrimPrefix(pick, "log_"), "_c")
+			picker, panes = form(pick), pane(pod, true)
+		} else {
+			switch renders.Add(1) {
+			case 1:
+				picker, panes = form("log_a_c"), pane("a", true)
+			case 2:
+				picker, panes = form("log_a_c"), pane("a", true)+pane("b", false)
+			default:
+				note = `<p class="muted">No Pod below this inventory that you may read.</p>`
+			}
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Content-Security-Policy", ui.PagePolicy)
 		_, _ = io.WriteString(w, `<!doctype html><meta charset="utf-8"><title>logs</title>`+
 			`<link rel="stylesheet" href="/static/portal.css">`+
-			`<body><div id="stream-events" hidden></div><main id="main" data-topics="owner:t">`+
-			`<section class="panel" id="logs" data-follow="owner:t"><h2>Logs</h2>`+
+			`<body data-stream-base="/stream"><div id="stream-events" hidden></div><main id="main" data-topics="owner:t">`+
+			`<section class="panel" id="logs" data-follow="owner:t"><h2>Logs</h2>`+picker+
 			`<div class="logs">`+panes+`</div>`+note+`</section></main>`+
 			`<script src="/static/portal.js"></script></body>`)
 	})

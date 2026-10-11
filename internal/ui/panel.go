@@ -195,7 +195,7 @@ func panelLinks(r *http.Request, n *v1.GraphNode, ctx panelContext) []panelLink 
 		href := ctx.base + "?tab=" + tabLogs
 		if ctx.firstContainer != nil {
 			if c := ctx.firstContainer(n.Ref.Name); c != "" {
-				href += "#" + logID(n.Ref.Name, c)
+				href = logLink(ctx.base, logID(n.Ref.Name, c))
 			}
 		}
 		out = append(out, panelLink{Text: "Logs", Href: href, Dark: true})

@@ -14,6 +14,10 @@ one line, exiting 1 on the first failure:
 4. A Resources row, followed by a click anywhere on the row (the link is stretched over it),
    opens the Graph tab focused, with the panel filled.
 
+5. The Events tab: the Type select applies on change with no button press and narrows the table,
+   Clear filters brings the whole feed back, and a Resource cell is a link that narrows the table
+   to that one resource.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -110,12 +114,39 @@ def run(p, engine, base):
         panel_is(page, DEP)
         if not check(engine, "focus=" in page.url, f"a click on the row opened {page.url} with the panel filled"):
             return False
+        return events_tab(page, engine, base)
     except Exception:
         print(f"{engine}: FAIL at {page.url}")  # the address shows which step stopped
         shoot(page)
         raise
     finally:
         browser.close()
+
+
+def events_tab(page, engine, base):
+    """5. The Type select applies on change; a resource link narrows the table."""
+    rows = page.locator("table.events-table tbody tr")
+    page.goto(base + PODINFO + "?tab=events")
+    page.wait_for_selector("table.events-table")
+    total = rows.count()
+    page.select_option("#f-type", "Warning")
+    page.wait_for_url("**type=Warning**")
+    expect(page.locator("table.events-table tbody tr.ev-normal")).to_have_count(0)
+    warnings = page.locator("table.events-table tbody tr.ev-warning").count()
+    expect(page.locator(".filter-meta .shown")).to_contain_text(f"Showing {warnings} of {total}")
+    if not check(engine, 0 < warnings < total, f"the Type select applied on change: {warnings} Warning rows of {total}"):
+        return False
+    page.locator(".fclear").click()
+    page.wait_for_function("() => !location.search.includes('type=')")
+    expect(rows).to_have_count(total)
+    first = page.locator("table.events-table a.ev-name").first
+    name = first.text_content().strip()
+    first.click()
+    page.wait_for_url("**resource=**")
+    names = set(n.strip() for n in page.locator("table.events-table a.ev-name").all_text_contents())
+    if not check(engine, names == {name} and rows.count() < total,
+                 f"a resource link narrowed the table to {name}: {sorted(names)}, {rows.count()} of {total} rows"):
+        return False
     return True
 
 

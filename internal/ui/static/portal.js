@@ -658,6 +658,18 @@
       followLog(d);
     }
   }, true);
+  // followOpenLogs follows every open pane that does not follow yet: a pane the
+  // server renders open may fire its toggle event before this script listens,
+  // so the pane is followed from what is open now, at load and after every swap.
+  function followOpenLogs() {
+    document.querySelectorAll("details.log[open]").forEach(function (d) {
+      if (!d.hasAttribute("data-following")) {
+        followLog(d);
+      }
+    });
+  }
+  followOpenLogs();
+  document.addEventListener("htmx:afterSettle", followOpenLogs);
   document.addEventListener("change", function (evt) {
     var c = evt.target;
     if (c && c.matches && c.matches("input[data-log-previous]")) {

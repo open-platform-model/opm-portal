@@ -144,6 +144,29 @@
 {{else}}<p class="muted">No events in the last hour or so.</p>{{end}}
 {{- end}}
 
+{{/* events-table is one events feed as a table: Type, Reason, an optional Resource, Message and Age. Its input is an eventsTable. */}}
+{{define "events-table" -}}
+{{if .Problem}}{{template "problem-region" .Problem}}
+{{else if .Rows}}
+<div class="table-wrap"><table class="table rows events-table">
+  <thead><tr><th scope="col">Type</th><th scope="col">Reason</th>{{if .ShowResource}}<th scope="col">Resource</th>{{end}}<th scope="col">Message</th><th scope="col">Age</th></tr></thead>
+  <tbody>
+  {{range .Rows}}<tr class="ev-row ev-{{if eq .Type "Warning"}}warning{{else}}normal{{end}}">
+    <td data-label="Type"><span class="ev-type">{{.Type}}</span></td>
+    <td data-label="Reason"><span class="ev-reason mono">{{.Reason}}</span></td>
+    {{if $.ShowResource}}<td data-label="Resource"><span class="ev-kind">{{.Kind}}</span>{{if .ResourceHref}}<a class="mono ev-name" href="{{.ResourceHref}}" title="Show only this resource's events">{{template "breakable" .Name}}</a>{{else}}<span class="mono ev-name">{{template "breakable" .Name}}</span>{{end}}</td>{{end}}
+    <td data-label="Message">{{with .Note}}<p class="ev-note">{{.}}</p>{{end}}{{if or (gt .Count 1) .ReportingController}}<p class="ev-meta">{{if gt .Count 1}}<span class="ev-count" title="Repeats folded into one line">×{{.Count}}</span>{{end}}{{with .ReportingController}}<span class="mono">{{.}}</span>{{end}}</p>{{end}}</td>
+    <td data-label="Age" class="ev-age">{{with stamp .LastSeen}}<time datetime="{{.ISO}}" title="{{.Absolute}}">{{compact .Relative}}</time>{{else}}<span class="muted">unknown</span>{{end}}</td>
+  </tr>
+  {{end}}</tbody>
+</table></div>
+{{else}}<p class="muted">{{.Empty}}</p>{{end}}
+{{- end}}
+
+{{define "events-recent" -}}
+<p class="note">Recent activity: Kubernetes keeps events for about an hour, and render warnings exist only as events, so older ones are gone.</p>
+{{- end}}
+
 {{define "events-note" -}}
 <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
 {{- end}}

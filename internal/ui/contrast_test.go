@@ -89,6 +89,9 @@ func buildContrastPairs() []contrastPair {
 		{"secondary ink on card", "--ink-2", "--surface", textFloor, ""},
 		// A locked row of the Resources table is drawn on the locked tint.
 		{"ink on locked tint", "--ink", "--locked-tint", textFloor, ""},
+		// The Logs tab's pane is dark in both themes.
+		{"log text on the log pane", "--logink", "--logbg", textFloor, ""},
+		{"log mark on the log pane", "--logmark", "--logbg", textFloor, ""},
 		{"attempt mark on a succeeded dot", "--surface", "--healthy-ink", textFloor, ""},
 		{"attempt mark on a failed dot", "--surface", "--degraded-ink", textFloor, ""},
 		{"attempt mark on an unknown dot", "--unknown-ink", "--surface", textFloor, ""},

@@ -460,13 +460,13 @@ func TestYAMLTabOpensOnTheSelectedObject(t *testing.T) {
 		if !strings.Contains(yaml, `<p class="mono muted">Deployment.apps default/podinfo-podinfo</p>`) || !strings.Contains(yaml, "kind: Deployment") {
 			t.Errorf("%s: the YAML tab did not open on the Deployment:\n%s", q, yaml)
 		}
-		if !strings.Contains(between(main, `id="yaml-picker"`, "</section>"), `aria-current="true"`) {
-			t.Errorf("%s: the picker does not mark the open object", q)
+		if !strings.Contains(yaml, `<option value="apps/Deployment/default/podinfo-podinfo" selected>`) {
+			t.Errorf("%s: the select does not mark the open object", q)
 		}
 	}
 	none := mainOf(s.get(t, "/instances/default/podinfo?tab=yaml&node="+url.QueryEscape("mi:default/podinfo")).body)
-	if strings.Contains(between(none, `id="yaml"`, "</section>"), "kind: ") {
-		t.Error("the owner's own node opens a YAML it does not serve")
+	if y := between(none, `id="yaml"`, "</section>"); !strings.Contains(y, "kind: ") || strings.Contains(y, "kind: ModuleInstance") {
+		t.Error("the owner's own node has no object, so the tab opens on the first readable object and never on the owner")
 	}
 	picked := mainOf(s.get(t, "/instances/default/podinfo?tab=yaml&node="+url.QueryEscape(nodeDeployment)+"&object="+url.QueryEscape("/Service/default/podinfo-podinfo")).body)
 	if !strings.Contains(between(picked, `id="yaml"`, "</section>"), "kind: Service") {

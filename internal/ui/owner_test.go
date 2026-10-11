@@ -100,21 +100,6 @@ func TestProviderCardOnF1(t *testing.T) {
 	}
 }
 
-func TestEventsTabFilters(t *testing.T) {
-	s := newSite(t, apitest.F1(t), apitest.AllowAll)
-	warn := between(mainOf(s.get(t, "/instances/default/podinfo?tab=events&type=Warning").body), `<ol class="events">`, "</ol>")
-	if strings.Contains(warn, "ev-normal") {
-		t.Errorf("type=Warning lists Normal events:\n%s", warn)
-	}
-	pod := mainOf(s.get(t, "/instances/default/podinfo?tab=events&resource=/Pod/default/podinfo-podinfo-d9585d794-4lg6h").body)
-	if !strings.Contains(pod, "Pod default/podinfo-podinfo-d9585d794-4lg6h") || !strings.Contains(pod, "<optgroup label=\"Pod\">") {
-		t.Errorf("the resource filter does not read the Pod's events or group by kind")
-	}
-	if !strings.Contains(mainOf(s.get(t, "/instances/default/podinfo?tab=events&resource=/Pod/default/nope").body), "Ignored filter") {
-		t.Error("an unknown resource is not ignored")
-	}
-}
-
 // TestTabsShowTheirOwnRegions (portal:D9): each tab renders the cards and
 // its own regions only, and the details panel only on Graph and Resources.
 func TestTabsShowTheirOwnRegions(t *testing.T) {
@@ -124,7 +109,7 @@ func TestTabsShowTheirOwnRegions(t *testing.T) {
 		"resources": {`id="components"`, `id="detail"`},
 		"events":    {`id="events"`},
 		"logs":      {`id="logs"`},
-		"yaml":      {`id="yaml-picker"`, `id="yaml"`},
+		"yaml":      {`id="yaml"`},
 	}
 	for tab, own := range regions {
 		main := mainOf(s.get(t, "/instances/default/podinfo?tab="+tab).body)
@@ -159,8 +144,8 @@ func TestYAMLTabListsASecretAsNeverRead(t *testing.T) {
 	}})}
 	h.ownerYAMLTab(httptestRequest(t, "/instances/default/app?tab=yaml"), &v, &v1.Graph{})
 	v.Tab = tabYAML
-	out := between(renderMain(t, "owner", v), `id="yaml-picker"`, "</section>")
-	if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "object=") {
+	out := between(renderMain(t, "owner", v), `id="yaml"`, "</section>")
+	if !strings.Contains(out, "db (Secret data is never read)") || !strings.Contains(out, "disabled") || strings.Contains(out, "kind: ") {
 		t.Errorf("Secret in the YAML picker:\n%s", out)
 	}
 }
@@ -234,7 +219,7 @@ func TestFoldedObjectsFocusTheirOwnNode(t *testing.T) {
 func TestPodPanelLogsOpenItsPane(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	const pod = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
-	want := `href="/instances/default/podinfo?tab=logs#log_podinfo-podinfo-d9585d794-4lg6h_podinfo"`
+	want := `href="/instances/default/podinfo?tab=logs&amp;log=log_podinfo-podinfo-d9585d794-4lg6h_podinfo"`
 	if page := mainOf(s.get(t, "/instances/default/podinfo?tab=graph&focus="+url.QueryEscape(pod)).body); !strings.Contains(page, want) {
 		t.Error("the page's Pod panel lacks its Logs link to the pane")
 	}
@@ -324,7 +309,7 @@ func TestTabRegionsKeepTheirHeadingForScreenReaders(t *testing.T) {
 		"/instances/default/podinfo?tab=resources":                                 {"components-h"},
 		"/instances/default/podinfo?tab=events":                                    {"events-h"},
 		"/instances/default/podinfo?tab=logs":                                      {"logs-h"},
-		"/instances/default/podinfo?tab=yaml":                                      {"yaml-picker-h", "yaml-h"},
+		"/instances/default/podinfo?tab=yaml":                                      {"yaml-h"},
 		"/instances/default/backup-provider?tab=provider":                          {"provider-tab-h"},
 		"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0":            {"claims-h"},
 		"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events": {"events-h"},

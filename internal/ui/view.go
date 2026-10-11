@@ -363,6 +363,7 @@ var funcs = template.FuncMap{
 	"join":          strings.Join,
 	"segments":      segments,
 	"plural":        plural,
+	"compact":       func(s string) string { return strings.TrimSuffix(s, " ago") },
 	"add":           func(a, b int) int { return a + b },
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK

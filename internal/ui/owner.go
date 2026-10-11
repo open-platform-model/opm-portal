@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"sigs.k8s.io/yaml"
-
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
@@ -148,9 +146,11 @@ type ownerView struct {
 	Resources  resourcesTable
 	Events     eventsView
 	EventsForm eventsForm
-	Logs       []logPane
-	YAML       yamlTab
-	Provider   providerTabView
+	// EventsTable is the Events tab's rows after the filters.
+	EventsTable eventsTable
+	Logs        logsTab
+	YAML        yamlTab
+	Provider    providerTabView
 
 	firstContainer func(string) string
 }
@@ -270,223 +270,6 @@ func annotateObject(o objectView, component string, focus func(v1.ObjectRef, str
 	return o, true
 }
 
-// --- Events ---
-
-// eventsForm is the Events tab's filters: the resource, grouped by kind,
-// the type and the reason.
-type eventsForm struct {
-	Filters filters
-	Groups  []optionGroup
-	Types   []selectOption
-	Reason  string
-	Shown   int
-	Total   int
-}
-
-// resourceValue names an object in the resource filter: group/Kind/ns/name.
-func resourceValue(r v1.ObjectRef) string {
-	return r.Group + "/" + r.Kind + "/" + r.Namespace + "/" + r.Name
-}
-
-func parseResource(s string) v1.ObjectRef {
-	parts := strings.SplitN(s, "/", 4)
-	if len(parts) != 4 {
-		return v1.ObjectRef{}
-	}
-	return v1.ObjectRef{Group: parts[0], Kind: parts[1], Namespace: parts[2], Name: parts[3]}
-}
-
-// reachedRefs lists every readable object and child an owner's inventory
-// reaches, the Secrets aside.
-func reachedRefs(cs []componentView) []v1.ObjectRef {
-	var out []v1.ObjectRef
-	for i := range cs {
-		for j := range cs[i].Objects {
-			o := &cs[i].Objects[j]
-			if o.Access == v1.AccessOK && !isSecret(o.Ref) {
-				out = append(out, o.Ref)
-			}
-			for k := range o.Children {
-				out = append(out, o.Children[k].Ref)
-			}
-			for k := range o.Old {
-				out = append(out, o.Old[k].Ref)
-			}
-		}
-	}
-	return out
-}
-
-func (h *Handler) ownerEventsTab(r *http.Request, v *ownerView, refs []v1.ObjectRef) {
-	resource := filterParam{Name: "resource", Label: "Resource", Text: map[string]string{}}
-	byKind := map[string][]v1.ObjectRef{}
-	var kinds []string
-	for _, ref := range refs {
-		val := resourceValue(ref)
-		resource.Values = append(resource.Values, val)
-		resource.Text[val] = ref.Kind + " " + ref.Name
-		if byKind[ref.Kind] == nil {
-			kinds = append(kinds, ref.Kind)
-		}
-		byKind[ref.Kind] = append(byKind[ref.Kind], ref)
-	}
-	if resource.Values == nil {
-		resource.Values = []string{}
-	}
-	view := filterView{Path: v.Base, Params: []filterParam{resource,
-		{Name: "type", Label: "Type", Values: []string{eventNormal, eventWarning}},
-		{Name: "reason", Label: "Reason"}}}
-	f := parseFilters(&view, r.URL.Query())
-	form := eventsForm{Filters: f, Reason: f.Values["reason"]}
-	slices.Sort(kinds)
-	for _, k := range kinds {
-		g := optionGroup{Label: k}
-		for _, ref := range byKind[k] {
-			val := resourceValue(ref)
-			g.Options = append(g.Options, selectOption{Value: val, Text: ref.Name, Selected: f.Values["resource"] == val})
-		}
-		form.Groups = append(form.Groups, g)
-	}
-	for _, t := range []string{eventNormal, eventWarning} {
-		form.Types = append(form.Types, selectOption{Value: t, Text: t, Selected: f.Values["type"] == t})
-	}
-	if res := f.Values["resource"]; res != "" {
-		ref := parseResource(res)
-		// The object's own events have no topic; the region follows the
-		// owner's, and the stream's periodic refresh re-reads it.
-		ev := h.events(r, v.Base+"/events", refQuery(ref), "events:"+v.Topic)
-		ev.About = refText(ref)
-		v.Events = ev
-	}
-	form.Total = len(v.Events.Items)
-	items := v.Events.Items[:0:0]
-	for i := range v.Events.Items {
-		e := &v.Events.Items[i]
-		if (f.Values["type"] == "" || e.Type == f.Values["type"]) && (f.Values["reason"] == "" || e.Reason == f.Values["reason"]) {
-			items = append(items, *e)
-		}
-	}
-	v.Events.Items = items
-	form.Shown = len(items)
-	v.EventsForm = form
-}
-
-// --- YAML ---
-
-// yamlTab is the YAML tab: a picker of the objects the inventory reaches,
-// grouped by kind, and the YAML of the one picked.
-type yamlTab struct {
-	Groups []yamlGroup
-	Picked objectYAML
-	Has    bool
-}
-
-type yamlGroup struct {
-	Kind  string
-	Items []yamlItem
-}
-
-type yamlItem struct {
-	Text    string
-	Href    string
-	Current bool
-	// Secret: listed as never read, with no link.
-	Secret bool
-}
-
-// yamlEntry is one object the YAML picker can list.
-type yamlEntry struct {
-	ref    v1.ObjectRef
-	secret bool
-}
-
-// yamlEntries lists the readable objects of the inventory, each object before
-// its children and old revisions; a Secret is listed and marked.
-func yamlEntries(v *ownerView) []yamlEntry {
-	var entries []yamlEntry
-	comps := v.allComponents()
-	for i := range comps {
-		for j := range comps[i].Objects {
-			o := &comps[i].Objects[j]
-			if o.Access != v1.AccessOK {
-				continue
-			}
-			entries = append(entries, yamlEntry{o.Ref, isSecret(o.Ref)})
-			for k := range o.Children {
-				entries = append(entries, yamlEntry{o.Children[k].Ref, false})
-			}
-			for k := range o.Old {
-				entries = append(entries, yamlEntry{o.Old[k].Ref, false})
-			}
-		}
-	}
-	return entries
-}
-
-// yamlDefault is the object the tab opens on when no object is picked: the
-// object of the node the page selects, else of the focus, when the picker lists
-// it and it is not a Secret, so YAML shows on arrival.
-func yamlDefault(v *ownerView, g *v1.Graph, entries []yamlEntry) string {
-	sel := v.Node
-	if sel == "" {
-		sel = v.Focus
-	}
-	n := findNode(g, sel)
-	if n == nil || n.Ref == nil || n.Access != v1.AccessOK || isSecret(*n.Ref) {
-		return ""
-	}
-	for _, e := range entries {
-		if !e.secret && resourceValue(e.ref) == resourceValue(*n.Ref) {
-			return resourceValue(e.ref)
-		}
-	}
-	return ""
-}
-
-func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView, g *v1.Graph) {
-	entries := yamlEntries(v)
-	picked := r.URL.Query().Get("object")
-	if picked == "" {
-		picked = yamlDefault(v, g, entries)
-	}
-	byKind := map[string][]yamlItem{}
-	var kinds []string
-	for _, e := range entries {
-		val := resourceValue(e.ref)
-		item := yamlItem{Text: e.ref.Name, Secret: e.secret, Current: val == picked}
-		if e.ref.Namespace != "" {
-			item.Text = e.ref.Namespace + "/" + e.ref.Name
-		}
-		if !e.secret {
-			item.Href = v.Base + "?" + url.Values{"tab": {tabYAML}, "object": {val}}.Encode()
-		}
-		if byKind[e.ref.Kind] == nil {
-			kinds = append(kinds, e.ref.Kind)
-		}
-		byKind[e.ref.Kind] = append(byKind[e.ref.Kind], item)
-	}
-	slices.Sort(kinds)
-	for _, k := range kinds {
-		v.YAML.Groups = append(v.YAML.Groups, yamlGroup{Kind: k, Items: byKind[k]})
-	}
-	if picked == "" {
-		return
-	}
-	ref := parseResource(picked)
-	var doc v1.Object
-	v.YAML.Has = true
-	if p := h.fetch(r, v.Base+"/object", refQuery(ref), &doc); p != nil {
-		v.YAML.Picked.Problem = p
-		return
-	}
-	out, err := yaml.Marshal(doc.Object)
-	if err != nil {
-		v.YAML.Picked.Problem = unavailable()
-		return
-	}
-	v.YAML.Picked = objectYAML{Ref: doc.Ref, Text: refText(doc.Ref), YAML: string(out)}
-}
-
 // --- The page ---
 
 // loadOwner reads the owner document of the page at ns/name and the lists
@@ -581,7 +364,6 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	// drops the rows a reason filter does not match, and the count is the
 	// tab's whole list (portal:D19:R3).
 	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Configs))
-	v.Logs = logPanes(v.allComponents())
 	// The merged feed is read on every tab (design.md, "Scale and refresh"),
 	// so the Events count is its folded count on every tab.
 	v.Events = h.events(r, v.Base+"/events", url.Values{"scope": {"all"}}, "events:"+v.Topic)
@@ -593,8 +375,9 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	case tabResources:
 		v.Resources = resourcesOf(q, v, &g)
 	case tabEvents:
-		refs := append([]v1.ObjectRef{{Group: "opmodel.dev", Kind: v.Kind.objectKind(), Namespace: v.Namespace, Name: v.Name}}, reachedRefs(v.allComponents())...)
-		h.ownerEventsTab(r, v, refs)
+		h.ownerEventsTab(r, v)
+	case tabLogs:
+		ownerLogsTab(r, v)
 	case tabYAML:
 		h.ownerYAMLTab(r, v, &g)
 	case tabProvider:

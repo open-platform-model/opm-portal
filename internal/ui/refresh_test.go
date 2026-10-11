@@ -50,22 +50,18 @@ func TestALatePodGetsALogPane(t *testing.T) {
 	}
 
 	logs := between(after, `id="logs"`, "</section>")
-	ids := map[string]bool{}
-	for _, m := range idAttr.FindAllStringSubmatch(logs, -1) {
-		ids[m[1]] = true
-	}
 	// The Pod's row is in the Resources table, and its panel links to a pane
-	// the logs region holds (the Logs link moved from the row to the panel).
+	// the Logs tab's select offers (the Logs link moved from the row to the panel).
 	if !strings.Contains(between(resources, `id="components"`, "</section>"), late) {
 		t.Errorf("the late Pod %s has no row in the Resources table", late)
 	}
 	panel := broken.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape("obj:_/Pod/default/"+late), htmxRequest).body
-	m := regexp.MustCompile(`href="/instances/default/podinfo\?tab=logs#([^"]+)"`).FindStringSubmatch(panel)
+	m := regexp.MustCompile(`href="/instances/default/podinfo\?tab=logs&amp;log=([^"]+)"`).FindStringSubmatch(panel)
 	if len(m) < 2 || !strings.Contains(m[1], late) {
 		t.Fatalf("the late Pod's panel has no Logs link to its pane:\n%s", panel)
 	}
-	if !ids[m[1]] {
-		t.Errorf("Logs link %q names no pane in the logs region", m[1])
+	if !strings.Contains(logs, `<option value="`+m[1]+`"`) {
+		t.Errorf("Logs link %q names no option in the Pod / container select", m[1])
 	}
 
 	got := strings.TrimSpace(collapse(`<section class="panel panel-wide reveal" `+logs+"</section>")) + "\n"

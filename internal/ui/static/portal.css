@@ -19,6 +19,9 @@
   /* Paper, ink and one signal colour. */
   --bg: #efe9dc;
   --bg-deep: #e5dccb;
+  --logbg: #0b0f14; /* the log pane is dark in both themes */
+  --logink: #e8edf3;
+  --logmark: #8fc1ff;
   --grid: rgb(23 32 51 / 6%);
   --surface: #fbf8f1;
   --surface-2: #f4efe4;
@@ -107,6 +110,9 @@
     color-scheme: dark;
     --bg: #0c0f14;
     --bg-deep: #07090c;
+    --logbg: #0b0f14; /* the log pane is dark in both themes */
+    --logink: #e8edf3;
+    --logmark: #8fc1ff;
     --grid: rgb(148 170 210 / 7%);
     --surface: #131820;
     --surface-2: #181e28;
@@ -177,6 +183,9 @@
   color-scheme: dark;
   --bg: #0c0f14;
   --bg-deep: #07090c;
+  --logbg: #0b0f14; /* the log pane is dark in both themes */
+  --logink: #e8edf3;
+  --logmark: #8fc1ff;
   --grid: rgb(148 170 210 / 7%);
   --surface: #131820;
   --surface-2: #181e28;
@@ -691,6 +700,34 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .ev-reason { font-weight: 700; }
 .ev-count { background: var(--ink); color: var(--bg); padding: 0 6px; border-radius: 4px; }
 
+/* ---- Events table (the shared events-table partial) ----
+   Type, Reason, an optional Resource, Message and Age. A Warning row names its
+   type in red ink; the word, not the colour, says it. Below 760 px a row is a
+   card (the .table rule). */
+
+.events-table { table-layout: auto; }
+.events-table .ev-type { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem; font-weight: 600; }
+.events-table th:first-child, .events-table td:first-child { width: 88px; }
+.events-table td.ev-age { text-align: right; width: 56px; white-space: nowrap; }
+.events-table .ev-kind { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.events-table .ev-name { overflow-wrap: anywhere; }
+.events-table td .ev-note { margin: 0; }
+.events-table td .ev-meta { margin: 4px 0 0; }
+.events-table .ev-count { margin-right: 6px; }
+.events-table .ev-reason { font-weight: 700; font-size: 0.8rem; }
+@media (max-width: 760px) {
+  .events-table th:first-child, .events-table td:first-child, .events-table td.ev-age { width: 100%; }
+  .events-table td.ev-age { text-align: left; }
+}
+/* The filter row's right end: the count and Clear filters. */
+.filter-meta { margin-left: auto; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+.filter-meta .shown { margin: 0; }
+.field-log { flex: 2 1 320px; }
+.yaml-note { margin: 0; align-self: center; font-size: 0.85rem; color: var(--muted); }
+.log-hint { margin: 12px 0 0; padding: 8px 12px; border-left: 3px solid var(--unknown); border-radius: 0 8px 8px 0; background: var(--surface-2); color: var(--ink-2); }
+.panel > .logs, .panel > .filters + .logs { margin-top: 12px; }
+.panel > .filters { margin-bottom: 12px; }
+
 /* ---- Resources table (design.md decision 4) ----
    One table. A row's name is a link CSS stretches over the whole row. A group
    (the configuration group, a workload's old revisions) is a tbody whose first
@@ -805,6 +842,7 @@ tbody.group:has(details:not([open])) > tr.member { display: none; }
   background: var(--bg-deep); color: var(--ink); border: 1px solid var(--line);
   font-size: 13px; line-height: 1.55; white-space: pre; tab-size: 2;
 }
+.log-pane { background: var(--logbg); color: var(--logink); border-color: var(--line-strong); }
 .logs { display: grid; gap: 8px; }
 .log { border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
 .log summary { cursor: pointer; padding: 10px 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; overflow-wrap: anywhere; list-style: none; }
@@ -821,7 +859,7 @@ tbody.group:has(details:not([open])) > tr.member { display: none; }
 .log-gone summary::after { content: "Pod gone"; margin-left: auto; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .log-tools { display: flex; gap: 14px; align-items: center; padding: 8px 12px; font-size: 0.8rem; color: var(--muted); flex-wrap: wrap; }
 .log-pane { margin: 0 12px 12px; min-height: 80px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.log-pane .mark { color: var(--accent); }
+.log-pane .mark { color: var(--logmark); }
 
 /* ---- State block (portal:D19:R3) ----
    One summary block for the state of an axis or a standing. The hue class sets
