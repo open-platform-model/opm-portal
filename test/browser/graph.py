@@ -25,7 +25,7 @@ first failure:
 import json
 import sys
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 PODINFO = "/instances/default/podinfo"
 # The visible axis labels of the details panel, each with whether it has a box (a hidden one has none).
@@ -40,6 +40,12 @@ ROOT = "mi:default/podinfo"
 def check(engine, ok, line):
     print(f"{engine}: {line}")
     return ok
+
+
+def panel_is(page, title):
+    """Waits until the panel's heading reads title. The panel is never empty (it rests on the
+    owner), so a wait for any heading returns before the selected node's panel arrives."""
+    expect(page.locator("#detail .frag-h").first).to_have_text(title)
 
 
 def set_zoom(page, pct):
@@ -136,7 +142,7 @@ def run(p, engine, base):
         # 6. The details panel after a node selection (instance-43).
         page.goto(base + PODINFO + "?tab=graph")
         activate(page, f'.node[data-node="{DEPLOY}"]')
-        page.wait_for_selector("#detail .frag-h")
+        panel_is(page, "podinfo-podinfo")
         name, facts, cur = page.evaluate(
             "[document.querySelector('#detail .frag-h').textContent.trim(),"
             " document.querySelector('#detail .facts').textContent,"
@@ -151,7 +157,7 @@ def run(p, engine, base):
         if engine != "firefox":
             page.goto(base + PODINFO + "?tab=graph")
             page.locator(f'.node[data-node="{DEPLOY}"]').first.click()
-            page.wait_for_selector("#detail .frag-h")
+            panel_is(page, "podinfo-podinfo")
             clicked = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
             if not check(engine, clicked == "podinfo-podinfo", f"pointer selection filled the panel: {clicked!r}"):
                 return False
