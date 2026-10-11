@@ -22,8 +22,8 @@ one line, exiting 1 on the first failure:
    tab panel (a note, the form, the table, a log or YAML pane) touches the panel's left or right edge.
 
 7. A page opened at ?node=<Deployment> (a graph node's own link, "open in new tab", a shared
-   link) then a selection of the Service: the address and the tab links carry focus=<Service> and
-   no node, so the YAML tab opens the Service's YAML, not the Deployment's; and Clear selection
+   link) then a selection of the Service: the address and the tab links carry node=<Service> and
+   no focus (a click selects with node=), so the YAML tab opens the Service's YAML, not the Deployment's; and Clear selection
    drops both, in the address and in the tab links, so a reload rests on the ModuleInstance.
 
 8. A Logs select change swaps the page in place (the document is not reloaded), the swapped pane
@@ -37,7 +37,7 @@ With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 import json
 import os
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -110,7 +110,7 @@ def run(p, engine, base):
         page.wait_for_url("**tab=yaml**")
         page.wait_for_selector("pre.yaml")
         text = page.locator("pre.yaml").text_content()
-        if not check(engine, "kind: Deployment" in text and "focus=" in page.url,
+        if not check(engine, "kind: Deployment" in text and "node=" in page.url,
                      f"the YAML tab opened the Deployment's YAML at {page.url}"):
             return False
 
@@ -201,9 +201,10 @@ def stale_node(page, engine, base):
     activate(page, f'.node[data-node="{SERVICE}"]')
     page.wait_for_selector(f'.node[data-node="{SERVICE}"][aria-current="true"]')
     hrefs = tab_hrefs(page)
-    if not check(engine, "node=" not in page.url and "focus=" in page.url
-                 and all("node=" not in h and "focus=" in h for h in hrefs),
-                 f"selecting the Service at ?node=<Deployment> leaves no node in {page.url} or the tab links {hrefs}"):
+    # The address may spell an id percent-encoded or not: compare the decoded text.
+    seen = [unquote(x) for x in [page.url, *hrefs]]
+    if not check(engine, all(f"node={SERVICE}" in x and DEPLOY not in x and "focus=" not in x for x in seen),
+                 f"selecting the Service at ?node=<Deployment> puts node=<Service> alone in {page.url} and the tab links {hrefs}"):
         return False
     page.locator(".owner-tabs a", has_text="YAML").click()
     page.wait_for_url("**tab=yaml**")
