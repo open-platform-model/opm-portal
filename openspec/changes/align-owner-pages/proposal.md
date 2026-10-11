@@ -27,7 +27,7 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   - `PackageSummary` gains `prune`, read from `spec.prune` of the package object the portal
     already reads.
   - Implements the owner's "Merge all" answer, recorded as portal:D9:R6.
-  - Every event note the API serves is capped at 512 characters (see "Length cap" below).
+  - Every event note the API serves is capped at 512 Unicode code points (see "Length cap" below).
 - **Summary cards** (section 2):
   - Applied, Health and Provider are drawn as the shared state block: eyebrow, a "when" stamp,
     tone icon, big state word, a one-line summary from recorded facts, and reason counts (count
@@ -69,8 +69,9 @@ underline tabs with a count slot, square badges, and its fix of the empty detail
   - The standing appears once per claim.
 - **Floors this change holds** (amendments of 2026-10-11 from the portal's plan, each traced in
   design.md "Amendments"):
-  - A two-user test for the merged feed: a caller who may list events but may not read the Pods
-    sees no Pod event and no count that includes one (OP-A1).
+  - A two-user test for the merged feed: a caller who may list events but may not list the Pods
+    sees no event of a ReplicaSet, Pod or Job (the runtime children are shown all or none for each
+    namespace) and no count that includes one (OP-A1).
   - A length cap on served event notes, and the in-cluster cases for both writers of an operator
     note (OP-A2).
   - Panel facts for a node only when the caller's access to it is `ok`, and an image reference
@@ -127,7 +128,7 @@ None.
 - `web-ui`: the owner page's summary cards, tabs, Resources table, details panel at rest,
   merged Events, Logs, YAML and Provider tab requirements change.
 - `read-api`: owner events gain `scope=all` and the `scope` and `partial` fields; packages carry
-  `prune`; every served event note is capped at 512 characters.
+  `prune`; every served event note is capped at 512 Unicode code points.
 - `read-model`: events can be read merged over an inventory, one list per namespace and kind.
 
 ## Impact
@@ -154,20 +155,24 @@ None.
   the portal already reads. Per-kind panel facts come from the object resource the YAML view
   already serves, stripped as today (portal:D8). No write and no Secret data. The `deploy/` role
   needs no new rule. Two floors from the portal's plan hold on top of that. A caller who may list
-  events but may not read an object's kind sees none of that object's events, and the test
-  `TestMergedEventsHideWhatTheCallerCannotGet` names the case. The panel's per-kind facts are
+  events but may not read an object's kind sees none of that object's events; ReplicaSets, Pods and
+  Jobs go together, so a caller who may not list one of them in a namespace sees none of the three
+  there. The test `TestMergedEventsHideWhatTheCallerCannotGet` names both cases. The panel's per-kind facts are
   a fixed list, shown only for a node whose access is `ok`, and an image reference loses any
   userinfo before it is shown.
-- Length cap: the API caps every event note it serves at 512 runes, an ellipsis ending a
-  longer note, through one helper, `capText(s string, limit int) string` in `internal/api/cap.go`.
-  `align-graph` uses the same helper for the Flux condition message (its own limit, set in its own
-  change). Either change, whichever merges first, adds `capText` and its tests; the other adopts
-  the file and adds no second helper. The helper sits in `internal/api` because the note is built
-  there (`convert.go:309`) and `internal/ui` cannot be imported from `internal/api` without an
-  import cycle (design.md "Where the length cap lives"). The cap is a documented maximum on an
-  existing field (`Event.note`), so it is additive in the sense of `task api:breaking`; it
-  shortens only notes over 512 runes, and design.md records it as a limit, not as a decision in
-  `docs/DESIGN.md`.
+- Length cap: the API caps every event note it serves at 512 Unicode code points, an ellipsis
+  ending a longer note, through one exported helper, `CapText(s string, limit int) string` in
+  `internal/readmodel/cap.go`, called in `eventListDoc` (`internal/api/convert.go:309`) after the
+  read model's fold of events by note. `align-graph` calls the same helper for the Flux condition
+  message (its own limit, set in its own change). Either change, whichever merges first, adds
+  `CapText` and its tests; the other adopts the file and adds no second helper. The helper sits in
+  `internal/readmodel` so that both changes can import it: `internal/api` imports the read model,
+  never the reverse, and `internal/ui` cannot be imported from `internal/api` without an import
+  cycle. The call stays in `eventListDoc` because a cap in the read model, where the note is read
+  (`events.go:113`), would cut notes before the fold at `events.go:120` (design.md "Where the
+  length cap lives"). The cap is a documented maximum on an existing field (`Event.note`), so it is
+  additive in the sense of `task api:breaking`; it shortens only notes over 512 code points, and
+  design.md records it as a limit, not as a decision in `docs/DESIGN.md`.
 - Principle VII: no dependency and no build step. The UI takes on one complexity: the panel
   reads an object document to show Replicas, Image, Strategy, Node, Restarts, Started, Type and
   Ports. The alternative was widening `GraphNode` in `internal/graph`, which `align-graph` owns.

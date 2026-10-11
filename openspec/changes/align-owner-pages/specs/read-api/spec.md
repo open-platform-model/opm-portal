@@ -76,17 +76,6 @@ one-object feed omits. Source: portal:D7:R4, portal:D8:R5.
 - **THEN** the response is `200` with the events from `cert-manager` and `partial: true`, and no
   list runs in `default`
 
-#### Scenario: A caller who cannot read the Pods
-
-- **WHEN** a caller who may get the instance, its Deployment and its ReplicaSets and list events in
-  `default`, but may not read Pods, reads `instances/default/podinfo/events?scope=all`, and a caller
-  with every permission reads the same
-- **THEN** the first list holds no event about a Pod, no Pod name and no Pod event note appears in
-  its body, and it carries `partial: true`
-- **AND** each count in it equals the second list's count without the Pod events
-- **AND** the first caller reading one Pod's events through the object parameters gets the same
-  `403` document a forbidden read gets
-
 #### Scenario: Operator notes in-cluster
 
 - **WHEN** a client of an in-cluster server reads a merged feed holding the operator's events and
@@ -100,29 +89,62 @@ one-object feed omits. Source: portal:D7:R4, portal:D8:R5.
   the instance, and the kubelet's events about its Pods
 - **THEN** the first two carry no `note`, and the kubelet's carry theirs as written
 
+### Requirement: Runtime children are left out together
+
+The runtime children of an owner (ReplicaSets, Pods and Jobs) are read per namespace, all or none.
+A caller who may not list all three kinds in a namespace SHALL see no runtime child of the owner
+there and no event about one, and the merged feed SHALL carry `partial: true`. Source: portal:D3:R2,
+portal:D7:R4.
+
+#### Scenario: A caller who cannot list the Pods
+
+- **WHEN** user A, who may get the instance and its Deployment and list events in `default`, may
+  list ReplicaSets and Jobs there but has no verb on Pods, reads
+  `instances/default/podinfo/events?scope=all`, and user B, who may do everything, reads the same
+- **THEN** A's list holds no event about a ReplicaSet, a Pod or a Job, no Pod name and no Pod event
+  note appears anywhere in its body, and it carries `partial: true`
+- **AND** each count in A's list equals B's count without the items about a ReplicaSet, a Pod or a
+  Job
+- **AND** A reading one Pod's events through the object parameters gets the same `403` document a
+  forbidden read gets
+
+#### Scenario: A caller who may list the Pods but not get them
+
+- **WHEN** a caller who may get the instance and its Deployment, may list events, ReplicaSets, Pods
+  and Jobs in `default`, and may not get a Pod, reads `instances/default/podinfo/events?scope=all`
+- **THEN** every Pod that the list carries an event about is among the Pods in that caller's own
+  document of the instance, and no event about any other Pod appears
+
 ### Requirement: Served event notes are capped
 
-The API SHALL serve no event note longer than 512 characters. A longer note SHALL be served as its
-first 511 characters followed by an ellipsis, cut between characters and never inside one, in every
-events feed, the merged feed and the stream snapshot included. A note of 512 characters or fewer
-SHALL be served as written.
+The API SHALL serve no event note longer than 512 Unicode code points. A longer note SHALL be
+served as its first 511 code points followed by an ellipsis, cut between code points, in every
+events feed, the merged feed and the stream snapshot included. A note of 512 code points or fewer
+SHALL be served as written. The cut SHALL follow the read model's fold of events by note, so that
+folding sees the whole note.
 
 #### Scenario: A long note
 
-- **WHEN** an event about the instance carries a note of 2,000 characters and a client reads the
+- **WHEN** an event about the instance carries a note of 2,000 code points and a client reads the
   merged feed
-- **THEN** the item's `note` is its first 511 characters and an ellipsis, and a client of the
+- **THEN** the item's `note` is its first 511 code points and an ellipsis, and a client of the
   per-object feed gets the same text
 
 #### Scenario: A note at the limit
 
-- **WHEN** an event carries a note of exactly 512 characters
+- **WHEN** an event carries a note of exactly 512 code points
 - **THEN** it is served unchanged
 
 #### Scenario: A note of multi-byte characters
 
-- **WHEN** an event carries a note of 600 characters that each take three bytes
-- **THEN** the served note is valid text of 512 characters, cut between two characters
+- **WHEN** an event carries a note of 600 code points that each take three bytes
+- **THEN** the served note is valid text of 512 code points, cut between two code points
+
+#### Scenario: Notes that differ only after the cut
+
+- **WHEN** two events about one object share their first 511 code points and differ after them
+- **THEN** the read model folds them as two lines, and the API serves two lines whose notes are
+  equal
 
 ### Requirement: Packages carry their prune setting
 

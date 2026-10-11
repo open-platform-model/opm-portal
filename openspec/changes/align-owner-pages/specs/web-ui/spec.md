@@ -82,17 +82,17 @@ portal:D10, portal:D16:R1.
 - **THEN** the Logs tab says the container is restarting and points to its previous instance's
   logs, and does not say it has not started
 
-#### Scenario: Events of a caller who cannot read the Pods
+#### Scenario: Events of a caller who cannot list the Pods
 
-- **WHEN** a caller who may get the instance and list events in `default` but may not read Pods
+- **WHEN** a caller who may get the instance and list events in `default` but may not list Pods
   opens `/instances/default/podinfo?tab=events` on the F1 capture
-- **THEN** no Pod is offered in the Resource choice or listed in the table, the Events tab carries
-  no count, "All resources" says its count covers what could be read, and no count in the filters
-  includes a Pod's event
+- **THEN** no ReplicaSet, Pod or Job is offered in the Resource choice or listed in the table, the
+  Events tab carries no count, "All resources" says its count covers what could be read, and no
+  count in the filters includes an event about one of them
 
 #### Scenario: A long event note
 
-- **WHEN** an event in the merged feed carries a note of 2,000 characters
+- **WHEN** an event in the merged feed carries a note of 2,000 code points
 - **THEN** the table shows the note as the API served it, capped, and the page clips it no further
 
 #### Scenario: Events of both operator writers in-cluster
@@ -332,11 +332,24 @@ Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 - **THEN** the panel shows `registry.example/app:1`, and neither the user nor the password appears
   anywhere in the page
 
+#### Scenario: A password that holds a slash
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:ab/cd@registry.example/app:1`
+- **THEN** the panel shows `registry.example/app:1`, and neither the user nor any part of the
+  password appears anywhere in the page
+
 #### Scenario: A digest reference
 
 - **WHEN** the panel opens on a Deployment whose container image is
   `registry.example/app@sha256:` followed by a digest
 - **THEN** the panel shows the reference whole
+
+#### Scenario: A digest reference with userinfo
+
+- **WHEN** the panel opens on a Deployment whose container image is
+  `user:secret@registry.example/app@sha256:` followed by a digest
+- **THEN** the panel shows `registry.example/app@sha256:` and the digest, with no userinfo
 
 #### Scenario: A node the caller cannot read
 
@@ -347,8 +360,8 @@ Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 
 - **WHEN** a browser 360 px wide opens the Graph, Resources, Events, Logs and YAML tabs of
   podinfo
-- **THEN** the page does not scroll sideways on any of them, and each row of the Resources and
-  Events tables is a card
+- **THEN** the page does not scroll sideways on any of them, and each displayed row of the
+  Resources and Events tables is a card
 
 #### Scenario: Object facts not readable
 
@@ -390,15 +403,17 @@ Per held registration, the tab SHALL show:
 - a grid of facts: the registration, its claimed catalog (linking to the Catalog page) and
   version, whether that catalog is in the Platform's resolved registry and contributed by this
   registration, how many contracts it provides and how many are in use (or "none" for a refused
-  claim, and no in-use count when a list of users is incomplete or locked). A claim that is accepted
-  but not active, or pending, says how many contracts it lists and that none is provided yet. A claim of
-  unknown standing says that it is not known. A claim whose removal is blocked gives its counts and
-  says the removal is blocked, the `providerRef`,
+  claim, and no in-use count when a list of users is incomplete or locked), the `providerRef`,
   and in local mode the controller's message;
 - its "Registration conditions" (type, a status badge toned by the condition's tone, reason,
   meaning and since, and in local mode the message);
 - a table of what it provides, where each contract is a pill showing its short path, with the full
   path as its title, and with the readable instances whose render contracts contain it.
+
+The Contracts fact SHALL have a text for every standing. A claim that is accepted but not active,
+or pending, SHALL say how many contracts it lists and that none is provided yet. A claim of unknown
+standing SHALL say that it is not known. A claim whose removal is blocked SHALL give its counts and
+say the removal is blocked.
 
 Below 760 px wide, each row of the table SHALL be a card. For each contract the table SHALL list the first three users and the count of the rest. It SHALL
 link to Installed filtered by that contract as "Show in Installed" when there are three or fewer,

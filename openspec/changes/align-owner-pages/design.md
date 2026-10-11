@@ -183,6 +183,7 @@ Problems:
 | The portal's reader denied list events in the owner's namespace | `503 not_readable_by_portal`, as today |
 | List denied in another namespace | `200` with those objects left out and `partial: true` |
 | A list in some namespace fails | `200` with those objects left out and `partial: true` |
+| The caller may not list all of ReplicaSets, Pods and Jobs in a namespace | `200` with no runtime child of that namespace and none of their events, and `partial: true` |
 | `scope` unknown, or `scope=all` with object parameters | `400 bad_request` |
 | The read model not yet synced for the owner | `503 not_readable_by_portal`, as today |
 
@@ -194,11 +195,16 @@ Authorization, in order, each review before the lookup it covers, keeping today'
 2. The owner, then its inventory, read from held state under that grant (portal:D3:R9). A
    missing owner is `404`, as today. Each object carries the caller's `access`. Objects that are
    not `ok`, and every core Secret, are dropped. Runtime children are kept as the inventory
-   document carries them for this caller: the document holds a child kind only when the caller
-   may list it in that namespace (`childrenIn`, `internal/readmodel/children.go:106-113`), so a
-   caller who may not read Pods has no Pod in the inventory and none of their events are listed.
-   An event is kept only for an object or child that the caller's own view of the owner lists
-   (OP-A1).
+   document carries them for this caller, and that rule is all or none for each namespace: the
+   document holds the children there only when the caller may list ReplicaSets, Pods and Jobs
+   together (`childrenIn`, `internal/readmodel/children.go:23,106-111`), and a caller who may not
+   list one of the three has none of the three kinds in that namespace (`childrenOf`,
+   `evaluate.go:235-238`). A caller denied Pods therefore loses the ReplicaSets and Jobs and all
+   their events too. When the children are unread, the evaluator marks the workloads that own them
+   with `ChildrenUnread` (`internal/health/rollup.go:139-143,201-209`,
+   `internal/readmodel/views.go:140-142`), and the feed sets `partial` when any inventory object
+   of the caller's view carries it. An event is kept only for an object or child that the caller's
+   own view of the owner lists (OP-A1).
 3. The event namespace of every remaining object, from `readmodel.EventNamespace`: the object's
    own namespace, or `default` for a cluster-scoped object (portal:D9:R4).
 4. `list` on `events` in each other namespace, reviewed one namespace at a time so that one
@@ -223,34 +229,52 @@ costs a producer change this plan does not make. The docs page says so, a test p
 say the same.
 
 **The two-user test (OP-A1).** `TestMergedEventsHideWhatTheCallerCannotGet` in `internal/api` runs
-two callers through a `readmodeltest.Rule` keyed on the user. User A may get the instance and its
-Deployment and ReplicaSets, and list events in `default`, and is denied every verb on Pods. User B
-may do everything. On `instances/default/podinfo/events?scope=all`:
+two callers through a `readmodeltest.Rule` keyed on the user, in two rows. Each row states its
+grant in the test table.
 
-- B's list holds the Pods' events; A's holds none, and no Pod name and no Pod event note appears
-  anywhere in A's body.
-- A's list carries `partial: true`, and A's item counts equal B's without the Pod items: counts
-  are taken after the filter, never before.
+Row 1, runtime children are all or none. User A may get the instance and its Deployment, list
+events in `default`, and list ReplicaSets and Jobs, and is denied every verb on Pods; so A lacks
+`list` on one of the three child kinds, and the namespace gives A none of them. User B may do
+everything. On `instances/default/podinfo/events?scope=all`:
+
+- B's list holds the events of the ReplicaSet and the Pods. A's holds no item that regards a
+  ReplicaSet, a Pod or a Job, and no Pod name and no Pod event note appears anywhere in A's body.
+  A's list keeps the Deployment's own events.
+- A's list carries `partial: true`, and A's counts equal B's without the items about a ReplicaSet,
+  a Pod or a Job: counts are taken after the filter, never before.
 - A reading one Pod's events through the object parameters gets the `403` document, as today.
-- A second row denies A only `get` on Pods and asserts that every Pod in A's events is among the
-  Pods in A's instance document. An event follows the caller's own view of the owner: a caller who
-  may list Pods sees them on the Resources tab, so their events are no further disclosure, and a
-  caller who may not list them sees neither.
+
+Row 2, list-not-get, the portal's existing rule, kept as ruled. User A may get the instance and its
+Deployment, list events, and list ReplicaSets, Pods and Jobs in `default`, and is denied only `get`
+on Pods. The test asserts that every Pod in A's events is among the Pods in A's instance document.
+An event follows the caller's own view of the owner: a caller who may list Pods sees them on the
+Resources tab, so their events are no further disclosure, and a caller who may not list them sees
+neither.
+
+Why row 1 removes the ReplicaSets too: a ReplicaSet's `SuccessfulCreate` note names the Pod it
+made ("Created pod: podinfo-podinfo-d9585d794-kp2jx", `testdata/clusters/f1/events.yaml:1231-1240`).
+If a later change split the children rule per kind, so that a caller denied Pods still saw the
+ReplicaSets, the notes of those ReplicaSets would give the Pod names to a caller who may not list
+Pods. Such a change must change this test and the note rule first.
 
 **Served text is capped (OP-A2).** `eventListDoc` (`internal/api/convert.go:309`) caps `Event.Note`
-at `eventNoteCap` = 512 runes with `capText(s string, limit int) string`: a string of at most
-`limit` runes is returned unchanged, a longer one as its first `limit-1` runes and an ellipsis, always
-cut between runes.
+at `eventNoteCap` = 512 Unicode code points with the exported `readmodel.CapText(s string, limit
+int) string` (`internal/readmodel/cap.go`): a string of at most `limit` code points is returned
+unchanged, a longer one as its first `limit-1` code points and an ellipsis, always cut between
+code points. A code point cut can still split a base character from a combining mark; the cap
+promises valid text, not whole grapheme clusters.
 
 - Every route that builds an `EventList` through `eventListDoc` is capped: the owner feed, the
   one-object feed, the merged feed (built through `eventListDoc` too), the Platform and registration
-  feeds, and the stream snapshot, which is the same
-  document.
+  feeds, and the stream snapshot, which is the same document.
 - The cap is applied when the note is served, so a client of the API and the page see the same
   text, and the page clips nothing a second time.
-- The cap runs before the in-cluster refold of `foldWithoutNotes` (`internal/api/mode.go:100`).
-  Two notes that share their first 511 runes fold into one in-cluster line, with their counts
-  added. In local mode they stay two lines that look alike, as served.
+- The cap runs after the read model's fold of events by note (`internal/readmodel/events.go:120`),
+  because `eventListDoc` converts the model's folded lines, and before the in-cluster refold of
+  `foldWithoutNotes` (`internal/api/mode.go:100`, run on the served document at
+  `internal/api/server.go:305`). Two notes that share their first 511 code points are two lines
+  from the model, so their counts are not added, and two lines in local mode that look alike as
+  served. In-cluster the refold folds them into one line, with their counts added.
 - 512 is a design choice, not a platform limit: one note is one table line, and the rest of a
   longer note stays in the cluster's own record. `align-graph`'s 120-rune clip of a health message
   in the hover card is a display clip in the UI, a precedent and not this rule.
@@ -260,9 +284,10 @@ cut between runes.
   an event whose `reportingController` is `opm-controller`, and an event with none that regards an
   OPM object (`operatorReported`, `internal/api/mode.go:136`). Both carry no note in-cluster. The
   kubelet's and the scheduler's notes are served as written, up to the cap.
-- `capText` is a shared helper. `align-graph` uses it for the Flux condition message with its own
-  limit. Whichever change merges first adds `internal/api/cap.go` and its tests; the other adopts
-  the file (see "Where the length cap lives").
+- `CapText` is a shared helper. `align-graph` calls it for the Flux condition message with its own
+  limit, where its design converts that field. Whichever change merges first adds
+  `internal/readmodel/cap.go` and its tests; the other adopts the file (see "Where the length cap
+  lives").
 
 `internal/readmodel` gains:
 
@@ -533,12 +558,20 @@ secondary line.
   - The facts are a fixed list (OP-A3). They are read only for a node whose caller `access` is `ok`:
     a node that is locked, forbidden or not readable carries none of them and makes no object read,
     and a Secret never does.
-  - An image reference is shown without userinfo (OP-A3). `imageText` takes the authority, the text
-    after any `scheme://` and before the first `/`, and cuts it at its last `@` when a `/` follows.
-    `user:secret@registry.example/app:1` reads `registry.example/app:1`; a digest reference such as
-    `registry.example/app@sha256:<digest>`, or `app@sha256:<digest>` with no `/`, is shown whole.
-    The same function runs on every container's image of the fact, and the result goes through
+  - An image reference is shown without userinfo (OP-A3). `imageText` keeps any leading
+    `scheme://` and cuts the rest after its last `@` that does not start a digest suffix: `@sha256:`
+    or `@sha512:` followed by hex to the end of the string. It does not look for a `/`, because a
+    password may hold one (base64 tokens often do): `user:ab/cd@registry.example/app:1` and
+    `user:secret@registry.example/app:1` both read `registry.example/app:1`, and
+    `user:secret@registry.example/app@sha256:<digest>` reads
+    `registry.example/app@sha256:<digest>`. A digest reference with no userinfo, such as
+    `registry.example/app@sha256:<digest>` or `app@sha256:<digest>`, is shown whole. The same
+    function runs on every container's image of the fact, and the result goes through
     `html/template` as text.
+    - Choice of rule: the design review offered "the last `@` with a `/` after it", and the
+      security review "the last `@` that is not a digest suffix". The second is used: it also cuts
+      userinfo in a reference with no `/` after it (`user:secret@app:1`), which the first leaves,
+      and a digest keeps its `@` by its own shape.
 - **Component** (`instance-29`): "Rendered" as the state word, the canvas's sentence ("A
   Component is not a Kubernetes object: it is a part of the module, so it has no events or YAML of
   its own."), and a Renders fact listing the kinds and names of its outgoing edges' targets.
@@ -687,7 +720,7 @@ pages to that test's page list in the section that builds each page, and adds no
 | Section | Pages added | Also asserted |
 | --- | --- | --- |
 | 3 | `/instances/default/podinfo`, `/instances/cert-manager/cert-manager`, `/instances/default/backup-provider`, `/packages/pkg/podinfo` | the identity card's `.facts` list computes to one grid column below 520 px |
-| 4 | `?tab=graph` and `?tab=resources` of podinfo, cert-manager and `pkg/podinfo`, panel at rest | the Graph frame may scroll inside itself, the page may not; Resources rows compute to `display: block` as cards; the header row is not displayed |
+| 4 | `?tab=graph` and `?tab=resources` of podinfo, cert-manager and `pkg/podinfo`, panel at rest | the Graph frame may scroll inside itself, the page may not; every displayed Resources row computes to `display: block` as a card, the member rows of a closed group to `display: none`; the header row is not displayed |
 | 5 | `?tab=events`, `?tab=logs`, `?tab=yaml` of podinfo | the filter row wraps; Events rows are cards; a log or YAML pane may scroll inside itself |
 | 6 | `?tab=provider` of backup-provider and of a package holding a refused claim | "What it provides" rows are cards; the facts grid is one column |
 
@@ -736,26 +769,36 @@ reads only what the API serves.
 
 **Context**: The portal's plan asks for a portal-side cap on every new cluster text this change
 serves (event notes), and `align-graph` needs the same cap for the Flux condition message. A
-supervisor ruling of 2026-10-11 named the shared helper `capText` in `internal/ui`, unless the
-existing code holds a better place.
-**Explored**: `internal/api/convert.go:309-322` (`eventListDoc` builds the `Event` values and sets
-`Note`); `internal/api/mode.go:100-122` (the in-cluster fold works on the served document);
-`internal/ui/doc.go` (the UI reads only through the API); `internal/ui/harness_test.go:14` and
-`internal/api/apitest/apitest.go:17` (the UI's tests import `apitest`, which imports
-`internal/api`).
+supervisor ruling of 2026-10-11 named the shared helper `capText` in `internal/ui`; later rulings
+of the same day moved it to `internal/readmodel` and exported it as `CapText`, called where each
+change converts the served text.
+**Explored**: `internal/api/convert.go:309-325` (`eventListDoc` builds the `Event` values and sets
+`Note`); `internal/readmodel/events.go:113-135` (the model reads the note at `:113` and folds on it
+at `:120`); `internal/api/mode.go:100-122` and `internal/api/server.go:305` (the in-cluster fold
+works on the served document); `internal/ui/doc.go` (the UI reads only through the API);
+`internal/ui/harness_test.go:14` and `internal/api/apitest/apitest.go:17` (the UI's tests import
+`apitest`, which imports `internal/api`). `internal/api` imports `internal/readmodel`, which
+imports only `authz` and `health`, so a helper in `readmodel` creates no cycle.
 **Options considered**:
 1. `internal/ui`. The page would clip what the API served. A client of the API still gets the
    uncapped note, so the cap would not be portal-side for the API, and `internal/api` cannot import
    `internal/ui`: the UI's own tests import `apitest`, which imports `internal/api`, and a cycle
    results.
-2. `internal/readmodel`, where the note is read (`events.go:113`). The model returns raw cluster
-   data; it would cap before the fold, so the stored model changes shape for a presentation limit.
-3. `internal/api`, in the conversion to the wire type. One place for every document the API
-   serves, shared by `align-graph`, which converts the Flux message in the same package.
-**Decision**: Option 3: `capText` in `internal/api/cap.go`, called from `eventListDoc`.
-**Rationale**: The cap protects every reader of the wire document, not one page, and the note is
-shaped in this package. The name `capText` is the ruling's; only the package differs, and the
-supervisor decides whether `align-graph` follows.
+2. `internal/api/cap.go`, unexported `capText` (this change's first form). It reaches every
+   document built in `internal/api`. It cannot be called from `internal/readmodel`, which
+   `internal/api` imports and never the reverse, so a change that caps text where the model parses
+   it could not share the helper.
+3. The helper exported in `internal/readmodel`, applied in the read model where the note is read
+   (`events.go:113`). The model would cap before its fold on the note (`:120`), so two notes that
+   differ only past the cut would fold into one line and add their counts: the fold would change
+   for a presentation limit.
+4. The helper exported as `readmodel.CapText` in `internal/readmodel/cap.go`, called from
+   `eventListDoc` in `internal/api`, after the model's fold.
+**Decision**: Option 4. The ruling of 2026-10-11 ("Ruling on `capText` placement") settles it.
+**Rationale**: The cap protects every reader of the wire document, not one page, and it must not
+change what the model folds. The note is converted in `eventListDoc`, so the call sits there; the
+helper sits in `readmodel` so that `align-graph` calls the same function where its design converts
+the Flux fields. Whichever change merges first adds `internal/readmodel/cap.go` and its tests.
 
 ### Per-kind panel facts
 
@@ -805,11 +848,15 @@ cheaper than a wire change, and a Platform the caller may not read degrades to "
 - [The Applied summary looks like a verdict] → It uses only recorded counts and the condition
   reason. The controller's own message stays visible beneath it in local mode.
 - [Two notes that differ only after the cap look alike in local mode] → Their counts stay right and
-  the lines are served as folded by the model. In-cluster they fold into one line. Accepted: a note
-  past 511 runes is rare, and the full text is in the cluster's own record.
+  the lines are served as folded by the model, before the cap. In-cluster they fold into one line.
+  Accepted: a note past 511 code points is rare, and the full text is in the cluster's own record.
 - [A caller who may list Pods but not get them] → Their view of the owner lists the Pods, so their
-  events follow the same rule (OP-A1, second row of the test). A stricter rule needs a `get`
-  review for each child kind and namespace; this change does not add one.
+  events follow the same rule (OP-A1, row 2 of the test). A stricter rule needs a `get` review for
+  each child kind and namespace; this change does not add one.
+- [A later per-kind split of the children rule] → Today a caller denied one of ReplicaSets, Pods
+  and Jobs sees none of the three in that namespace (OP-A1, row 1 of the test). A change that lets a
+  caller see the ReplicaSets without the Pods would give that caller the Pod names in the
+  ReplicaSets' `SuccessfulCreate` notes. That change must change the test and the note rule first.
 - [Panel object read fails or is slow] → The facts are optional: the panel renders from the graph
   document first and says when object details are missing.
 
@@ -837,7 +884,7 @@ behaviour.
 | Id | What | Tasks | Spec delta |
 | --- | --- | --- | --- |
 | OP-A1 | The two-user test: no event of a kind the caller cannot read, no count that includes one | 2.5 | `read-api`: merged feed scenario; `web-ui`: Events scenario |
-| OP-A2 | A length cap on served event notes, one shared `capText`; both writers of an operator note in the in-cluster walk | 2.4, 2.5, 5.2 | `read-api`: capped notes requirement |
+| OP-A2 | A length cap on served event notes, one shared `readmodel.CapText`; both writers of an operator note in the in-cluster walk | 2.4, 2.5, 5.2 | `read-api`: capped notes requirement |
 | OP-A3 | Panel facts only for a node whose access is `ok`; an image reference without userinfo | 4.4, 4.5 | `web-ui`: tabs requirement |
 | OP-A4 | A text for Pending, Removal blocked and Unknown (and an accepted claim not yet active) in the Provider card and the Contracts fact | 3.1, 6.1 | `web-ui`: summary and Provider tab requirements |
 | OP-A5 | The owner pages in `TestBrowserPhone`; the tip case for the Owner and Applier tips | 3.7, 4.8, 5.7, 6.6 | `web-ui`: phone scenarios |
