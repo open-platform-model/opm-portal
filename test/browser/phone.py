@@ -37,6 +37,12 @@ Checks, each printing one line per page, then exiting 1 if any failed:
    On the Events tab the filter row wraps (its fields sit on more than one line, none past the edge) and the
    table's body rows compute to display block as cards.
 
+7. The Provider tab (OP-A5): on `?tab=provider` of OWNER_PROVIDER_PAGES (a provider instance, and a package
+   holding a refused claim) the page's scrollWidth is at most 360, the facts grid computes to one column,
+   the conditions table's and (where the claim provides) the "What it provides" table's header rows are not
+   displayed, and every displayed body row computes to display block as a card no wider than the viewport.
+   The provider instance has a "What it provides" row; the refused package says it provides nothing.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -71,6 +77,12 @@ OWNER_TABS_PAGES = [
 # The pages whose Events, Logs and YAML tabs step 6 opens.
 OWNER_TEXT_PAGES = ["/instances/default/podinfo"]
 
+# The pages whose Provider tab step 7 opens, each with whether "What it provides" lists a contract.
+OWNER_PROVIDER_PAGES = [
+    ("/instances/default/backup-provider", True),
+    ("/packages/pkg/provider", False),
+]
+
 # The Events tab's filter row and table at this width: the distinct top offsets of the filter fields
 # (more than one when the row wraps), the right edge of the furthest field, and the display of every
 # body row.
@@ -82,6 +94,31 @@ width => {
   const rows = Array.from(document.querySelectorAll('#events .events-table tbody tr'));
   return {lines: tops.size, right: right, rows: rows.length,
           cards: rows.every(r => getComputedStyle(r).display === 'block' && r.getBoundingClientRect().width <= width)};
+}
+"""
+
+# What the Provider tab's tables and facts grid are at this width: the tracks of the facts grid, and for
+# every table of the claims the header's box and the displayed body rows with their display and width.
+PROVIDER_FACTS = """
+width => {
+  const grid = document.querySelector('#provider .facts-grid');
+  const tables = Array.from(document.querySelectorAll('#provider .claim table'));
+  return {
+    tracks: grid ? getComputedStyle(grid).gridTemplateColumns.trim().split(/\\s+/).length : 0,
+    tables: tables.map(t => {
+      const head = t.querySelector('thead').getBoundingClientRect();
+      const rows = Array.from(t.querySelectorAll('tbody tr'));
+      return {
+        provides: t.classList.contains('provides-table'),
+        headBox: [Math.round(head.width), Math.round(head.height)],
+        rows: rows.length,
+        notBlock: rows.filter(r => getComputedStyle(r).display !== 'block').length,
+        wide: rows.filter(r => r.getBoundingClientRect().right > width + 0.5).length,
+      };
+    }),
+    labelled: document.querySelectorAll('#provider .provides-table td[data-label]').length,
+    cells: document.querySelectorAll('#provider .provides-table td').length,
+  };
 }
 """
 
@@ -272,6 +309,36 @@ def run(p, engine, base, paths):
                 print(f"{engine}: FAIL {url} scrollWidth {width}{note}; past the edge: {'; '.join(past) or 'none found'}")
                 shoot(page, len(paths) + 3)
 
+        for path, provides in OWNER_PROVIDER_PAGES:
+            url = f"{path}?tab=provider"
+            open_page(page, base + url)
+            width = page.evaluate(MEASURE)
+            facts = page.evaluate(PROVIDER_FACTS, WIDTH)
+            problems = []
+            if width > WIDTH:
+                problems.append(f"scrollWidth {width}")
+            if facts["tracks"] != 1:
+                problems.append(f"facts grid has {facts['tracks']} columns")
+            if not facts["tables"]:
+                problems.append("no table")
+            for table in facts["tables"]:
+                kind = "provides" if table["provides"] else "conditions"
+                if table["headBox"][0] > 1 or table["headBox"][1] > 1:
+                    problems.append(f"{kind} header row is displayed: box {table['headBox']}")
+                if table["rows"] == 0 or table["notBlock"] or table["wide"]:
+                    problems.append(f"{kind}: {table['rows']} rows, {table['notBlock']} not display block, {table['wide']} wider than {WIDTH}")
+            if provides != any(t["provides"] for t in facts["tables"]):
+                problems.append(f"a provides table is {'missing' if provides else 'present'}")
+            if facts["labelled"] != facts["cells"]:
+                problems.append(f"{facts['cells'] - facts['labelled']} provides cells without data-label")
+            if not problems:
+                print(f"{engine}: {url} scrollWidth {width}, facts in one column, {len(facts['tables'])} tables as cards")
+                continue
+            failed.append(url + " (provider tab)")
+            past = page.evaluate(PAST_EDGE, WIDTH)
+            print(f"{engine}: FAIL {url} {'; '.join(problems)}; past the edge: {'; '.join(past) or 'none found'}")
+            shoot(page, len(paths) + 4)
+
         open_page(page, base + PANEL_PAGE)
         page.locator(f'.node[data-node="{DEPLOY}"]').first.focus()
         page.keyboard.press("Enter")
@@ -288,7 +355,7 @@ def run(p, engine, base, paths):
             shoot(page, len(paths))
     finally:
         browser.close()
-    total = len(paths) + 1 + len(OWNER_PAGES) + 2 * len(OWNER_TABS_PAGES) + 3 * len(OWNER_TEXT_PAGES)
+    total = len(paths) + 1 + len(OWNER_PAGES) + 2 * len(OWNER_TABS_PAGES) + 3 * len(OWNER_TEXT_PAGES) + len(OWNER_PROVIDER_PAGES)
     print(f"{engine}: {total - len(failed)} of {total} checks hold {WIDTH} px")
     return not failed
 

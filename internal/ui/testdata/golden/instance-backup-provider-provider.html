@@ -62,27 +62,36 @@
   
   
   <article class="claim" aria-label="Registration default.backup-provider">
+    <p class="claim-intro">This instance is also a provider: it registers a catalog with the platform, and modules that use the contracts below render through it.</p>
     <h3 class="mono">default.<wbr>backup-provider</h3>
-    <p class="pills"><span class="prov prov-active" title="default.backup-provider: Accepted">Active</span>
-      <span class="pill pill-yes">accepted</span>
-      <span class="pill pill-yes">active</span> <span class="mono">Accepted</span></p>
-    <dl class="facts">
-      <dt>Catalog</dt><dd><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</a> <span class="ver">0.1.0</span></dd>
-      <dt>Registry</dt><dd>In the Platform's resolved registry, contributed by this registration.</dd>
-      <dt>providerRef</dt><dd>names ModuleInstance <span class="mono">default/backup-provider</span></dd>
-      <dt>Controller says</dt><dd>Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</dd>
+    <p class="pills"><span class="pill pill-yes">accepted</span>
+      <span class="pill pill-yes">active</span></p>
+    
+    <dl class="facts-grid">
+      <div><dt>Registration</dt><dd class="mono">TransformerRegistration default.<wbr>backup-provider</dd></div>
+      <div><dt>Claims catalog</dt><dd><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</a> <span class="ver">0.1.0</span></dd></div>
+      <div><dt>Registry</dt><dd>In the Platform's resolved registry, contributed by this registration.</dd></div>
+      <div><dt>Contracts</dt><dd>1 provided, 1 in use</dd></div>
+      <div><dt>providerRef</dt><dd>names ModuleInstance <span class="mono">default/backup-provider</span></dd></div>
+      <div><dt>Controller says</dt><dd>Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</dd></div>
     </dl>
-    <h4 class="sub-h">Conditions</h4>
+    <h4 class="sec-h">Registration conditions</h4>
     <div class="table-wrap"><table class="table rows">
       <thead><tr><th scope="col">Condition</th><th scope="col">Status</th><th scope="col">Reason</th><th scope="col">Meaning</th><th scope="col">Since</th></tr></thead>
-      <tbody><tr class="tone-normal"><th scope="row" data-label="Condition">Ready</th><td data-label="Status">True</td><td data-label="Reason" class="mono">Accepted</td><td data-label="Meaning">The registration passed every check. Whether it is active is shown separately.<p class="cond-message">Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:22Z" title="2026-10-04 18:04:22 UTC">5m ago</time></td></tr><tr class="tone-normal"><th scope="row" data-label="Condition">Active</th><td data-label="Status">True</td><td data-label="Reason" class="mono">ProviderReady</td><td data-label="Meaning">The provider is ready, so the registration is active.<p class="cond-message">Provider ModuleInstance default/backup-provider is Ready</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:22Z" title="2026-10-04 18:04:22 UTC">5m ago</time></td></tr></tbody>
+      <tbody><tr><th scope="row" data-label="Condition">Ready</th><td data-label="Status"><span class="cond-badge tone-normal">True</span></td><td data-label="Reason" class="mono">Accepted</td><td data-label="Meaning">The registration passed every check. Whether it is active is shown separately.<p class="cond-message">Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:22Z" title="2026-10-04 18:04:22 UTC">5m ago</time></td></tr><tr><th scope="row" data-label="Condition">Active</th><td data-label="Status"><span class="cond-badge tone-normal">True</span></td><td data-label="Reason" class="mono">ProviderReady</td><td data-label="Meaning">The provider is ready, so the registration is active.<p class="cond-message">Provider ModuleInstance default/backup-provider is Ready</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:22Z" title="2026-10-04 18:04:22 UTC">5m ago</time></td></tr></tbody>
     </table></div>
-    <h4 class="sub-h">What it provides</h4>
-    <ul class="provides">
-      <li><span class="mono chip" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span>
-        <span class="used-by"><span class="label">Used by</span><a class="mono" href="/instances/default/backup-consumer">default/backup-consumer</a> 
-        <a href="/installed?uses=opmodel.dev%2Fcatalogs%2Fopm%2Ftraits%2Fbackup%40v1alpha1">All 1 in Installed</a></span></li>
-    </ul>
+    <h4 class="sec-h">What it provides</h4>
+    <div class="table-wrap"><table class="table rows provides-table">
+      <thead><tr><th scope="col">Contract</th><th scope="col">Used by</th></tr></thead>
+      <tbody>
+      <tr><th scope="row" data-label="Contract"><span class="contract-pill" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span></th>
+        <td data-label="Used by"><div class="used-by">
+          <span class="used-by-list"><a class="mono" href="/instances/default/backup-consumer">default/backup-consumer</a> </span>
+          <a class="pill-btn" href="/installed?uses=opmodel.dev%2Fcatalogs%2Fopm%2Ftraits%2Fbackup%40v1alpha1" title="Open Installed filtered to everything that uses opmodel.dev/catalogs/opm/traits/backup@v1alpha1">Show in Installed →</a>
+        </div></td></tr>
+      </tbody>
+    </table></div>
+    
     
     
   </article>

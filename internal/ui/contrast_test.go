@@ -92,6 +92,8 @@ func buildContrastPairs() []contrastPair {
 		// The Logs tab's pane is dark in both themes.
 		{"log text on the log pane", "--logink", "--logbg", textFloor, ""},
 		{"log mark on the log pane", "--logmark", "--logbg", textFloor, ""},
+		// The Provider tab's contract pill is drawn on the filled-field fill.
+		{"deep accent on filled field", "--accent-deep", "--accent-field", textFloor, ""},
 		{"attempt mark on a succeeded dot", "--surface", "--healthy-ink", textFloor, ""},
 		{"attempt mark on a failed dot", "--surface", "--degraded-ink", textFloor, ""},
 		{"attempt mark on an unknown dot", "--unknown-ink", "--surface", textFloor, ""},

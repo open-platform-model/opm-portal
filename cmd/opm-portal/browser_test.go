@@ -18,6 +18,8 @@ import (
 	"testing"
 	"time"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 	"github.com/open-platform-model/opm-portal/internal/auth"
 	"github.com/open-platform-model/opm-portal/internal/authz"
@@ -221,7 +223,8 @@ func TestBrowserTabCount(t *testing.T) {
 
 // phonePages lists the pages TestBrowserPhone opens: the 25 non-fragment
 // paths of f1Pages in internal/ui/ui_test.go, which package main cannot
-// import, and the not-found page. A UI change that adds a page adds its path
+// import, the Provider tab of the package that holds a refused claim, and
+// the not-found page. A UI change that adds a page adds its path
 // here, as it adds it to f1Pages.
 var phonePages = []string{
 	"/",
@@ -249,6 +252,7 @@ var phonePages = []string{
 	"/instances/web/web",
 	"/packages/pkg/podinfo",
 	"/packages/pkg/podinfo?tab=resources",
+	"/packages/pkg/provider?tab=provider",
 	"/nope",
 }
 
@@ -265,7 +269,8 @@ func TestBrowserPhone(t *testing.T) {
 		t.Run(browser, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
 			defer cancel()
-			args := append([]string{browser, serveF1Site(t)}, phonePages...)
+			// F1 with the package that holds a refused claim, as the UI tests build it.
+			args := append([]string{browser, serveSite(t, apitest.F1PackageHolder(t))}, phonePages...)
 			if err := playwright(ctx, t, script, nil, args...); err != nil {
 				t.Fatalf("a page is wider than 360 px: %v", err)
 			}
@@ -306,12 +311,18 @@ func TestBrowserTip(t *testing.T) {
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {
 	t.Helper()
+	return serveSite(t, apitest.F1(t))
+}
+
+// serveSite is serveF1Site over objs.
+func serveSite(t *testing.T, objs []*unstructured.Unstructured) string {
+	t.Helper()
 	var lc net.ListenConfig
 	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := apitest.New(t, apitest.F1(t), apitest.AllowAll)
+	srv := apitest.New(t, objs, apitest.AllowAll)
 	pages, err := ui.New(ui.Config{API: srv})
 	if err != nil {
 		t.Fatal(err)

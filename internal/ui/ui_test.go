@@ -162,6 +162,13 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	}
 }
 
+// TestGoldenPackageHolder: a package holding a refused claim shows its
+// Provider tab (align-owner-pages, 6.2).
+func TestGoldenPackageHolder(t *testing.T) {
+	s := newSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	checkGoldens(t, s, []goldenPage{{"package-provider-provider", "/packages/pkg/provider?tab=provider", false}})
+}
+
 // TestGoldenLocked: an unreadable kind inside an instance, and a list the
 // caller may not read, render locked (portal:D5:R7).
 func TestGoldenLocked(t *testing.T) {

@@ -25,6 +25,11 @@ func TestGoldenPagesInCluster(t *testing.T) {
 	checkGoldens(t, s, inClusterPages)
 }
 
+func TestGoldenPackageHolderInCluster(t *testing.T) {
+	s := newInClusterSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	checkGoldens(t, s, []goldenPage{{"in-cluster/package-provider-provider", "/packages/pkg/provider?tab=provider", false}})
+}
+
 func TestGoldenBrokenRolloutInCluster(t *testing.T) {
 	s := newInClusterSite(t, apitest.F1Broken(t), apitest.AllowAll)
 	checkGoldens(t, s, []goldenPage{{"in-cluster/instance-podinfo-broken", "/instances/default/podinfo", false}})
