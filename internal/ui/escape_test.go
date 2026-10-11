@@ -126,3 +126,47 @@ func TestNoTrustedMarkupInTheUI(t *testing.T) {
 		}
 	}
 }
+
+// ajaxCallsWithoutSelect returns the htmx.ajax calls of js whose options
+// object does not name select. A call that does not name it inherits the
+// hx-select of the element it starts from: the node panel request inherited
+// #app's hx-select="#main", found nothing in the panel response and swapped
+// nothing.
+func ajaxCallsWithoutSelect(js string) []string {
+	var bad []string
+	rest := js
+	for {
+		i := strings.Index(rest, "htmx.ajax(")
+		if i < 0 {
+			return bad
+		}
+		rest = rest[i:]
+		end := strings.Index(rest, "})")
+		if end < 0 {
+			end = len(rest)
+		}
+		call := rest[:end]
+		if !strings.Contains(call, "select:") {
+			bad = append(bad, strings.SplitN(call, "\n", 2)[0])
+		}
+		rest = rest[len("htmx.ajax("):]
+	}
+}
+
+// TestEveryAjaxCallNamesItsSelect: every htmx.ajax call in the page script
+// names its swap selection ("unset" for a fragment, "#main" for a page).
+func TestEveryAjaxCallNamesItsSelect(t *testing.T) {
+	js, err := os.ReadFile("static/portal.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(js), "htmx.ajax(") {
+		t.Fatal("static/portal.js holds no htmx.ajax call; the scan reads nothing")
+	}
+	for _, call := range ajaxCallsWithoutSelect(string(js)) {
+		t.Errorf("static/portal.js: %s does not name select:, so it inherits hx-select from the page around it", call)
+	}
+	if got := ajaxCallsWithoutSelect(`htmx.ajax("GET", p, { target: "#detail", swap: "innerHTML" })`); len(got) != 1 {
+		t.Errorf("the scan did not flag a call without select: %v", got)
+	}
+}

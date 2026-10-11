@@ -795,7 +795,9 @@
       markSelected(g);
       setFocusParam(a.getAttribute("data-node"));
     }
-    htmx.ajax("GET", panel, { source: a, target: "#detail", swap: "innerHTML" }).then(function () {
+    // select "unset": the node sits inside #app, whose hx-select="#main" the
+    // request would inherit, and the panel response holds no #main.
+    htmx.ajax("GET", panel, { source: a, target: "#detail", swap: "innerHTML", select: "unset" }).then(function () {
       intoView(target);
     });
     return true;

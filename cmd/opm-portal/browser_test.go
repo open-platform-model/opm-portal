@@ -164,7 +164,8 @@ func TestBrowserTheme(t *testing.T) {
 
 // TestBrowserGraph drives the instance graph in real browsers (task
 // test:browser): Clear selection, the Resources hand-off, a group's fit and
-// Whole graph, and the state and full screen a live refresh keeps.
+// Whole graph, the state and full screen a live refresh keeps, and the details
+// panel a node selection fills.
 func TestBrowserGraph(t *testing.T) {
 	script := browserScript(t, "graph.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
