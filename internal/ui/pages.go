@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -33,6 +34,8 @@ type eventsView struct {
 	About string
 	// Follow is the events topic the feed follows, if any.
 	Follow string
+	// Partial is true when the feed left out what the caller could not read.
+	Partial bool
 }
 
 // signIn answers a request the read API did not authenticate.
@@ -275,10 +278,13 @@ type componentView struct {
 	Objects []objectView
 }
 
-// configGroup is the configuration components folded into one entry, with
-// the health the graph's group node reports. It opens when that health is
-// not Healthy.
+// configGroup is the components the graph folds into one group node, listed
+// folded the same way. It opens when its health is not Healthy.
 type configGroup struct {
+	// ID is the id of the group's <details>, so a refresh keeps it open.
+	ID string
+	// Label is the group node's label, such as "17 configuration components".
+	Label      string
 	Health     string
 	Open       bool
 	Components []componentView
@@ -286,8 +292,10 @@ type configGroup struct {
 
 type objectView struct {
 	v1.InventoryObject
-	// Focus opens the Graph tab focused on the node that shows the object.
+	// Focus opens the Graph tab focused on the node that shows the object,
+	// and NodeID is that node's id.
 	Focus     string
+	NodeID    string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -301,6 +309,7 @@ type objectView struct {
 type childView struct {
 	v1.RuntimeChild
 	Focus     string
+	NodeID    string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -323,36 +332,41 @@ func (k ownerKind) base(ns, name string) string {
 	return "/" + k.Path + "/" + url.PathEscape(ns) + "/" + url.PathEscape(name)
 }
 
-// foldConfig moves the components the graph folds into its configuration
-// group out of cs, in their order, so the list folds what the graph folds
-// (portal:D4:R5).
-func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup) {
-	var group *v1.GraphNode
+// foldConfig moves the components the graph folds into a group node out of
+// cs, in their order, one configGroup for each group node of the graph, so the
+// list folds what the graph folds (portal:D4:R5). A group none of whose
+// members is among cs is left out.
+func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, []configGroup) {
+	var groups []configGroup
+	rest := cs
 	for i := range g.Nodes {
-		if n := &g.Nodes[i]; n.Kind == "group" && n.Group != nil && n.Group.Kind == "configuration" {
-			group = n
+		n := &g.Nodes[i]
+		if n.Kind != "group" || n.Group == nil {
+			continue
 		}
-	}
-	if group == nil {
-		return cs, nil
-	}
-	cg := &configGroup{Health: "Unknown"}
-	if group.Health != nil {
-		cg.Health = group.Health.State
-	}
-	cg.Open = cg.Health != "Healthy"
-	rest := make([]componentView, 0, len(cs))
-	for i := range cs {
-		if slices.Contains(group.Group.Members, cs[i].Name) {
-			cg.Components = append(cg.Components, cs[i])
-		} else {
-			rest = append(rest, cs[i])
+		cg := configGroup{ID: "config-components", Label: n.Label, Health: "Unknown"}
+		if len(groups) > 0 {
+			cg.ID += "-" + strconv.Itoa(len(groups)+1)
 		}
+		if n.Health != nil {
+			cg.Health = n.Health.State
+		}
+		cg.Open = cg.Health != "Healthy"
+		next := make([]componentView, 0, len(rest))
+		for j := range rest {
+			if slices.Contains(n.Group.Members, rest[j].Name) {
+				cg.Components = append(cg.Components, rest[j])
+			} else {
+				next = append(next, rest[j])
+			}
+		}
+		if len(cg.Components) == 0 {
+			continue
+		}
+		rest = next
+		groups = append(groups, cg)
 	}
-	if len(cg.Components) == 0 {
-		return cs, nil
-	}
-	return rest, cg
+	return rest, groups
 }
 
 // components adds the links each object offers: its YAML and its events,
@@ -449,29 +463,17 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 			return
 		}
 		ctx := panelContext{owner: k, base: base}
-		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && isPod(*n.Ref) {
-			ctx.firstContainer = h.firstContainers(r, k, base)
+		// A Pod's Logs link needs the owner's containers, and the owner's own
+		// node its identity facts, both from the owner document.
+		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && (isPod(*n.Ref) || isOwnerNode(n, ctx)) {
+			self := h.loadOwner(r, k, r.PathValue("namespace"), r.PathValue("name"))
+			ctx.firstContainer = self.firstContainer
+			if self.Problem == nil {
+				ctx.self = &self
+			}
 		}
 		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), ctx))
 	}
-}
-
-// firstContainers reads the owner's document for its Pods' containers,
-// for a Pod panel's Logs link.
-func (h *Handler) firstContainers(r *http.Request, k ownerKind, base string) func(string) string {
-	var comps []v1.Component
-	if k == instanceKind {
-		var doc v1.Instance
-		if h.fetch(r, base, nil, &doc) == nil {
-			comps = doc.Components
-		}
-	} else {
-		var doc v1.Package
-		if h.fetch(r, base, nil, &doc) == nil {
-			comps = doc.Components
-		}
-	}
-	return containersOf(comps)
 }
 
 // containersOf maps each Pod below cs to its first container.
@@ -541,6 +543,7 @@ func (h *Handler) events(r *http.Request, path string, q url.Values, follow stri
 	ev := eventsView{Follow: follow}
 	ev.Problem = h.fetch(r, path, q, &doc)
 	ev.Items = doc.Items
+	ev.Partial = doc.Partial
 	return ev
 }
 

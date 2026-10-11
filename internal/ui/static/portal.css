@@ -691,29 +691,51 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .ev-reason { font-weight: 700; }
 .ev-count { background: var(--ink); color: var(--bg); padding: 0 6px; border-radius: 4px; }
 
-/* ---- Components and objects ---- */
+/* ---- Resources table (design.md decision 4) ----
+   One table. A row's name is a link CSS stretches over the whole row. A group
+   (the configuration group, a workload's old revisions) is a tbody whose first
+   row holds a details element; its member rows hide, with no script, while that
+   details is closed. A Degraded or Missing row carries the tint of its hue. */
 
-.component { margin-bottom: 16px; }
-.component-group > details > summary { cursor: pointer; list-style: none; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 8px; background: var(--surface-2); }
-.component-group > details > summary::-webkit-details-marker, .old-revs > summary::-webkit-details-marker { display: none; }
-.component-group > details[open] > summary { margin-bottom: 12px; }
-.group-note { font-size: 0.8rem; flex-basis: 100%; }
-.component-group .components { padding-left: 14px; }
-.old-revs { margin: 6px 0 0 14px; font-size: 0.85rem; }
-.old-revs > summary { cursor: pointer; list-style: none; display: flex; gap: 8px; align-items: baseline; color: var(--ink-2); }
-.old-revs .child { opacity: 0.7; }
-.component-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-.component-name { margin: 0; font-size: 1rem; }
-.object { padding: 8px 0 8px 12px; border-left: 2px solid var(--line); margin-left: 4px; }
-li.object.locked { margin: 4px 0 4px 4px; }
-.object-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.object-ref { overflow-wrap: break-word; min-width: 0; }
-.object-actions { margin-left: auto; display: flex; gap: 10px; font-size: 0.82rem; }
-.object-why { margin: 4px 0 0; font-size: 0.82rem; color: var(--ink-2); overflow-wrap: anywhere; }
-.children { margin: 6px 0 0 14px; }
-.child { padding: 4px 0 4px 12px; border-left: 2px dotted var(--line-strong); }
-.object .health, .child .health { font-size: 0.75rem; padding: 1px 8px 1px 6px; }
+.resources-table { table-layout: auto; }
+.resources-table tbody tr { position: relative; }
+.resources-table th[scope="row"] { font-weight: 600; font-size: 0.95rem; }
+.row-link { text-decoration: none; color: inherit; font-weight: 600; }
+.row-link::after { content: ""; position: absolute; inset: 0; }
+.row-link:hover { text-decoration: underline; }
+.row-link:focus-visible { outline: none; }
+.resources-table tr:has(.row-link:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
+.resources-table tr.row-degraded { background: var(--degraded-tint); }
+.resources-table tr.row-current { background: var(--accent-soft); }
+.resources-table tr.row-current > :first-child { border-left: 3px solid var(--focus); }
+.resources-table tr.row-degraded.row-current { background: var(--degraded-tint); }
+.resources-table tr.row-child th[scope="row"] { padding-left: 30px; font-weight: 400; }
+.resources-table tr.member th[scope="row"] { padding-left: 30px; }
+.resources-table tr.member.row-child th[scope="row"] { padding-left: 48px; }
+.resources-table .res-msg { display: block; max-width: 56ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resources-table .res-reason { margin-right: 6px; }
+.resources-table .group-head td { padding: 0; }
+.resources-table .group-head summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 10px 12px; min-height: 40px; background: var(--surface-2); }
+.resources-table .group-head summary::-webkit-details-marker { display: none; }
+.resources-table .group-head summary::before {
+  content: ""; width: 0; height: 0; flex: none;
+  border-left: 6px solid var(--ink-2); border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  transition: transform 120ms ease;
+}
+.resources-table .group-head details[open] > summary::before { transform: rotate(90deg); }
+.group-label { font-weight: 600; }
+tbody.group:has(details:not([open])) > tr.member { display: none; }
+.locked-word { display: inline-flex; align-items: center; gap: 6px; color: var(--locked-ink); }
+.resources-table tr.row-locked { background: var(--locked-tint); }
+.resources-empty { margin: 14px 20px; }
+.resources-table .object-ref { overflow-wrap: break-word; min-width: 0; }
 .contracts li { padding: 3px 0; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .resources-table .res-msg { white-space: normal; max-width: none; }
+  .resources-table tr.row-child th[scope="row"], .resources-table tr.member th[scope="row"], .resources-table tr.member.row-child th[scope="row"] { padding-left: 10px; }
+  .resources-table tr.row-child { margin-left: 14px; width: auto; }
+  .resources-table .group-head summary { padding: 6px 10px; }
+}
 
 /* ---- Graph ---- */
 
@@ -770,7 +792,13 @@ li.object.locked { margin: 4px 0 4px 4px; }
 /* ---- Detail, YAML, logs ---- */
 
 .detail .facts { font-size: 0.85rem; }
-.panel-links { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0 0; font-weight: 600; }
+.panel-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.panel-links .btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border: 1.5px solid var(--control-border); border-radius: 8px; background: var(--surface); color: var(--ink); font-weight: 600; text-decoration: none; }
+.panel-links .btn:hover { background: var(--accent-soft); }
+.panel-links .btn-dark { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.panel-links .btn-dark:hover { background: var(--ink); opacity: 0.9; }
+/* The health message: a box tinted by the node's health, text in the primary ink. */
+.panel-msg { margin: 12px 0 0; padding: 10px 12px; border-left: 4px solid var(--c); border-radius: 0 8px 8px 0; background: var(--c-tint); color: var(--ink); overflow-wrap: anywhere; font-size: 0.88rem; }
 .edges-list li { font-size: 0.78rem; color: var(--muted); padding: 2px 0; overflow-wrap: anywhere; }
 .yaml, .log-pane {
   margin: 0; padding: 14px; border-radius: 8px; overflow: auto; max-height: 60vh;
@@ -781,12 +809,12 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .log { border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); }
 .log summary { cursor: pointer; padding: 10px 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; overflow-wrap: anywhere; list-style: none; }
 .log summary::-webkit-details-marker { display: none; }
-.log summary::before, .component-group > details > summary::before, .old-revs > summary::before {
+.log summary::before {
   content: ""; width: 0; height: 0; flex: none; align-self: center;
   border-left: 6px solid var(--ink-2); border-top: 5px solid transparent; border-bottom: 5px solid transparent;
   transition: transform 120ms ease;
 }
-.log[open] summary::before, .component-group > details[open] > summary::before, .old-revs[open] > summary::before { transform: rotate(90deg); }
+.log[open] summary::before { transform: rotate(90deg); }
 .log[open] summary { border-bottom: 1px solid var(--line); }
 .log-container { font-weight: 700; }
 .log-gone summary { color: var(--muted); }

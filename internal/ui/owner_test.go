@@ -157,7 +157,7 @@ func TestYAMLTabListsASecretAsNeverRead(t *testing.T) {
 	v := ownerView{Kind: instanceKind, Base: "/instances/default/app", Components: h.components("/instances/default/app", []v1.Component{{
 		Name: "db", Objects: []v1.InventoryObject{{Ref: v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}, Access: v1.AccessOK}},
 	}})}
-	h.ownerYAMLTab(httptestRequest(t, "/instances/default/app?tab=yaml"), &v)
+	h.ownerYAMLTab(httptestRequest(t, "/instances/default/app?tab=yaml"), &v, &v1.Graph{})
 	v.Tab = tabYAML
 	out := between(renderMain(t, "owner", v), `id="yaml-picker"`, "</section>")
 	if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "object=") {
@@ -212,7 +212,7 @@ func httptestRequest(t *testing.T, target string) *http.Request {
 func TestFoldedObjectsFocusTheirOwnNode(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	res := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=resources").body)
-	links := regexp.MustCompile(`href="(/instances/cert-manager/cert-manager\?expand=[^"]+)">Graph</a>`).FindAllStringSubmatch(res, -1)
+	links := regexp.MustCompile(`<a class="row-link" href="(/instances/cert-manager/cert-manager\?expand=[^"]+)">`).FindAllStringSubmatch(res, -1)
 	if len(links) == 0 {
 		t.Fatal("no folded object links to the graph")
 	}
@@ -245,7 +245,7 @@ func TestPodPanelLogsOpenItsPane(t *testing.T) {
 
 // TestOwnerTabsCarryTheirCounts (portal:D19:R3): Resources counts the
 // objects and the runtime children below them, Events the folded lines of
-// the owner's feed; both count the whole list when a filter narrows the tab.
+// the merged feed (the owner's and those of every object it reaches); both count the whole list when a filter narrows the tab.
 // A tab whose source is a problem keeps an empty count span, so a live refresh
 // can remove the old number; when the owner document itself is a problem the
 // page draws no strip.
@@ -257,7 +257,7 @@ func TestOwnerTabsCarryTheirCounts(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	// The Service and the Deployment, the ReplicaSet and its two Pods.
 	tabs := tabsOf(mainOf(s.get(t, "/instances/default/podinfo").body))
-	for _, want := range []string{"Resources " + count("resources", 5), "Events " + count("events", 3), ">Graph</a>", ">Logs</a>", ">YAML</a>"} {
+	for _, want := range []string{"Resources " + count("resources", 5), "Events " + count("events", 18), ">Graph</a>", ">Logs</a>", ">YAML</a>"} {
 		if !strings.Contains(tabs, want) {
 			t.Errorf("the instance tabs lack %s:\n%s", want, tabs)
 		}

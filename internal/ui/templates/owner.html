@@ -47,21 +47,18 @@
 <div class="owner-row">
 <section class="panel owner-panel owner-main reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
-  {{template "filter-form" .ReasonForm}}
-  {{if or .Components .Config}}
-  <ol class="components">
-  {{range .Components}}{{template "component" .}}{{end}}
-  {{with .Config}}
-    <li class="component component-group">
-      <details id="config-components"{{if .Open}} open{{end}}>
-        <summary class="component-head"><h3 class="component-name">{{len .Components}} configuration components</h3>{{template "state" .Health}}<span class="muted group-note">RBAC, CRDs, webhooks and other objects with no workload</span></summary>
-        <ol class="components">{{range .Components}}{{template "component" .}}{{end}}</ol>
-      </details>
-    </li>
+  {{with .Resources.Chip}}<div class="filter-chips" hx-swap="outerHTML show:none"><a class="fchip" href="{{.Remove}}" aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a></div>{{end}}
+  {{if .Resources.Bodies}}
+  <div class="table-wrap"><table class="table rows resources-table">
+    <thead><tr><th scope="col">Kind</th><th scope="col">Name</th><th scope="col">Component</th><th scope="col">Origin</th><th scope="col">Health</th><th scope="col">Details</th></tr></thead>
+    {{range .Resources.Bodies}}<tbody{{if .Head}} class="group"{{end}}>
+      {{with .Head}}<tr class="group-head"><td colspan="6"><details id="{{.ID}}"{{if .Open}} open{{end}}><summary><span class="group-label">{{.Label}}</span>{{if .Health}} {{template "state" .Health}}{{end}} <span class="muted">{{.Count}} {{if eq .Count 1}}row{{else}}rows{{end}}, {{.Note}}</span></summary></details></td></tr>{{end}}
+      {{range .Rows}}{{template "resource-row" .}}{{end}}
+    </tbody>
+    {{end}}
+  </table></div>
   {{end}}
-  </ol>
-  {{else if .ReasonForm.Filters.Active}}<p class="muted">No object or child reports this reason.</p>
-  {{else}}<p class="muted">The inventory names no objects yet.</p>{{end}}
+  {{with .Resources.Empty}}<p class="muted resources-empty">{{.}}</p>{{end}}
 </section>
 {{template "detail" .}}
 </div>
@@ -179,7 +176,7 @@
 {{end}}{{end}}
 
 {{define "detail"}}
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  {{with .Panel}}{{template "panel-body" .}}{{else}}<p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>{{end}}
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite"{{with .PanelRoot}} data-root-panel="{{.}}"{{end}}>
+  {{if .Panel}}{{template "panel-body" .Panel}}{{else if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}<p class="muted">The graph has no node to show details for.</p>{{end}}
 </aside>
 {{end}}

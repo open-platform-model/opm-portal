@@ -47,7 +47,7 @@
 </section>
   
 </div>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events" aria-current="page">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">3</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events" aria-current="page">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">18</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
 <section class="panel owner-panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="events:instance:default/podinfo">
   <h2 class="vh" id="events-h">Events</h2>
   <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
@@ -63,7 +63,7 @@
       <a class="fclear" href="/instances/default/podinfo?tab=events" data-filters-explicit>Clear filters</a>
     </div>
   </form>
-  <p class="shown">Showing <strong>3</strong> of 3, newest first, repeats folded</p>
+  <p class="shown">Showing <strong>16</strong> of 18, newest first, repeats folded</p>
   <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
   <p class="note">Render warnings are recorded only as events, so a warning older than about an hour is gone.</p>
 <ol class="events">
@@ -71,6 +71,46 @@
     <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">NoOp</span><span class="ev-time"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m ago</time></span></div>
     <p class="ev-note">No changes detected</p>
     <p class="ev-meta mono">ModuleInstance.opmodel.dev default/podinfo · opm-controller</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Pulled</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
+    <p class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 422ms (9.094s including waiting). Image size: 31081621 bytes.</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Created</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
+    <p class="ev-note">Container created</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Started</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
+    <p class="ev-note">Container started</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Pulled</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
+    <p class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 2.641s (8.673s including waiting). Image size: 31081621 bytes.</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-kp2jx · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Created</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
+    <p class="ev-note">Container created</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-kp2jx · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Started</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
+    <p class="ev-note">Container started</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-kp2jx · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Pulling</span><span class="ev-time"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m ago</time></span></div>
+    <p class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Pulling</span><span class="ev-time"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m ago</time></span></div>
+    <p class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-kp2jx · kubelet</p>
   </li>
   <li class="event ev-normal">
     <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">ReconciliationSucceeded</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
@@ -81,6 +121,31 @@
     <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Applied</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
     <p class="ev-note">Applied 2 resources (2 created, 0 updated, 0 unchanged)</p>
     <p class="ev-meta mono">ModuleInstance.opmodel.dev default/podinfo · opm-controller</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">ScalingReplicaSet</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Scaled up replica set podinfo-podinfo-d9585d794 from 0 to 2</p>
+    <p class="ev-meta mono">Deployment.apps default/podinfo-podinfo · deployment-controller</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Scheduled</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-4lg6h to opm-portal-e2e-fix-control-plane</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · default-scheduler</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Scheduled</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-kp2jx to opm-portal-e2e-fix-control-plane</p>
+    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-kp2jx · default-scheduler</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">SuccessfulCreate</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Created pod: podinfo-podinfo-d9585d794-kp2jx</p>
+    <p class="ev-meta mono">ReplicaSet.apps default/podinfo-podinfo-d9585d794 · replicaset-controller</p>
+  </li>
+  <li class="event ev-normal">
+    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">SuccessfulCreate</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
+    <p class="ev-note">Created pod: podinfo-podinfo-d9585d794-4lg6h</p>
+    <p class="ev-meta mono">ReplicaSet.apps default/podinfo-podinfo-d9585d794 · replicaset-controller</p>
   </li>
 </ol>
 </section>

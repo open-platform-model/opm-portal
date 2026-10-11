@@ -65,6 +65,7 @@ func TestSecretsOfferNoYAML(t *testing.T) {
 		Name:    "db",
 		Objects: []v1.InventoryObject{{Ref: ref, Access: v1.AccessOK, Health: &v1.ObjectHealth{State: "Healthy"}, Live: true}},
 	}})}
+	v.Resources = resourcesOf(nil, &v, &v1.Graph{})
 	out := between(renderMain(t, "owner", v), `id="components"`, "</section>")
 	if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "kind=Secret") {
 		t.Errorf("Secret row:\n%s", out)
@@ -87,6 +88,7 @@ func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 		}}),
 	}
 	v.Cards = h.cardsOf(&v)
+	v.Resources = resourcesOf(nil, &v, &v1.Graph{})
 	pages, err := parsePages(h.templateFuncs())
 	if err != nil {
 		t.Fatal(err)

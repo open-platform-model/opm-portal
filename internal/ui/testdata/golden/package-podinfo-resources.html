@@ -65,19 +65,37 @@
 <div class="owner-row">
 <section class="panel owner-panel owner-main reveal" id="components" aria-labelledby="components-h" data-follow="package:pkg/podinfo">
   <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
-  <form class="filters" method="get" action="/packages/pkg/podinfo" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
-  <input type="hidden" name="tab" value="resources">
-  <div class="filter-fields">
-    
-    <div class="field"><label for="f-reason">Health reason</label><input id="f-reason" name="reason" value="" placeholder="a reason, such as ImagePullBackOff" autocomplete="off" spellcheck="false"></div>
-    <div class="field field-submit"><button type="submit">Apply filters</button></div>
-  </div>
   
-</form>
-  <p class="muted">The inventory names no objects yet.</p>
+  <div class="table-wrap"><table class="table rows resources-table">
+    <thead><tr><th scope="col">Kind</th><th scope="col">Name</th><th scope="col">Component</th><th scope="col">Origin</th><th scope="col">Health</th><th scope="col">Details</th></tr></thead>
+    <tbody>
+      <tr class="res">
+  <td data-label="Kind">OCIRepository</td>
+  <th scope="row" data-label="Name" class="mono"><a class="row-link" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph">pkg/<wbr>podinfo-release</a></th>
+  <td data-label="Component"><span class="muted">none</span></td>
+  <td data-label="Origin">source</td>
+  <td data-label="Health"><span class="muted">not read</span></td>
+  <td data-label="Details"></td>
+</tr>
+    </tbody>
+  </table></div>
+  <p class="muted resources-empty">Nothing applied yet. The package has never fetched its source.</p>
 </section>
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo">
+<p class="kicker">Package</p>
+<h2 class="frag-h mono">pkg/<wbr>podinfo</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-unknown"><span class="axis">Health axis</span>Unknown</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModulePackage.<wbr>opmodel.<wbr>dev pkg/<wbr>podinfo</dd>
+  <dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>
+  <dt>Applied reason</dt><dd class="mono">SourceNotReady</dd><dt>Controller says</dt><dd>getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</dd>
+  <dt>Source</dt><dd class="mono">OCIRepository pkg/<wbr>podinfo-release</dd><dt>Path</dt><dd class="mono">.</dd><dt>Interval</dt><dd>every 1 min</dd><dt>Revision</dt><dd>not recorded</dd><dt>Owner</dt><dd>the controller</dd><dt>Applier</dt><dd>the controller&#39;s own ServiceAccount</dd>
+  
+  
+  
+</dl>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>sourcedFrom (ModulePackage spec.sourceRef)</li></ul>
+<p class="panel-links"><a class="btn" href="/packages/pkg/podinfo?tab=events">Events</a></p>
 </aside>
 </div>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="package:pkg/podinfo">

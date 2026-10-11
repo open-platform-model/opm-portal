@@ -199,41 +199,19 @@
 {{range $i, $p := segments .}}{{if $i}}<wbr>{{end}}{{$p}}{{end}}
 {{- end}}
 
-{{define "component" -}}
-<li class="component">
-  <div class="component-head"><h3 class="component-name">{{.Name}}</h3>{{template "health" .Health}}</div>
-  <ul class="objects">
-  {{range .Objects}}
-    {{if locked .Access}}
-    <li class="object locked"><div class="object-row">{{template "lock"}}<span class="mono object-ref">{{template "breakable" .Text}}</span></div><p class="object-why">{{accessText .Access}}</p></li>
-    {{else}}
-    <li class="object">
-      <div class="object-row">
-        {{with .Health}}{{template "state" .State}}{{end}}
-        <span class="mono object-ref">{{template "breakable" .Text}}</span>
-        <span class="origin">in the inventory</span>
-        {{with .Health}}{{with .Reason}}<span class="mono obj-reason">{{.}}</span>{{end}}{{end}}
-        {{if not .Live}}<span class="pill pill-off" title="Polled, not watched">not live · read {{template "time" .EvaluatedAt}}</span>{{end}}
-        <span class="object-actions">{{with .Focus}}<a href="{{.}}">Graph</a>{{end}}{{if isSecret .Ref}}<span class="muted">Secret data is never read</span>{{else}}{{with .YAML}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a>{{end}}{{with .EventsURL}}<a href="{{.}}" hx-get="{{.}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a>{{end}}{{end}}</span>
-      </div>
-      {{with .Health}}{{with .Message}}<p class="object-why">{{.}}</p>{{end}}{{end}}
-      {{if .ChildrenUnread}}<p class="object-why muted">Its Pods could not be read, so its health is its own status alone.</p>{{end}}
-      {{with .Children}}<ul class="children">{{range .}}{{template "child" .}}{{end}}</ul>{{end}}
-      {{if .Old}}
-      <details class="old-revs" id="{{.OldID}}">
-        <summary>{{len .Old}} old {{if eq (len .Old) 1}}revision{{else}}revisions{{end}} <span class="muted">scaled to zero</span></summary>
-        <ul class="children">{{range .Old}}{{template "child" .}}{{end}}</ul>
-      </details>
-      {{end}}
-    </li>
-    {{end}}
-  {{end}}
-  </ul>
-</li>
-{{- end}}
-
-{{define "child" -}}
-<li class="child"><div class="object-row">{{template "state" .Health.State}}<span class="mono object-ref">{{template "breakable" .Text}}</span><span class="origin">made by the cluster</span>{{with .Health.Reason}}<span class="mono obj-reason">{{.}}</span>{{end}}{{with .Replicas}}<span class="muted">{{.}} desired</span>{{end}}<span class="object-actions">{{with .Focus}}<a href="{{.}}">Graph</a>{{end}}{{if .LogID}}<a href="{{.LogHref}}" data-log-link="{{.LogID}}">Logs</a>{{end}}<a href="{{.YAML}}" hx-get="{{.YAML}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="{{.EventsURL}}" hx-get="{{.EventsURL}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div>{{with .Health.Message}}<p class="object-why">{{.}}</p>{{end}}</li>
+{{/* resource-row is one row of the Resources table (design.md decision 4). The name
+     is the row's link to the Graph tab; CSS stretches it over the whole row. A
+     locked row has no link. The row of the selected node is marked current. */}}
+{{define "resource-row" -}}
+<tr class="res{{if .Child}} row-child{{end}}{{if .Member}} member{{end}}{{if .Degraded}} row-degraded{{end}}{{if .Current}} row-current{{end}}{{if .Locked}} row-locked{{end}}"{{if .Current}} aria-current="true"{{end}}>
+  <td data-label="Kind">{{.Kind}}</td>
+  <th scope="row" data-label="Name" class="mono">{{if .Locked}}{{template "lock"}} <span class="object-ref">{{template "breakable" .Name}}</span>{{else}}<a class="row-link" href="{{.Href}}">{{template "breakable" .Name}}</a>{{end}}</th>
+  <td data-label="Component">{{with .Component}}{{.}}{{else}}<span class="muted">none</span>{{end}}</td>
+  <td data-label="Origin">{{.Origin}}</td>
+  <td data-label="Health">{{if .Locked}}<span class="locked-word">{{template "lock"}} Locked</span>{{else if .Health}}{{template "state" .Health}}{{else}}<span class="muted">not read</span>{{end}}</td>
+  <td data-label="Details">{{if .Locked}}<span class="res-msg">{{.LockText}}</span>
+    {{else}}{{with .Reason}}<span class="mono res-reason">{{.}}</span> {{end}}{{with .Desired}}<span class="muted">{{.}} desired</span> {{end}}{{with .Message}}<span class="res-msg" title="{{.}}">{{.}}</span>{{end}}{{with .Note}}<span class="res-msg muted">{{.}}</span>{{end}}{{if .NotLive}}<span class="pill pill-off" title="Polled, not watched">not live · read {{template "time" .EvaluatedAt}}</span>{{end}}{{end}}</td>
+</tr>
 {{- end}}
 
 {{/* filter-form is one view's GET filter form, its chips and its notes. */}}

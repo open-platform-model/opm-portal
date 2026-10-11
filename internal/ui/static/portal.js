@@ -757,10 +757,29 @@
       u.searchParams.delete("focus");
     }
     history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+    // The tab links keep the selection (portal:D9): the server wrote them for the
+    // address the page was opened at, so they follow the focus as it changes.
+    document.querySelectorAll(".owner-tabs a").forEach(function (a) {
+      var t = new URL(a.getAttribute("href"), location.href);
+      if (id) {
+        t.searchParams.set("focus", id);
+      } else {
+        t.searchParams.delete("focus");
+      }
+      a.setAttribute("href", t.pathname + t.search);
+    });
   }
 
+  // resetDetail brings the panel back to the node it rests on: the page names
+  // that node's panel in data-root-panel. A page that names none keeps the
+  // placeholder.
   function resetDetail() {
     var target = document.getElementById("detail");
+    var root = target && target.getAttribute("data-root-panel");
+    if (root && typeof htmx !== "undefined") {
+      htmx.ajax("GET", root, { target: "#detail", swap: "innerHTML", select: "unset" });
+      return;
+    }
     if (target) {
       var p = document.createElement("p");
       p.className = "muted";

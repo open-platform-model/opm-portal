@@ -47,7 +47,7 @@
 </section>
   
 </div>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph" aria-current="page">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">7</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">3</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph" aria-current="page">Graph</a><a href="/instances/default/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">7</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">6</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
 <div class="owner-row">
 <div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
 <section class="panel owner-panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:default/podinfo">
@@ -168,8 +168,21 @@
 </div>
 </section>
 </div>
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo">
+<p class="kicker">Instance</p>
+<h2 class="frag-h mono">default/<wbr>podinfo</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-degraded"><span class="axis">Health axis</span>Degraded</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModuleInstance.<wbr>opmodel.<wbr>dev default/<wbr>podinfo</dd>
+  <dt>Applied reason</dt><dd class="mono">ReconciliationSucceeded</dd><dt>Controller says</dt><dd>Reconciliation succeeded</dd>
+  <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>podinfo@v0</dd><dt>Version</dt><dd>v0.1.11</dd><dt>Owner</dt><dd>the controller</dd><dt>Applier</dt><dd>ServiceAccount podinfo-applier</dd>
+  
+  
+  
+</dl>
+<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
+<p class="panel-links"><a class="btn" href="/instances/default/podinfo?tab=events">Events</a></p>
 </aside>
 </div>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">

@@ -47,44 +47,71 @@
 </section>
   
 </div>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources" aria-current="page">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">3</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/default/podinfo?tab=graph">Graph</a><a href="/instances/default/podinfo?tab=resources" aria-current="page">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:default/podinfo events:instance:default/podinfo">5</span></a><a href="/instances/default/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:default/podinfo events:instance:default/podinfo">18</span></a><a href="/instances/default/podinfo?tab=logs">Logs</a><a href="/instances/default/podinfo?tab=yaml">YAML</a></nav>
 <div class="owner-row">
 <section class="panel owner-panel owner-main reveal" id="components" aria-labelledby="components-h" data-follow="instance:default/podinfo">
   <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
-  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Filter resources" hx-swap="outerHTML show:none">
-  <input type="hidden" name="tab" value="resources">
-  <div class="filter-fields">
-    
-    <div class="field"><label for="f-reason">Health reason</label><input id="f-reason" name="reason" value="" placeholder="a reason, such as ImagePullBackOff" autocomplete="off" spellcheck="false"></div>
-    <div class="field field-submit"><button type="submit">Apply filters</button></div>
-  </div>
   
-</form>
-  <ol class="components">
-  <li class="component">
-  <div class="component-head"><h3 class="component-name">podinfo</h3><span class="health health-healthy health-partial"><span class="axis">Health axis</span>Healthy (partial)</span></div>
-  <ul class="objects">
-    
-    <li class="object">
-      <div class="object-row">
-        <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span>
-        <span class="mono object-ref">Deployment.<wbr>apps default/<wbr>podinfo-podinfo</span>
-        <span class="origin">in the inventory</span>
-        <span class="mono obj-reason">Current</span>
-        <span class="object-actions"><a href="/instances/default/podinfo?focus=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=graph">Graph</a><a href="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=Deployment&amp;name=podinfo-podinfo&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span>
-      </div>
-      <p class="object-why">Deployment is available. Replicas: 2</p>
-      <ul class="children"><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">Pod default/<wbr>podinfo-podinfo-d9585d794-4lg6h</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=graph">Graph</a><a href="/instances/default/podinfo?tab=logs#log_podinfo-podinfo-d9585d794-4lg6h_podinfo" data-log-link="log_podinfo-podinfo-d9585d794-4lg6h_podinfo">Logs</a><a href="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-get="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-get="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-4lg6h&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">Pod default/<wbr>podinfo-podinfo-d9585d794-kp2jx</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="object-actions"><a href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=graph">Graph</a><a href="/instances/default/podinfo?tab=logs#log_podinfo-podinfo-d9585d794-kp2jx_podinfo" data-log-link="log_podinfo-podinfo-d9585d794-kp2jx_podinfo">Logs</a><a href="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-get="/instances/default/podinfo/object?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-get="/instances/default/podinfo/events?kind=Pod&amp;name=podinfo-podinfo-d9585d794-kp2jx&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">Pod is Ready</p></li><li class="child"><div class="object-row"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span><span class="mono object-ref">ReplicaSet.<wbr>apps default/<wbr>podinfo-podinfo-d9585d794</span><span class="origin">made by the cluster</span><span class="mono obj-reason">Current</span><span class="muted">2 desired</span><span class="object-actions"><a href="/instances/default/podinfo?focus=obj%3Aapps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=graph">Graph</a><a href="/instances/default/podinfo/object?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-get="/instances/default/podinfo/object?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">YAML</a><a href="/instances/default/podinfo/events?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-get="/instances/default/podinfo/events?group=apps&amp;kind=ReplicaSet&amp;name=podinfo-podinfo-d9585d794&amp;namespace=default" hx-target="#detail" hx-select="unset" hx-swap="innerHTML">Events</a></span></div><p class="object-why">ReplicaSet is available. Replicas: 2</p></li></ul>
-    </li>
+  <div class="table-wrap"><table class="table rows resources-table">
+    <thead><tr><th scope="col">Kind</th><th scope="col">Name</th><th scope="col">Component</th><th scope="col">Origin</th><th scope="col">Health</th><th scope="col">Details</th></tr></thead>
+    <tbody>
+      <tr class="res">
+  <td data-label="Kind">Deployment</td>
+  <th scope="row" data-label="Name" class="mono"><a class="row-link" href="/instances/default/podinfo?focus=obj%3Aapps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=graph">default/<wbr>podinfo-podinfo</a></th>
+  <td data-label="Component">podinfo</td>
+  <td data-label="Origin">applied</td>
+  <td data-label="Health"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></td>
+  <td data-label="Details"><span class="mono res-reason">Current</span> <span class="res-msg" title="Deployment is available. Replicas: 2">Deployment is available. Replicas: 2</span></td>
+</tr><tr class="res row-child">
+  <td data-label="Kind">Pod</td>
+  <th scope="row" data-label="Name" class="mono"><a class="row-link" href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=graph">default/<wbr>podinfo-podinfo-d9585d794-4lg6h</a></th>
+  <td data-label="Component">podinfo</td>
+  <td data-label="Origin">made by the cluster</td>
+  <td data-label="Health"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></td>
+  <td data-label="Details"><span class="mono res-reason">Current</span> <span class="res-msg" title="Pod is Ready">Pod is Ready</span></td>
+</tr><tr class="res row-child">
+  <td data-label="Kind">Pod</td>
+  <th scope="row" data-label="Name" class="mono"><a class="row-link" href="/instances/default/podinfo?focus=obj%3A_%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=graph">default/<wbr>podinfo-podinfo-d9585d794-kp2jx</a></th>
+  <td data-label="Component">podinfo</td>
+  <td data-label="Origin">made by the cluster</td>
+  <td data-label="Health"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></td>
+  <td data-label="Details"><span class="mono res-reason">Current</span> <span class="res-msg" title="Pod is Ready">Pod is Ready</span></td>
+</tr><tr class="res row-child">
+  <td data-label="Kind">ReplicaSet</td>
+  <th scope="row" data-label="Name" class="mono"><a class="row-link" href="/instances/default/podinfo?focus=obj%3Aapps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=graph">default/<wbr>podinfo-podinfo-d9585d794</a></th>
+  <td data-label="Component">podinfo</td>
+  <td data-label="Origin">made by the cluster</td>
+  <td data-label="Health"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></td>
+  <td data-label="Details"><span class="mono res-reason">Current</span> <span class="muted">2 desired</span> <span class="res-msg" title="ReplicaSet is available. Replicas: 2">ReplicaSet is available. Replicas: 2</span></td>
+</tr><tr class="res row-locked">
+  <td data-label="Kind">Service</td>
+  <th scope="row" data-label="Name" class="mono"><svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg> <span class="object-ref">default/<wbr>podinfo-podinfo</span></th>
+  <td data-label="Component">podinfo</td>
+  <td data-label="Origin">applied</td>
+  <td data-label="Health"><span class="locked-word"><svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg> Locked</span></td>
+  <td data-label="Details"><span class="res-msg">Locked: you may not read this.</span>
+    </td>
+</tr>
+    </tbody>
+  </table></div>
   
-    <li class="object locked"><div class="object-row"><svg class="lock-mark" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span class="mono object-ref">Service default/<wbr>podinfo-podinfo</span></div><p class="object-why">Locked: you may not read this.</p></li>
-  
-  </ul>
-</li>
-  </ol>
 </section>
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/default/podinfo/node?id=mi%3Adefault%2Fpodinfo">
+<p class="kicker">Instance</p>
+<h2 class="frag-h mono">default/<wbr>podinfo</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModuleInstance.<wbr>opmodel.<wbr>dev default/<wbr>podinfo</dd>
+  <dt>Partial</dt><dd>Some objects could not be read and were left out.</dd>
+  <dt>Applied reason</dt><dd class="mono">ReconciliationSucceeded</dd><dt>Controller says</dt><dd>Reconciliation succeeded</dd>
+  <dt>Module</dt><dd class="mono">testing.<wbr>opmodel.<wbr>dev/<wbr>modules/<wbr>operator/<wbr>podinfo@v0</dd><dt>Version</dt><dd>v0.1.11</dd><dt>Owner</dt><dd>the controller</dd><dt>Applier</dt><dd>ServiceAccount podinfo-applier</dd>
+  
+  
+  
+</dl>
+<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li></ul>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
+<p class="panel-links"><a class="btn" href="/instances/default/podinfo?tab=events">Events</a></p>
 </aside>
 </div>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">

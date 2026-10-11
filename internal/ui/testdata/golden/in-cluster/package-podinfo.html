@@ -110,8 +110,21 @@
 </div>
 </section>
 </div>
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo">
+<p class="kicker">Package</p>
+<h2 class="frag-h mono">pkg/<wbr>podinfo</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-unknown"><span class="axis">Health axis</span>Unknown</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModulePackage.<wbr>opmodel.<wbr>dev pkg/<wbr>podinfo</dd>
+  <dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>
+  <dt>Applied reason</dt><dd class="mono">SourceNotReady</dd>
+  <dt>Source</dt><dd class="mono">OCIRepository pkg/<wbr>podinfo-release</dd><dt>Path</dt><dd class="mono">.</dd><dt>Interval</dt><dd>every 1 min</dd><dt>Revision</dt><dd>not recorded</dd><dt>Owner</dt><dd>the controller</dd><dt>Applier</dt><dd>the controller&#39;s own ServiceAccount</dd>
+  
+  
+  
+</dl>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>sourcedFrom (ModulePackage spec.sourceRef)</li></ul>
+<p class="panel-links"><a class="btn" href="/packages/pkg/podinfo?tab=events">Events</a></p>
 </aside>
 </div>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="package:pkg/podinfo">

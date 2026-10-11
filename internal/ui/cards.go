@@ -513,10 +513,7 @@ func healthReasons(v *ownerView) []countLink {
 			}
 		}
 	}
-	walk(v.Components)
-	if v.Config != nil {
-		walk(v.Config.Components)
-	}
+	walk(v.allComponents())
 	names := make([]string, 0, len(counts))
 	for r := range counts {
 		names = append(names, r)

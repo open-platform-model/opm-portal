@@ -38,7 +38,7 @@
 </section>
   
 </div>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/web/web?tab=graph" aria-current="page">Graph</a><a href="/instances/web/web?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:web/web events:instance:web/web">4</span></a><a href="/instances/web/web?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:web/web events:instance:web/web">1</span></a><a href="/instances/web/web?tab=logs">Logs</a><a href="/instances/web/web?tab=yaml">YAML</a></nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/web/web?tab=graph" aria-current="page">Graph</a><a href="/instances/web/web?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:web/web events:instance:web/web">4</span></a><a href="/instances/web/web?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:web/web events:instance:web/web">8</span></a><a href="/instances/web/web?tab=logs">Logs</a><a href="/instances/web/web?tab=yaml">YAML</a></nav>
 <div class="owner-row">
 <div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
 <section class="panel owner-panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:web/web">
@@ -132,8 +132,20 @@
 </div>
 </section>
 </div>
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
+<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb">
+<p class="kicker">Instance</p>
+<h2 class="frag-h mono">web/<wbr>web</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-managedexternally"><span class="axis">Applied axis</span>Managed externally</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModuleInstance.<wbr>opmodel.<wbr>dev web/<wbr>web</dd>
+  <dt>Applied reason</dt><dd class="mono">ManagedExternally</dd><dt>Controller says</dt><dd>ModuleInstance is managed externally by the CLI</dd>
+  <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>web_app@v1</dd><dt>Version</dt><dd>v1.0.5</dd><dt>Owner</dt><dd>the opm CLI</dd><dt>Applier</dt><dd>the controller&#39;s own ServiceAccount</dd>
+  
+  
+  
+</dl>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
+<p class="panel-links"><a class="btn" href="/instances/web/web?tab=events">Events</a></p>
 </aside>
 </div>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:web/web">

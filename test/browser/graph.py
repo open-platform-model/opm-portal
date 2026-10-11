@@ -8,7 +8,7 @@ first failure:
 
 1. Clear selection: after a node is selected and the zoom set, "Clear selection" drops the focus
    from the address without a new history entry, keeps the zoom, and undims the graph.
-2. A Resources row's Graph link opens the Graph tab spotlighting that node.
+2. A Resources row's name link (stretched over the row) opens the Graph tab spotlighting that node.
 3. A group node expands in place and fits the view to its members; "Whole graph" collapses it.
 4. A live refresh keeps the tab, the focus, the selection and the zoom. The refresh is driven by
    dispatching the stream's upsert event for the page's topic on the stream listener, as the SSE
@@ -86,7 +86,7 @@ def run(p, engine, base):
             return False
 
         page.goto(base + PODINFO + "?tab=resources")
-        page.locator("#components a", has_text="Graph").first.click()
+        page.locator("#components a.row-link", has_text="podinfo-podinfo").first.click()
         page.wait_for_url("**tab=graph**")
         page.wait_for_selector(".node[aria-current]")
         dims = page.evaluate("document.querySelectorAll('.graph .node.dim').length")

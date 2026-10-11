@@ -87,6 +87,8 @@ func buildContrastPairs() []contrastPair {
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
 		{"secondary ink on card", "--ink-2", "--surface", textFloor, ""},
+		// A locked row of the Resources table is drawn on the locked tint.
+		{"ink on locked tint", "--ink", "--locked-tint", textFloor, ""},
 		{"attempt mark on a succeeded dot", "--surface", "--healthy-ink", textFloor, ""},
 		{"attempt mark on a failed dot", "--surface", "--degraded-ink", textFloor, ""},
 		{"attempt mark on an unknown dot", "--unknown-ink", "--surface", textFloor, ""},
@@ -99,6 +101,8 @@ func buildContrastPairs() []contrastPair {
 			contrastPair{tone + " ink on its tint", "--" + tone + "-ink", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"muted on " + tone + " tint", "--muted", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"secondary ink on " + tone + " tint", "--ink-2", "--" + tone + "-tint", textFloor, ""},
+			// The details panel's message box and a degraded Resources row draw the primary ink on a tint.
+			contrastPair{"ink on " + tone + " tint", "--ink", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"locked ink on " + tone + " tint", "--locked-ink", "--" + tone + "-tint", textFloor, ""},
 			// A Warning count on the Applied card is drawn in the degraded ink on any tint.
 			contrastPair{"degraded ink on " + tone + " tint", "--degraded-ink", "--" + tone + "-tint", textFloor, ""},

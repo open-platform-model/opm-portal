@@ -25,8 +25,41 @@ const (
 	tabYAML      = "yaml"
 )
 
-var ownerTabs = []struct{ Name, Label string }{
+// ownerTab is one tab of an owner page's strip.
+type ownerTab struct{ Name, Label string }
+
+// ownerTabs is the strip in order; a page that holds a registration puts the
+// Provider tab after Graph (see ownerTabsFor).
+var ownerTabs = []ownerTab{
 	{tabGraph, "Graph"}, {tabResources, "Resources"}, {tabEvents, "Events"}, {tabLogs, "Logs"}, {tabYAML, "YAML"},
+}
+
+// ownerTabsFor is the tabs a page offers, in order: Graph, Provider when the
+// item holds a registration, Resources, Events, Logs and YAML.
+func ownerTabsFor(provider bool) []ownerTab {
+	if !provider {
+		return ownerTabs
+	}
+	out := make([]ownerTab, 0, len(ownerTabs)+1)
+	out = append(out, ownerTabs[0], ownerTab{tabProvider, "Provider"})
+	return append(out, ownerTabs[1:]...)
+}
+
+// selectionParams are the parameters that name the object the page is on: node
+// is the selection, focus the spotlight a Resources row or a Health reason
+// hands off. Every tab link keeps both.
+var selectionParams = []string{"node", "focus"}
+
+// tabHref is the link to tab name on the page at base, keeping the
+// selection of q (portal:D9).
+func tabHref(base string, q url.Values, name string) string {
+	out := url.Values{"tab": {name}}
+	for _, k := range selectionParams {
+		if v := q.Get(k); v != "" {
+			out.Set(k, v)
+		}
+	}
+	return base + "?" + out.Encode()
 }
 
 // Event types the Events tab filters by.
@@ -83,9 +116,10 @@ type ownerView struct {
 	LastApplied v1.Digests
 	ProviderOf  []v1.ProviderClaim
 	Components  []componentView
-	// Config is the configuration components the graph folds into one
-	// group, listed folded the same way; nil when the graph does not fold.
-	Config *configGroup
+	// Configs are the components the graph folds into group nodes, one entry
+	// for each group, listed folded the same way; nil when the graph folds
+	// none.
+	Configs []configGroup
 
 	Tab  string
 	Tabs []tabLink
@@ -99,12 +133,19 @@ type ownerView struct {
 
 	Graph        svgGraph
 	GraphProblem *v1.Problem
-	// Focus is the node the graph spotlights.
+	// Focus is the node the graph spotlights, Node the one the page
+	// selects; the panel shows Node, else Focus, else the resting node.
 	Focus string
+	Node  string
 	Panel *nodePanel
+	// PanelRoot is the URL of the panel fragment of the node the panel rests
+	// on, which Clear selection brings back; PanelAtRest is true when the
+	// panel shows that node because neither node nor focus is set.
+	PanelRoot   string
+	PanelAtRest bool
 
-	// ReasonForm filters the Resources tab by a health reason.
-	ReasonForm filterForm
+	// Resources is the Resources tab's table.
+	Resources  resourcesTable
 	Events     eventsView
 	EventsForm eventsForm
 	Logs       []logPane
@@ -117,7 +158,7 @@ type ownerView struct {
 // --- Resources ---
 
 // reasonFilter is the Resources tab's one filter: a health reason, matched
-// as given.
+// as given, shown as a removable chip and set by the Health card's hand-off.
 var reasonFilter = filterView{Params: []filterParam{{Name: "reason", Label: "Health reason"}}}
 
 // focusIDs maps every object the inventory reaches to the graph node that
@@ -161,9 +202,12 @@ func refKey(r v1.ObjectRef) string { return r.Group + "/" + r.Kind + "/" + r.Nam
 // annotateResources links each object and child to the graph node that
 // shows it, and keeps only those with reason, when one is asked for.
 func annotateResources(cs []componentView, byRef, groupOf map[string]string, base, reason string) []componentView {
-	focus := func(r v1.ObjectRef, component string) string {
+	// focus is the link to the node that shows r, and the id of the node the
+	// page marks for it: its own node, or its place in the group it is
+	// folded into.
+	focus := func(r v1.ObjectRef, component string) (href, id string) {
 		if id := byRef[refKey(r)]; id != "" {
-			return base + "?" + url.Values{"tab": {tabGraph}, "focus": {id}}.Encode()
+			return base + "?" + url.Values{"tab": {tabGraph}, "focus": {id}}.Encode(), id
 		}
 		// Folded into a group: open the group and focus the object's own
 		// node in it.
@@ -172,9 +216,10 @@ func annotateResources(cs []componentView, byRef, groupOf map[string]string, bas
 			group = groupOf[component]
 		}
 		if group == "" {
-			return base + "?tab=" + tabGraph
+			return base + "?tab=" + tabGraph, ""
 		}
-		return base + "?" + url.Values{"tab": {tabGraph}, "expand": {group}, "focus": {objectNodeID(r)}}.Encode()
+		id = objectNodeID(r)
+		return base + "?" + url.Values{"tab": {tabGraph}, "expand": {group}, "focus": {id}}.Encode(), id
 	}
 	out := make([]componentView, 0, len(cs))
 	for i := range cs {
@@ -196,16 +241,24 @@ func annotateResources(cs []componentView, byRef, groupOf map[string]string, bas
 
 // annotateObject links one object and its children to the graph and keeps
 // the children with reason; ok is false when neither it nor a child has it.
-func annotateObject(o objectView, component string, focus func(v1.ObjectRef, string) string, reason string) (objectView, bool) {
-	o.Focus = focus(o.Ref, component)
+func annotateObject(o objectView, component string, focus func(v1.ObjectRef, string) (string, string), reason string) (objectView, bool) {
+	o.Focus, o.NodeID = focus(o.Ref, component)
 	kids := make([]childView, 0, len(o.Children))
 	for k := range o.Children {
 		ch := o.Children[k]
-		ch.Focus = focus(ch.Ref, component)
+		ch.Focus, ch.NodeID = focus(ch.Ref, component)
 		if reason == "" || ch.Health.Reason == reason {
 			kids = append(kids, ch)
 		}
 	}
+	// The old revisions are linked the same way; they show only without a
+	// reason filter.
+	old := make([]childView, len(o.Old))
+	copy(old, o.Old)
+	for k := range old {
+		old[k].Focus, old[k].NodeID = focus(old[k].Ref, component)
+	}
+	o.Old = old
 	own := reason == "" || (o.Health != nil && o.Health.Reason == reason)
 	if !own && len(kids) == 0 {
 		return o, false
@@ -341,42 +394,58 @@ type yamlItem struct {
 	Secret bool
 }
 
-func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView) {
-	picked := r.URL.Query().Get("object")
-	byKind := map[string][]yamlItem{}
-	var kinds []string
-	add := func(ref v1.ObjectRef, secret bool) {
-		val := resourceValue(ref)
-		item := yamlItem{Text: ref.Name, Secret: secret, Current: val == picked}
-		if ref.Namespace != "" {
-			item.Text = ref.Namespace + "/" + ref.Name
-		}
-		if !secret {
-			item.Href = v.Base + "?" + url.Values{"tab": {tabYAML}, "object": {val}}.Encode()
-		}
-		if byKind[ref.Kind] == nil {
-			kinds = append(kinds, ref.Kind)
-		}
-		byKind[ref.Kind] = append(byKind[ref.Kind], item)
+func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView, g *v1.Graph) {
+	type entry struct {
+		ref    v1.ObjectRef
+		secret bool
 	}
-	all := v.Components
-	if v.Config != nil {
-		all = append(slices.Clone(all), v.Config.Components...)
-	}
-	for i := range all {
-		for j := range all[i].Objects {
-			o := &all[i].Objects[j]
+	var entries []entry
+	for _, c := range v.allComponents() {
+		for j := range c.Objects {
+			o := &c.Objects[j]
 			if o.Access != v1.AccessOK {
 				continue
 			}
-			add(o.Ref, isSecret(o.Ref))
+			entries = append(entries, entry{o.Ref, isSecret(o.Ref)})
 			for k := range o.Children {
-				add(o.Children[k].Ref, false)
+				entries = append(entries, entry{o.Children[k].Ref, false})
 			}
 			for k := range o.Old {
-				add(o.Old[k].Ref, false)
+				entries = append(entries, entry{o.Old[k].Ref, false})
 			}
 		}
+	}
+	picked := r.URL.Query().Get("object")
+	if picked == "" {
+		// The tab opens on the object of the node the page selects, else of
+		// the focus, when the picker lists it, so YAML shows on arrival.
+		sel := v.Node
+		if sel == "" {
+			sel = v.Focus
+		}
+		if n := findNode(g, sel); n != nil && n.Ref != nil && n.Access == v1.AccessOK && !isSecret(*n.Ref) {
+			for _, e := range entries {
+				if !e.secret && resourceValue(e.ref) == resourceValue(*n.Ref) {
+					picked = resourceValue(e.ref)
+				}
+			}
+		}
+	}
+	byKind := map[string][]yamlItem{}
+	var kinds []string
+	for _, e := range entries {
+		val := resourceValue(e.ref)
+		item := yamlItem{Text: e.ref.Name, Secret: e.secret, Current: val == picked}
+		if e.ref.Namespace != "" {
+			item.Text = e.ref.Namespace + "/" + e.ref.Name
+		}
+		if !e.secret {
+			item.Href = v.Base + "?" + url.Values{"tab": {tabYAML}, "object": {val}}.Encode()
+		}
+		if byKind[e.ref.Kind] == nil {
+			kinds = append(kinds, e.ref.Kind)
+		}
+		byKind[e.ref.Kind] = append(byKind[e.ref.Kind], item)
 	}
 	slices.Sort(kinds)
 	for _, k := range kinds {
@@ -402,47 +471,50 @@ func (h *Handler) ownerYAMLTab(r *http.Request, v *ownerView) {
 
 // --- The page ---
 
+// loadOwner reads the owner document of the page at ns/name and the lists
+// the page derives from it. A document that failed is in Problem.
+func (h *Handler) loadOwner(r *http.Request, k ownerKind, ns, name string) ownerView {
+	v := ownerView{Kind: k, Namespace: ns, Name: name, Base: k.base(ns, name), Tab: tabGraph, Topic: k.Topic + ":" + ns + "/" + name}
+	var comps []v1.Component
+	if k == instanceKind {
+		var doc v1.Instance
+		if v.Problem = h.fetch(r, v.Base, nil, &doc); v.Problem == nil {
+			v.Instance = &doc
+			v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
+			v.ProviderOf, comps = doc.ProviderOf, doc.Components
+		}
+	} else {
+		var doc v1.Package
+		if v.Problem = h.fetch(r, v.Base, nil, &doc); v.Problem == nil {
+			v.Package = &doc
+			v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
+			v.ProviderOf, comps = doc.ProviderOf, doc.Components
+		}
+	}
+	if v.Problem == nil {
+		v.Components = h.components(v.Base, comps)
+		v.firstContainer = containersOf(comps)
+	}
+	return v
+}
+
 func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ns, name := r.PathValue("namespace"), r.PathValue("name")
 		q := r.URL.Query()
-		v := ownerView{Kind: k, Namespace: ns, Name: name, Base: k.base(ns, name), Tab: tabGraph}
-		v.Topic = k.Topic + ":" + ns + "/" + name
-		api := v.Base
-		if k == instanceKind {
-			var doc v1.Instance
-			if v.Problem = h.fetch(r, api, nil, &doc); v.Problem == nil {
-				v.Instance = &doc
-				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
-				v.ProviderOf = doc.ProviderOf
-				v.Components = h.components(v.Base, doc.Components)
-				v.firstContainer = containersOf(doc.Components)
-			}
-		} else {
-			var doc v1.Package
-			if v.Problem = h.fetch(r, api, nil, &doc); v.Problem == nil {
-				v.Package = &doc
-				v.Reconcile, v.Health, v.Conditions, v.History, v.LastApplied = doc.Reconcile, doc.Health, doc.Conditions, doc.History, doc.LastApplied
-				v.ProviderOf = doc.ProviderOf
-				v.Components = h.components(v.Base, doc.Components)
-				v.firstContainer = containersOf(doc.Components)
-			}
-		}
+		v := h.loadOwner(r, k, ns, name)
 		if unauthenticated(v.Problem) {
 			h.signIn(w, r)
 			return
 		}
-		tabs := ownerTabs
-		if len(v.ProviderOf) > 0 {
-			tabs = append(slices.Clone(tabs), struct{ Name, Label string }{tabProvider, "Provider"})
-		}
+		tabs := ownerTabsFor(len(v.ProviderOf) > 0)
 		for _, t := range tabs {
 			if q.Get("tab") == t.Name {
 				v.Tab = t.Name
 			}
 		}
 		for _, t := range tabs {
-			tab := tabLink{Name: t.Name, Label: t.Label, Href: v.Base + "?tab=" + t.Name, Current: t.Name == v.Tab}
+			tab := tabLink{Name: t.Name, Label: t.Label, Href: tabHref(v.Base, q, t.Name), Current: t.Name == v.Tab}
 			if t.Name == tabResources || t.Name == tabEvents {
 				tab.Follow = v.countFollow()
 			}
@@ -472,66 +544,85 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 // ownerTabsOf reads what the cards and the open tab show.
 func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	q := r.URL.Query()
+	v.Node = q.Get("node")
 	var g v1.Graph
 	if v.GraphProblem = h.fetch(r, v.Base+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
 		v.Focus = q.Get("focus")
 		v.Graph = buildGraph(g, v.Kind.Topic+"-graph", v.Base, v.Base+"/node", v.Focus, q["expand"]...)
 		v.Graph.FitGroup = q.Get("fit")
-		v.Components, v.Config = foldConfig(v.Components, &g)
-		if v.Focus != "" {
-			v.Panel = h.panel(r, &g, v.Focus, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer})
-		}
+		v.Components, v.Configs = foldConfig(v.Components, &g)
 		if len(q["expand"]) > 0 {
 			v.Graph.Whole = v.Base + "?tab=" + tabGraph
 		}
-		v.Graph.Clear = linkWithout(v.Base, q, "focus")
-		v.Graph.Focused = v.Panel != nil && !v.Panel.Missing
+		v.Graph.Clear = linkWithout(v.Base, q, selectionParams...)
+		if v.Tab == tabGraph || v.Tab == tabResources {
+			h.ownerPanel(r, v, &g)
+		}
 	}
 	// The Resources count comes before the tab switch: annotateResources
 	// drops the rows a reason filter does not match, and the count is the
 	// tab's whole list (portal:D19:R3).
-	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Config))
-	v.Logs = logPanes(v.Components)
-	if v.Config != nil {
-		v.Logs = append(v.Logs, logPanes(v.Config.Components)...)
-	}
-	v.Events = h.events(r, v.Base+"/events", nil, "events:"+v.Topic)
+	setCount(v.Tabs, tabResources, resourceCount(v.Components, v.Configs))
+	v.Logs = logPanes(v.allComponents())
+	// The merged feed is read on every tab (design.md, "Scale and refresh"),
+	// so the Events count is its folded count on every tab.
+	v.Events = h.events(r, v.Base+"/events", url.Values{"scope": {"all"}}, "events:"+v.Topic)
 	// The Events count comes before ownerEventsTab, which filters the feed
 	// by type and reason or replaces it with another object's.
 	v.countEvents()
 	h.ownerCards(r, v)
 	switch v.Tab {
 	case tabResources:
-		byRef, groupOf := focusIDs(&g)
-		reason := strings.TrimSpace(q.Get("reason"))
-		rv := filterView{Path: v.Base, Params: reasonFilter.Params}
-		reasons := make([]string, 0, len(v.Cards.Reasons))
-		for _, c := range v.Cards.Reasons {
-			reasons = append(reasons, c.Text)
-		}
-		v.ReasonForm = newFilterForm(parseFilters(&rv, q), "Filter resources", keepHidden(q, "reason", "focus"),
-			map[string][]string{"reason": reasons}, map[string]string{"reason": "a reason, such as ImagePullBackOff"})
-		v.Components = annotateResources(v.Components, byRef, groupOf, v.Base, reason)
-		if v.Config != nil {
-			v.Config.Components = annotateResources(v.Config.Components, byRef, groupOf, v.Base, reason)
-			if len(v.Config.Components) == 0 {
-				v.Config = nil
-			} else if reason != "" {
-				v.Config.Open = true
-			}
-		}
+		v.Resources = resourcesOf(q, v, &g)
 	case tabEvents:
-		all := v.Components
-		if v.Config != nil {
-			all = append(slices.Clone(all), v.Config.Components...)
-		}
-		refs := append([]v1.ObjectRef{{Group: "opmodel.dev", Kind: v.Kind.objectKind(), Namespace: v.Namespace, Name: v.Name}}, reachedRefs(all)...)
+		refs := append([]v1.ObjectRef{{Group: "opmodel.dev", Kind: v.Kind.objectKind(), Namespace: v.Namespace, Name: v.Name}}, reachedRefs(v.allComponents())...)
 		h.ownerEventsTab(r, v, refs)
 	case tabYAML:
-		h.ownerYAMLTab(r, v)
+		h.ownerYAMLTab(r, v, &g)
 	case tabProvider:
 		v.Provider = h.providerTab(r, v)
 	}
+}
+
+// restingNode is the node the details panel shows when neither node nor
+// focus is set: the owner's own. align-graph extends it with its resting rule
+// (a held registration whose claim needs attention) and replaces this body.
+func restingNode(g *v1.Graph) string { return g.Root }
+
+// ownerPanel builds the details panel of the Graph and Resources tabs: the
+// node named by node, else focus, else the node the graph rests on, which
+// shows with no spotlight, so the panel is never an empty placeholder.
+func (h *Handler) ownerPanel(r *http.Request, v *ownerView, g *v1.Graph) {
+	id := v.Node
+	if id == "" {
+		id = v.Focus
+	}
+	rest := restingNode(g)
+	v.PanelAtRest = id == ""
+	if v.PanelAtRest {
+		id = rest
+	}
+	if rest != "" {
+		v.PanelRoot = v.Base + "/node?" + url.Values{"id": {rest}}.Encode()
+	}
+	if id == "" {
+		return
+	}
+	v.Panel = h.panel(r, g, id, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer, self: v})
+	v.Graph.Focused = !v.PanelAtRest && !v.Panel.Missing
+}
+
+// allComponents lists every component of the page: the unfolded ones and
+// those folded into a group.
+func (v *ownerView) allComponents() []componentView {
+	if len(v.Configs) == 0 {
+		return v.Components
+	}
+	all := slices.Clone(v.Components)
+	for i := range v.Configs {
+		all = append(all, v.Configs[i].Components...)
+	}
+	return all
 }
 
 // ownerCards builds the identity facts and the cards under it. The Provider
@@ -548,9 +639,10 @@ func (h *Handler) ownerCards(r *http.Request, v *ownerView) {
 func (v *ownerView) countFollow() string { return v.Topic + " events:" + v.Topic }
 
 // countEvents counts the Events tab: the folded lines of the feed it opens
-// with, and no count when that feed is a problem.
+// with, and no count when that feed is a problem or left objects out, because
+// the caller could not read the whole list (portal:D19:R3).
 func (v *ownerView) countEvents() {
-	if v.Events.Problem == nil {
+	if v.Events.Problem == nil && !v.Events.Partial {
 		setCount(v.Tabs, tabEvents, len(v.Events.Items))
 	}
 }
@@ -558,7 +650,7 @@ func (v *ownerView) countEvents() {
 // resourceCount counts the rows the Resources tab lists: each inventory
 // object and every runtime child below it, the scaled-down ReplicaSets and
 // the configuration group included.
-func resourceCount(cs []componentView, config *configGroup) int {
+func resourceCount(cs []componentView, configs []configGroup) int {
 	n := 0
 	count := func(cs []componentView) {
 		for i := range cs {
@@ -569,8 +661,8 @@ func resourceCount(cs []componentView, config *configGroup) int {
 		}
 	}
 	count(cs)
-	if config != nil {
-		count(config.Components)
+	for i := range configs {
+		count(configs[i].Components)
 	}
 	return n
 }
