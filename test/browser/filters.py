@@ -17,9 +17,10 @@ first failure:
 5. A select applies at once, and the remembered Installed filter is still stored after a typed
    search (the replaced entry is remembered as a pushed one is).
 6. The Apply button is not visible until it takes keyboard focus (Tab reaches it, and it shows),
-   and a form with no script would show it (the opm-js class is what hides it).
+   and the same page opened with scripts off shows it (the opm-js class is what hides it).
 7. A text field that is not a search applies when the user leaves it, on a form of any page: the
-   owner page's Events form, whose Reason field is such a field.
+   owner page's Events form, whose Reason field is such a field. Tab out of the field lands on the
+   Apply button, and after the swap focus is on the new Apply button, not on the page.
 8. The announced count: the header's status region holds the new count after typing ("Showing 2 of
    6"), after a select change, after a chip is removed and after "Clear all"; a followed refresh
    leaves it as it was; a change of the stream's state rewrites the stream's text only; a boosted
@@ -44,13 +45,23 @@ first failure:
 11. The Catalog page's Events tab (catalog-18, catalog-19, PIC-L1): opened on the deep link of the
    claim's refusal reason (reason=CatalogUnresolved), the Type select's change to Warning keeps
    the reason and the tab in the address (a boosted request, the page not reloaded), filters the
-   table and announces "Showing 1 of 2"; the reason chip's remove link then shows both events.
+   table and announces "Showing 1 of 2"; with the note emptied, the reason chip's remove link
+   keeps the type filter and announces the count again.
+
+12. The focused Installed row paints its focus ring (WCAG 2.2 2.4.7): Tab to a row's link, and the
+   row's computed outline is a solid 3 px line in a colour that is not transparent, while the link
+   itself draws none (the ring is the row's, through :has()).
+
+13. The announced count is the one of the form that made the request: on the Platform page a
+   Providers search whose response leaves that form without a count announces nothing, not the
+   Recent events count.
 
 The browser script also counts what the test needs: htmx requests, and the requests it holds. With
 OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
 import os
+import re
 import sys
 
 from playwright.sync_api import sync_playwright
@@ -91,6 +102,14 @@ HIDDEN = """() => {
     const b = document.querySelector(".field-submit").getBoundingClientRect();
     return {w: b.width, h: b.height, js: document.documentElement.classList.contains("opm-js")};
 }"""
+
+
+def strip_count(route):
+    """Answers a Providers search without the count of its form, as a caller who may not list the
+    registrations gets it."""
+    resp = route.fetch()
+    body = re.sub(r'<p class="shown" id="shown"[^>]*>.*?</p>', "", resp.text(), count=1, flags=re.S)
+    route.fulfill(response=resp, body=body)
 
 
 def shoot(page):
@@ -146,6 +165,16 @@ def run(p, engine, base, context):
         if not check(page, hidden["w"] <= 1 and hidden["h"] <= 1,
                      f"the Apply button is hidden until focused ({hidden['w']:.0f} x {hidden['h']:.0f})"):
             return False
+        # 6: the same page with scripts off shows the Apply button (nothing else may hide it).
+        ctx = browser.new_context(viewport={"width": 1280, "height": 800}, java_script_enabled=False)
+        bare = ctx.new_page()
+        bare.goto(base + PATH, wait_until="load")
+        box = bare.locator(".field-submit").first.bounding_box()
+        scripted = bare.locator("html.opm-js").count()
+        if not check(bare, scripted == 0 and box is not None and box["width"] > 1 and box["height"] > 1,
+                     f"with scripts off the Apply button shows (opm-js {scripted}, {box and round(box['width'])} x {box and round(box['height'])})"):
+            return False
+        ctx.close()
         page.click("#f-q")
         page.keyboard.type("backup", delay=30)
         wait_path(page, "/installed?q=backup")
@@ -274,8 +303,15 @@ def run(p, engine, base, context):
         field.click()
         page.keyboard.type("BackOff", delay=20)
         page.keyboard.press("Tab")
+        on_apply = page.evaluate("() => document.activeElement && document.activeElement.id")
+        if not check(page, on_apply == "apply-owner-events", f"Tab out of the field lands on the Apply button ({on_apply!r})"):
+            return False
         page.wait_for_function("() => location.search.includes('reason=BackOff')", timeout=8000)
-        check(page, True, "a text field applies when the user leaves it, on a form of another page")
+        wait_settled(page)
+        after = page.evaluate("() => document.activeElement && document.activeElement.id")
+        if not check(page, after == "apply-owner-events",
+                     f"a text field applies when the user leaves it, and focus is on the new Apply button after the swap ({after!r})"):
+            return False
         page.context.close()
 
         # 10: Recent events on the Platform page: a resource link filters the table and sets eresource, and
@@ -315,11 +351,49 @@ def run(p, engine, base, context):
         if not check(page, kept == 1 and reasons == ["CatalogUnresolved"],
                      f"a Type change on the Catalog Events tab keeps the reason ({reasons}) without reloading (marker {kept}) and announces the count"):
             return False
+        # The note already holds this text, so it is emptied first: only an announcement from the chip
+        # can bring it back.
+        page.evaluate("() => { document.querySelector('#live .live-note').textContent = ''; }")
         page.click('a.fchip[aria-label="Remove Reason filter"]')
         wait_path(page, CAT + "&tab=events&type=Warning")
         wait_note(page, "Showing 1 of 2")
         shown = page.inner_text("#events-shown")
-        if not check(page, shown.startswith("Showing 1 of 2"), f"removing the reason chip keeps the type filter ({shown!r})"):
+        if not check(page, shown.startswith("Showing 1 of 2"), f"removing the reason chip keeps the type filter and announces the count again ({shown!r})"):
+            return False
+        page.context.close()
+
+        # 12: the focused Installed row paints its focus ring.
+        page = fresh()
+        page.goto(base + PATH, wait_until="load")
+        page.click("#f-q")
+        if not check(page, tab_to(page, "a.row-link"), "Tab reaches a row link of Installed"):
+            return False
+        ring = page.evaluate("""() => {
+            const a = document.activeElement, tr = a.closest("tr");
+            const r = getComputedStyle(tr), l = getComputedStyle(a);
+            return {style: r.outlineStyle, width: parseFloat(r.outlineWidth), color: r.outlineColor,
+                    link: l.outlineStyle, rowFocus: tr.matches(":has(.row-link:focus-visible)")};
+        }""")
+        if not check(page, ring["rowFocus"] and ring["style"] == "solid" and ring["width"] >= 3 and ring["color"] not in ("transparent", "rgba(0, 0, 0, 0)") and ring["link"] == "none",
+                     f"the focused Installed row draws its ring ({ring['style']} {ring['width']}px {ring['color']}, :has {ring['rowFocus']}, link outline {ring['link']})"):
+            return False
+        page.context.close()
+
+        # 13: a form whose response holds no count announces nothing, not another form's count.
+        page = fresh()
+        page.route(re.compile(r"/\?pq=backup"), strip_count)
+        page.goto(base + "/", wait_until="load")
+        wait_settled(page)
+        other = page.inner_text("#events-shown").strip()
+        page.click("#f-pq")
+        page.keyboard.type("backup", delay=30)
+        wait_path(page, "/?pq=backup")
+        wait_settled(page)
+        page.wait_for_timeout(300)
+        note = page.inner_text("#live .live-note")
+        none = page.locator("form[data-filters=providers] .shown").count()
+        if not check(page, none == 0 and note == "" and other != "",
+                     f"a Providers search with no count in its form announces nothing (note {note!r}; the events count {other!r} stays unannounced; forms count {none})"):
             return False
         page.context.close()
 
