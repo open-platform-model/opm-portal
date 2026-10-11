@@ -39,20 +39,43 @@ func parseCSS(css string) []cssRuleOf {
 	return rules
 }
 
-// borderTokenText returns the rules of css that draw text in a tone's border
-// token on that tone's fill: color is var(--<tone>) while the background is
-// var(--<tone>-bg) or var(--<tone>-tint). Text takes the -ink token.
+// svgTextSelector matches a selector part that draws SVG text: the graph's
+// node labels, sublabels and titles. SVG text takes its color from fill.
+var svgTextSelector = regexp.MustCompile(`-(label|sub|title|text)\b|\btext\b|\btspan\b`)
+
+// borderTokenText returns the rules of css that draw text in a border token
+// where the token's own fill sits behind it (portal:D19:R7). Text takes the
+// -ink token. Three shapes are named:
+//   - color is var(--<tone>) while the background is var(--<tone>-bg) or
+//     var(--<tone>-tint) in the same rule;
+//   - color is var(--c), the hue variable that holds the border token, in any
+//     rule: every hue sets --c-bg and --c-tint, so text on one needs --c-ink;
+//   - an SVG text rule (a label or sublabel) sets fill to a tone's border token
+//     or to var(--c): the node box it sits on is filled in the -bg token.
 func borderTokenText(css string) []string {
 	var bad []string
+	toneList := append(append([]string{}, tones...), "locked")
 	for _, r := range parseCSS(css) {
 		fg := r.decls["color"]
 		bg := r.decls["background"] + " " + r.decls["background-color"]
-		for _, tone := range append(append([]string{}, tones...), "locked") {
-			if fg != "var(--"+tone+")" {
-				continue
-			}
-			if strings.Contains(bg, "var(--"+tone+"-bg)") || strings.Contains(bg, "var(--"+tone+"-tint)") {
+		if fg == "var(--c)" {
+			bad = append(bad, r.selector+" { color: var(--c) } on a hue fill")
+		}
+		for _, tone := range toneList {
+			if fg == "var(--"+tone+")" && (strings.Contains(bg, "var(--"+tone+"-bg)") || strings.Contains(bg, "var(--"+tone+"-tint)")) {
 				bad = append(bad, r.selector+" { color: "+fg+" } on its "+tone+" fill")
+			}
+		}
+		fill := r.decls["fill"]
+		if fill == "" || !svgTextSelector.MatchString(r.selector) {
+			continue
+		}
+		if fill == "var(--c)" {
+			bad = append(bad, r.selector+" { fill: var(--c) } draws SVG text in the hue's border token")
+		}
+		for _, tone := range toneList {
+			if fill == "var(--"+tone+")" {
+				bad = append(bad, r.selector+" { fill: "+fill+" } draws SVG text in the "+tone+" border token")
 			}
 		}
 	}
@@ -82,27 +105,68 @@ func TestPortalCSSHoldsEveryToneAndKindToken(t *testing.T) {
 	}
 }
 
-func TestPortalCSSIsFlat(t *testing.T) {
-	css := readPortalCSS(t)
-	rules := parseCSS(css)
+// shadowAllowed are the selectors that may carry a box-shadow: the compact header's
+// lift, the theme menu and the graph hover card (floating layers), the count's hover
+// ring, and the two steps of the settle ring that portal:D19 keeps. Any other rule
+// with a shadow is a card, panel or block that is no longer flat.
+var shadowAllowed = map[string]bool{
+	".masthead.compact": true, ".theme-list": true, ".node-card": true, ".count:hover": true, "0%": true, "100%": true,
+}
+
+// flatProblems returns what breaks the flat look (portal:D19:R1) in rules: a page
+// background that is anything but a flat color (a gradient or an image, in any
+// background property including the shorthand), a corner mark, or a box-shadow
+// outside the allowlist.
+func flatProblems(rules []cssRuleOf) []string {
+	var bad []string
 	for _, r := range rules {
 		if r.selector == "body" {
-			for _, prop := range []string{"background-image", "background-size"} {
-				if v, ok := r.decls[prop]; ok {
-					t.Errorf("body sets %s: %s; the page background is one flat color", prop, v)
+			for _, prop := range []string{"background", "background-image", "background-size"} {
+				v, ok := r.decls[prop]
+				if !ok {
+					continue
+				}
+				if prop != "background" || strings.Contains(v, "gradient(") || strings.Contains(v, "url(") {
+					bad = append(bad, "body sets "+prop+": "+v+"; the page background is one flat color")
 				}
 			}
 		}
 		if r.selector == ".panel::after" || r.selector == "h2::before" {
-			t.Errorf("portal.css has a rule for %s; panels carry no corner mark and headings no marker", r.selector)
+			bad = append(bad, "portal.css has a rule for "+r.selector+"; panels carry no corner mark and headings no marker")
 		}
-		for _, sel := range []string{".panel", ".summary > .card", ".pf-summary > .card"} {
-			if r.selector == sel {
-				if v, ok := r.decls["box-shadow"]; ok {
-					t.Errorf("%s sets box-shadow: %s; panels and cards are flat", sel, v)
-				}
-			}
+		if v, ok := r.decls["box-shadow"]; ok && !shadowAllowed[r.selector] {
+			bad = append(bad, r.selector+" sets box-shadow: "+v+"; panels, cards and blocks are flat")
 		}
+	}
+	return bad
+}
+
+func TestPortalCSSFlatCheckCanFail(t *testing.T) {
+	for name, css := range map[string]string{
+		"a grid in the background shorthand": "body { background: linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 24px 24px, var(--bg); }",
+		"an image in the shorthand":          "body { background: url(grid.svg) var(--bg); }",
+		"a background-image":                 "body { background-image: linear-gradient(red, blue); }",
+		"a shadow on .card":                  ".card { box-shadow: 0 2px 4px #0003; }",
+		"a shadow on .stat":                  ".stat { box-shadow: 0 2px 4px #0003; }",
+		"a shadow on .entry":                 ".entry { box-shadow: 0 2px 4px #0003; }",
+		"a shadow on .state-block":           ".state-block { box-shadow: 0 2px 4px #0003; }",
+		"a shadow on .panel":                 ".panel { box-shadow: 0 2px 4px #0003; }",
+		"a corner mark":                      ".panel::after { content: ''; }",
+	} {
+		if got := flatProblems(parseCSS(css)); len(got) != 1 {
+			t.Errorf("the flat check did not name %s once: %v", name, got)
+		}
+	}
+	if got := flatProblems(parseCSS("body { background: var(--bg); } .theme-list { box-shadow: 0 12px 28px -10px #0004; }")); len(got) != 0 {
+		t.Errorf("the flat check flagged a flat body and a floating menu: %v", got)
+	}
+}
+
+func TestPortalCSSIsFlat(t *testing.T) {
+	css := readPortalCSS(t)
+	rules := parseCSS(css)
+	for _, line := range flatProblems(rules) {
+		t.Error(line)
 	}
 	if strings.Contains(css, "--shadow") {
 		t.Error("portal.css still names --shadow, which the flat look removed")
@@ -121,13 +185,26 @@ func TestPortalCSSDrawsNoTextInABorderToken(t *testing.T) {
 	for _, line := range borderTokenText(readPortalCSS(t)) {
 		t.Errorf("%s; text takes the -ink token", line)
 	}
-	// The check can fail: a rule that does this is named.
-	bad := borderTokenText(".prov-active { border-color: var(--healthy); color: var(--healthy); background: var(--healthy-bg); }")
-	if len(bad) != 1 || !strings.Contains(bad[0], ".prov-active") {
-		t.Errorf("the check did not name a text-in-border-token rule: %v", bad)
+	// The check can fail: each shape of the defect is named, and ink is not.
+	for name, css := range map[string]string{
+		"text in a tone's token on its fill": ".prov-active { border-color: var(--healthy); color: var(--healthy); background: var(--healthy-bg); }",
+		"text in the hue variable":           ".sb-reasons a, .sb-links a { color: var(--c); }",
+		"SVG text in the locked token":       ".node.locked .node-label, .node.locked .node-sub { fill: var(--locked); }",
+		"SVG text in the hue variable":       ".node-sub { fill: var(--c); }",
+	} {
+		if got := borderTokenText(css); len(got) < 1 {
+			t.Errorf("the check did not name %s: %v", name, got)
+		}
 	}
-	if got := borderTokenText(".ok { color: var(--healthy-ink); background: var(--healthy-bg); border-color: var(--healthy); }"); len(got) != 0 {
-		t.Errorf("the check flagged an ink rule: %v", got)
+	for name, css := range map[string]string{
+		"an ink rule":         ".ok { color: var(--healthy-ink); background: var(--healthy-bg); border-color: var(--healthy); }",
+		"a hue ink rule":      ".sb-word { color: var(--c-ink); }",
+		"SVG text in ink":     ".node.locked .node-label { fill: var(--locked-ink); }",
+		"a filled node shape": ".node.locked .node-box { fill: var(--locked-bg); stroke: var(--locked); } .node.locked .node-rail { fill: var(--locked); }",
+	} {
+		if got := borderTokenText(css); len(got) != 0 {
+			t.Errorf("the check flagged %s: %v", name, got)
+		}
 	}
 }
 
@@ -316,24 +393,69 @@ func TestPortalCSSHoldsAForcedColoursBorder(t *testing.T) {
 }
 
 // Forced colors paint a transparent border, so without this block every tab shows the 3 px
-// underline and only the font weight marks the current one.
+// underline and only the font weight marks the current one. A page-color border would instead
+// cut the strip's 1 px baseline under each tab (the tabs overlap it by 1 px): the other tabs
+// draw no bottom border and take its 3 px as padding.
 func TestPortalCSSMarksOnlyTheCurrentTabInForcedColours(t *testing.T) {
 	check := func(css string) []string {
 		var bad []string
 		rules := forcedColorsRules(css)
-		if d, ok := ruleFor(rules, ".tabs a"); !ok || d["border-bottom-color"] != "Canvas" {
-			bad = append(bad, ".tabs a does not take the page color for its underline in the forced-colors block")
+		if d, ok := ruleFor(rules, `.tabs a:not([aria-current="page"])`); !ok || d["border-bottom-style"] != "none" || d["padding-bottom"] != "13px" {
+			bad = append(bad, "a tab that is not current keeps its bottom border or loses its 3 px of padding in the forced-colors block")
+		}
+		if d, ok := ruleFor(rules, `.tabs-lg a:not([aria-current="page"])`); !ok || d["padding-bottom"] != "15px" {
+			bad = append(bad, "a large tab that is not current loses its 3 px of padding in the forced-colors block")
 		}
 		if d, ok := ruleFor(rules, `.tabs a[aria-current="page"]`); !ok || d["border-bottom-color"] != "CanvasText" {
 			bad = append(bad, "the current tab keeps no CanvasText underline in the forced-colors block")
+		}
+		if d, ok := ruleFor(rules, ".tabs a"); ok && d["border-bottom-color"] != "" {
+			bad = append(bad, ".tabs a paints a page-color border over the strip's baseline in the forced-colors block")
 		}
 		return bad
 	}
 	for _, line := range check(readPortalCSS(t)) {
 		t.Error(line)
 	}
-	if got := check("@media (forced-colors: active) { .applied { border-color: CanvasText; } }"); len(got) != 2 {
-		t.Errorf("the check did not name both missing tab rules: %v", got)
+	if got := check("@media (forced-colors: active) { .applied { border-color: CanvasText; } }"); len(got) != 3 {
+		t.Errorf("the check did not name the three missing tab rules: %v", got)
+	}
+	if got := check("@media (forced-colors: active) { .tabs a { border-bottom-color: Canvas; } .tabs a[aria-current=\"page\"] { border-bottom-color: CanvasText; } }"); len(got) < 3 {
+		t.Errorf("the check did not name the old page-color border: %v", got)
+	}
+}
+
+// The page column is 1840 px at most (portal:D19), on a 1920 px viewport as on a wider one:
+// the main grid and the footer share the width, so the footer stays under the content.
+func TestPortalCSSHoldsTheWideColumn(t *testing.T) {
+	rules := parseCSS(readPortalCSS(t))
+	for _, sel := range []string{"main", ".foot"} {
+		d, ok := ruleFor(rules, sel)
+		if !ok || d["max-width"] != "1840px" {
+			t.Errorf("%s has max-width %q, want 1840px", sel, d["max-width"])
+		}
+		if d["margin"] != "0 auto" && sel == "main" {
+			t.Errorf("main has margin %q, want 0 auto, so the column is centred", d["margin"])
+		}
+	}
+	if d, _ := ruleFor(parseCSS("main { max-width: 1200px; margin: 0 auto; }"), "main"); d["max-width"] == "1840px" {
+		t.Error("the column check cannot tell 1200px from 1840px")
+	}
+}
+
+// --line-soft is the canvas's hairline between table rows; a token with no reader is dead.
+func TestPortalCSSReadsLineSoft(t *testing.T) {
+	d := cssDeclsWith(parseCSS(readPortalCSS(t)), ".table td", "border-bottom-color")
+	if d["border-bottom-color"] != "var(--line-soft)" {
+		t.Errorf(".table td border-bottom-color = %q, want var(--line-soft)", d["border-bottom-color"])
+	}
+}
+
+// A tab with no count keeps its count span, so a live refresh can empty it; CSS hides it.
+func TestPortalCSSHidesAnEmptyTabCount(t *testing.T) {
+	d, ok := ruleFor(parseCSS(readPortalCSS(t)), ".tab-n:empty")
+	if !ok || d["display"] != "none" {
+		t.Errorf(".tab-n:empty must set display: none, got %v", d)
 	}
 }
 
@@ -377,7 +499,24 @@ func TestPortalCSSDrawsTheStateBlock(t *testing.T) {
 // need to set.
 func tipRuleProblems(css string) []string {
 	rules := parseCSS(css)
-	return append(tipShowProblems(rules), tipBoxProblems(rules)...)
+	return append(append(tipShowProblems(rules), tipBoxProblems(rules)...), tipTriggerProblems(rules)...)
+}
+
+// tipTriggerProblems checks that the trigger button reads as the words around it: the
+// global button rules (a solid ink pill) would otherwise draw it.
+func tipTriggerProblems(rules []cssRuleOf) []string {
+	d, ok := ruleFor(rules, ".tip .tip-t")
+	if !ok {
+		return []string{"no .tip .tip-t rule, so the trigger button takes the global button look"}
+	}
+	var bad []string
+	if d["background"] != "none" || d["border"] != "0" || d["color"] != "inherit" {
+		bad = append(bad, ".tip .tip-t does not reset the global button look (background none, border 0, color inherit)")
+	}
+	if _, ok := ruleFor(rules, ".tip .tip-t:hover"); !ok {
+		bad = append(bad, ".tip .tip-t:hover is not in the reset, so button:hover paints the trigger")
+	}
+	return bad
 }
 
 // tipShowProblems checks the rules that show and hide the box.
@@ -428,11 +567,12 @@ func TestPortalCSSDrawsADismissableHoverableTip(t *testing.T) {
 	for _, line := range tipRuleProblems(readPortalCSS(t)) {
 		t.Error(line)
 	}
-	// The check can fail: a dismiss rule that is not last, and a gap with no bridge, are named.
+	// The check can fail: a dismiss rule that is not last, a gap with no bridge and a trigger
+	// with no reset are named.
 	bad := tipRuleProblems(`.tipbox { display: none; inset-block-start: 100%; margin-block-start: 6px; }
 .tip.is-dismissed .tipbox { display: none; }
 .tip:hover .tipbox, .tip:focus-within .tipbox, .tip.is-open .tipbox { display: block; }`)
-	if len(bad) != 2 {
-		t.Errorf("the check did not name the late show rule and the missing bridge: %v", bad)
+	if len(bad) != 3 {
+		t.Errorf("the check did not name the late show rule, the missing bridge and the missing trigger reset: %v", bad)
 	}
 }

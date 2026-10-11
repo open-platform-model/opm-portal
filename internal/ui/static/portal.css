@@ -478,6 +478,7 @@ h2 { margin: 0 0 14px; font-size: 20px; letter-spacing: 0.01em; display: flex; f
 .table-wrap { overflow-x: auto; }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: break-word; }
+.table td { border-bottom-color: var(--line-soft); } /* the canvas's hairline between rows (portal:D19) */
 .table thead th { font-family: var(--font-ui); font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 500; border-bottom: 1.5px solid var(--line-strong); }
 .table tbody tr:hover { background: var(--accent-soft); }
 .table .num { font-family: var(--font-mono); }
@@ -563,6 +564,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .tabs-lg a { min-height: 48px; padding: 12px 18px; font-size: 18px; font-weight: 500; }
 .tabs-lg a[aria-current="page"] { font-weight: 700; }
 .tab-n { font-family: var(--font-mono); font-size: 12px; font-weight: 600; line-height: 1; padding: 3px 7px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--ink-2); }
+.tab-n:empty { display: none; } /* a tab with no count keeps the span, so a live refresh can empty it, and draws no pill */
 #parts .filters, #events-panel .filters { margin-bottom: 14px; background: var(--surface-2); }
 .holder, .claimant { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0; }
 .holder-note { margin: 4px 0 0; font-size: 0.8rem; }
@@ -761,7 +763,7 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .node.ap-managedexternally .node-stamp, .node.ap-suspended .node-stamp, .node.ap-unknown .node-stamp { fill: none; stroke: var(--neutral); stroke-dasharray: 2 1.5; }
 .node.locked .node-box { fill: var(--locked-bg); stroke: var(--locked); stroke-dasharray: 3 3; }
 .node.locked .node-rail { fill: var(--locked); }
-.node.locked .node-label, .node.locked .node-sub { fill: var(--locked); }
+.node.locked .node-label, .node.locked .node-sub { fill: var(--locked-ink); }
 .hatch-bg { fill: transparent; }
 .hatch-line { stroke: var(--hatch); stroke-width: 3; }
 
@@ -858,9 +860,12 @@ li.object.locked { margin: 4px 0 4px 4px; }
 }
 
 /* Forced colours also paint a transparent border, so every tab would show the underline of the
-   current one. The other tabs take the page colour; only the current tab keeps a visible one. */
+   current one, and a page-colour border would cut the strip's 1 px baseline under each tab
+   (the tabs overlap it by 1 px). The other tabs draw no bottom border and take its 3 px as
+   padding; only the current tab keeps a visible one. */
 @media (forced-colors: active) {
-  .tabs a { border-bottom-color: Canvas; }
+  .tabs a:not([aria-current="page"]) { border-bottom-style: none; padding-bottom: 13px; }
+  .tabs-lg a:not([aria-current="page"]) { padding-bottom: 15px; }
   .tabs a[aria-current="page"] { border-bottom-color: CanvasText; }
 }
 
