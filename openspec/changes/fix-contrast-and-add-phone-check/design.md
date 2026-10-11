@@ -37,6 +37,11 @@ See proposal.md for the motivation. Current state, read on base `c60cf02` (origi
   forced-colours rule.
 - A change to layout, copy or components. If a page fails the phone test, the fix is one CSS rule or
   a named exception; see Decision 3.
+- The phone states that need another capture or authorizer than `serveF1Site`: the locked page, the
+  broken-rollout page and in-cluster mode (their goldens are `ui_test.go:151,168,178` and
+  `incluster_test.go:16`). Each needs its own server set-up; a later change can add them to the test
+  with that set-up. Locked and degraded panels hold long cluster text, so this is the first gap to
+  close.
 
 ## Decisions
 
@@ -62,14 +67,16 @@ tests, which package `main` cannot import.
 3. Export `f1Pages` from `internal/ui` - one list, but it adds exported test data to a production
    package.
 
-**Decision**: Option 1. The list holds the 25 non-fragment paths of `f1Pages`. A later change that
-adds a page adds its path.
+**Decision**: Option 1. The list holds the 25 non-fragment paths of `f1Pages` and the not-found
+path `/nope`, which the same F1 site serves and which `TestEveryPageCarriesThePagePolicy` counts as a
+page (`ui_test.go:260`): 26 paths. A later change that adds a page adds its path.
 **Rationale**: A stable list makes a failure name a page and keeps the test reviewable. The drift
 risk is small and is the same one the golden list already carries.
 
 #### 2. What the phone check measures
 
-**Decision**: At a 360 by 640 viewport, `max(document.documentElement.scrollWidth,
+**Decision**: At a 360 by 640 viewport (the one height of the test; task 1.4 confirms the Evidence below at this
+height), `max(document.documentElement.scrollWidth,
 document.body.scrollWidth)` must be at most 360 after `load` and a 300 ms settle. On failure the
 script lists up to six elements whose right edge is past 360 and that have no scrolling ancestor.
 The script first injects a 500 px wide element into the first page and requires the measure to rise
@@ -99,7 +106,7 @@ implementer's to decide.
 `--muted` stays `#8f96a3`.
 **Alternatives**: `#5c6370` or `#5a606c` raise the margin on the page background from 4.78 to 5.00
 or 5.22. The candidate is also the board's gray and the value of `--neutral`, so the palette gains
-no new colour. The margin is thin on the page background only; the browser pass in task 2.3 decides
+no new colour. The margin is thin on the page background (4.782) and on the neutral fill (4.517); the browser pass in task 2.3 decides
 whether to darken it. A page background is not flat (a 6 percent grid and a corner glow, `portal.css`
 body rule), and the pass samples the rendered pixels (Evidence).
 
@@ -128,7 +135,12 @@ type contrastPair struct {
 	theme string  // "", "light" or "dark"; "" checks both
 }
 var contrastPairs = []contrastPair{ /* the list below */ }
-var contrastPending = []contrastPair{ /* pairs that fail today; see below */ }
+var contrastPending = []pendingPair{ /* pairs that fail today; see below */ }
+
+type pendingPair struct {
+	contrastPair             // the pair that fails today
+	closedByFg, closedByBg string // the replacement tokens, "--healthy-ink", "--healthy-bg"
+}
 ```
 
 - It reads `static/portal.css`, takes the light tokens from the `:root` block and the dark ones from
@@ -137,8 +149,11 @@ var contrastPending = []contrastPair{ /* pairs that fail today; see below */ }
   checks the function on black and white (21) and on `#6a6f7a` over `#efe9dc` (4.165).
 - For every token in the lists, the two dark blocks must hold the same value.
 - A pair under its floor fails with its name, theme, tokens and ratio.
-- A pending pair is logged. The test fails when a pending pair already passes, so a fix moves the
-  pair into `contrastPairs` and the list does not go stale.
+- A pending entry names the pair that closes it (`closedBy`: the replacement foreground and background
+  tokens). The test logs the entry, and fails when both tokens of the replacement pair exist in
+  `portal.css`. The change that adds those tokens then has to delete the entry and put the
+  replacement pair into `contrastPairs`, so the list cannot go stale, whatever the ratio of the old
+  pair does.
 
 The list for this change (ratios by formula on the candidate values; Evidence has the method):
 
@@ -148,16 +163,24 @@ The list for this change (ratios by formula on the candidate values; Evidence ha
 | `--muted` on `--surface` | 4.5 | 5.454 | 5.987 |
 | `--muted` on `--surface-2` | 4.5 | 5.045 | 5.624 |
 | `--muted` on `--field` | 4.5 | 5.691 | 5.748 |
+| `--muted` on `--neutral-bg` | 4.5 | 4.517 | 4.968 |
+| `--muted` on `--degraded-bg` | 4.5 | 4.591 | 5.602 |
 | `--control-border` on `--field` | 3 | 3.748 | 3.670 |
 | `--control-border` on `--surface` | 3 | 3.592 | 3.822 |
 | `--control-border` on `--surface-2` | 3 | 3.322 | 3.591 |
 | `--control-border` on `--bg` | 3 | 3.149 | 4.120 |
-| Tone text on its fill: `--progressing`, `--unknown`, `--neutral`, `--missing`, `--applied`, `--locked` | 4.5 | 4.517 to 11.354 | 5.941 to 10.864 |
+| `--accent` on `--accent-field` (filled field) | 3 | 5.516 | 8.203 |
+| `--accent` on `--surface` (filled field) | 3 | 5.588 | 9.285 |
+| `--accent` on `--surface-2` (filled field) | 3 | 5.169 | 8.723 |
+| Tone text on its fill: `--progressing`, `--unknown`, `--neutral`, `--missing`, `--applied`, `--locked` | 4.5 | 4.517 to 11.354 | 6.404 to 10.864 |
 | `--healthy` and `--degraded` on their fills, dark | 4.5 | n/a | 8.185 and 5.941 |
 
-Pending (light only): `--healthy` on `--healthy-bg` 4.450 and `--degraded` on `--degraded-bg` 4.414.
-Their fix is the `--healthy-ink` and `--degraded-ink` tokens of `align-shell-and-tokens`; this change
-may not change another token.
+Pending (light only): `--healthy` on `--healthy-bg` 4.450, closed by `--healthy-ink` on `--healthy-bg`,
+and `--degraded` on `--degraded-bg` 4.414, closed by `--degraded-ink` on `--degraded-bg`. The
+`--<tone>-ink` tokens come from `align-shell-and-tokens`, which keeps `--<tone>` as the border
+token (its design, "Tone tokens"); the old pairs stay at 4.450 and 4.414 after that change, and
+only the replacement pairs pass. This change may not change another token. The thinnest margin of
+the list is 4.517, for `--muted` and `--neutral` on `--neutral-bg` in the light theme.
 
 **Rationale**: A pure Go function over hex values is fast, runs on every `task check`, and needs no
 browser. It cannot see translucent layers or the page's grid and glow, which is why the browser pass
@@ -165,8 +188,7 @@ of task 2.3 exists. The pending list records known failures in code instead of i
 **Alternatives**: Leaving the two failing pairs out hides them. Putting them in the main list makes
 the test red. A "must still fail" assertion would force the next change to edit the test to turn
 green. The pending list with a stale check avoids all three.
-**Open for the supervisor**: the pending list is an addition to the brief. If the supervisor wants
-the main list only, task 2.1 drops it and the two pairs go into the report.
+The pending list is an addition to the brief; the supervisor accepted it at the proposal gate.
 
 #### 7. Recording the floor
 
@@ -188,7 +210,9 @@ committed.
 
 - **Phone width on base.** 25 pages (every non-fragment entry of `f1Pages`) at 360 by 800, in
   Chromium, Firefox and WebKit, light and dark: 150 of 150 loads report `scrollWidth` 360 for the
-  document and the body. No element reaches past 360 outside a scrolling ancestor.
+  document and the body. No element reaches past 360 outside a scrolling ancestor. The scratch run
+  used a height of 800 and did not open `/nope`; the test uses 360 by 640 and adds `/nope`, and
+  task 1.4 is the first measure of that height and that page.
 - **The measure can fail.** Appending a 500 px wide `div` to `main` on `/installed` raises
   `scrollWidth` to 516 in all three engines, although `body` computes `overflow-x: hidden`.
 - **Formula ratios** (WCAG 2, not rounded; token hex values): table in Decision 6. On the current
@@ -213,15 +237,17 @@ committed.
   that adds one can use the same task.
 - [The page list drifts from `f1Pages`] -> Each UI change lists its pages (the spec requirement); a
   reviewer compares the two lists.
-- [`#5f6672` is thin on the page background (4.78 against 4.5)] -> Task 2.3 measures rendered pixels
-  before the value ships and may darken it; the contrast test then holds whatever value ships.
+- [`#5f6672` is thin on the neutral fill (4.517 against 4.5) and on the page background (4.78)] ->
+  Task 2.3 measures rendered pixels before the value ships and may darken it; the contrast test
+  then holds whatever value ships, on both fills.
 - [A darker light `--muted` lowers the hierarchy between `--ink-2` and `--muted`] -> `--ink-2` is
   `#3a4150` (8.46:1 on the page), so the steps stay apart; the screenshots in task 2.3 show
   light and dark.
 - [A rule that reads `--line-strong` for a control later] -> The contrast pairs name
   `--control-border`; a new control uses it, and a reviewer checks.
-- [The pending list is seen as permission to leave a failure] -> The test fails when the pair
-  passes, and design/T3.4 amendment SH-A1 names the change that closes both pairs.
+- [The pending list is seen as permission to leave a failure] -> Each entry names the replacement
+  pair that closes it, and the test fails when that pair's tokens exist in `portal.css`;
+  design/T3.4 amendment SH-A1 names the change that adds them.
 
 ## Migration Plan
 

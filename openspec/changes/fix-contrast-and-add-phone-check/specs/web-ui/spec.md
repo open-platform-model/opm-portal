@@ -1,11 +1,10 @@
 ## ADDED Requirements
 
-### Requirement: Every page holds its width at a phone viewport
+### Requirement: Every F1 page holds its width at a phone viewport
 
-A browser test SHALL open every page of the F1 capture at a 360 CSS px wide viewport in Chromium,
-Firefox and WebKit, and SHALL fail when a page's scroll width exceeds 360 px. The test SHALL prove
-that it can fail by detecting an element it adds that is wider than the viewport. Pages that the
-UI gains SHALL be added to the test's page list by the change that adds them.
+A browser test SHALL open every page of the F1 capture, the not-found page included, at a 360 CSS px
+wide viewport in Chromium, Firefox and WebKit, and SHALL fail when a page's scroll width exceeds
+360 px. The test SHALL prove that it can fail. A change that adds a page SHALL add it to the test.
 
 #### Scenario: A page fits the phone viewport
 
@@ -23,6 +22,12 @@ UI gains SHALL be added to the test's page list by the change that adds them.
 - **WHEN** the test adds a 500 px wide element to a page at the 360 px viewport
 - **THEN** it measures a scroll width above 360 px in each browser, or the test fails
 
+#### Scenario: A page that needs another set-up
+
+- **WHEN** a page needs another capture or authorizer than the F1 site (the locked page, the
+  broken-rollout page and in-cluster mode)
+- **THEN** the test does not open it, and a later change adds it with its own set-up
+
 #### Scenario: The test runs where the other browser tests run
 
 - **WHEN** `task test:browser` runs, locally or in the nightly `E2E` workflow
@@ -31,13 +36,14 @@ UI gains SHALL be added to the test's page list by the change that adds them.
 ### Requirement: Muted text meets WCAG 2.2 AA contrast in both themes
 
 Text drawn with the muted ink token SHALL have a contrast ratio of at least 4.5:1 against each
-surface token it is drawn on (page, card, secondary card and field), in the light and the dark
-theme. The ratio is computed from the token hex values in `portal.css` with the WCAG relative
+surface token it is drawn on (page, card, secondary card, field, the neutral fill and the degraded
+fill), in the light and the dark theme. The ratio is computed from the token hex values in `portal.css` with the WCAG relative
 luminance formula and is not rounded.
 
 #### Scenario: Muted text on the page and on cards
 
-- **WHEN** the light theme draws muted text on the page background, on a card or on a secondary card
+- **WHEN** the light theme draws muted text on the page background, on a card, on a secondary card,
+  on a field, or on the neutral or degraded fill
 - **THEN** each pair has a ratio of at least 4.5:1
 
 #### Scenario: A token pair falls below its floor
@@ -47,15 +53,22 @@ luminance formula and is not rounded.
 
 ### Requirement: Text inputs and selects have a boundary of at least 3:1
 
-The border of a text input or select SHALL use the control-border token, and the token SHALL have a
-contrast ratio of at least 3:1 against the field fill and against each surface a field is drawn on,
-in the light and the dark theme. Borders that only decorate a control that has a text label are not
-held to this ratio.
+The border of a text input or select SHALL have a contrast ratio of at least 3:1 against the fill
+of the field and against each surface a field is drawn on, in the light and the dark theme, whether
+the field is empty or filled. An empty field SHALL draw its border with the control-border token;
+a filled field keeps the accent token. Borders that only decorate a control that has a text label
+are not held to this ratio.
 
 #### Scenario: A filter field on its panel
 
 - **WHEN** a filter input or select is drawn on the filter panel, in either theme
 - **THEN** its border has a ratio of at least 3:1 against the field fill and against the panel
+
+#### Scenario: A filled filter field
+
+- **WHEN** a filter input has a value or a select has a chosen option, in either theme
+- **THEN** its accent border has a ratio of at least 3:1 against its accent field fill and against
+  the panel
 
 #### Scenario: The two dark blocks agree
 
