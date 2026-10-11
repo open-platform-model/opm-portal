@@ -319,6 +319,16 @@ portal:D7:R2.
 - **WHEN** the caller may list ModuleInstances but not ModulePackages and opens `/installed`
 - **THEN** the Kind filter's Package option carries no count
 
+#### Scenario: Neither Installed list readable
+
+- **WHEN** the caller may list neither ModuleInstances nor ModulePackages and opens `/installed`
+- **THEN** the Health, Applied, Provider and Owner options carry no count, never "(0)"
+
+#### Scenario: Platform forbidden in the Catalogs filters
+
+- **WHEN** the caller may not get the Platform and opens `/?tab=catalogs`
+- **THEN** the Source options carry no count
+
 #### Scenario: Registrations forbidden in the Platform filters
 
 - **WHEN** the caller may get the Platform but may not list TransformerRegistrations and opens
@@ -359,6 +369,13 @@ focus, caret and any text typed meanwhile kept, and that form's Apply button SHA
 it takes keyboard focus.
 Source: portal:D14:R1/R2, portal:D19.
 
+#### Scenario: A text field applies when the user tabs out of it
+
+- **WHEN** a browser with script types `BackOff` into the Reason field of the owner page's Events
+  form and presses Tab
+- **THEN** focus is on that form's Apply button, the list applies, and focus is on the new Apply
+  button after the swap, because the button has a stable id
+
 #### Scenario: Typing applies the search
 
 - **WHEN** a browser with script types `backup` into Installed's search field and stops typing
@@ -379,6 +396,13 @@ be added. Source: portal:D14:R1, WCAG 2.2 success criterion 4.1.3.
 - **WHEN** a browser with script types `backup` into Installed's search field and the list applies
 - **THEN** the header's status region holds the text "Showing 2 of 6" once, and focus stays in
   the search field
+
+#### Scenario: A form with no count announces nothing
+
+- **WHEN** a browser with script searches the Platform's Providers tab and the response leaves the
+  Providers form without a count
+- **THEN** the header's status region holds no text: the count announced is the one inside the
+  form that made the request, and the Recent events count is not announced in its place
 
 #### Scenario: Removing a chip announces the count
 

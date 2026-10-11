@@ -411,7 +411,7 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     holder's Provider tab when there is one holder. With several holders, the name is followed by
     a muted "held by A, B". With none, it is plain text.
   - A claim-only catalog lists the claiming registrations the same way. `catalogView` gains
-    `ClaimLinks []holderLink`, built from `Claims`.
+    `SourceLinks []claimLink` (a registration's name, the link and its holders), built from `Claims`.
 - **Enabled** (catalog-07): when the catalog is not resolved and `Enabled` is nil, the page reads
   "no: not in the registry". Enablement is a registry field, and absence from
   `status.registry` is the recorded fact. "not recorded" stays only for a resolved catalog with no
@@ -445,7 +445,7 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   length. The tab renders a `filters-inline` form whose hidden fields are
   `keepHidden(q, "type")`, so `path`, `tab` and a `reason` that came in on the Resolved block's
   deep link survive a Type change; the chips; "Showing X of N" in the heading row, in its own
-  followed region `#events-shown` (topic `platform`); the `events-table` without the Resource
+  followed region `#events-shown` (topics `events:platform` and `events:registration:<name>` of each claimant, the feeds the table is built from); the `events-table` without the Resource
   column (as on the canvas); and the filtered empty state "No events match this filter."
 
 ### Shared with align-owner-pages: the events table
@@ -474,8 +474,9 @@ type eventRow struct {
 
 Whichever of this change and `align-owner-pages` lands first adds the partial, and the other
 adopts it. `events-list` is removed by whichever change moves its last caller, whichever lands
-last. This change does not edit `owner.html`, `panel*.html`, `owner.go`, `graph.go` or the graph
-script. C does not edit `filters.go`, the `filter-form` partial or the filter code in `portal.js`
+last. This change edits `owner.go` by one line (the shared constant `stateFailed` in place of the
+literal `"Failed"`) and `owner.html` by one attribute (the id of the Events form's Apply button),
+and does not edit `panel*.html`, `graph.go` or the graph script. C does not edit `filters.go`, the `filter-form` partial or the filter code in `portal.js`
 and `prefs.js`, and its owner-page forms pick up the new behaviour through `data-filters`.
 
 ### Shared with align-owner-pages: the pieces this change changes under C
@@ -689,14 +690,15 @@ per request, on the `htmx:afterSettle` whose target is `#main`. The layout's `hx
 `#main`, and fire `htmx:afterSettle` for each with the same detail; a handler that acted on every
 event would write the count on the first and empty it on the second, in the same task, and the
 count would never be announced. So the `#nav` event does nothing. On the `#main` event with the
-flag set it copies the text of the new count region (`#shown`, `#events-shown`) into `.live-note`
+flag set it copies the text of the `.shown` inside the form that made the request into `.live-note`
 when it differs from what the note holds, then clears the flag. On the `#main` event of a boosted
 request that no filter change started (a link, the main navigation, "Clear filters" in the empty
 state) and on `htmx:historyRestore`, it empties the note: the count belongs to the page it was
 written for. A followed refresh is not a boosted request and never
 sets the flag, so it touches nothing. `setLive` writes only `.live-text`. The hidden note is the
 clip pattern, never `display:none`. A form with no count region (the owner pages' Resources
-reason form) announces nothing.
+reason form) announces nothing, and so does a form whose response holds no count: the read never falls
+back to another form's count.
 **Rationale**: no new live region, one announcement per applied change, and no repeat. 3b makes
 the repeat impossible by structure: the note is the only node that changes when a count is
 announced, and `.live-text` the only node that changes when the stream's state does. 3a would
@@ -842,3 +844,38 @@ the planning PR wrote them, except the re-partition of two requirements (see "Sp
 | PIC-A3 | Provider tooltip opens on a tap and closes on Escape | 3.6 | "Installed lists instances and packages together"; scenario "The provider tooltip by tap and Escape" | Installed: provider badge |
 | PIC-A4 | Merge `main` into the branch; no history rewrite | 1.1 | none | Risks, "Parallel work" |
 | PIC-L1 | The live-region check: the count is announced once, through `#live`, and not again when the stream's state changes | 2.8, 4.8 | "A filter's new count is announced once" | Research & Decisions |
+
+### Amendments from the review of sections 4 and 5
+
+What sections 4 and 5 built beyond or differently from the text above, and the fixes the three
+review parts asked for. Each line states the built fact.
+
+- **Shared partials.** The Providers rows and the Catalog Claims rows both draw a registration's
+  standing through one partial, `reg-status` (the acceptance, activation and "Removal blocked"
+  badges, the reason line, the activation reason), which takes a `providerRow` or a
+  `catalogClaim`. `claim-link` names a registration on the Catalog Source row: one holder makes the
+  name a link to that holder's Provider tab, several follow the name as a muted "held by", none
+  leaves it plain. `align-owner-pages` finds both in `partials.html` beside `events-table`.
+- **Claims header.** The Claims table's last column header reads "Status" (it read "Standing" on
+  main), as the Providers table's does and as task 4.4 says. The spec names the content of the
+  column, not its header.
+- **Source links.** `catalogView` carries `SourceLinks []claimLink`, not `ClaimLinks
+  []holderLink`.
+- **Events count topics.** The Catalog `#events-shown` follows `events:platform` and
+  `events:registration:<name>` of each claimant, so a claimant's new event moves the count.
+- **Announced count.** `portal.js` reads the `.shown` inside the form that made the request, and a
+  form that shows none announces nothing. The Platform page holds two counts (a filter form's and
+  Recent events), and a read by id announced the wrong one.
+- **Apply buttons.** Each filter form's Apply button has a stable id (`apply-<form key>`, such as
+  `apply-installed`, and `apply-owner-events` in `owner.html`), because htmx puts focus back after a
+  swap only on an element with an id. Without it, Tab out of a text field that applies on leaving
+  lost the user's place. `owner.html` takes the one attribute here; `align-owner-pages` resolves
+  the overlap at its merge.
+- **No count for an unread list.** With neither Installed list read, the Health, Applied, Provider
+  and Owner options carry no count. With the Platform document unread, the Catalogs Source options
+  carry none (portal:D14:R7).
+- **Tests.** `filters.py` checks 6 and 11 can fail: check 6 opens the page with scripts off, and
+  check 11 empties the announcement before the chip step. Check 12 reads the computed outline of the
+  focused Installed row, which the stylesheet draws on the row through `:has()` and not on the
+  link. Check 13 strips the count from a Providers response. The hostile-query list of
+  `escape_test.go` includes `/catalog` with a hostile `type` and `reason`.
