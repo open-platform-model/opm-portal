@@ -190,7 +190,7 @@ func catalogViewOf(p *v1.Platform, row catalogRow, all []catalogRow) catalogView
 	case !row.Resolved:
 		v.EnabledText = "no: not in the registry"
 	default:
-		v.EnabledText, v.EnabledMuted = "not recorded", true
+		v.EnabledText, v.EnabledMuted = notRecorded, true
 	}
 	v.Block = catalogBlock(p, &v, st.Ready)
 	return v

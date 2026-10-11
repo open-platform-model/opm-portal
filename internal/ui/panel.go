@@ -73,6 +73,10 @@ type panelLink struct {
 	HX   bool
 }
 
+// notRecorded is the text of a fact the object does not record, on the panel and on the
+// Catalog page.
+const notRecorded = "not recorded"
+
 // panel builds the panel of node id in g, or a missing panel.
 func (h *Handler) panel(r *http.Request, g *v1.Graph, id string, ctx panelContext) *nodePanel {
 	n := findNode(g, id)
@@ -169,7 +173,7 @@ func ownerFacts(v *ownerView) []fact {
 		out = appendFact(out, "Source", strings.TrimPrefix(id.Subtitle, "from "), true)
 		out = appendFact(out, "Path", v.Package.Path, true)
 		out = appendFact(out, "Interval", id.Interval, false)
-		rev := "not recorded"
+		rev := notRecorded
 		if v.Package.SourceArtifact != nil && v.Package.SourceArtifact.Revision != "" {
 			rev = v.Package.SourceArtifact.Revision
 		}
