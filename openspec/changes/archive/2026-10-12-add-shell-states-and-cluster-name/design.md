@@ -83,11 +83,13 @@ portal reads with">` (`templates/layout.html`, `portal.css:322`, a bordered 999 
 The words "context" and "cluster" are not both shown as labels: the first value is the context
 and the second carries the visible word "cluster" because that is the kubeconfig's own term for
 the entry. The tip holds the full values, "Context X" for one name and "Context X, cluster Y" for
-two (a fixed sentence about the kubeconfig would add nothing the reader can use). `data-context`
+two (a fixed sentence about the kubeconfig would add nothing the reader can use). In a Pod there
+is no kubeconfig context, so that pill's tip reads "In cluster: the credentials of the Pod" and
+does not call the mode a context (T4.69). `data-context`
 on `<html>` keeps the context alone, so what the browser remembers per cluster does not change
 (portal:D14).
 
-**The pill never grows the header** (owner ruling T4.64, applied in T4.67). Each name is one line,
+**The pill never grows the header** (supervisor ruling T4.64, applied in T4.67). Each name is one line,
 cut with an ellipsis inside the pill (`white-space: nowrap; overflow: hidden; text-overflow:
 ellipsis`), never wrapped. The text of both names stays in the page, so a screen reader reads the
 full values and the tip shows them. At 760 px and below the pill takes its own row (`flex: 0 1
@@ -618,6 +620,8 @@ What the built change does differently from the text above. Each was accepted by
   change).
 - **The pill's tip is the value, not a fixed sentence, and the names are cut, not wrapped**
   (T4.67, from the T4.64 ruling). The sections above say so.
+- **The in-cluster pill's tip does not say "Context"** (T4.69, from the T4.68 fix-check). In a
+  Pod the portal reads with the Pod's own credentials and has no context name.
 
 ## Live checks
 
