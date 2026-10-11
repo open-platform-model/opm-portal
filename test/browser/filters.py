@@ -29,7 +29,8 @@ first failure:
 9. The provider badge of `default/backup-provider` on Installed (installed-11, WCAG 2.2 1.4.13):
    Tab reaches the badge and shows its tooltip; the tooltip's box lies inside the viewport and no
    element clips it (every probe point of the box hits the box), on its own row and on the last row
-   of the table (filtered to that row), and on a 360 px viewport; a click on the badge does not
+   of the table (filtered to that row), at 900 px (where the table scrolls inside its own wrap and the
+   page does not scroll sideways) and on a 360 px viewport; a click on the badge does not
    navigate; a click on the row's Owner cell opens /instances/default/podinfo; Escape closes the
    tooltip with focus kept on the badge; the pointer can move from the badge onto the open box
    without closing it; and on a touch viewport a tap opens it without leaving the page and a second
@@ -303,7 +304,9 @@ def provider_badge(browser, fresh, base, check, engine, ROW):
     box_sel = f"{ROW} .tipbox"
 
     def inside(b):
-        return b["left"] >= 0 and b["right"] <= b["vw"] and b["top"] >= 0 and b["bottom"] <= b["vh"]
+        # A pixel of slack: the page's scroll height is a whole number, so a box that ends at the page's
+        # bottom edge can sit a fraction of a pixel past the viewport after the page has scrolled to it.
+        return b["left"] >= 0 and b["right"] <= b["vw"] and b["top"] >= 0 and b["bottom"] <= b["vh"] + 1
 
     # Keyboard on a wide viewport: the tooltip shows on Tab, opens past the row, is not clipped.
     page = fresh()
@@ -367,6 +370,24 @@ def provider_badge(browser, fresh, base, check, engine, ROW):
     b = page.evaluate(BOX, box_sel)
     if not check(page, rows == 1 and inside(b) and b["hit"],
                  f"on the last row ({rows} row) the tooltip lies inside the viewport ({b['bottom']:.0f} of {b['vh']}) and nothing clips it (hit {b['hit']})"):
+        return False
+    page.context.close()
+
+    # Between 761 and 1039 px the 940 px table scrolls inside its own wrap and the page does not (the
+    # web-ui requirement on page width): the page's scroll width is the viewport's, the wrap scrolls, and
+    # the tooltip opens in the cell's flow, inside the viewport and not clipped.
+    ctx = browser.new_context(viewport={"width": 900, "height": 800}, color_scheme="light")
+    page = ctx.new_page()
+    page.goto(base + PATH + "?q=backup-provider", wait_until="load")
+    page.evaluate("document.fonts.ready.then(() => true)")
+    page.locator(badge_sel).focus()
+    b = page.evaluate(BOX, box_sel)
+    wrap = page.evaluate("(() => { const w = document.querySelector('.installed-wrap'); return {scroll: w.scrollWidth, client: w.clientWidth, ox: getComputedStyle(w).overflowX}; })()")
+    if not check(page, b["scroll"] <= 900 and wrap["ox"] == "auto" and wrap["scroll"] > wrap["client"],
+                 f"at 900 px the page scrolls {b['scroll']} (at most 900) and the table scrolls inside its own wrap (overflow {wrap['ox']!r}, {wrap['scroll']} in {wrap['client']})"):
+        return False
+    if not check(page, inside(b) and b["hit"] and b["h"] > 0,
+                 f"at 900 px the tooltip lies inside the viewport ({b['left']:.0f} to {b['right']:.0f}) and nothing clips it (hit {b['hit']})"):
         return False
     page.context.close()
 
