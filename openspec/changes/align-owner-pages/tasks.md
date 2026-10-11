@@ -47,7 +47,7 @@
 - [x] 5.5 UI goldens updated and reviewed; `owner.py` also checks that the Events type select applies on change and that a resource link narrows the table; `task test:browser` passes in all three engines
 - [x] 5.6 Screenshots of Events, Logs and YAML (podinfo, the image-break sample) in light, dark and at 360 px against `Instance.dc.html`; differences recorded under design.md "Visual checks"
 - [x] 5.7 (OP-A5) Phone in the browser. `TestBrowserPhone` gains `?tab=events`, `?tab=logs` and `?tab=yaml` of `/instances/default/podinfo`: the page's `scrollWidth` is at most 360 (a log or YAML pane may scroll inside itself), the filter row wraps, and the Events table's body rows compute to `display: block` as cards below 760 px. No new test name is added. `task test:browser` passes in Chromium, Firefox and WebKit. The screenshots of task 5.6 stay as evidence
-- [ ] 5.8 `task check` green, then commit `feat(ui): merge an owner's events and pick logs and YAML with a select`
+- [x] 5.8 `task check` green, then commit `feat(ui): merge an owner's events and pick logs and YAML with a select`
 
 ## 6. Provider tab, live check, docs and the roadmap (internal/ui, test/e2e, docs/site, ROADMAP.md)
 
