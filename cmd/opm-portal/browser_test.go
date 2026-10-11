@@ -178,6 +178,58 @@ func TestBrowserGraph(t *testing.T) {
 	}
 }
 
+// phonePages lists the pages TestBrowserPhone opens: the 25 non-fragment
+// paths of f1Pages in internal/ui/ui_test.go, which package main cannot
+// import, and the not-found page. A UI change that adds a page adds its path
+// here, as it adds it to f1Pages.
+var phonePages = []string{
+	"/",
+	"/?tab=catalogs",
+	"/?pstatus=refused&eresource=registration:default.refused-claim-fixture",
+	"/installed",
+	"/installed?namespace=default",
+	"/installed?kind=package",
+	"/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1",
+	"/installed?health=Bogus&q=pod",
+	"/instances/default/podinfo",
+	"/instances/default/podinfo?tab=graph&focus=obj:apps/Deployment/default/podinfo-podinfo",
+	"/instances/default/podinfo?tab=resources",
+	"/instances/default/podinfo?tab=events&type=Normal",
+	"/instances/default/podinfo?tab=logs",
+	"/instances/default/podinfo?tab=yaml&object=apps/Deployment/default/podinfo-podinfo",
+	"/instances/default/backup-provider",
+	"/instances/default/backup-provider?tab=provider",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+	"/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events",
+	"/instances/cert-manager/cert-manager?tab=resources",
+	"/instances/cert-manager/cert-manager",
+	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager",
+	"/instances/web/web",
+	"/packages/pkg/podinfo",
+	"/packages/pkg/podinfo?tab=resources",
+	"/nope",
+}
+
+// TestBrowserPhone opens every page of phonePages at a 360 px wide viewport
+// in real browsers (task test:browser) and fails when a page's scroll width
+// is above 360. The body clips sideways overflow, so only a browser that
+// measures the layout shows content a phone would lose. The script first
+// proves the measure can fail with an element it adds that is 500 px wide.
+func TestBrowserPhone(t *testing.T) {
+	script := browserScript(t, "phone.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			args := append([]string{browser, serveF1Site(t)}, phonePages...)
+			if err := playwright(ctx, t, script, nil, args...); err != nil {
+				t.Fatalf("a page is wider than 360 px: %v", err)
+			}
+		})
+	}
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {
