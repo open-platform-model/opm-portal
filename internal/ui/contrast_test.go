@@ -45,8 +45,20 @@ const (
 
 var contrastPairs = buildContrastPairs()
 
+// tones are the status tones of portal.css. Each has a border token
+// (--<tone>), a text ink (--<tone>-ink), a badge background (--<tone>-bg) and
+// a block tint (--<tone>-tint); locked has the same four, with the ink and the
+// tint named in lockedTokens.
+var tones = []string{"applied", "healthy", "progressing", "degraded", "unknown", "neutral", "missing"}
+
+// lockedTokens are the locked tone's tokens, which share their values with
+// --locked and --locked-bg.
+var lockedTokens = []string{"--locked", "--locked-ink", "--locked-bg", "--locked-tint"}
+
+// kindTokens are the Instance and Package chip colors.
+var kindTokens = []string{"--kind-instance-bg", "--kind-instance-ink", "--kind-package-ink"}
+
 func buildContrastPairs() []contrastPair {
-	tones := []string{"progressing", "unknown", "neutral", "missing", "applied", "locked"}
 	fixed := []contrastPair{
 		{"muted on page", "--muted", "--bg", textFloor, ""},
 		{"muted on card", "--muted", "--surface", textFloor, ""},
@@ -61,23 +73,39 @@ func buildContrastPairs() []contrastPair {
 		{"filled field border on filled field", "--accent", "--accent-field", boundaryFloor, ""},
 		{"filled field border on card", "--accent", "--surface", boundaryFloor, ""},
 		{"filled field border on secondary card", "--accent", "--surface-2", boundaryFloor, ""},
-		{"healthy on its fill, dark", "--healthy", "--healthy-bg", textFloor, "dark"},
-		{"degraded on its fill, dark", "--degraded", "--degraded-bg", textFloor, "dark"},
+		{"locked ink on locked tint", "--locked-ink", "--locked-tint", textFloor, ""},
+		{"locked ink on locked fill", "--locked-ink", "--locked-bg", textFloor, ""},
+		{"muted on locked tint", "--muted", "--locked-tint", textFloor, ""},
+		{"secondary ink on locked tint", "--ink-2", "--locked-tint", textFloor, ""},
+		{"accent on page", "--accent", "--bg", textFloor, ""},
+		{"accent on card", "--accent", "--surface", textFloor, ""},
+		{"accent on secondary card", "--accent", "--surface-2", textFloor, ""},
+		{"deep accent on page", "--accent-deep", "--bg", textFloor, ""},
+		{"deep accent on card", "--accent-deep", "--surface", textFloor, ""},
+		{"deep accent on secondary card", "--accent-deep", "--surface-2", textFloor, ""},
+		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
+		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 	}
-	pairs := make([]contrastPair, 0, len(fixed)+len(tones))
+	pairs := make([]contrastPair, 0, len(fixed)+5*len(tones))
 	pairs = append(pairs, fixed...)
 	for _, tone := range tones {
-		pairs = append(pairs, contrastPair{tone + " on its fill", "--" + tone, "--" + tone + "-bg", textFloor, ""})
+		pairs = append(pairs,
+			contrastPair{tone + " ink on its fill", "--" + tone + "-ink", "--" + tone + "-bg", textFloor, ""},
+			contrastPair{tone + " ink on its tint", "--" + tone + "-ink", "--" + tone + "-tint", textFloor, ""},
+			contrastPair{"muted on " + tone + " tint", "--muted", "--" + tone + "-tint", textFloor, ""},
+			contrastPair{"secondary ink on " + tone + " tint", "--ink-2", "--" + tone + "-tint", textFloor, ""},
+		)
 	}
 	return pairs
 }
 
-// contrastPending is the list of known failures. align-shell-and-tokens
-// adds the --<tone>-ink tokens that close both.
-var contrastPending = []pendingPair{
-	{contrastPair{"healthy on its fill, light", "--healthy", "--healthy-bg", textFloor, "light"}, "--healthy-ink", "--healthy-bg"},
-	{contrastPair{"degraded on its fill, light", "--degraded", "--degraded-bg", textFloor, "light"}, "--degraded-ink", "--degraded-bg"},
-}
+// contrastPending is the list of known failures. It is empty: the --<tone>-ink
+// tokens of align-shell-and-tokens closed the two light pairs that
+// fix-contrast-and-add-phone-check left pending (--healthy-ink on
+// --healthy-bg and --degraded-ink on --degraded-bg, now in contrastPairs).
+// A change that cannot meet a floor yet adds an entry here with the pair
+// that closes it.
+var contrastPending = []pendingPair{}
 
 // The three blocks of portal.css that define the color tokens, by the text
 // that opens each: the dark block under the OS preference sits inside a
@@ -215,7 +243,7 @@ func TestContrast(t *testing.T) {
 
 // TestContrastDarkBlocksAgree: the dark tokens are set twice, under the OS
 // preference and under the stored Dark choice. Every token the pair lists
-// use holds one value in both.
+// use, and every tone and kind token, holds one value in both.
 func TestContrastDarkBlocksAgree(t *testing.T) {
 	blocks, err := tokenBlocks(readPortalCSS(t))
 	if err != nil {
@@ -232,6 +260,14 @@ func TestContrastDarkBlocksAgree(t *testing.T) {
 	}
 	for _, p := range contrastPending {
 		use(p.contrastPair)
+	}
+	for _, tone := range tones {
+		for _, suffix := range []string{"", "-ink", "-bg", "-tint"} {
+			seen["--"+tone+suffix] = true
+		}
+	}
+	for _, token := range append(append([]string{}, lockedTokens...), kindTokens...) {
+		seen[token] = true
 	}
 	for token := range seen {
 		byOS, hasOS := blocks["dark"][token]

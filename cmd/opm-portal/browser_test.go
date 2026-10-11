@@ -148,7 +148,8 @@ func TestBrowserLogs(t *testing.T) {
 // TestBrowserTheme checks, in real browsers (task test:browser), what only
 // a browser shows: a stored Dark theme paints dark first on a light system,
 // a stored Installed filter opens filtered on a full load and on a boosted
-// navigation, and a stale stored value is dropped (portal:D14).
+// navigation, a stale stored value is dropped (portal:D14), the Instance chip
+// reads in both themes, and nothing animates in on page load (portal:D19).
 func TestBrowserTheme(t *testing.T) {
 	script := browserScript(t, "theme.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {

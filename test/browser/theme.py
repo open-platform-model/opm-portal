@@ -26,6 +26,12 @@ first failure:
    stays as it is and the stored query becomes health=Degraded.
 6. Filters stored under another context are not restored.
 7. With storage throwing on every call, pages render and the theme menu still switches the theme.
+8. The Instance chip reads in both themes (portal:D19:R2): under a stored Dark theme /installed's
+   first Instance chip has the slate fill rgb(58, 67, 82) and a light text colour; under Light it
+   has the ink fill rgb(20, 24, 32) and a light text colour.
+9. Nothing animates in (portal:D19, the owner's decision of 2026-10-11): /installed loaded with
+   motion allowed has, right after the load event, no running animation whose target lies inside
+   main. The live dot's pulse lies outside main.
 """
 
 import sys
@@ -33,6 +39,8 @@ import sys
 from playwright.sync_api import sync_playwright
 
 DARK_BG = "rgb(12, 15, 20)"
+CHIP_DARK = "rgb(58, 67, 82)"
+CHIP_LIGHT = "rgb(20, 24, 32)"
 
 # Records every document as soon as its <body> appears (before DOMContentLoaded, so a document
 # the head script replaces is still seen if it gets that far), the theme at DOMContentLoaded, and
@@ -48,7 +56,9 @@ RECORD = (
     " document.addEventListener('DOMContentLoaded', () => {"
     "  window.__theme = document.documentElement.getAttribute('data-theme'); });"
     " window.addEventListener('load', () => {"
-    "  window.__bg = getComputedStyle(document.body).backgroundColor; });"
+    "  window.__bg = getComputedStyle(document.body).backgroundColor;"
+    "  window.__anims = document.getAnimations().filter(a => a.effect && a.effect.target"
+    "   && a.effect.target.closest && a.effect.target.closest('main')).length; });"
     "})();"
 )
 
@@ -140,6 +150,27 @@ def run(p, engine, base, context):
         theme = blocked.evaluate("document.documentElement.getAttribute('data-theme')")
         rows = blocked.locator("#list tbody tr").count()
         if not check(engine, theme == "dark" and rows > 0, f"storage throwing: {rows} rows, theme {theme!r} after picking Dark"):
+            return False
+
+        for mode, want in (("dark", CHIP_DARK), ("light", CHIP_LIGHT)):
+            context_ = browser.new_context(color_scheme="light")
+            chip_page = context_.new_page()
+            chip_page.goto(base + "/")
+            chip_page.evaluate(f"localStorage.setItem('opm-portal.theme', {mode!r})")
+            chip_page.goto(base + "/installed")
+            fill, ink = chip_page.evaluate(
+                "(() => { const s = getComputedStyle(document.querySelector('#list .kind-instance'));"
+                " return [s.backgroundColor, s.color]; })()")
+            light_text = sum(int(c) for c in ink[ink.index("(") + 1:ink.index(")")].split(",")[:3]) > 450
+            if not check(engine, fill == want and light_text, f"{mode} theme: Instance chip fill {fill}, text {ink}"):
+                return False
+            context_.close()
+
+        motion = browser.new_context(color_scheme="light", reduced_motion="no-preference").new_page()
+        motion.add_init_script(RECORD)
+        motion.goto(base + "/installed", wait_until="load")
+        anims = motion.evaluate("window.__anims")
+        if not check(engine, anims == 0, f"animations inside main right after load: {anims}"):
             return False
     finally:
         browser.close()
