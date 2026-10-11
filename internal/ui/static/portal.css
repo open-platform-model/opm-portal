@@ -625,6 +625,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .cond-badge.tone-progressing { border-color: var(--progressing); color: var(--progressing-ink); background: var(--progressing-bg); }
 .cond-badge.tone-unknown { border-color: var(--unknown); color: var(--unknown-ink); background: var(--unknown-bg); }
 .contract-pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent-field); color: var(--accent-deep); font-family: var(--font-ui); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.claim .table tbody th { border-bottom-color: var(--line-soft); }
 .provides-table th[scope="row"] { width: 1%; white-space: nowrap; }
 .used-by { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: flex-start; justify-content: space-between; }
 .used-by-list { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
