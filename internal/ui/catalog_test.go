@@ -131,3 +131,22 @@ func TestCatalogClaimsLockedWithRegistrations(t *testing.T) {
 		t.Errorf("Claims tab:\n%s", claims)
 	}
 }
+
+// TestCatalogTabsCarryTheirCounts (portal:D19:R3, portal:D7): Claims shows
+// the claiming registrations, and an empty count span when they are locked;
+// Events never carries a count, because the page reads events only on that tab.
+func TestCatalogTabsCarryTheirCounts(t *testing.T) {
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0"
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	for _, p := range []string{path, path + "&tab=events"} {
+		tabs := tabsOf(mainOf(s.get(t, p).body))
+		if !strings.Contains(tabs, `Claims <span class="tab-n" id="tab-n-claims" data-follow="platform">1</span>`) || !strings.Contains(tabs, `>Events</a>`) {
+			t.Errorf("%s: tabs:\n%s", p, tabs)
+		}
+	}
+	locked := newSite(t, apitest.F1(t), apitest.DenyResources("transformerregistrations"))
+	tabs := tabsOf(mainOf(locked.get(t, "/catalog?path=opmodel.dev/catalogs/opm@v4").body))
+	if !strings.Contains(tabs, `Claims<span class="tab-n" id="tab-n-claims" data-follow="platform"></span></a>`) || strings.Contains(tabs, "tab-n-events") {
+		t.Errorf("the locked claims keep an empty followed count span and Events none:\n%s", tabs)
+	}
+}

@@ -72,19 +72,19 @@
   {{end}}
 </details>
 
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}{{template "tab" .}}{{end}}</nav>
 
 {{if eq .Tab "graph"}}
 <div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
 <section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
-  <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
+  <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
   {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
 </section>
 </div>
 {{template "detail" .}}
 {{else if eq .Tab "resources"}}
 <section class="panel panel-8 reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
-  <h2 id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
+  <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
   {{template "filter-form" .ReasonForm}}
   {{if or .Components .Config}}
   <ol class="components">
@@ -104,7 +104,7 @@
 {{template "detail" .}}
 {{else if eq .Tab "events"}}
 <section class="panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
-  <h2 id="events-h">Events{{with .Events.About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
+  <h2 class="vh" id="events-h">Events{{with .Events.About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
   {{with .EventsForm}}
   <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
     <input type="hidden" name="tab" value="events">
@@ -130,7 +130,7 @@
 </section>
 {{else if eq .Tab "logs"}}
 <section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
-  <h2 id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
+  <h2 class="vh" id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
   <div class="logs">
   {{range .Logs}}
     <details class="log" id="{{.ID}}" data-log-topic="{{.Topic}}">
@@ -145,20 +145,20 @@
 </section>
 {{else if eq .Tab "yaml"}}
 <section class="panel panel-4 reveal" id="yaml-picker" aria-labelledby="yaml-picker-h" data-follow="{{.Topic}}">
-  <h2 id="yaml-picker-h">Objects</h2>
+  <h2 class="vh" id="yaml-picker-h">Objects</h2>
   {{range .YAML.Groups}}
   <h3 class="sub-h">{{.Kind}}</h3>
   <ul class="yaml-list">{{range .Items}}<li>{{if .Secret}}<span class="mono muted">{{template "breakable" .Text}}</span> <span class="muted">Secret data is never read</span>{{else}}<a class="mono" href="{{.Href}}"{{if .Current}} aria-current="true"{{end}}>{{template "breakable" .Text}}</a>{{end}}</li>{{end}}</ul>
   {{else}}<p class="muted">No object you may read.</p>{{end}}
 </section>
 <section class="panel panel-8 reveal" id="yaml" aria-labelledby="yaml-h">
-  <h2 id="yaml-h">YAML</h2>
+  <h2 class="vh" id="yaml-h">YAML</h2>
   {{if .YAML.Has}}{{with .YAML.Picked}}{{if .Problem}}{{template "problem-region" .Problem}}{{else}}<p class="mono muted">{{.Text}}</p><pre class="yaml" tabindex="0" aria-label="YAML of {{.Text}}"><code>{{.YAML}}</code></pre>{{end}}{{end}}
   {{else}}<p class="muted">Pick an object. Every object is shown as the cluster serves it, without managed fields, the last-applied annotation or values.</p>{{end}}
 </section>
 {{else if eq .Tab "provider"}}
 <section class="panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">
-  <h2 id="provider-tab-h">Provider <span class="h-note">the registrations this {{.Kind.Topic}}'s inventory holds, as the controller judged them</span></h2>
+  <h2 class="vh" id="provider-tab-h">Provider <span class="h-note">the registrations this {{.Kind.Topic}}'s inventory holds, as the controller judged them</span></h2>
   {{with .Provider}}
   {{if .PlatformLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not read the Platform, so each claim's conditions, catalog and registry state are not shown. The standing below is the registration's own.</p></div>{{end}}
   {{with .PlatformProblem}}{{template "problem-region" .}}{{end}}

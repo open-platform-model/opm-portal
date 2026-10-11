@@ -148,7 +148,8 @@ func TestBrowserLogs(t *testing.T) {
 // TestBrowserTheme checks, in real browsers (task test:browser), what only
 // a browser shows: a stored Dark theme paints dark first on a light system,
 // a stored Installed filter opens filtered on a full load and on a boosted
-// navigation, and a stale stored value is dropped (portal:D14).
+// navigation, a stale stored value is dropped (portal:D14), the Instance chip
+// reads in both themes, and nothing animates in on page load (portal:D19).
 func TestBrowserTheme(t *testing.T) {
 	script := browserScript(t, "theme.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -164,7 +165,8 @@ func TestBrowserTheme(t *testing.T) {
 
 // TestBrowserGraph drives the instance graph in real browsers (task
 // test:browser): Clear selection, the Resources hand-off, a group's fit and
-// Whole graph, and the state and full screen a live refresh keeps.
+// Whole graph, the state and full screen a live refresh keeps, and the details
+// panel a node selection fills.
 func TestBrowserGraph(t *testing.T) {
 	script := browserScript(t, "graph.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -173,6 +175,25 @@ func TestBrowserGraph(t *testing.T) {
 			defer cancel()
 			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
 				t.Fatalf("a graph interaction did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// TestBrowserTabCount drives a live tab count in real browsers (task
+// test:browser): a stream event makes the page fetch its own render, and the
+// real portal.js replaces the count span with the render's, whether the count
+// changed, the source became a problem and left the span empty, or the count
+// came back (portal:D19:R3). The F1 capture is static, so the script answers
+// that fetch with the real render edited as a later render would be.
+func TestBrowserTabCount(t *testing.T) {
+	script := browserScript(t, "tabcount.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("a tab count did not follow the page: %v", err)
 			}
 		})
 	}
@@ -216,6 +237,8 @@ var phonePages = []string{
 // is above 360. The body clips sideways overflow, so only a browser that
 // measures the layout shows content a phone would lose. The script first
 // proves the measure can fail with an element it adds that is 500 px wide.
+// A last step selects a graph node from the keyboard and measures again with
+// the details panel filled.
 func TestBrowserPhone(t *testing.T) {
 	script := browserScript(t, "phone.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -225,6 +248,35 @@ func TestBrowserPhone(t *testing.T) {
 			args := append([]string{browser, serveF1Site(t)}, phonePages...)
 			if err := playwright(ctx, t, script, nil, args...); err != nil {
 				t.Fatalf("a page is wider than 360 px: %v", err)
+			}
+		})
+	}
+}
+
+// tipFragment is the golden fragment-tip.html, the tip partial's output, which
+// package main cannot import from internal/ui.
+const tipFragment = "../../internal/ui/testdata/golden/fragment-tip.html"
+
+// TestBrowserTip drives the info tip in real browsers (task test:browser):
+// focus and hover show its box, Escape hides it with focus or the pointer
+// kept where they were, Enter and Space toggle it, the pointer reaches the
+// box, and a tap opens, closes and is closed by a tap outside (WCAG 2.2
+// 1.4.13). No page shows a tip yet, so the script inserts the markup of the
+// golden fragment-tip.html into the Platform page, where the real portal.css
+// and portal.js act on it; the change that puts a tip on a page adds a case
+// on that page.
+func TestBrowserTip(t *testing.T) {
+	script := browserScript(t, "tip.py")
+	markup, err := os.ReadFile(tipFragment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), strings.TrimSpace(string(markup))); err != nil {
+				t.Fatalf("the tip did not hold: %v", err)
 			}
 		})
 	}

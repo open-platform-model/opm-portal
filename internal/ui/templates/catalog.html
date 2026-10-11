@@ -14,18 +14,18 @@
   </section>
   <section class="card owner-card" id="catalog-resolved" aria-labelledby="resolved-h" data-follow="platform">
     <h2 id="resolved-h">Resolved <span class="h-note">in the Platform's registry</span></h2>
-    {{if .Row.Resolved}}<p><span class="health health-healthy"><span class="dot" aria-hidden="true"></span>Resolved</span></p>
-    {{else}}<p><span class="health health-degraded"><span class="dot" aria-hidden="true"></span>Not resolved</span>{{with .NotResolvedReason}} <span class="mono">{{.}}</span>{{end}}</p>{{with .NotResolvedWhy}}<p class="muted">{{.}}</p>{{end}}{{end}}
+    {{if .Row.Resolved}}<p><span class="health health-healthy">Resolved</span></p>
+    {{else}}<p><span class="health health-degraded">Not resolved</span>{{with .NotResolvedReason}} <span class="mono">{{.}}</span>{{end}}</p>{{with .NotResolvedWhy}}<p class="muted">{{.}}</p>{{end}}{{end}}
     {{with .Contracts}}
     <p class="reason-info"><span class="label">Platform-wide contracts</span> <span class="mono">{{with .Reason}}{{.}}{{else}}{{.Status}}{{end}}</span> <span class="muted">for the whole Platform, not this catalog; information, not a failure</span></p>
     {{end}}
   </section>
 </div>
 <p class="note">The cluster does not record a catalog's definitions, their descriptions or the transformers it ships, so they are not shown.</p>
-<nav class="tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}<a href="{{.Href}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end}}</nav>
+<nav class="tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}{{template "tab" .}}{{end}}</nav>
 {{if eq .Tab "claims"}}
 <section class="panel panel-wide reveal" id="claims" aria-labelledby="claims-h" data-follow="platform">
-  <h2 id="claims-h">Claims <span class="h-note">registrations that claim this catalog</span></h2>
+  <h2 class="vh" id="claims-h">Claims <span class="h-note">registrations that claim this catalog</span></h2>
   {{if .ClaimsLocked}}{{template "locked" .ClaimsLocked}}<p class="muted">The registrations claiming catalogs are not shown, so whether any claims this one is not known.</p>
   {{else if .Claims}}
   <div class="table-wrap"><table class="table rows">
@@ -44,7 +44,7 @@
 </section>
 {{else}}
 <section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
-  <h2 id="events-h">Events <span class="h-note">the Platform's and its claimants'</span></h2>
+  <h2 class="vh" id="events-h">Events <span class="h-note">the Platform's and its claimants'</span></h2>
   {{template "events-note"}}
   {{with .Events}}
   <div id="events" data-follow="{{.Follow}}">

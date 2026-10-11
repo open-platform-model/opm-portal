@@ -14,6 +14,12 @@ first failure:
    dispatching the stream's upsert event for the page's topic on the stream listener, as the SSE
    extension does.
 5. Full screen enters, survives a live refresh, and one Escape leaves it.
+6. The details panel after a node selection: activating the podinfo-podinfo Deployment node from the
+   keyboard (and with a pointer click where the engine hit-tests the node) fills #detail with that
+   node's name and its Object fact, and marks the node selected; the instance's own node fills it
+   with an Applied and a Health badge. The panel request must not inherit the page's hx-select.
+   Each badge stands beside a visible label that names its axis (portal:D19:R3): "Applied" and
+   "Health" for the instance's node, "Health" alone for the Deployment's.
 """
 
 import json
@@ -22,7 +28,13 @@ import sys
 from playwright.sync_api import sync_playwright
 
 PODINFO = "/instances/default/podinfo"
+# The visible axis labels of the details panel, each with whether it has a box (a hidden one has none).
+LABELS = (
+    "Array.from(document.querySelectorAll('#detail .axes .axis-pair > .label'),"
+    " el => [el.textContent.trim(), el.offsetWidth > 1 && el.offsetHeight > 1])"
+)
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
+ROOT = "mi:default/podinfo"
 
 
 def check(engine, ok, line):
@@ -119,6 +131,41 @@ def run(p, engine, base):
         left = page.evaluate("!document.fullscreenElement && !document.querySelector('.graph-full')")
         still = page.evaluate(f"!!document.querySelector('.node[data-node=\"{DEPLOY}\"][aria-current]')")
         if not check(engine, left and still, f"one Escape left full screen ({left}) and kept the selection ({still})"):
+            return False
+
+        # 6. The details panel after a node selection (instance-43).
+        page.goto(base + PODINFO + "?tab=graph")
+        activate(page, f'.node[data-node="{DEPLOY}"]')
+        page.wait_for_selector("#detail .frag-h")
+        name, facts, cur = page.evaluate(
+            "[document.querySelector('#detail .frag-h').textContent.trim(),"
+            " document.querySelector('#detail .facts').textContent,"
+            f" !!document.querySelector('.node[data-node=\"{DEPLOY}\"][aria-current=\"true\"]')]")
+        if not check(engine, name == "podinfo-podinfo" and "Deployment" in facts and cur,
+                     f"keyboard selection filled the panel: {name!r}, Object fact has Deployment {'Deployment' in facts}, "
+                     f"node marked {cur}"):
+            return False
+        labels = page.evaluate(LABELS)
+        if not check(engine, labels == [["Health", True]], f"the Deployment's panel shows a visible Health label: {labels}"):
+            return False
+        if engine != "firefox":
+            page.goto(base + PODINFO + "?tab=graph")
+            page.locator(f'.node[data-node="{DEPLOY}"]').first.click()
+            page.wait_for_selector("#detail .frag-h")
+            clicked = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
+            if not check(engine, clicked == "podinfo-podinfo", f"pointer selection filled the panel: {clicked!r}"):
+                return False
+        page.goto(base + PODINFO + "?tab=graph")
+        activate(page, f'.node[data-node="{ROOT}"]')
+        page.wait_for_selector("#detail .axes .applied")
+        applied, health = page.evaluate(
+            "[document.querySelectorAll('#detail .axes .applied').length,"
+            " document.querySelectorAll('#detail .axes .health').length]")
+        if not check(engine, applied == 1 and health == 1, f"the instance node's panel: {applied} Applied badge, {health} Health badge"):
+            return False
+        labels = page.evaluate(LABELS)
+        if not check(engine, labels == [["Applied", True], ["Health", True]],
+                     f"the instance node's panel shows visible Applied and Health labels: {labels}"):
             return False
     finally:
         browser.close()
