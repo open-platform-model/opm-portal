@@ -69,12 +69,14 @@ INJECT = """
 REMOVE = "() => document.getElementById('phone-probe').remove()"
 
 
-def shoot(page) -> None:
-    """Save a screenshot of page into OPM_PORTAL_BROWSER_SHOTS, when it is set."""
+def shoot(page, index: int = 0) -> None:
+    """Save a screenshot of page into OPM_PORTAL_BROWSER_SHOTS, when it is set.
+
+    The page's index in the path list joins the file name, so each failing page keeps its own."""
     out = os.environ.get("OPM_PORTAL_BROWSER_SHOTS")
     if not out:
         return
-    path = os.path.join(out, os.environ.get("OPM_PORTAL_BROWSER_SHOT", "browser") + ".png")
+    path = os.path.join(out, os.environ.get("OPM_PORTAL_BROWSER_SHOT", "browser") + f"-page{index}.png")
     try:
         page.screenshot(path=path, full_page=True)
         print(f"screenshot: {path}")
@@ -84,6 +86,8 @@ def shoot(page) -> None:
 
 def open_page(page, url):
     page.goto(url, wait_until="load")
+    # A late font swap can widen a page: wait for the fonts, then keep 300 ms as a margin.
+    page.evaluate("document.fonts.ready.then(() => true)")
     page.wait_for_timeout(300)
 
 
@@ -105,7 +109,7 @@ def run(p, engine, base, paths):
             shoot(page)
             return False
 
-        for path in paths:
+        for index, path in enumerate(paths):
             open_page(page, base + path)
             width = page.evaluate(MEASURE)
             if width <= WIDTH:
@@ -114,7 +118,7 @@ def run(p, engine, base, paths):
             failed.append(path)
             past = page.evaluate(PAST_EDGE, WIDTH)
             print(f"{engine}: FAIL {path} scrollWidth {width} over {WIDTH}; past the edge: {'; '.join(past) or 'none found'}")
-            shoot(page)
+            shoot(page, index)
     finally:
         browser.close()
     print(f"{engine}: {len(paths) - len(failed)} of {len(paths)} pages hold {WIDTH} px")
