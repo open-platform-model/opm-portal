@@ -18,14 +18,13 @@ See proposal.md, Why. Three facts about the current code and the operator shape 
   the entry count (`internal/readmodel/parse.go:186-192`); `instanceItem` builds the summary that
   both the list and the instance document use (`internal/readmodel/instances.go:70-82`); the wire
   type is `InstanceSummary`, which `Instance` embeds (`api/v1alpha1/types.go:187`); the
-  OpenAPI document spells the two schemas out separately (`openapi/v1alpha1.yaml:712` and `:785`),
+  OpenAPI document spells the two schemas out separately (`openapi/v1alpha1.yaml:734` and `:807`),
   so both need the property. `Instance` and `InstanceSummary` carry `inventoryCount` as a
   required integer; the history entries name theirs `inventoryCount` and `inventoryDigest`.
 
-The panel side is not built yet. `align-owner-pages` (tasks 4.4) builds the generic panel and the
-owner's identity facts "through `panelContext`", from the owner document; `align-graph` (tasks
-5.5) adds the group, registration and source variants. This design adds two facts to the first and
-leaves the second alone.
+The panel side is merged: `align-owner-pages` and `align-graph` landed on `main` as PRs 48 and 49
+(base `360382a`, 2026-10-11). The panel builds the owner's identity facts from the owner document
+that `panelContext` carries; this design adds two facts to those and leaves the variants alone.
 
 ## Goals / Non-Goals
 
@@ -39,16 +38,17 @@ leaves the second alone.
 
 - The revision on packages, and any display of it on a package page. The operator writes it there
   too (`modulepackage.go:264`), but the package root panel's "Revision" fact already means the
-  source revision, nothing in the plan asks for a second one, and adding the field later is
-  additive. Trigger to revisit: the owner asks for it.
+  source revision, and no page shows an inventory revision for a package. The owner ruled on
+  2026-10-11 that packages do not serve it yet. Adding the field later is additive. Trigger to
+  revisit: a page shows the package's inventory revision.
 - "in N components" after the object count. The canvas shows "42 objects in 20 components"; the
   component count comes from the graph document, varies with how the graph folds configuration
   components, and the approved item names `InventoryCount` only.
 - Any explanation of what a revision is, in the panel (no tip, no `title`). The docs row in the
   read-API reference says it.
 - Changing the identity card's "Objects" fact, which `align-owner-pages` keeps. The same count then
-  shows twice on a page, as "Objects" on the card and "Inventory" on the panel. That is the
-  owner-approved canvas, and the card is a different place from the panel.
+  shows twice on a page, as "Objects" on the card and "Inventory" on the panel. The owner accepted
+  that on 2026-10-11: the panel shows the root node's facts, the card the page's.
 - The graph document (`GraphNode`) gains nothing. The count and the revision are facts of the
   owner, not of a node, and the UI reads only the API (portal:D2:R1).
 
@@ -114,8 +114,8 @@ and "Version" for the module version.
 **Decision**: Option 2. The facts read `Inventory` / `42 objects` (`1 object` for one) and
 `Inventory revision` / `3`.
 **Rationale**: One name per thing. It departs from the canvas word by one qualifier, for a reason
-the owner can see on the page; reverting to the canvas label is a one-word edit if the owner
-prefers (reversibility: high, hours).
+the owner can see on the page. The owner settled the label on 2026-10-11: the package page's
+"Revision" already names the source revision.
 
 ### When each fact shows
 
@@ -152,12 +152,23 @@ is the same gate every other fact passes.
 
 ### The shape of the code to extend
 
-`panelContext` and the root-facts block are not merged yet. The names in this design (`panelContext`,
-`panel.go`, `panel-body.html`) are those of `align-owner-pages` tasks 4.4 and of the code on
-`main` today (`internal/ui/panel.go:11`). Task 2.1 reads the merged code first and adds the two
-fields beside the existing owner identity facts under whatever name they have by then. A merged
-shape that does not carry the owner document to the root panel is a changed approach: stop and ask
-(Risks).
+Read on merged `main` (`360382a`), 2026-10-11. The owner document reaches the root panel:
+
+- `panelContext.self` is the `*ownerView` of the page (`internal/ui/panel.go:11`). The page sets it
+  when it builds the resting panel (`owner.go:461`), and the panel fragment route sets it when the
+  requested node is the owner's own node and the owner document read without a problem
+  (`pages.go:720-731`).
+- `panel()` sets `p.Root` through `isOwnerNode` (a node of kind instance or package whose page path
+  equals the page's own) and then `p.Facts = ownerFacts(ctx.self)` (`panel.go:178-180`). A node
+  that is locked returns before this (`panel.go:157-159`).
+- `ownerFacts` returns a `[]fact` (`Label`, `Value`, `Mono`) for the instance or the package; the
+  template renders `.Facts` in the not-locked `<dl class="facts">` (`panel-body.html:15`). The
+  instance's document is `ownerView.Instance`, a `*v1.Instance`, so it carries the two values once
+  `InstanceSummary` has the field.
+
+So the change adds two entries to the instance branch of `ownerFacts`, with no field, no template
+edit and no new type. `ownerFacts` is the only place the two facts are written; a package, a
+non-owner node and a locked node never reach its instance branch.
 
 ## Interfaces
 
@@ -197,21 +208,24 @@ The parser, in `internal/readmodel/parse.go`:
 func inventoryRevision(u *unstructured.Unstructured) int64
 ```
 
-The panel view model gains, on the owner-facts value that `panelContext` carries:
+The instance branch of `ownerFacts` (`internal/ui/panel.go`) gains two facts after "Version",
+before "Owner":
 
 ```go
-InventoryObjects  int64 // from inventoryCount
-InventoryRevision int64 // 0: not recorded
+if n := v.Instance.InventoryCount; n > 0 || v.Instance.InventoryRevision > 0 {
+	out = append(out, fact{Label: "Inventory", Value: fmt.Sprintf("%d %s", n, plural(int(n), "object", "objects"))})
+}
+if r := v.Instance.InventoryRevision; r > 0 {
+	out = append(out, fact{Label: "Inventory revision", Value: strconv.FormatInt(r, 10)})
+}
 ```
 
-and the template renders, inside the not-locked branch and only for the owner's own node:
+The template renders them through the existing `.Facts` loop, as escaped text (`plural` is
+`internal/ui/view.go:358`; it takes an `int`, so the call converts).
 
-```text
-{{if or .InventoryObjects .InventoryRevision}}<dt>Inventory</dt><dd>{{.InventoryObjects}} {{plural ... "object" "objects"}}</dd>{{end}}
-{{with .InventoryRevision}}<dt>Inventory revision</dt><dd>{{.}}</dd>{{end}}
-```
-
-(`plural` exists, `internal/ui/view.go:302`; it takes an `int`, so the call converts.)
+Reads and grants: the change adds no read. It serves the field from the `get moduleinstances` and
+`list moduleinstances` reads the portal already makes, under the grants the caller already holds
+(portal:D7). No Kubernetes verb or resource is added, and no ClusterRole changes.
 
 ## States of the new facts
 
@@ -238,21 +252,20 @@ and the template renders, inside the not-locked branch and only for the owner's 
 
 ## Risks / Trade-offs
 
-- [The merged panel code differs from what `align-owner-pages` tasks 4.4 describe] -> Task 2.1
-  reads it before any edit. If the owner document does not reach the root panel, stop; that is a
-  changed approach, not an implementation detail.
+- [The owner document does not reach the root panel] -> Task 1.1 checks it first and stops the
+  change if it does not (done on `360382a`: it does, see "The shape of the code to extend").
 - [The same count shows as "Objects" on the identity card and "Inventory" on the panel] -> Accepted
   as the owner-approved canvas; recorded in Non-Goals.
 - [An `int64` revision that the operator later stops incrementing, or resets on recreate] -> The
   portal shows the number as recorded. It explains nothing about it, so no wording goes stale.
 - [`inventoryRevision` served on instances but not packages] -> Additive to fix later (Non-Goals);
-  a client that needs the package value reads the stream of a later version.
+  a client that needs the package value waits for the page that shows it (Non-Goals).
 - [Local `task check` stops at `openspec:check`] -> The local openspec 1.14.1 warns on
   requirement text over 500 characters in 13 main specs; CI pins 1.12.0 and `main` is green there.
   The requirements of this change stay under 500 characters. `openspec validate
   add-inventory-revision --strict` is the gate for the change; report `openspec:check` as run and
   failing on the same 13 specs only.
-- [Golden churn] -> Every instance golden gains one line and nothing else. Task 1.3 checks that
+- [Golden churn] -> Every instance golden gains one line and nothing else. Task 1.4 checks that
   the diff is only that.
 
 ## Migration Plan
@@ -262,5 +275,5 @@ Clients that ignore unknown fields (portal:D2:R3) are not affected.
 
 ## Open Questions
 
-- Does the owner want the revision on packages and on the identity card later? Not needed to build
-  this change.
+None. The owner settled the package revision, the label and the count shown twice on 2026-10-11
+(Non-Goals, "Research & Decisions").

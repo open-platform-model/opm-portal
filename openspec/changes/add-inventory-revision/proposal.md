@@ -52,7 +52,7 @@ None.
 
 - Packages: `api/v1alpha1` (one field on `InstanceSummary`, which `Instance` embeds),
   `internal/readmodel` (parse and carry), `internal/api` (convert), `internal/ui` (the root-node
-  facts in `panel.go` and `panel-body.html`), `openapi/v1alpha1.yaml`, `docs/site/reference/portal`,
+  facts in `panel.go`), `openapi/v1alpha1.yaml`, `docs/site/reference/portal`,
   `ROADMAP.md`.
 - API resources: `GET instances/{namespace}/{name}` and the instance list items, and the same
   documents on the change stream. Packages, the Platform, graphs and events are unchanged.
@@ -74,9 +74,9 @@ None.
   change; clients ignore unknown fields) and portal:D17 (the UI shows what the cluster records).
   It changes no decision and adds none, so `docs/DESIGN.md` is not edited and there is no
   `enhancement.yaml`.
-- Shared-file rule: this change edits only the root-facts block of `internal/ui/panel.go` and
-  `panel-body.html`, after `align-owner-pages` and `align-graph` have both merged. It brings in
-  their `main` by merge, never by history rewrite.
-- Sections: two. The first ends with a releasable API, the second with the panel. No spike: the
-  one thing this change cannot check today, the shape of the root-facts code that the sibling
-  changes will merge, is read in task 2.1 and stops the section if it differs (design.md Risks).
+- Shared-file rule: this change edits only the owner-facts function of `internal/ui/panel.go`
+  (`ownerFacts`), after `align-owner-pages` and `align-graph` have both merged. It brought in their
+  `main` by merge, never by history rewrite.
+- Sections: two. The first ends with a releasable API, the second with the panel. The one
+  assumption, that the owner document reaches the root panel, is checked as task 1.1 before any
+  edit, and the change stops if it does not hold (design.md Risks).
