@@ -2,7 +2,7 @@
 
 Usage: python3 logs.py <browser> <page URL>
 
-The page is a logs region the Go test serves under the page policy with the page script (not htmx): a Pod / container select and one pane, rendered open. Its first
+The page is a logs region the Go test serves under the page policy with the page script (not htmx, so a select change is a full page load; the htmx swap of the select is owner.py step 8, on the real page): a Pod / container select and one pane, rendered open. Its first
 render lists Pod a's pane, its second adds Pod b's, and every later one lists no Pod. On load, with no
 click, the open pane must follow its topic (data-following, the "connecting" state) and the stream must be
 told to subscribe to it. The test server records the topics of each stream apart and forgets them all

@@ -433,7 +433,8 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 // region shaped as the owner page renders it: a Pod / container select form
 // and one open pane. The page loads portal.js but not htmx, so a select
 // change is a full page load and the page's htmx:afterSettle listeners do
-// not run here (see the report of T4.47). Its first render lists Pod a's pane, its second adds
+// not run here; TestBrowserOwner drives the swapped select on the real page
+// (owner.py, step 8). Its first render lists Pod a's pane, its second adds
 // Pod b's, and every later one lists no Pod; a request that names a pane
 // (log=) is rendered at once, with that one pane open. The stream's topics
 // endpoint records what each stream is subscribed to, and /subs?stream=ID

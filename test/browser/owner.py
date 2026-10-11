@@ -26,9 +26,15 @@ one line, exiting 1 on the first failure:
    no node, so the YAML tab opens the Service's YAML, not the Deployment's; and Clear selection
    drops both, in the address and in the tab links, so a reload rests on the ModuleInstance.
 
+8. A Logs select change swaps the page in place (the document is not reloaded), the swapped pane
+   follows its own topic with no click, and the stream is told to add that topic and drop the old
+   pane's. This runs the htmx:afterSettle listener of portal.js that follows a swapped-in pane,
+   which the logs.py stub (no htmx) cannot.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
+import json
 import os
 import sys
 from urllib.parse import quote
@@ -124,7 +130,8 @@ def run(p, engine, base):
         panel_is(page, DEP)
         if not check(engine, "focus=" in page.url, f"a click on the row opened {page.url} with the panel filled"):
             return False
-        return events_tab(page, engine, base) and panel_insets(page, engine, base) and stale_node(page, engine, base)
+        return events_tab(page, engine, base) and panel_insets(page, engine, base) and stale_node(page, engine, base) \
+            and logs_swap(page, engine, base)
     except Exception:
         print(f"{engine}: FAIL at {page.url}")  # the address shows which step stopped
         shoot(page)
@@ -221,6 +228,58 @@ def stale_node(page, engine, base):
     kicker = page.locator("#detail .kicker").first.text_content().strip()
     return check(engine, kicker == "Instance" and "node=" not in page.url,
                  f"a reload after Clear selection rests on the ModuleInstance at {page.url}")
+
+
+def logs_swap(page, engine, base):
+    """8. A Logs select change swaps the page in place (htmx, no reload); the swapped pane follows
+    its own topic, and the stream is told to add it and to drop the old pane's. Only the real page
+    runs the htmx:afterSettle listener that follows a pane the swap brought in. The F1 site serves
+    no log source, so the topics POST is refused here (HTTP 400) and no line arrives; the request
+    the page makes is what the check reads."""
+    posts = []
+
+    def record(req):
+        if req.method == "POST" and req.url.endswith("/topics") and req.post_data:
+            posts.append(json.loads(req.post_data))
+
+    page.goto(base + PODINFO + "?tab=logs")
+    first = page.locator("details.log[data-following]")
+    expect(first).to_have_count(1)
+    old = first.get_attribute("data-following")
+    page.evaluate("window.swapMarker = 'kept'")
+    page.on("request", record)
+    try:
+        page.select_option("#f-log", index=1)
+        page.wait_for_function("() => location.search.includes('log=')")
+        page.wait_for_function(
+            "(old) => { const d = document.querySelectorAll('details.log'); "
+            "return d.length === 1 && d[0].getAttribute('data-following') && d[0].getAttribute('data-following') !== old; }",
+            arg=old, timeout=10000)
+        new = page.locator("details.log").get_attribute("data-following")
+        if not check(engine, page.evaluate("window.swapMarker") == "kept",
+                     "the select change swapped the page in place (the document was not reloaded)"):
+            return False
+        if not check(engine, page.locator("details.log .log-state").text_content() == "connecting",
+                     f"the swapped pane follows {new} (connecting) with no click"):
+            return False
+        deadline = 100  # the page posts its topics 50 ms after the swap; wait up to 10 s
+        while deadline and not moved(posts, old, new):
+            page.wait_for_timeout(100)
+            deadline -= 1
+    finally:
+        page.remove_listener("request", record)
+    return check(engine, moved(posts, old, new),
+                 f"the stream ends up told to add {new} and drop {old}: {posts}")
+
+
+def moved(posts, old, new):
+    """Whether the posted changes, replayed in order, add new and drop old. An engine may send the
+    drop and the add as two posts, so the net effect is what counts."""
+    held = {old}
+    for body in posts:
+        held |= set(body.get("add", []))
+        held -= set(body.get("remove", []))
+    return new in held and old not in held
 
 
 def main() -> int:
