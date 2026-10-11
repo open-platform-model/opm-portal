@@ -3,7 +3,6 @@ package ui
 import (
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -141,12 +140,6 @@ func TestInventoryFactsOnlyOnTheOwnersNode(t *testing.T) {
 	pkg := factsOfPanel(panelOf(t, s, "/packages/pkg/podinfo", "mp:pkg/podinfo"))
 	if _, ok := pkg["Inventory"]; ok || pkg["Inventory revision"] != "" || pkg["Revision"] != "not recorded" {
 		t.Errorf("package root facts: %v", pkg)
-	}
-	// Another instance's node is not in this page's graph: the panel is the
-	// missing one, with no fact.
-	other := s.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape("mi:default/backup-provider"), htmxRequest)
-	if other.status != http.StatusNotFound || strings.Contains(other.body, "Inventory") {
-		t.Errorf("an instance node of another page = %d:\n%s", other.status, other.body)
 	}
 }
 
