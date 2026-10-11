@@ -1257,6 +1257,12 @@ stays out, as D17 says.
 - R4: A tab count is shown only when the page holds it without another read and it covers everything
   the tab lists; otherwise the tab shows none.
 - R5: A summary block shows a time only when its source records one for that state.
+- R6: Where a canvas value fails WCAG 2.2 AA, the floor wins. Text in the muted ink token has a
+  contrast ratio of at least 4.5:1 against every surface token it is drawn on, and the border of a
+  text input or select, empty or filled, has a ratio of at least 3:1 against its field fill and the
+  surfaces it is drawn on, in the light and the dark theme. A test of token pairs in `internal/ui`
+  holds the floor. The web-ui requirements "Muted text meets WCAG 2.2 AA contrast in both themes"
+  and "Text inputs and selects have a boundary of at least 3:1" state it.
 
 **Alternatives considered:**
 
@@ -1282,6 +1288,9 @@ rulings: the planner derived them from Principle IV and D7 and D17 (2026-10-06),
 supervisor and the owner. R4 departs from the canvas in one place, the uncounted Events tab of the
 Catalog page, which is listed as an open deviation in `ROADMAP.md` and the OpenSpec change
 `align-shell-and-tokens`. Gaps measured in [evidence 05](design/evidence/05-canvas-gap-report/).
+R6 (the contrast floor) is the owner's decision of 2026-10-11 to record the floor under D19; the
+floor ranks above any canvas value. The OpenSpec change `fix-contrast-and-add-phone-check` carries
+it.
 
 ### D20: A package's source is read as the caller, and its own state is shown
 

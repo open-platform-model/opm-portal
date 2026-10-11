@@ -192,10 +192,10 @@ The pending list is an addition to the brief; the supervisor accepted it at the 
 
 #### 7. Recording the floor
 
-**Decision**: The floor is a requirement of the web-ui spec delta (above). `docs/DESIGN.md` is not
-edited by this change on the current base. `align-shell-and-tokens` records it as a new D19
-requirement (design/T3.4 NQ8; the owner's answer is pending). If D19 is on the base when section 2
-starts, task 2.5 adds the requirement to `docs/DESIGN.md` here, keeping every existing number.
+**Decision**: The floor is a requirement of the web-ui spec delta (above), and this change records
+it in `docs/DESIGN.md` as `portal:D19:R6`, the next free requirement of D19, keeping every existing
+number. PR 40 merged on 2026-10-11, so D19 is on the base, and the owner answered yes to
+design/T3.4 NQ8 the same day. `align-shell-and-tokens` extends R6 and does not state it again.
 **Rationale**: D19 says the tokens carry the canvas's values. The canvas's `--muted` and control
 border fail AA (T2.3 section 10.1), so the decision text should state the floor. Nothing on `main`
 may cite a decision that `main` lacks.
