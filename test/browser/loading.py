@@ -173,7 +173,9 @@ def run(p, engine, base):
         # 3. Two requests in flight: the bar stays until both have ended.
         panel = Held(page, lambda url: "/node?" in url)
         nav = Held(page, lambda url: url.endswith("/installed"))
-        activate(page, DEPLOY)
+        # Step 2 left the Deployment panel shown. Ask for the Pod: its heading differs, so the
+        # wait below passes only when the released answer has been swapped in.
+        activate(page, POD)
         panel.wait(1, page)
         page.locator("#nav a[href='/installed']").click()
         if not check(nav.wait(1, page), "the boosted page request was made and held"):
@@ -183,7 +185,7 @@ def run(p, engine, base):
         if not check(s["loading"] and s["busy"] == "true", f"with two requests open the bar is on ({s['loading']}) and #detail is busy ({s['busy']!r})"):
             return False
         panel.release()
-        expect(page.locator("#detail .frag-h").first).to_have_text("podinfo-podinfo")
+        expect(page.locator("#detail .frag-h").first).to_have_text("podinfo-podinfo-d9585d794-4lg6h")
         page.clock.run_for(100)
         s = page.evaluate(STATE)
         if not check(s["loading"] and s["busy"] is None and s["line"] is None,
