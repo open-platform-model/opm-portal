@@ -293,6 +293,8 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   or the page script's filter code. `TestBrowserGraph` drives an instance graph: Clear
   selection, the Resources hand-off, a group's fit and Whole graph, and the focus, zoom and full
   screen a live refresh keeps; run it after any change to the page script's graph code.
+  `TestBrowserPhone` opens every F1 page at 360 px wide and fails on a scroll width above 360; run it
+  after any change to layout CSS.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,
