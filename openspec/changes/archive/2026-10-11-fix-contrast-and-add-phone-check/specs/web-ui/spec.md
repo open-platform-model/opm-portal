@@ -38,7 +38,7 @@ wide viewport in Chromium, Firefox and WebKit, and SHALL fail when a page's scro
 Text drawn with the muted ink token SHALL have a contrast ratio of at least 4.5:1 against each
 surface token it is drawn on (page, card, secondary card, field, the neutral fill and the degraded
 fill), in the light and the dark theme. The ratio is computed from the token hex values in `portal.css` with the WCAG relative
-luminance formula and is not rounded.
+luminance formula and is not rounded. Source: portal:D19:R6.
 
 #### Scenario: Muted text on the page and on cards
 
@@ -56,7 +56,7 @@ luminance formula and is not rounded.
 The border of a text input or select SHALL have a contrast ratio of at least 3:1 against the fill
 of the field and against each surface a field is drawn on, in the light and the dark theme, whether
 the field is empty or filled. Borders that only decorate a control that has a text label
-are not held to this ratio.
+are not held to this ratio. Source: portal:D19:R6.
 
 #### Scenario: A filter field on its panel
 
