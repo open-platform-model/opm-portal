@@ -767,6 +767,11 @@
         t.searchParams.delete("focus");
       }
       a.setAttribute("href", t.pathname + t.search);
+      // A boosted link keeps the path it was processed with, so a new href
+      // reaches a click only after htmx processes the link again.
+      if (typeof htmx !== "undefined") {
+        htmx.process(a);
+      }
     });
   }
 
