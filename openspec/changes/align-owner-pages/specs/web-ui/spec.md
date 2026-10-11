@@ -510,3 +510,43 @@ Source: portal:D14:R1/R2, portal:D19.
 - **THEN** the page shows `/installed?q=backup` listing `default/backup-provider` and
   `default/backup-consumer`, with focus and caret still in the search field, and no Apply button
   is visible
+
+### Requirement: Tabs carry their counts
+
+A tab SHALL show, after its label, the unfiltered number of items it lists when the page already
+holds that number and it covers everything the tab lists: Providers, Catalogs, Claims, Resources
+(every row the table lists: inventory objects, their runtime children, and a package's source row)
+and Events on instance and package pages (the folded lines of the feed the tab opens with).
+Source: portal:D19:R4, portal:D7:R2/R3.
+
+#### Scenario: The F1 Platform tabs
+
+- **WHEN** a signed-in browser opens `/` on the F1 capture
+- **THEN** the tabs read "Providers 2" and "Catalogs 3", with Providers underlined as current
+
+#### Scenario: podinfo's tabs
+
+- **WHEN** a signed-in browser opens `/instances/default/podinfo` on the F1 capture
+- **THEN** the Resources tab carries the number of its inventory objects and runtime children,
+  the Events tab the number of folded lines its feed opens with, and Graph, Logs and YAML carry
+  none
+
+#### Scenario: A package's Resources count includes its source row
+
+- **WHEN** a signed-in browser opens `/packages/pkg/podinfo` on the F1 capture, whose inventory
+  is empty
+- **THEN** the Resources tab reads "Resources 1", the one row its table lists being the package's
+  source, and the count stays 1 under a `reason` filter that hides the row
+
+#### Scenario: A filter does not change a count
+
+- **WHEN** a browser opens podinfo's page with `tab=events&type=Warning`
+- **THEN** the Events tab's count is the unfiltered number, and the list shows only Warning
+  events
+
+#### Scenario: The Catalog page's tabs
+
+- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` on the
+  F1 capture
+- **THEN** the Claims tab carries the number of registrations that claim the catalog and the
+  Events tab carries none

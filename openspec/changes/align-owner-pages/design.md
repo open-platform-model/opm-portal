@@ -193,6 +193,7 @@ Problems:
 | List of events denied in the owner's own namespace | `403 forbidden`, as today's owner feed |
 | The owner missing, with get and list allowed | `404 not_found`, as today (`readmodel/instances.go:64-69`, `api/problem.go:82-83`) |
 | The portal's reader denied list events in the owner's namespace | `503 not_readable_by_portal`, as today |
+| An inventory object the caller may not read (a Secret excepted: it is left out for every caller and sets nothing) | `200` with that object and its events left out and `partial: true` |
 | List denied in another namespace | `200` with those objects left out and `partial: true` |
 | A list in some namespace fails | `200` with those objects left out and `partial: true` |
 | The caller may not list all of ReplicaSets, Pods and Jobs in some namespace of the owner | `200` with no runtime child of the owner in any namespace and none of their events, and `partial: true` when the owner has an inventory object of a kind that has runtime children |
@@ -206,7 +207,10 @@ Authorization, in order, each review before the lookup it covers, keeping today'
    owner's own namespace, as today. Either denied: `403`, the same document.
 2. The owner, then its inventory, read from held state under that grant (portal:D3:R9). A
    missing owner is `404`, as today. Each object carries the caller's `access`. Objects that are
-   not `ok`, and every core Secret, are dropped. Runtime children are kept as the inventory
+   not `ok`, and every core Secret, are dropped. A dropped object that is not a Secret sets
+   `partial`, because the caller may not read it and the feed leaves out its events. A Secret
+   never sets `partial`: the omission holds for every caller and says nothing about this caller's
+   grants. Runtime children are kept as the inventory
    document carries them for this caller, and that rule is all or none for each owner: a
    namespace gives its children only when the caller may list ReplicaSets, Pods and Jobs together
    (`childrenIn`, `internal/readmodel/children.go:23,106-111`); when any one namespace of the
@@ -326,7 +330,7 @@ The lists run concurrently, at most four at a time, under the existing `readTime
 
 ### 2. Applied, Health and Provider as state blocks (`instance-01`, `instance-02`, `instance-03`, `instance-04`, `instance-06`, `instance-07`, `instance-40`, `instance-48`, `instance-39`, `provider-01`, `provider-02`, `provider-03`, `provider-22`)
 
-`owner.go` builds one `stateBlock` per card. Hues (the icon follows the hue) and words:
+`cards.go` builds one `stateBlock` per card (`owner.go` fetches what the cards read, and calls it). Hues (the icon follows the hue) and words:
 
 | Card | State | Hue | Word |
 | --- | --- | --- | --- |
@@ -406,8 +410,13 @@ secondary line.
   | --- | --- |
   | Degraded + Missing > 0 | "N of M resources unhealthy" |
   | Progressing > 0 | "N of M resources rolling out" |
+  | Unknown > 0 (and no Degraded, Missing or Progressing) | "N of M resources in an unknown state" |
   | total = 0 | "Nothing applied yet, so nothing to check" |
   | otherwise | "All M resources healthy" |
+
+  The code tests a total of zero first, then the rows in the order above (`healthSummary`,
+  `cards.go`). The Unknown row is an accepted deviation: without it a Health card whose objects
+  are all Unknown would read "All M resources healthy" beside the word Unknown.
 
 - Reasons: today's counts, count first, in the tone's ink (`instance-48`), still linking to
   `tab=resources&reason=` (`instance-05` decided out). With none: "No unhealthy resources".
@@ -426,9 +435,15 @@ secondary line.
   carries both conditions with times. With the Platform unreadable there is no when.
 - Summary (`provider-02`):
   - Active: "Provides <contract short names> for the platform", from `Registration.Provides`.
-  - Otherwise, in local mode: `Registration.ActiveMessage` when the claim is accepted and not
-    active, else `Registration.Message`, verbatim (portal:D15:R2/R3).
-  - Otherwise, in-cluster: the reason's meaning, or the reason alone.
+  - Otherwise the first of these that is not empty, in every mode (`providerSummary`,
+    `cards.go`): the controller's text, which is `Registration.ActiveMessage` when the claim is
+    accepted and not active and else `Registration.Message`, verbatim in local mode
+    (portal:D15:R2/R3), and empty in-cluster because the read API omits it (portal:D8:R5); the
+    reason's meaning from the registration's conditions; the fixed sentence for the standing. The
+    bare reason is never the summary. It shows in the Reasons line, and the meaning shows as a
+    `Notes` line when the summary is not the meaning. This replaces the earlier rule "in-cluster:
+    the reason's meaning, or the reason alone", which would have put a bare reason where a
+    sentence belongs.
   - The portal composes no verdict of its own. When the controller wrote no text and the reason has
     no known meaning, the summary is a fixed sentence for the recorded standing (OP-A4), so a state
     word never stands over an empty summary:
@@ -439,6 +454,8 @@ secondary line.
     | Pending | "The controller has not decided on this claim yet." |
     | Refused | "The controller refused this claim." |
     | Removal blocked | "Accepted and active; its removal waits until no module uses what it provides." (portal:D4:R7) |
+    | Accepted and active, the Platform document holds the registration and it lists no contract | "Accepted and active; it provides no contract." |
+    | Accepted and active, the Platform did not give the registration | "Accepted and active." |
     | Unknown, or a verdict the UI does not know | "The portal does not know this claim's standing." |
 - Reasons (`provider-03`, `provider-22`): a non-success reason renders as "1 <Reason>", linking
   to `?tab=provider`. Success shows "No registration problems". The card carries one "Open the

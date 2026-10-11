@@ -76,6 +76,13 @@ one-object feed omits. Source: portal:D7:R4, portal:D8:R5.
 - **THEN** the response is `200` with the events from `cert-manager` and `partial: true`, and no
   list runs in `default`
 
+#### Scenario: An inventory object the caller may not read
+
+- **WHEN** the caller may get the instance `default/podinfo` and list events in `default`, but may
+  not get Services, and reads `instances/default/podinfo/events?scope=all`
+- **THEN** the response is `200` with no event about the Service, no list runs for the Service,
+  and the list carries `partial: true`
+
 #### Scenario: Operator notes in-cluster
 
 - **WHEN** a client of an in-cluster server reads a merged feed holding the operator's events and
@@ -88,6 +95,27 @@ one-object feed omits. Source: portal:D7:R4, portal:D8:R5.
   `reportingController` is `opm-controller`, an event with no `reportingController` that regards
   the instance, and the kubelet's events about its Pods
 - **THEN** the first two carry no `note`, and the kubelet's carry theirs as written
+
+#### Scenario: Operator notes on another object in-cluster
+
+- **WHEN** a client of an in-cluster server reads the merged feed of `default/backup-provider`,
+  which holds an event whose `reportingController` is `opm-controller` and an event with no
+  `reportingController`, both regarding the TransformerRegistration `default.backup-provider`, an
+  OPM object other than the owner
+- **THEN** both carry no `note`, as the owner's own events do
+
+### Requirement: A Secret is left out of the merged feed without a partial mark
+
+A core Secret in the inventory SHALL be left out of the merged feed for every caller, and SHALL NOT
+set `partial`. That omission holds for all callers and says nothing about this caller's grants.
+Source: portal:D8.
+
+#### Scenario: A Secret in the inventory
+
+- **WHEN** the instance's inventory holds a core Secret, and any caller, including one who may get
+  Secrets, reads its merged feed
+- **THEN** no event about the Secret is served, the Secret is not read, and the list does not
+  carry `partial: true` for it
 
 ### Requirement: Runtime children are left out together
 
