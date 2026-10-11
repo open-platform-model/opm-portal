@@ -1,3 +1,5 @@
+{{/* applied, health and state each draw one square badge (portal:D19:R3). The axis
+     is named by a word in the badge, visible or hidden; the colour never carries it alone. */}}
 {{define "applied" -}}
 {{with appliedBadge .}}<span class="{{.Class}}"{{with .Title}} title="{{.}}"{{end}}><span class="axis">Applied axis</span>{{.Text}}</span>{{end}}
 {{- end}}

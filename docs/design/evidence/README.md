@@ -11,6 +11,8 @@ to an old one.
 | [02-live-graph-spike](02-live-graph-spike/) | A throwaway status-only graph prototype run against the same cluster: sizes, latency, health and contract findings. | Concluded |
 | [03-ui-canvas](03-ui-canvas/) | The eight board sources of the owner-reviewed design canvas for the web UI redesign. Mock data: a layout reference, never evidence of controller output. | Snapshot |
 | [04-ui-redesign-screenshots](04-ui-redesign-screenshots/) | Twelve screenshots of the redesigned web UI over F1 (light, dark, 360 px), how they were made. | Snapshot |
+| [05-canvas-gap-report](05-canvas-gap-report/) | The 174 verified gaps between the canvas and the live pages at main `ad8b218`, grouped by the change that closes them. | Snapshot |
+| [06-shell-alignment-screenshots](06-shell-alignment-screenshots/) | Twenty-one screenshots of the web UI after `align-shell-and-tokens` over F1 (light, dark, 360 px, forced colours), how they were made. | Snapshot |
 | [prior-art-and-access.md](prior-art-and-access.md) | Prior art (portals and dashboards), the access and identity model, and the operator surface, read from primary sources. | Snapshot |
 
 Every sample has `managedFields`, the `kubectl.kubernetes.io/last-applied-configuration`

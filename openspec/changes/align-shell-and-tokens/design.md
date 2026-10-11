@@ -703,6 +703,43 @@ adds two classes and no state of its own.
 **Rationale**: an operator console gains nothing from a 900 ms entrance. Option 3 touches every
 template that the three follow-on changes also edit, and every golden, for no behaviour.
 
+## Live checks
+
+Taken on 2026-10-11 over F1 with the pinned Playwright image; the files are in
+[evidence 06](../../../docs/design/evidence/06-shell-alignment-screenshots/) (21 committed of
+43 captured). I opened and read 9 of the 21 committed files (light Platform, dark Installed,
+light and phone node selection, light Catalog, phone Installed, dark Resources, and the
+forced-colours Installed and Graph pages, with a crop of the tab strip before and after the fix);
+the others were measured only, not read: scroll width was 1920 at the wide size and 360 at the
+phone size on all 36 page captures and the three node-selection captures.
+
+| Gap | Seen |
+| --- | --- |
+| instance-43 | Activating the `podinfo-podinfo` node fills the details panel (object, Health label and badge, facts, edges), at 1920 px and at 360 px |
+| installed-10, platform-39 | The Instance chip in dark is the grey of the kind token, not cream |
+| platform-31 | Tone badges read as ink on a tinted fill in light and dark; ratios are held by the contrast test, not by eye |
+| platform-28, installed-25, platform-29 | Panels are flat with a 1 px border; no grid, no shadow, no corner mark, plain headings |
+| platform-01, platform-02 | At 1920 px the column is 1760 px of content inside the 1840 px maximum; the Platform cards share a row and the Installed card is full width |
+| platform-37, platform-30, installed-24, platform-40, catalog-04 | Page links are the accent with an underline; `h1` is large; the lede runs the full width in the secondary ink; kickers and table heads are small uppercase sans; fact labels are sentence case in the muted ink |
+| platform-38 | Applied and Health are one square badge; the hover card and the details panel carry a visible "Health" label; the Applied and Health cards carry their heading |
+| platform-09, catalog-16, instance-13 | Underline tabs with counts: Providers 2, Catalogs 3, Resources 5, Events 3, Claims 1; the Catalog Events tab has no count (the open deviation) |
+| catalog-27 | No tab region shows a heading |
+| platform-27 | The header reads "Live" with a steady dot |
+
+Forced colours (SH-A3, Chromium with `forced_colors="active"`): Applied and Health badges keep a
+border and the page text is readable; the partial health is not on an F1 page, so only the CSS test
+holds its dashed border. The capture found one defect:
+every tab drew the current tab's underline, because forced colours paint a transparent border, so
+only the weight marked the current tab. Fixed in its own commit (a `Canvas` underline on the other
+tabs, `CanvasText` on the current one, with a CSS test); the captures committed are the later ones.
+The state block and the tip have no page yet, so their forced-colours look is covered by the CSS
+tests of 3.5 and 4.4 and the screenshots of their fragments taken in section 4.
+
+Gaps still open, none in this change's scope: the provider pills (`accepted`, `active`) and the
+verdict chips keep their own shapes and a dot (`align-platform-installed-catalog`); the Applied
+card's attempt dots have no label (`align-owner-pages`); the graph draws small inside its panel at
+1920 px (`align-graph`); the hover card stays open while its node keeps focus, as before.
+
 ## Risks / Trade-offs
 
 - **The look changes on every page at once.** Goldens change wholesale in sections 2 and 3.
