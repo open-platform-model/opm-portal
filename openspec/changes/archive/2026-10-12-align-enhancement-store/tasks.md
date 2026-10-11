@@ -13,4 +13,4 @@
 ## 3. Close
 
 - [x] 3.1 `enh cite-lint` reports 0 findings and `enh cite-rewrite --dry-run` reports 0 edits at the final head
-- [ ] 3.2 Review, fixes, archive, then commit `docs(openspec): archive align-enhancement-store`
+- [x] 3.2 Review, fixes, archive, then commit `docs(openspec): archive align-enhancement-store`
