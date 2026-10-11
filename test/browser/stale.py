@@ -256,14 +256,17 @@ def steps(r: Run) -> bool:
                    f"a second drop with the fetch pending writes the banner afresh with the same time ({s['datetime']} = {held_dt})"):
         return False
     # The answer of the fetch that was pending before the stream dropped again does not end the outage.
+    # The refusal stays on until the read below, so no reconnect, the page's own or the extension's
+    # first retry (500 ms), can open the stream and start a resync before the state is read.
     r.ctl("fetch", mode="ok")
-    r.ctl("refuse", on=0)
     r.ctl("release")
+    page.wait_for_timeout(300)   # real time: the answer reaches the page
     page.clock.run_for(500)
     s = page.evaluate(STATE)
     if not r.check(s["mark"] == "Reconnecting" and not s["hidden"],
                    f"the pending fetch answers while the stream is down: the mark reads {s['mark']!r}, the banner stays"):
         return False
+    r.ctl("refuse", on=0)
     if not r.until(lambda: page.evaluate(STATE)["hidden"], "the banner to go once the stream is back and a fetch is answered", timeout=90, step_ms=2000):
         return False
     s = page.evaluate(STATE)
