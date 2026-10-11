@@ -208,11 +208,19 @@ writes `.rb-lead` ("Session expired. " or "Signed out. ", empty for a lost strea
 (" Reconnecting.", empty for expired and signed out) with `textContent`, each with its own
 spacing.
 
-**Data time.** `lastRead` is the time of the last message the stream delivered, from any event the
-hidden hook lists, `heartbeat` included (the layout adds `sse:heartbeat` to the list; the handler
-only records the time). It starts at page load. With a heartbeat every 15 seconds, the stated time
-is at most about 15 seconds earlier than the true last contact, and never later.
+**Data time.** `lastRead` is the time of the data the page shows. It starts at page load and, while
+the stream is healthy, follows the last message the stream delivered, from any event the hidden
+hook lists, `heartbeat` included (the layout adds `sse:heartbeat` to the list; the handler only
+records the time). With a heartbeat every 15 seconds, the stated time is at most about 15 seconds
+earlier than the true last contact, and never later.
 
+`lastRead` freezes from the first sign of a loss (`htmx:sseError`, the `error` event, the `catch`
+in `refresh()`, `sse:expired`) until a resync succeeds. In that window the reopened stream
+delivers the `open` event, snapshots and heartbeats, and none of them moves `lastRead`: the regions
+on screen are still the render from before the outage, and the banner must not say "data read just
+now" over them. A resync that returned 200 and replaced its regions sets `lastRead` to the moment
+of its answer and ends the freeze. The time the banner states is therefore always the time of the
+data on screen.
 **The time's form is the `time` partial's.** The banner prints the read time the way every other
 time on the pages is printed (`templates/partials.html:13-15`, `internal/ui/view.go:216-232`):
 relative text, the ISO time in `datetime` and the absolute time in `title`
@@ -240,6 +248,20 @@ at 360 px it takes two or three lines beside a Reload link that is 44 px high, a
 bites at large text sizes. The header slims after 48 px of scroll (`.masthead.compact`); the
 banner row keeps its size, because its words and its link are the point of the row.
 
+**The header's height is a variable, and the page keeps clear of it (WCAG 2.2 2.4.11).** A sticky
+header that grows by a banner can cover a focused element: Shift+Tab to a link above the viewport,
+or a fragment link, scrolls it to the top edge, under the header. The base has no
+`scroll-padding`. So `html` carries `scroll-padding-top: calc(var(--masthead-h, 4.5rem) + 8px)`,
+and the sticky details panel takes its offset from the same variable
+(`#detail { top: calc(var(--masthead-h, 72px) + 8px) }`, today `80px`, and its `max-height`
+subtracts the same). The script sets `--masthead-h` from the header's measured height with
+`document.documentElement.style.setProperty` (CSSOM, never a `style` attribute), at load and from a
+`ResizeObserver` on `.masthead`, so it follows the slimmed header after a scroll of 48 px, the wrapped
+header on a phone, a text size of 200 percent and the banner coming and going. Without script the
+variable keeps its fallback, which is the header without a banner. Whether CSSOM `setProperty`
+passes `style-src 'self'` in all three engines is Assumption 6 of the spike; if it does not, the
+fallback is a class on `html` (`has-banner`) with fixed paddings in rem for the compact header, the
+full header and the banner cap, which is coarser and covers the same cases.
 ### Reconnecting: the page is true again before the banner goes
 
 `sse:open` today clears `primed` so the first snapshot of every topic after it is treated as
@@ -255,7 +277,7 @@ new connection until its resync settles, and the rules are these:
 - `htmx:sseOpen` (the connection opened, `portal.js:556`) and the server's `open` event
   (`portal.js:477`) do not set "Live" and do not hide the banner. The live mark keeps the word of
   the loss ("Reconnecting") and the banner stays, so a reader never sees "Live" or an empty header
-  before the page is true again.
+  before the page is true again. They do not move `lastRead` either (see "Data time").
 - On the server's `open` event that is not the first, the script keeps `primed` cleared (so
   snapshots do not hide changes) and marks every topic the page follows dirty (`pageTopics()`),
   so one `refresh()` re-renders all followed regions from one fetch. This is the resync: the
@@ -269,6 +291,11 @@ new connection until its resync settles, and the rules are these:
   `catch` sets "Offline" and the banner stays. The page moved on while the fetch ran
   (`portal.js:304-308`): the topics are marked dirty again and the banner stays until the next
   resync settles.
+- **A failed resync is tried again.** While the page is still `resyncing`, the next stream event of
+  any kind (`open`, a topic snapshot, a heartbeat) marks every followed topic dirty again and
+  `schedule()` runs one more `refresh()`. A heartbeat comes every 15 seconds, so the wait is
+  bounded and the page never stays "Offline" on a stream that is open and delivering. A fetch
+  answered 401 is not retried: the session is gone, and the Reload link is the way out.
 - A loss before the first `open` of a page (the first connection fails once) needs no resync: the
   page was rendered by the server a moment ago, and the first `open` sets "Live" and hides the
   banner.
@@ -362,7 +389,7 @@ here:
 | `templates/panel-body.html` | `data-focus-key` on the five panel links | E3, E4: the rest of the body (`panel.go` fields) |
 | `templates/catalog.html`, `installed.html`, `message.html`, `platform.html` | the `reveal` class removed (SH-A5 removed the CSS; E5 lands last) | none |
 | `templates/object.html`, `events.html` | the fragment root's `data-view` and note | E3: the Events view uses `events-table` |
-| `static/portal.css` | `.region-banner`, `.rb-*`, `.detail-loading`, `.masthead::after`, `.conn-entry`, `time[data-relative]` | E1: tokens |
+| `static/portal.css` | `.region-banner`, `.rb-*`, `.detail-loading`, `.masthead::after`, `.conn-entry`, `time[data-relative]`, `html` `scroll-padding-top`, the `top` and `max-height` of `#detail` | E1: tokens |
 | `internal/ui/refresh_test.go`, `internal/ui/testdata/golden/` | the `reveal` class in the fixture string at `refresh_test.go:72`; goldens regenerated | none |
 | `Taskfile.yml:90` | names added to the `-run` pattern | E0, E2, E3 add names too; a conflict resolves by keeping every name |
 
@@ -467,8 +494,12 @@ under "Live checks" below before any code of sections 2 to 4.
    `htmx:sendAbort`. The spike confirms each kind.
 5. **`heartbeat` reaches the page when its name is in the hook list.** The `htmx-ext-sse` 2.2.4
    extension dispatches `sse:<name>` for the names in `hx-trigger`.
+6. **A script can set a custom property on `html` under the page policy.** `style.setProperty`
+   on the root element, and a `ResizeObserver` on `.masthead`, work with `style-src 'self'` in all
+   three engines, and `scroll-padding-top` and the sticky `#detail` offset follow the property.
 
-If assumption 1 fails (a refresh does replace `#detail`), section 4 shrinks to the YAML and Events
+If assumption 6 fails, the `has-banner` class fallback of "The header's height" replaces the
+variable. If assumption 1 fails (a refresh does replace `#detail`), section 4 shrinks to the YAML and Events
 note. If assumption 3 shows the server always resumes, the resync stays as a cheap guarantee. If
 assumption 4 fails for a case, the registry also clears on `htmx:afterSettle` for its target; if
 that is not enough, the proposal stops and asks.
@@ -488,12 +519,13 @@ that is not enough, the proposal stops and asks.
 - **The banner makes the sticky header taller.** It is the last row of the header, so a reader
   scrolled down a long page sees it, with the data time and the Reload link. The price is that the
   header covers up to the banner's height (capped at 8rem, about 3 lines plus the link at 360 px)
-  of the page while the banner shows, for the whole outage. The header is already sticky and
-  already wraps on a phone; the base has no `scroll-padding-top`, so a focused element can sit
-  under the header today, and a taller header makes that case somewhat more likely. This change
-  does not fix the old case (Unverified). The page below shifts down once when the banner appears;
-  the browser test checks that a heading in view does not jump more than the banner's height, and
-  that the banner is in view after a scroll of 3000 px.
+  of the page while the banner shows, for the whole outage. The base had no `scroll-padding-top`,
+  so a focused element could sit under the header already; this change adds the variable and the
+  padding of "The header's height", so the old case is fixed too. The page below shifts down once
+  when the banner appears; the browser test checks that a heading in view does not jump more than
+  the banner's height, that the banner is in view after a scroll of 3000 px, and that a link
+  reached by Shift+Tab or a fragment link is not covered by the header, with and without the
+  banner.
 - **Re-fetch storm after an outage.** Every client of an outage refreshes once on return. The
   server's page render is the same one the cards already trigger on every change; one fetch per
   client per reconnect is the same cost as a burst of changes.
@@ -528,5 +560,5 @@ banner when the element is missing).
 
 ## Live checks
 
-To be written by section 1 (the spike): for each of assumptions 1 to 5, the browser, the page, the
+To be written by section 1 (the spike): for each of assumptions 1 to 6, the browser, the page, the
 steps and what was seen, with the version of Playwright the image pins.

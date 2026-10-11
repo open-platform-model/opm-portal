@@ -62,7 +62,7 @@ When the stream ends with an `expired` event, the page SHALL close its `EventSou
 not reconnect, and SHALL show in the live mark that the session expired and the page must be
 reloaded, in the live mark's capitalised wording. The page SHALL keep showing what it last
 rendered, and SHALL show a visible banner in the sticky header that says the session expired,
-states the time of the last data the page received in the form of the `time` partial (relative
+states the time of the data the page shows in the form of the `time` partial (relative
 text, the ISO time in `datetime`, the absolute time in UTC in `title`), and carries a Reload link
 that loads the page afresh. The banner SHALL be neither a live region nor given a role: the live
 mark SHALL stay the one announcer.
@@ -71,8 +71,8 @@ mark SHALL stay the one announcer.
 
 - **WHEN** the session of an open page expires
 - **THEN** the live mark reads "Session expired, reload"
-- **AND** the banner reads "Session expired. Showing data read" followed by the age of the last
-  message the stream delivered as a `time` element (relative text, with the instant in
+- **AND** the banner reads "Session expired. Showing data read" followed by the age of the data on
+  screen, the last message the stream delivered before the session expired, as a `time` element (relative text, with the instant in
   `datetime` and in UTC in `title`), with a Reload link
 - **AND** the page makes no further stream request
 
@@ -183,9 +183,9 @@ state SHALL not use a `style` attribute.
 
 When the page's stream is not open (reconnecting, offline, topics refused, or a signed-out
 answer), the page SHALL show a visible banner in the sticky header, so that a reader scrolled down
-the page still sees it, with the live mark's word, the time of the last message the stream
-delivered, and a Reload link. The banner SHALL be neither a live region nor given a role. The page
-SHALL record the time of every stream message, a heartbeat included, and at load.
+the page still sees it, with the live mark's word, the time of the data on screen, and a Reload
+link. The banner SHALL be neither a live region nor given a role. While the stream is healthy the
+page SHALL record the time of every stream message, a heartbeat included, and at load.
 
 #### Scenario: The stream drops
 
@@ -261,7 +261,54 @@ SHALL stay and read "Signed out".
 
 - **WHEN** the stream opens again and the page's fetch is answered with 401
 - **THEN** the live mark reads "Signed out" and the banner stays, reading "Signed out. Showing
-  data read" and the time of the last message
+  data read" and the time of the data on screen
+
+### Requirement: The banner's time is the time of the data on screen
+
+From the first sign of a loss until a resync has succeeded, the time the banner states SHALL not
+move: the `open` event, the snapshots and the heartbeats of the reopened stream SHALL not change
+it. A resync that has succeeded SHALL set it to the moment of its answer.
+
+#### Scenario: The reopened stream delivers a heartbeat
+
+- **WHEN** the stream drops 20 seconds after a heartbeat at 10:42:07 UTC, opens again, and a
+  heartbeat arrives while the page's fetch is pending
+- **THEN** the banner's `time` still carries `datetime="2026-10-11T10:42:07Z"`
+
+### Requirement: A failed resync is tried again
+
+While the page is resyncing, the next stream event of any kind SHALL mark every followed topic dirty
+again, so that one more fetch of the page runs. A fetch answered as signed out SHALL not be tried
+again.
+
+#### Scenario: The fetch fails once
+
+- **WHEN** the stream opens again, the page's fetch fails, and a heartbeat arrives 15 seconds later
+- **THEN** the page fetches again, and when that fetch returns 200 the regions are replaced, the
+  live mark reads "Live" and the banner is hidden
+
+### Requirement: The sticky header never covers a focused element
+
+The page SHALL scroll a focused element or the target of a fragment link clear of the sticky
+header: `html` SHALL carry a `scroll-padding-top` equal to the header's height, raised while the
+banner shows and lowered after it goes, and the sticky details panel SHALL take its offset from
+the same height.
+
+#### Scenario: Shift+Tab to a link above the viewport
+
+- **WHEN** the banner shows, the reader has scrolled down a page, and presses Shift+Tab to a link
+  above the viewport
+- **THEN** the link is scrolled into view below the header and is not covered by it
+
+#### Scenario: The banner goes
+
+- **WHEN** the banner is hidden again
+- **THEN** the scroll padding returns to the height of the header without it
+
+#### Scenario: The details panel under a taller header
+
+- **WHEN** the banner shows on an instance page wider than 1100 px
+- **THEN** the top edge of the sticky details panel sits below the header, not under it
 
 ### Requirement: A node panel is re-rendered with its page
 
@@ -302,8 +349,8 @@ selected node and the open state of its groups.
 ### Requirement: A YAML or Events view says when it is old
 
 A YAML view or an Events view in the details panel SHALL not be re-fetched by a refresh. After a
-refresh in which a followed topic changed, the view SHALL show a note with the absolute time it
-was read, in the form of the `time` partial (relative text, the ISO time in `datetime`, the
+refresh in which a followed topic changed, the view SHALL show a note with the time it was read,
+in the form of the `time` partial (relative text, the ISO time in `datetime`, the
 absolute time in UTC in `title`), the words "The object may have changed since", and a link that
 reloads the view. The note SHALL be plain text from the template.
 

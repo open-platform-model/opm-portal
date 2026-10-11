@@ -39,7 +39,10 @@ not here: `align-shell-and-tokens` owns it.
   existing `time` partial (relative text, the absolute UTC time in `title`) and keeps counting. The
   banner is not a live region and has no role: the existing live mark `#live` stays the one
   announcer. When the stream comes back, the page re-renders every region it follows once, then
-  the banner goes; until that fetch succeeds the live mark keeps the word of the loss.
+  the banner goes; until that fetch succeeds the live mark keeps the word of the loss, and the
+  banner keeps the time of the data on screen, which the reopened stream does not move. A failed
+  fetch is tried again on the next stream event. The page keeps clear of the taller header:
+  `html` carries `scroll-padding-top` equal to the header's height.
 - **The header names the cluster entry.** When the `Cluster` document carries an entry name that
   differs from the context name, the cluster pill shows both, each with its word. It wraps at
   360 px with the longest name. No read, no API change (design.md, "The cluster entry name").
@@ -51,8 +54,8 @@ not here: `align-shell-and-tokens` owns it.
 - **The leftover `reveal` classes go.** `align-shell-and-tokens` removes the animation CSS; this
   change, which lands last, removes the `reveal` class from the templates.
 
-Section 1 is a spike. Two facts the stale panel and the banner rest on are read from source and
-not yet run in a browser (design.md, "Assumptions"). The spike runs them and writes the finding
+Section 1 is a spike. The facts the stale panel, the banner and the header's height rest on are
+read from source and not yet run in a browser (design.md, "Assumptions"). The spike runs them and writes the finding
 into design.md before any code.
 
 **Builds on changes that are merged as plans and not yet implemented.** This proposal is written
@@ -81,7 +84,7 @@ None. The behaviour belongs to the existing `web-ui` capability.
   time changes only its text", "A request open for a second shows a loading bar", "A slow panel
   request marks the details panel busy", "A lost stream shows a banner", "The banner and the stale
   note print their time like every other time", "A stream that returns re-renders before the
-  banner goes", "A resync that has not succeeded keeps the banner", "A node panel is re-rendered with its page" and "A YAML or
+  banner goes", "A resync that has not succeeded keeps the banner", "The banner's time is the time of the data on screen", "A failed resync is tried again", "The sticky header never covers a focused element", "A node panel is re-rendered with its page" and "A YAML or
   Events view says when it is old".
 
 ## Impact
