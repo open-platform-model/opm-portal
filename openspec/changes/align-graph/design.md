@@ -854,6 +854,25 @@ assert end positions and `getAnimations().length`, never a mid-transition positi
 meets the quirk only as one expand animation that jumps. Reduced motion was not part of this spike;
 task 6.4 and 6.6 cover it.
 
+## Visual check
+
+Section 6, task 6.7. Over `TestDevServe` (`OPM_PORTAL_UI_DEV`, and `OPM_PORTAL_UI_DEV_BROKEN=1` for the image-break podinfo), through the pinned Playwright image (Chromium), at 1600 px in light and dark and at 360 px in light. Screenshots read: podinfo, the image-break podinfo, cert-manager at rest, with RBAC open, ungrouped and in full screen, the F1 package and backup-provider. Screenshots are in the launch scratch folder, not in the repository.
+
+What matches the canvas boards: flat panes with a scaled grid, three-line nodes in a health fill and outline, elbow edges without markers, the stacked hatched group box, the dashed frame with its header and Collapse pill, the toolbar order (count, Overview or Expand all and Collapse all, the grouping switch, Fit, Zoom, full screen), a legend under the pane, and a full-screen overlay that fills the window. The dark theme keeps every tone readable. At 360 px the page holds 360 px wide and the graph frame (284 px) takes the overflow; the fit stands at 75 %.
+
+Found and fixed in this section: the toolbar's inline icons were taken for the graph by the scripts' `svg` lookup, which sized the icon instead of the graph (the scripts now name the frame's own SVG); the panel link of a node inside an open group named no `expand`, so the panel came back missing; htmx gave the new stage its old class until it settled, which dropped the full-screen overlay after a swap.
+
+Divergences kept:
+
+- The Applied words stay beside the square on every owner node, as `align-shell-and-tokens` decided.
+- Configuration objects and toned component nodes carry kstatus health, as graph-26 decided, so a healthy component can sit beside a "Current" object.
+- The instance page draws no module node (instance-17).
+- The group frame's header is 12 px and shrinks with the zoom: at the 0.6 fit floor of a 13-component group it reads small. The floor keeps node labels legible; the frame header is the first text to suffer. A larger floor would turn the open group into a page of scrolling. Not changed.
+- Under `group=off` each family is still laid out as a band, so the half-row gaps around bands remain where the canvas draws none.
+- The pane is capped at 760 px and scrolls inside itself when the graph is taller; the canvas grows with the graph.
+- Group fit on a phone-width frame settles at 60 % (the floor of the group fit) while the overview there keeps 75 %.
+- Not captured: the constructed refused package holder, since `TestDevServe` serves only the F1 set, the image-break set and a denied resource; its page is covered by goldens and `TestRegistrationNodeIsTonedByStanding`.
+
 ## Open Questions
 
 None that change the specs or the tasks. The spike (section 1) confirmed three assumptions; its

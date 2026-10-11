@@ -136,11 +136,15 @@
 <div class="graph{{if .Focused}} has-selection{{end}}" data-graph="{{.ID}}"{{with .FitGroup}} data-fit-group="{{.}}"{{end}}{{with .Focus}} data-focus="{{.}}"{{end}}{{with .RestingPanel}} data-resting-panel="{{.}}"{{end}}>
   <div class="graph-tools" role="group" aria-label="Graph view">
     <span class="hint">Select a box to see its details on the right.</span>
-    {{with .Whole}}<a class="tool-link" href="{{.}}" data-whole-graph>Whole graph</a>{{end}}
+    <span class="graph-count" data-box-count>{{.Shown}} of {{.Total}} boxes</span>
+    {{with .Overview}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-overview title="{{$.OverviewTitle}}"><svg class="ic" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5"/></svg>Overview <span class="tool-key">Esc</span></a>{{end}}
+    {{with .ExpandAll}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-expand-all>Expand all</a>{{end}}
+    {{with .CollapseAll}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-collapse-all>Collapse all</a>{{end}}
+    {{with .Switch}}<a class="tool-link tool-pill group-switch{{if .On}} is-on{{end}}" href="{{.Href}}" hx-boost="false" data-group-switch>Group configuration: {{if .On}}<svg class="ic" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6.5 2.5 2.5 4.5-5.5"/></svg>{{end}}<span class="sw-state">{{.Text}}</span></a>{{end}}
     <a class="tool-link" href="{{.Clear}}" hx-boost="false" data-clear-selection{{if not .Focused}} hidden{{end}}>Clear selection</a>
-    <button type="button" data-zoom="fit">Fit</button>
-    <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
-    <button type="button" data-graph-full aria-pressed="false">Full screen</button>
+    <button type="button" data-zoom="fit" aria-pressed="true">Fit</button>
+    <label class="zoom-label" title="Or hold Ctrl and scroll over the graph"><span>Zoom</span> <input type="range" min="30" max="200" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
+    <button type="button" class="full-btn" data-graph-full aria-pressed="false" aria-label="Show the graph full screen" title="Show the graph full screen"><svg class="ic ic-enter" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><svg class="ic ic-exit" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg></button>
   </div>
   <div class="graph-frame">
   <svg viewBox="0 0 {{.Width}} {{.Height}}" width="{{.Width}}" height="{{.Height}}" role="group" aria-label="Relationship graph">

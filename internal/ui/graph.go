@@ -59,14 +59,32 @@ type svgGraph struct {
 	// it was expanded.
 	FitGroup string
 	// Focused: a node is selected or spotlit; Clear is the graph without
-	// either and Whole the graph with no group expanded, when one is.
+	// either.
 	Focused bool
 	Clear   string
-	Whole   string
+	// Overview is the graph with nothing expanded, offered while a group is
+	// open; ExpandAll and CollapseAll open and close every configuration
+	// group; Switch turns grouping of configuration on and off. Shown and
+	// Total count the boxes drawn and the boxes there are with every group
+	// expanded.
+	Overview      string
+	OverviewTitle string
+	ExpandAll     string
+	CollapseAll   string
+	Switch        *groupSwitch
+	Shown, Total  int
 	// Focus is the spotlit node, which dims what lies outside its chain;
 	// RestingPanel is the panel the page shows when nothing is selected.
 	Focus        string
 	RestingPanel string
+}
+
+// groupSwitch is the Group configuration switch: a link that reads its
+// state in text.
+type groupSwitch struct {
+	Href string
+	On   bool
+	Text string
 }
 
 type svgNode struct {
@@ -295,7 +313,114 @@ func buildGraph(g v1.Graph, p graphParams) svgGraph {
 	}
 	out.Edges = d.edgesOf(locked, lit)
 	out.Frames = d.frames(out.Columns)
+	d.toolbar(&out)
 	return out
+}
+
+// panelHref is the panel fragment of node id. It carries the page's open
+// groups, or the fragment could not find a member of one.
+func (d *drawing) panelHref(id string) string {
+	q := url.Values{"id": {id}}
+	for _, e := range d.expanded {
+		q.Add("expand", e)
+	}
+	if d.ungrouped {
+		q.Set("group", "off")
+	}
+	return d.panel + "?" + q.Encode()
+}
+
+func isConfigGroup(id string) bool { return strings.HasPrefix(id, configGroupPrefix) }
+
+// toolbar sets the links and the count of the view controls. Configuration
+// groups open one at a time from a node (the accordion); Expand all opens
+// every one, Collapse all closes them, Overview closes every group, and
+// the switch shows the components ungrouped.
+func (d *drawing) toolbar(out *svgGraph) {
+	out.Shown, out.Total = d.boxCount()
+	if d.ungrouped {
+		q := url.Values{"tab": {tabGraph}}
+		for _, e := range d.expanded {
+			q.Add("expand", e)
+		}
+		out.Switch = &groupSwitch{Href: d.page + "?" + q.Encode(), Text: "Ungrouped"}
+		return
+	}
+	other, open, closed := d.groupSets(out.Frames)
+	link := func(ids ...[]string) string {
+		q := url.Values{"tab": {tabGraph}}
+		for _, set := range ids {
+			for _, id := range set {
+				q.Add("expand", id)
+			}
+		}
+		return d.page + "?" + q.Encode()
+	}
+	if len(d.expanded) > 0 {
+		out.Overview = link()
+		out.OverviewTitle = "Close the open groups and go back to the overview"
+		if len(open) == 1 && len(other) == 0 {
+			out.OverviewTitle = "Close " + firstOf(familyText[open[0][strings.LastIndex(open[0], "/")+1:]], "Configuration") + " and go back to the overview"
+		}
+	}
+	if len(closed) > 0 {
+		out.ExpandAll = link(other, open, closed)
+	}
+	if len(open) > 0 {
+		out.CollapseAll = link(other)
+	}
+	if len(closed)+len(open) > 0 {
+		q := url.Values{"tab": {tabGraph}, "group": {"off"}}
+		for _, e := range d.expanded {
+			q.Add("expand", e)
+		}
+		out.Switch = &groupSwitch{Href: d.page + "?" + q.Encode(), On: true, Text: "Grouped"}
+	}
+}
+
+// groupSets splits the page's groups: the expanded ones that are not
+// configuration groups, the open configuration groups (the frames) and the
+// closed ones (the group nodes).
+func (d *drawing) groupSets(frames []svgFrame) (other, open, closed []string) {
+	for i := range frames {
+		open = append(open, frames[i].Group)
+	}
+	for _, e := range d.expanded {
+		if !isConfigGroup(e) && !slices.Contains(other, e) {
+			other = append(other, e)
+		}
+	}
+	for i := range d.g.Nodes {
+		if n := &d.g.Nodes[i]; n.Group != nil && isConfigGroup(n.ID) && !d.dropped[n.ID] {
+			closed = append(closed, n.ID)
+		}
+	}
+	return other, open, closed
+}
+
+// boxCount is how many boxes the graph draws and how many it would draw
+// with every group expanded: a closed group stands for its members, the
+// objects they hold and the objects the node cap hid.
+func (d *drawing) boxCount() (shown, total int) {
+	hidden := 0
+	for i := range d.g.Nodes {
+		n := &d.g.Nodes[i]
+		if d.dropped[n.ID] {
+			continue
+		}
+		shown++
+		if n.Group == nil {
+			continue
+		}
+		hidden += len(n.Group.Members) - 1
+		for _, c := range n.Group.ObjectKinds {
+			hidden += c.Count
+		}
+		for _, c := range n.Group.Hidden {
+			hidden += c.Count
+		}
+	}
+	return shown, shown + hidden
 }
 
 // chain returns id, its ancestors (edges walked backward) and its
@@ -408,9 +533,13 @@ func (d *drawing) groupLink(n *svgNode, gn *v1.GraphNode) {
 		return
 	}
 	n.Group = true
+	// A configuration group opens on its own: the other configuration
+	// groups close, the expanded groups of any other kind stay.
 	q := url.Values{"tab": {"graph"}}
 	for _, e := range d.expanded {
-		q.Add("expand", e)
+		if !isConfigGroup(gn.ID) || !isConfigGroup(e) {
+			q.Add("expand", e)
+		}
 	}
 	q.Add("expand", gn.ID)
 	q.Set("fit", gn.ID)
@@ -499,7 +628,7 @@ func (d *drawing) nodeOf(n *v1.GraphNode) svgNode {
 		Aria:    nodeAria(n, word, status),
 		Href:    d.nodeHref(n.ID),
 		Card:    d.cardOf(n, word, locked, state),
-		Panel:   d.panel + "?" + url.Values{"id": {n.ID}}.Encode(),
+		Panel:   d.panelHref(n.ID),
 		Locked:  locked,
 		Applied: n.Reconcile != nil && !locked,
 		RingX:   x - ringGap, RingY: n.Y - ringGap, RingW: w + 2*ringGap, RingH: d.g.Layout.NodeHeight + 2*ringGap,

@@ -624,9 +624,6 @@ func (h *Handler) selectInGraph(r *http.Request, v *ownerView, g *v1.Graph) {
 	if shown := firstOf(v.Focus, firstOf(v.Node, resting)); shown != "" {
 		v.Panel = h.panel(r, g, shown, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer, resting: resting})
 	}
-	if len(q["expand"]) > 0 {
-		v.Graph.Whole = v.Base + "?tab=" + tabGraph
-	}
 	v.Graph.Clear = linkWithout(v.Base, q, "focus", "node")
 	v.Graph.Focused = v.Panel != nil && !v.Panel.Missing && (v.Focus != "" || v.Node != "")
 	if v.Panel != nil && !v.Panel.Resting {
@@ -634,11 +631,32 @@ func (h *Handler) selectInGraph(r *http.Request, v *ownerView, g *v1.Graph) {
 	}
 }
 
+// fetchGraph reads the graph document. With group=off it reads again with
+// every configuration group expanded, so the components show ungrouped.
+func (h *Handler) fetchGraph(r *http.Request, path string, g *v1.Graph) *v1.Problem {
+	q := graphQuery(r)
+	if p := h.fetch(r, path, q, g); p != nil || r.URL.Query().Get("group") != "off" {
+		return p
+	}
+	more := false
+	for i := range g.Nodes {
+		if n := &g.Nodes[i]; n.Group != nil && isConfigGroup(n.ID) {
+			q.Add("expand", n.ID)
+			more = true
+		}
+	}
+	if !more {
+		return nil
+	}
+	*g = v1.Graph{}
+	return h.fetch(r, path, q, g)
+}
+
 // ownerTabsOf reads what the cards and the open tab show.
 func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	q := r.URL.Query()
 	var g v1.Graph
-	if v.GraphProblem = h.fetch(r, v.Base+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
+	if v.GraphProblem = h.fetchGraph(r, v.Base+"/graph", &g); v.GraphProblem == nil {
 		h.selectInGraph(r, v, &g)
 	}
 	// The Resources count comes before the tab switch: annotateResources

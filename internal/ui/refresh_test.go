@@ -2,6 +2,7 @@ package ui
 
 import (
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -391,5 +392,27 @@ func TestANewEventReplacesTheTabCountAndNothingElse(t *testing.T) {
 	strip := func(s string) string { return count.ReplaceAllString(tabsOf(s), "") }
 	if strip(before) != strip(after) {
 		t.Errorf("the strips differ beyond the count:\n%s\n%s", strip(before), strip(after))
+	}
+}
+
+// TestARefreshKeepsTheOpenGroupAndTheSelection: the refresh fetches the
+// page's own address, so the fresh render holds the same open group, the
+// same frame and the same selected node as the page it replaces.
+func TestARefreshKeepsTheOpenGroupAndTheSelection(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	path := "/instances/cert-manager/cert-manager?tab=graph&expand=" + url.QueryEscape(cmRBAC)
+	page := mainOf(s.get(t, path).body)
+	member := regexp.MustCompile(`data-node="([^"]*)" data-member-of=`).FindStringSubmatch(page)
+	if member == nil {
+		t.Fatal("no member in the open group")
+	}
+	path += "&node=" + url.QueryEscape(member[1])
+	for i, body := range []string{mainOf(s.get(t, path).body), mainOf(s.get(t, path).body)} {
+		if strings.Count(body, `class="group-frame-box"`) != 1 || !strings.Contains(body, `data-frame-for="`+cmRBAC+`"`) {
+			t.Errorf("render %d: the open group has no frame", i)
+		}
+		if !regexp.MustCompile(`data-node="` + regexp.QuoteMeta(member[1]) + `"[^>]*aria-current="true"`).MatchString(body) {
+			t.Errorf("render %d: the selected member is not marked", i)
+		}
 	}
 }

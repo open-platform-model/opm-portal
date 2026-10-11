@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending; phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`align-graph` built and in review: groups per kind family, drawing, selection, fit, zoom and full screen; `align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending).
 
 ## Where it stands
 
@@ -93,12 +93,17 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      state blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
      over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, and
      `prune` on packages.
-   - `align-graph`, after the gate, beside `align-owner-pages`: configuration grouped per kind
+   - `align-graph` (in review; built in six sections, review and archive next), beside `align-owner-pages`: configuration grouped per kind
      family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
      legend, selection apart from the spotlight, registration standing on its node, and the
      package's source read as the caller (portal:D20). It and `align-owner-pages` share files,
      no requirement, and one function, `ownerTabsOf`, where both read the `node` and `focus`
-     parameters; the split is in both proposals.
+     parameters; the split is in both proposals. The visual check against the canvas boards left
+     four divergences kept on purpose, in the change's design.md under "Visual check": the group
+     frame header is small at the 0.6 fit floor, the graph pane is capped at 760 px and scrolls,
+     the band keeps half-row gaps under `group=off`, and the Applied words stay. Open for the owner:
+     the registration panel names the provider only from the controller's verdict, since the
+     instance graph carries no `providerRef`.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,

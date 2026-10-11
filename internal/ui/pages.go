@@ -478,7 +478,7 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		base := k.base(r.PathValue("namespace"), r.PathValue("name"))
 		var g v1.Graph
-		if p := h.fetch(r, base+"/graph", graphQuery(r), &g); p != nil {
+		if p := h.fetchGraph(r, base+"/graph", &g); p != nil {
 			h.renderProblemFragment(w, r, p)
 			return
 		}

@@ -256,11 +256,14 @@ func links(n *v1.GraphNode, ctx panelContext) (open, yamlView, events string) {
 }
 
 // expandLink is the Graph tab with group id added to the expanded groups,
-// fitted to its members.
+// fitted to its members. A configuration group opens on its own: the other
+// configuration groups close.
 func expandLink(r *http.Request, id string, ctx panelContext) string {
 	q := url.Values{"tab": {tabGraph}}
 	for _, e := range r.URL.Query()["expand"] {
-		q.Add("expand", e)
+		if !isConfigGroup(id) || !isConfigGroup(e) {
+			q.Add("expand", e)
+		}
 	}
 	q.Add("expand", id)
 	q.Set("fit", id)

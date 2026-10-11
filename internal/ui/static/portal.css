@@ -653,12 +653,28 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .detail .frag-h { padding-right: 36px; }
 .tone-box { margin: 10px 0 0; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); font-size: 0.85rem; overflow-wrap: anywhere; }
 .zoom-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }
-.zoom-label input { width: 110px; }
+.zoom-label input { width: 180px; }
 .graph-stage { min-width: 0; }
 .graph-stage > .panel { height: 100%; }
-.graph-stage.graph-full { position: fixed; inset: 0; z-index: 50; background: var(--surface); overflow: auto; }
-.graph-stage:fullscreen { background: var(--surface); overflow: auto; }
-.graph-stage.graph-full .graph-frame, .graph-stage:fullscreen .graph-frame { max-height: calc(100vh - 160px); }
+/* Full screen is a fixed overlay over the page, not the browser's: Esc then
+   reaches the page, which steps back one thing per press. */
+.graph-stage.graph-full { position: fixed; inset: 0; z-index: 50; background: var(--surface); display: flex; flex-direction: column; }
+.graph-stage.graph-full > .panel { flex: 1; min-height: 0; display: flex; flex-direction: column; height: auto; border-radius: 0; margin: 0; }
+.graph-stage.graph-full .graph { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0; }
+.graph-stage.graph-full .graph-frame { flex: 1; min-height: 0; max-height: none; }
+body:has(.graph-stage.graph-full) { overflow: hidden; }
+.graph-count { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.tool-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border: 1px solid var(--control-border); border-radius: 999px; background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 600; }
+.tool-pill:hover { border-color: var(--accent); color: var(--accent-deep); }
+.tool-key { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 400; color: var(--ink-2); }
+.graph-tools .ic { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.group-switch .sw-state { font-weight: 700; }
+.group-switch.is-on { border-color: var(--accent); }
+.graph-tools button[aria-pressed="true"][data-zoom] { background: var(--accent-field); border-color: var(--accent); color: var(--accent-deep); }
+.graph-tools .full-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 32px; padding: 0; }
+.graph-tools .full-btn .ic { width: 16px; height: 16px; }
+.full-btn .ic-exit, .full-btn[aria-pressed="true"] .ic-enter { display: none; }
+.full-btn[aria-pressed="true"] .ic-exit { display: inline; }
 
 /* ---- Catalogs and registrations ---- */
 
@@ -740,17 +756,19 @@ li.object.locked { margin: 4px 0 4px 4px; }
 
 /* ---- Graph ---- */
 
-.graph { border: 1px solid var(--line); border-radius: 8px; background:
-  linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
-  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
-  var(--surface-2); min-width: 0; }
-.graph-frame { overflow: auto; max-height: 70vh; cursor: grab; overscroll-behavior: contain; }
+.graph { border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); min-width: 0; overflow: hidden; }
+/* The pane's grid scales with the graph and scrolls with it: the script sets
+   --grid-size to 24 px times the scale through the CSSOM. */
+.graph-frame { overflow: auto; max-height: 760px; cursor: grab; overscroll-behavior: contain; --grid-size: 24px; background:
+  linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / var(--grid-size) var(--grid-size) local,
+  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / var(--grid-size) var(--grid-size) local,
+  var(--surface-2); }
 .graph-frame.dragging { cursor: grabbing; user-select: none; }
-.graph svg { display: block; max-width: none; }
+.graph-frame > svg { display: block; max-width: none; margin: 0 auto; }
 .graph-tools { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 @media (max-width: 520px) { .graph-tools .hint { flex-basis: 100%; } }
 .graph-tools .hint { margin-right: auto; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
-.graph-tools button { padding: 3px 10px; min-width: 38px; white-space: nowrap; font-family: var(--font-mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
+.graph-tools button { font-size: 0.8rem; padding: 3px 10px; min-width: 38px; white-space: nowrap; font-family: var(--font-mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
 .graph-tools button:hover { background: var(--accent); color: var(--accent-ink); }
 .col-title { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; fill: var(--muted); }
 .edge { fill: none; stroke: var(--edge); stroke-width: 2; }
@@ -945,4 +963,17 @@ li.object.locked { margin: 4px 0 4px 4px; }
 @keyframes settle {
   0% { box-shadow: 0 0 0 3px var(--accent-soft); }
   100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+/* ---- Graph motion: the zoom of Fit, the slider and group fit, a group's
+   members leaving their node, and the frame and edges fading in. Wheel zoom
+   never animates. Nothing moves under reduced motion. ---- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .graph.zoom-anim .graph-frame > svg { transition: width 300ms ease, height 300ms ease; }
+  .graph.expanding .group-frame-box, .graph.expanding .edge { animation: graph-fade 260ms ease-out; }
+}
+
+@keyframes graph-fade {
+  from { opacity: 0; }
 }
