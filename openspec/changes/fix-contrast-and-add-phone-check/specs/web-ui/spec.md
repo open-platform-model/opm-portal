@@ -55,8 +55,7 @@ luminance formula and is not rounded.
 
 The border of a text input or select SHALL have a contrast ratio of at least 3:1 against the fill
 of the field and against each surface a field is drawn on, in the light and the dark theme, whether
-the field is empty or filled. An empty field SHALL draw its border with the control-border token;
-a filled field keeps the accent token. Borders that only decorate a control that has a text label
+the field is empty or filled. Borders that only decorate a control that has a text label
 are not held to this ratio.
 
 #### Scenario: A filter field on its panel
