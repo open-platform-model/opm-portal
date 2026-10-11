@@ -7,7 +7,7 @@ with a meta-refresh page that moves on to the instance list JSON. There is no HT
 
 Sources: portal:D2 (the UI consumes the API in-process from the same documents), portal:D3 (two
 axes), portal:D4 (graphs, contracts as text, accepted and active apart), portal:D5:R7 (locked shown
-up front), portal:D8 (no Secret data, no values, no last-applied), portal:D9 (events feed)
+up front), portal:D8 (no Secret data, no values, no last-applied), portal:D9 (events feed), portal:D10
 (logs). Owner: "Go API + HTMX on top"; "Keep the seam". Where this design and the withdrawn portal enhancement disagree, the withdrawn portal enhancement
 wins.
 
