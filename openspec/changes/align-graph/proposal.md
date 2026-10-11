@@ -36,9 +36,10 @@ Ready state, its revision, and "kind not installed" when the CRD is missing).
   Bucket, chosen by kind alone and always read in `source.toolkit.fluxcd.io`, as the controller
   does. A Ready source with no artifact is shown as having none, as the controller treats it. The
   server re-checks discovery for those kinds on a timer, so a Flux installed after the portal
-  starts stops reading "Kind not installed" within minutes. The Flux condition message is text a
-  controller wrote, so the read model cuts it to 1024 characters before anything serves it, in
-  local mode and in-cluster. The package graph's source node takes
+  starts stops reading "Kind not installed" within minutes. The Flux condition's message, reason
+  and the artifact revision are text a controller wrote, so the API's source lookup cuts them
+  (message 1024, reason 256, revision 256 Unicode code points) before the document, the graph or
+  the page holds them, in local mode and in-cluster. The package graph's source node takes
   a health from the source's state, so the Resources tab's source row and the node's fill agree.
 - **Web UI, drawing** (`internal/ui`): three-line nodes (kind, name, status line) filled and
   outlined in their health tone, cluster-made nodes dashed, the applied square kept; elbow edges
@@ -94,14 +95,14 @@ Node, Restarts), which `align-owner-pages` adds (`instance-28`); health for the 
 Configuration objects keep their kstatus health (supervisor ruling 2026-10-06, gap `graph-26`).
 
 **Shared helper with `align-owner-pages`.** Both changes cut cluster text before the portal serves
-it: this change the Flux condition message, `align-owner-pages` the event notes. They use one helper,
-`capText(s string, n int) string` (at most `n` runes: `s` itself when it fits, else its first
-`n-1` runes and `…`; contract in design.md "Capping the served Flux message"). Whichever change
-merges first adds it; the second uses it as it stands. The ruling of 2026-10-11 names package
-`internal/ui` for it unless the code holds a better place. It does: `internal/ui` imports no
-`internal/` package and reads wire documents, so a cut there would leave the JSON document uncapped
-and `internal/api` could not call it. This change puts the helper in `internal/readmodel`, where the
-cluster's text enters the portal.
+it: this change the Flux condition's message, reason and revision, `align-owner-pages` the event
+notes. They use one helper, the exported `readmodel.CapText(s string, limit int) string` in
+`internal/readmodel/cap.go` (at most `limit` Unicode code points: `s` itself when it fits, else its
+first `limit-1` code points and `…`; contract in design.md "Capping the served Flux text").
+Whichever change merges first adds it; the second uses it as it stands. Each change calls it where
+it converts the served text: this change in the `internal/api` source lookup, `align-owner-pages` in
+`eventListDoc`. `internal/ui` imports no `internal/` package and reads wire documents, so a cut
+there would leave the JSON document uncapped and `internal/api` could not call it.
 
 **Shared-file rule with `align-owner-pages`** (integrator, 2026-10-06; the same text stands in both
 proposals). The two changes run in parallel after `align-shell-and-tokens` and share files,
@@ -167,8 +168,8 @@ None.
   `source.toolkit.fluxcd.io` (the kinds the controller reads, opm-operator
   `internal/source/resolve.go:18-22`), after the caller's access review and the reader's own, never
   with list or watch, and never following the source's `secretRef`. It serves the Ready
-  condition's status, reason and message, the message cut to 1024 characters, and
-  `status.artifact.revision`; never the artifact URL.
+  condition's status, reason and message and `status.artifact.revision`, cut to 1024, 256 and 256
+  Unicode code points; never the artifact URL.
   A Secret is still refused before any review. A caller who may not get the source sees it
   locked, also when the source sits in another namespace than its package, where the review is made
   in that namespace; a kind the cluster does not serve is read from discovery without a review, as
@@ -179,16 +180,17 @@ None.
   layout idea; the gap report shows a frame without it encloses non-members (`graph-21`).
 - SemVer: MINOR after 1.0 (additive API, changed pages). On the 0.x line it ships as one PR titled
   `feat(ui): draw and explore the graph as the canvas does`, which cuts a minor release.
-- Decisions: amends portal:D4 (R5: groups per kind family; opening one closes the others, and
-  Expand all opens every family) and portal:D1 (the source read), and adds portal:D20:R6 to the
-  D20 that records the source read (on `main` since PR 40): the served Flux message is cut to 1024
-  characters. The owner answered yes on 2026-10-11 to recording the cap; D20:R4 and the in-cluster
-  display stay as decided, and `docs/DESIGN.md` changes in this change's PR. It also records under
+- Decisions: implements portal:D4:R5 (groups per kind family; opening one closes the others, and
+  Expand all opens every family) and portal:D20 (the source read) as they stand on `main` since
+  PR 40, and adds portal:D20:R6 to that D20: the served Flux message is cut to 1024 Unicode code
+  points, and the Ready reason and the artifact revision to 256 each. The owner answered yes on
+  2026-10-11 to recording the cap; D20:R4 and the in-cluster display stay as decided, and
+  `docs/DESIGN.md` changes in this change's PR. It also records under
   portal:D3 the supervisor ruling that configuration objects keep kstatus health and that a
   registration node's fill and outline carry its standing. Keeps portal:D3:R1 (outline and fill
   carry health, a separate square carries applied), portal:D4:R1/R3, portal:D8 and portal:D17.
 - Main-spec requirements touched: `graph-model` "Configuration components are grouped by default"
-  (REMOVED, replaced by an ADDED requirement) and "Layout is deterministic" (MODIFIED: the band is
+  (REMOVED, replaced by ADDED requirements) and "Layout is deterministic" (MODIFIED: the band is
   the one exception to barycenter order); `web-ui` "Graphs are server-rendered, accessible SVG"
   and "Graphs can be explored without leaving the page" (MODIFIED). Everything else is ADDED under
   new names.

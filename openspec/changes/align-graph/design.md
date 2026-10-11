@@ -179,7 +179,7 @@ type SourceState struct {
 	Access    health.Access   // ok, forbidden, notReadable; empty when nothing was asked
 	Readiness SourceReadiness
 	Reason    string // the Ready condition's
-	Message   string // the Ready condition's, as source-controller wrote it, cut by capText (AG-A1)
+	Message   string // the Ready condition's, as source-controller wrote it
 	Revision  string // status.artifact.revision
 }
 
@@ -211,18 +211,21 @@ package itself is authorized and read, the way `lookupProvider` does for the pla
    controller does, `resolve.go:41-44`) and name. Refused: access `forbidden`, nothing read. A
    `sourceRef.namespace` that differs from the package's is reviewed in that namespace, never in
    the package's: a caller who may read the package in A and not the source in B sees the source
-   locked, and the cluster receives no `get` for it (AG-A2; the access review names group, kind,
+   locked, and the cluster receives no `get` for it (AG-A2; the access review names group, resource,
    namespace and name).
 4. `Model.Source`: `covers`, then `readerMay("get", ...)` (false: access `notReadable`), then one
    `Get`. NotFound: `NotFound`. Otherwise the Ready condition (`status.conditions[type=Ready]`) as
    `Ready` (`True` with a `status.artifact`), `NoArtifact` (`True` with no `status.artifact`),
    `NotReady` (`False`) or `Unknown` (`Unknown` or absent), with its reason and message, and
-   `status.artifact.revision`. The message is cut to 1024 characters by `capText` before it
-   enters the state, so every consumer (the package document, the graph node's health, the
-   panel, the card) holds the cut text (AG-A1). `status.artifact.url` is never read into the state. This follows
-   the controller's own test (`resolve.go:60-73`), which counts Ready with no artifact as not
-   ready (`:66-69`); `NoArtifact` names that case instead of calling it ready or inventing a
-   reason.
+   `status.artifact.revision`, as the cluster holds them. `status.artifact.url` is never read into
+   the state. This follows the controller's own test (`resolve.go:60-73`), which counts Ready with
+   no artifact as not ready (`:66-69`); `NoArtifact` names that case instead of calling it ready or
+   inventing a reason.
+5. Cut the served text. The lookup in `internal/api` (the one place the state is converted for
+   serving) cuts the message to 1024 Unicode code points, and the reason and the revision to 256
+   each, with `readmodel.CapText`, once, before it hands the state to `graph.Package` and to the
+   wire conversion. Every consumer (the package document, the graph node's health, the panel, the
+   card) holds the cut text, in local mode and in-cluster (AG-A1, SR3).
 
 A failed lookup never fails the package document or its graph; it is the state. Wire:
 
@@ -252,10 +255,11 @@ it:
 
 The source node's health is the graph's only; it is not counted in the package's own health,
 which still rolls up its inventory (portal:D3). `align-owner-pages` builds the Resources tab's
-source row from this node's health, so the row and the node agree. In-cluster the message is served
-as source-controller wrote it, not the operator, which the in-cluster omission already allows for
-other writers' text, up to the cap of 1024 characters; a longer message is cut and ends with an
-ellipsis, in local mode and in-cluster alike (AG-A1, portal:D20:R6).
+source row from this node's health, so the row and the node agree. In-cluster the message, the
+reason and the revision are served as source-controller wrote them, not the operator, which the
+in-cluster omission already allows for other writers' text, up to their caps (1024, 256 and 256
+Unicode code points); a longer value is cut and ends with an ellipsis, in local mode and in-cluster
+alike (AG-A1, portal:D20:R6).
 
 Authorization: `get` on `source.toolkit.fluxcd.io` `ocirepositories`, `gitrepositories` or
 `buckets` in one namespace, by name, for the caller (SelfSubjectAccessReview locally,
@@ -339,9 +343,11 @@ RBAC, webhooks, other). Click to open; one opens at a time" (hatched stacked box
 outline: health", `<kbd>Ctrl</kbd> + scroll to zoom`, `<kbd>Esc</kbd> to step back`. A graph that
 draws a source node (a package graph) adds a third origin, "Read by the controller, owned by
 Flux" (the canvas's words for it), as a solid box with no applied square, beside the first two;
-an instance graph draws no source node and no such entry, so the legend names every mark its graph
-draws (AG-A3). The source node's own card keeps "The source the package reads" (`originText`). The
-toolbar hint becomes "Select a box to see its details on the right."
+an instance graph draws no source node and no such entry (AG-A3). A source node, a component and a `dependsOn` package are all solid and carry no
+applied square, so the entry cannot tell them apart by its swatch; it says so in words: after "Read
+by the controller, owned by Flux" it adds "Components and dependency packages are drawn the same
+way". The source node's card takes the same origin words in place of "The source the package
+reads" (`originText`), so the legend and the card name one origin. The toolbar hint becomes "Select a box to see its details on the right."
 
 When the owner's `inventoryCount` is 0 and `lastAppliedAt` is absent, `buildGraph` adds a ghost: a
 dashed box one column right of the rightmost root-side node, joined by a dashed edge, reading
@@ -590,37 +596,51 @@ watches, guarded by a REST mapping check, so a missing CRD is expected).
 **Rationale**: It shows what the cluster says about the source, and nothing a package author could
 point the portal at beyond what the controller itself would read.
 
-### Capping the served Flux message (AG-A1)
+### Capping the served Flux text (AG-A1)
 
-**Context**: The Ready condition's message is text a Flux controller wrote from errors it met
-(registry replies, URLs, file paths). D20:R4 serves it, and the owner decided on 2026-10-06 to
-serve it in-cluster as well (D20:R4 stays). The first draft of this change served it without a
-length limit; a Kubernetes condition message may be 32768 bytes, and the portal puts it in the
-package document, the graph node's health, the panel and the card (SR3).
+**Context**: The Ready condition's message, its reason and the artifact revision are text a Flux
+controller wrote from errors it met (registry replies, URLs, file paths). D20:R4 serves them. D20
+records no mode for them; serving them in-cluster as well rests on the supervisor rulings of
+2026-10-11, which the owner accepted. The first draft of this change served the message without a
+length limit and called the reason "one Flux word". The pinned `metav1.Condition` allows a message
+of 32768 bytes and a reason of 1024 characters, and `status.artifact.revision` has no maximum
+(`k8s.io/apimachinery` `pkg/apis/meta/v1/types.go`; `fluxcd/pkg/apis/meta` `artifact.go`). The
+portal puts the three fields in the package document, the graph node's health, the panel and the
+card (SR3).
 **Explored**: no non-test file of `internal/ui` imports an `internal/` package; it reads the wire
-documents (`internal/ui/fetch.go:9` imports `api/v1alpha1`); `internal/api` imports `internal/readmodel`, `internal/graph` and
-`internal/health`, never `internal/ui`. The only text cut in `internal/ui` today is `clipMiddle` for
-labels (`internal/ui/graph.go:356`), which keeps head and tail and is not a cap on served text.
+documents (`internal/ui/fetch.go:9` imports `api/v1alpha1`); `internal/api` imports
+`internal/readmodel`, `internal/graph` and `internal/health`, never `internal/ui`. The only text cut
+in `internal/ui` today is `clipMiddle` for labels (`internal/ui/graph.go:358`), which keeps head and
+tail and is not a cap on served text.
 **Options considered**:
 1. Cut in `internal/ui` when the panel and card draw it - leaves the JSON document uncapped, and
    `internal/api` cannot reach the helper.
-2. Cut in `internal/api` when it builds the wire value - the graph node's health message is built
-   in `internal/graph` from the same state, so it needs a second cut.
-3. Cut once in `internal/readmodel` as `Model.Source` fills `SourceState.Message` - every consumer
-   holds the cut text.
-**Decision**: Option 3. A function `capText(s string, n int) string` in `internal/readmodel`
-returns `s` when it has at most `n` runes, and otherwise its first `n-1` runes followed by `…`, so
-the result has at most `n` runes and never splits a rune. `Source` calls it with
-`maxSourceMessage = 1024`. It cuts the message only; the Ready reason, which is one Flux word, and
-the revision are not cut here. The cap applies in local mode and in-cluster. Portal:D20 gains the
-requirement R6 in `docs/DESIGN.md` (next free number, R1 to R5 kept; the owner answered "yes" to
+2. Cut in `internal/readmodel` as `Model.Source` fills the state - the read model would return
+   less than the cluster holds, and the ruling of 2026-10-11 puts the call where the text is
+   converted for serving.
+3. Cut once in `internal/api`, in the source lookup that hands the state to `graph.Package` and to
+   the wire conversion, with the exported `readmodel.CapText` - every consumer holds the cut text.
+**Decision**: Option 3. `CapText(s string, limit int) string` in `internal/readmodel/cap.go`
+returns `s` when it has at most `limit` Unicode code points, and otherwise its first `limit-1` code
+points followed by `…`, so the result has at most `limit` code points and is cut between code
+points. The source lookup calls it with `maxSourceMessage = 1024`, `maxSourceReason = 256` and
+`maxSourceRevision = 256`, in local mode and in-cluster. Portal:D20 gains the requirement R6 in
+`docs/DESIGN.md` naming all three (next free number, R1 to R5 kept; the owner answered "yes" to
 recording it on 2026-10-11).
-**Rationale**: One cut at the point the cluster's text enters the portal covers the document, the
-graph and the page in both modes. The ruling of 2026-10-11 names `capText` in `internal/ui`
-unless the existing code holds a better place; it does, for the reason in "Explored".
-`align-owner-pages` caps event notes (its own plan); whichever of the two changes merges first
-adds `capText` with this contract and the second uses it. The value (1024) is one constant here;
-the length each change passes is its own.
+**Consequences**: A cut message loses its tail, and Flux often puts the wrapped cause there; the
+full text stays in the cluster (`kubectl describe`), and the portal never shows a cut value as if
+it were whole, since the ellipsis marks it. A code point cut can split a base character from a
+combining mark: the cap promises valid text, not whole grapheme clusters.
+**Why these values**: 1024 holds several lines of Flux error text and is far below the 32768-byte
+limit of the field; the card clips again to 120 runes for display. 256 is above any real Flux
+reason or revision (a revision such as `sha256:<64 hex>` or `<branch>@sha1:<40 hex>` is under 100
+characters) and keeps a hostile value from filling a status line. They are constants here, one place
+to change.
+**Rationale**: One cut where the cluster's text is converted for serving covers the document, the
+graph and the page in both modes, and the read model stays a faithful reader.
+`align-owner-pages` caps event notes the same way, in `eventListDoc`, with its own limit
+(`eventNoteCap`): whichever of the two changes merges first adds `internal/readmodel/cap.go` and its
+tests with this contract, and the second uses it as it stands.
 
 ### Module node on instance pages
 
@@ -711,9 +731,9 @@ changes behaviour.
 
 | Id | What | Decision above | Tasks | Specs |
 | --- | --- | --- | --- | --- |
-| AG-A1 | A length cap on the served Flux message, recorded as portal:D20:R6 | Capping the served Flux message; The package's source state | 3.3, 3.5, 3.7 | read-model, read-api |
+| AG-A1 | A length cap on the served Flux message, reason and revision, recorded as portal:D20:R6 | Capping the served Flux text; The package's source state | 3.2, 3.3, 3.5, 3.7 | read-api |
 | AG-A2 | A source in another namespace than its package, read as the caller | The package's source state | 3.6 | read-model, read-api |
-| AG-A3 | The legend names the package source's origin | The legend and the ghost | 4.6 | web-ui |
+| AG-A3 | The legend names the package source's origin and the nodes drawn alike | The legend and the ghost | 4.6, 4.8 | web-ui |
 | AG-A4 | The graph pages in `TestBrowserPhone` | Fit, zoom and full screen | 6.10 | web-ui |
 | AG-A5 | "Merge `main` into the branch" in place of the history-rewrite wording | Risks / Trade-offs; the proposal | none | none |
 
