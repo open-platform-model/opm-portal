@@ -250,6 +250,27 @@ Reads and grants: the change adds no read. It serves the field from the `get mod
 - Contrast and target size: the facts use the panel's existing text tokens, so they inherit the
   floor that `fix-contrast-and-add-phone-check` sets. Not measured here; no new colour is added.
 
+## Visual checks
+
+Measured 2026-10-11 in Chromium (Playwright image v1.63.0, digest-pinned in
+`cmd/opm-portal/browser_test.go`) over the F1 capture served by `TestDevServe`, at a 360 by 640
+viewport, light and dark, on the Graph tab of `default/podinfo`, `cert-manager/cert-manager` and
+`web/web`, with the details panel at rest:
+
+- The facts list is the panel's own single column at this width: each `dt` sits above its `dd`,
+  and both start at x 37 and end at x 323 (286 px of text width).
+- "Inventory revision" is on one line: its `dt` is 22 px high at a 21 px line height, and its
+  `scrollWidth` equals its `clientWidth` (286). It never needed to wrap, so the wrap rule was not
+  exercised.
+- The page does not scroll sideways: `scrollWidth` 360 equals `clientWidth` 360 on all six
+  pages (three instances, two schemes). `TestBrowserPhone` holds the same 360 px limit for every
+  instance page in three engines (task 2.4).
+- Both facts read in order, after "Version" and before "Owner", in light and dark. The label and
+  value text use the panel's existing text tokens; no colour was added, so contrast is the floor
+  `fix-contrast-and-add-phone-check` holds (not re-measured here).
+- Not measured: a screen reader pass on the two rows (they are plain `dt` and `dd` text in the
+  existing list, with no role, no state and no focus stop).
+
 ## Risks / Trade-offs
 
 - [The owner document does not reach the root panel] -> Task 1.1 checks it first and stops the
