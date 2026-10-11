@@ -25,9 +25,10 @@
   --field: #fffdf8;
   --ink: #141820;
   --ink-2: #3a4150;
-  --muted: #6a6f7a;
+  --muted: #5f6672;
   --line: #d6ccb8;
   --line-strong: #b9ad94;
+  --control-border: #8c8269;
   /* Brass, not red: red is kept for degraded, failed and refused. */
   --accent: #8a5a00;
   --accent-deep: #5e3d00;
@@ -95,6 +96,7 @@
     --muted: #8f96a3;
     --line: #262e3a;
     --line-strong: #3a4352;
+    --control-border: #6a7587;
     --accent: #e3b45c;
     --accent-deep: #f0c879;
     --accent-soft: rgb(227 180 92 / 13%);
@@ -142,6 +144,7 @@
   --muted: #8f96a3;
   --line: #262e3a;
   --line-strong: #3a4352;
+  --control-border: #6a7587;
   --accent: #e3b45c;
   --accent-deep: #f0c879;
   --accent-soft: rgb(227 180 92 / 13%);
@@ -443,7 +446,7 @@ h2::before { content: ""; width: 10px; height: 10px; background: var(--accent); 
 .field-search { flex: 2 1 260px; }
 .field-submit { flex: 0 0 auto; }
 .field label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
-.field input, .field select { font: inherit; font-size: 14px; min-height: 42px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--field); color: var(--ink); min-width: 0; width: 100%; }
+.field input, .field select { font: inherit; font-size: 14px; min-height: 42px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--control-border); background: var(--field); color: var(--ink); min-width: 0; width: 100%; }
 .field input:not([value=""]), .field select:has(option:checked:not([value=""])) { border-color: var(--accent); background: var(--accent-field); }
 .field-search input { font-size: 15px; }
 .field-submit button { min-height: 42px; }
