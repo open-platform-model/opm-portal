@@ -322,7 +322,7 @@ portals and dashboards. R7: supervisor ruling 2026-10-05 answering OQ20, pending
 
 **Kind:** contract
 
-**Depends:** 0015:D14, 0015:D18
+**Depends:** enhancement 0015 ("The registration CR is excluded by kind from its package's readiness; pure-registration modules are legal" and "An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation")
 
 **Decision:** Every instance and package shows two values side by side. **Applied** state comes
 from the operator's conditions: `Ready=True` is shown as "Applied" and never as healthy, because the
@@ -367,7 +367,7 @@ The operator's failure counters and drift flag are diagnostics, never health.
   the break.
 - **Failure counters as a health hint.** The drift counter climbs on healthy instances because the
   operator's drift check ignores the instance's ServiceAccount (opm-operator issue 209).
-- **Wait for an operator `Healthy` condition.** No health wait exists or is planned (0015:D14), and
+- **Wait for an operator `Healthy` condition.** No health wait exists or is planned (enhancement 0015, "The registration CR is excluded by kind from its package's readiness; pure-registration modules are legal"), and
   health in the operator is OQ3, not a V1 prerequisite.
 - **Health computed per request** (one read per inventory object). Measured at 7.4 to 9.4 s for
   cert-manager's graph at client-go's default rate limit.
@@ -381,7 +381,7 @@ what it says, apply success, so the portal keeps it and labels it honestly, and 
 the objects that show the failure.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 3, 6, 11 and 12,
-and the CLI-owned instance addendum. 0015:D14 (readiness means apply success); 0015:D18 (an
+and the CLI-owned instance addendum. Enhancement 0015 ("The registration CR is excluded by kind from its package's readiness; pure-registration modules are legal") (readiness means apply success); enhancement 0015 ("An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation") (an
 unfulfilled contract is reported, never refused), which R8 follows. Owner decision 2026-10-04 to
 capture a CLI-owned instance on the throwaway cluster. Configuration objects keep kstatus health on
 the graph and in group roll-ups: supervisor ruling 2026-10-06, pending the owner. On instance and
@@ -394,7 +394,7 @@ pending the supervisor and the owner).
 
 **Kind:** contract
 
-**Depends:** 0015:D3
+**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces")
 
 **Decision:** The portal never renders a module. Every node and edge comes from a field a Kubernetes
 object already carries, and each edge kind has exactly one source: subscriptions from the Platform's
@@ -464,7 +464,7 @@ team would act on it.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 2, 8, 9 and 13,
 phases 7 to 9; [evidence 02](design/evidence/02-live-graph-spike/). Registration verdicts as
-0015:D3 defines them. R5: owner decision 2026-10-06, asked how the graph should group
+Enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces") defines them. R5: owner decision 2026-10-06, asked how the graph should group
 configuration: "Groups per kind (Recommended)" (groups per kind family, an accordion with one open
 at a time, a dotted frame, Collapse and Overview, zoom to the group;
 [evidence 05](design/evidence/05-canvas-gap-report/), gaps graph-01, graph-04, graph-06,
@@ -657,7 +657,7 @@ pending the owner.
 
 **Kind:** contract
 
-**Depends:** 0013:D28
+**Depends:** enhancement 0013 ("Diagnostics never carry a value at a marked path")
 
 **Decision:** The portal never reads a Secret's data, in any mode, so it can never serve one. In V1
 it shows no instance's `spec.values`: users supply plain values that unification marks as secrets
@@ -1038,7 +1038,7 @@ choice list or a count reveal what a reader may not list (OpenSpec change
 
 **Kind:** contract
 
-**Depends:** 0015:D11
+**Depends:** enhancement 0015 ("Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version")
 
 **Decision:** The portal finds a TransformerRegistration's provider by inventory, not by kind:
 every ModuleInstance and every ModulePackage whose `status.inventory` holds a
@@ -1095,7 +1095,7 @@ naming a ModuleInstance.
 
 **Kind:** contract
 
-**Depends:** 0015:D3, 0015:D16
+**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")
 
 **Decision:** The pages show, per ModuleInstance, the contracts its last successful render used,
 read from `status.requiredContracts` (served as `renderContracts`), under the label "Uses" with the
