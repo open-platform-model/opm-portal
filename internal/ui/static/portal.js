@@ -97,6 +97,14 @@
   if (masthead && "ResizeObserver" in window) {
     new ResizeObserver(syncMastheadHeight).observe(masthead);
   }
+  // Firefox can take a reading of the header while the page loads and not
+  // call the observer again when the header settles at another height, which
+  // left --masthead-h 27.5 px short on a phone. Read it again when the page
+  // and its fonts have loaded.
+  window.addEventListener("load", syncMastheadHeight);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(syncMastheadHeight);
+  }
 
   // ---- Relative times ----
   // The server writes each time as "4m ago" and nothing updates it, so the
