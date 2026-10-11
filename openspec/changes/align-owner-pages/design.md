@@ -747,7 +747,47 @@ percentile, the default is set before section 2: the Events tab reads the merged
 shows only on the Events tab, and the other tabs read the owner's own feed, as today. Section 6
 re-measures the built read against section 1's figure.
 
-Measured (section 1): to be filled in.
+Measured (section 1, task 1.2, 2026-10-11): a throwaway test in `internal/readmodel` (removed in task 1.3)
+ran the pattern of decision 1 for `cert-manager/cert-manager` on the F1 capture: 49 reached objects
+(the instance, 42 inventory entries and their children) in two event namespaces, which makes 14
+lists, one per (event namespace, regarded kind), at most four at a time. Each read also made the
+per-namespace reviews of `list` that the handler makes. Every figure is the 95th percentile over 50
+reads unless it says otherwise; "added" is the merged read minus the owner-only read.
+
+| Setting | Owner-only (1 list) | Merged (14 lists) | Added | One list per object (49 lists, in series) |
+| --- | --- | --- | --- | --- |
+| Throwaway kind cluster, reads 250 ms apart | 3.6 ms | 10.0 ms | 6.5 ms | not run |
+| Throwaway kind cluster, reads 1 s apart | 3.6 ms | 24.5 ms | 20.9 ms | not run |
+| Throwaway kind cluster, reads back to back | 21.0 ms | 281 ms | 260 ms | 981 ms |
+| F1 capture, 10 ms added to each list | 10.6 ms | 44.0 ms | 33.4 ms | 510 ms |
+| F1 capture, 30 ms added to each list | 30.6 ms | 123 ms | 92.9 ms | 1.50 s |
+| F1 capture, 100 ms added to each list | 100.7 ms | 404 ms | 303 ms | 4.96 s |
+
+(The one-list-per-object figures are the p95 of 10 reads.) What the table shows:
+
+- A list on the kind cluster takes about 2.5 ms. The merged read is bounded by
+  `ceil(14 / 4) = 4` rounds of lists, so it costs about four lists and not fourteen: the figures
+  of the fake-latency rows are 4 times the added latency plus the owner-only list. The same figures
+  say that the per-object route (option 1 in "Where the merged feed is built") is 12 times slower
+  than the merged read.
+- Back to back, the figure is the client's rate limiter, not the API server: `TuneConfig` gives the
+  reading client QPS 50 (`internal/readmodel/model.go:167-180`), so one list costs 20 ms once the
+  burst of 100 is spent, 14 lists cost 280 ms, and the owner-only read of one list costs 20 ms.
+  One merged read of cert-manager spends 14 of the 50 requests the reading client may make each
+  second, so about 3.5 such reads a second, across all callers and the informers' own reads, keep
+  it at that figure. The limit is client-side and shared; it is not a property of the pattern.
+- The 200 ms rule of this section is crossed when a list takes about 70 ms or more
+  (`3 x latency > 200 ms`), and at a sustained 3.5 or more cert-manager renders a second. It is not
+  crossed on the kind cluster at the pace of a person (20.9 ms), the case the assumption was about.
+
+Settled: the merged feed is read on every tab, as the Goals say, because the added cost on the
+cluster in the pace of a person is 6 to 21 ms, a tenth of the limit. The fallback of the paragraph
+above (merged feed and count on the Events tab only, the other tabs reading the owner's own feed)
+stays one change of task 4.1, which chooses the scope of the fetch for each tab; section 2 builds
+the same API either way, so nothing in it depends on this choice. Task 6.4 measures the built read
+again against these figures, and `ROADMAP.md` keeps the rate limiter as a follow-up (a configurable
+QPS, or a short cache of the merged feed per owner) for a portal that serves many readers of one
+large owner.
 
 ## Research & Decisions
 
