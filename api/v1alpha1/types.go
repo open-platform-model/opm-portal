@@ -190,11 +190,15 @@ type InstanceSummary struct {
 	Module Module    `json:"module"`
 	// Owner is operator or cli; a cli instance's reconcile state is
 	// ManagedExternally.
-	Owner          string     `json:"owner"`
-	Reconcile      Reconcile  `json:"reconcile"`
-	Health         Health     `json:"health"`
-	InventoryCount int64      `json:"inventoryCount"`
-	LastAppliedAt  *time.Time `json:"lastAppliedAt,omitempty"`
+	Owner          string    `json:"owner"`
+	Reconcile      Reconcile `json:"reconcile"`
+	Health         Health    `json:"health"`
+	InventoryCount int64     `json:"inventoryCount"`
+	// InventoryRevision is the operator's status.inventory.revision: the
+	// count of successful applies that wrote an inventory, starting at 1.
+	// Absent when the operator recorded none.
+	InventoryRevision int64      `json:"inventoryRevision,omitempty"`
+	LastAppliedAt     *time.Time `json:"lastAppliedAt,omitempty"`
 	// RenderContracts are every contract the instance's render used, most
 	// fulfilled by the catalog itself; they are not the provider contracts
 	// it demands.

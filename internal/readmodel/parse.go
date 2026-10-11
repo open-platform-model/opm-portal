@@ -192,6 +192,16 @@ func inventoryCount(u *unstructured.Unstructured, entries []health.Ref) int64 {
 	return int64(len(entries))
 }
 
+// inventoryRevision is status.inventory.revision when the operator wrote an
+// integer of at least 1, else 0 (not recorded). The operator starts at 1, so
+// a smaller number or another type is not the operator's.
+func inventoryRevision(u *unstructured.Unstructured) int64 {
+	if n, found := i64(u.Object, "status", "inventory", "revision"); found && n >= 1 {
+		return n
+	}
+	return 0
+}
+
 func ownerOf(u *unstructured.Unstructured) Owner {
 	if str(u.Object, "spec", "owner") == string(OwnerCLI) {
 		return OwnerCLI
