@@ -225,7 +225,8 @@ func TestFoldedObjectsFocusTheirOwnNode(t *testing.T) {
 	if len(links) == 0 {
 		t.Fatal("no folded object links to the graph")
 	}
-	expanded := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=graph&expand=grp:configuration/mi/cert-manager/cert-manager").body)
+	const group = "grp:configuration/mi/cert-manager/cert-manager/"
+	expanded := mainOf(s.get(t, "/instances/cert-manager/cert-manager?tab=graph&expand="+group+"crds&expand="+group+"rbac&expand="+group+"webhooks").body)
 	for _, l := range links {
 		u, err := url.Parse(strings.ReplaceAll(l[1], "&amp;", "&"))
 		if err != nil {

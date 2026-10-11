@@ -29,13 +29,33 @@ Components that hold no workload (no Deployment, StatefulSet, DaemonSet, Replica
 or Pod entry) SHALL be sorted into kind families by the API group of their objects: CRDs when every
 object is in `apiextensions.k8s.io`, RBAC when every object is in `rbac.authorization.k8s.io`,
 Webhook configuration when every object is in `admissionregistration.k8s.io`, and Other
-configuration otherwise. A component that holds an `opmodel.dev` TransformerRegistration SHALL NOT
-be put in a family. A family whose components hold two or more inventory objects in all SHALL be
-shown as one group node, naming its family, with its objects hidden, its members' names listed
-sorted, its objects counted by kind, and the worst health of its members, partial when any is, so
-a reordered inventory yields the same group; a family with fewer objects SHALL show its components
-as ordinary nodes. Each group SHALL be shown expanded when the graph is asked to expand its id.
-Source: portal:D4:R5 (as amended 2026-10-06).
+configuration otherwise. Source: portal:D4:R5 (as amended 2026-10-06).
+
+#### Scenario: A family by API group
+
+- **WHEN** cert-manager's instance graph is built from the F1 capture
+- **THEN** its CRD components fall in the CRDs family, its ClusterRole, ClusterRoleBinding, Role and
+  RoleBinding components in the RBAC family, and its two webhook configuration components in the
+  Webhook configuration family
+
+### Requirement: A provider's claim stays out of every family
+
+A component that holds an `opmodel.dev` TransformerRegistration SHALL NOT be put in a family, so
+the claim stays in view. Source: portal:D4:R5, portal:D4:R4.
+
+#### Scenario: A provider's claim stays in view
+
+- **WHEN** an instance has two configuration components, one holding a TransformerRegistration and
+  a ConfigMap and the other two ConfigMaps
+- **THEN** the component holding the TransformerRegistration is an ordinary node, and the other
+  forms an Other configuration group only if its objects number two or more
+
+### Requirement: A family of two or more objects is one group node
+
+A family whose components hold two or more inventory objects in all SHALL be shown as one group
+node, naming its family, with its objects hidden, its members' names listed sorted and its objects
+counted by kind, so a reordered inventory yields the same group. A family with fewer objects SHALL
+show its components as ordinary nodes. Source: portal:D4:R5.
 
 #### Scenario: cert-manager at rest
 
@@ -44,6 +64,27 @@ Source: portal:D4:R5 (as amended 2026-10-06).
 - **THEN** it holds the components `cainjector`, `controller`, `webhook` and `namespace`, a CRDs
   group of 1 component and 6 objects, an RBAC group of 13 components and 26 objects, and a Webhook
   configuration group of 2 components and 2 objects, and 23 nodes in all
+
+#### Scenario: A reordered inventory
+
+- **WHEN** the same graph is built from an inventory in another order
+- **THEN** it holds the same groups with the same members, sorted
+
+### Requirement: A configuration group's health is the worst of its members'
+
+A configuration group's health SHALL be the worst of its members', partial when any member is and
+not live when any member is. Configuration objects keep their kstatus health, so a group of
+members that are all Current is Healthy. Source: portal:D3:R1.
+
+#### Scenario: Configuration health kept
+
+- **WHEN** an RBAC group's members are all Current under kstatus
+- **THEN** the group's health is Healthy, read from its members, and not left empty
+
+### Requirement: A configuration group is shown expanded when asked
+
+A configuration group SHALL be shown expanded when the graph is asked to expand its id, and only
+the groups asked for SHALL be shown expanded. Source: portal:D4:R5.
 
 #### Scenario: RBAC expanded
 
@@ -56,26 +97,22 @@ Source: portal:D4:R5 (as amended 2026-10-06).
 - **WHEN** the same graph is built asking to expand all three groups
 - **THEN** all 20 components and their 42 inventory objects are nodes
 
-#### Scenario: A provider's claim stays in view
-
-- **WHEN** an instance has two configuration components, one holding a TransformerRegistration and
-  a ConfigMap and the other two ConfigMaps
-- **THEN** the component holding the TransformerRegistration is an ordinary node, and the other
-  forms an Other configuration group only if its objects number two or more
-
-#### Scenario: Configuration health kept
-
-- **WHEN** an RBAC group's members are all Current under kstatus
-- **THEN** the group's health is Healthy, read from its members, and not left empty
-
 ### Requirement: An expanded group is laid out as one band
 
-Each expanded configuration group SHALL occupy a band of consecutive rows, on a row grid shared
-by every column, across the components column and every column to its right, holding its members
-and the objects they own and no other node, with half a row's margin above and below. No node that
-is neither a member nor an object of a member SHALL lie within the rectangle the band spans, and
-no edge between two nodes outside the band SHALL cross it. The band's placement SHALL be
-deterministic. Source: portal:D4:R5.
+Each expanded configuration group SHALL occupy a band of consecutive rows, on a row grid shared by
+every column, across the components column and every column to its right, holding its members and
+the objects they own and no other node, with half a row's margin above and below. The band's
+placement SHALL be deterministic. Source: portal:D4:R5.
+
+#### Scenario: Two groups open
+
+- **WHEN** the same graph is built with the RBAC and CRDs groups both expanded
+- **THEN** each group has its own band and the two bands do not overlap
+
+### Requirement: A band holds nothing but its group and is never crossed
+
+No node that is neither a member nor an object of a member SHALL lie within the rectangle a band
+spans, and no edge between two nodes outside the band SHALL cross it. Source: portal:D4:R5.
 
 #### Scenario: RBAC open beside the workloads
 
@@ -83,11 +120,6 @@ deterministic. Source: portal:D4:R5.
 - **THEN** its 13 members occupy consecutive rows of the components column, their 26 objects sit
   beside them, neither `controller` nor any of its objects lies inside the band, and no edge of
   `controller` crosses it
-
-#### Scenario: Two groups open
-
-- **WHEN** the same graph is built with the RBAC and CRDs groups both expanded
-- **THEN** each group has its own band and the two bands do not overlap
 
 ### Requirement: Package graphs read from the package
 
@@ -139,12 +171,8 @@ portal:D4:R4.
 
 The source node of a package graph SHALL carry the state of the source object as the caller read
 it: whether the cluster serves its kind, whether the caller and the portal could read it, whether
-it exists, and its Ready condition's status, reason and message and its artifact revision. The node
-SHALL carry a health mapped from that state (ready Healthy; not ready Degraded with the Ready
-reason and message; ready with no artifact, or unknown, Unknown), which SHALL not count toward the
-package's own health. A source the caller may not read SHALL be marked with its access and no
-state or health; a source that does not exist, or whose kind the cluster does not serve, SHALL be
-marked missing. Source: portal:D4:R1, portal:D20.
+it exists, and its Ready condition's status, reason and message and its artifact revision. Source:
+portal:D4:R1, portal:D20.
 
 #### Scenario: Flux not installed
 
@@ -152,10 +180,22 @@ marked missing. Source: portal:D4:R1, portal:D20.
   `source.toolkit.fluxcd.io` kinds
 - **THEN** its source node's state says the kind is not served
 
+### Requirement: A source node's health is mapped from its state
+
+The source node SHALL carry a health mapped from its state (ready Healthy; not ready Degraded with
+the Ready reason and message; ready with no artifact, or unknown, Unknown), which SHALL not count
+toward the package's own health. Source: portal:D4:R1, portal:D20.
+
 #### Scenario: Source ready
 
 - **WHEN** the package's OCIRepository has `Ready=True` and an artifact revision
 - **THEN** the source node's state is ready, with that revision, and its health is Healthy
+
+### Requirement: A source node marks what the caller could not read or find
+
+A source the caller may not read SHALL be marked with its access and no state or health. A source
+that does not exist, or whose kind the cluster does not serve, SHALL be marked missing. Source:
+portal:D4:R1, portal:D20.
 
 #### Scenario: Source forbidden
 

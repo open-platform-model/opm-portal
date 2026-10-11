@@ -96,5 +96,9 @@
     }
   ],
   "lastApplied": {},
-  "components": []
+  "components": [],
+  "sourceState": {
+    "access": "ok",
+    "state": "kindNotServed"
+  }
 }

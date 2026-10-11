@@ -169,7 +169,7 @@ func TestBrowserTheme(t *testing.T) {
 
 // TestBrowserGraph drives the instance graph in real browsers (task
 // test:browser): Clear selection, the Resources hand-off, a group's fit and
-// Whole graph, the state and full screen a live refresh keeps, and the details
+// Overview, the state and full screen a live refresh keeps, and the details
 // panel a node selection fills.
 func TestBrowserGraph(t *testing.T) {
 	script := browserScript(t, "graph.py")
@@ -221,10 +221,11 @@ func TestBrowserTabCount(t *testing.T) {
 	}
 }
 
-// phonePages lists the pages TestBrowserPhone opens: the 28 non-fragment
+// phonePages lists the pages TestBrowserPhone opens: the non-fragment
 // paths of f1Pages in internal/ui/ui_test.go, which package main cannot
-// import, the Provider tab of the package that holds a refused claim, and
-// the not-found page. A UI change that adds a page adds its path
+// import, the Graph tab of each owner page, the Provider tab of the package
+// that holds a refused claim, and the not-found page. A UI change that adds
+// a page adds its path
 // here, as it adds it to f1Pages.
 var phonePages = []string{
 	"/",
@@ -254,7 +255,13 @@ var phonePages = []string{
 	"/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events",
 	"/instances/cert-manager/cert-manager?tab=resources",
 	"/instances/cert-manager/cert-manager",
-	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager",
+	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
+	"/instances/default/podinfo?tab=graph",
+	"/instances/cert-manager/cert-manager?tab=graph",
+	"/instances/cert-manager/cert-manager?tab=graph&expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
+	"/instances/cert-manager/cert-manager?tab=graph&group=off",
+	"/instances/default/backup-provider?tab=graph",
+	"/packages/pkg/podinfo?tab=graph",
 	"/instances/web/web",
 	"/packages/pkg/podinfo",
 	"/packages/pkg/podinfo?tab=resources",

@@ -86,6 +86,15 @@ func buildContrastPairs() []contrastPair {
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
+		// The graph's own pairs (align-graph): the frame's header and the
+		// Collapse pill, the ghost's text and the legend on the pane, the
+		// hover card's lines on its dark fill, the node name on the tints.
+		{"deep accent on the Collapse pill", "--accent-deep", "--accent-field", textFloor, ""},
+		{"secondary ink on secondary card", "--ink-2", "--surface-2", textFloor, ""},
+		{"ink on card", "--ink", "--surface", textFloor, ""},
+		{"card muted on card", "--hdr-muted", "--hdr-menu", textFloor, ""},
+		{"card text on card", "--hdr-strong", "--hdr-menu", textFloor, ""},
+		{"card hint on card", "--hdr-accent", "--hdr-menu", textFloor, ""},
 		{"secondary ink on card", "--ink-2", "--surface", textFloor, ""},
 		// A locked row of the Resources table is drawn on the locked tint.
 		{"ink on locked tint", "--ink", "--locked-tint", textFloor, ""},
@@ -101,7 +110,7 @@ func buildContrastPairs() []contrastPair {
 		{"secondary ink on a degraded row", "--ink-2", "--degraded-row", textFloor, ""},
 		{"muted on a degraded row", "--muted", "--degraded-row", textFloor, ""},
 	}
-	pairs := make([]contrastPair, 0, len(fixed)+7*len(tones))
+	pairs := make([]contrastPair, 0, len(fixed)+9*len(tones))
 	pairs = append(pairs, fixed...)
 	for _, tone := range tones {
 		pairs = append(pairs,
@@ -116,6 +125,8 @@ func buildContrastPairs() []contrastPair {
 			contrastPair{"degraded ink on " + tone + " tint", "--degraded-ink", "--" + tone + "-tint", textFloor, ""},
 			// The history pill and the dots are drawn on the card's own tint.
 			contrastPair{"pill border on " + tone + " tint", "--control-border", "--" + tone + "-tint", boundaryFloor, ""},
+			contrastPair{tone + " outline on the pane", "--" + tone, "--surface-2", boundaryFloor, ""},
+			contrastPair{tone + " outline on its tint", "--" + tone, "--" + tone + "-tint", boundaryFloor, ""},
 		)
 	}
 	return pairs

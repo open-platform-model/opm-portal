@@ -207,7 +207,7 @@ func annotateResources(cs []componentView, byRef, groupOf map[string]string, bas
 	// folded into.
 	focus := func(r v1.ObjectRef, component string) (href, id string) {
 		if id := byRef[refKey(r)]; id != "" {
-			return base + "?" + url.Values{"tab": {tabGraph}, "focus": {id}}.Encode(), id
+			return graphHandoff(base, id, ""), id
 		}
 		// Folded into a group: open the group and focus the object's own
 		// node in it.
@@ -219,7 +219,7 @@ func annotateResources(cs []componentView, byRef, groupOf map[string]string, bas
 			return base + "?tab=" + tabGraph, ""
 		}
 		id = objectNodeID(r)
-		return base + "?" + url.Values{"tab": {tabGraph}, "expand": {group}, "focus": {id}}.Encode(), id
+		return graphHandoff(base, id, group), id
 	}
 	out := make([]componentView, 0, len(cs))
 	for i := range cs {
@@ -342,23 +342,83 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 	}
 }
 
+// finishGraph adds to the drawn graph what the document does not hold: no
+// frames when the page asks for the components ungrouped, and the ghost box
+// of an owner that has applied nothing.
+func (v *ownerView) finishGraph(q url.Values) {
+	if q.Get("group") == groupOff {
+		v.Graph.Frames = nil
+	}
+	if empty, fetched := v.nothingApplied(); empty {
+		v.Graph.addGhost(!fetched)
+	}
+}
+
+// nothingApplied reports whether the owner has applied nothing: no
+// inventory and no apply time. fetched is whether a package ever fetched
+// its source; an instance has no source, so it counts as fetched.
+func (v *ownerView) nothingApplied() (empty, fetched bool) {
+	switch {
+	case v.Instance != nil:
+		return v.Instance.InventoryCount == 0 && v.Instance.LastAppliedAt == nil, true
+	case v.Package != nil:
+		return v.Package.InventoryCount == 0 && v.Package.LastAppliedAt == nil, v.Package.SourceArtifact != nil
+	}
+	return false, true
+}
+
+// selectInGraph draws the graph with the page's selection and spotlight,
+// folds the configuration components the graph folds, and sets the panel of
+// the Graph and Resources tabs.
+func (h *Handler) selectInGraph(r *http.Request, v *ownerView, g *v1.Graph) {
+	q := r.URL.Query()
+	v.Focus, v.Node = q.Get("focus"), q.Get("node")
+	resting := ""
+	if n := restingNode(g); n != nil {
+		resting = n.ID
+	}
+	v.Graph = buildGraph(*g, graphParams{
+		ID: v.Kind.Topic + "-graph", Page: v.Base, Panel: v.Base + "/node",
+		Node: v.Node, Focus: v.Focus, Resting: resting,
+		Expanded: q["expand"], Ungrouped: q.Get("group") == groupOff,
+	})
+	v.Graph.FitGroup = q.Get("fit")
+	v.finishGraph(q)
+	v.Components, v.Configs = foldConfig(v.Components, g)
+	v.Graph.Clear = linkWithout(v.Base, q, selectionParams...)
+	if v.Tab == tabGraph || v.Tab == tabResources {
+		h.ownerPanel(r, v, g, resting)
+	}
+}
+
+// fetchGraph reads the graph document. With group=off it reads again with
+// every configuration group expanded, so the components show ungrouped.
+func (h *Handler) fetchGraph(r *http.Request, path string, g *v1.Graph) *v1.Problem {
+	q := graphQuery(r)
+	if p := h.fetch(r, path, q, g); p != nil || r.URL.Query().Get("group") != groupOff {
+		return p
+	}
+	more := false
+	for i := range g.Nodes {
+		if n := &g.Nodes[i]; n.Group != nil && isConfigGroup(n.ID) {
+			q.Add("expand", n.ID)
+			more = true
+		}
+	}
+	if !more {
+		return nil
+	}
+	*g = v1.Graph{}
+	return h.fetch(r, path, q, g)
+}
+
 // ownerTabsOf reads what the cards and the open tab show.
 func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	q := r.URL.Query()
 	v.Node = q.Get("node")
 	var g v1.Graph
-	if v.GraphProblem = h.fetch(r, v.Base+"/graph", graphQuery(r), &g); v.GraphProblem == nil {
-		v.Focus = q.Get("focus")
-		v.Graph = buildGraph(g, v.Kind.Topic+"-graph", v.Base, v.Base+"/node", v.Focus, q["expand"]...)
-		v.Graph.FitGroup = q.Get("fit")
-		v.Components, v.Configs = foldConfig(v.Components, &g)
-		if len(q["expand"]) > 0 {
-			v.Graph.Whole = v.Base + "?tab=" + tabGraph
-		}
-		v.Graph.Clear = linkWithout(v.Base, q, selectionParams...)
-		if v.Tab == tabGraph || v.Tab == tabResources {
-			h.ownerPanel(r, v, &g)
-		}
+	if v.GraphProblem = h.fetchGraph(r, v.Base+"/graph", &g); v.GraphProblem == nil {
+		h.selectInGraph(r, v, &g)
 	}
 	// The Resources count comes before the tab switch: annotateResources
 	// drops the rows a reason filter does not match, and the count is the
@@ -385,32 +445,24 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	}
 }
 
-// restingNode is the node the details panel shows when neither node nor
-// focus is set: the owner's own. align-graph extends it with its resting rule
-// (a held registration whose claim needs attention) and replaces this body.
-func restingNode(g *v1.Graph) string { return g.Root }
-
 // ownerPanel builds the details panel of the Graph and Resources tabs: the
-// node named by node, else focus, else the node the graph rests on, which
-// shows with no spotlight, so the panel is never an empty placeholder.
-func (h *Handler) ownerPanel(r *http.Request, v *ownerView, g *v1.Graph) {
-	id := v.Node
-	if id == "" {
-		id = v.Focus
+// selected node's (node wins over focus, as for the YAML default), else the
+// spotlit node's, else the node the graph rests on, which shows with no
+// spotlight, so the panel is never an empty placeholder.
+func (h *Handler) ownerPanel(r *http.Request, v *ownerView, g *v1.Graph, resting string) {
+	v.PanelAtRest = v.Focus == "" && v.Node == ""
+	if resting != "" {
+		v.PanelRoot = v.Base + "/node?" + url.Values{"id": {resting}}.Encode()
 	}
-	rest := restingNode(g)
-	v.PanelAtRest = id == ""
-	if v.PanelAtRest {
-		id = rest
-	}
-	if rest != "" {
-		v.PanelRoot = v.Base + "/node?" + url.Values{"id": {rest}}.Encode()
-	}
-	if id == "" {
+	shown := firstOf(v.Node, firstOf(v.Focus, resting))
+	if shown == "" {
 		return
 	}
-	v.Panel = h.panel(r, g, id, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer, self: v})
+	v.Panel = h.panel(r, g, shown, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer, self: v, resting: resting})
 	v.Graph.Focused = !v.PanelAtRest && !v.Panel.Missing
+	if !v.Panel.Resting {
+		v.Panel.Clear = v.Graph.Clear
+	}
 }
 
 // allComponents lists every component of the page: the unfolded ones and

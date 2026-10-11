@@ -318,12 +318,21 @@ portal:D8:R2/R3, portal:D2:R4.
 Each graph SHALL render server-side as SVG from the read API's laid-out graph document, with no
 edge from an instance to a contract. Nodes SHALL carry CSS classes for kind, health and access, an
 accessible name, and a title with their full label, and SHALL be reachable with the keyboard in
-document order. A node's box outline SHALL carry its health only, and a separate mark on the node
-SHALL carry its applied state. A label too long for its node SHALL keep the part that tells nodes
-apart. Activating a node SHALL show its detail panel and mark the node as selected; activating a
-group node SHALL show it expanded. A graph SHALL open fitted to its frame, SHALL pan with the
-pointer and SHALL zoom with a zoom slider, Fit and Ctrl/Cmd-wheel. Graphs SHALL appear on instance and package pages; the Platform
-page SHALL not draw one. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17.
+document order. A node SHALL show three lines: its kind, its name, and a status line (its health
+reason or state, a ReplicaSet's desired count, a component's object count, a group's object and
+kind counts, a registration's standing or a source's state). A node's fill and outline SHALL carry
+its health, except that a TransformerRegistration node's fill and outline SHALL carry the claim's
+standing (a source node's health is mapped from the source's state); a separate square mark on the
+node SHALL carry its applied state, and is the only applied mark; nodes the cluster made below an
+inventory object SHALL be drawn dashed. Edges SHALL be drawn as orthogonal
+elbows through the document's route points, without arrowheads. A label too long for its node
+SHALL keep the part that tells nodes apart. Activating a node SHALL show its detail panel and mark
+the node as selected; activating a group node SHALL show it expanded. A graph SHALL open fitted to
+its frame, SHALL pan with the pointer and SHALL zoom with a zoom slider, Fit and Ctrl/Cmd-wheel.
+At a 360 px wide viewport the page SHALL NOT scroll sideways; the graph's frame SHALL take the
+graph's extra width. Graphs SHALL appear on instance and package pages; the Platform page SHALL not draw one. The
+instance page SHALL not draw the module node; the module's path and version stay on the page's
+identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17, portal:D19.
 
 #### Scenario: Keyboard focus
 
@@ -334,7 +343,24 @@ page SHALL not draw one. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17.
 #### Scenario: Two axes on a node
 
 - **WHEN** an instance node is applied and degraded
-- **THEN** its outline is drawn as degraded and its applied mark as applied
+- **THEN** its fill and outline are drawn as degraded and its applied mark as applied
+
+#### Scenario: A ReplicaSet's status line
+
+- **WHEN** the image-break podinfo graph is rendered
+- **THEN** the new ReplicaSet's node shows its kind, its name and its desired replica count, and is
+  drawn dashed
+
+#### Scenario: Elbow edges
+
+- **WHEN** any instance graph is rendered
+- **THEN** every edge path is made of horizontal and vertical segments and carries no arrowhead
+
+#### Scenario: A graph at phone width
+
+- **WHEN** a browser 360 px wide opens cert-manager's Graph tab
+- **THEN** the page does not scroll sideways, and the graph's frame scrolls to reach the part of
+  the graph beyond its width
 
 ### Requirement: Pages update live over one stream per tab
 
@@ -915,24 +941,64 @@ Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 
 ### Requirement: Graphs can be explored without leaving the page
 
-A graph SHALL show a card for a node on pointer hover and on keyboard focus (kind, name, health
-and applied marks, health reason, origin, access), positioned without any `style` attribute. A
-`focus` parameter SHALL spotlight its node and dim what is not adjacent to it, and "Clear
-selection" SHALL remove it. The graph SHALL open in full screen and back. It SHALL zoom with a
-zoom slider, Fit and Ctrl/Cmd-wheel, and pan with the pointer. A group
-node SHALL expand in place through the graph's `expand` parameter and fit the view to its
-members, and a "Whole graph" control SHALL collapse it and fit the whole graph again. Source:
-portal:D4:R5.
+A graph SHALL show a card beside a node on pointer hover and on keyboard focus (kind, namespace and
+name, health and applied marks, health reason and message, its origin, for a child of the cluster
+the object it was created from, access, and a hint to click for details or to expand), positioned
+without any `style` attribute. Activating a node SHALL select it through a `node` parameter, which
+shows its panel and dims nothing. A `focus` parameter SHALL spotlight its node: select it, scroll
+it into the centre of the view and dim every node and edge outside its whole upstream and
+downstream chain; pointer hover and keyboard focus SHALL dim the same chain while they last. A
+"Clear selection" control SHALL remove the selection and the spotlight. The graph SHALL open in
+full screen and back, refitting to the space it has. It SHALL zoom with a zoom slider from 30 % to
+200 %, Fit (marked pressed while the view is fitted) and Ctrl/Cmd-wheel anchored at the pointer,
+and pan with the pointer; a fit SHALL use both the frame's width and height, and the frame's
+height SHALL follow the fitted graph. A group node SHALL expand in place through the graph's
+`expand` parameter and fit the view to the group's frame at no less than 60 %, and an "Overview"
+control and the Escape key SHALL collapse it and fit the whole graph again. Full screen SHALL cover
+the page's window and SHALL stay on while groups open and close. Escape SHALL step back one thing
+per press: an open card, a selection, an open group, full screen. Opening or closing a group, and
+the group controls, SHALL keep the page's scroll position. Wheel zoom SHALL not animate, and motion
+SHALL stop under the reduced-motion preference. Source: portal:D4:R5, portal:D19.
 
 #### Scenario: cert-manager's RBAC group
 
-- **WHEN** the user expands cert-manager's configuration group
-- **THEN** the view fits its members, and "Whole graph" returns to the collapsed, fitted graph
+- **WHEN** the user expands cert-manager's RBAC group
+- **THEN** the view fits the group's frame, and "Overview" returns to the collapsed, fitted graph
 
 #### Scenario: Keyboard card
 
 - **WHEN** the user tabs onto podinfo's Deployment node
 - **THEN** its card shows kind, name, health and origin, and is announced with the node
+
+#### Scenario: A click does not dim
+
+- **WHEN** the user clicks podinfo's Service node
+- **THEN** the details panel shows the Service, the address carries `node` and no `focus`, and no
+  node is dimmed
+
+#### Scenario: Hand-off spotlight
+
+- **WHEN** the user follows the image-break Pod's row from the Resources tab
+- **THEN** the Graph tab opens with the Pod centred in the view and its ReplicaSet, Deployment,
+  component and instance lit, and podinfo's Service dimmed
+
+#### Scenario: Escape steps back
+
+- **WHEN** the user has opened the RBAC group in full screen and selected one of its objects, and
+  presses Escape three times
+- **THEN** the first press clears the selection, the second collapses the group, and the third
+  leaves full screen
+
+#### Scenario: Full screen survives a group
+
+- **WHEN** the user opens cert-manager's graph in full screen and opens, then collapses, its RBAC
+  group
+- **THEN** the graph is still in full screen
+
+#### Scenario: Wheel zoom at the pointer
+
+- **WHEN** the user zooms with Ctrl and the wheel over a node
+- **THEN** that node stays under the pointer
 
 ### Requirement: Providers are shown whatever their kind
 
@@ -1869,3 +1935,162 @@ also match an item's kind word (`instance`, `package`) and a package's source. S
 
 - **WHEN** a browser opens `/installed?q=package` on the F1 capture
 - **THEN** the list holds `pkg/podinfo`
+
+### Requirement: Configuration groups open one at a time inside a frame
+
+A collapsed configuration group SHALL be drawn as a stacked, hatched node naming its family, its
+component count and its object and kind counts. Opening one configuration group SHALL close any
+other open configuration group, while open Pod groups stay open. Source: portal:D4:R5.
+
+#### Scenario: Opening CRDs closes RBAC
+
+- **WHEN** cert-manager's RBAC group is open and the user activates the CRDs group
+- **THEN** the CRDs group is open inside its frame and the RBAC group is folded again
+
+### Requirement: An open configuration group is drawn inside a dotted frame
+
+An open configuration group SHALL be drawn inside a dotted frame, spanning from the components
+column to the last drawn column, whose header names the family and counts its components and
+objects and which carries a Collapse control. Collapsing SHALL leave the group selected, with its
+panel showing the object kinds it folds and their counts, its health and a control to expand it
+again. Source: portal:D4:R5.
+
+#### Scenario: Collapse from the frame
+
+- **WHEN** the user activates the RBAC frame's Collapse control
+- **THEN** the group is folded and selected, and the panel counts its ClusterRoles,
+  ClusterRoleBindings, Roles and RoleBindings
+
+### Requirement: The graph toolbar groups and counts configuration
+
+The graph toolbar SHALL offer Expand all, which opens every family, Collapse all, and a Group
+configuration switch that says in visible text whether configuration is grouped: grouped, families
+fold and open as above; ungrouped, every configuration component is shown with no group node and
+no frame. The toolbar SHALL say how many boxes are drawn of how many there are. Source: portal:D4:R5.
+
+#### Scenario: Expand all
+
+- **WHEN** the user activates Expand all on cert-manager's graph
+- **THEN** all three groups are open, each inside its own frame, and the Group configuration switch
+  still reads grouped
+
+#### Scenario: Ungrouped
+
+- **WHEN** the user turns the Group configuration switch off on cert-manager's graph
+- **THEN** all 20 components are shown with their objects, with no group node and no frame, and the
+  switch reads ungrouped
+
+### Requirement: The graph explains its marks
+
+Below every graph a legend SHALL say what the marks mean: applied by the controller, made by the
+cluster, a configuration group and how it opens, that fill and outline carry health, and how to
+zoom and step back. A graph that draws a source node SHALL also name the source's origin, read by
+the controller and owned by Flux, and say which other boxes are drawn the same way. Source:
+portal:D4:R5, portal:D19.
+
+#### Scenario: The legend
+
+- **WHEN** a browser opens podinfo's Graph tab
+- **THEN** the legend names the applied mark, the dashed cluster-made boxes, the group box, and the
+  Ctrl + scroll and Esc keys, and names no source
+
+#### Scenario: The legend of a package
+
+- **WHEN** a browser opens the Graph tab of `/packages/pkg/podinfo` on the F1 capture
+- **THEN** the legend also names the source's origin, "Read by the controller, owned by Flux", says
+  that the package's components and the packages it depends on are drawn the same way, and the
+  source's own hover card reads the same origin words
+
+### Requirement: An empty inventory shows a placeholder
+
+When an instance or package has applied nothing (no inventory and no last applied time), the graph
+SHALL show a dashed placeholder box beside its root saying nothing was applied yet and that the
+graph fills in once an apply succeeds, and, for a package with no recorded source artifact, that it
+has never fetched its source. The placeholder SHALL not be a node: it has no panel and no link.
+Source: portal:D4:R1.
+
+#### Scenario: The F1 package
+
+- **WHEN** a browser opens the Graph tab of `/packages/pkg/podinfo` on the F1 capture
+- **THEN** a dashed box beside the package says nothing was applied yet and that the package has
+  never fetched its source
+
+### Requirement: Registration and source nodes show their own state
+
+A TransformerRegistration node on an instance or package graph SHALL be toned and labelled by the
+registration's own standing (active, accepted but not active, refused with its reason, removal
+blocked, pending), and its card SHALL show that standing with the claimed catalog and the provider.
+A claim the caller may not read SHALL render locked. Source: portal:D15:R2/R3/R4.
+
+#### Scenario: backup-provider's registration
+
+- **WHEN** a browser opens backup-provider's Graph tab on the F1 capture
+- **THEN** the `default.backup-provider` node reads "Accepted · active" in the healthy tone, and its
+  panel names the catalog `testing.opmodel.dev/catalogs/operator/backup@v0` and version `0.1.0`
+
+#### Scenario: Locked claim
+
+- **WHEN** a caller who may not list TransformerRegistrations opens backup-provider's Graph tab
+- **THEN** the registration node shows no standing and its panel says the standing is locked
+
+### Requirement: A registration's panel shows its standing, catalog and provider
+
+A registration's panel SHALL show the standing, the controller's message in local mode, the catalog
+with its version linking to the Catalog page, and the provider and whether `spec.providerRef` names
+it. Source: portal:D15:R2/R3, portal:D8:R5.
+
+#### Scenario: In-cluster registration panel
+
+- **WHEN** backup-provider's registration panel is rendered over an in-cluster read API
+- **THEN** it shows the standing and reason and no message text the operator wrote
+
+### Requirement: A source node is toned and labelled by the source's state
+
+A package's source node SHALL be toned and labelled by the source's state (ready with its revision,
+not ready with its reason, ready with no artifact, unknown, not found, kind not installed, kind not
+read), and its panel SHALL show the Ready reason, message and revision, and for a kind the cluster
+does not serve, that Flux source-controller is not installed or the package names a kind the
+cluster lacks. Source: portal:D20, portal:D8:R5.
+
+#### Scenario: Kind not installed
+
+- **WHEN** a browser opens the Graph tab of `/packages/pkg/podinfo` on the F1 capture
+- **THEN** the source node reads "Kind not installed", and its panel says the cluster does not serve
+  the OCIRepository kind
+
+#### Scenario: Locked source
+
+- **WHEN** a caller who may get the package but not its OCIRepository opens the Graph tab of
+  `/packages/pkg/podinfo` on a cluster that serves the kind
+- **THEN** the source node is drawn locked with no state, and its panel says the source is
+  locked
+
+### Requirement: The details panel rests on the node that needs attention
+
+On the Graph and Resources tabs, with neither `node` nor `focus` set, the details panel SHALL show
+the resting node without a spotlight: the node of the first held TransformerRegistration the caller
+may read whose claim is refused, pending, accepted but not active, or removal blocked, and
+otherwise the instance's or package's own node. Source: portal:D4:R4, portal:D19.
+
+#### Scenario: cert-manager at rest
+
+- **WHEN** a browser opens cert-manager's Graph tab with no parameters
+- **THEN** the details panel shows the ModuleInstance `cert-manager/cert-manager`
+
+#### Scenario: A refused package claim
+
+- **WHEN** a browser opens the Graph tab of a package whose held registration was refused with
+  `ProviderMismatch`
+- **THEN** the details panel shows that registration with its refusal reason, and no node is dimmed
+
+### Requirement: The resting node is marked apart and a selection returns to it
+
+The resting node SHALL be marked apart from a selection, and Escape SHALL not clear it. Clearing a
+selection SHALL return the panel to the resting node. A panel other than the resting node's SHALL
+carry a Clear selection control. Source: portal:D4:R4, portal:D19.
+
+#### Scenario: Clearing returns to rest
+
+- **WHEN** the user selects podinfo's Service and then activates Clear selection
+- **THEN** the panel shows the ModuleInstance `default/podinfo` again and the address carries no
+  `node`

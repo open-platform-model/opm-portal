@@ -135,7 +135,7 @@ var f1Pages = []goldenPage{
 	{"catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved", false},
 	{"instance-cert-manager-resources", "/instances/cert-manager/cert-manager?tab=resources", false},
 	{"instance-cert-manager", "/instances/cert-manager/cert-manager", false},
-	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager", false},
+	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac", false},
 	{"instance-web-cli-owned", "/instances/web/web", false},
 	{"package-podinfo", "/packages/pkg/podinfo", false},
 	{"package-podinfo-resources", "/packages/pkg/podinfo?tab=resources", false},

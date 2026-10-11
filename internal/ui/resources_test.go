@@ -324,28 +324,34 @@ func TestConfigurationGroupFoldsInATbody(t *testing.T) {
 			groups = append(groups, tb)
 		}
 	}
-	if len(groups) != 1 {
-		t.Fatalf("%d group tbody elements, want the one configuration group", len(groups))
+	// The graph has one group node for each kind family: CRDs, RBAC and
+	// webhook configuration, each its own fold.
+	if len(groups) != 3 {
+		t.Fatalf("%d group tbody elements, want one for each of the three family groups", len(groups))
 	}
-	rows := childrenNamed(groups[0], "tr")
-	if len(rows) < 2 || attr(rows[0], "class") != "group-head" {
-		t.Fatalf("the group's first row is not its header: %d rows", len(rows))
-	}
-	d := firstElement(rows[0], "details")
-	if d == nil || hasAttr(d, "open") || attr(d, "id") != "config-components" {
-		t.Fatalf("the group's details: %+v (want closed, id config-components)", d)
-	}
-	for _, r := range rows[1:] {
-		if !strings.Contains(attr(r, "class"), "member") {
-			t.Errorf("a row of the group is not a member: %q", attr(r, "class"))
+	for i, id := range []string{"config-components", "config-components-2", "config-components-3"} {
+		rows := childrenNamed(groups[i], "tr")
+		if len(rows) < 2 || attr(rows[0], "class") != "group-head" {
+			t.Fatalf("group %d: the first row is not its header: %d rows", i, len(rows))
+		}
+		d := firstElement(rows[0], "details")
+		if d == nil || hasAttr(d, "open") || attr(d, "id") != id {
+			t.Fatalf("group %d: details %+v (want closed, id %s)", i, d, id)
+		}
+		for _, r := range rows[1:] {
+			if !strings.Contains(attr(r, "class"), "member") {
+				t.Errorf("group %d: a row is not a member: %q", i, attr(r, "class"))
+			}
+		}
+		// The count in the tab is the whole list, folded or not.
+		if n := len(rows) - 1; !strings.Contains(page, strconvItoa(n)+" rows") {
+			t.Errorf("group %d: the summary does not count its %d member rows", i, n)
 		}
 	}
-	if !strings.Contains(page, "17 configuration components") {
-		t.Error("the group's summary lacks the node's label")
-	}
-	// The count in the tab is the whole list, folded or not.
-	if n := len(rows) - 1; !strings.Contains(page, strconvItoa(n)+" rows") {
-		t.Errorf("the group's summary does not count its %d member rows", n)
+	for _, label := range []string{"CRDs · 1 component", "RBAC · 13 components", "Webhook configuration · 2 components"} {
+		if !strings.Contains(page, label) {
+			t.Errorf("the page lacks the group label %q", label)
+		}
 	}
 }
 

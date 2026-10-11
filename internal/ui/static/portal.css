@@ -136,6 +136,11 @@
     --hdr-bg: #07090c;
     --hdr-ink: #ebe6da;
     --hdr-menu: #262e3a;
+    /* The dark header and the hover card read the same in both themes; the
+       card's pairs are checked in each. */
+    --hdr-muted: #c4c0b5;
+    --hdr-strong: #ebe6da;
+    --hdr-accent: #e3b45c;
 
     /* Each tone has four tokens: the border (--<tone>), the text ink (--<tone>-ink),
        the badge background (--<tone>-bg) and the block tint (--<tone>-tint). Text is
@@ -210,6 +215,9 @@
   --hdr-bg: #07090c;
   --hdr-ink: #ebe6da;
   --hdr-menu: #262e3a;
+  --hdr-muted: #c4c0b5;
+  --hdr-strong: #ebe6da;
+  --hdr-accent: #e3b45c;
 
   /* Each tone has four tokens: the border (--<tone>), the text ink (--<tone>-ink),
      the badge background (--<tone>-bg) and the block tint (--<tone>-tint). Text is
@@ -749,26 +757,57 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 /* ---- Graph view: spotlight, cards, full screen ---- */
 
 .graph { position: relative; }
-.graph .node.dim, .graph .edge.dim { opacity: 0.25; }
+.graph .node.dim, .graph .edge.dim { opacity: 0.35; }
+/* Hover and keyboard focus dim the same chain while they last: the
+   transient class replaces the page's own spotlight, which is lifted. */
+.graph.chain-on .node.dim, .graph.chain-on .edge.dim { opacity: 1; }
+.graph.chain-on .node.chain-dim, .graph.chain-on .edge.chain-dim { opacity: 0.35; }
 .graph .node, .graph .edge { transition: opacity 0.15s ease; }
 @media (prefers-reduced-motion: reduce) { .graph .node, .graph .edge { transition: none; } }
 .node-cards { position: static; }
-.node-card { position: absolute; z-index: 15; max-width: 300px; padding: 10px 12px; border-radius: 8px; background: var(--hdr-menu); color: var(--hdr-strong); font-size: 13px; line-height: 1.45; box-shadow: 0 10px 24px -10px var(--hdr-shadow); display: flex; flex-wrap: wrap; gap: 4px 6px; pointer-events: none; }
+.node-card { position: absolute; z-index: 15; width: 300px; max-width: calc(100vw - 24px); padding: 10px 12px; border-radius: 8px; background: var(--hdr-menu); color: var(--hdr-strong); font-size: 13px; line-height: 1.45; box-shadow: 0 10px 24px -10px var(--hdr-shadow); display: flex; flex-wrap: wrap; gap: 4px 6px; pointer-events: none; }
 .node-card[hidden] { display: none; }
 .nc-kind { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hdr-muted); flex-basis: 100%; }
 .nc-name { flex-basis: 100%; overflow-wrap: anywhere; }
-.nc-origin, .nc-access { flex-basis: 100%; color: var(--hdr-muted); }
+.nc-origin, .nc-access, .nc-fact, .nc-message { flex-basis: 100%; color: var(--hdr-muted); }
+.nc-message { overflow-wrap: anywhere; }
+.nc-hint { flex-basis: 100%; font-size: 12px; font-weight: 600; color: var(--hdr-accent); }
 .nc-marks .health, .nc-marks .applied { font-size: 11px; }
 .nc-marks .label { margin: 0 2px 0 6px; color: var(--hdr-strong); }
 .tool-link { font-size: 0.8rem; white-space: nowrap; }
 .tool-link[hidden] { display: none; }
+/* The toolbar's Clear selection is for full screen, where the details panel
+   is out of sight; elsewhere the panel carries the control. */
+.graph-stage:not(.graph-full) .graph-tools [data-clear-selection] { display: none; }
+.detail { position: relative; }
+.clear-pill { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--control-border); border-radius: 999px; background: var(--surface); color: var(--ink-2); text-decoration: none; }
+.clear-pill svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.clear-pill:hover { border-color: var(--accent); color: var(--accent-deep); }
+.detail .frag-h { padding-right: 36px; }
+.tone-box { margin: 10px 0 0; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); font-size: 0.85rem; overflow-wrap: anywhere; }
 .zoom-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); }
-.zoom-label input { width: 110px; }
+.zoom-label input { width: 180px; }
 .graph-stage { min-width: 0; }
 .graph-stage > .panel { height: 100%; }
-.graph-stage.graph-full { position: fixed; inset: 0; z-index: 50; background: var(--surface); overflow: auto; }
-.graph-stage:fullscreen { background: var(--surface); overflow: auto; }
-.graph-stage.graph-full .graph-frame, .graph-stage:fullscreen .graph-frame { max-height: calc(100vh - 160px); }
+/* Full screen is a fixed overlay over the page, not the browser's: Esc then
+   reaches the page, which steps back one thing per press. */
+.graph-stage.graph-full { position: fixed; inset: 0; z-index: 50; background: var(--surface); display: flex; flex-direction: column; }
+.graph-stage.graph-full > .panel { flex: 1; min-height: 0; display: flex; flex-direction: column; height: auto; border-radius: 0; margin: 0; }
+.graph-stage.graph-full .graph { flex: 1; min-height: 0; display: flex; flex-direction: column; border-radius: 0; }
+.graph-stage.graph-full .graph-frame { flex: 1; min-height: 0; max-height: none; }
+body:has(.graph-stage.graph-full) { overflow: hidden; }
+.graph-count { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.tool-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border: 1px solid var(--control-border); border-radius: 999px; background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 600; }
+.tool-pill:hover { border-color: var(--accent); color: var(--accent-deep); }
+.tool-key { font-family: var(--font-mono); font-size: 0.68rem; font-weight: 400; color: var(--ink-2); }
+.graph-tools .ic { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.group-switch .sw-state { font-weight: 700; }
+.group-switch.is-on { border-color: var(--accent); }
+.graph-tools button[aria-pressed="true"][data-zoom] { background: var(--accent-field); border-color: var(--accent); color: var(--accent-deep); }
+.graph-tools .full-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 32px; padding: 0; }
+.graph-tools .full-btn .ic { width: 16px; height: 16px; }
+.full-btn .ic-exit, .full-btn.is-full .ic-enter { display: none; }
+.full-btn.is-full .ic-exit { display: inline; }
 
 /* ---- Catalogs and registrations ---- */
 
@@ -886,55 +925,93 @@ tbody.group:has(details:not([open])) > tr.member { display: none; }
 
 /* ---- Graph ---- */
 
-.graph { border: 1px solid var(--line); border-radius: 8px; background:
-  linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
-  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 24px 24px,
-  var(--surface-2); min-width: 0; }
-.graph-frame { overflow: auto; max-height: 70vh; cursor: grab; overscroll-behavior: contain; }
+.graph { border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); min-width: 0; overflow: hidden; }
+/* The pane's grid scales with the graph and scrolls with it: the script sets
+   --grid-size to 24 px times the scale through the CSSOM. */
+.graph-frame { overflow: auto; max-height: 760px; cursor: grab; overscroll-behavior: contain; --grid-size: 24px; background:
+  linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / var(--grid-size) var(--grid-size) local,
+  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / var(--grid-size) var(--grid-size) local,
+  var(--surface-2); }
 .graph-frame.dragging { cursor: grabbing; user-select: none; }
-.graph svg { display: block; max-width: none; }
+.graph-frame > svg { display: block; max-width: none; margin: 0 auto; }
 .graph-tools { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--line); }
 @media (max-width: 520px) { .graph-tools .hint { flex-basis: 100%; } }
 .graph-tools .hint { margin-right: auto; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
-.graph-tools button { padding: 3px 10px; min-width: 38px; white-space: nowrap; font-family: var(--font-mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
+.graph-tools button { font-size: 0.8rem; padding: 3px 10px; min-width: 38px; white-space: nowrap; font-family: var(--font-mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); }
 .graph-tools button:hover { background: var(--accent); color: var(--accent-ink); }
 .col-title { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; fill: var(--muted); }
-.edge { fill: none; stroke: var(--edge); stroke-width: 1.6; }
+.edge { fill: none; stroke: var(--edge); stroke-width: 2; }
 .edge-providedBy, .edge-contributes { stroke: var(--accent); }
 .edge.unverified { stroke: var(--degraded); stroke-dasharray: 5 4; }
 .edge.unconfirmed { stroke: var(--locked); stroke-dasharray: 2 4; }
-.arrow { fill: var(--edge); }
-.node { cursor: pointer; }
+.edge-ghost { stroke-dasharray: 5 4; }
+/* A node is three lines (kind, name, status) in a box whose fill and outline
+   carry health, or a registration's standing; the hue class sets --c, --c-ink
+   and --c-tint as the state block does, and every text colour is an ink token
+   (portal:D19:R6, R7). Dashed means made by the cluster; nothing else is. */
+.node { --c: var(--neutral); --c-ink: var(--neutral-ink); --c-tint: var(--neutral-tint); cursor: pointer; }
+.node.health-healthy, .node.standing-active { --c: var(--healthy); --c-ink: var(--healthy-ink); --c-tint: var(--healthy-tint); }
+.node.health-progressing, .node.standing-inactive, .node.standing-pending { --c: var(--progressing); --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); }
+.node.health-degraded, .node.standing-refused { --c: var(--degraded); --c-ink: var(--degraded-ink); --c-tint: var(--degraded-tint); }
+.node.health-unknown, .node.standing-blocked { --c: var(--unknown); --c-ink: var(--unknown-ink); --c-tint: var(--unknown-tint); }
+.node.health-missing { --c: var(--missing); --c-ink: var(--missing-ink); --c-tint: var(--missing-tint); }
+.node.locked { --c: var(--locked); --c-ink: var(--locked-ink); --c-tint: var(--locked-tint); }
 .node:focus { outline: none; }
-.node-box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; transition: stroke 120ms ease; }
-.node-rail { fill: var(--unknown); }
+.node-box, .node-stack { fill: var(--c-tint); stroke: var(--c); stroke-width: 1.5; transition: stroke 120ms ease; }
+.node.kind-runtime .node-box { stroke-dasharray: 5 3; }
+.node-kind { font-family: var(--font-ui); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; fill: var(--c-ink); }
 .node-label { font-family: var(--font-ui); font-size: 13px; font-weight: 600; fill: var(--ink); }
-.node-sub { font-family: var(--font-mono); font-size: 10px; fill: var(--muted); }
+.node-label.node-mono { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+.node-status { font-family: var(--font-ui); font-size: 11px; fill: var(--c-ink); }
+.node-dot { fill: var(--c-ink); }
+.node.locked .node-label { fill: var(--locked-ink); }
 /* The outline is health's; hover, focus and selection draw a ring around
    it instead of recolouring it. */
-.node-ring { fill: none; stroke: none; }
-.node:hover .node-ring { stroke: var(--accent-soft); stroke-width: 8; }
-.node:focus-visible .node-ring { stroke: var(--focus); stroke-width: 6; }
-.node[aria-current="true"] .node-ring { stroke: var(--focus); stroke-width: 9; stroke-opacity: 0.55; }
-.node:hover .node-box { stroke-width: 2; }
-.node.health-healthy .node-rail { fill: var(--healthy); }
-.node.health-progressing .node-rail { fill: var(--progressing); }
-.node.health-degraded .node-rail { fill: var(--degraded); }
-.node.health-degraded .node-box { stroke: var(--degraded); }
-.node.health-missing .node-rail { fill: var(--missing); }
-.node.health-missing .node-box { stroke-dasharray: 4 3; }
-.node.kind-module .node-rail, .node.kind-source .node-rail { fill: var(--accent); }
-.node.kind-group .node-box { stroke-dasharray: 6 3; fill: var(--surface-2); }
+.node-ring, .node-halo { fill: none; stroke: none; }
+.node:hover .node-ring { stroke: var(--accent-soft); stroke-width: 6; }
+/* A selection is a 3 px accent ring with a gap of the pane between it and
+   the box; the resting node wears the same ring but is not a selection. A
+   spotlit node adds a 10 px tint halo. */
+.node[aria-current="true"] .node-ring, .graph:not(.has-selection) .node[data-resting] .node-ring { stroke: var(--accent); stroke-width: 3; }
+.node[data-spotlight] .node-halo { stroke: var(--accent-soft); stroke-width: 10; }
+/* Keyboard focus outranks the selection and the resting ring, which both
+   have more specificity than a bare .node:focus-visible. */
+.node:focus-visible .node-ring, .node[aria-current="true"]:focus-visible .node-ring, .graph:not(.has-selection) .node[data-resting]:focus-visible .node-ring { stroke: var(--focus); stroke-width: 4; }
+.node:hover .node-box { stroke-width: 2.5; }
 /* The applied stamp: the operator's axis, shaped like the applied badge. */
 .node-stamp { fill: var(--applied); stroke: var(--applied); stroke-width: 1.2; }
 .node.ap-failed .node-stamp, .node.ap-stalled .node-stamp { fill: var(--degraded); stroke: var(--degraded); }
 .node.ap-reconciling .node-stamp { fill: var(--progressing); stroke: var(--progressing); }
 .node.ap-managedexternally .node-stamp, .node.ap-suspended .node-stamp, .node.ap-unknown .node-stamp { fill: none; stroke: var(--neutral); stroke-dasharray: 2 1.5; }
-.node.locked .node-box { fill: var(--locked-bg); stroke: var(--locked); stroke-dasharray: 3 3; }
-.node.locked .node-rail { fill: var(--locked); }
-.node.locked .node-label, .node.locked .node-sub { fill: var(--locked-ink); }
 .hatch-bg { fill: transparent; }
 .hatch-line { stroke: var(--hatch); stroke-width: 3; }
+.ghatch-line { stroke: var(--line-strong); stroke-width: 1.5; stroke-opacity: 0.55; }
+
+/* A group of configuration components is open: a frame around its band. */
+.group-frame { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.group-frame-header { font-family: var(--font-ui); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; fill: var(--accent-deep); }
+.group-collapse { cursor: pointer; }
+.group-collapse:focus { outline: none; }
+.pill-box { fill: var(--accent-field); stroke: var(--accent); stroke-width: 1.5; }
+.pill-text { font-family: var(--font-ui); font-size: 12px; font-weight: 600; fill: var(--accent-deep); }
+.pill-chevron { fill: none; stroke: var(--accent-deep); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.group-collapse:hover .pill-box { stroke-width: 2.5; }
+.group-collapse:focus-visible .pill-box { stroke: var(--focus); stroke-width: 3; }
+
+/* Nothing is applied yet: a dashed box where the graph will grow. */
+.ghost-box { fill: none; stroke: var(--control-border); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ghost-text { font-family: var(--font-ui); font-size: 12px; fill: var(--ink-2); }
+
+/* The legend under the pane. */
+.graph-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; padding: 8px 12px; list-style: none; border-top: 1px solid var(--line); font-size: 0.78rem; color: var(--ink-2); }
+.lg-item { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.lg-sw { flex: none; width: 28px; height: 18px; }
+.lg-box, .lg-stack { fill: var(--surface); stroke: var(--ink-2); stroke-width: 1.5; }
+.lg-dashed { stroke-dasharray: 4 3; }
+.lg-stamp { fill: var(--applied); }
+.lg-hatch { stroke: none; }
+.lg-health { fill: var(--healthy-tint); stroke: var(--healthy); }
+.graph-legend kbd { padding: 0 5px; border: 1px solid var(--control-border); border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink); background: var(--surface); }
 
 /* ---- Detail, YAML, logs ---- */
 
@@ -1166,4 +1243,17 @@ tbody.group:has(details:not([open])) > tr.member { display: none; }
   .events-table th, .events-table td { padding: 12px 8px; }
   .events-table th:first-child, .events-table td:first-child { padding-left: 20px; }
   .events-table th:last-child, .events-table td:last-child { padding-right: 20px; }
+}
+
+/* ---- Graph motion: the zoom of Fit, the slider and group fit, a group's
+   members leaving their node, and the frame and edges fading in. Wheel zoom
+   never animates. Nothing moves under reduced motion. ---- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .graph.zoom-anim .graph-frame > svg { transition: width 300ms ease, height 300ms ease; }
+  .graph.expanding .group-frame-box, .graph.expanding .edge { animation: graph-fade 260ms ease-out; }
+}
+
+@keyframes graph-fade {
+  from { opacity: 0; }
 }

@@ -1,11 +1,12 @@
 {{define "panel-body"}}
 {{if .Missing}}<h2 class="frag-h">Node</h2><p class="muted">The graph has no such node any more.</p>
 {{else}}
+{{with .Clear}}<a class="clear-pill" href="{{.}}" hx-boost="false" data-clear-selection title="Or click an empty part of the graph, or press Esc"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10"/></svg><span class="vh">Clear selection</span></a>{{end}}
 <p class="kicker">{{.Kind}}</p>
 <h2 class="frag-h mono">{{template "breakable" .Label}}</h2>
 {{if .Locked}}{{template "locked" .Access}}{{with .RefText}}<p class="mono muted">{{.}}</p>{{end}}
 {{else}}
-<div class="axes">{{with .Reconcile}}<span class="axis-pair"><span class="label">Applied</span> {{template "applied" .}}</span>{{end}}{{with .Health}}<span class="axis-pair"><span class="label">Health</span> {{template "state" .State}}</span>{{end}}{{if .Absent}}<span class="axis-pair"><span class="label">Health</span> <span class="health health-missing"><span class="axis">Health axis</span>Missing</span></span>{{end}}</div>
+<div class="axes">{{with .Reconcile}}<span class="axis-pair"><span class="label">Applied</span> {{template "applied" .}}</span>{{end}}{{with .Health}}<span class="axis-pair"><span class="label">Health</span> {{template "state" .State}}</span>{{end}}{{with .Reg}}<span class="axis-pair"><span class="label">Standing</span> <span class="{{.Standing.Class}}">{{.Standing.Text}}</span></span>{{end}}{{if .Absent}}<span class="axis-pair"><span class="label">Health</span> <span class="health health-missing"><span class="axis">Health axis</span>Missing</span></span>{{end}}</div>
 {{if .Component}}<p class="panel-msg hue-neutral"><strong>Rendered.</strong> A Component is not a Kubernetes object: it is a part of the module, so it has no events or YAML of its own.</p>{{end}}
 {{with .Message}}<p class="panel-msg hue-{{$.Tone}}">{{.}}</p>{{end}}
 <dl class="facts">
@@ -22,8 +23,16 @@
   {{if and .Replicas (not .Facts)}}<dt>Desired replicas</dt><dd>{{.Replicas}}</dd>{{end}}
   {{if .ScaledDown}}<dt>Scaled down</dt><dd>{{.ScaledDown}} ReplicaSets at zero, hidden</dd>{{end}}
   {{if .Unread}}<dt>Pods</dt><dd>Could not be read; health is the object's own status.</dd>{{end}}
-  {{with .Group}}<dt>Stands for</dt><dd>{{len .Members}} {{.Kind}} nodes{{range .Hidden}}, {{.Count}} {{.Kind}}{{end}}</dd>{{end}}
+  {{if .Family}}{{range .Kinds}}<dt>{{.Kind}}</dt><dd>{{.Count}}</dd>{{end}}
+  {{else}}{{with .Group}}<dt>Stands for</dt><dd>{{len .Members}} {{.Kind}} nodes{{range .Hidden}}, {{.Count}} {{.Kind}}{{end}}</dd>{{end}}{{end}}
+  {{with .Src}}<dt>Source</dt><dd>{{.Status}}</dd>{{with .Reason}}<dt>Ready reason</dt><dd class="mono">{{.}}</dd>{{end}}{{with .Message}}<dt>Ready message</dt><dd>{{.}}</dd>{{end}}{{with .Revision}}<dt>Revision</dt><dd class="mono">{{template "breakable" .}}</dd>{{end}}{{end}}
+  {{with .Reg}}{{with .Reason}}<dt>Claim reason</dt><dd class="mono">{{.}}</dd>{{end}}<dt>Catalog</dt><dd class="mono">{{if .CatalogHref}}<a href="{{.CatalogHref}}">{{.CatalogText}}</a>{{else}}{{.CatalogText}}{{end}}</dd>{{with .Provider}}<dt>Provider</dt><dd class="mono">{{.}}</dd>{{end}}{{end}}
 </dl>
+{{with .GroupNote}}<p class="note">{{.}}</p>{{end}}
+{{with .Src}}{{with .Sentence}}<p class="note">{{.}}</p>{{end}}{{end}}
+{{with .Reg}}<p class="note">{{.Role}}</p>
+{{with .Message}}<p class="tone-box">{{.}}</p>{{end}}{{with .ActiveBy}}<p class="tone-box">{{.}}</p>{{end}}
+{{with .ProviderRef}}<p class="note">{{.}}</p>{{end}}{{end}}
 {{if .FactsUnread}}<p class="note">Details from the object could not be read.</p>{{end}}
 {{with .Contracts}}<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts">{{range .}}<li class="mono">{{.}}</li>{{end}}</ul>{{end}}
 {{end}}

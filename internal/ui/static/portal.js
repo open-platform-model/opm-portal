@@ -707,6 +707,7 @@
   // A boosted navigation swaps #main: move the stream to the new page.
   document.addEventListener("htmx:afterSettle", function () {
     sync();
+    keepFull();
     restoreGraphs();
     rememberFilters();
   });
@@ -869,36 +870,62 @@
   });
 
   // ---- Graph nodes ----
-  // selected maps a graph id to the id of its selected node, so a refresh
-  // that replaces the graph keeps the mark.
+  // Two states, as on the canvas. A selection (node=) shows the node's panel
+  // and a ring and dims nothing. A spotlight (focus=) selects too, adds a
+  // halo, centres the node and dims everything outside its chain: its
+  // ancestors and its descendants, two directed walks, never an undirected
+  // closure. Hover and keyboard focus dim the same chain while they last.
+  // selected maps a graph id to its selected node, spot to its spotlit one;
+  // a render that replaces the graph is the truth for both (the address
+  // carries them), and centred remembers which focus value was centred.
   var selected = new Map();
+  var spot = new Map();
+  var centred = new Map();
 
-  // markSelected marks the selected node and spotlights it: every node
-  // and edge not next to it is dimmed by a class.
+  // chainOf is id, its ancestors (edges walked backward) and its
+  // descendants (edges walked forward).
+  function chainOf(g, id) {
+    var back = Object.create(null), fwd = Object.create(null);
+    g.querySelectorAll("path[data-from]").forEach(function (e) {
+      var f = e.getAttribute("data-from"), t = e.getAttribute("data-to");
+      (back[t] = back[t] || []).push(f);
+      (fwd[f] = fwd[f] || []).push(t);
+    });
+    var out = new Set([id]);
+    [back, fwd].forEach(function (next) {
+      var seen = new Set([id]), stack = [id];
+      while (stack.length) {
+        var n = stack.pop();
+        (next[n] || []).forEach(function (m) {
+          if (!seen.has(m)) {
+            seen.add(m);
+            out.add(m);
+            stack.push(m);
+          }
+        });
+      }
+    });
+    return out;
+  }
+
+  // dimBy gives cls to every node outside lit and every edge with an end
+  // outside it; no lit set clears the class.
+  function dimBy(g, lit, cls) {
+    g.querySelectorAll("path[data-from]").forEach(function (e) {
+      e.classList.toggle(cls, !!lit && !(lit.has(e.getAttribute("data-from")) && lit.has(e.getAttribute("data-to"))));
+    });
+    g.querySelectorAll(".node").forEach(function (n) {
+      n.classList.toggle(cls, !!lit && !lit.has(n.getAttribute("data-node")));
+    });
+  }
+
+  // markSelected rings the selected node and, for a spotlight, adds the
+  // halo and dims what lies outside the chain.
   function markSelected(g) {
-    var want = selected.get(g.getAttribute("data-graph"));
-    if (want && !g.querySelector('.node[data-node="' + CSS.escape(want) + '"]')) {
-      // The focused node is gone (the object was deleted): nothing dims,
-      // and the panel no longer describes it.
-      selected.delete(g.getAttribute("data-graph"));
-      setFocusParam("");
-      resetDetail();
-      want = "";
-    }
-    var near = new Set();
-    if (want) {
-      near.add(want);
-      g.querySelectorAll("path[data-from]").forEach(function (e) {
-        var from = e.getAttribute("data-from"), to = e.getAttribute("data-to");
-        if (from === want || to === want) {
-          near.add(from);
-          near.add(to);
-        }
-        e.classList.toggle("dim", from !== want && to !== want);
-      });
-    } else {
-      g.querySelectorAll("path[data-from]").forEach(function (e) { e.classList.remove("dim"); });
-    }
+    var gid = g.getAttribute("data-graph");
+    var want = selected.get(gid) || "";
+    var hot = spot.get(gid) || "";
+    dimBy(g, hot ? chainOf(g, hot) : null, "dim");
     g.querySelectorAll(".node").forEach(function (n) {
       var id = n.getAttribute("data-node");
       if (want && id === want) {
@@ -906,38 +933,43 @@
       } else {
         n.removeAttribute("aria-current");
       }
-      n.classList.toggle("dim", !!want && !near.has(id));
+      if (hot && id === hot) {
+        n.setAttribute("data-spotlight", "");
+      } else {
+        n.removeAttribute("data-spotlight");
+      }
     });
+    g.classList.toggle("has-selection", !!want);
     var clear = g.querySelector("[data-clear-selection]");
     if (clear) {
       clear.hidden = !want;
     }
   }
 
-  // setParams writes the selection into a URL: the focus, or none. It drops
-  // node too, because the server ranks node above focus for the panel and for
-  // the YAML default, so a node left from the address the page was opened at
-  // would show the old object once another is selected or the selection is cleared.
-  function setParams(u, id) {
-    if (id) {
-      u.searchParams.set("focus", id);
-    } else {
-      u.searchParams.delete("focus");
-    }
-    u.searchParams.delete("node");
+  // setParams writes the selection into a URL: the node, the focus, or
+  // neither. The server ranks focus above node for the panel and the
+  // spotlight, so the one that is not meant stays out of the address.
+  function setParams(u, node, focus) {
+    [["node", node], ["focus", focus]].forEach(function (kv) {
+      if (kv[1]) {
+        u.searchParams.set(kv[0], kv[1]);
+      } else {
+        u.searchParams.delete(kv[0]);
+      }
+    });
   }
 
-  // setFocusParam keeps the selection in the address, so a refresh, a reload
-  // and a shared link show the same spotlight.
-  function setFocusParam(id) {
+  // setSelectionParams keeps node and focus in the address, so a refresh, a
+  // reload and a shared link show the same selection or spotlight.
+  function setSelectionParams(node, focus) {
     var u = new URL(location.href);
-    setParams(u, id);
+    setParams(u, node, focus);
     history.replaceState(history.state, "", u.pathname + u.search + u.hash);
     // The tab links keep the selection (portal:D9): the server wrote them for the
     // address the page was opened at, so they follow the selection as it changes.
     document.querySelectorAll(".owner-tabs a").forEach(function (a) {
       var t = new URL(a.getAttribute("href"), location.href);
-      setParams(t, id);
+      setParams(t, node, focus);
       a.setAttribute("href", t.pathname + t.search);
       // A boosted link keeps the path it was processed with, so a new href
       // reaches a click only after htmx processes the link again.
@@ -947,29 +979,33 @@
     });
   }
 
-  // resetDetail brings the panel back to the node it rests on: the page names
-  // that node's panel in data-root-panel. A page that names none keeps the
-  // placeholder.
-  function resetDetail() {
+  // resetDetail brings the panel back to the node the page rests on: the
+  // graph names that node's panel in data-resting-panel, and a page with no
+  // graph names it in data-root-panel on the panel itself. A page that names
+  // none says what to do.
+  function resetDetail(g) {
     var target = document.getElementById("detail");
-    var root = target && target.getAttribute("data-root-panel");
-    if (root && typeof htmx !== "undefined") {
-      htmx.ajax("GET", root, { target: "#detail", swap: "innerHTML", select: "unset" });
+    if (!target) {
       return;
     }
-    if (target) {
-      var p = document.createElement("p");
-      p.className = "muted";
-      p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
-      target.replaceChildren(p);
+    var url = (g && g.getAttribute("data-resting-panel")) || target.getAttribute("data-root-panel");
+    if (url && typeof htmx !== "undefined") {
+      htmx.ajax("GET", url, { source: g || target, target: "#detail", swap: "innerHTML", select: "unset" });
+      return;
     }
+    var p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = "Select a graph node, an object's YAML or its events to see them here.";
+    target.replaceChildren(p);
   }
 
   function clearSelection(g) {
-    selected.delete(g.getAttribute("data-graph"));
+    var gid = g.getAttribute("data-graph");
+    selected.delete(gid);
+    spot.delete(gid);
     markSelected(g);
-    setFocusParam("");
-    resetDetail();
+    setSelectionParams("", "");
+    resetDetail(g);
   }
 
   function intoView(el) {
@@ -977,6 +1013,32 @@
     if (r.top < 0 || r.top > window.innerHeight - 80) {
       el.scrollIntoView({ block: "start", behavior: "smooth" });
     }
+  }
+
+  // centreSpot scrolls the frame so the spotlit node is in its middle, once
+  // per focus value: smooth unless the user asks for reduced motion.
+  function centreSpot(g) {
+    var gid = g.getAttribute("data-graph");
+    var hot = spot.get(gid);
+    var frame = frameOf(g);
+    var svg = g.querySelector(".graph-frame > svg");
+    if (!hot || centred.get(gid) === hot || !frame || !svg || !frame.clientWidth) {
+      return;
+    }
+    var box = g.querySelector('.node[data-node="' + CSS.escape(hot) + '"] .node-box');
+    if (!box) {
+      return;
+    }
+    centred.set(gid, hot);
+    var s = parseFloat(svg.getAttribute("width")) / svg.viewBox.baseVal.width;
+    var cx = (box.x.baseVal.value + box.width.baseVal.value / 2) * s;
+    var cy = (box.y.baseVal.value + box.height.baseVal.value / 2) * s;
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    frame.scrollTo({
+      left: Math.max(0, cx - frame.clientWidth / 2),
+      top: Math.max(0, cy - frame.clientHeight / 2),
+      behavior: reduced ? "auto" : "smooth"
+    });
   }
 
   function openNode(a) {
@@ -987,9 +1049,11 @@
     }
     var g = a.closest(".graph[data-graph]");
     if (g) {
-      selected.set(g.getAttribute("data-graph"), a.getAttribute("data-node"));
+      var gid = g.getAttribute("data-graph");
+      selected.set(gid, a.getAttribute("data-node"));
+      spot.delete(gid);
       markSelected(g);
-      setFocusParam(a.getAttribute("data-node"));
+      setSelectionParams(a.getAttribute("data-node"), "");
     }
     // select "unset": the node sits inside #app, whose hx-select="#main" the
     // request would inherit, and the panel response holds no #main.
@@ -1015,23 +1079,50 @@
   document.addEventListener("htmx:afterSettle", openHashedPane);
 
   // A group node expands in place: the page is loaded with the group in
-  // its expand parameter and the view fitted to the group's members.
+  // its expand parameter and the view fitted to the group's members. The
+  // Collapse pill, Overview, Expand all, Collapse all and the grouping
+  // switch go the same way: an ajax swap of #main that does not scroll to
+  // the top, keeps full screen, and (for a group node) starts the members
+  // at the node they come from.
+  var fullKeep = false;
+  var motion = null;
+
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
   function expandGroup(a) {
     if (typeof htmx === "undefined") {
       return false;
     }
     var href = a.getAttribute("href");
+    fullKeep = anyFull();
+    motion = null;
+    var box = a.hasAttribute && a.hasAttribute("data-group") ? a.querySelector(".node-box") : null;
+    if (box) {
+      motion = { group: a.getAttribute("data-node"), x: box.x.baseVal.value, y: box.y.baseVal.value };
+    }
     htmx.ajax("GET", href, { source: document.getElementById("main"), target: "#main", select: "#main", swap: "outerHTML", push: href });
     return true;
   }
 
+  var VIEW_LINKS = ".graph .group-collapse, .graph [data-overview], .graph [data-expand-all], .graph [data-collapse-all], .graph [data-group-switch]";
+
   document.addEventListener("click", function (evt) {
     var clear = evt.target.closest && evt.target.closest("[data-clear-selection]");
     if (clear) {
-      var cg = clear.closest(".graph[data-graph]");
+      // The panel's Clear selection sits outside the graph: find the page's.
+      var cg = clear.closest(".graph[data-graph]") || document.querySelector(".graph[data-graph]");
       if (cg) {
         evt.preventDefault();
         clearSelection(cg);
+      }
+      return;
+    }
+    var vl = evt.target.closest && evt.target.closest(VIEW_LINKS);
+    if (vl) {
+      if (expandGroup(vl)) {
+        evt.preventDefault();
       }
       return;
     }
@@ -1040,7 +1131,7 @@
       // A click on the empty graph clears the selection; a drag does not.
       var empty = evt.target.closest && evt.target.closest(".graph-frame");
       var eg = empty && empty.closest(".graph[data-graph]");
-      if (eg && !moved && selected.has(eg.getAttribute("data-graph"))) {
+      if (eg && !moved && selected.has(eg.getAttribute("data-graph")) && !evt.target.closest("a")) {
         clearSelection(eg);
       }
       return;
@@ -1051,123 +1142,248 @@
     }
   });
   document.addEventListener("keydown", function (evt) {
+    var pill = evt.target.closest && evt.target.closest(".graph .group-collapse");
+    if (pill && evt.key === "Enter" && expandGroup(pill)) {
+      evt.preventDefault();
+      return;
+    }
     var a = evt.target.closest && evt.target.closest(".graph .node");
     if (a && (evt.key === "Enter" || evt.key === " ") && (a.hasAttribute("data-group") ? expandGroup(a) : openNode(a))) {
       evt.preventDefault();
     }
   });
 
+  // playMotion moves the members of the group just expanded from the node
+  // they come from to their place over 420 ms while they fade in, and fades
+  // the frame and the edges in. Nothing moves under reduced motion.
+  function playMotion(g) {
+    var m = motion;
+    motion = null;
+    if (!m || reducedMotion()) {
+      return;
+    }
+    var ids = new Set();
+    g.querySelectorAll('.node[data-member-of="' + CSS.escape(m.group) + '"]').forEach(function (n) { ids.add(n.getAttribute("data-node")); });
+    g.querySelectorAll("path[data-from]").forEach(function (e) {
+      if (ids.has(e.getAttribute("data-from")) && !e.getAttribute("data-from").startsWith("grp:")) {
+        ids.add(e.getAttribute("data-to"));
+      }
+    });
+    var nodes = [];
+    g.querySelectorAll(".node").forEach(function (n) {
+      var b = n.querySelector(".node-box");
+      if (b && ids.has(n.getAttribute("data-node"))) {
+        n.style.transition = "none";
+        n.style.transform = "translate(" + (m.x - b.x.baseVal.value) + "px, " + (m.y - b.y.baseVal.value) + "px)";
+        n.style.opacity = "0";
+        nodes.push(n);
+      }
+    });
+    g.classList.add("expanding");
+    void g.getBoundingClientRect();
+    nodes.forEach(function (n) {
+      n.style.transition = "transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 260ms ease-out";
+      n.style.transform = "translate(0px, 0px)";
+      n.style.opacity = "1";
+    });
+    window.setTimeout(function () {
+      nodes.forEach(function (n) {
+        n.style.transition = "";
+        n.style.transform = "";
+        n.style.opacity = "";
+      });
+      g.classList.remove("expanding");
+    }, 480);
+  }
+
   // ---- Pan and zoom ----
   // A graph is drawn at its natural size in a scrolling frame. Zoom sets
   // the SVG's width and height attributes (no style attribute, so no
-  // policy exception); dragging the background scrolls the frame.
+  // policy exception); dragging the background scrolls the frame. The frame
+  // is as high as the zoomed graph, between 320 and 760 px, set through the
+  // CSSOM; in full screen it fills the window.
   var zooms = new Map(); // graph id -> scale the user chose
   var moved = false;
-
-  // minFit is the smallest scale a fitted graph is drawn at: on a narrow
-  // screen larger, so the text stays legible and the frame scrolls.
-  function minFit() {
-    return window.matchMedia && window.matchMedia("(max-width: 640px)").matches ? 0.75 : 0.5;
-  }
+  var zoomTimers = new Map();
 
   function frameOf(g) { return g.querySelector(".graph-frame"); }
 
+  // animateZoom lets the next size change of the SVG run as a transition
+  // (the CSS is under no-preference); wheel zoom never calls it.
+  function animateZoom(g) {
+    var gid = g.getAttribute("data-graph");
+    g.classList.add("zoom-anim");
+    window.clearTimeout(zoomTimers.get(gid));
+    zoomTimers.set(gid, window.setTimeout(function () { g.classList.remove("zoom-anim"); }, 350));
+  }
+
+  // afterZoom runs fn once the size change has settled.
+  function afterZoom(fn) {
+    if (reducedMotion()) {
+      fn();
+    } else {
+      window.setTimeout(fn, 330);
+    }
+  }
+
+  function currentScale(g) {
+    var svg = g.querySelector(".graph-frame > svg");
+    return parseFloat(svg.getAttribute("width")) / svg.viewBox.baseVal.width;
+  }
+
   function apply(g) {
-    var svg = g.querySelector("svg");
+    var svg = g.querySelector(".graph-frame > svg");
     if (!svg) {
       return;
     }
     var vb = svg.viewBox.baseVal;
-    var s = zooms.get(g.getAttribute("data-graph")) || fitScale(g);
+    var gid = g.getAttribute("data-graph");
+    var s = zooms.get(gid) || fitScale(g);
+    var frame = frameOf(g);
     svg.setAttribute("width", String(Math.round(vb.width * s)));
     svg.setAttribute("height", String(Math.round(vb.height * s)));
+    if (frame) {
+      frame.style.height = isFull(stageOf(g)) ? "" : Math.max(320, Math.min(760, Math.round(vb.height * s))) + "px";
+      frame.style.setProperty("--grid-size", (24 * s) + "px");
+    }
     var range = g.querySelector("[data-zoom-range]");
     var out = g.querySelector("[data-zoom-value]");
+    var fit = g.querySelector("[data-zoom=fit]");
     if (range) {
       range.value = String(Math.round(s * 100));
     }
     if (out) {
       out.textContent = Math.round(s * 100) + "%";
     }
+    if (fit) {
+      fit.setAttribute("aria-pressed", zooms.has(gid) ? "false" : "true");
+    }
   }
 
-  // fitGroup fits the view to the members of the group just expanded,
-  // once per render, unless the user zoomed.
+  // fitGroup fits the view to the group just expanded, once per render,
+  // unless the user zoomed: the scale is max(0.6, min(1.5, wFit, hFit)) of
+  // the group's frame, centred, or from its top less 12 px when it is
+  // taller than the pane. It zooms with the animation and then scrolls,
+  // unless a spotlit node is to be centred, which does its own.
   function fitGroup(g) {
     var group = g.getAttribute("data-fit-group");
+    var gid = g.getAttribute("data-graph");
     var frame = frameOf(g);
-    var svg = g.querySelector("svg");
-    if (!group || !frame || !svg || g.hasAttribute("data-fitted") || zooms.has(g.getAttribute("data-graph"))) {
+    var svg = g.querySelector(".graph-frame > svg");
+    if (!group || !frame || !svg || g.hasAttribute("data-fitted") || zooms.has(gid)) {
       return;
     }
     g.setAttribute("data-fitted", "");
-    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    g.querySelectorAll('.node[data-member-of="' + CSS.escape(group) + '"] .node-box').forEach(function (r) {
-      var x = r.x.baseVal.value, y = r.y.baseVal.value;
-      x0 = Math.min(x0, x);
-      y0 = Math.min(y0, y);
-      x1 = Math.max(x1, x + r.width.baseVal.value);
-      y1 = Math.max(y1, y + r.height.baseVal.value);
-    });
-    if (x0 === Infinity) {
-      return;
+    var x0, y0, w, h;
+    var rect = g.querySelector('[data-frame-for="' + CSS.escape(group) + '"] .group-frame');
+    if (rect) {
+      x0 = rect.x.baseVal.value;
+      y0 = rect.y.baseVal.value;
+      w = rect.width.baseVal.value;
+      h = rect.height.baseVal.value;
+    } else {
+      var x1 = -Infinity, y1 = -Infinity;
+      x0 = Infinity;
+      y0 = Infinity;
+      g.querySelectorAll('.node[data-member-of="' + CSS.escape(group) + '"] .node-box').forEach(function (r) {
+        x0 = Math.min(x0, r.x.baseVal.value);
+        y0 = Math.min(y0, r.y.baseVal.value);
+        x1 = Math.max(x1, r.x.baseVal.value + r.width.baseVal.value);
+        y1 = Math.max(y1, r.y.baseVal.value + r.height.baseVal.value);
+      });
+      if (x0 === Infinity) {
+        return;
+      }
+      w = x1 - x0;
+      h = y1 - y0;
     }
-    var pad = 24;
-    var s = Math.max(0.2, Math.min(1.5, (frame.clientWidth - 2) / (x1 - x0 + 2 * pad)));
-    zooms.set(g.getAttribute("data-graph"), s);
+    var spotted = g.hasAttribute("data-focus");
+    var s = Math.max(0.6, Math.min(1.5, (frame.clientWidth - 2) / w, (frame.clientHeight - 32) / h));
+    zooms.set(gid, s);
+    if (!spotted) {
+      animateZoom(g);
+    }
     apply(g);
-    frame.scrollLeft = Math.max(0, (x0 - pad) * s);
-    frame.scrollTop = Math.max(0, (y0 - pad) * s);
+    var scroll = function () {
+      var cw = frame.clientWidth, ch = frame.clientHeight;
+      var left = Math.max(0, (x0 + w / 2) * s - cw / 2);
+      var top = h * s <= ch ? Math.max(0, (y0 + h / 2) * s - ch / 2) : Math.max(0, y0 * s - 12);
+      frame.scrollTo({ left: left, top: top, behavior: reducedMotion() ? "auto" : "smooth" });
+      g.setAttribute("data-fit-settled", "");
+    };
+    if (spotted) {
+      scroll();
+    } else {
+      afterZoom(scroll);
+    }
   }
 
-  // fitScale fits the graph's width to its frame, never above 1:1 and
-  // never below minFit: past that the frame scrolls.
+  // fitScale is the scale of the overview: min(1.5, widthFit, heightFit),
+  // 2 in full screen. A tall graph keeps a floor of 0.6 (0.75 on a narrow
+  // frame) and takes the width fit, so its labels stay legible and the frame
+  // scrolls.
   function fitScale(g) {
-    var svg = g.querySelector("svg");
+    var svg = g.querySelector(".graph-frame > svg");
     var frame = frameOf(g);
     if (!svg || !frame || !frame.clientWidth) {
       return 1;
     }
-    return Math.max(minFit(), Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
+    var vb = svg.viewBox.baseVal;
+    var full = isFull(stageOf(g));
+    var cap = full ? 2 : 1.5;
+    var wFit = (frame.clientWidth - 2) / vb.width;
+    var hFit = ((full ? frame.clientHeight : 760) - 2) / vb.height;
+    var floor = frame.clientWidth < 600 ? 0.75 : 0.6;
+    var s = Math.min(cap, wFit, hFit);
+    if (s < floor) {
+      s = Math.max(floor, Math.min(cap, wFit));
+    }
+    return s;
   }
 
   // restoreGraphs sizes every graph (fitted until the user zooms) and puts
   // back its selected node; it runs on load and after every swap.
   function restoreGraphs() {
     document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
-      if (!selected.has(g.getAttribute("data-graph"))) {
-        var cur = g.querySelector(".node[aria-current]");
-        if (cur) {
-          selected.set(g.getAttribute("data-graph"), cur.getAttribute("data-node"));
-        }
+      var gid = g.getAttribute("data-graph");
+      var prev = selected.get(gid);
+      var cur = g.querySelector(".node[aria-current]");
+      if (prev && !g.querySelector('.node[data-node="' + CSS.escape(prev) + '"]')) {
+        // The selected node is gone (the object was deleted): the panel no
+        // longer describes it, and the address stops naming it.
+        setSelectionParams("", "");
+        resetDetail(g);
+      }
+      // The render is the truth: it was made from the address.
+      if (cur) {
+        selected.set(gid, cur.getAttribute("data-node"));
+      } else {
+        selected.delete(gid);
+      }
+      var focus = g.getAttribute("data-focus");
+      if (focus && cur) {
+        spot.set(gid, focus);
+      } else {
+        spot.delete(gid);
       }
       apply(g);
       markSelected(g);
       fitGroup(g);
+      centreSpot(g);
+      playMotion(g);
     });
     markFull();
     showHovered();
   }
   restoreGraphs();
 
-  function zoom(g, how) {
-    var id = g.getAttribute("data-graph");
-    var svg = g.querySelector("svg");
-    var frame = frameOf(g);
-    var s = zooms.get(id) || fitScale(g);
-    if (how === "fit") {
-      s = Math.max(0.2, Math.min(1, (frame.clientWidth - 2) / svg.viewBox.baseVal.width));
-    } else {
-      s = how === "in" ? s * 1.25 : s * 0.8;
-    }
-    zooms.set(id, Math.min(3, Math.max(0.2, s)));
-    apply(g);
-  }
-
   document.addEventListener("click", function (evt) {
     var b = evt.target.closest && evt.target.closest(".graph-tools button[data-zoom]");
     if (b) {
-      zoom(b.closest(".graph"), b.getAttribute("data-zoom"));
+      var g = b.closest(".graph");
+      zooms.delete(g.getAttribute("data-graph"));
+      animateZoom(g);
+      apply(g);
     }
   });
 
@@ -1175,47 +1391,57 @@
     var r = evt.target;
     if (r && r.matches && r.matches("[data-zoom-range]")) {
       var g = r.closest(".graph[data-graph]");
-      zooms.set(g.getAttribute("data-graph"), Math.min(3, Math.max(0.2, Number(r.value) / 100)));
+      zooms.set(g.getAttribute("data-graph"), Math.min(2, Math.max(0.3, Number(r.value) / 100)));
+      animateZoom(g);
       apply(g);
     }
   });
 
   // ---- Full screen ----
-  // The Fullscreen API on the graph, or a class that fills the window where
-  // the API is missing or refused. A navigation leaves full screen.
-  // The stage is the element that goes full screen: it holds the graph's
-  // region but is not itself refreshed, so a live refresh replaces the
-  // graph inside it and the view stays full screen.
+  // A fixed overlay over the page (the stage gains .graph-full), not the
+  // browser's Fullscreen API: Esc then reaches the page, which steps back one
+  // thing per press, and a swap of #main can keep the overlay. A navigation
+  // leaves full screen. The stage holds the graph's region but is not itself
+  // refreshed, so a live refresh replaces the graph inside it and the view
+  // stays full screen.
   function stageOf(g) {
     return (g.closest && g.closest("[data-graph-stage]")) || g;
   }
 
   function isFull(stage) {
-    return document.fullscreenElement === stage || stage.classList.contains("graph-full");
+    return stage.classList.contains("graph-full");
   }
 
   // markFull sets every Full screen button to what its stage is, and
   // resizes the graphs: after entering, leaving, and every refresh.
   function markFull() {
     document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
+      var full = isFull(stageOf(g));
       var b = g.querySelector("[data-graph-full]");
       if (b) {
-        b.setAttribute("aria-pressed", isFull(stageOf(g)) ? "true" : "false");
+        var word = full ? "Exit full screen (Esc)" : "Show the graph full screen";
+        b.classList.toggle("is-full", full);
+        b.setAttribute("aria-label", word);
+        b.setAttribute("title", word);
       }
       apply(g);
     });
   }
 
-  function leaveFull() {
-    if (document.fullscreenElement && document.exitFullscreen) {
-      document.exitFullscreen().catch(function () {});
-    }
-    document.querySelectorAll(".graph-full").forEach(function (el) { el.classList.remove("graph-full"); });
+  // refitAll drops the user's zoom: entering and leaving full screen refits
+  // the overview, with the 2x cap in full screen.
+  function refitAll() {
+    document.querySelectorAll(".graph[data-graph]").forEach(function (g) { zooms.delete(g.getAttribute("data-graph")); });
     markFull();
   }
 
+  function leaveFull() {
+    document.querySelectorAll(".graph-full").forEach(function (el) { el.classList.remove("graph-full"); });
+    refitAll();
+  }
+
   function anyFull() {
-    return !!document.fullscreenElement || !!document.querySelector(".graph-full");
+    return !!document.querySelector(".graph-full");
   }
 
   document.addEventListener("click", function (evt) {
@@ -1228,23 +1454,39 @@
       leaveFull();
       return;
     }
-    var fallback = function () {
-      stage.classList.add("graph-full");
-      markFull();
-    };
-    if (stage.requestFullscreen) {
-      stage.requestFullscreen().then(markFull, fallback);
-    } else {
-      fallback();
-    }
+    stage.classList.add("graph-full");
+    refitAll();
   });
-  document.addEventListener("fullscreenchange", markFull);
   document.addEventListener("htmx:beforeSwap", function (evt) {
     var t = evt.detail && evt.detail.target;
     if (t && t.id === "main") {
-      leaveFull();
+      centred.clear();
+      if (!fullKeep) {
+        leaveFull();
+      }
     }
   });
+  // A swap the graph started keeps full screen. htmx gives the new stage the
+  // old stage's attributes until it settles and then applies its own, so the
+  // class goes back on when the swap settles, before the graphs are sized.
+  var fullRestore = false;
+  document.addEventListener("htmx:afterSwap", function (evt) {
+    var t = evt.detail && evt.detail.target;
+    if (fullKeep && t && t.id === "main") {
+      fullKeep = false;
+      fullRestore = true;
+    }
+  });
+  function keepFull() {
+    if (!fullRestore) {
+      return;
+    }
+    fullRestore = false;
+    var stage = document.querySelector("[data-graph-stage]");
+    if (stage) {
+      stage.classList.add("graph-full");
+    }
+  }
 
   // ---- Info tips (WCAG 2.2 1.4.13, 4.1.2) ----
   // The CSS shows a .tip's box on hover and on focus, and the pointer can reach
@@ -1423,8 +1665,9 @@
     }
   });
 
-  // Escape steps back one thing per press: a shown info tip, then the theme
-  // menu, then an open hover card, then full screen, then the selection.
+  // Escape steps back one thing per press: a shown info tip, the theme
+  // menu, an open hover card, a selection that is not the resting node, an
+  // open configuration group (as Overview does), then full screen.
   document.addEventListener("keydown", function (evt) {
     if (evt.key !== "Escape" || evt.defaultPrevented) {
       return;
@@ -1449,17 +1692,26 @@
       evt.preventDefault();
       return;
     }
-    if (anyFull()) {
-      leaveFull();
-      evt.preventDefault();
-      return;
-    }
+    var cleared = false;
     document.querySelectorAll(".graph[data-graph]").forEach(function (g) {
       if (selected.has(g.getAttribute("data-graph"))) {
         clearSelection(g);
-        evt.preventDefault();
+        cleared = true;
       }
     });
+    if (cleared) {
+      evt.preventDefault();
+      return;
+    }
+    var overview = document.querySelector(".graph [data-overview]");
+    if (overview && document.querySelector(".graph .group-frame-box") && expandGroup(overview)) {
+      evt.preventDefault();
+      return;
+    }
+    if (anyFull()) {
+      leaveFull();
+      evt.preventDefault();
+    }
   });
 
   // ---- Hover cards ----
@@ -1473,6 +1725,10 @@
     return id ? document.getElementById(id) : null;
   }
 
+  // showCard places the card at the node's right edge plus 12 px, or left of
+  // the node when it does not fit there, clamped to the graph, through CSSOM
+  // properties; it also dims, while it lasts, what lies outside the node's
+  // chain.
   function showCard(n) {
     var card = cardFor(n);
     var g = n.closest(".graph[data-graph]");
@@ -1483,16 +1739,26 @@
     var box = g.getBoundingClientRect();
     var r = n.getBoundingClientRect();
     card.hidden = false;
-    var left = r.left - box.left;
-    var top = r.bottom - box.top + 6;
-    var max = g.clientWidth - card.offsetWidth - 4;
-    card.style.left = Math.max(4, Math.min(left, max)) + "px";
+    var w = card.offsetWidth, h = card.offsetHeight;
+    var left = r.right - box.left + 12;
+    if (left + w > g.clientWidth - 4) {
+      left = r.left - box.left - 12 - w;
+    }
+    left = Math.max(4, Math.min(left, g.clientWidth - w - 4));
+    var top = Math.max(4, Math.min(r.top - box.top, g.clientHeight - h - 4));
+    card.style.left = left + "px";
     card.style.top = top + "px";
     hovered = { graph: g.getAttribute("data-graph"), node: n.getAttribute("data-node") };
+    g.classList.add("chain-on");
+    dimBy(g, chainOf(g, n.getAttribute("data-node")), "chain-dim");
   }
 
   function hideCards() {
     document.querySelectorAll(".node-card:not([hidden])").forEach(function (c) { c.hidden = true; });
+    document.querySelectorAll(".graph.chain-on").forEach(function (g) {
+      g.classList.remove("chain-on");
+      dimBy(g, null, "chain-dim");
+    });
   }
 
   function showHovered() {
@@ -1507,6 +1773,21 @@
       hovered = null;
     }
   }
+
+  // WebKit scrolls a focused node into view after it has sent focusin, so a
+  // card placed on focusin sits where the node was before the scroll. A
+  // scroll of the frame places the open card again, once for each frame.
+  var cardScroll = false;
+  document.addEventListener("scroll", function (evt) {
+    if (!hovered || cardScroll || !(evt.target.closest && evt.target.closest(".graph-frame"))) {
+      return;
+    }
+    cardScroll = true;
+    window.requestAnimationFrame(function () {
+      cardScroll = false;
+      showHovered();
+    });
+  }, true);
 
   document.addEventListener("pointerover", function (evt) {
     var n = evt.target.closest && evt.target.closest(".graph .node");
@@ -1535,13 +1816,30 @@
     }
   });
 
+  // Ctrl or Cmd + wheel zooms continuously, from 0.3 to 2, keeping the point
+  // under the cursor where it is. It never animates: while a size is still
+  // transitioning the scroll range is the old one and the anchor would drift.
   document.addEventListener("wheel", function (evt) {
-    var g = evt.target.closest && evt.target.closest(".graph");
+    var g = evt.target.closest && evt.target.closest(".graph[data-graph]");
     if (!g || !(evt.ctrlKey || evt.metaKey)) {
       return;
     }
     evt.preventDefault();
-    zoom(g, evt.deltaY < 0 ? "in" : "out");
+    var svg = g.querySelector(".graph-frame > svg");
+    var frame = frameOf(g);
+    if (!svg || !frame) {
+      return;
+    }
+    var s0 = currentScale(g);
+    var r = svg.getBoundingClientRect();
+    var px = (evt.clientX - r.left) / s0, py = (evt.clientY - r.top) / s0;
+    var s1 = Math.min(2, Math.max(0.3, s0 * Math.exp(-evt.deltaY * 0.0015)));
+    zooms.set(g.getAttribute("data-graph"), s1);
+    g.classList.remove("zoom-anim");
+    apply(g);
+    var r2 = svg.getBoundingClientRect();
+    frame.scrollLeft += r2.left + px * s1 - evt.clientX;
+    frame.scrollTop += r2.top + py * s1 - evt.clientY;
   }, { passive: false });
 
   var drag = null;

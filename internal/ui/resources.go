@@ -218,7 +218,7 @@ func (b *tableBuilder) component(c componentView) {
 // health is not Healthy, a member is not healthy, or a reason is asked for.
 func (b *tableBuilder) group(cg configGroup, cs []componentView, filtered bool) {
 	body := resBody{Head: &resHead{ID: cg.ID, Label: cg.Label, Health: cg.Health, Open: cg.Open || filtered,
-		Note: "RBAC, CRDs, webhooks and other objects with no workload"}}
+		Note: familyNote(cg.Family)}}
 	for i := range cs {
 		for j := range cs[i].Objects {
 			rows, old := b.objectRows(&cs[i].Objects[j], cs[i].Name, true)
@@ -238,6 +238,20 @@ func (b *tableBuilder) group(cg configGroup, cs []componentView, filtered bool) 
 	b.rows += len(body.Rows)
 	b.applied = b.applied || len(body.Rows) > 0
 	b.bodies = append(b.bodies, body)
+}
+
+// familyNote says what a configuration fold holds, in the words of its own
+// kind family; a family this version does not know gets the Other wording.
+func familyNote(family string) string {
+	switch family {
+	case "crds":
+		return "Custom resource definitions, which add kinds to the cluster"
+	case "rbac":
+		return "Roles, bindings and other access rules, with no workload"
+	case "webhooks":
+		return "Webhook configurations, which route API requests to a service"
+	}
+	return "Other objects with no workload"
 }
 
 // oldBody is the tbody of a workload's old revisions: a header row with the

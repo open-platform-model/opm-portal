@@ -564,7 +564,7 @@ func providerWord(c v1.ProviderClaim) (word, hue string) {
 	case c.Verdict == verdictRefused:
 		return "Refused", hueDegraded
 	case c.Verdict == verdictRemovalBlocked:
-		return "Removal blocked", hueUnknown
+		return textRemovalBlocked, hueUnknown
 	}
 	return wordUnknown, hueUnknown
 }

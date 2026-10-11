@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-owner-pages` built in six sections on its branch, main merged in, in review; `align-platform-installed-catalog` and `align-shell-and-tokens` merged (PR 44, PR 47) and archived; phone-width test and contrast fix added).
+Last updated: 2026-10-11 (`align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -73,7 +73,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    between the owner's canvas and the live pages,
    [evidence 05](docs/design/evidence/05-canvas-gap-report/); portal:D19, D20, D4:R5 as amended,
    D9:R6, D14:R7):
-   - `align-shell-and-tokens` (in review; reviewed in three parts, fixed and archived on its branch; the gate for the other three, which start from it): fixes
+   - `align-shell-and-tokens` (merged as PR 44; reviewed in three parts, fixed and archived; the gate for the other three, which start from it): fixes
      the empty details panel after a graph node is selected, and lands the flat look (no grid,
      shadows or heading marks, an 1840 px column), tone and kind chip tokens in light and dark, one
      square badge for both axes with the Applied words kept, underline tabs with counts, a worded
@@ -85,7 +85,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      Open deviation for the owner's review: the Catalog page's Events tab carries no count where
      the canvas shows one, since counting it would add a read on every tab (portal:D19:R4, a
      planner reading, not a ruling).
-   - `align-platform-installed-catalog` (reviewed, fixed and archived on its branch, PR pending; built on top of the gate): Platform and Catalog
+   - `align-platform-installed-catalog` (merged as PR 47; reviewed, fixed and archived; built on top of the gate): Platform and Catalog
      state blocks with reason counts, filter selects that list the values present with counts and
      apply as you type (portal:D14:R7), Installed counted across namespaces with a package's source
      in the Module filter, events tables, and the Catalog page with its short-name headline, origin
@@ -99,18 +99,23 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      ("5m ago") with the absolute time in `title`; the Catalog page has no per-catalog resolve time
      until the operator records one (portal:OQ26). Open for the owner: any canvas copy above that
      the owner overturns.
-   - `align-owner-pages` (in review; built in six sections on its branch, review, archive and PR
-     to follow), after the gate, beside `align-graph`: Applied, Health and Provider as state
+   - `align-owner-pages` (merged as PR 48; built in six sections, reviewed, fixed and archived),
+     after the gate, beside `align-graph`: Applied, Health and Provider as state
      blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
      over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, the
      Provider tab as a facts grid with a conditions table and a table of what it provides, and
      `prune` on packages. What it uncovered is item 4 below.
-   - `align-graph`, after the gate, beside `align-owner-pages`: configuration grouped per kind
+   - `align-graph` (built in six sections, reviewed and archived on its branch; the PR is next), beside `align-owner-pages`: configuration grouped per kind
      family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
      legend, selection apart from the spotlight, registration standing on its node, and the
      package's source read as the caller (portal:D20). It and `align-owner-pages` share files,
      no requirement, and one function, `ownerTabsOf`, where both read the `node` and `focus`
-     parameters; the split is in both proposals.
+     parameters; the split is in both proposals. The visual check against the canvas boards left
+     eight divergences kept on purpose, in the change's design.md under "Visual check": among them
+     the group frame header is small at the 0.6 fit floor, the graph pane is capped at 760 px and
+     scrolls, the band keeps half-row gaps under `group=off`, and the Applied words stay. Open for the owner:
+     the registration panel names the provider only from the controller's verdict, since the
+     instance graph carries no `providerRef`.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **What `align-owner-pages` uncovered, none blocking:**
@@ -134,7 +139,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    alignment): `TestBrowserPhone` holds every F1 page to 360 px wide in three browsers; light muted
    text and the border of filter fields pass WCAG 2.2 AA, held by a token-pair test and recorded as
    portal:D19:R6. Two light-theme pairs, `--healthy` and `--degraded` on their fills, fail today and
-   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens (in review).
+   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens (merged).
 
 ## Future plans
 

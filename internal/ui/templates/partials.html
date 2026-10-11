@@ -201,42 +201,77 @@
 
 {{define "graph" -}}
 {{if .Empty}}<p class="muted">Nothing to draw.</p>{{else}}
-<div class="graph" data-graph="{{.ID}}"{{with .FitGroup}} data-fit-group="{{.}}"{{end}}>
+<div class="graph{{if .Focused}} has-selection{{end}}" data-graph="{{.ID}}"{{with .FitGroup}} data-fit-group="{{.}}"{{end}}{{with .Focus}} data-focus="{{.}}"{{end}}{{with .RestingPanel}} data-resting-panel="{{.}}"{{end}}>
   <div class="graph-tools" role="group" aria-label="Graph view">
-    <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
-    {{with .Whole}}<a class="tool-link" href="{{.}}" data-whole-graph>Whole graph</a>{{end}}
+    <span class="hint">Select a box to see its details on the right.</span>
+    <span class="graph-count" data-box-count>{{.Shown}} of {{.Total}} boxes</span>
+    {{with .Overview}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-overview title="{{$.OverviewTitle}}"><svg class="ic" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5"/></svg>Overview <span class="tool-key">Esc</span></a>{{end}}
+    {{with .ExpandAll}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-expand-all>Expand all</a>{{end}}
+    {{with .CollapseAll}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-collapse-all>Collapse all</a>{{end}}
+    {{with .Switch}}<a class="tool-link tool-pill group-switch{{if .On}} is-on{{end}}" href="{{.Href}}" hx-boost="false" data-group-switch>Group configuration: {{if .On}}<svg class="ic" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6.5 2.5 2.5 4.5-5.5"/></svg>{{end}}<span class="sw-state">{{.Text}}</span></a>{{end}}
     <a class="tool-link" href="{{.Clear}}" hx-boost="false" data-clear-selection{{if not .Focused}} hidden{{end}}>Clear selection</a>
-    <button type="button" data-zoom="fit">Fit</button>
-    <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
-    <button type="button" data-graph-full aria-pressed="false">Full screen</button>
+    <button type="button" data-zoom="fit" aria-pressed="true">Fit</button>
+    <label class="zoom-label" title="Or hold Ctrl and scroll over the graph"><span>Zoom</span> <input type="range" min="30" max="200" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
+    <button type="button" class="full-btn" data-graph-full aria-label="Show the graph full screen" title="Show the graph full screen"><svg class="ic ic-enter" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><svg class="ic ic-exit" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg></button>
   </div>
   <div class="graph-frame">
   <svg viewBox="0 0 {{.Width}} {{.Height}}" width="{{.Width}}" height="{{.Height}}" role="group" aria-label="Relationship graph">
     <defs>
-      <marker id="{{.ID}}-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
       <pattern id="{{.ID}}-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+      <pattern id="{{.ID}}-ghatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="8" height="8"/><line class="ghatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
     </defs>
     <g class="viewport">
       {{range .Columns}}<text class="col-title" x="{{.X}}" y="20">{{.Title}}</text>{{end}}
+      {{range .Frames}}
+      <g class="group-frame-box" data-frame-for="{{.Group}}">
+        <rect class="group-frame" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="12"/>
+        <text class="group-frame-header" x="{{.HeaderX}}" y="{{.HeaderY}}">{{.Header}}</text>
+        <a class="group-collapse" href="{{.Collapse}}" aria-label="{{.PillLabel}}" hx-boost="false">
+          <rect class="pill-box" x="{{.PillX}}" y="{{.PillY}}" width="104" height="24" rx="12"/>
+          <path class="pill-chevron" d="M{{.PillX}} {{.PillY}} m16 9 l5 5 l5 -5"/>
+          <text class="pill-text" x="{{.PillTextX}}" y="{{.PillTextY}}">Collapse</text>
+        </a>
+      </g>
+      {{end}}
+      {{range .Edges}}<path class="{{.Class}}" d="{{.D}}" data-from="{{.From}}" data-to="{{.To}}"><title>{{.Title}}</title></path>{{end}}
+      {{with .Ghost}}<path class="edge edge-ghost" d="{{.D}}"/>{{end}}
       {{$id := .ID}}
-      {{range .Edges}}<path class="{{.Class}}" d="{{.D}}" data-from="{{.From}}" data-to="{{.To}}" marker-end="url(#{{$id}}-arrow)"><title>{{.Title}}</title></path>{{end}}
       {{range .Nodes}}
-      <a class="{{.Class}}{{if .Dim}} dim{{end}}" href="{{.Href}}" data-panel="{{.Panel}}" data-node="{{.ID}}"{{with .MemberOf}} data-member-of="{{.}}"{{end}}{{if .Group}} data-group{{end}} tabindex="0" aria-label="{{.Aria}}" aria-describedby="{{.Card.ID}}"{{if .Selected}} aria-current="true"{{end}}>
+      <a class="{{.Class}}{{if .Dim}} dim{{end}}" href="{{.Href}}" data-panel="{{.Panel}}" data-node="{{.ID}}"{{with .MemberOf}} data-member-of="{{.}}"{{end}}{{if .Group}} data-group{{end}} tabindex="0" aria-label="{{.Aria}}" aria-describedby="{{.Card.ID}}"{{if .Selected}} aria-current="true"{{end}}{{if .Spot}} data-spotlight{{end}}{{if .Resting}} data-resting{{end}}>
         <title>{{.Full}}</title>
-        <rect class="node-ring" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="8"/>
+        <rect class="node-halo" x="{{.HaloX}}" y="{{.HaloY}}" width="{{.HaloW}}" height="{{.HaloH}}" rx="18"/>
+        <rect class="node-ring" x="{{.RingX}}" y="{{.RingY}}" width="{{.RingW}}" height="{{.RingH}}" rx="11"/>
+        {{if .Group}}<rect class="node-stack" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6" transform="translate(4 4)"/>{{end}}
         <rect class="node-box" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6"/>
         {{if .Locked}}<rect class="node-hatch" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6" fill="url(#{{$id}}-hatch)"/>{{end}}
-        <rect class="node-rail" x="{{.X}}" y="{{.Y}}" width="5" height="{{.H}}" rx="2"/>
-        <text class="node-label" x="{{.TextX}}" y="{{.TextY}}">{{.Label}}</text>
-        <text class="node-sub" x="{{.TextX}}" y="{{.SubY}}">{{.Sub}}</text>
+        {{if .Group}}<rect class="node-hatch" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6" fill="url(#{{$id}}-ghatch)"/>{{end}}
+        <text class="node-kind" x="{{.TextX}}" y="{{.KindY}}">{{.Kind}}</text>
+        <text class="node-label{{if .Mono}} node-mono{{end}}" x="{{.TextX}}" y="{{.NameY}}">{{.Label}}</text>
+        <circle class="node-dot" cx="{{.DotX}}" cy="{{.DotY}}" r="3"/>
+        <text class="node-status" x="{{.StatusX}}" y="{{.StatusY}}">{{.Status}}</text>
         {{if .Applied}}<rect class="node-stamp" x="{{.StampX}}" y="{{.StampY}}" width="10" height="10" rx="1"/>{{end}}
       </a>
+      {{end}}
+      {{with .Ghost}}
+      <g class="ghost">
+        <rect class="ghost-box" x="{{.X}}" y="{{.Y}}" width="{{.W}}" height="{{.H}}" rx="6"/>
+        <text class="ghost-text">{{range .Lines}}<tspan x="{{.X}}" y="{{.Y}}">{{.Text}}</tspan>{{end}}</text>
+      </g>
       {{end}}
     </g>
   </svg>
   </div>
+  <ul class="graph-legend" aria-label="Legend">
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-stamp" x="19" y="4" width="5" height="5"/></svg>Applied by the controller</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-dashed" x="1" y="1" width="26" height="16" rx="3"/></svg>Made by the cluster</li>
+    {{if .Source}}<li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/></svg>Read by the controller, owned by Flux. Components and dependency packages are drawn the same way</li>{{end}}
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-stack" x="1" y="1" width="26" height="16" rx="3" transform="translate(2 2)"/><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-hatch" x="1" y="1" width="26" height="16" rx="3" fill="url(#{{.ID}}-ghatch)"/></svg>Group of configuration components (CRDs, RBAC, webhooks, other). Click to open; one opens at a time</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-health" x="1" y="1" width="26" height="16" rx="3"/></svg>Fill and outline: health</li>
+    <li class="lg-item"><kbd>Ctrl</kbd> + scroll to zoom</li>
+    <li class="lg-item"><kbd>Esc</kbd> to step back</li>
+  </ul>
   <div class="node-cards">
-  {{range .Nodes}}<div class="node-card" id="{{.Card.ID}}" role="tooltip" data-card-for="{{.ID}}" hidden>{{with .Card}}<span class="nc-kind">{{.Kind}}</span> <strong class="nc-name mono">{{.Name}}</strong>{{if or .Health .Applied}} <span class="nc-marks">{{with .Health}}<span class="label">Health</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}{{with .Applied}} <span class="label">Applied</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}</span>{{end}}{{with .Reason}} <span class="nc-reason mono">{{.}}</span>{{end}}{{with .Origin}} <span class="nc-origin">{{.}}</span>{{end}}{{with .Access}} <span class="nc-access">{{.}}</span>{{end}}{{end}}</div>
+  {{range .Nodes}}<div class="node-card" id="{{.Card.ID}}" role="tooltip" data-card-for="{{.ID}}" hidden>{{with .Card}}<span class="nc-kind">{{.Kind}}</span> <strong class="nc-name mono">{{.Name}}</strong>{{if or .Health .Applied .Standing}} <span class="nc-marks">{{with .Health}}<span class="label">Health</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}{{with .Applied}} <span class="label">Applied</span> <span class="{{.Class}}">{{.Text}}</span>{{end}}{{with .Standing}} <span class="{{.Class}}">{{.Text}}</span>{{end}}</span>{{end}}{{with .Reason}} <span class="nc-reason mono">{{.}}</span>{{end}}{{with .Message}} <span class="nc-message">{{.}}</span>{{end}}{{with .Catalog}} <span class="nc-fact">{{.}}</span>{{end}}{{with .Fact}} <span class="nc-fact">{{.}}</span>{{end}}{{with .Origin}} <span class="nc-origin">{{.}}</span>{{end}}{{with .Access}} <span class="nc-access">{{.}}</span>{{end}} <span class="nc-hint">{{.Hint}}</span>{{end}}</div>
   {{end}}
   </div>
 </div>

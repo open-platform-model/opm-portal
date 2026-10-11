@@ -43,7 +43,17 @@ The **Events** tab merges the owner's own events with those of every object its 
 
 ### Every graph edge comes from a recorded field
 
-Each instance and package page draws a graph. It runs from the module through the instance and its components to the inventory objects, then to the ReplicaSets, Pods and Jobs found through the owner references below those objects. Each kind of edge has exactly one source field. The portal never renders a module to find an edge. The read API also serves a Platform graph of catalogs, registrations and the instances that provide them; the Platform page shows the same joins as rows instead, and where a registration's provider and the provider's inventory disagree, both are shown.
+Each instance and package page draws a graph. An instance graph starts at the instance and a package graph at the package, with its source first. Both run through the components to the inventory objects, then to the ReplicaSets, Pods and Jobs found through the owner references below those objects. The module is on the identity card, not in the graph. Each kind of edge has exactly one source field. The portal never renders a module to find an edge. The read API also serves a Platform graph of catalogs, registrations and the instances that provide them; the Platform page shows the same joins as rows instead, and where a registration's provider and the provider's inventory disagree, both are shown.
+
+### The graph groups configuration and shows what you pick
+
+Configuration components that hold RBAC rules, CustomResourceDefinitions or webhook configurations are folded into one box per kind family, so the workloads stay readable. A group box reads "Group", its family, and the count of objects by kind. Click a group to open it: its members move out of the box into a frame with a header and a Collapse pill, and the view fits the frame. One configuration group is open at a time, so opening another closes the first. Expand all opens every group, Collapse all closes them, and Overview, or the Esc key, goes back to the graph with nothing open. The Group configuration switch reads "Grouped" or "Ungrouped"; ungrouped shows every configuration component as a box of its own, with no frames.
+
+A click on a box selects it: the details panel on the right shows it, and nothing dims. A link from the Resources tab spotlights a node instead: the graph dims everything outside the node's chain, its ancestors and its descendants, and centres the node. Hovering or focusing a box shows a card with its facts and dims the same chain while it lasts. A box that is not selected and not spotlit has the health of its object in its fill and outline, a square for "applied by the controller", and a dashed outline when the cluster made it. The legend under the graph names each mark.
+
+Fit sizes the whole graph to the pane, and the slider or Ctrl and scroll zooms from 30 to 200 percent. The full screen button fills the window; Esc steps back one thing at a time: a card, a selection, an open group, then full screen. Motion follows your operating system's reduced-motion setting.
+
+On a package graph the first node after the package is the source its `spec.sourceRef` names, read as you. It shows ready, not ready, or "No artifact yet". It shows "Kind not installed" until Flux serves the source kind; that clears within five minutes of installing Flux. The source box is locked when you may not read it, and the portal reads only the three Flux source kinds.
 
 ### Events and logs are read when you look
 

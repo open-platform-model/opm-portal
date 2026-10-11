@@ -43,6 +43,9 @@ Checks, each printing one line per page, then exiting 1 if any failed:
    displayed, and every displayed body row computes to display block as a card no wider than the viewport.
    The provider instance has a "What it provides" row; the refused package says it provides nothing.
 
+8. The graph frame takes the overflow: on the cert-manager Graph tab the frame's scrollWidth exceeds its
+   clientWidth (the graph is wider than 360 px), and the page's measure stays at most 360.
+
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
 
@@ -53,6 +56,9 @@ from playwright.sync_api import sync_playwright
 
 WIDTH = 360
 HEIGHT = 640
+
+# The graph page whose frame must scroll inside itself.
+GRAPH_PAGE = "/instances/cert-manager/cert-manager?tab=graph"
 
 # The page and node of the details-panel step.
 PANEL_PAGE = "/instances/default/podinfo"
@@ -353,9 +359,19 @@ def run(p, engine, base, paths):
             past = page.evaluate(PAST_EDGE, WIDTH)
             print(f"{engine}: FAIL {PANEL_PAGE} with the details panel filled scrollWidth {width} over {WIDTH}; past the edge: {'; '.join(past) or 'none found'}")
             shoot(page, len(paths))
+
+        open_page(page, base + GRAPH_PAGE)
+        frame_scroll, frame_client, page_width = page.evaluate(
+            "[document.querySelector('.graph-frame').scrollWidth, document.querySelector('.graph-frame').clientWidth, " + MEASURE + "]")
+        if frame_scroll > frame_client and page_width <= WIDTH:
+            print(f"{engine}: {GRAPH_PAGE} the graph frame scrolls ({frame_scroll} over {frame_client}) and the page holds {page_width}")
+        else:
+            failed.append(GRAPH_PAGE + " (the frame takes the overflow)")
+            print(f"{engine}: FAIL {GRAPH_PAGE} frame scrollWidth {frame_scroll} client {frame_client}, page {page_width}")
+            shoot(page, len(paths) + 1)
     finally:
         browser.close()
-    total = len(paths) + 1 + len(OWNER_PAGES) + 2 * len(OWNER_TABS_PAGES) + 3 * len(OWNER_TEXT_PAGES) + len(OWNER_PROVIDER_PAGES)
+    total = len(paths) + 2 + len(OWNER_PAGES) + 2 * len(OWNER_TABS_PAGES) + 3 * len(OWNER_TEXT_PAGES) + len(OWNER_PROVIDER_PAGES)
     print(f"{engine}: {total - len(failed)} of {total} checks hold {WIDTH} px")
     return not failed
 

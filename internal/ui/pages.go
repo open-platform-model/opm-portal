@@ -526,7 +526,10 @@ type configGroup struct {
 	// ID is the id of the group's <details>, so a refresh keeps it open.
 	ID string
 	// Label is the group node's label, such as "17 configuration components".
-	Label      string
+	Label string
+	// Family is the group's kind family as the graph wrote it: crds, rbac,
+	// webhooks or other. It words the fold's note.
+	Family     string
 	Health     string
 	Open       bool
 	Components []componentView
@@ -587,10 +590,10 @@ func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, []configGroup
 	rest := cs
 	for i := range g.Nodes {
 		n := &g.Nodes[i]
-		if n.Kind != "group" || n.Group == nil {
+		if n.Kind != "group" || n.Group == nil || n.Group.Kind != "configuration" {
 			continue
 		}
-		cg := configGroup{ID: "config-components", Label: n.Label, Health: "Unknown"}
+		cg := configGroup{ID: "config-components", Label: n.Label, Family: n.Group.Family, Health: "Unknown"}
 		if len(groups) > 0 {
 			cg.ID += "-" + strconv.Itoa(len(groups)+1)
 		}
@@ -652,7 +655,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
 			cv.LogHref = logLink(base, cv.LogID)
 		}
-		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
+		if ch.Ref.Kind == kindReplicaSet && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)
 			continue
 		}
@@ -710,11 +713,14 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		base := k.base(r.PathValue("namespace"), r.PathValue("name"))
 		var g v1.Graph
-		if p := h.fetch(r, base+"/graph", graphQuery(r), &g); p != nil {
+		if p := h.fetchGraph(r, base+"/graph", &g); p != nil {
 			h.renderProblemFragment(w, r, p)
 			return
 		}
 		ctx := panelContext{owner: k, base: base}
+		if n := restingNode(&g); n != nil {
+			ctx.resting = n.ID
+		}
 		// A Pod's Logs link needs the owner's containers, and the owner's own
 		// node its identity facts, both from the owner document.
 		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && (isPod(*n.Ref) || isOwnerNode(n, ctx)) {

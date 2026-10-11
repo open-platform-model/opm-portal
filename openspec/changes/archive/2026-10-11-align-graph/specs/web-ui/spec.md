@@ -16,7 +16,8 @@ elbows through the document's route points, without arrowheads. A label too long
 SHALL keep the part that tells nodes apart. Activating a node SHALL show its detail panel and mark
 the node as selected; activating a group node SHALL show it expanded. A graph SHALL open fitted to
 its frame, SHALL pan with the pointer and SHALL zoom with a zoom slider, Fit and Ctrl/Cmd-wheel.
-Graphs SHALL appear on instance and package pages; the Platform page SHALL not draw one. The
+At a 360 px wide viewport the page SHALL NOT scroll sideways; the graph's frame SHALL take the
+graph's extra width. Graphs SHALL appear on instance and package pages; the Platform page SHALL not draw one. The
 instance page SHALL not draw the module node; the module's path and version stay on the page's
 identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17, portal:D19.
 
@@ -41,6 +42,12 @@ identity card. Source: portal:D4:R1/R3/R5, portal:D3:R1, portal:D17, portal:D19.
 
 - **WHEN** any instance graph is rendered
 - **THEN** every edge path is made of horizontal and vertical segments and carries no arrowhead
+
+#### Scenario: A graph at phone width
+
+- **WHEN** a browser 360 px wide opens cert-manager's Graph tab
+- **THEN** the page does not scroll sideways, and the graph's frame scrolls to reach the part of
+  the graph beyond its width
 
 ### Requirement: Graphs can be explored without leaving the page
 
@@ -109,26 +116,33 @@ SHALL stop under the reduced-motion preference. Source: portal:D4:R5, portal:D19
 
 A collapsed configuration group SHALL be drawn as a stacked, hatched node naming its family, its
 component count and its object and kind counts. Opening one configuration group SHALL close any
-other open configuration group, while open Pod groups stay open. An open configuration group SHALL
-be drawn inside a dotted frame, spanning from the components column to the last drawn column,
-whose header names the family and counts its components and objects and which carries a Collapse
-control; collapsing SHALL leave the group selected, with its panel showing the object kinds it
-folds and their counts, its health and a control to expand it again. The graph toolbar SHALL offer
-Expand all, which opens every family, Collapse all, and a Group configuration switch that says in
-visible text whether configuration is grouped: grouped, families fold and open as above; ungrouped,
-every configuration component is shown with no group node and no frame. The toolbar SHALL say how
-many boxes are drawn of how many there are. Source: portal:D4:R5.
+other open configuration group, while open Pod groups stay open. Source: portal:D4:R5.
 
 #### Scenario: Opening CRDs closes RBAC
 
 - **WHEN** cert-manager's RBAC group is open and the user activates the CRDs group
 - **THEN** the CRDs group is open inside its frame and the RBAC group is folded again
 
+### Requirement: An open configuration group is drawn inside a dotted frame
+
+An open configuration group SHALL be drawn inside a dotted frame, spanning from the components
+column to the last drawn column, whose header names the family and counts its components and
+objects and which carries a Collapse control. Collapsing SHALL leave the group selected, with its
+panel showing the object kinds it folds and their counts, its health and a control to expand it
+again. Source: portal:D4:R5.
+
 #### Scenario: Collapse from the frame
 
 - **WHEN** the user activates the RBAC frame's Collapse control
 - **THEN** the group is folded and selected, and the panel counts its ClusterRoles,
   ClusterRoleBindings, Roles and RoleBindings
+
+### Requirement: The graph toolbar groups and counts configuration
+
+The graph toolbar SHALL offer Expand all, which opens every family, Collapse all, and a Group
+configuration switch that says in visible text whether configuration is grouped: grouped, families
+fold and open as above; ungrouped, every configuration component is shown with no group node and
+no frame. The toolbar SHALL say how many boxes are drawn of how many there are. Source: portal:D4:R5.
 
 #### Scenario: Expand all
 
@@ -142,15 +156,34 @@ many boxes are drawn of how many there are. Source: portal:D4:R5.
 - **THEN** all 20 components are shown with their objects, with no group node and no frame, and the
   switch reads ungrouped
 
-### Requirement: The graph explains its marks and an empty inventory
+### Requirement: The graph explains its marks
 
 Below every graph a legend SHALL say what the marks mean: applied by the controller, made by the
 cluster, a configuration group and how it opens, that fill and outline carry health, and how to
-zoom and step back. When an instance or package has applied nothing (no inventory and no last
-applied time), the graph SHALL show a dashed placeholder box beside its root saying nothing was
-applied yet and that the graph fills in once an apply succeeds, and, for a package with no
-recorded source artifact, that it has never fetched its source. The placeholder SHALL not be a
-node: it has no panel and no link.
+zoom and step back. A graph that draws a source node SHALL also name the source's origin, read by
+the controller and owned by Flux, and say which other boxes are drawn the same way. Source:
+portal:D4:R5, portal:D19.
+
+#### Scenario: The legend
+
+- **WHEN** a browser opens podinfo's Graph tab
+- **THEN** the legend names the applied mark, the dashed cluster-made boxes, the group box, and the
+  Ctrl + scroll and Esc keys, and names no source
+
+#### Scenario: The legend of a package
+
+- **WHEN** a browser opens the Graph tab of `/packages/pkg/podinfo` on the F1 capture
+- **THEN** the legend also names the source's origin, "Read by the controller, owned by Flux", says
+  that the package's components and the packages it depends on are drawn the same way, and the
+  source's own hover card reads the same origin words
+
+### Requirement: An empty inventory shows a placeholder
+
+When an instance or package has applied nothing (no inventory and no last applied time), the graph
+SHALL show a dashed placeholder box beside its root saying nothing was applied yet and that the
+graph fills in once an apply succeeds, and, for a package with no recorded source artifact, that it
+has never fetched its source. The placeholder SHALL not be a node: it has no panel and no link.
+Source: portal:D4:R1.
 
 #### Scenario: The F1 package
 
@@ -158,24 +191,12 @@ node: it has no panel and no link.
 - **THEN** a dashed box beside the package says nothing was applied yet and that the package has
   never fetched its source
 
-#### Scenario: The legend
-
-- **WHEN** a browser opens podinfo's Graph tab
-- **THEN** the legend names the applied mark, the dashed cluster-made boxes, the group box, and the
-  Ctrl + scroll and Esc keys
-
 ### Requirement: Registration and source nodes show their own state
 
 A TransformerRegistration node on an instance or package graph SHALL be toned and labelled by the
 registration's own standing (active, accepted but not active, refused with its reason, removal
-blocked, pending), its card SHALL show that standing with the claimed catalog and the provider, and
-its panel SHALL show the standing, the controller's message in local mode, the catalog with its
-version linking to the Catalog page, and the provider and whether `spec.providerRef` names it. A
-claim the caller may not read SHALL render locked. A package's source node SHALL be toned and
-labelled by the source's state (ready with its revision, not ready with its reason, ready with no
-artifact, unknown, not found, kind not installed, kind not read), and its panel SHALL show the Ready reason, message and
-revision, and for a kind the cluster does not serve, that Flux source-controller is not installed
-or the package names a kind the cluster lacks. Source: portal:D15:R2/R3/R4, portal:D8:R5, portal:D20.
+blocked, pending), and its card SHALL show that standing with the claimed catalog and the provider.
+A claim the caller may not read SHALL render locked. Source: portal:D15:R2/R3/R4.
 
 #### Scenario: backup-provider's registration
 
@@ -183,16 +204,35 @@ or the package names a kind the cluster lacks. Source: portal:D15:R2/R3/R4, port
 - **THEN** the `default.backup-provider` node reads "Accepted · active" in the healthy tone, and its
   panel names the catalog `testing.opmodel.dev/catalogs/operator/backup@v0` and version `0.1.0`
 
+#### Scenario: Locked claim
+
+- **WHEN** a caller who may not list TransformerRegistrations opens backup-provider's Graph tab
+- **THEN** the registration node shows no standing and its panel says the standing is locked
+
+### Requirement: A registration's panel shows its standing, catalog and provider
+
+A registration's panel SHALL show the standing, the controller's message in local mode, the catalog
+with its version linking to the Catalog page, and the provider and whether `spec.providerRef` names
+it. Source: portal:D15:R2/R3, portal:D8:R5.
+
+#### Scenario: In-cluster registration panel
+
+- **WHEN** backup-provider's registration panel is rendered over an in-cluster read API
+- **THEN** it shows the standing and reason and no message text the operator wrote
+
+### Requirement: A source node is toned and labelled by the source's state
+
+A package's source node SHALL be toned and labelled by the source's state (ready with its revision,
+not ready with its reason, ready with no artifact, unknown, not found, kind not installed, kind not
+read), and its panel SHALL show the Ready reason, message and revision, and for a kind the cluster
+does not serve, that Flux source-controller is not installed or the package names a kind the
+cluster lacks. Source: portal:D20, portal:D8:R5.
+
 #### Scenario: Kind not installed
 
 - **WHEN** a browser opens the Graph tab of `/packages/pkg/podinfo` on the F1 capture
 - **THEN** the source node reads "Kind not installed", and its panel says the cluster does not serve
   the OCIRepository kind
-
-#### Scenario: Locked claim
-
-- **WHEN** a caller who may not list TransformerRegistrations opens backup-provider's Graph tab
-- **THEN** the registration node shows no standing and its panel says the standing is locked
 
 #### Scenario: Locked source
 
@@ -201,20 +241,12 @@ or the package names a kind the cluster lacks. Source: portal:D15:R2/R3/R4, port
 - **THEN** the source node is drawn locked with no state, and its panel says the source is
   locked
 
-#### Scenario: In-cluster registration panel
-
-- **WHEN** backup-provider's registration panel is rendered over an in-cluster read API
-- **THEN** it shows the standing and reason and no message text the operator wrote
-
 ### Requirement: The details panel rests on the node that needs attention
 
 On the Graph and Resources tabs, with neither `node` nor `focus` set, the details panel SHALL show
 the resting node without a spotlight: the node of the first held TransformerRegistration the caller
 may read whose claim is refused, pending, accepted but not active, or removal blocked, and
-otherwise the instance's or package's own node. The resting node SHALL be marked apart from a
-selection, and Escape SHALL not clear it. Clearing a selection SHALL return the panel to the
-resting node. A panel other than the resting node's SHALL carry a Clear selection control. Source:
-portal:D4:R4, portal:D19.
+otherwise the instance's or package's own node. Source: portal:D4:R4, portal:D19.
 
 #### Scenario: cert-manager at rest
 
@@ -226,6 +258,12 @@ portal:D4:R4, portal:D19.
 - **WHEN** a browser opens the Graph tab of a package whose held registration was refused with
   `ProviderMismatch`
 - **THEN** the details panel shows that registration with its refusal reason, and no node is dimmed
+
+### Requirement: The resting node is marked apart and a selection returns to it
+
+The resting node SHALL be marked apart from a selection, and Escape SHALL not clear it. Clearing a
+selection SHALL return the panel to the resting node. A panel other than the resting node's SHALL
+carry a Clear selection control. Source: portal:D4:R4, portal:D19.
 
 #### Scenario: Clearing returns to rest
 

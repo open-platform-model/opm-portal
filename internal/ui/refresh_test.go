@@ -156,33 +156,29 @@ func TestOldRevisionsFoldHasAnID(t *testing.T) {
 	}
 }
 
-// TestStampedLabelsLeaveRoomForTheStamp: a node with an applied stamp
-// clips its label shorter, so the stamp does not cover the label's end.
-func TestStampedLabelsLeaveRoomForTheStamp(t *testing.T) {
+// TestNodeLinesFitTheirBox: the three lines of a node are clipped to what
+// fits a 216 px box, the kind line short enough to leave the applied
+// square its corner, and a clipped name keeps its tail, which tells
+// siblings apart.
+func TestNodeLinesFitTheirBox(t *testing.T) {
+	d := &drawing{g: &v1.Graph{Layout: v1.GraphLayout{NodeWidth: 216, NodeHeight: 72}}, byID: map[string]*v1.GraphNode{}}
 	ready := v1.Reconcile{}
-	label := "cert-manager/cert-manager"
-	stamped := nodeOf(&v1.GraphNode{ID: "a", Kind: "instance", Label: label, Reconcile: &ready}, 200, 44, "/", "/node")
-	plain := nodeOf(&v1.GraphNode{ID: "b", Kind: "instance", Label: label}, 200, 44, "/", "/node")
-	if n := len([]rune(stamped.Label)); !stamped.Applied || n > stampedLabel {
-		t.Errorf("stamped label %q is %d characters, want at most %d", stamped.Label, n, stampedLabel)
-	}
-	if n := len([]rune(plain.Label)); n > maxLabel || n <= stampedLabel {
-		t.Errorf("unstamped label %q is %d characters, want %d to %d", plain.Label, n, stampedLabel+1, maxLabel)
-	}
-}
-
-// TestModuleSubLineShowsTheHost: two modules that share their path's tail
-// but not its host read apart on the sub-line.
-func TestModuleSubLineShowsTheHost(t *testing.T) {
-	for _, tc := range []struct{ label, want string }{
-		{"opmodel.dev/modules/podinfo", "Module · opmodel.dev/…"},
-		{"testing.opmodel.dev/modules/podinfo", "Module · testing.opmodel.de…"},
-		{"opmodel.dev/podinfo", "Module · opmodel.dev"},
-	} {
-		_, sub := displayLabel(&v1.GraphNode{Kind: "module", Label: tc.label}, "Module", false)
-		if sub != tc.want {
-			t.Errorf("%s: sub-line %q, want %q", tc.label, sub, tc.want)
+	n := d.nodeOf(&v1.GraphNode{
+		ID: "a", Kind: "object", Label: "a-very-long-name-that-is-not-short-enough-podinfo-7c9d8f",
+		Ref:       &v1.ObjectRef{Kind: "MutatingWebhookConfigurationList", Name: "x"},
+		Reconcile: &ready,
+		Health:    &v1.GraphHealth{State: "Degraded", Reason: "ProgressDeadlineExceededAtTheRolloutOfTheDeployment"},
+	})
+	for name, got := range map[string]struct {
+		text string
+		max  int
+	}{"kind": {n.Kind, maxKind}, "name": {n.Label, maxLabel}, "status": {n.Status, maxStatus}} {
+		if r := len([]rune(got.text)); r > got.max {
+			t.Errorf("%s line %q is %d characters, want at most %d", name, got.text, r, got.max)
 		}
+	}
+	if !strings.HasSuffix(n.Label, "8f") || !n.Applied {
+		t.Errorf("name %q lost its tail, or the applied square is missing (%v)", n.Label, n.Applied)
 	}
 }
 
@@ -390,6 +386,28 @@ func TestANewEventReplacesTheTabCountAndNothingElse(t *testing.T) {
 	strip := func(s string) string { return count.ReplaceAllString(tabsOf(s), "") }
 	if strip(before) != strip(after) {
 		t.Errorf("the strips differ beyond the count:\n%s\n%s", strip(before), strip(after))
+	}
+}
+
+// TestARefreshKeepsTheOpenGroupAndTheSelection: the refresh fetches the
+// page's own address, so the fresh render holds the same open group, the
+// same frame and the same selected node as the page it replaces.
+func TestARefreshKeepsTheOpenGroupAndTheSelection(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	path := "/instances/cert-manager/cert-manager?tab=graph&expand=" + url.QueryEscape(cmRBAC)
+	page := mainOf(s.get(t, path).body)
+	member := regexp.MustCompile(`data-node="([^"]*)" data-member-of=`).FindStringSubmatch(page)
+	if member == nil {
+		t.Fatal("no member in the open group")
+	}
+	path += "&node=" + url.QueryEscape(member[1])
+	for i, body := range []string{mainOf(s.get(t, path).body), mainOf(s.get(t, path).body)} {
+		if strings.Count(body, `class="group-frame-box"`) != 1 || !strings.Contains(body, `data-frame-for="`+cmRBAC+`"`) {
+			t.Errorf("render %d: the open group has no frame", i)
+		}
+		if !regexp.MustCompile(`data-node="` + regexp.QuoteMeta(member[1]) + `"[^>]*aria-current="true"`).MatchString(body) {
+			t.Errorf("render %d: the selected member is not marked", i)
+		}
 	}
 }
 

@@ -1333,6 +1333,9 @@ controller watches it and re-reconciles the package, which refreshes the package
 - R5: The portal's roles gain no rule for the source kinds in V1 (D11:R3). In a Pod run from
   `deploy/` the ServiceAccount is the caller (D13), so the source shows locked; in-cluster, a user
   the cluster allows to get the source sees it as not readable by the portal.
+- R6: The Ready condition's message is served cut to at most 1024 Unicode code points, and its
+  reason and `status.artifact.revision` to at most 256 each, in local mode and in-cluster; a longer
+  value ends with an ellipsis.
 
 **Alternatives considered:**
 
@@ -1361,6 +1364,11 @@ F1's package Ready message (`no matches for kind "OCIRepository"`) shows the not
 The kind chosen by kind alone and the no-artifact case follow `resolve.go:52,64-69,84-95`. The
 three-kind limit and R5: supervisor rulings 2026-10-06, pending the owner. The discovery timer:
 planner, 2026-10-06, pending the supervisor and the owner.
+
+R6 (the length cap) is the owner's decision of 2026-10-11 to record the cap as a new requirement
+under D20: the owner answered "yes". The three values (1024, 256 and 256 code points) are the
+supervisor's rulings of the same day on the E4 gate reviews. The OpenSpec change `align-graph`
+carries it.
 
 ## Open questions
 
