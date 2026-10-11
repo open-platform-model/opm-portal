@@ -180,6 +180,24 @@ func TestBrowserGraph(t *testing.T) {
 	}
 }
 
+// TestBrowserOwner drives an owner page's details panel in real browsers (task
+// test:browser): the panel at rest shows the ModuleInstance, a node click fills it
+// and Clear selection brings the ModuleInstance back, the YAML tab opens on the
+// selected object, and a click on a Resources row opens the Graph focused with
+// the panel filled.
+func TestBrowserOwner(t *testing.T) {
+	script := browserScript(t, "owner.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("an owner page interaction did not hold: %v", err)
+			}
+		})
+	}
+}
+
 // TestBrowserTabCount drives a live tab count in real browsers (task
 // test:browser): a stream event makes the page fetch its own render, and the
 // real portal.js replaces the count span with the render's, whether the count

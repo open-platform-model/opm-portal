@@ -293,6 +293,10 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   or the page script's filter code. `TestBrowserGraph` drives an instance graph: Clear
   selection, the Resources hand-off, a group's fit and Whole graph, and the focus, zoom and full
   screen a live refresh keeps; run it after any change to the page script's graph code.
+  `TestBrowserOwner` drives an owner page's details panel: it rests on the ModuleInstance, a node
+  click fills it, Clear selection brings the ModuleInstance back, the YAML tab opens on the
+  selected object, and a Resources row opens the Graph focused; run it after any change to the
+  panel, the Resources table or the selection code of the page script.
   `TestBrowserPhone` opens every F1 page at 360 px wide and fails on a scroll width above 360; run it
   after any change to layout CSS.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
