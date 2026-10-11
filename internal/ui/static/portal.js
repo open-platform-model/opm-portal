@@ -1420,7 +1420,7 @@
       var b = g.querySelector("[data-graph-full]");
       if (b) {
         var word = full ? "Exit full screen (Esc)" : "Show the graph full screen";
-        b.setAttribute("aria-pressed", full ? "true" : "false");
+        b.classList.toggle("is-full", full);
         b.setAttribute("aria-label", word);
         b.setAttribute("title", word);
       }
@@ -1816,9 +1816,6 @@
     }
   });
 
-  // Ctrl or Cmd + wheel zooms continuously, from 0.3 to 2, keeping the point
-  // under the cursor where it is. It never animates: while a size is still
-  // transitioning the scroll range is the old one and the anchor would drift.
   // Ctrl or Cmd + wheel zooms continuously, from 0.3 to 2, keeping the point
   // under the cursor where it is. It never animates: while a size is still
   // transitioning the scroll range is the old one and the anchor would drift.

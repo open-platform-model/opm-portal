@@ -26,9 +26,9 @@ first failure:
 8. The Resources hand-off to a folded RBAC object expands and fits the group and shows the object
    spotlit inside the frame.
 9. The Clear selection pill returns the panel to the resting node; Escape at the resting node does not
-   clear it, and the resting node wears the plain ring.
+   clear it, the resting node wears the plain ring, and keyboard focus on it shows the focus ring.
 10. Fit: the fitted cert-manager graph fills more than half the pane at 1920 px, Fit is pressed after
-    load and not after a zoom, and the full screen button swaps its label.
+    load and not after a zoom, and the full screen button swaps its label and is not also a toggle (no `aria-pressed`).
 11. Groups: RBAC opens at no less than 60 % with its frame's top visible; opening CRDs closes RBAC;
     Collapse from the frame leaves the group selected with its panel and loads no new page.
 12. Full screen: opening and closing a group, and Overview, keep full screen; Escape steps back one
@@ -166,18 +166,18 @@ def run(p, engine, base):
 
         page.mouse.move(1, 1)
         page.locator("[data-graph-full]").click()
-        page.wait_for_selector('[data-graph-full][aria-pressed="true"]')
+        page.wait_for_selector('[data-graph-full].is-full')
         live_refresh(page, "instance:default/podinfo")
         full = page.evaluate("!!document.fullscreenElement || !!document.querySelector('.graph-full')")
-        pressed = page.get_attribute("[data-graph-full]", "aria-pressed")
-        if not check(engine, full and pressed == "true", f"full screen through a refresh: full {full}, pressed {pressed}"):
+        pressed = page.evaluate("document.querySelector('[data-graph-full]').hasAttribute('aria-pressed')")
+        if not check(engine, full and not pressed, f"full screen through a refresh: full {full}, aria-pressed present {pressed}"):
             return False
         page.keyboard.press("Escape")
         page.wait_for_url(lambda u: "focus=" not in u)
         mid = page.evaluate(
             f"[!!document.querySelector('.graph-stage.graph-full'), !!document.querySelector('.node[data-node=\"{DEPLOY}\"][aria-current]')]")
         page.keyboard.press("Escape")
-        page.wait_for_selector('[data-graph-full][aria-pressed="false"]')
+        page.wait_for_selector('[data-graph-full]:not(.is-full)')
         left = page.evaluate("!document.querySelector('.graph-stage.graph-full')")
         if not check(engine, mid == [True, False] and left,
                      f"the first Escape cleared the spotlight and kept full screen ({mid}); the second left full screen ({left})"):
@@ -310,6 +310,19 @@ def run(p, engine, base):
         if not check(engine, still == rest_name and ring2 == "3px" and "node=" not in page.url,
                      f"Escape at the resting node clears nothing: panel {still!r}, ring {ring2}"):
             return False
+        # The keyboard's focus ring outranks the resting ring: it is 4 px in the focus colour.
+        # Reached by Shift+Tab then Tab, so the engine counts it as keyboard focus (Firefox does
+        # not for a script's focus()).
+        page.locator(f'.node[data-node="{ROOT}"]').first.focus()
+        page.keyboard.press("Shift+Tab")
+        page.keyboard.press("Tab")
+        visible, focus_ring = page.evaluate(
+            "id => { const n = document.querySelector(`.node[data-node=\"${id}\"]`);"
+            " return [n.matches(':focus-visible'), getComputedStyle(n.querySelector('.node-ring')).strokeWidth]; }", ROOT)
+        if not check(engine, visible and focus_ring == "4px",
+                     f"keyboard focus on the resting node shows the focus ring: focus-visible {visible}, ring {focus_ring}"):
+            return False
+        page.keyboard.press("Escape")
 
         # 10. Fit fills the pane; Fit is pressed until the user zooms; the full screen label swaps.
         big = browser.new_context(viewport={"width": 1920, "height": 1080}).new_page()
@@ -333,12 +346,13 @@ def run(p, engine, base):
             return False
         label = big.get_attribute("[data-graph-full]", "aria-label")
         big.locator("[data-graph-full]").click()
-        big.wait_for_selector('[data-graph-full][aria-pressed="true"]')
+        big.wait_for_selector('[data-graph-full].is-full')
         label2 = big.get_attribute("[data-graph-full]", "aria-label")
+        toggle = big.evaluate("document.querySelector('[data-graph-full]').hasAttribute('aria-pressed')")
         big.keyboard.press("Escape")
-        big.wait_for_selector('[data-graph-full][aria-pressed="false"]')
-        if not check(engine, label != label2 and label2 == "Exit full screen (Esc)",
-                     f"the full screen button swaps its label: {label!r} -> {label2!r}"):
+        big.wait_for_selector('[data-graph-full]:not(.is-full)')
+        if not check(engine, label != label2 and label2 == "Exit full screen (Esc)" and not toggle,
+                     f"the full screen button swaps its label and is not also a toggle: {label!r} -> {label2!r}, aria-pressed {toggle}"):
             return False
         big.close()
 
@@ -383,18 +397,18 @@ def run(p, engine, base):
         page.goto(base + CERT + "?tab=graph")
         page.evaluate("window.__still = 1")
         page.locator("[data-graph-full]").click()
-        page.wait_for_selector('[data-graph-full][aria-pressed="true"]')
+        page.wait_for_selector('[data-graph-full].is-full')
         activate(page, f'.node[data-node="{RBAC}"]')
         page.wait_for_selector(".group-frame-box")
-        page.wait_for_selector('[data-graph-full][aria-pressed="true"]')
+        page.wait_for_selector('[data-graph-full].is-full')
         in_full = page.evaluate("!!document.querySelector('.graph-stage.graph-full') && window.__still === 1")
-        pressed = page.get_attribute("[data-graph-full]", "aria-pressed")
+        pressed = page.evaluate("document.querySelector('[data-graph-full]').classList.contains('is-full')")
         page.locator("[data-overview]").click()
         page.wait_for_url(lambda u: "expand=" not in u)
         page.wait_for_selector(f'.node[data-node="{RBAC}"]')
-        page.wait_for_selector('[data-graph-full][aria-pressed="true"]')
+        page.wait_for_selector('[data-graph-full].is-full')
         in_full2 = page.evaluate("!!document.querySelector('.graph-stage.graph-full') && window.__still === 1")
-        if not check(engine, in_full and pressed == "true" and in_full2,
+        if not check(engine, in_full and pressed and in_full2,
                      f"full screen kept across opening a group ({in_full}, {pressed}) and Overview ({in_full2})"):
             return False
         activate(page, f'.node[data-node="{RBAC}"]')
@@ -412,10 +426,10 @@ def run(p, engine, base):
         page.keyboard.press("Escape")
         page.wait_for_url(lambda u: "expand=" not in u)
         page.wait_for_selector(f'.node[data-node="{RBAC}"]')
-        page.wait_for_selector('[data-graph-full][aria-pressed="true"]')
+        page.wait_for_selector('[data-graph-full].is-full')
         step2 = page.evaluate("[!!document.querySelector('.group-frame-box'), !!document.querySelector('.graph-stage.graph-full')]")
         page.keyboard.press("Escape")
-        page.wait_for_selector('[data-graph-full][aria-pressed="false"]')
+        page.wait_for_selector('[data-graph-full]:not(.is-full)')
         step3 = page.evaluate("!!document.querySelector('.graph-stage.graph-full')")
         if not check(engine, card_first and step1 == [True, True] and step2 == [False, True] and step3 is False,
                      f"Escape hid the card ({card_first}), cleared the selection ({step1}), closed the group ({step2}), then left full screen ({not step3})"):

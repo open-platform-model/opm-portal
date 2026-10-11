@@ -778,7 +778,7 @@ button:hover { background: var(--accent); color: var(--accent-ink); }
 .tool-link[hidden] { display: none; }
 /* The toolbar's Clear selection is for full screen, where the details panel
    is out of sight; elsewhere the panel carries the control. */
-.graph-stage:not(.graph-full):not(:fullscreen) .graph-tools [data-clear-selection] { display: none; }
+.graph-stage:not(.graph-full) .graph-tools [data-clear-selection] { display: none; }
 .detail { position: relative; }
 .clear-pill { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--control-border); border-radius: 999px; background: var(--surface); color: var(--ink-2); text-decoration: none; }
 .clear-pill svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
@@ -806,8 +806,8 @@ body:has(.graph-stage.graph-full) { overflow: hidden; }
 .graph-tools button[aria-pressed="true"][data-zoom] { background: var(--accent-field); border-color: var(--accent); color: var(--accent-deep); }
 .graph-tools .full-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 32px; padding: 0; }
 .graph-tools .full-btn .ic { width: 16px; height: 16px; }
-.full-btn .ic-exit, .full-btn[aria-pressed="true"] .ic-enter { display: none; }
-.full-btn[aria-pressed="true"] .ic-exit { display: inline; }
+.full-btn .ic-exit, .full-btn.is-full .ic-enter { display: none; }
+.full-btn.is-full .ic-exit { display: inline; }
 
 /* ---- Catalogs and registrations ---- */
 
@@ -974,7 +974,9 @@ tbody.group:has(details:not([open])) > tr.member { display: none; }
    spotlit node adds a 10 px tint halo. */
 .node[aria-current="true"] .node-ring, .graph:not(.has-selection) .node[data-resting] .node-ring { stroke: var(--accent); stroke-width: 3; }
 .node[data-spotlight] .node-halo { stroke: var(--accent-soft); stroke-width: 10; }
-.node:focus-visible .node-ring { stroke: var(--focus); stroke-width: 4; }
+/* Keyboard focus outranks the selection and the resting ring, which both
+   have more specificity than a bare .node:focus-visible. */
+.node:focus-visible .node-ring, .node[aria-current="true"]:focus-visible .node-ring, .graph:not(.has-selection) .node[data-resting]:focus-visible .node-ring { stroke: var(--focus); stroke-width: 4; }
 .node:hover .node-box { stroke-width: 2.5; }
 /* The applied stamp: the operator's axis, shaped like the applied badge. */
 .node-stamp { fill: var(--applied); stroke: var(--applied); stroke-width: 1.2; }

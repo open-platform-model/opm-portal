@@ -166,7 +166,8 @@ func TestPanelLinkOfAMemberCarriesTheOpenGroups(t *testing.T) {
 
 // TestToolbarHoldsTheFittedZoomControls: Fit is pressed until the user zooms,
 // the slider runs 30 to 200 in steps of 5, its label tells of Ctrl and
-// scroll, and the full screen button is an icon with a name.
+// scroll, and the full screen button is an icon with a name and no pressed
+// state (its name changes with the state, so it is not also a toggle).
 func TestToolbarHoldsTheFittedZoomControls(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	main := mainOf(s.get(t, cmPage+"?tab=graph").body)
@@ -182,5 +183,8 @@ func TestToolbarHoldsTheFittedZoomControls(t *testing.T) {
 	}
 	if strings.Contains(main, ">Full screen<") {
 		t.Error("the full screen button still has a word")
+	}
+	if strings.Contains(main, "data-graph-full aria-pressed") {
+		t.Error("the full screen button swaps its name and also reports a pressed state")
 	}
 }
