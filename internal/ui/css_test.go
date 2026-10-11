@@ -633,16 +633,27 @@ func TestPortalCSSDrawsTheLoadingBar(t *testing.T) {
 		t.Error(line)
 	}
 	// The check can fail.
-	for name, css := range map[string]string{
-		"a bar that takes the pointer":  ".detail-loading { color: var(--muted); } body.is-loading .masthead::after { background: var(--hdr-accent); }",
-		"a bar that always moves":       "body.is-loading .masthead::after { background: var(--hdr-accent); pointer-events: none; animation: loading-bar 1s; }",
-		"a bar in a raw color":          "body.is-loading .masthead::after { background: #e3b45c; pointer-events: none; }",
-		"a panel line in the ink token": ".detail-loading { color: var(--ink); }",
+	for name, tc := range map[string]struct{ css, want string }{
+		"a bar that takes the pointer":  {".detail-loading { color: var(--muted); } body.is-loading .masthead::after { background: var(--hdr-accent); }", "the loading bar takes the pointer"},
+		"a bar that always moves":       {"body.is-loading .masthead::after { background: var(--hdr-accent); pointer-events: none; animation: loading-bar 1s; }", "the loading bar moves outside the no-preference guard"},
+		"a bar in a raw color":          {"body.is-loading .masthead::after { background: #e3b45c; pointer-events: none; }", "the loading bar is not drawn in --hdr-accent"},
+		"a panel line in the ink token": {".detail-loading { color: var(--ink); }", "the panel's loading line is not drawn in --muted"},
 	} {
-		if got := loadingBarProblems(css); len(got) < 2 {
-			t.Errorf("the check did not name %s: %v", name, got)
+		mustName(t, name, loadingBarProblems(tc.css), tc.want)
+	}
+}
+
+// mustName fails unless problems holds a line that names the defect want:
+// a case of "the check can fail" proves the one check it is about, not that
+// the sample CSS lacks many rules.
+func mustName(t *testing.T, name string, problems []string, want string) {
+	t.Helper()
+	for _, p := range problems {
+		if strings.Contains(p, want) {
+			return
 		}
 	}
+	t.Errorf("the check did not name %s (%q): %v", name, want, problems)
 }
 
 // bannerProblems names what is wrong with the banner and the header height
@@ -669,7 +680,28 @@ func bannerProblems(css string) []string {
 	if ring, ok := ruleFor(rules, ".region-banner :focus-visible"); !ok || ring["outline-color"] != "var(--c-ink)" {
 		out = append(out, "the banner's focus ring is not the tone's ink")
 	}
+	if row, ok := ruleFor(rules, ".region-banner"); ok && !strings.HasSuffix(row["font-size"], "rem") {
+		out = append(out, "the banner's text is not sized in rem: "+row["font-size"])
+	}
+	out = append(out, clusterPillProblems(rules)...)
 	return append(out, headerClearanceProblems(css, rules)...)
+}
+
+// clusterPillProblems names what is wrong with the cluster pill: the word
+// "cluster" is sized in rem, and the pill and each name in it are one line cut
+// with an ellipsis, so two long names cannot grow the phone header.
+func clusterPillProblems(rules []cssRuleOf) []string {
+	var out []string
+	if k, ok := ruleFor(rules, ".conn-k"); !ok || !strings.HasSuffix(k["font-size"], "rem") {
+		out = append(out, `the "cluster" label is not sized in rem`)
+	}
+	for _, sel := range []string{".conn-cluster", ".conn-name"} {
+		r, ok := ruleFor(rules, sel)
+		if !ok || r["white-space"] != "nowrap" || r["overflow"] != "hidden" || r["text-overflow"] != "ellipsis" {
+			out = append(out, sel+" is not one line cut with an ellipsis")
+		}
+	}
+	return out
 }
 
 // headerClearanceProblems checks the banner in forced colors and the pages'
@@ -705,14 +737,15 @@ func TestPortalCSSDrawsTheBannerAndKeepsClearOfTheHeader(t *testing.T) {
 		t.Error(line)
 	}
 	// The check can fail.
-	for name, css := range map[string]string{
-		"no banner at all":     "html { scroll-padding-top: calc(var(--masthead-h, 4.5rem) + 8px); } #detail { top: calc(var(--masthead-h, 72px) + 8px); max-height: calc(100vh - var(--masthead-h) - 28px); }",
-		"a fixed scroll pad":   ".region-banner { flex-basis: 100%; max-height: 8rem; overflow-y: auto; } .region-banner[hidden] { display: none; } html { scroll-padding-top: 4rem; }",
-		"a fixed panel offset": "#detail { top: 80px; max-height: calc(100vh - 100px); } html { scroll-padding-top: var(--masthead-h); }",
+	for name, tc := range map[string]struct{ css, want string }{
+		"no banner at all":     {"html { scroll-padding-top: calc(var(--masthead-h, 4.5rem) + 8px); } #detail { top: calc(var(--masthead-h, 72px) + 8px); max-height: calc(100vh - var(--masthead-h) - 28px); }", "no rule for .region-banner"},
+		"a fixed scroll pad":   {".region-banner { flex-basis: 100%; max-height: 8rem; overflow-y: auto; font-size: 0.875rem; } .region-banner[hidden] { display: none; } html { scroll-padding-top: 4rem; }", "html does not keep clear of the header through --masthead-h"},
+		"a fixed panel offset": {"#detail { top: 80px; max-height: calc(100vh - 100px); } html { scroll-padding-top: var(--masthead-h); }", "the sticky details panel does not take its offset and height from --masthead-h"},
+		"a banner in px":       {".region-banner { flex-basis: 100%; max-height: 8rem; overflow-y: auto; font-size: 14px; }", "the banner's text is not sized in rem"},
+		"a pill that wraps":    {".conn-cluster { overflow-wrap: anywhere; } .conn-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .conn-k { font-size: 11px; }", ".conn-cluster is not one line cut with an ellipsis"},
+		"a label in px":        {".conn-k { font-size: 11px; }", `the "cluster" label is not sized in rem`},
 	} {
-		if got := bannerProblems(css); len(got) < 2 {
-			t.Errorf("the check did not name %s: %v", name, got)
-		}
+		mustName(t, name, bannerProblems(tc.css), tc.want)
 	}
 }
 
@@ -751,13 +784,11 @@ func TestPortalCSSDrawsTheStaleNote(t *testing.T) {
 	for _, line := range staleNoteProblems(readPortalCSS(t)) {
 		t.Error(line)
 	}
-	for name, css := range map[string]string{
-		"no note at all":           "",
-		"a note that shows hidden": ".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note a { min-height: 44px; }",
-		"a short link":             ".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note[hidden] { display: none; } .stale-note a { min-height: 20px; }",
+	for name, tc := range map[string]struct{ css, want string }{
+		"no note at all":           {"", "the note is not in the tone of a lost stream"},
+		"a note that shows hidden": {".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note a { min-height: 44px; }", "a hidden note is not display none"},
+		"a short link":             {".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note[hidden] { display: none; } .stale-note a { min-height: 20px; }", "the Reload link of the note is not 44 px high"},
 	} {
-		if got := staleNoteProblems(css); len(got) < 2 {
-			t.Errorf("the check did not name %s: %v", name, got)
-		}
+		mustName(t, name, staleNoteProblems(tc.css), tc.want)
 	}
 }

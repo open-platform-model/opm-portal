@@ -23,7 +23,7 @@ func TestHeaderNamesTheConnection(t *testing.T) {
 		head := between(body, `<header class="masthead"`, "</header>")
 		for _, want := range []string{
 			`href="/"`, ">Platform</a>", `href="/installed"`, ">Installed</a>",
-			`<span class="conn-cluster mono" title="The kubeconfig context the portal reads with">` + apitest.Context + `</span>`,
+			`<span class="conn-cluster mono" title="Context ` + apitest.Context + `">` + apitest.Context + `</span>`,
 			`reading as <span class="mono">alice</span>`, `Kubernetes <span class="mono">v1.36.1</span>`,
 			`id="live"`, `data-theme-choice="light"`, `data-theme-choice="dark"`, `data-theme-choice="system"`,
 		} {
@@ -43,7 +43,7 @@ func TestHeaderNamesTheConnection(t *testing.T) {
 func TestHeaderInACluster(t *testing.T) {
 	s := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
 	body := s.get(t, "/").body
-	if !strings.Contains(body, `<span class="conn-cluster mono" title="The kubeconfig context the portal reads with">in cluster</span>`) ||
+	if !strings.Contains(body, `<span class="conn-cluster mono" title="Context in cluster">in cluster</span>`) ||
 		!strings.Contains(body, `data-context="in-cluster"`) {
 		t.Errorf("an in-cluster header does not read in cluster:\n%s", between(body, "<header", "</header>"))
 	}
@@ -74,7 +74,7 @@ func TestHeaderWithoutAContext(t *testing.T) {
 		t.Fatal(err)
 	}
 	body := mount(t, clusterAs(apitest.New(t, apitest.F1(t), apitest.AllowAll), http.StatusOK, string(doc))).get(t, "/").body
-	if !strings.Contains(between(body, "<header", "</header>"), `title="The kubeconfig context the portal reads with">unknown</span>`) ||
+	if !strings.Contains(between(body, "<header", "</header>"), `title="Context unknown">unknown</span>`) ||
 		strings.Contains(body, "data-context=") {
 		t.Errorf("a header without a context:\n%s", between(body, "<html", "</header>"))
 	}
@@ -267,8 +267,8 @@ func pill(t *testing.T, s *site) string {
 func TestHeaderNamesTheClusterEntry(t *testing.T) {
 	s := mount(t, apitest.NewWithCluster(t, apitest.F1(t), apitest.AllowAll, apitest.Context, "prod-east"))
 	body := s.get(t, "/").body
-	want := `<span class="conn-cluster conn-two" title="The kubeconfig context the portal reads with"><span class="mono">` + apitest.Context +
-		`</span> <span class="conn-entry"><span class="conn-k">cluster</span> <span class="mono">prod-east</span></span></span>`
+	want := `<span class="conn-cluster conn-two" title="Context ` + apitest.Context + `, cluster prod-east"><span class="conn-name mono">` + apitest.Context +
+		`</span> <span class="conn-entry"><span class="conn-k">cluster</span> <span class="conn-name mono">prod-east</span></span></span>`
 	if got := pill(t, s); !strings.Contains(got, want) {
 		t.Errorf("the pill does not name the entry:\n%s", got)
 	}
@@ -282,7 +282,7 @@ func TestHeaderWithAnEqualClusterEntry(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	got := pill(t, s)
 	if strings.Contains(got, "conn-entry") || strings.Contains(got, "cluster</span>") ||
-		!strings.Contains(got, `<span class="conn-cluster mono" title="The kubeconfig context the portal reads with">`+apitest.Context+`</span>`) {
+		!strings.Contains(got, `<span class="conn-cluster mono" title="Context `+apitest.Context+`">`+apitest.Context+`</span>`) {
 		t.Errorf("an equal entry changed the pill:\n%s", got)
 	}
 }
@@ -311,7 +311,7 @@ func TestHeaderNamesAnEntryOnlyWhereItAddsSomething(t *testing.T) {
 				if strings.Contains(got, "conn-entry") {
 					t.Errorf("the pill names an entry it should not:\n%s", got)
 				}
-			} else if !strings.Contains(got, `<span class="conn-k">cluster</span> <span class="mono">`+tc.wantEntry+`</span>`) {
+			} else if !strings.Contains(got, `<span class="conn-k">cluster</span> <span class="conn-name mono">`+tc.wantEntry+`</span>`) {
 				t.Errorf("the pill does not name the entry %q:\n%s", tc.wantEntry, got)
 			}
 			if strings.Contains(got, "<img") {

@@ -35,9 +35,9 @@
   <div class="conn{{if not .Header.OK}} conn-degraded{{end}}" id="conn">
     {{if .Header.OK}}
     {{if .Header.Entry -}}
-    <span class="conn-cluster conn-two" title="The kubeconfig context the portal reads with"><span class="mono">{{.Header.Cluster}}</span> <span class="conn-entry"><span class="conn-k">cluster</span> <span class="mono">{{.Header.Entry}}</span></span></span>
+    <span class="conn-cluster conn-two" title="Context {{.Header.Cluster}}, cluster {{.Header.Entry}}"><span class="conn-name mono">{{.Header.Cluster}}</span> <span class="conn-entry"><span class="conn-k">cluster</span> <span class="conn-name mono">{{.Header.Entry}}</span></span></span>
     {{- else -}}
-    <span class="conn-cluster mono" title="The kubeconfig context the portal reads with">{{.Header.Cluster}}</span>
+    <span class="conn-cluster mono" title="Context {{.Header.Cluster}}">{{.Header.Cluster}}</span>
     {{- end}}
     <span class="conn-reader">reading as <span class="mono">{{.Header.Username}}</span></span>
     <span class="conn-version">Kubernetes <span class="mono">{{with .Header.Version}}{{.}}{{else}}unknown{{end}}</span></span>
