@@ -577,6 +577,31 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 	}
 }
 
+// finishGraph adds to the drawn graph what the document does not hold: no
+// frames when the page asks for the components ungrouped, and the ghost box
+// of an owner that has applied nothing.
+func (v *ownerView) finishGraph(q url.Values) {
+	if q.Get("group") == "off" {
+		v.Graph.Frames = nil
+	}
+	if empty, fetched := v.nothingApplied(); empty {
+		v.Graph.addGhost(!fetched)
+	}
+}
+
+// nothingApplied reports whether the owner has applied nothing: no
+// inventory and no apply time. fetched is whether a package ever fetched
+// its source; an instance has no source, so it counts as fetched.
+func (v *ownerView) nothingApplied() (empty, fetched bool) {
+	switch {
+	case v.Instance != nil:
+		return v.Instance.InventoryCount == 0 && v.Instance.LastAppliedAt == nil, true
+	case v.Package != nil:
+		return v.Package.InventoryCount == 0 && v.Package.LastAppliedAt == nil, v.Package.SourceArtifact != nil
+	}
+	return false, true
+}
+
 // ownerTabsOf reads what the cards and the open tab show.
 func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 	q := r.URL.Query()
@@ -585,6 +610,7 @@ func (h *Handler) ownerTabsOf(r *http.Request, v *ownerView) {
 		v.Focus = q.Get("focus")
 		v.Graph = buildGraph(g, v.Kind.Topic+"-graph", v.Base, v.Base+"/node", v.Focus, q["expand"]...)
 		v.Graph.FitGroup = q.Get("fit")
+		v.finishGraph(q)
 		v.Components, v.Config = foldConfig(v.Components, &g)
 		if v.Focus != "" {
 			v.Panel = h.panel(r, &g, v.Focus, panelContext{owner: v.Kind, base: v.Base, firstContainer: v.firstContainer})

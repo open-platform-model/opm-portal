@@ -41,7 +41,7 @@ func parseCSS(css string) []cssRuleOf {
 
 // svgTextSelector matches a selector part that draws SVG text: the graph's
 // node labels, sublabels and titles. SVG text takes its color from fill.
-var svgTextSelector = regexp.MustCompile(`-(label|sub|title|text)\b|\btext\b|\btspan\b`)
+var svgTextSelector = regexp.MustCompile(`-(label|sub|title|text|kind|status)\b|\btext\b|\btspan\b`)
 
 // borderTokenText returns the rules of css that draw text in a border token
 // where the token's own fill sits behind it (portal:D19:R7). Text takes the

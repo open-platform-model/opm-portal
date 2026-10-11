@@ -86,8 +86,18 @@ func buildContrastPairs() []contrastPair {
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
+		// The graph's own pairs (align-graph): the frame's header and the
+		// Collapse pill, the ghost's text and the legend on the pane, the
+		// hover card's lines on its dark fill, the node name on the tints.
+		{"deep accent on the Collapse pill", "--accent-deep", "--accent-field", textFloor, ""},
+		{"secondary ink on secondary card", "--ink-2", "--surface-2", textFloor, ""},
+		{"ink on card", "--ink", "--surface", textFloor, ""},
+		{"card muted on card", "--hdr-muted", "--hdr-menu", textFloor, ""},
+		{"card text on card", "--hdr-strong", "--hdr-menu", textFloor, ""},
+		{"card hint on card", "--hdr-accent", "--hdr-menu", textFloor, ""},
+		{"ink on locked tint", "--ink", "--locked-tint", textFloor, ""},
 	}
-	pairs := make([]contrastPair, 0, len(fixed)+5*len(tones))
+	pairs := make([]contrastPair, 0, len(fixed)+8*len(tones))
 	pairs = append(pairs, fixed...)
 	for _, tone := range tones {
 		pairs = append(pairs,
@@ -96,6 +106,9 @@ func buildContrastPairs() []contrastPair {
 			contrastPair{"muted on " + tone + " tint", "--muted", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"secondary ink on " + tone + " tint", "--ink-2", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"locked ink on " + tone + " tint", "--locked-ink", "--" + tone + "-tint", textFloor, ""},
+			contrastPair{"ink on " + tone + " tint", "--ink", "--" + tone + "-tint", textFloor, ""},
+			contrastPair{tone + " outline on the pane", "--" + tone, "--surface-2", boundaryFloor, ""},
+			contrastPair{tone + " outline on its tint", "--" + tone, "--" + tone + "-tint", boundaryFloor, ""},
 		)
 	}
 	return pairs

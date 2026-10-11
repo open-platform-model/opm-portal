@@ -52,89 +52,102 @@
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
 <div class="graph" data-graph="instance-graph">
   <div class="graph-tools" role="group" aria-label="Graph view">
-    <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
+    <span class="hint">Select a box to see its details on the right.</span>
     <a class="tool-link" href="/instances/web/web" hx-boost="false" data-clear-selection hidden>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>
     <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
   </div>
   <div class="graph-frame">
-  <svg viewBox="0 0 1568 228" width="1568" height="228" role="group" aria-label="Relationship graph">
+  <svg viewBox="0 0 1304 228" width="1304" height="228" role="group" aria-label="Relationship graph">
     <defs>
-      <marker id="instance-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
       <pattern id="instance-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+      <pattern id="instance-graph-ghatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="8" height="8"/><line class="ghatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
     </defs>
     <g class="viewport">
-      <text class="col-title" x="16" y="20">Module</text><text class="col-title" x="280" y="20">Instance</text><text class="col-title" x="544" y="20">Components</text><text class="col-title" x="808" y="20">Objects</text><text class="col-title" x="1072" y="20">ReplicaSets</text><text class="col-title" x="1336" y="20">Pods</text>
-      <path class="edge edge-controls" d="M1024 176 C1048 176, 1048 128, 1072 128" data-from="obj:apps/Deployment/web/web-web" data-to="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1288 128 C1312 128, 1312 128, 1336 128" data-from="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" data-to="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M496 128 C520 128, 520 128, 544 128" data-from="mi:web/web" data-to="comp:mi/web/web/web" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates" d="M280 128 C256 128, 256 128, 232 128" data-from="mi:web/web" data-to="mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns" d="M760 128 C784 128, 784 80, 808 80" data-from="comp:mi/web/web/web" data-to="obj:_/Service/web/web-web" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M760 128 C784 128, 784 176, 808 176" data-from="comp:mi/web/web/web" data-to="obj:apps/Deployment/web/web-web" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
-      <a class="node kind-module" href="/instances/web/web?focus=mod%3Aopmodel.dev%252Fmodules%252Fweb_app%2540v1%2Fv1.0.5&amp;tab=graph" data-panel="/instances/web/web/node?id=mod%3Aopmodel.dev%252Fmodules%252Fweb_app%2540v1%2Fv1.0.5" data-node="mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5" tabindex="0" aria-label="Module, opmodel.dev/modules/web_app@v1" aria-describedby="instance-graph-card-0">
-        <title>opmodel.dev/modules/web_app@v1</title>
+      <text class="col-title" x="16" y="20">Instance</text><text class="col-title" x="280" y="20">Components</text><text class="col-title" x="544" y="20">Objects</text><text class="col-title" x="808" y="20">ReplicaSets</text><text class="col-title" x="1072" y="20">Pods</text>
+      <path class="edge edge-controls" d="M760 176 H784 V128 H808" data-from="obj:apps/Deployment/web/web-web" data-to="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1024 128 H1048 V128 H1072" data-from="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" data-to="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M232 128 H256 V128 H280" data-from="mi:web/web" data-to="comp:mi/web/web/web"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-owns" d="M496 128 H520 V80 H544" data-from="comp:mi/web/web/web" data-to="obj:_/Service/web/web-web"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 128 H520 V176 H544" data-from="comp:mi/web/web/web" data-to="obj:apps/Deployment/web/web-web"><title>owns, from status.inventory entries</title></path>
+      
+      <a class="node kind-instance health-healthy ap-managedexternally" href="/instances/web/web?focus=mi%3Aweb%2Fweb&amp;tab=graph" data-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb" data-node="mi:web/web" tabindex="0" aria-label="Instance, web/web, Healthy, Managed externally" aria-describedby="instance-graph-card-0">
+        <title>web/web</title>
         <rect class="node-ring" x="16" y="92" width="216" height="72" rx="8"/>
         <rect class="node-box" x="16" y="92" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="16" y="92" width="5" height="72" rx="2"/>
-        <text class="node-label" x="28" y="111">web_app@v1 v1.0.5</text>
-        <text class="node-sub" x="28" y="126">Module · opmodel.dev/…</text>
+        
+        <text class="node-kind" x="28" y="112">Instance</text>
+        <text class="node-label" x="28" y="134">web/web</text>
+        <circle class="node-dot" cx="32" cy="149" r="3"/>
+        <text class="node-status" x="41" y="152">Healthy</text>
+        <rect class="node-stamp" x="216" y="98" width="10" height="10" rx="1"/>
       </a>
-      <a class="node kind-instance health-healthy ap-managedexternally" href="/instances/web/web?focus=mi%3Aweb%2Fweb&amp;tab=graph" data-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb" data-node="mi:web/web" tabindex="0" aria-label="Instance, web/web, health Healthy, Managed externally" aria-describedby="instance-graph-card-1">
-        <title>web/web</title>
+      <a class="node kind-component health-healthy" href="/instances/web/web?focus=comp%3Ami%2Fweb%2Fweb%2Fweb&amp;tab=graph" data-panel="/instances/web/web/node?id=comp%3Ami%2Fweb%2Fweb%2Fweb" data-node="comp:mi/web/web/web" tabindex="0" aria-label="Component, web, 2 objects" aria-describedby="instance-graph-card-1">
+        <title>web</title>
         <rect class="node-ring" x="280" y="92" width="216" height="72" rx="8"/>
         <rect class="node-box" x="280" y="92" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="280" y="92" width="5" height="72" rx="2"/>
-        <text class="node-label" x="292" y="111">web/web</text>
-        <text class="node-sub" x="292" y="126">Instance</text>
-        <rect class="node-stamp" x="480" y="98" width="10" height="10" rx="1"/>
+        
+        <text class="node-kind" x="292" y="112">Component</text>
+        <text class="node-label" x="292" y="134">web</text>
+        <circle class="node-dot" cx="296" cy="149" r="3"/>
+        <text class="node-status" x="305" y="152">2 objects</text>
       </a>
-      <a class="node kind-component health-healthy" href="/instances/web/web?focus=comp%3Ami%2Fweb%2Fweb%2Fweb&amp;tab=graph" data-panel="/instances/web/web/node?id=comp%3Ami%2Fweb%2Fweb%2Fweb" data-node="comp:mi/web/web/web" tabindex="0" aria-label="Component, web, health Healthy" aria-describedby="instance-graph-card-2">
-        <title>web</title>
-        <rect class="node-ring" x="544" y="92" width="216" height="72" rx="8"/>
-        <rect class="node-box" x="544" y="92" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="544" y="92" width="5" height="72" rx="2"/>
-        <text class="node-label" x="556" y="111">web</text>
-        <text class="node-sub" x="556" y="126">Component</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/web/web?focus=obj%3A_%2FService%2Fweb%2Fweb-web&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3A_%2FService%2Fweb%2Fweb-web" data-node="obj:_/Service/web/web-web" tabindex="0" aria-label="Object, web-web, health Healthy" aria-describedby="instance-graph-card-3">
+      <a class="node kind-object health-healthy" href="/instances/web/web?focus=obj%3A_%2FService%2Fweb%2Fweb-web&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3A_%2FService%2Fweb%2Fweb-web" data-node="obj:_/Service/web/web-web" tabindex="0" aria-label="Object, web-web, Current" aria-describedby="instance-graph-card-2">
         <title>web-web</title>
-        <rect class="node-ring" x="808" y="44" width="216" height="72" rx="8"/>
-        <rect class="node-box" x="808" y="44" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="808" y="44" width="5" height="72" rx="2"/>
-        <text class="node-label" x="820" y="63">web-web</text>
-        <text class="node-sub" x="820" y="78">Service</text>
+        <rect class="node-ring" x="544" y="44" width="216" height="72" rx="8"/>
+        <rect class="node-box" x="544" y="44" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="64">Service</text>
+        <text class="node-label node-mono" x="556" y="86">web-web</text>
+        <circle class="node-dot" cx="560" cy="101" r="3"/>
+        <text class="node-status" x="569" y="104">Current</text>
       </a>
-      <a class="node kind-object health-healthy" href="/instances/web/web?focus=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web" data-node="obj:apps/Deployment/web/web-web" tabindex="0" aria-label="Object, web-web, health Healthy" aria-describedby="instance-graph-card-4">
+      <a class="node kind-object health-healthy" href="/instances/web/web?focus=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3Aapps%2FDeployment%2Fweb%2Fweb-web" data-node="obj:apps/Deployment/web/web-web" tabindex="0" aria-label="Object, web-web, Current" aria-describedby="instance-graph-card-3">
         <title>web-web</title>
-        <rect class="node-ring" x="808" y="140" width="216" height="72" rx="8"/>
-        <rect class="node-box" x="808" y="140" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="808" y="140" width="5" height="72" rx="2"/>
-        <text class="node-label" x="820" y="159">web-web</text>
-        <text class="node-sub" x="820" y="174">Deployment</text>
+        <rect class="node-ring" x="544" y="140" width="216" height="72" rx="8"/>
+        <rect class="node-box" x="544" y="140" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="160">Deployment</text>
+        <text class="node-label node-mono" x="556" y="182">web-web</text>
+        <circle class="node-dot" cx="560" cy="197" r="3"/>
+        <text class="node-status" x="569" y="200">Current</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/web/web?focus=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9" data-node="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9, health Healthy" aria-describedby="instance-graph-card-5">
+      <a class="node kind-runtime health-healthy" href="/instances/web/web?focus=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3Aapps%2FReplicaSet%2Fweb%2Fweb-web-6f7fbf94f9" data-node="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9, 1 desired" aria-describedby="instance-graph-card-4">
         <title>web-web-6f7fbf94f9</title>
+        <rect class="node-ring" x="808" y="92" width="216" height="72" rx="8"/>
+        <rect class="node-box" x="808" y="92" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="820" y="112">ReplicaSet</text>
+        <text class="node-label node-mono" x="820" y="134">web-web-6f7fbf94f9</text>
+        <circle class="node-dot" cx="824" cy="149" r="3"/>
+        <text class="node-status" x="833" y="152">1 desired</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/web/web?focus=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" data-node="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9-v6hw2, Current" aria-describedby="instance-graph-card-5">
+        <title>web-web-6f7fbf94f9-v6hw2</title>
         <rect class="node-ring" x="1072" y="92" width="216" height="72" rx="8"/>
         <rect class="node-box" x="1072" y="92" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="1072" y="92" width="5" height="72" rx="2"/>
-        <text class="node-label" x="1084" y="111">web-web-6f7fbf94f9</text>
-        <text class="node-sub" x="1084" y="126">ReplicaSet</text>
+        
+        <text class="node-kind" x="1084" y="112">Pod</text>
+        <text class="node-label node-mono" x="1084" y="134">web-web-6f7fbf94f9-v6hw2</text>
+        <circle class="node-dot" cx="1088" cy="149" r="3"/>
+        <text class="node-status" x="1097" y="152">Current</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/web/web?focus=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" data-node="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9-v6hw2, health Healthy" aria-describedby="instance-graph-card-6">
-        <title>web-web-6f7fbf94f9-v6hw2</title>
-        <rect class="node-ring" x="1336" y="92" width="216" height="72" rx="8"/>
-        <rect class="node-box" x="1336" y="92" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="1336" y="92" width="5" height="72" rx="2"/>
-        <text class="node-label" x="1348" y="111">web-web-6f7fbf94f9-v6hw2</text>
-        <text class="node-sub" x="1348" y="126">Pod</text>
-      </a>
+      
     </g>
   </svg>
   </div>
+  <ul class="graph-legend" aria-label="Legend">
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-stamp" x="19" y="4" width="5" height="5"/></svg>Applied by the controller</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-dashed" x="1" y="1" width="26" height="16" rx="3"/></svg>Made by the cluster</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-stack" x="1" y="1" width="26" height="16" rx="3" transform="translate(2 2)"/><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-hatch" x="1" y="1" width="26" height="16" rx="3" fill="url(#instance-graph-ghatch)"/></svg>Group of configuration components (CRDs, RBAC, webhooks, other). Click to open; one opens at a time</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-health" x="1" y="1" width="26" height="16" rx="3"/></svg>Fill and outline: health</li>
+    <li class="lg-item"><kbd>Ctrl</kbd> + scroll to zoom</li>
+    <li class="lg-item"><kbd>Esc</kbd> to step back</li>
+  </ul>
   <div class="node-cards">
-  <div class="node-card" id="instance-graph-card-0" role="tooltip" data-card-for="mod:opmodel.dev%2Fmodules%2Fweb_app%40v1/v1.0.5" hidden><span class="nc-kind">Module</span> <strong class="nc-name mono">opmodel.dev/modules/web_app@v1</strong> <span class="nc-origin">The module it was rendered from</span></div>
-  <div class="node-card" id="instance-graph-card-1" role="tooltip" data-card-for="mi:web/web" hidden><span class="nc-kind">Instance</span> <strong class="nc-name mono">web/web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span> <span class="label">Applied</span> <span class="applied applied-managedexternally">Managed externally</span></span> <span class="nc-origin">The ModuleInstance</span></div>
-  <div class="node-card" id="instance-graph-card-2" role="tooltip" data-card-for="comp:mi/web/web/web" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">A component of the module</span></div>
-  <div class="node-card" id="instance-graph-card-3" role="tooltip" data-card-for="obj:_/Service/web/web-web" hidden><span class="nc-kind">Service</span> <strong class="nc-name mono">web-web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-4" role="tooltip" data-card-for="obj:apps/Deployment/web/web-web" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">web-web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-5" role="tooltip" data-card-for="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">web-web-6f7fbf94f9</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  <div class="node-card" id="instance-graph-card-6" role="tooltip" data-card-for="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">web-web-6f7fbf94f9-v6hw2</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
+  <div class="node-card" id="instance-graph-card-0" role="tooltip" data-card-for="mi:web/web" hidden><span class="nc-kind">Instance</span> <strong class="nc-name mono">web/web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span> <span class="label">Applied</span> <span class="applied applied-managedexternally">Managed externally</span></span> <span class="nc-origin">Reconciled by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-1" role="tooltip" data-card-for="comp:mi/web/web/web" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Part of the module</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-2" role="tooltip" data-card-for="obj:_/Service/web/web-web" hidden><span class="nc-kind">Service</span> <strong class="nc-name mono">web/web-web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Service is ready</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-3" role="tooltip" data-card-for="obj:apps/Deployment/web/web-web" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">web/web-web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Deployment is available. Replicas: 1</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-4" role="tooltip" data-card-for="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">web/web-web-6f7fbf94f9</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">ReplicaSet is available. Replicas: 1</span> <span class="nc-fact">Replicas: 1</span> <span class="nc-origin">Created by the cluster from Deployment web-web</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-5" role="tooltip" data-card-for="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">web/web-web-6f7fbf94f9-v6hw2</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Pod is Ready</span> <span class="nc-origin">Created by the cluster from ReplicaSet web-web-6f7fbf94f9</span> <span class="nc-hint">Click for details</span></div>
   </div>
 </div>
 </section>

@@ -286,12 +286,19 @@ Node anatomy (template `graph`, classes only, no `style` attribute):
 | name | +42 | label; mono 12 px for objects, runtime children and sources, sans 600 otherwise |
 | status | +60 | a dot and a short status, tone ink |
 
-Status line, first match wins: locked, "Locked"; missing, "Missing"; a registration with a
+Status line, first match wins: locked, "Locked"; a source whose state was read, "Artifact ready"
+plus a short revision (the first seven characters of a digest), the Ready reason, "No artifact
+yet", "Kind not installed", "Not found" or "Not read by the portal"; a registration with a
 standing, "Accepted · active", "Accepted · not active", "Removal blocked" or the refusal or
-pending reason; a source, "Artifact ready" plus a short revision, "Kind not installed", "Not
-found" or the Ready reason; a configuration group, "N objects: K kinds"; a Pod group, "N Pods" and
-the worst state; a ReplicaSet, "N desired" (with the health reason when not healthy); a
+pending reason; missing, "Missing"; a configuration group, "N objects: K kinds"; a Pod group, "N
+Pods · <worst state>"; a ReplicaSet, "N desired" (with the health reason when not healthy); a
 component, "N objects"; anything with a health reason, that reason; otherwise the health word.
+The source and the registration come before "Missing" because a source whose kind is not
+installed is a missing node that has its own words, and a registration the portal read has a
+standing even when its object is not in the cluster (the constructed package holder). A
+registration in the pending verdict is toned like an inactive one (progressing), and an unknown
+verdict is neutral. Dashes mean one thing, made by the cluster: a locked node keeps its hatch and
+loses its dashed outline, and a missing node loses its dashes and keeps its tone and its word.
 
 Fill and outline carry health in the tone's tint and border; the left rail goes. Runtime children
 (`kind-runtime`) are dashed (made by the cluster). The applied square stays in the top-right

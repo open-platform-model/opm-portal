@@ -77,44 +77,64 @@
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
 <div class="graph" data-graph="package-graph">
   <div class="graph-tools" role="group" aria-label="Graph view">
-    <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
+    <span class="hint">Select a box to see its details on the right.</span>
     <a class="tool-link" href="/packages/pkg/podinfo" hx-boost="false" data-clear-selection hidden>Clear selection</a>
     <button type="button" data-zoom="fit">Fit</button>
     <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" data-graph-full aria-pressed="false">Full screen</button>
   </div>
   <div class="graph-frame">
-  <svg viewBox="0 0 512 132" width="512" height="132" role="group" aria-label="Relationship graph">
+  <svg viewBox="0 0 512 260" width="512" height="260" role="group" aria-label="Relationship graph">
     <defs>
-      <marker id="package-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
       <pattern id="package-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+      <pattern id="package-graph-ghatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="8" height="8"/><line class="ghatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
     </defs>
     <g class="viewport">
       <text class="col-title" x="16" y="20">Package</text><text class="col-title" x="280" y="20">Source and components</text>
-      <path class="edge edge-sourcedFrom" d="M232 80 C256 80, 256 80, 280 80" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" marker-end="url(#package-graph-arrow)"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
-      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?focus=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, health Unknown, Failed, retrying" aria-describedby="package-graph-card-0">
+      <path class="edge edge-sourcedFrom" d="M232 80 H256 V80 H280" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
+      <path class="edge edge-ghost" d="M232 80 H256 V192 H280"/>
+      
+      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?focus=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, Unknown, Failed, retrying" aria-describedby="package-graph-card-0">
         <title>pkg/podinfo</title>
         <rect class="node-ring" x="16" y="44" width="216" height="72" rx="8"/>
         <rect class="node-box" x="16" y="44" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="16" y="44" width="5" height="72" rx="2"/>
-        <text class="node-label" x="28" y="63">pkg/podinfo</text>
-        <text class="node-sub" x="28" y="78">Package</text>
+        
+        <text class="node-kind" x="28" y="64">Package</text>
+        <text class="node-label" x="28" y="86">pkg/podinfo</text>
+        <circle class="node-dot" cx="32" cy="101" r="3"/>
+        <text class="node-status" x="41" y="104">Unknown</text>
         <rect class="node-stamp" x="216" y="50" width="10" height="10" rx="1"/>
       </a>
-      <a class="node kind-source health-missing" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release, missing" aria-describedby="package-graph-card-1">
+      <a class="node kind-source health-missing" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release, Kind not installed" aria-describedby="package-graph-card-1">
         <title>OCIRepository podinfo-release</title>
         <rect class="node-ring" x="280" y="44" width="216" height="72" rx="8"/>
         <rect class="node-box" x="280" y="44" width="216" height="72" rx="6"/>
-        <rect class="node-rail" x="280" y="44" width="5" height="72" rx="2"/>
-        <text class="node-label" x="292" y="63">OCIReposi…odinfo-release</text>
-        <text class="node-sub" x="292" y="78">OCIRepository</text>
+        
+        <text class="node-kind" x="292" y="64">OCIRepository</text>
+        <text class="node-label node-mono" x="292" y="86">podinfo-release</text>
+        <circle class="node-dot" cx="296" cy="101" r="3"/>
+        <text class="node-status" x="305" y="104">Kind not installed</text>
       </a>
+      
+      <g class="ghost">
+        <rect class="ghost-box" x="280" y="140" width="216" height="104" rx="6"/>
+        <text class="ghost-text"><tspan x="292" y="164">Nothing applied yet. The graph</tspan><tspan x="292" y="180">fills in once an apply</tspan><tspan x="292" y="196">succeeds.</tspan><tspan x="292" y="212">The package has never fetched</tspan><tspan x="292" y="228">its source.</tspan></text>
+      </g>
     </g>
   </svg>
   </div>
+  <ul class="graph-legend" aria-label="Legend">
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-stamp" x="19" y="4" width="5" height="5"/></svg>Applied by the controller</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-dashed" x="1" y="1" width="26" height="16" rx="3"/></svg>Made by the cluster</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/></svg>Read by the controller, owned by Flux. Components and dependency packages are drawn the same way</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-stack" x="1" y="1" width="26" height="16" rx="3" transform="translate(2 2)"/><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-hatch" x="1" y="1" width="26" height="16" rx="3" fill="url(#package-graph-ghatch)"/></svg>Group of configuration components (CRDs, RBAC, webhooks, other). Click to open; one opens at a time</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-health" x="1" y="1" width="26" height="16" rx="3"/></svg>Fill and outline: health</li>
+    <li class="lg-item"><kbd>Ctrl</kbd> + scroll to zoom</li>
+    <li class="lg-item"><kbd>Esc</kbd> to step back</li>
+  </ul>
   <div class="node-cards">
-  <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-unknown">Unknown</span> <span class="label">Applied</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">The ModulePackage</span></div>
-  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">OCIRepository podinfo-release</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-missing">Missing</span></span> <span class="nc-origin">The source the package reads</span></div>
+  <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-unknown">Unknown</span> <span class="label">Applied</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">Reconciled by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">pkg/podinfo-release</strong> <span class="nc-reason mono">Kind not installed</span> <span class="nc-origin">Read by the controller, owned by Flux</span> <span class="nc-hint">Click for details</span></div>
   </div>
 </div>
 </section>
