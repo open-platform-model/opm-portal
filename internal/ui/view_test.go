@@ -393,11 +393,12 @@ func TestStateBlockGoldens(t *testing.T) {
 	})))
 }
 
-// TestTipPartial (WCAG 2.2 1.4.13): the span is the trigger, it takes focus
-// and names its box; the box is its last child, a tooltip with text only.
+// TestTipPartial (WCAG 2.2 1.4.13, 4.1.2): the trigger is a native button, which
+// takes focus and names its box; the box is the last child of span.tip, a
+// tooltip with text only.
 func TestTipPartial(t *testing.T) {
 	out := renderPartialAt(t, "tip", tipData{ID: "tip-provider", Trigger: "Provider", Text: "Who installed this."})
-	want := `<span class="tip" tabindex="0" aria-describedby="tip-provider">Provider<span class="tipbox" id="tip-provider" role="tooltip">Who installed this.</span></span>`
+	want := `<span class="tip"><button type="button" class="tip-t" aria-describedby="tip-provider">Provider</button><span class="tipbox" id="tip-provider" role="tooltip">Who installed this.</span></span>`
 	if strings.TrimSpace(out) != want {
 		t.Errorf("tip markup:\n got %s\nwant %s", out, want)
 	}
@@ -410,7 +411,11 @@ func TestTipPartial(t *testing.T) {
 	if strings.Contains(bad, "<script") || strings.Contains(bad, "<img") || strings.Count(bad, "&lt;script&gt;") != 2 {
 		t.Errorf("hostile tip text is not escaped:\n%s", bad)
 	}
-	if strings.Contains(out, "<a ") || strings.Contains(out, "<button") || strings.Contains(out, "style=") {
-		t.Errorf("a tip holds no link, control or style attribute: %s", out)
+	if strings.Contains(out, "tabindex") || strings.Contains(out, "style=") {
+		t.Errorf("a tip trigger is a button, not a scripted span, and has no style attribute: %s", out)
+	}
+	box := out[strings.Index(out, `<span class="tipbox"`):]
+	if strings.Contains(box, "<a ") || strings.Contains(box, "<button") || !strings.HasSuffix(strings.TrimSpace(out), "</span></span>") {
+		t.Errorf("the box holds text only and is the last child of span.tip: %s", out)
 	}
 }

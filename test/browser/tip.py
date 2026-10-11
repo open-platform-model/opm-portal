@@ -7,13 +7,17 @@ inserts the markup of the golden fragment-tip.html in a paragraph at the top of 
 portal.js loaded. The follow-on change that puts a tip on a page adds a case on that page.
 Checks (WCAG 2.2 1.4.13, portal:D19), each printing one line, exiting 1 on the first failure:
 
-Keyboard, in a window with a pointer:
-1. The box is hidden at rest, and the trigger names it: aria-describedby is the box's id, and the box
-   has role="tooltip".
+Keyboard, in a window with a pointer. The trigger is a native button (WCAG 2.2 4.1.2):
+1. The box is hidden at rest, and the trigger names it: it is a button, aria-describedby is the box's
+   id, and the box has role="tooltip".
 2. Focus shows the box.
 3. Escape hides it with focus still on the trigger (dismissible without moving focus).
 4. Enter shows it again, and Enter again hides it.
 5. Space shows it without scrolling the page.
+13. Tab away closes an opened tip (Escape, Enter, Tab: hidden), and Shift+Tab back shows it.
+14. A tip dismissed by Escape is not left dismissed: Escape, Tab away, Shift+Tab back shows it.
+15. Escape steps back one layer: with the theme menu open and a tip shown, the first Escape hides only
+   the tip, the second closes the menu.
 Pointer:
 6. With the pointer on the trigger the box shows, and it stays shown with the pointer on the box,
    after the pointer crossed from the trigger to the box in steps (hoverable).
@@ -85,18 +89,19 @@ def run(p, engine, base, markup):
         page = browser.new_context(viewport=WIDE, color_scheme="light").new_page()
         open_fresh(page, base, markup)
         tip, box = page.locator(".tip"), page.locator(".tipbox")
+        trigger = page.locator(".tip > button.tip-t")
 
-        described = tip.get_attribute("aria-describedby")
+        described = trigger.get_attribute("aria-describedby")
         if not check(page, not box.is_visible() and described == box.get_attribute("id") and box.get_attribute("role") == "tooltip",
-                     f"hidden at rest; aria-describedby={described!r} names the role=tooltip box", "rest"):
+                     f"hidden at rest; the button's aria-describedby={described!r} names the role=tooltip box", "rest"):
             return False
 
-        tip.focus()
+        trigger.focus()
         if not check(page, box.is_visible(), "focus shows the box", "focus"):
             return False
 
         page.keyboard.press("Escape")
-        on_trigger = page.evaluate("document.activeElement.classList.contains('tip')")
+        on_trigger = page.evaluate("document.activeElement.classList.contains('tip-t')")
         if not check(page, not box.is_visible() and on_trigger, f"Escape hides the box with focus still on the trigger ({on_trigger})", "escape"):
             return False
 
@@ -112,6 +117,44 @@ def run(p, engine, base, markup):
         shown = box.is_visible()
         after = page.evaluate("window.scrollY")
         if not check(page, shown and before == after, f"Space shows it without scrolling (scrollY {before} to {after})", "space"):
+            return False
+
+        # Tab away closes an opened tip, and Shift+Tab back shows it (it is not left hidden or dismissed).
+        page.keyboard.press("Escape")
+        page.keyboard.press("Enter")
+        opened = box.is_visible()
+        page.keyboard.press("Tab")
+        away = page.evaluate("document.activeElement.classList.contains('tip-t')")
+        closed = not box.is_visible()
+        page.keyboard.press("Shift+Tab")
+        back = box.is_visible()
+        if not check(page, opened and not away and closed and back,
+                     f"Escape, Enter opens it ({opened}); Tab away closes it ({closed}); Shift+Tab back shows it ({back})", "tab-away"):
+            return False
+
+        # A dismissed tip is not left dismissed once focus has left it.
+        page.keyboard.press("Escape")
+        dismissed = not box.is_visible()
+        page.keyboard.press("Tab")
+        page.keyboard.press("Shift+Tab")
+        again = box.is_visible()
+        if not check(page, dismissed and again, f"Escape dismisses it ({dismissed}); after Tab away and Shift+Tab back it shows again ({again})", "tab-away-dismissed"):
+            return False
+
+        # Escape closes one layer per press: the tip first, then the theme menu.
+        open_fresh(page, base, markup)
+        tip, box = page.locator(".tip"), page.locator(".tipbox")
+        page.locator("details.theme > summary").click()
+        menu = page.locator("details.theme")
+        menu_open = menu.evaluate("d => d.open")
+        page.locator(".tip > button.tip-t").focus()
+        shown = box.is_visible()
+        page.keyboard.press("Escape")
+        first = (not box.is_visible()) and menu.evaluate("d => d.open")
+        page.keyboard.press("Escape")
+        second = not menu.evaluate("d => d.open")
+        if not check(page, menu_open and shown and first and second,
+                     f"menu open ({menu_open}) and tip shown ({shown}): the first Escape hides only the tip ({first}), the second closes the menu ({second})", "escape-order"):
             return False
 
         open_fresh(page, base, markup)

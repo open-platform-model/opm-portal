@@ -1050,12 +1050,14 @@
     }
   });
 
-  // ---- Info tips (WCAG 2.2 1.4.13) ----
+  // ---- Info tips (WCAG 2.2 1.4.13, 4.1.2) ----
   // The CSS shows a .tip's box on hover and on focus, and the pointer can reach
-  // the box. These delegated handlers, which keep working on markup htmx swaps
-  // in, add what CSS cannot: Escape dismisses (is-dismissed), Enter, Space and a
-  // tap toggle (is-open and is-dismissed), and a tap outside closes. They set
-  // classes only, never a style attribute.
+  // the box. The trigger is a native button, so Enter and Space reach the click
+  // handler with no key handler of ours. These delegated handlers, which keep
+  // working on markup htmx swaps in, add what CSS cannot: Escape dismisses
+  // (is-dismissed), a click or tap toggles (is-open and is-dismissed), a tap
+  // outside closes, and an opened tip closes when focus or the pointer leaves
+  // it. They set classes only, never a style attribute.
   var tipDown = null; // {tip, shown}: the tip a pointer went down on, and whether its box was shown then
 
   function tipOf(node) {
@@ -1110,13 +1112,22 @@
     window.requestAnimationFrame(function () { fitTip(tip); });
   }
 
+  // tipHeld says whether focus or the pointer is on a tip now. Only a held tip
+  // can be dismissed: is-dismissed clears when focus and the pointer leave, so
+  // one set on a tip that neither holds would stay and hide the next show.
+  function tipHeld(tip) {
+    return tip.matches(":focus-within") || tip.matches(":hover");
+  }
+
   // dismissTips hides every tip that is shown and leaves focus where it is.
   function dismissTips() {
     var any = false;
     document.querySelectorAll(".tip").forEach(function (tip) {
       if (tipShown(tip)) {
         tip.classList.remove("is-open");
-        tip.classList.add("is-dismissed");
+        if (tipHeld(tip)) {
+          tip.classList.add("is-dismissed");
+        }
         any = true;
       }
     });
@@ -1133,15 +1144,22 @@
       fitTipSoon(tip);
     }
   }
+  // Reaching a tip again (a mouse in from outside, or focus in) lifts a dismiss. A touch
+  // has no hover, and its pointerover comes just before the pointerdown that reads
+  // whether the box is shown, so it lifts nothing.
   document.addEventListener("pointerover", function (evt) {
     var tip = tipOf(evt.target);
     if (tip) {
+      if (evt.pointerType !== "touch" && !tip.contains(evt.relatedTarget)) {
+        tip.classList.remove("is-dismissed");
+      }
       fitTipSoon(tip);
     }
   });
   document.addEventListener("focusin", function (evt) {
     var tip = tipOf(evt.target);
     if (tip) {
+      tip.classList.remove("is-dismissed");
       fitTipSoon(tip);
     }
   });
@@ -1183,36 +1201,29 @@
     tipDown = null;
     toggleTip(tip, shown);
   });
-  document.addEventListener("keydown", function (evt) {
-    if ((evt.key !== "Enter" && evt.key !== " ") || evt.repeat || evt.defaultPrevented) {
-      return;
-    }
-    var tip = tipOf(evt.target);
-    if (!tip || evt.target !== tip) {
-      return;
-    }
-    toggleTip(tip, tipShown(tip));
-    evt.preventDefault();
-  });
-  // is-dismissed clears when the pointer and focus have both left the tip.
-  // A pointer that leaves is known from relatedTarget; a hover that remains is
-  // read from :hover when focus leaves.
-  function releaseTip(tip, related, hoverCounts) {
-    if (tip.contains(related) || tip.contains(document.activeElement) || (hoverCounts && tip.matches(":hover"))) {
-      return;
-    }
-    tip.classList.remove("is-dismissed");
-  }
+  // A tip closes when focus or the pointer leaves it. The pointer that leaves
+  // ends is-open and, when focus is not in the tip, is-dismissed; focus that
+  // leaves does the same unless the pointer still rests on the tip. A touch has
+  // no hover, so a touch pointer leaving (it fires after the tap lifts) does not
+  // count. relatedTarget names where the pointer or focus went.
   document.addEventListener("pointerout", function (evt) {
     var tip = tipOf(evt.target);
-    if (tip && tip.classList.contains("is-dismissed")) {
-      releaseTip(tip, evt.relatedTarget, false);
+    if (!tip || evt.pointerType === "touch" || tip.contains(evt.relatedTarget)) {
+      return;
+    }
+    tip.classList.remove("is-open");
+    if (!tip.matches(":focus-within")) {
+      tip.classList.remove("is-dismissed");
     }
   });
   document.addEventListener("focusout", function (evt) {
     var tip = tipOf(evt.target);
-    if (tip && tip.classList.contains("is-dismissed")) {
-      releaseTip(tip, evt.relatedTarget, true);
+    if (!tip || tip.contains(evt.relatedTarget)) {
+      return;
+    }
+    tip.classList.remove("is-open");
+    if (!tip.matches(":hover")) {
+      tip.classList.remove("is-dismissed");
     }
   });
 

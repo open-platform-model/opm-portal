@@ -824,12 +824,18 @@ li.object.locked { margin: 4px 0 4px 4px; }
 .sb-links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font-size: 14px; }
 
 /* ---- Info tip (portal:D19, WCAG 2.2 1.4.13) ----
-   The span is the trigger. CSS alone shows the box on hover and on focus; the box
-   touches its trigger through a bridge, so the pointer reaches it. portal.js adds
-   Escape (is-dismissed), Enter, Space and the tap (is-open). The box holds text only.
-   A tip near the right edge takes .tip-end. The dismiss rule is last. */
+   The trigger is a native button (.tip-t) inside span.tip. CSS alone shows the box on
+   hover and on focus; the box touches its trigger through a bridge, so the pointer
+   reaches it. portal.js adds Escape (is-dismissed), the tap (is-open) and the close when
+   focus or the pointer leaves. The box holds text only. A tip near the right edge takes
+   .tip-end. The dismiss rule is last. */
 
-.tip { position: relative; display: inline-flex; align-items: center; min-block-size: 24px; min-inline-size: 24px; cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+.tip { position: relative; display: inline-flex; align-items: center; }
+/* The button reads as the words around it: the two-class selector beats the global button rules. */
+.tip .tip-t, .tip .tip-t:hover {
+  display: inline-flex; align-items: center; min-block-size: 24px; min-inline-size: 24px; padding: 0; border: 0; border-radius: 0;
+  background: none; color: inherit; font: inherit; cursor: help; text-decoration: underline dotted; text-underline-offset: 3px;
+}
 .tipbox {
   display: none; position: absolute; z-index: 30; inset-block-start: 100%; inset-inline-start: 0;
   inline-size: min(300px, calc(100vw - 32px)); margin-block-start: 6px; padding: 10px 12px;

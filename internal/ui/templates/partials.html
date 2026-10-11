@@ -52,14 +52,15 @@
 {{- end}}</svg>
 {{- end}}
 
-{{/* tip is an info tip: the trigger is the span, which takes focus and names
-     its box with aria-describedby; the box is its last child and holds text
-     only, never a link or a control (WCAG 2.2 1.4.13). CSS shows the box on
-     hover and focus; portal.js adds Escape, Enter, Space and the tap. Data:
-     .ID (the box's id), .Trigger (the words the trigger draws), .Text (the
-     tip). A box that sits near the right edge takes class "tip-end". */}}
+{{/* tip is an info tip: the trigger is a native button inside span.tip, which
+     names its box with aria-describedby; the box is the last child of span.tip
+     and holds text only, never a link or a control (WCAG 2.2 1.4.13, 4.1.2).
+     CSS shows the box on hover and focus; portal.js adds Escape, the tap and
+     the close when focus or the pointer leaves. Enter and Space press the
+     button. Data: .ID (the box's id), .Trigger (the words the trigger draws),
+     .Text (the tip). A box that sits near the right edge takes class "tip-end". */}}
 {{define "tip" -}}
-<span class="tip{{with .End}} tip-end{{end}}" tabindex="0" aria-describedby="{{.ID}}">{{.Trigger}}<span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
+<span class="tip{{with .End}} tip-end{{end}}"><button type="button" class="tip-t" aria-describedby="{{.ID}}">{{.Trigger}}</button><span class="tipbox" id="{{.ID}}" role="tooltip">{{.Text}}</span></span>
 {{- end}}
 
 {{define "time" -}}
