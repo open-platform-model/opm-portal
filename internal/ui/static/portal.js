@@ -1774,6 +1774,21 @@
     }
   }
 
+  // WebKit scrolls a focused node into view after it has sent focusin, so a
+  // card placed on focusin sits where the node was before the scroll. A
+  // scroll of the frame places the open card again, once for each frame.
+  var cardScroll = false;
+  document.addEventListener("scroll", function (evt) {
+    if (!hovered || cardScroll || !(evt.target.closest && evt.target.closest(".graph-frame"))) {
+      return;
+    }
+    cardScroll = true;
+    window.requestAnimationFrame(function () {
+      cardScroll = false;
+      showHovered();
+    });
+  }, true);
+
   document.addEventListener("pointerover", function (evt) {
     var n = evt.target.closest && evt.target.closest(".graph .node");
     if (n && !drag) {

@@ -237,10 +237,16 @@ def run(p, engine, base):
         if not check(engine, SERVICE in chain and POD not in chain and DEPLOY not in chain and ROOT not in chain,
                      f"focusing the Pod dims the Service and keeps its chain lit: dimmed {chain}"):
             return False
-        card_left = page.evaluate(
-            f"(() => {{ const c = document.querySelector('.node-card:not([hidden])').getBoundingClientRect();"
-            f" const n = document.querySelector('.node[data-node=\"{POD}\"]').getBoundingClientRect();"
-            " return [c.left, c.right, n.left, n.right]; })()")
+        # WebKit scrolls the focused node into view after focusin, so the card is placed again on that
+        # scroll: poll until it stands clear of the node (or give up and report where it is).
+        for _ in range(40):
+            card_left = page.evaluate(
+                f"(() => {{ const c = document.querySelector('.node-card:not([hidden])').getBoundingClientRect();"
+                f" const n = document.querySelector('.node[data-node=\"{POD}\"]').getBoundingClientRect();"
+                " return [c.left, c.right, n.left, n.right]; })()")
+            if card_left[1] <= card_left[2] + 1 or card_left[0] >= card_left[3] - 1:
+                break
+            page.wait_for_timeout(50)
         if not check(engine, card_left[1] <= card_left[2] + 1 or card_left[0] >= card_left[3] - 1,
                      f"the Pod's card keeps off its node: {json.dumps(card_left)}"):
             return False
