@@ -346,7 +346,7 @@ func (h *Handler) ownerPage(k ownerKind) http.HandlerFunc {
 // frames when the page asks for the components ungrouped, and the ghost box
 // of an owner that has applied nothing.
 func (v *ownerView) finishGraph(q url.Values) {
-	if q.Get("group") == "off" {
+	if q.Get("group") == groupOff {
 		v.Graph.Frames = nil
 	}
 	if empty, fetched := v.nothingApplied(); empty {
@@ -380,7 +380,7 @@ func (h *Handler) selectInGraph(r *http.Request, v *ownerView, g *v1.Graph) {
 	v.Graph = buildGraph(*g, graphParams{
 		ID: v.Kind.Topic + "-graph", Page: v.Base, Panel: v.Base + "/node",
 		Node: v.Node, Focus: v.Focus, Resting: resting,
-		Expanded: q["expand"], Ungrouped: q.Get("group") == "off",
+		Expanded: q["expand"], Ungrouped: q.Get("group") == groupOff,
 	})
 	v.Graph.FitGroup = q.Get("fit")
 	v.finishGraph(q)
@@ -395,7 +395,7 @@ func (h *Handler) selectInGraph(r *http.Request, v *ownerView, g *v1.Graph) {
 // every configuration group expanded, so the components show ungrouped.
 func (h *Handler) fetchGraph(r *http.Request, path string, g *v1.Graph) *v1.Problem {
 	q := graphQuery(r)
-	if p := h.fetch(r, path, q, g); p != nil || r.URL.Query().Get("group") != "off" {
+	if p := h.fetch(r, path, q, g); p != nil || r.URL.Query().Get("group") != groupOff {
 		return p
 	}
 	more := false

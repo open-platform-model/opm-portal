@@ -371,7 +371,7 @@ func links(n *v1.GraphNode, ctx panelContext) (open, yamlView, events string) {
 		return instanceKind.base(n.Ref.Namespace, n.Ref.Name), "", ""
 	case n.Kind == packageKind.Topic && n.Ref != nil:
 		return packageKind.base(n.Ref.Namespace, n.Ref.Name), "", ""
-	case (n.Kind == "object" || n.Kind == "runtime") && n.Ref != nil && ctx.base != "" && !n.Missing && !isSecret(*n.Ref):
+	case (n.Kind == kindObject || n.Kind == kindRuntime) && n.Ref != nil && ctx.base != "" && !n.Missing && !isSecret(*n.Ref):
 		q := refQuery(*n.Ref).Encode()
 		return "", ctx.base + "/object?" + q, ctx.base + "/events?" + q
 	}

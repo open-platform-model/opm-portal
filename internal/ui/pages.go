@@ -655,7 +655,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
 			cv.LogHref = logLink(base, cv.LogID)
 		}
-		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
+		if ch.Ref.Kind == kindReplicaSet && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)
 			continue
 		}

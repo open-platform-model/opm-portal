@@ -226,6 +226,7 @@ var familyText = map[string]string{
 
 // The node kinds and group kinds the drawing branches on.
 const (
+	kindObject         = "object"
 	kindSource         = "source"
 	kindRuntime        = "runtime"
 	groupConfiguration = "configuration"
@@ -233,6 +234,8 @@ const (
 	slugInactive       = "inactive"
 	textRemovalBlocked = "Removal blocked"
 	configGroupPrefix  = "grp:configuration/"
+	// groupOff is the value of the group query key that asks for the components ungrouped.
+	groupOff = "off"
 )
 
 // drawing is what the nodes of one graph share while they are drawn.
@@ -327,7 +330,7 @@ func (d *drawing) panelHref(id string) string {
 		q.Add("expand", e)
 	}
 	if d.ungrouped {
-		q.Set("group", "off")
+		q.Set("group", groupOff)
 	}
 	return d.panel + "?" + q.Encode()
 }
@@ -372,7 +375,7 @@ func (d *drawing) toolbar(out *svgGraph) {
 		out.CollapseAll = link(other)
 	}
 	if len(closed)+len(open) > 0 {
-		q := url.Values{"tab": {tabGraph}, "group": {"off"}}
+		q := url.Values{"tab": {tabGraph}, "group": {groupOff}}
 		for _, e := range d.expanded {
 			q.Add("expand", e)
 		}
@@ -481,7 +484,7 @@ func (d *drawing) nodeHref(id string) string {
 		q.Add("expand", e)
 	}
 	if d.ungrouped {
-		q.Set("group", "off")
+		q.Set("group", groupOff)
 	}
 	return d.page + "?" + q.Encode()
 }
@@ -625,7 +628,7 @@ func (d *drawing) nodeOf(n *v1.GraphNode) svgNode {
 		Kind:    clipMiddle(kindLine(n, word), maxKind),
 		Label:   clipMiddle(nameLine(n), maxLabel),
 		Status:  clipEnd(status, maxStatus),
-		Mono:    n.Group == nil && (n.Kind == "object" || n.Kind == kindRuntime || n.Kind == kindSource),
+		Mono:    n.Group == nil && (n.Kind == kindObject || n.Kind == kindRuntime || n.Kind == kindSource),
 		Full:    n.Label,
 		Aria:    nodeAria(n, word, status),
 		Href:    d.nodeHref(n.ID),
@@ -678,7 +681,7 @@ func standingOf(r *v1.GraphRegistration) (slug, text string) {
 		}
 		return slugInactive, "Accepted · not active"
 	case verdictRefused:
-		return "refused", firstOf(r.Reason, "Refused")
+		return standingRefused, firstOf(r.Reason, "Refused")
 	case verdictPending:
 		return "pending", firstOf(r.Reason, "Pending")
 	}
@@ -736,7 +739,7 @@ func (d *drawing) status(n *v1.GraphNode, locked bool) string {
 		return "Missing"
 	case n.Group != nil:
 		return groupStatus(n)
-	case n.Kind == kindRuntime && n.Ref != nil && n.Ref.Kind == "ReplicaSet" && n.Replicas != nil:
+	case n.Kind == kindRuntime && n.Ref != nil && n.Ref.Kind == kindReplicaSet && n.Replicas != nil:
 		return replicaStatus(n)
 	case n.Kind == "component":
 		c := d.objects[n.ID]
