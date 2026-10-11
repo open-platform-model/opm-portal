@@ -468,10 +468,13 @@ func resourceCount(cs []componentView, configs []configGroup) int {
 	return n
 }
 
+// kindModulePackage is the Kubernetes kind of a package owner.
+const kindModulePackage = "ModulePackage"
+
 // objectKind is the owner's Kubernetes kind.
 func (k ownerKind) objectKind() string {
 	if k == packageKind {
-		return "ModulePackage"
+		return kindModulePackage
 	}
 	return "ModuleInstance"
 }

@@ -97,6 +97,9 @@ func buildContrastPairs() []contrastPair {
 		{"attempt mark on a succeeded dot", "--surface", "--healthy-ink", textFloor, ""},
 		{"attempt mark on a failed dot", "--surface", "--degraded-ink", textFloor, ""},
 		{"attempt mark on an unknown dot", "--unknown-ink", "--surface", textFloor, ""},
+		{"ink on a degraded row", "--ink", "--degraded-row", textFloor, ""},
+		{"secondary ink on a degraded row", "--ink-2", "--degraded-row", textFloor, ""},
+		{"muted on a degraded row", "--muted", "--degraded-row", textFloor, ""},
 	}
 	pairs := make([]contrastPair, 0, len(fixed)+7*len(tones))
 	pairs = append(pairs, fixed...)

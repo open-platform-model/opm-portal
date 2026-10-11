@@ -87,6 +87,15 @@ func (p *platformRead) registration(name string) *v1.Registration {
 	return nil
 }
 
+// noReasonRecorded is the words of a block that has no reason to show.
+const noReasonRecorded = "No reason recorded"
+
+// ProviderPills is the kicker's round Provider tag of each registration the
+// owner holds, drawn through the tip partial (portal:D15:R2/R4).
+func (v ownerView) ProviderPills() []tipData {
+	return providerPills(v.Kind.Topic, v.ownerRef(), v.ProviderOf)
+}
+
 // ownerRef is the owner as an event names it.
 func (v *ownerView) ownerRef() v1.ObjectRef {
 	return v1.ObjectRef{Group: "opmodel.dev", Kind: v.Kind.objectKind(), Namespace: v.Namespace, Name: v.Name}
@@ -298,7 +307,7 @@ func (v *ownerView) failedSummary() string {
 		return text + ", " + retry
 	}
 	if text == "" {
-		return "No reason recorded"
+		return noReasonRecorded
 	}
 	return text
 }
@@ -663,7 +672,7 @@ func (h *Handler) providerBlock(v *ownerView) stateBlock {
 		if claim.Reason != "" {
 			b.Reasons = []countLink{{Text: claim.Reason, N: 1, Href: v.Base + "?tab=" + tabProvider}}
 		} else {
-			b.None = "No reason recorded"
+			b.None = noReasonRecorded
 		}
 	}
 	b.Links = []link{{Text: "Open the Provider tab", Href: v.Base + "?tab=" + tabProvider}}

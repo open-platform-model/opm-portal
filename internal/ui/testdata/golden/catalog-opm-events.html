@@ -1,36 +1,55 @@
 <main id="main" tabindex="-1" data-topics="platform events:platform" data-canonical="/catalog?path=opmodel.dev%2Fcatalogs%2Fopm%40v4">
-<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Platform</a> <span aria-hidden="true">/</span> <a href="/?tab=catalogs">Catalogs</a> <span aria-hidden="true">/</span> <span class="mono">catalogs/opm@v4</span></nav>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Platform</a> <span aria-hidden="true">/</span> <a href="/?tab=catalogs">Catalogs</a> <span aria-hidden="true">/</span> <span class="crumb-here" aria-current="page">opm</span></nav>
 <div class="summary reveal">
   <section class="card" id="catalog-head" aria-label="Identity" data-follow="platform">
-    <p class="kicker">Catalog · Subscribed</p>
-    <h1 class="mono">opmodel.<wbr>dev/<wbr>catalogs/<wbr>opm@v4</h1>
+    <p class="kicker">Catalog <span class="origin origin-subscription">Subscribed</span></p>
+    <h1>opm</h1>
+    <p class="catalog-path mono">opmodel.<wbr>dev/<wbr>catalogs/<wbr>opm@v4 · 4.6.0</p>
     <dl class="facts">
-      <dt>Version</dt><dd><span class="mono">4.6.0</span></dd>
-      <dt>Source</dt><dd>subscribed</dd>
+      <dt>Source</dt><dd>Platform subscription</dd>
       <dt>Enabled</dt><dd>yes</dd>
     </dl>
   </section>
-  <section class="card owner-card" id="catalog-resolved" aria-labelledby="resolved-h" data-follow="platform">
-    <h2 id="resolved-h">Resolved <span class="h-note">in the Platform's registry</span></h2>
-    <p><span class="health health-healthy">Resolved</span></p>
-    
-    <p class="reason-info"><span class="label">Platform-wide contracts</span> <span class="mono">UnfulfilledContracts</span> <span class="muted">for the whole Platform, not this catalog; information, not a failure</span></p>
-  </section>
+<section class="state-block hue-applied" id="catalog-resolved" aria-label="Resolution status" data-follow="platform">
+  <div class="sb-head"><span class="sb-eyebrow">Resolved · the controller</span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Resolved</span></div>
+  <p class="sb-summary">In the resolved registry at 4.6.0, from the Platform&#39;s subscription</p>
+  
+  <div class="sb-reasons"><span class="muted">No resolution errors</span></div>
+  
+</section>
 </div>
+<p class="reason-info"><span class="label">Platform-wide contracts</span> <span class="mono">UnfulfilledContracts</span> <span class="muted">for the whole Platform, not this catalog; information, not a failure</span></p>
 <p class="note">The cluster does not record a catalog's definitions, their descriptions or the transformers it ships, so they are not shown.</p>
 <nav class="tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/catalog?path=opmodel.dev%2Fcatalogs%2Fopm%40v4&amp;tab=claims">Claims <span class="tab-n" id="tab-n-claims" data-follow="platform">0</span></a><a href="/catalog?path=opmodel.dev%2Fcatalogs%2Fopm%40v4&amp;tab=events" aria-current="page">Events</a></nav>
-<section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
+<section class="panel panel-wide panel-flush reveal" id="events-panel" aria-labelledby="events-h">
   <h2 class="vh" id="events-h">Events <span class="h-note">the Platform's and its claimants'</span></h2>
-  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
-  <div id="events" data-follow="events:platform">
+  <form class="filters filters-strip" method="get" action="/catalog" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="catalog-events" hx-sync="this:replace" hx-replace-url="true">
+  <input type="hidden" name="path" value="opmodel.dev/catalogs/opm@v4"><input type="hidden" name="tab" value="events">
+  <div class="filter-fields">
     
-<ol class="events">
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Generated</span><span class="ev-count" title="Repeats folded into one line">×2</span><span class="ev-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
-    <p class="ev-note">Platform module generated and built for generation 1</p>
-    <p class="ev-meta mono">Platform.opmodel.dev cluster · opm-controller</p>
-  </li>
-</ol>
+    <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="" selected>Any type</option><option value="Normal">Normal (1)</option><option value="Warning">Warning (0)</option></select></div>
+    <div class="field field-submit"><button type="submit" id="apply-catalog-events">Apply filters</button></div>
+    <p class="shown" id="events-shown" data-follow="events:platform">Showing <strong>1</strong> of 1</p>
   </div>
+  
+</form>
+  <div id="events" class="region" data-follow="events:platform">
+    
+<div class="table-wrap">
+<table class="table rows events-table">
+  <thead><tr><th scope="col" class="c-type">Type</th><th scope="col" class="c-reason">Reason</th><th scope="col">Message</th><th scope="col" class="c-age">Age</th></tr></thead>
+  <tbody>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Generated</td>
+    <td data-label="Message"><span class="ev-note">Platform module generated and built for generation 1</span> <span class="ev-count" title="Repeats folded into one line">×2</span> <span class="muted ev-by">opm-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></td>
+  </tr>
+  </tbody>
+</table>
+</div>
+  </div>
+  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
 </section>
 </main>

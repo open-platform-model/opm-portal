@@ -63,6 +63,9 @@ type attemptDot struct {
 	Tip   tipData
 }
 
+// hueLocked is the hue and note class of what the caller may not read.
+const hueLocked = "locked"
+
 // stateBlockHues are the hues the state block draws: the seven tones and the
 // locked standing.
 var stateBlockHues = map[string]bool{
@@ -77,7 +80,7 @@ var stateBlockHues = map[string]bool{
 func newStateBlock(b stateBlock) stateBlock {
 	switch {
 	case b.Problem != nil && b.Problem.Code == v1.CodeForbidden:
-		b.Hue = "locked"
+		b.Hue = hueLocked
 	case b.Problem != nil:
 		b.Hue = hueNeutral
 	case !stateBlockHues[b.Hue]:
@@ -94,6 +97,11 @@ type tipData struct {
 	Label   string // the trigger's accessible name, when its words are only a mark; "" for none
 	Text    string // the tip
 	End     bool   // align the box to the trigger's end, near the right edge
+	// Pill, when set, draws the trigger's words inside span.<Pill> (its
+	// classes), after the icon named Icon; Hidden is visually hidden text
+	// that follows the trigger, so a color is never the only carrier of
+	// what the pill says.
+	Pill, Icon, Hidden string
 }
 
 // hueNeutral is the hue of a block with nothing to say about health.

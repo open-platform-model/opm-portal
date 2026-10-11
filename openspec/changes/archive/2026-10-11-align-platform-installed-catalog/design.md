@@ -18,7 +18,11 @@ The change starts after `align-shell-and-tokens` (A) merges, and uses what A pro
 - sans field labels (`.facts dt`, catalog-04), kickers and table heads (platform-40),
 - hidden panel headings inside tabbed panels (catalog-27),
 - the shared **state block** partial,
-- and the shared **tooltip** (`tip` partial, `.tipbox` CSS).
+- and the shared **tooltip** (`tip` partial, `.tipbox` CSS), which opens on tap and closes on
+  Escape (PIC-A3, below),
+- and, through `fix-contrast-and-add-phone-check`, the `TestBrowserPhone` page list, a list of
+  page paths that are loaded and measured at 360 px, which this change extends with paths only
+  (PIC-A2).
 
 A defines the state block (its design.md, "The state block"): a `stateBlock` struct with
 `ID`, `Label`, `Eyebrow`, `When *time.Time`, `WhenText`, `Hue`, `State`, `Summary`, `Notes`,
@@ -52,7 +56,8 @@ redesign design.md, checked against opm-operator 277ca18 and the F1 capture
 - Keep URLs, the remembered-filter contract and locked behaviour exactly as they are
   (portal:D14, portal:D7).
 - Script stays optional: every filter, link and tooltip works without script. Script only adds
-  apply-as-you-type and hides the Apply button.
+  apply-as-you-type, the announced count, tap and Escape on the tooltip, and hides the Apply
+  button.
 
 **Non-Goals:**
 
@@ -244,10 +249,15 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   so it stays reachable. At phone width (`tr` is a block card) the same overlay covers the card.
 - **Table geometry** (installed-08): from 761 px up, `table.installed` uses
   `table-layout:fixed; min-width:940px` inside `.table-wrap` (horizontal scroll). A `<colgroup>`
-  sets Kind 130 px, Applied 150 px, Health 150 px, Objects 80 px and Owner 90 px, and Name and
-  Module or source share the rest about 1.2 : 2. Cells pad 14 px 20 px. Names do not break at
-  hyphens (`white-space:nowrap`, ellipsis, full name in `title`). The phone card layout is
-  untouched.
+  sets Kind 130 px, Applied 150 px, Health 150 px, Objects 80 px and Owner 90 px, plus 16 px
+  between columns (cells pad 8 px each side and 20 px at the table's edges), and Name takes 14 %
+  with Module or source taking the rest: `table-layout:fixed` cannot express the canvas's
+  1.2 : 2 ratio, so the Name column is a percentage. Names do not break at hyphens
+  (`white-space:nowrap`, ellipsis, full name in `title`). The phone card layout is untouched.
+  Between 761 and 1039 px the `web-ui` requirement "Every F1 page holds its width at a phone
+  viewport" decides: the rows stay a table, not cards, and the table scrolls sideways inside its
+  own `.table-wrap` while the page never scrolls sideways (`TestBrowserFilters` measures the page
+  at 900 px). Only below 761 px are the rows cards.
 - **Kind chip icons** (installed-09): the template partials `icon-instance` (hexagon) and
   `icon-package` (box) are inline `aria-hidden` SVGs with the canvas paths, sized by
   `.kind svg`. They are used in every kind chip on the three pages: Installed, Platform
@@ -255,21 +265,29 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
 - **Provider badge** (installed-11): a new `providerPill` in `view.go` builds it, and
   `providerBadge` is left as it is, so the owner page's kicker (`owner.html:5`) and `claimBadge`,
   which `align-owner-pages` owns, keep their standing word until that change moves them to
-  `providerPill`. The pill renders through `align-shell-and-tokens`' `tip` partial: the trigger
-  (`tabindex=0`, `aria-describedby`) wraps `span.prov`, which holds a plug SVG and the word
-  "Provider", 11 px/700 uppercase. Its border is
+  `providerPill`. The pill renders through `align-shell-and-tokens`' `tip` partial: the trigger is that
+  partial's native `<button class="tip-t">` (it has `aria-describedby`, and no `tabindex`, since a
+  button is focusable), and it holds `span.prov`, a plug SVG and the word "Provider", 11 px/700
+  uppercase. The merged `tipData.Trigger` is a plain string, drawn as escaped text, so section 3
+  adds the field or the form of the partial that lets the trigger hold the SVG (task 1.1 found
+  this; it does not change the tooltip's behaviour). Its border is
   coloured by standing: green when accepted and active, red when refused, amber when removal is
   blocked, the progressing blue when pending, neutral when accepted and inactive, the lock style
   when locked. Next
   to it is the `tip` partial's `span.tipbox role=tooltip`, shown on `:hover` and `:focus-within`
-  by CSS alone. **Placement**: the table sits in `.table-wrap { overflow-x:auto }`
+  by CSS, which stays the base. **Tap and Escape** (PIC-A3): the `tip` partial's small script from
+  `align-shell-and-tokens` adds a tap that opens the box, a second tap that closes it, Escape that
+  closes it with focus kept on the badge, and a box the pointer can move onto without closing it
+  (WCAG 2.2 success criterion 1.4.13: dismissable, hoverable, persistent). The badge sits above
+  the row's stretched link, so a tap opens the tip and does not navigate. This change adds no
+  script of its own for it; task 3.6 tests it on the Installed badge. **Placement**: the table sits in `.table-wrap { overflow-x:auto }`
   (`portal.css:420`), and a non-visible `overflow-x` forces `overflow-y` to auto, so an absolutely
   placed box would be clipped on the last rows or add a scrollbar; the canvas has the same flaw
   (`Instances.dc.html:105`), so this does not copy it. From the viewport width where the 940 px
   table fits without scrolling, `.table-wrap` on Installed overflows visibly and the box opens
-  below the badge, aligned to its end near the right edge. Below that width, where the wrap must
-  scroll and the rows are cards, the box opens in the row's flow (`position: static`), pushing the
-  row's content down, so it is never clipped. No script places it. The
+  below the badge, aligned to its end near the right edge. Below that width (the table scrolls inside its wrap from 761 to 1039 px, and from 760 px
+  down the rows are cards), the box opens in the row's flow (`position: static`, at most 300 px
+  wide), pushing the row's content down, so it is never clipped. No script places it. The
   tooltip is composed in `view.go` from `ProviderClaim`: "Registration default.x is accepted and
   active.", "... is refused: <Reason>.", "... is pending: <Reason>.", "... is accepted, removal
   blocked: <Reason>.", "... is accepted and not active.", or "Holds a registration whose standing
@@ -369,7 +387,8 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     is the Platform's name with its count; and "Providers (TransformerRegistration)" with each
     registration and its count. The counts come from the feeds the page already reads; a
     registration whose feed was not read (`Unread`) is offered with no count.
-  - Age is compact ("5m"), with `datetime` and the absolute time in `title`.
+  - Age keeps the portal's shared relative form ("5m ago"), with `datetime` and the absolute time
+    in `title` (supervisor ruling of 2026-10-11, as for the banner time of `align-graph`).
 - **Theme menu** (platform-32): each theme button holds an inline SVG check, shown only when
   `aria-pressed="true"` and drawn in `--hdr-strong`. It replaces the brass `::after` glyph. This
   edits the theme menu markup in `layout.html`, which A also edits. This change starts after A
@@ -392,7 +411,7 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
     holder's Provider tab when there is one holder. With several holders, the name is followed by
     a muted "held by A, B". With none, it is plain text.
   - A claim-only catalog lists the claiming registrations the same way. `catalogView` gains
-    `ClaimLinks []holderLink`, built from `Claims`.
+    `SourceLinks []claimLink` (a registration's name, the link and its holders), built from `Claims`.
 - **Enabled** (catalog-07): when the catalog is not resolved and `Enabled` is nil, the page reads
   "no: not in the registry". Enablement is a registry field, and absence from
   `status.registry` is the recorded fact. "not recorded" stays only for a resolved catalog with no
@@ -426,7 +445,7 @@ func newFilterForm(f filters, aria string, hidden []hiddenField,
   length. The tab renders a `filters-inline` form whose hidden fields are
   `keepHidden(q, "type")`, so `path`, `tab` and a `reason` that came in on the Resolved block's
   deep link survive a Type change; the chips; "Showing X of N" in the heading row, in its own
-  followed region `#events-shown` (topic `platform`); the `events-table` without the Resource
+  followed region `#events-shown` (topics `events:platform` and `events:registration:<name>` of each claimant, the feeds the table is built from); the `events-table` without the Resource
   column (as on the canvas); and the filtered empty state "No events match this filter."
 
 ### Shared with align-owner-pages: the events table
@@ -435,8 +454,8 @@ The `events-table` partial replaces `events-list` wherever an events feed is a p
 a `<table class="table rows events-table">` with these columns, at the canvas's widths
 (`Main.dc.html`): Type (88 px, 12 px uppercase, red ink for Warning), Reason (mono; 180 px, 190 px
 on the Catalog page), an optional Resource (kind over a linked name; 280 px), Message (note; then
-"×N" when folded and the reporting controller, both muted; the rest), and Age (compact,
-right-aligned; 56 px). At phone width it falls back to the card layout `table.rows` already has. Its
+"×N" when folded and the reporting controller, both muted; the rest), and Age (the shared
+relative form, "5m ago"; right-aligned; 76 px). At phone width it falls back to the card layout `table.rows` already has. Its
 input is:
 
 ```go
@@ -455,8 +474,9 @@ type eventRow struct {
 
 Whichever of this change and `align-owner-pages` lands first adds the partial, and the other
 adopts it. `events-list` is removed by whichever change moves its last caller, whichever lands
-last. This change does not edit `owner.html`, `panel*.html`, `owner.go`, `graph.go` or the graph
-script. C does not edit `filters.go`, the `filter-form` partial or the filter code in `portal.js`
+last. This change edits `owner.go` by one line (the shared constant `stateFailed` in place of the
+literal `"Failed"`) and `owner.html` by one attribute (the id of the Events form's Apply button),
+and does not edit `panel*.html`, `graph.go` or the graph script. C does not edit `filters.go`, the `filter-form` partial or the filter code in `portal.js`
 and `prefs.js`, and its owner-page forms pick up the new behaviour through `data-filters`.
 
 ### Shared with align-owner-pages: the pieces this change changes under C
@@ -474,15 +494,39 @@ that C's files keep working whichever change lands first:
 
 `web-ui` only. MODIFIED: "The Platform page is the landing page", "Installed lists instances and
 packages together", "The Catalog page shows one catalog as the cluster records it", "Pages use the
-words a platform team uses". ADDED: "Filter forms offer the values present and apply as the user
-types", "Installed counts every namespace the caller may list", "The module filter matches a
-package by its source". The MODIFIED requirements keep every scenario of the main spec, and none
-of them is touched by `align-owner-pages` or `align-graph`. "List filters live in the URL and are
-remembered per browser" is left as it is: the new behaviour is additive and sits in the ADDED
-requirements. The ADDED filter-form requirement names the forms it covers (Installed, the
-Providers and Catalogs tabs, Platform events, Catalog events), so it does not bind the owner-page
-forms `align-owner-pages` specifies ("Clear filters", no count on the Resources reason form); only
-its last sentence, apply-as-you-type for every `data-filters` form, holds on every page.
+words a platform team uses". ADDED: "Filter forms offer the values present", "Filter selects name
+their empty choice", "Filter selects keep the full contract and a URL value", "Filter counts
+cover only what the caller may list", "A list the caller may not read gives no count", "Filter
+forms show what they apply", "Filter forms keep the URL as their source", "Filter forms apply as
+the user types", "A filter's new count is announced once", "Installed counts every namespace the
+caller may list", "Installed counts one namespace when a kind's full list is forbidden", "The
+module filter matches a package by its source". (The filter requirements were one requirement in
+the planning PR; the split keeps each under the 500-character guidance of `openspec validate
+--strict`. The split keeps every clause of the original, sentence for sentence: the list of forms
+it covered, now the opening words of each requirement except the typing one, which keeps "on
+every page" for any `data-filters` form, as on main; the select of values present "in the rows
+the caller may read"; the empty-choice words for every select, not only the selects of row facts;
+the full contract as the option value; the URL value that still applies and shows as selected; the
+no-count rule; "so a reader who may list only some namespaces can name one"; the chips, the count
+row and "Clear all"; the plain `GET` without script; and the URL as the source of truth. The first
+split of this change dropped five of these; the proposal gate found it and the corrective
+specify restored them. The only wording added is PIC-A1's: the Uses options included, and the
+choices counted only from rows the caller may list.) The MODIFIED requirements keep every
+scenario of the main spec, and none of them is touched by `align-owner-pages` or `align-graph`.
+"List filters live in the URL and are remembered per browser" is left as it is: the new behaviour
+is additive and sits in the ADDED requirements. Every ADDED filter requirement except the
+announcement and the typing one opens with the same list of forms (Installed, the Providers and
+Catalogs tabs, Platform events, Catalog events), so none binds the owner-page forms
+`align-owner-pages` specifies ("Clear filters", no count on the Resources reason form, selects
+without counts). "Filter forms apply as the user types" keeps the scope it has on main, "on every
+page, with script, a search or text field of a `data-filters` form" (supervisor ruling,
+2026-10-11): `align-owner-pages` relies on it for its owner-page forms, and nothing in that change
+asks for them to wait for Apply. The narrowing ruled for the counts and "Clear all" does not reach
+it. "A filter's new
+count is announced once" is narrower: it names this change's pages (the Platform page, the
+Installed list and the Catalog page), covers a field, a chip's remove link and "Clear all", and leaves the owner pages to `align-owner-pages`, whose Events tab
+count is not announced by this change and which needs no matching correction (supervisor ruling,
+2026-10-11).
 
 ### Design record
 
@@ -501,6 +545,22 @@ that namespace, which is today's read. Platform and Catalog: `get platforms` and
 transformerregistrations` through the Platform document, plus the events resources the pages
 already read (`get` on the owner and `list events` in its namespace, portal:D7:R4). None of these
 changes. `internal/ui` still reads only through the read API.
+
+**Counts leave out unlisted namespaces (PIC-A1; portal:D14:R7).** Every number the filter forms
+show is a count over rows the caller may list: the option counts, the Uses counts, the namespace
+choices and the total. The control is the read API's own list grant: each call to list
+ModuleInstances or ModulePackages needs a grant that covers `list` in the namespace asked (every
+namespace when none is named) and returns nothing outside it, so the rows Installed receives, and
+every choice and count built from them, are rows that caller may list
+(`internal/readmodel/instances.go:16-23`, `internal/ui/pages.go:142-162`). The page's namespace step is a consistency step, not the control:
+where the caller may not list a kind everywhere, the page reads that kind in the filtered
+namespace only and applies the namespace filter to the other kind's rows before it counts, so
+the two kinds' numbers cover the same namespace. The Platform tabs count over the Platform
+document's registrations and catalogs. The read API returns the registrations only to a caller who
+may `list transformerregistrations` cluster-wide (`internal/readmodel/platform.go:34,61-64`); a
+caller who may only `get` the Platform receives none, and the tabs then carry no counts. Task 3.8
+names the test: `TestInstalledCountsFollowTheCallersNamespaces`, through `apitest`, which fails
+when a count includes a row outside the caller's namespace.
 
 ## Research & Decisions
 
@@ -524,6 +584,49 @@ settle when they differ, re-arm the debounce) is built either way. The spike als
 timer lookup by id, the single submit on Enter and Back after typing. The finding goes here
 before section 2 starts.
 **Rationale**: the least code that keeps the URL as the only state.
+
+**Finding** (task 1.2, run on 2026-10-11 in Chromium, Firefox and WebKit of the pinned Playwright
+image, over the F1 capture; htmx 2.0.11; the scratch form carried `hx-sync="this:replace"` and
+`hx-replace-url="true"`, and the scratch script the debounce, the form lookup by id and the value
+restore of "Apply as you type"; the scratch code is dropped):
+
+- **Focus and caret: htmx's own restore holds in all three engines (option 1).** Typing `backp`,
+  one `ArrowLeft` and `u` makes `backup` with the caret at 5. At `htmx:afterSwap` of `#main` the
+  active element is `f-q` with its caret at 5 in Chromium, Firefox and WebKit. No `portal.js`
+  restore of focus or caret is needed.
+- **`portal.js` steals it afterwards.** Its `htmx:afterSettle` handler (`portal.js:688-703`)
+  focuses `#main` after every page swap. A boosted request fires `htmx:afterSettle` twice
+  (`#nav`, then `#main`, because `#app` carries `hx-select-oob="#nav"`), and the handler acts on
+  the first, so in all three engines the field has lost focus by the time the swap has settled.
+  Section 2.4 therefore makes that handler leave focus alone when, after the swap, the focused
+  element is inside the new `#main` (htmx put it back on an element with an `id`); a link, a tab
+  or the main navigation has no focused element with an `id` after the swap, so they still move
+  focus to the tab or the page as today.
+- **Characters typed while a request is in flight are lost without the value restore.** With the
+  response held, `ba` was in flight and `ck` was typed: the live value was `back`; after the
+  swap the field read `ba` in all three engines and the URL read `q=ba`. With the value restore
+  (record value and caret at `htmx:beforeSwap`, restore them when they differ, re-arm the
+  debounce) the field read `back` with the caret at 4 right after the swap, and 900 ms later the
+  URL read `q=back`, after two requests in all. The restore is built.
+- **A timer armed before a swap looks the form up by id.** A key typed, then a chip's remove
+  link followed before the timer fired: no error, and the timer submitted the new form (one extra
+  request to the same URL, the typed key dropped by the swap). Section 2.4 also clears the
+  pending timer on `htmx:beforeRequest` of any request the form did not make, so that request
+  is not sent.
+- **Enter submits once.** In the search field Enter gave one `submit` and one request in all three
+  engines (the `submit` listener clears the timer). In a text input, tabbing away gave one
+  request through the debounced `change`. Enter in the namespace text input (it has a
+  `datalist`) gave one request in Chromium and Firefox; in WebKit, Enter in that input gives no
+  `submit` and no `change`, with or without the new script (the same on `main`), so a keyboard
+  user there applies it with Tab, or by Tab to the Apply button, which `:focus-visible` shows.
+  The browser test checks Enter on the search field, and Tab away on the text input.
+- **Back leaves the filtered view.** From the Platform page, the Installed link, then typing
+  `backup`: the history length did not grow during typing, and Back landed on `/` in all three
+  engines. `htmx:replacedInHistory` fires with the new path (`/installed?q=backup`) and
+  `htmx:pushedIntoHistory` for the navigation, so `rememberFilters` listens to both.
+
+The finding adds one rule to section 2.4 (the focus handler) and one (the timer cleared by a
+foreign request); it does not change what section 2 builds, and the value restore stays.
 
 ### Installed totals across namespaces (installed-23, installed-01)
 
@@ -549,6 +652,87 @@ and no decision records that.
 canvas).
 **Rationale**: the source is recorded, so matching it guesses nothing. portal:D16:R2 is about
 `uses` only.
+
+### Announcing the count after a filter applies (PIC-L1)
+
+**Context**: with apply-as-you-type, a filter changes the list and its "Showing n of M" count
+while focus stays in the search field. A screen reader user hears nothing, though the count is a
+status message (WCAG 2.2 success criterion 4.1.3).
+**Explored**: the live regions that exist today. `#live` (`layout.html:44`, `role="status"`
+`aria-live="polite"`) is the header's stream-state mark; `setLive` writes only its
+`.live-text` (`portal.js:224-231`). `#detail` has `aria-live="polite"` on owner pages only
+(`owner.html:209`). `.log-state` is the log pane's (`owner.html:138`). No template of Installed,
+the Platform page or the Catalog page carries a live region, and `#shown` is a followed region
+(it refreshes by `data-follow`), not a live one. A filter submit swaps `#main` by `outerHTML`
+(`layout.html:24`), so any region inside `#main` is injected with its content, which assistive
+technology announces unreliably.
+**Options considered**:
+1. Announce nothing. The page then fails 4.1.3 for its main new interaction.
+2. Make `#shown` a `role="status"` region. It is replaced by the swap, so it is injected with its
+   content, and a followed refresh would announce every row change, which the plan's floor on live
+   regions rules out ("no announcement for ticking times", and no new live region).
+3. Write the new count into the existing `#live` region. `#live` sits outside `#main`, so the
+   swap leaves it in place, and it is already a polite status region. The visible `.live-text`
+   keeps saying the stream's state; the count goes into one visually hidden child, `span.live-note`.
+   `role="status"` makes the region atomic, so every later change of `.live-text` (eight call
+   sites of `setLive`, `portal.js:199,203,295,337,483,547,553,556`) would present the whole
+   region again, the stale count included. Two ways to stop the repeat:
+   3a. Keep the region atomic and empty the note on a timer after it was announced. Cost: a timer
+       races the screen reader's queue, and the note is empty only after the delay.
+   3b. Set `aria-atomic="false"` on `#live`, so a change presents the changed child only, and
+       empty the note whenever it is no longer true. Cost: one attribute on a shared element,
+       and a screen reader that ignores `aria-atomic="false"` presents the whole region.
+**Decision**: Option 3 with 3b. `layout.html` puts `aria-atomic="false"` on `#live`. `portal.js`
+sets a flag when a `submit` or select `change` on a `form[data-filters]`, or a click on a chip's
+remove link or on "Clear all" inside one, starts a request: all are filter changes. It acts once
+per request, on the `htmx:afterSettle` whose target is `#main`. The layout's `hx-select-oob="#nav"`
+(`layout.html:24`) makes htmx 2.0.11 settle two elements for one boosted request, `#nav` and
+`#main`, and fire `htmx:afterSettle` for each with the same detail; a handler that acted on every
+event would write the count on the first and empty it on the second, in the same task, and the
+count would never be announced. So the `#nav` event does nothing. On the `#main` event with the
+flag set it copies the text of the `.shown` inside the form that made the request into `.live-note`
+when it differs from what the note holds, then clears the flag. On the `#main` event of a boosted
+request that no filter change started (a link, the main navigation, "Clear filters" in the empty
+state) and on `htmx:historyRestore`, it empties the note: the count belongs to the page it was
+written for. A followed refresh is not a boosted request and never
+sets the flag, so it touches nothing. `setLive` writes only `.live-text`. The hidden note is the
+clip pattern, never `display:none`. A form with no count region (the owner pages' Resources
+reason form) announces nothing, and so does a form whose response holds no count: the read never falls
+back to another form's count.
+**Rationale**: no new live region, one announcement per applied change, and no repeat. 3b makes
+the repeat impossible by structure: the note is the only node that changes when a count is
+announced, and `.live-text` the only node that changes when the stream's state does. 3a would
+rely on timing. Emptying the note on a move to another page also makes the "differs from what
+the note holds" test sound: a later filter that yields the same words on another page is
+announced, not skipped. `aria-atomic="false"` departs from the example in the accessibility
+guide of `eng-frontend-build` (`aria-atomic="true"`); the guide's reason, a message read as a
+whole, does not hold for a region that carries two independent messages.
+**Accepted**: the order of events is not checked in a screen reader here. Task 2.8 asks for a
+pass with VoiceOver and NVDA that hears the count once after typing, hears only "Reconnecting"
+when the stream drops, and hears nothing about the count after a move to another page, and it
+records any run it could not make as not assessed. If a screen reader presents the whole region
+anyway, 3a is the fallback, as a later change. `layout.html` is also edited by
+`align-shell-and-tokens` (the worded live mark, wording only at 8d5ca86); the second of the two
+changes to land keeps both edits when it merges `main`. Task 1.1 checks the merged markup, and the
+note is one child element beside `.live-text`.
+
+### Uses options and blueprints (G10)
+
+**Context**: the plan's G10 default is to leave blueprints out of the Uses filter, because the
+cluster does not record which blueprints a render used.
+**Explored**: the Uses choices are built from the readable rows' `renderContracts`
+(`internal/ui/pages.go:156-158`), which `internal/readmodel/instances.go:81` reads from
+`status.requiredContracts`. The plan's G10 finding is that the render computes this list from
+each component's resource and trait keys only, so blueprint keys never enter it (read from the
+library's render source in that finding; not re-read for this change). The F1 capture agrees: no
+contract in `testdata/clusters/f1/` has a `blueprints/` path. A package records no contracts (portal:D16:R2; installed-20).
+**Decision**: this change's Uses options already exclude blueprints, by construction: the portal
+offers no name that no readable row holds. No code is needed. Task 3.8 (case 4) asserts that the
+choices equal the union of the rows' `renderContracts`, so a later change that adds a blueprint
+name from elsewhere fails the test.
+**Rationale**: the canvas lists `StatelessWorkload` and `StatefulWorkload` among the Uses options;
+the portal cannot back them (Principle IV). If the controller later records blueprint keys, the
+options follow with no portal change.
 
 ### Canvas copy the portal cannot back
 
@@ -576,8 +760,13 @@ recorded". The owner may prefer the canvas words in review.
 - **Whole-row links can capture clicks** meant for the tooltip or a holder link. Those elements
   sit above the stretched link (`position:relative; z-index:1`), and the browser test clicks the
   tooltip trigger to check it.
+- **`layout.html` is shared with `align-shell-and-tokens`.** This change adds one hidden child to
+  `#live` and `aria-atomic="false"` on it. If that change restructures the live mark, task 1.1
+  finds it and task 2.8 follows the merged markup; whichever change lands second keeps the
+  attribute and the child.
 - **Parallel work with align-owner-pages** on `partials.html` and `portal.css`. The split is
-  above. The second change to land rebases and adopts the first's `events-table`.
+  above. The second change to land merges `main` into its branch (never a history rewrite) and
+  adopts the first's `events-table`.
 
 ## Migration Plan
 
@@ -641,3 +830,52 @@ overturns it.
 | catalog-24 | Catalog: Headline | 5.1 |
 | catalog-25 | Catalog: Source | 5.2 |
 | catalog-26 | Catalog: Resolved state block | 5.3 |
+
+## Amendments
+
+Four amendments from the plan that follows the planning PR, and one check, each traced to the
+artifacts that carry it. The remaining tasks, requirements and decisions of this change are as
+the planning PR wrote them, except the re-partition of two requirements (see "Spec deltas").
+
+| Id | What | Tasks | Spec | Here |
+| --- | --- | --- | --- | --- |
+| PIC-A1 | Name the SR8 count test: option counts and Uses counts leave out rows in a namespace the caller may not list | 3.8 | "Filter counts cover only what the caller may list"; scenario "A reader who may list one namespace sees that namespace only"; "One kind scoped" | Authorization |
+| PIC-A2 | Add the pages this change changes to the `TestBrowserPhone` page list (paths only; the open tooltip and the open theme menu are checked at 360 px in `TestBrowserFilters` and `TestBrowserTheme`) | 2.6, 3.6, 4.7, 4.8, 5.5 | none: the 360 px rule is in the main `web-ui` spec | Context |
+| PIC-A3 | Provider tooltip opens on a tap and closes on Escape | 3.6 | "Installed lists instances and packages together"; scenario "The provider tooltip by tap and Escape" | Installed: provider badge |
+| PIC-A4 | Merge `main` into the branch; no history rewrite | 1.1 | none | Risks, "Parallel work" |
+| PIC-L1 | The live-region check: the count is announced once, through `#live`, and not again when the stream's state changes | 2.8, 4.8 | "A filter's new count is announced once" | Research & Decisions |
+
+### Amendments from the review of sections 4 and 5
+
+What sections 4 and 5 built beyond or differently from the text above, and the fixes the three
+review parts asked for. Each line states the built fact.
+
+- **Shared partials.** The Providers rows and the Catalog Claims rows both draw a registration's
+  standing through one partial, `reg-status` (the acceptance, activation and "Removal blocked"
+  badges, the reason line, the activation reason), which takes a `providerRow` or a
+  `catalogClaim`. `claim-link` names a registration on the Catalog Source row: one holder makes the
+  name a link to that holder's Provider tab, several follow the name as a muted "held by", none
+  leaves it plain. `align-owner-pages` finds both in `partials.html` beside `events-table`.
+- **Claims header.** The Claims table's last column header reads "Status" (it read "Standing" on
+  main), as the Providers table's does and as task 4.4 says. The spec names the content of the
+  column, not its header.
+- **Source links.** `catalogView` carries `SourceLinks []claimLink`, not `ClaimLinks
+  []holderLink`.
+- **Events count topics.** The Catalog `#events-shown` follows `events:platform` and
+  `events:registration:<name>` of each claimant, so a claimant's new event moves the count.
+- **Announced count.** `portal.js` reads the `.shown` inside the form that made the request, and a
+  form that shows none announces nothing. The Platform page holds two counts (a filter form's and
+  Recent events), and a read by id announced the wrong one.
+- **Apply buttons.** Each filter form's Apply button has a stable id (`apply-<form key>`, such as
+  `apply-installed`, and `apply-owner-events` in `owner.html`), because htmx puts focus back after a
+  swap only on an element with an id. Without it, Tab out of a text field that applies on leaving
+  lost the user's place. `owner.html` takes the one attribute here; `align-owner-pages` resolves
+  the overlap at its merge.
+- **No count for an unread list.** With neither Installed list read, the Health, Applied, Provider
+  and Owner options carry no count. With the Platform document unread, the Catalogs Source options
+  carry none (portal:D14:R7).
+- **Tests.** `filters.py` checks 6 and 11 can fail: check 6 opens the page with scripts off, and
+  check 11 empties the announcement before the chip step. Check 12 reads the computed outline of the
+  focused Installed row, which the stylesheet draws on the row through `:has()` and not on the
+  link. Check 13 strips the count from a Providers response. The hostile-query list of
+  `escape_test.go` includes `/catalog` with a hostile `type` and `reason`.

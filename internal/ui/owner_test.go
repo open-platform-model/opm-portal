@@ -87,9 +87,13 @@ func TestProviderCardOnF1(t *testing.T) {
 			t.Errorf("Provider card lacks %q:\n%s", want, card)
 		}
 	}
-	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), `class="prov prov-active prov-pill"`) ||
-		!strings.Contains(between(main, `id="owner-head"`, "</h1>"), `Provider<span class="vh">, active</span>`) {
-		t.Error("no Provider pill with its standing in hidden text")
+	// The kicker's pill is providerPill's tip: the standing in hidden text and
+	// the registration's standing in the tip (TestProviderPillNamesEveryStanding).
+	kicker := between(main, `id="owner-head"`, "</h1>")
+	for _, want := range []string{`<span class="prov prov-active">`, `Provider</span><span class="vh">standing: active</span>`, `role="tooltip">Registration `} {
+		if !strings.Contains(kicker, want) {
+			t.Errorf("the Provider pill lacks %q:\n%s", want, kicker)
+		}
 	}
 	locked := mainOf(newSite(t, apitest.F1(t), apitest.DenyResources("transformerregistrations")).get(t, "/instances/default/backup-provider").body)
 	if card := between(locked, `id="provider-card"`, "</section>"); !strings.Contains(locked, `class="state-block hue-locked" id="provider-card"`) || !strings.Contains(card, "locked-panel") {

@@ -142,11 +142,11 @@ def events_tab(page, engine, base):
     page.locator(".fclear").click()
     page.wait_for_function("() => !location.search.includes('type=')")
     expect(rows).to_have_count(total)
-    first = page.locator("table.events-table a.ev-name").first
-    name = first.text_content().strip()
+    first = page.locator("table.events-table a.ev-resource").first
+    name = first.locator(".mono").text_content().strip()
     first.click()
     page.wait_for_url("**resource=**")
-    names = set(n.strip() for n in page.locator("table.events-table a.ev-name").all_text_contents())
+    names = set(n.strip() for n in page.locator("table.events-table a.ev-resource .mono").all_text_contents())
     if not check(engine, names == {name} and rows.count() < total,
                  f"a resource link narrowed the table to {name}: {sorted(names)}, {rows.count()} of {total} rows"):
         return False

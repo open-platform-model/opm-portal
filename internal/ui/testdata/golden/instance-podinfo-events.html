@@ -55,7 +55,7 @@
     <div class="filter-fields">
       <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource"><optgroup label="Everything"><option value="" selected>All resources (18)</option><option value="opmodel.dev/ModuleInstance/default/podinfo">This instance (3)</option></optgroup><optgroup label="Deployment"><option value="apps/Deployment/default/podinfo-podinfo">podinfo-podinfo (1)</option></optgroup><optgroup label="Pod"><option value="/Pod/default/podinfo-podinfo-d9585d794-4lg6h">podinfo-podinfo-d9585d794-4lg6h (6)</option><option value="/Pod/default/podinfo-podinfo-d9585d794-kp2jx">podinfo-podinfo-d9585d794-kp2jx (6)</option></optgroup><optgroup label="ReplicaSet"><option value="apps/ReplicaSet/default/podinfo-podinfo-d9585d794">podinfo-podinfo-d9585d794 (2)</option></optgroup></select></div>
       <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any type</option><option value="Warning">Warning (2)</option><option value="Normal" selected>Normal (16)</option></select></div>
-      <div class="field field-submit"><button type="submit">Apply filters</button></div>
+      <div class="field field-submit"><button type="submit" id="apply-owner-events">Apply filters</button></div>
       <div class="filter-meta"><p class="shown">Showing <strong>16</strong> of 18</p><a class="fclear" href="/instances/default/podinfo?tab=events" data-filters-explicit>Clear filters</a></div>
     </div>
     <div class="filter-chips">
@@ -64,123 +64,125 @@
   </form>
   
   <p class="note">Recent activity: Kubernetes keeps events for about an hour, and render warnings exist only as events, so older ones are gone.</p>
-<div class="table-wrap"><table class="table rows events-table">
-  <thead><tr><th scope="col">Type</th><th scope="col">Reason</th><th scope="col">Resource</th><th scope="col">Message</th><th scope="col">Age</th></tr></thead>
+<div class="table-wrap">
+<table class="table rows events-table">
+  <thead><tr><th scope="col" class="c-type">Type</th><th scope="col" class="c-reason">Reason</th><th scope="col" class="c-resource">Resource</th><th scope="col">Message</th><th scope="col" class="c-age">Age</th></tr></thead>
   <tbody>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">NoOp</span></td>
-    <td data-label="Resource"><span class="ev-kind">ModuleInstance</span><a class="mono ev-name" href="/instances/default/podinfo?resource=opmodel.dev%2FModuleInstance%2Fdefault%2Fpodinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo</a></td>
-    <td data-label="Message"><p class="ev-note">No changes detected</p><p class="ev-meta"><span class="mono">opm-controller</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">NoOp</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=opmodel.dev%2FModuleInstance%2Fdefault%2Fpodinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">ModuleInstance</span><span class="mono">podinfo</span></a></td>
+    <td data-label="Message"><span class="ev-note">No changes detected</span> <span class="muted ev-by">opm-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Pulled</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-4lg6h</a></td>
-    <td data-label="Message"><p class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 422ms (9.094s including waiting). Image size: 31081621 bytes.</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Pulled</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span></a></td>
+    <td data-label="Message"><span class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 422ms (9.094s including waiting). Image size: 31081621 bytes.</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Created</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-4lg6h</a></td>
-    <td data-label="Message"><p class="ev-note">Container created</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Created</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span></a></td>
+    <td data-label="Message"><span class="ev-note">Container created</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Started</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-4lg6h</a></td>
-    <td data-label="Message"><p class="ev-note">Container started</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Started</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span></a></td>
+    <td data-label="Message"><span class="ev-note">Container started</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Pulled</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-kp2jx</a></td>
-    <td data-label="Message"><p class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 2.641s (8.673s including waiting). Image size: 31081621 bytes.</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Pulled</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span></a></td>
+    <td data-label="Message"><span class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 2.641s (8.673s including waiting). Image size: 31081621 bytes.</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Created</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-kp2jx</a></td>
-    <td data-label="Message"><p class="ev-note">Container created</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Created</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span></a></td>
+    <td data-label="Message"><span class="ev-note">Container created</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Started</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-kp2jx</a></td>
-    <td data-label="Message"><p class="ev-note">Container started</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Started</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span></a></td>
+    <td data-label="Message"><span class="ev-note">Container started</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Pulling</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-4lg6h</a></td>
-    <td data-label="Message"><p class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Pulling</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span></a></td>
+    <td data-label="Message"><span class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Pulling</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-kp2jx</a></td>
-    <td data-label="Message"><p class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</p><p class="ev-meta"><span class="mono">kubelet</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Pulling</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span></a></td>
+    <td data-label="Message"><span class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">ReconciliationSucceeded</span></td>
-    <td data-label="Resource"><span class="ev-kind">ModuleInstance</span><a class="mono ev-name" href="/instances/default/podinfo?resource=opmodel.dev%2FModuleInstance%2Fdefault%2Fpodinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo</a></td>
-    <td data-label="Message"><p class="ev-note">Reconciliation succeeded</p><p class="ev-meta"><span class="mono">opm-controller</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">ReconciliationSucceeded</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=opmodel.dev%2FModuleInstance%2Fdefault%2Fpodinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">ModuleInstance</span><span class="mono">podinfo</span></a></td>
+    <td data-label="Message"><span class="ev-note">Reconciliation succeeded</span> <span class="muted ev-by">opm-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Applied</span></td>
-    <td data-label="Resource"><span class="ev-kind">ModuleInstance</span><a class="mono ev-name" href="/instances/default/podinfo?resource=opmodel.dev%2FModuleInstance%2Fdefault%2Fpodinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo</a></td>
-    <td data-label="Message"><p class="ev-note">Applied 2 resources (2 created, 0 updated, 0 unchanged)</p><p class="ev-meta"><span class="mono">opm-controller</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Applied</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=opmodel.dev%2FModuleInstance%2Fdefault%2Fpodinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">ModuleInstance</span><span class="mono">podinfo</span></a></td>
+    <td data-label="Message"><span class="ev-note">Applied 2 resources (2 created, 0 updated, 0 unchanged)</span> <span class="muted ev-by">opm-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">ScalingReplicaSet</span></td>
-    <td data-label="Resource"><span class="ev-kind">Deployment</span><a class="mono ev-name" href="/instances/default/podinfo?resource=apps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo</a></td>
-    <td data-label="Message"><p class="ev-note">Scaled up replica set podinfo-podinfo-d9585d794 from 0 to 2</p><p class="ev-meta"><span class="mono">deployment-controller</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">ScalingReplicaSet</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=apps%2FDeployment%2Fdefault%2Fpodinfo-podinfo&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Deployment</span><span class="mono">podinfo-podinfo</span></a></td>
+    <td data-label="Message"><span class="ev-note">Scaled up replica set podinfo-podinfo-d9585d794 from 0 to 2</span> <span class="muted ev-by">deployment-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Scheduled</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-4lg6h</a></td>
-    <td data-label="Message"><p class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-4lg6h to opm-portal-e2e-fix-control-plane</p><p class="ev-meta"><span class="mono">default-scheduler</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Scheduled</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-4lg6h&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-4lg6h</span></a></td>
+    <td data-label="Message"><span class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-4lg6h to opm-portal-e2e-fix-control-plane</span> <span class="muted ev-by">default-scheduler</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">Scheduled</span></td>
-    <td data-label="Resource"><span class="ev-kind">Pod</span><a class="mono ev-name" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794-kp2jx</a></td>
-    <td data-label="Message"><p class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-kp2jx to opm-portal-e2e-fix-control-plane</p><p class="ev-meta"><span class="mono">default-scheduler</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Scheduled</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-d9585d794-kp2jx&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">Pod</span><span class="mono">podinfo-podinfo-d9585d794-kp2jx</span></a></td>
+    <td data-label="Message"><span class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-kp2jx to opm-portal-e2e-fix-control-plane</span> <span class="muted ev-by">default-scheduler</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">SuccessfulCreate</span></td>
-    <td data-label="Resource"><span class="ev-kind">ReplicaSet</span><a class="mono ev-name" href="/instances/default/podinfo?resource=apps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794</a></td>
-    <td data-label="Message"><p class="ev-note">Created pod: podinfo-podinfo-d9585d794-kp2jx</p><p class="ev-meta"><span class="mono">replicaset-controller</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">SuccessfulCreate</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=apps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">ReplicaSet</span><span class="mono">podinfo-podinfo-d9585d794</span></a></td>
+    <td data-label="Message"><span class="ev-note">Created pod: podinfo-podinfo-d9585d794-kp2jx</span> <span class="muted ev-by">replicaset-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
-  <tr class="ev-row ev-normal">
-    <td data-label="Type"><span class="ev-type">Normal</span></td>
-    <td data-label="Reason"><span class="ev-reason mono">SuccessfulCreate</span></td>
-    <td data-label="Resource"><span class="ev-kind">ReplicaSet</span><a class="mono ev-name" href="/instances/default/podinfo?resource=apps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=events&amp;type=Normal" title="Show only this resource's events">podinfo-podinfo-d9585d794</a></td>
-    <td data-label="Message"><p class="ev-note">Created pod: podinfo-podinfo-d9585d794-4lg6h</p><p class="ev-meta"><span class="mono">replicaset-controller</span></p></td>
-    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m</time></td>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">SuccessfulCreate</td>
+    <td data-label="Resource"><a class="ev-resource" href="/instances/default/podinfo?resource=apps%2FReplicaSet%2Fdefault%2Fpodinfo-podinfo-d9585d794&amp;tab=events&amp;type=Normal" title="Show only this resource's events"><span class="ev-kind">ReplicaSet</span><span class="mono">podinfo-podinfo-d9585d794</span></a></td>
+    <td data-label="Message"><span class="ev-note">Created pod: podinfo-podinfo-d9585d794-4lg6h</span> <span class="muted ev-by">replicaset-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></td>
   </tr>
   </tbody>
-</table></div>
+</table>
+</div>
 </section>
 <details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:default/podinfo">
   <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>

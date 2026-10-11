@@ -23,8 +23,8 @@ func providerOwner(c v1.ProviderClaim) *ownerView {
 	return &ownerView{Kind: instanceKind, Namespace: "default", Name: "x", ProviderOf: []v1.ProviderClaim{c}}
 }
 
-// platformWith serves one registration that lists contracts.
-func platformWith(contracts ...string) *v1.Platform {
+// providerPlatformWith serves one registration that lists contracts.
+func providerPlatformWith(contracts ...string) *v1.Platform {
 	return &v1.Platform{Registrations: []v1.Registration{{Name: "default.x", Catalog: "c.example/cat@v0", Provides: contracts}}}
 }
 
@@ -64,7 +64,7 @@ func TestProviderContractsTextEveryVerdict(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.claim.Registration, tc.claim.Access = "default.x", v1.AccessOK
 			v := providerOwner(tc.claim)
-			p := platformWith(backupContract, "c.example/other@v1")
+			p := providerPlatformWith(backupContract, "c.example/other@v1")
 			got := claimsOf(providerTabView{}, v, p, users(1)).Claims[0]
 			if got.ContractsText != tc.want {
 				t.Errorf("Contracts = %q, want %q", got.ContractsText, tc.want)
@@ -95,14 +95,14 @@ func TestProviderContractsTextWhenUseIsNotFullyReadable(t *testing.T) {
 		"locked":     {UsedByLocked: true},
 		"a failure":  {UsedByProblem: &v1.Problem{Code: v1.CodeNotReadableByPortal}},
 	} {
-		got := claimsOf(tab, providerOwner(claim), platformWith(backupContract), users(1)).Claims[0]
+		got := claimsOf(tab, providerOwner(claim), providerPlatformWith(backupContract), users(1)).Claims[0]
 		if got.ContractsText != "1 provided; use not fully readable" {
 			t.Errorf("%s: Contracts = %q", name, got.ContractsText)
 		}
 	}
 	blocked := claim
 	blocked.Verdict = "RemovalBlocked"
-	got := claimsOf(providerTabView{UsedByIncomplete: true}, providerOwner(blocked), platformWith(backupContract), nil).Claims[0]
+	got := claimsOf(providerTabView{UsedByIncomplete: true}, providerOwner(blocked), providerPlatformWith(backupContract), nil).Claims[0]
 	if got.ContractsText != "1 provided; use not fully readable; removal is blocked" {
 		t.Errorf("blocked and not fully readable: %q", got.ContractsText)
 	}
@@ -129,7 +129,7 @@ func TestProviderUsedByButtons(t *testing.T) {
 		{"locked", 0, providerTabView{UsedByLocked: true}, "All in Installed \u2192", false, 0, 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			got := claimsOf(tc.tab, providerOwner(claim), platformWith(backupContract), users(tc.n)).Claims[0].Contracts[0]
+			got := claimsOf(tc.tab, providerOwner(claim), providerPlatformWith(backupContract), users(tc.n)).Claims[0].Contracts[0]
 			if got.Button != tc.button || got.Empty != tc.empty || len(got.First) != tc.first || got.More != tc.rem {
 				t.Errorf("got button %q empty %v first %d more %d", got.Button, got.Empty, len(got.First), got.More)
 			}
@@ -174,7 +174,7 @@ func TestProviderTabRendersEveryVerdict(t *testing.T) {
 			tc.claim.Registration, tc.claim.Access = "default.x", v1.AccessOK
 			v := providerOwner(tc.claim)
 			v.Tab = tabProvider
-			p := platformWith(backupContract)
+			p := providerPlatformWith(backupContract)
 			v.Provider = claimsOf(providerTabView{}, v, p, users(1))
 			v.Base = "/instances/default/x"
 			tabs := renderOwnerTab(t, h, v)

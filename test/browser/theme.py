@@ -35,6 +35,10 @@ first failure:
 9. Nothing animates in (portal:D19, the owner's decision of 2026-10-11): /installed loaded with
    motion allowed has, right after the load event, no running animation whose target lies inside
    main. The live dot's pulse lies outside main.
+10. The theme menu fits a phone (PIC-A2) and marks the choice with a check (platform-32): at a
+   360 px viewport on the Platform page, with the menu open, its box lies inside the viewport and
+   the page does not scroll sideways; the check SVG of the pressed choice is visible and the
+   others are not.
 """
 
 import sys
@@ -182,6 +186,23 @@ def run(p, engine, base, context):
         motion.goto(base + "/installed", wait_until="load")
         anims = motion.evaluate("window.__anims")
         if not check(engine, anims == 0, f"animations inside main right after load: {anims}"):
+            return False
+
+        phone = browser.new_context(viewport={"width": 360, "height": 640}, color_scheme="light").new_page()
+        phone.goto(base + "/", wait_until="load")
+        phone.locator("details.theme > summary").click()
+        box = phone.evaluate(
+            "(() => { const r = document.querySelector('.theme-list').getBoundingClientRect();"
+            " return [r.left, r.right, r.top, r.bottom, window.innerWidth, window.innerHeight,"
+            " Math.max(document.documentElement.scrollWidth, document.body.scrollWidth)]; })()")
+        if not check(engine, box[0] >= 0 and box[1] <= box[4] and box[2] >= 0 and box[3] <= box[5] and box[6] <= 360,
+                     f"360 px, menu open: box {box[0]:.0f} to {box[1]:.0f} of {box[4]}, down to {box[3]:.0f} of {box[5]}, page scrolls {box[6]}"):
+            return False
+        marks = phone.evaluate(
+            "[...document.querySelectorAll('.theme-list button')].map(b => [b.getAttribute('aria-pressed'),"
+            " getComputedStyle(b.querySelector('.theme-check')).visibility])")
+        if not check(engine, marks == [["false", "hidden"], ["false", "hidden"], ["true", "visible"]],
+                     f"the check shows on the pressed choice only: {marks}"):
             return False
     finally:
         browser.close()

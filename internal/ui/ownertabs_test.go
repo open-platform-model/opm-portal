@@ -99,7 +99,7 @@ func TestEventsTypeFilter(t *testing.T) {
 	if strings.Contains(warn, "ev-normal") || !strings.Contains(warn, "ev-warning") {
 		t.Errorf("type=Warning does not list Warnings only:\n%s", warn)
 	}
-	n := strings.Count(warn, `class="ev-row ev-warning"`)
+	n := strings.Count(warn, `<tr class="ev-warning">`)
 	if !strings.Contains(all, "Warning ("+strconv.Itoa(n)+")") || !strings.Contains(warn, "Warning ("+strconv.Itoa(n)+")") {
 		t.Errorf("the Warning option does not count the %d Warning lines of the whole feed", n)
 	}
@@ -183,8 +183,8 @@ func TestEventsTableShape(t *testing.T) {
 	if !strings.Contains(region, `title="Show only this resource's events"`) || !strings.Contains(region, "type=Normal") || !strings.Contains(region, "?resource=") {
 		t.Errorf("the resource cell is not a filter link that keeps the type:\n%s", region)
 	}
-	if !strings.Contains(region, "<time datetime=") || strings.Contains(between(region, "<tbody>", "</tbody>"), " ago") {
-		t.Errorf("the age is not compact, with its time in a title:\n%s", region)
+	if !strings.Contains(region, `<time datetime="`) || !strings.Contains(between(region, "<tbody>", "</tbody>"), ` ago</time>`) || !strings.Contains(region, `title="2026-10-04 18:04:`) {
+		t.Errorf("the age is not the relative form, with its time in a title:\n%s", region)
 	}
 	frag := s.get(t, "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", htmxRequest).body
 	if !strings.Contains(frag, `class="table rows events-table"`) || strings.Contains(between(frag, "<thead>", "</thead>"), "Resource") {

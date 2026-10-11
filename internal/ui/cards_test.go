@@ -388,26 +388,3 @@ func TestHumanInterval(t *testing.T) {
 		}
 	}
 }
-
-// TestProviderPill: the word is "Provider", the standing is hidden text and
-// the title carries it, locked included.
-func TestProviderPill(t *testing.T) {
-	for _, tc := range []struct {
-		claim    v1.ProviderClaim
-		standing string
-		class    string
-	}{
-		{v1.ProviderClaim{Registration: "r", Access: v1.AccessOK, Verdict: "Accepted", Active: true}, "active", "prov prov-active prov-pill"},
-		{v1.ProviderClaim{Registration: "r", Access: v1.AccessOK, Verdict: "Accepted"}, "not active", "prov prov-inactive prov-pill"},
-		{v1.ProviderClaim{Registration: "r", Access: v1.AccessOK, Verdict: "Refused", Reason: "X"}, "refused", "prov prov-refused prov-pill"},
-		{v1.ProviderClaim{Registration: "r", Access: v1.AccessForbidden}, "locked", "prov prov-locked prov-pill"},
-	} {
-		p := providerPill(tc.claim)
-		if p.Standing != tc.standing || p.Class != tc.class || p.Title == "" {
-			t.Errorf("%+v: pill %+v", tc.claim, p)
-		}
-		if p.Locked != (tc.claim.Access != v1.AccessOK) {
-			t.Errorf("locked %v", p.Locked)
-		}
-	}
-}

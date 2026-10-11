@@ -2,7 +2,7 @@
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> <span aria-hidden="true">/</span> <span class="mono">{{.Namespace}}</span> <span aria-hidden="true">/</span> <span>{{.Name}}</span></nav>
 <div class="summary reveal">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="{{.Topic}}">
-    <p class="kicker">{{.Kind.Title}}{{range .ProviderOf}}{{with providerPill .}} <span class="{{.Class}}" title="{{.Title}}">{{if .Locked}}{{template "lock"}}{{end}}Provider<span class="vh">, {{.Standing}}</span></span>{{end}}{{end}}</p>
+    <p class="kicker">{{.Kind.Title}}{{range .ProviderPills}} {{template "tip" .}}{{end}}</p>
     <h1>{{.Name}}</h1>
     {{if .Problem}}{{template "problem-region" .Problem}}{{else}}
     <p class="subtitle mono">{{template "breakable" .Identity.Subtitle}}{{with .Identity.Version}} · <span class="ver">{{.}}</span>{{end}}</p>
@@ -72,7 +72,7 @@
     <div class="filter-fields">
       <div class="field"><label for="f-resource">Resource</label><select id="f-resource" name="resource">{{range .Resource}}<optgroup label="{{.Label}}">{{range .Options}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</optgroup>{{end}}</select></div>
       <div class="field"><label for="f-type">Type</label><select id="f-type" name="type"><option value="">Any type</option>{{range .Types}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Text}}</option>{{end}}</select></div>
-      <div class="field field-submit"><button type="submit">Apply filters</button></div>
+      <div class="field field-submit"><button type="submit" id="apply-owner-events">Apply filters</button></div>
       <div class="filter-meta"><p class="shown">Showing <strong>{{.Shown}}</strong> of {{.Total}}</p>{{if .Filters.Active}}<a class="fclear" href="{{.Filters.Clear}}" data-filters-explicit>Clear filters</a>{{end}}</div>
     </div>
     {{with .Filters}}{{if or .Active .Ignored}}
