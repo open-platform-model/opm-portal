@@ -276,12 +276,16 @@ func TestFilterFormsRenderTheCountRowAndTheChips(t *testing.T) {
 	if f := regexp.MustCompile(`id="(shown|list)"[^>]*data-follow="([^"]*)"`).FindAllStringSubmatch(all, -1); len(f) != 2 || f[0][2] != f[1][2] {
 		t.Errorf("the count and the list follow %v", f)
 	}
-	// The owner page's Resources reason form is not a filter form of the
-	// list views: no count row, no apply-as-you-type, its own clear link.
+	// The owner page's Resources tab has no filter form (align-owner-pages:
+	// the reason is a removable chip only), and its Events form keeps the
+	// stable Apply id the focus restore needs.
 	owner := mainOf(s.get(t, "/instances/default/podinfo?tab=resources&reason=ImagePullBackOff").body)
-	form := between(owner, `aria-label="Filter resources"`, "</form>")
-	if strings.Contains(form, "data-filters=") || strings.Contains(form, `class="shown"`) || !strings.Contains(form, "Clear filters") {
-		t.Errorf("the Resources reason form changed:\n%s", form)
+	if strings.Contains(owner, `aria-label="Filter resources"`) || strings.Contains(owner, `class="shown"`) {
+		t.Errorf("the Resources tab draws a filter form:\n%s", owner)
+	}
+	events := mainOf(s.get(t, "/instances/default/podinfo?tab=events").body)
+	if !strings.Contains(between(events, `data-filters="owner-events"`, "</form>"), `<button type="submit" id="apply-owner-events">Apply filters</button>`) {
+		t.Errorf("the owner Events form lost its Apply id:\n%s", events)
 	}
 	// The Platform tabs draw the strip, the count at the end of the field row,
 	// and no count for providers the caller may not list.

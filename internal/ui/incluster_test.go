@@ -26,32 +26,76 @@ func TestGoldenPagesInCluster(t *testing.T) {
 	checkGoldens(t, s, inClusterPages)
 }
 
+func TestGoldenPackageHolderInCluster(t *testing.T) {
+	s := newInClusterSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	checkGoldens(t, s, []goldenPage{{"in-cluster/package-provider-provider", "/packages/pkg/provider?tab=provider", false}})
+}
+
 func TestGoldenBrokenRolloutInCluster(t *testing.T) {
 	s := newInClusterSite(t, apitest.F1Broken(t), apitest.AllowAll)
 	checkGoldens(t, s, []goldenPage{{"in-cluster/instance-podinfo-broken", "/instances/default/podinfo", false}})
 }
 
+// withOperatorEventsOnTheRegistration adds two events about the
+// TransformerRegistration default.backup-provider, an OPM object that
+// backup-provider's inventory reaches and that is not the owner: one the
+// operator reports and one that names no reporter. The merged feed that the
+// owner pages render carries both, so the walk below hunts for their notes.
+func withOperatorEventsOnTheRegistration(objs func(testing.TB) []*unstructured.Unstructured) func(testing.TB) []*unstructured.Unstructured {
+	return func(t testing.TB) []*unstructured.Unstructured {
+		out := objs(t)
+		for _, ev := range []struct{ name, reason, note, controller string }{
+			{"registration-by-the-operator", "RegistrationOperatorSaid", "registration text one", "opm-controller"},
+			{"registration-by-nobody-we-know", "RegistrationSomebodySaid", "registration text two", ""},
+		} {
+			e := &unstructured.Unstructured{Object: map[string]any{
+				"apiVersion": "events.k8s.io/v1",
+				"kind":       "Event",
+				"metadata": map[string]any{
+					"name": ev.name, "namespace": "default", "uid": ev.name + "-uid", "creationTimestamp": "2026-10-04T18:06:00Z",
+				},
+				"eventTime": "2026-10-04T18:06:00.000000Z",
+				"reason":    ev.reason,
+				"note":      ev.note,
+				"type":      "Normal",
+				"regarding": map[string]any{
+					"apiVersion": "opmodel.dev/v1alpha1", "kind": "TransformerRegistration", "name": "default.backup-provider",
+				},
+			}}
+			if ev.controller != "" {
+				e.Object["reportingController"] = ev.controller
+			}
+			out = append(out, e)
+		}
+		return out
+	}
+}
+
 // TestNoOperatorTextOnAnInClusterPage collects every operator message and
-// event note the local read API serves for F1 and the broken sample, and
-// fails when one of them appears on the matching in-cluster page.
+// event note the local read API serves for F1 and the broken sample, the
+// merged feed (scope=all) that the owner pages render included, and fails
+// when one of them appears on the matching in-cluster page. F1 gains two
+// events on a reached object other than the owner, so the walk covers an
+// operator note that is not about the owner (portal:D8:R5).
 func TestNoOperatorTextOnAnInClusterPage(t *testing.T) {
 	const apiBase = "/api/v1alpha1/clusters/default"
 	sources := map[string][]string{
 		"/": {apiBase + "/platform", apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events",
 			apiBase + "/platform/registrations/default.backup-provider/events"},
 		"/?tab=catalogs":                                {apiBase + "/platform"},
-		"/instances/default/podinfo?tab=events":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
-		"/instances/default/backup-provider?tab=events": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
-		"/packages/pkg/podinfo?tab=events":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
+		"/instances/default/podinfo?tab=events":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events?scope=all"},
+		"/instances/default/backup-provider?tab=events": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events?scope=all"},
+		"/packages/pkg/podinfo?tab=events":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events?scope=all"},
 		"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=claims": {apiBase + "/platform"},
 		"/instances/default/backup-provider?tab=provider":                                                {apiBase + "/platform", apiBase + "/instances/default/backup-provider"},
 		"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events": {apiBase + "/platform",
 			apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events"},
-		"/instances/default/podinfo":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events"},
-		"/instances/default/backup-provider": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events"},
-		"/packages/pkg/podinfo":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events"},
+		"/instances/default/podinfo":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events?scope=all"},
+		"/instances/default/backup-provider": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events?scope=all"},
+		"/packages/pkg/podinfo":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events?scope=all"},
 	}
-	for name, objs := range map[string]func(testing.TB) []*unstructured.Unstructured{"F1": apitest.F1, "broken": apitest.F1Broken} {
+	for name, objs := range map[string]func(testing.TB) []*unstructured.Unstructured{
+		"F1": withOperatorEventsOnTheRegistration(apitest.F1), "broken": withOperatorEventsOnTheRegistration(apitest.F1Broken)} {
 		t.Run(name, func(t *testing.T) {
 			local := newSite(t, objs(t), apitest.AllowAll)
 			in := newInClusterSite(t, objs(t), apitest.AllowAll)
@@ -122,6 +166,34 @@ func operatorEvent(ev map[string]any) bool {
 		return ref["group"] == "opmodel.dev"
 	}
 	return false
+}
+
+// TestInClusterCardsShowReasonsAndMeaningsOnly (align-owner-pages, 3.5): over
+// the in-cluster read API the package's Applied block keeps the state word,
+// the summary composed from recorded fields, the reason's meaning and the
+// attempt dots, and shows none of the controller's message, which the read
+// API omits; the Provider block of a refused claim shows the reason and its
+// meaning, and no controller text.
+func TestInClusterCardsShowReasonsAndMeaningsOnly(t *testing.T) {
+	s := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
+	applied := between(mainOf(s.get(t, "/packages/pkg/podinfo").body), `id="applied-card"`, "</section>")
+	for _, want := range []string{`<span class="sb-word">Failed, retrying</span>`, "Failed on the last 3 attempts, retrying every 1 min",
+		"The package&#39;s source is not ready or does not exist.", "Reconciling: Progressing", "last 3 attempts"} {
+		if !strings.Contains(applied, want) {
+			t.Errorf("in-cluster Applied block lacks %q:\n%s", want, applied)
+		}
+	}
+	for _, text := range []string{"no matches for kind", `class="sb-note says"`} {
+		if strings.Contains(applied, text) {
+			t.Errorf("in-cluster Applied block shows the controller's message (%q):\n%s", text, applied)
+		}
+	}
+	held := newInClusterSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	provider := between(mainOf(held.get(t, "/packages/pkg/provider").body), `id="provider-card"`, "</section>")
+	if !strings.Contains(provider, `<span class="sb-word">Refused</span>`) || !strings.Contains(provider, "ProviderMismatch") ||
+		strings.Contains(provider, "which does not exist") {
+		t.Errorf("in-cluster Provider block:\n%s", provider)
+	}
 }
 
 // TestInClusterPlatformPageShowsReasonsOnly (platform-21, platform-23): in

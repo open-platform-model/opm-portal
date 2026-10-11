@@ -34,7 +34,6 @@ const (
 	conditionContracts    = "ContractsFulfilled"
 	condTrue              = "True"
 	sourceSubscription    = "subscription"
-	stateFailed           = "Failed"
 	eventPlatform         = "platform" // the eresource value of the Platform's own events
 )
 

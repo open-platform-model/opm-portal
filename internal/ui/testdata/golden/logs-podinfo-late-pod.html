@@ -1,21 +1,19 @@
 <section class="panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="instance:default/podinfo">
-  <h2 class="vh" id="logs-h">Logs <span class="h-note">open a container to follow its output</span></h2>
+  <h2 class="vh" id="logs-h">Logs</h2>
+  <form class="filters" method="get" action="/instances/default/podinfo" role="search" aria-label="Pick a container" hx-swap="outerHTML show:none" data-filters="owner-logs">
+    <input type="hidden" name="tab" value="logs">
+    <div class="filter-fields">
+      <div class="field field-log"><label for="f-log">Pod / container</label><select id="f-log" name="log" class="mono"><optgroup label="podinfo-podinfo-794bd8c7fb-cc5ql"><option value="log_podinfo-podinfo-794bd8c7fb-cc5ql_podinfo" selected>podinfo</option></optgroup><optgroup label="podinfo-podinfo-d9585d794-5m9tx"><option value="log_podinfo-podinfo-d9585d794-5m9tx_podinfo">podinfo</option></optgroup><optgroup label="podinfo-podinfo-d9585d794-j6jr9"><option value="log_podinfo-podinfo-d9585d794-j6jr9_podinfo">podinfo</option></optgroup></select></div>
+      <div class="field field-submit"><button type="submit">Show</button></div>
+    </div>
+  </form>
+  <p class="note log-hint" role="note">The container has not started, so there are no logs yet. <a href="/instances/default/podinfo?resource=%2FPod%2Fdefault%2Fpodinfo-podinfo-794bd8c7fb-cc5ql&amp;tab=events">See Events for why.</a></p>
   <div class="logs">
-    <details class="log" id="log_podinfo-podinfo-794bd8c7fb-cc5ql_podinfo" data-log-topic="log:default/podinfo-podinfo-794bd8c7fb-cc5ql/podinfo">
+    <details class="log" id="log_podinfo-podinfo-794bd8c7fb-cc5ql_podinfo" data-log-topic="log:default/podinfo-podinfo-794bd8c7fb-cc5ql/podinfo" open>
       <summary><span class="mono">podinfo-podinfo-794bd8c7fb-cc5ql</span> <span class="log-container">podinfo</span></summary>
       <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-794bd8c7fb-cc5ql/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
       <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-794bd8c7fb-cc5ql"></pre>
     </details>
-    <details class="log" id="log_podinfo-podinfo-d9585d794-5m9tx_podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-5m9tx/podinfo">
-      <summary><span class="mono">podinfo-podinfo-d9585d794-5m9tx</span> <span class="log-container">podinfo</span></summary>
-      <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-d9585d794-5m9tx/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
-      <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-d9585d794-5m9tx"></pre>
-    </details>
-    <details class="log" id="log_podinfo-podinfo-d9585d794-j6jr9_podinfo" data-log-topic="log:default/podinfo-podinfo-d9585d794-j6jr9/podinfo">
-      <summary><span class="mono">podinfo-podinfo-d9585d794-j6jr9</span> <span class="log-container">podinfo</span></summary>
-      <div class="log-tools"><label><input type="checkbox" data-log-previous="log:default/podinfo-podinfo-d9585d794-j6jr9/podinfo/previous"> Previous instance</label><span class="log-state" aria-live="polite"></span></div>
-      <pre class="log-pane" tabindex="0" aria-label="Log of podinfo in podinfo-podinfo-d9585d794-j6jr9"></pre>
-    </details>
   </div>
-  <p class="note">Logs stream only while a pane is open and need script. Lines are shown as text, never as markup.</p>
+  <p class="note">Logs stream only while the pane is open and need script. Lines are shown as text, never as markup.</p>
 </section>

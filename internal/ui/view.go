@@ -99,7 +99,9 @@ func healthBadge(h v1.Health) badge {
 	if h.Partial {
 		notes = append(notes, "partial")
 	}
-	if !h.Live && h.State != "" {
+	// With nothing counted nothing was polled, so there is nothing to warn
+	// about (instance-39).
+	if !h.Live && h.State != "" && healthTotal(h.Counts) > 0 {
 		notes = append(notes, "not live")
 	}
 	if len(notes) > 0 {
@@ -195,6 +197,19 @@ func providerPill(c v1.ProviderClaim, id string) tipData {
 	return td
 }
 
+// outcomeText names the outcomes of an attempt the read API decides.
+var outcomeText = map[string]string{outcomeOK: "Applied", outcomeFailed: outcomeFailed, wordUnknown: wordUnknown}
+
+// outcomeBadge is the badge of one history attempt; an outcome the UI does
+// not know reads Unknown.
+func outcomeBadge(outcome string) badge {
+	text, ok := outcomeText[outcome]
+	if !ok {
+		outcome, text = wordUnknown, wordUnknown
+	}
+	return badge{Class: "outcome outcome-" + slug(outcome), Text: text}
+}
+
 // claimBadge is a held registration's standing on the Provider card, in
 // the card's words; the classes are providerBadge's.
 func claimBadge(c v1.ProviderClaim) badge {
@@ -205,7 +220,7 @@ func claimBadge(c v1.ProviderClaim) badge {
 	case c.Verdict == verdictRemovalBlocked:
 		b.Text = "Removal blocked"
 	case c.Verdict == verdictAccepted && c.Active:
-		b.Text = "Active"
+		b.Text = wordActive
 	case c.Verdict == verdictAccepted:
 		b.Text = "Accepted, not active"
 	case c.Verdict == verdictRefused:
@@ -358,6 +373,8 @@ var funcs = template.FuncMap{
 	"verdictBadge":  verdictBadge,
 	"providerBadge": providerBadge,
 	"claimBadge":    claimBadge,
+	"providerPill":  providerPill,
+	"outcomeBadge":  outcomeBadge,
 	"ownerText":     ownerText,
 	"accessText":    accessText,
 	"toneClass":     toneClass,
@@ -369,6 +386,7 @@ var funcs = template.FuncMap{
 	"join":          strings.Join,
 	"segments":      segments,
 	"plural":        plural,
+	"compact":       func(s string) string { return strings.TrimSuffix(s, " ago") },
 	"add":           func(a, b int) int { return a + b },
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK

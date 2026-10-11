@@ -36,9 +36,12 @@ var inClusterGoldens = []goldenCase{
 	{"in-cluster/instance-backup-provider-object-registration", backupRegistrationObject},
 	{"in-cluster/instance-podinfo-graph", base + "/instances/default/podinfo/graph"},
 	{"in-cluster/instance-podinfo-events", base + "/instances/default/podinfo/events"},
+	{"in-cluster/instance-podinfo-events-all", base + "/instances/default/podinfo/events?scope=all"},
+	{"in-cluster/instance-cert-manager-events-all", base + "/instances/cert-manager/cert-manager/events?scope=all"},
 	{"in-cluster/instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
 	{"in-cluster/package-list", base + "/packages"},
 	{"in-cluster/package-podinfo", base + "/packages/pkg/podinfo"},
+	{"in-cluster/package-podinfo-events-all", base + "/packages/pkg/podinfo/events?scope=all"},
 	{"in-cluster/package-podinfo-graph", base + "/packages/pkg/podinfo/graph"},
 	{"in-cluster/platform", base + "/platform"},
 	{"in-cluster/platform-graph", base + "/platform/graph"},
@@ -294,7 +297,7 @@ func operatorTextFields(t *testing.T, body []byte) []string {
 					continue
 				}
 				if s, ok := child.(string); ok && s != "" {
-					if f := classifyText(parentKey, parent, k); f != "" {
+					if f := classifyText(parentKey, parent, x, k); f != "" {
 						out = append(out, f)
 					}
 				}
@@ -329,13 +332,15 @@ func objectStatusText(body []byte) []string {
 	return out
 }
 
-// classifyText names the operator-text field key is inside a map reached
-// through parentKey, or "" when key carries no operator text there.
-func classifyText(parentKey string, parent map[string]any, key string) string {
+// classifyText names the operator-text field key is inside the map self,
+// which was reached through parentKey from parent, or "" when key carries no
+// operator text there. A note is read against its own event (self): a list of
+// events holds the notes of many writers.
+func classifyText(parentKey string, parent, self map[string]any, key string) string {
 	switch key {
 	case "note":
-		ref, _ := parent["regarding"].(map[string]any)
-		switch parent["reportingController"] {
+		ref, _ := self["regarding"].(map[string]any)
+		switch self["reportingController"] {
 		case operatorController:
 			return "note (operator)"
 		case nil, "":

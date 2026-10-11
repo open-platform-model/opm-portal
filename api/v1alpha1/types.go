@@ -270,12 +270,15 @@ type PackageSummary struct {
 	SourceArtifact *SourceArtifact `json:"sourceArtifact,omitempty"`
 	// DependsOn are the packages spec.dependsOn names; an absent namespace
 	// is the package's own.
-	DependsOn      []ObjectRef `json:"dependsOn,omitempty"`
-	Path           string      `json:"path,omitempty"`
-	Reconcile      Reconcile   `json:"reconcile"`
-	Health         Health      `json:"health"`
-	InventoryCount int64       `json:"inventoryCount"`
-	LastAppliedAt  *time.Time  `json:"lastAppliedAt,omitempty"`
+	DependsOn []ObjectRef `json:"dependsOn,omitempty"`
+	Path      string      `json:"path,omitempty"`
+	// Prune is spec.prune as written; absent when the package does not set
+	// it, never a default.
+	Prune          *bool      `json:"prune,omitempty"`
+	Reconcile      Reconcile  `json:"reconcile"`
+	Health         Health     `json:"health"`
+	InventoryCount int64      `json:"inventoryCount"`
+	LastAppliedAt  *time.Time `json:"lastAppliedAt,omitempty"`
 	// ProviderOf are the TransformerRegistrations the package's inventory
 	// holds; absent when it holds none.
 	ProviderOf []ProviderClaim `json:"providerOf,omitempty"`
@@ -398,8 +401,10 @@ type ReadingAs struct {
 // reason and note folded into one, with a count and the latest time. Events
 // expire after about an hour; no state is read from them.
 type Event struct {
-	Type                string     `json:"type"`
-	Reason              string     `json:"reason"`
+	Type   string `json:"type"`
+	Reason string `json:"reason"`
+	// Note is the event's note as written, capped at 512 Unicode code
+	// points: a longer note ends in an ellipsis after its first 511.
 	Note                string     `json:"note,omitempty"`
 	ReportingController string     `json:"reportingController,omitempty"`
 	Regarding           ObjectRef  `json:"regarding"`
@@ -408,11 +413,28 @@ type Event struct {
 	LastSeen            *time.Time `json:"lastSeen,omitempty"`
 }
 
-// EventList is the recent activity about one object, newest first.
+// Event list scopes: what an EventList merges.
+const (
+	// EventScopeAll is the owner's events merged with those of every object
+	// and runtime child its inventory reaches that the caller may read.
+	EventScopeAll = "all"
+)
+
+// EventList is the recent activity about one object, newest first. For an
+// instance or package asked with scope=all it is the activity about the
+// owner and everything its inventory reaches, merged.
 type EventList struct {
 	TypeMeta
 	Regarding ObjectRef `json:"regarding"`
 	Items     []Event   `json:"items"`
+	// Scope is "all" when the list merges the owner's events with those of
+	// every object its inventory reaches; absent for one object's feed.
+	Scope string `json:"scope,omitempty"`
+	// Partial is true when some reached objects were left out: the caller
+	// may not read them, may not list events where their events live, or
+	// those events could not be listed; or when the caller may not read the
+	// runtime children of a workload. Absent otherwise.
+	Partial bool `json:"partial,omitempty"`
 }
 
 // Graph is a laid-out relationship graph: of an instance, a package or the

@@ -178,7 +178,7 @@ func nodeOf(n *v1.GraphNode, w, hgt int, page, panel string) svgNode {
 	classes := []string{"node", "kind-" + slugOrUnknown(n.Kind, kindText)}
 	switch {
 	case locked:
-		classes = append(classes, "locked")
+		classes = append(classes, hueLocked)
 	case n.Missing:
 		classes = append(classes, "health-missing")
 	case state != "":
@@ -341,7 +341,7 @@ func nodeAria(n *v1.GraphNode, kind string, locked bool, state string) string {
 	parts := []string{kind, n.Label}
 	switch {
 	case locked:
-		parts = append(parts, "locked")
+		parts = append(parts, wordLocked)
 	case n.Missing:
 		parts = append(parts, "missing")
 	case state != "":

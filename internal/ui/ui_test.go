@@ -159,7 +159,8 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	body := s.get(t, "/instances/default/podinfo").body
 	applied := between(body, `id="applied-card"`, "</section>")
 	health := between(body, `id="health-card"`, "</section>")
-	if !strings.Contains(applied, `class="applied applied-applied"`) || !strings.Contains(health, `class="health health-degraded"`) {
+	if !strings.Contains(body, `class="state-block hue-applied" id="applied-card"`) || !strings.Contains(body, `class="state-block hue-degraded" id="health-card"`) ||
+		!strings.Contains(applied, `<span class="sb-word">Applied</span>`) || !strings.Contains(health, `<span class="sb-word">Degraded</span>`) {
 		t.Errorf("the broken rollout's cards do not show Applied and Degraded apart:\n%s\n%s", applied, health)
 	}
 	if !strings.Contains(health, `href="/instances/default/podinfo?reason=ImagePullBackOff&amp;tab=resources"`) &&
@@ -168,13 +169,20 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	}
 }
 
+// TestGoldenPackageHolder: a package holding a refused claim shows its
+// Provider tab (align-owner-pages, 6.2).
+func TestGoldenPackageHolder(t *testing.T) {
+	s := newSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	checkGoldens(t, s, []goldenPage{{"package-provider-provider", "/packages/pkg/provider?tab=provider", false}})
+}
+
 // TestGoldenLocked: an unreadable kind inside an instance, and a list the
 // caller may not read, render locked (portal:D5:R7).
 func TestGoldenLocked(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.DenyResources("services"))
 	checkGoldens(t, s, []goldenPage{{"instance-podinfo-services-locked", "/instances/default/podinfo?tab=resources", false}})
 	main := mainOf(s.get(t, "/instances/default/podinfo?tab=resources").body)
-	if !strings.Contains(main, `<li class="object locked">`) || !strings.Contains(main, "Service default/<wbr>podinfo-podinfo") {
+	if !strings.Contains(main, `row-locked`) || !strings.Contains(main, "default/<wbr>podinfo-podinfo") {
 		t.Error("the forbidden Service is not rendered locked")
 	}
 	if main := mainOf(s.get(t, "/instances/default/podinfo").body); !strings.Contains(main, `class="node kind-object locked"`) {

@@ -86,11 +86,22 @@ func buildContrastPairs() []contrastPair {
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
+		{"secondary ink on card", "--ink-2", "--surface", textFloor, ""},
+		// A locked row of the Resources table is drawn on the locked tint.
+		{"ink on locked tint", "--ink", "--locked-tint", textFloor, ""},
+		// The Logs tab's pane is dark in both themes.
+		{"log text on the log pane", "--logink", "--logbg", textFloor, ""},
+		{"log mark on the log pane", "--logmark", "--logbg", textFloor, ""},
+		// The Provider tab's contract pill is drawn on the filled-field fill.
+		{"deep accent on filled field", "--accent-deep", "--accent-field", textFloor, ""},
+		{"attempt mark on a succeeded dot", "--surface", "--healthy-ink", textFloor, ""},
+		{"attempt mark on a failed dot", "--surface", "--degraded-ink", textFloor, ""},
+		{"attempt mark on an unknown dot", "--unknown-ink", "--surface", textFloor, ""},
 		{"ink on a degraded row", "--ink", "--degraded-row", textFloor, ""},
 		{"secondary ink on a degraded row", "--ink-2", "--degraded-row", textFloor, ""},
 		{"muted on a degraded row", "--muted", "--degraded-row", textFloor, ""},
 	}
-	pairs := make([]contrastPair, 0, len(fixed)+5*len(tones))
+	pairs := make([]contrastPair, 0, len(fixed)+7*len(tones))
 	pairs = append(pairs, fixed...)
 	for _, tone := range tones {
 		pairs = append(pairs,
@@ -98,7 +109,13 @@ func buildContrastPairs() []contrastPair {
 			contrastPair{tone + " ink on its tint", "--" + tone + "-ink", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"muted on " + tone + " tint", "--muted", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"secondary ink on " + tone + " tint", "--ink-2", "--" + tone + "-tint", textFloor, ""},
+			// The details panel's message box and a degraded Resources row draw the primary ink on a tint.
+			contrastPair{"ink on " + tone + " tint", "--ink", "--" + tone + "-tint", textFloor, ""},
 			contrastPair{"locked ink on " + tone + " tint", "--locked-ink", "--" + tone + "-tint", textFloor, ""},
+			// A Warning count on the Applied card is drawn in the degraded ink on any tint.
+			contrastPair{"degraded ink on " + tone + " tint", "--degraded-ink", "--" + tone + "-tint", textFloor, ""},
+			// The history pill and the dots are drawn on the card's own tint.
+			contrastPair{"pill border on " + tone + " tint", "--control-border", "--" + tone + "-tint", boundaryFloor, ""},
 		)
 	}
 	return pairs

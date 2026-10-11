@@ -7,10 +7,13 @@ first failure:
 
 1. A stored Dark theme is applied before first paint on a light system: by DOMContentLoaded the
    root already carries data-theme="dark", set by the head script before the stylesheet link.
-   The dark background is checked at `load`, once the stylesheet has been applied: at
-   DOMContentLoaded WebKit may not have applied a head stylesheet yet (it reports a transparent
-   body), but it does not paint before that stylesheet is in, so the earlier reading says nothing
-   about what was painted.
+   The dark background is checked once the stylesheet is applied and a frame has painted: two
+   animation frames after `load`. At DOMContentLoaded WebKit may not have applied a head
+   stylesheet yet (it reports a transparent body), but it does not paint before that stylesheet is
+   in, so the earlier reading says nothing about what was painted. At `load` itself WebKit can
+   still report the body as transparent for a stylesheet of about 55 KB or more, with the root's
+   custom properties already resolved (measured: portal.css of main plus 6.7 KB of comment failed
+   5 of 8 runs; main alone failed 0 of 14), so the load-time reading is kept in the output only.
 2. A stored Installed filter opens filtered on a full load: /installed becomes
    /installed?kind=package and lists only packages. A MutationObserver records each document
    when its <body> appears, with whether <html> carries the opm-restoring class (the stylesheet's
@@ -48,7 +51,7 @@ CHIP_LIGHT = "rgb(20, 24, 32)"
 
 # Records every document as soon as its <body> appears (before DOMContentLoaded, so a document
 # the head script replaces is still seen if it gets that far), the theme at DOMContentLoaded, and
-# the body's background at load, once the stylesheet has been applied.
+# the body's background at load (reported only) and two frames after it (the one checked).
 RECORD = (
     "(() => {"
     " const mo = new MutationObserver(() => { if (!document.body) return; mo.disconnect();"
@@ -61,6 +64,8 @@ RECORD = (
     "  window.__theme = document.documentElement.getAttribute('data-theme'); });"
     " window.addEventListener('load', () => {"
     "  window.__bg = getComputedStyle(document.body).backgroundColor;"
+    "  requestAnimationFrame(() => requestAnimationFrame(() => {"
+    "   window.__painted = getComputedStyle(document.body).backgroundColor; }));"
     "  window.__anims = document.getAnimations().filter(a => a.effect && a.effect.target"
     "   && a.effect.target.closest && a.effect.target.closest('main')).length; });"
     "})();"
@@ -86,9 +91,15 @@ def run(p, engine, base, context):
         page.goto(base + "/")
         page.evaluate("localStorage.setItem('opm-portal.theme', 'dark')")
         page.goto(base + "/", wait_until="load")
-        theme, bg = page.evaluate("[window.__theme, window.__bg]")
-        if not check(engine, theme == "dark" and bg == DARK_BG,
-                     f"data-theme={theme!r} at DOMContentLoaded, background={bg!r} at load"):
+        # The page's CSP refuses wait_for_function (it evaluates a string); poll through evaluate.
+        for _ in range(50):
+            if page.evaluate("window.__painted !== undefined"):
+                break
+            page.wait_for_timeout(100)
+        theme, bg, painted = page.evaluate("[window.__theme, window.__bg, window.__painted]")
+        if not check(engine, theme == "dark" and painted == DARK_BG,
+                     f"data-theme={theme!r} at DOMContentLoaded, background={painted!r} two frames after load "
+                     f"({bg!r} at load)"):
             return False
 
         page.evaluate(f"localStorage.setItem({key!r}, 'kind=package'); sessionStorage.removeItem('rec')")

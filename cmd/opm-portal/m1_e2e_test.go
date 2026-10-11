@@ -263,10 +263,11 @@ func (s m1Session) lockedObjects(t *testing.T) {
 	if objects == 0 || !mi.Health.Partial {
 		t.Errorf("podinfo: %d objects, partial %t; want its objects listed and its health partial", objects, mi.Health.Partial)
 	}
-	// Object rows live on the Resources tab and nodes on the Graph tab;
+	// Object rows live on the Resources tab (a table row with the row-locked
+	// class) and nodes on the Graph tab;
 	// each renders what the reader may not read locked.
 	page := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=resources", nil)
-	if rows := strings.Count(page.body, `<li class="object locked">`); page.status != http.StatusOK || rows != objects {
+	if rows := strings.Count(page.body, ` row-locked"`); page.status != http.StatusOK || rows != objects {
 		t.Errorf("podinfo's Resources tab: %d with %d locked object rows; want 200 with %d", page.status, rows, objects)
 	}
 	graph := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=graph", nil)
@@ -348,6 +349,7 @@ func (s m1Session) imageBreak(t *testing.T, cfg *rest.Config) {
 	// Applied stays: the operator neither fails nor stalls on a workload it
 	// applied, and Degraded stays while the Pod cannot pull.
 	events.holdApplied(t, 5*time.Second)
+	s.podPullWarningsShow(t)
 	var list v1.InstanceList
 	getJSON(s.ctx, t, s.browser, s.api("/instances?namespace=default"), &list)
 	for i := range list.Items {
@@ -355,6 +357,37 @@ func (s m1Session) imageBreak(t *testing.T, cfg *rest.Config) {
 		if it.Ref.Name == "podinfo" && (it.Reconcile.State != "Applied" || it.Health.State != "Degraded") {
 			t.Errorf("podinfo in the list: applied %q, health %q; want Applied and Degraded", it.Reconcile.State, it.Health.State)
 		}
+	}
+}
+
+// podPullWarningsShow (align-owner-pages, 6.4): while the image is broken,
+// the merged feed of podinfo and its Events tab list a Warning about a Pod
+// with no resource filter set. The Pod's own events reach podinfo only
+// through the merged read, so a missing line means the merge dropped them.
+func (s m1Session) podPullWarningsShow(t *testing.T) {
+	t.Helper()
+	var pod string
+	deadline := time.Now().Add(90 * time.Second)
+	for pod == "" {
+		var list v1.EventList
+		getJSON(s.ctx, t, s.browser, s.api("/instances/default/podinfo/events?scope=all"), &list)
+		for i := range list.Items {
+			if e := &list.Items[i]; e.Type == "Warning" && e.Regarding.Kind == "Pod" {
+				pod = e.Regarding.Name
+				t.Logf("the merged feed lists %q about Pod %s", e.Reason, pod)
+				break
+			}
+		}
+		if pod == "" {
+			if time.Now().After(deadline) {
+				t.Fatal("the merged feed holds no Warning about a Pod 90 s into the image break")
+			}
+			time.Sleep(2 * time.Second)
+		}
+	}
+	page := get(s.ctx, t, s.browser, s.base+"/instances/default/podinfo?tab=events", nil)
+	if page.status != http.StatusOK || !strings.Contains(page.body, pod) || !strings.Contains(page.body, "Warning") {
+		t.Errorf("podinfo's Events tab, with no resource filter, does not show the Warning about Pod %s: %d", pod, page.status)
 	}
 }
 

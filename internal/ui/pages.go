@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	"sigs.k8s.io/yaml"
@@ -34,6 +35,8 @@ type eventsView struct {
 	About string
 	// Follow is the events topic the feed follows, if any.
 	Follow string
+	// Partial is true when the feed left out what the caller could not read.
+	Partial bool
 }
 
 // signIn answers a request the read API did not authenticate.
@@ -300,7 +303,7 @@ func unreadableWord(p *v1.Problem) string {
 	if p != nil && p.Code != v1.CodeForbidden {
 		return "unavailable"
 	}
-	return "locked"
+	return wordLocked
 }
 
 // installedReadable says which kinds the caller may read in the scope the
@@ -517,10 +520,13 @@ type componentView struct {
 	Objects []objectView
 }
 
-// configGroup is the configuration components folded into one entry, with
-// the health the graph's group node reports. It opens when that health is
-// not Healthy.
+// configGroup is the components the graph folds into one group node, listed
+// folded the same way. It opens when its health is not Healthy.
 type configGroup struct {
+	// ID is the id of the group's <details>, so a refresh keeps it open.
+	ID string
+	// Label is the group node's label, such as "17 configuration components".
+	Label      string
 	Health     string
 	Open       bool
 	Components []componentView
@@ -528,8 +534,10 @@ type configGroup struct {
 
 type objectView struct {
 	v1.InventoryObject
-	// Focus opens the Graph tab focused on the node that shows the object.
+	// Focus opens the Graph tab focused on the node that shows the object,
+	// and NodeID is that node's id.
 	Focus     string
+	NodeID    string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -543,6 +551,7 @@ type objectView struct {
 type childView struct {
 	v1.RuntimeChild
 	Focus     string
+	NodeID    string
 	Text      string
 	YAML      string
 	EventsURL string
@@ -559,42 +568,51 @@ type logPane struct {
 	Pod       string
 	Container string
 	Previous  string
+	// PodValue names the Pod in the Events resource filter; Reason is the
+	// Pod's health reason, which says whether the container has started.
+	PodValue string
+	Reason   string
 }
 
 func (k ownerKind) base(ns, name string) string {
 	return "/" + k.Path + "/" + url.PathEscape(ns) + "/" + url.PathEscape(name)
 }
 
-// foldConfig moves the components the graph folds into its configuration
-// group out of cs, in their order, so the list folds what the graph folds
-// (portal:D4:R5).
-func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, *configGroup) {
-	var group *v1.GraphNode
+// foldConfig moves the components the graph folds into a group node out of
+// cs, in their order, one configGroup for each group node of the graph, so the
+// list folds what the graph folds (portal:D4:R5). A group none of whose
+// members is among cs is left out.
+func foldConfig(cs []componentView, g *v1.Graph) ([]componentView, []configGroup) {
+	var groups []configGroup
+	rest := cs
 	for i := range g.Nodes {
-		if n := &g.Nodes[i]; n.Kind == "group" && n.Group != nil && n.Group.Kind == "configuration" {
-			group = n
+		n := &g.Nodes[i]
+		if n.Kind != "group" || n.Group == nil {
+			continue
 		}
-	}
-	if group == nil {
-		return cs, nil
-	}
-	cg := &configGroup{Health: "Unknown"}
-	if group.Health != nil {
-		cg.Health = group.Health.State
-	}
-	cg.Open = cg.Health != "Healthy"
-	rest := make([]componentView, 0, len(cs))
-	for i := range cs {
-		if slices.Contains(group.Group.Members, cs[i].Name) {
-			cg.Components = append(cg.Components, cs[i])
-		} else {
-			rest = append(rest, cs[i])
+		cg := configGroup{ID: "config-components", Label: n.Label, Health: "Unknown"}
+		if len(groups) > 0 {
+			cg.ID += "-" + strconv.Itoa(len(groups)+1)
 		}
+		if n.Health != nil {
+			cg.Health = n.Health.State
+		}
+		cg.Open = cg.Health != healthHealthy
+		next := make([]componentView, 0, len(rest))
+		for j := range rest {
+			if slices.Contains(n.Group.Members, rest[j].Name) {
+				cg.Components = append(cg.Components, rest[j])
+			} else {
+				next = append(next, rest[j])
+			}
+		}
+		if len(cg.Components) == 0 {
+			continue
+		}
+		rest = next
+		groups = append(groups, cg)
 	}
-	if len(cg.Components) == 0 {
-		return cs, nil
-	}
-	return rest, cg
+	return rest, groups
 }
 
 // components adds the links each object offers: its YAML and its events,
@@ -632,7 +650,7 @@ func objectViewOf(base string, obj *v1.InventoryObject) objectView {
 		cv := childView{RuntimeChild: ch, Text: refText(ch.Ref), YAML: base + "/object?" + q, EventsURL: base + "/events?" + q}
 		if isPod(ch.Ref) && len(ch.Containers) > 0 {
 			cv.LogID = logID(ch.Ref.Name, ch.Containers[0])
-			cv.LogHref = base + "?tab=" + tabLogs + "#" + cv.LogID
+			cv.LogHref = logLink(base, cv.LogID)
 		}
 		if ch.Ref.Kind == "ReplicaSet" && ch.Replicas != nil && *ch.Replicas == 0 {
 			o.Old = append(o.Old, cv)
@@ -655,7 +673,8 @@ func logPanes(cs []componentView) []logPane {
 				}
 				for _, c := range ch.Containers {
 					topic := "log:" + ch.Ref.Namespace + "/" + ch.Ref.Name + "/" + c
-					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c})
+					out = append(out, logPane{ID: logID(ch.Ref.Name, c), Topic: topic, Previous: topic + "/previous", Pod: ch.Ref.Name, Container: c,
+						PodValue: resourceValue(ch.Ref), Reason: ch.Health.Reason})
 				}
 			}
 		}
@@ -664,6 +683,11 @@ func logPanes(cs []componentView) []logPane {
 }
 
 func isPod(r v1.ObjectRef) bool { return r.Kind == "Pod" && r.Group == "" }
+
+// logLink is the Logs tab opened on the pane id: ?tab=logs&log=<id>.
+func logLink(base, id string) string {
+	return base + "?tab=" + tabLogs + "&log=" + url.QueryEscape(id)
+}
 
 // logID is the id of a container's log pane.
 func logID(pod, container string) string { return domID("log", pod, container) }
@@ -691,29 +715,17 @@ func (h *Handler) ownerNode(k ownerKind) http.HandlerFunc {
 			return
 		}
 		ctx := panelContext{owner: k, base: base}
-		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && isPod(*n.Ref) {
-			ctx.firstContainer = h.firstContainers(r, k, base)
+		// A Pod's Logs link needs the owner's containers, and the owner's own
+		// node its identity facts, both from the owner document.
+		if n := findNode(&g, r.URL.Query().Get("id")); n != nil && n.Ref != nil && (isPod(*n.Ref) || isOwnerNode(n, ctx)) {
+			self := h.loadOwner(r, k, r.PathValue("namespace"), r.PathValue("name"))
+			ctx.firstContainer = self.firstContainer
+			if self.Problem == nil {
+				ctx.self = &self
+			}
 		}
 		h.renderPanel(w, r, h.panel(r, &g, r.URL.Query().Get("id"), ctx))
 	}
-}
-
-// firstContainers reads the owner's document for its Pods' containers,
-// for a Pod panel's Logs link.
-func (h *Handler) firstContainers(r *http.Request, k ownerKind, base string) func(string) string {
-	var comps []v1.Component
-	if k == instanceKind {
-		var doc v1.Instance
-		if h.fetch(r, base, nil, &doc) == nil {
-			comps = doc.Components
-		}
-	} else {
-		var doc v1.Package
-		if h.fetch(r, base, nil, &doc) == nil {
-			comps = doc.Components
-		}
-	}
-	return containersOf(comps)
 }
 
 // containersOf maps each Pod below cs to its first container.
@@ -783,6 +795,7 @@ func (h *Handler) events(r *http.Request, path string, q url.Values, follow stri
 	ev := eventsView{Follow: follow}
 	ev.Problem = h.fetch(r, path, q, &doc)
 	ev.Items = doc.Items
+	ev.Partial = doc.Partial
 	return ev
 }
 

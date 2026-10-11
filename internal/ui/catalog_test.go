@@ -19,7 +19,10 @@ func TestBackupProvidersProviderTab(t *testing.T) {
 	tab := between(main, `id="provider"`, "</section>")
 	for _, want := range []string{
 		`href="/instances/default/backup-consumer"`,
-		`href="/installed?uses=opmodel.dev%2Fcatalogs%2Fopm%2Ftraits%2Fbackup%40v1alpha1">All 1 in Installed</a>`,
+		`href="/installed?uses=opmodel.dev%2Fcatalogs%2Fopm%2Ftraits%2Fbackup%40v1alpha1" title="Open Installed filtered to everything that uses opmodel.dev/catalogs/opm/traits/backup@v1alpha1">Show in Installed →</a>`,
+		"<dt>Contracts</dt><dd>1 provided, 1 in use</dd>", "This instance is also a provider: it registers a catalog with the platform",
+		`<h4 class="sec-h">Registration conditions</h4>`, `<span class="cond-badge tone-normal">True</span>`,
+		`<span class="contract-pill" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span>`,
 		`href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"`,
 		"In the Platform's resolved registry, contributed by this registration.",
 		">Ready</th>", ">Accepted</td>",
@@ -31,6 +34,13 @@ func TestBackupProvidersProviderTab(t *testing.T) {
 	if !strings.Contains(main, `href="/instances/default/backup-provider?tab=provider" aria-current="page">Provider</a>`) {
 		t.Error("no current Provider tab")
 	}
+	// The standing is said once (portal:D4:R4): two marks, no success reason beside them.
+	if strings.Count(tab, ">accepted</span>") != 1 || strings.Count(tab, ">active</span>") != 1 || strings.Contains(tab, `<span class="mono">Accepted</span>`) {
+		t.Errorf("the standing is not said once:\n%s", between(tab, `class="pills"`, "</p>"))
+	}
+	if strings.Contains(tab, "prov-active") || strings.Contains(tab, "claim-badge") {
+		t.Error("the claim badge is still on the tab")
+	}
 	if strings.Contains(mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/instances/default/podinfo").body), "?tab=provider") {
 		t.Error("an instance that holds no registration offers a Provider tab")
 	}
@@ -41,7 +51,7 @@ func TestBackupProvidersProviderTab(t *testing.T) {
 func TestProviderTabWithThePlatformForbidden(t *testing.T) {
 	res := newSite(t, apitest.F1(t), apitest.DenyResources("platforms")).get(t, "/instances/default/backup-provider?tab=provider")
 	tab := between(mainOf(res.body), `id="provider"`, "</section>")
-	if res.status != http.StatusOK || !strings.Contains(tab, "default.<wbr>backup-provider") || !strings.Contains(tab, ">Active</span>") ||
+	if res.status != http.StatusOK || !strings.Contains(tab, "default.<wbr>backup-provider") || !strings.Contains(tab, ">accepted</span>") || !strings.Contains(tab, ">active</span>") ||
 		!strings.Contains(tab, "locked-panel") || strings.Contains(tab, "/catalog?path=") {
 		t.Errorf("Platform forbidden: %d\n%s", res.status, tab)
 	}
@@ -54,7 +64,7 @@ func TestPackageHolderProviderTab(t *testing.T) {
 	s := newSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
 	main := mainOf(s.get(t, "/packages/pkg/provider?tab=provider").body)
 	card := between(main, `id="provider-card"`, "</section>")
-	if !strings.Contains(card, ">Refused</span>") || !strings.Contains(card, "ProviderMismatch") {
+	if !strings.Contains(card, `<span class="sb-word">Refused</span>`) || !strings.Contains(card, "ProviderMismatch") {
 		t.Errorf("Provider card:\n%s", card)
 	}
 	tab := between(main, `id="provider"`, "</section>")
@@ -62,7 +72,7 @@ func TestPackageHolderProviderTab(t *testing.T) {
 		!strings.Contains(tab, "Claim names provider ModuleInstance pkg/provider, which does not exist") {
 		t.Errorf("Provider tab:\n%s", tab)
 	}
-	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), "Provider, refused") {
+	if !strings.Contains(between(main, `id="owner-head"`, "</h1>"), `Provider</span><span class="vh">standing: refused</span>`) {
 		t.Error("no Provider pill on the package")
 	}
 }

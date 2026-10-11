@@ -190,7 +190,7 @@ func catalogViewOf(p *v1.Platform, row catalogRow, all []catalogRow) catalogView
 	case !row.Resolved:
 		v.EnabledText = "no: not in the registry"
 	default:
-		v.EnabledText, v.EnabledMuted = "not recorded", true
+		v.EnabledText, v.EnabledMuted = notRecorded, true
 	}
 	v.Block = catalogBlock(p, &v, st.Ready)
 	return v
@@ -260,7 +260,7 @@ func catalogBlock(p *v1.Platform, v *catalogView, ready *v1.Condition) stateBloc
 		}
 		b.Summary += ". Claimed by " + strings.Join(names, ", ")
 	}
-	b.None = "No reason recorded"
+	b.None = noReasonRecorded
 	reasons, earliest := claimReasons(row.Path, v.Claims)
 	platformReady := ready != nil && ready.Status != condTrue
 	refused := len(reasons) > 0

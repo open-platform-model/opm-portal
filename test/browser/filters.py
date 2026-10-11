@@ -297,8 +297,18 @@ def run(p, engine, base, context):
         # 7: a text field that is not a search applies when the user leaves it.
         page = fresh()
         page.goto(base + OWNER_EVENTS, wait_until="load")
+        # The owner page's Events form holds selects only (align-owner-pages: the reason is a chip), so the
+        # text field this step needs is added to the form here. The handlers under test are the page's own:
+        # they act on any text input of a form[data-filters], and the Apply button and its id are the page's.
+        page.evaluate("""() => {
+          const form = document.querySelector("form[data-filters='owner-events']");
+          const wrap = document.createElement("div");
+          wrap.className = "field";
+          wrap.innerHTML = '<label for="f-reason">Reason</label><input id="f-reason" name="reason" value="" autocomplete="off">';
+          form.querySelector(".filter-fields").insertBefore(wrap, form.querySelector(".field-submit"));
+        }""")
         field = page.query_selector("form[data-filters] input:not([type=search]):not([type=hidden])")
-        if not check(page, field is not None, "the owner page's Events form has a text field"):
+        if not check(page, field is not None, "the owner page's Events form has a text field (added by the test)"):
             return False
         field.click()
         page.keyboard.type("BackOff", delay=20)

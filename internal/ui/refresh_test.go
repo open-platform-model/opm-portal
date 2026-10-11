@@ -2,6 +2,7 @@ package ui
 
 import (
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -23,7 +24,6 @@ import (
 
 var (
 	idAttr     = regexp.MustCompile(`\sid="([^"]*)"`)
-	logLinkRe  = regexp.MustCompile(`data-log-link="([^"]*)"`)
 	followAttr = regexp.MustCompile(`id="(components|logs)"[^>]*data-follow="([^"]*)"`)
 )
 
@@ -50,23 +50,18 @@ func TestALatePodGetsALogPane(t *testing.T) {
 	}
 
 	logs := between(after, `id="logs"`, "</section>")
-	ids := map[string]bool{}
-	for _, m := range idAttr.FindAllStringSubmatch(logs, -1) {
-		ids[m[1]] = true
+	// The Pod's row is in the Resources table, and its panel links to a pane
+	// the Logs tab's select offers (the Logs link moved from the row to the panel).
+	if !strings.Contains(between(resources, `id="components"`, "</section>"), late) {
+		t.Errorf("the late Pod %s has no row in the Resources table", late)
 	}
-	links := logLinkRe.FindAllStringSubmatch(between(resources, `id="components"`, "</section>"), -1)
-	if len(links) == 0 {
-		t.Fatal("no Pod row offers its logs")
+	panel := broken.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape("obj:_/Pod/default/"+late), htmxRequest).body
+	m := regexp.MustCompile(`href="/instances/default/podinfo\?tab=logs&amp;log=([^"]+)"`).FindStringSubmatch(panel)
+	if len(m) < 2 || !strings.Contains(m[1], late) {
+		t.Fatalf("the late Pod's panel has no Logs link to its pane:\n%s", panel)
 	}
-	var lateLink bool
-	for _, m := range links {
-		if !ids[m[1]] {
-			t.Errorf("Logs link %q names no pane in the logs region", m[1])
-		}
-		lateLink = lateLink || strings.Contains(m[1], late)
-	}
-	if !lateLink {
-		t.Errorf("the late Pod %s has no Logs link", late)
+	if !strings.Contains(logs, `<option value="`+m[1]+`"`) {
+		t.Errorf("Logs link %q names no option in the Pod / container select", m[1])
 	}
 
 	got := strings.TrimSpace(collapse(`<section class="panel panel-wide reveal" `+logs+"</section>")) + "\n"
@@ -152,7 +147,7 @@ func TestOldRevisionsFoldHasAnID(t *testing.T) {
 	if res.status != http.StatusOK {
 		t.Fatalf("GET = %d\n%s", res.status, res.body)
 	}
-	fold := regexp.MustCompile(`<details class="old-revs" id="([^"]+)">`).FindStringSubmatch(res.body)
+	fold := regexp.MustCompile(`<details id="(old_[^"]+)"`).FindStringSubmatch(res.body)
 	if fold == nil {
 		t.Fatalf("no old-revisions fold with an id:\n%s", between(mainOf(res.body), `id="components"`, "</section>"))
 	}

@@ -8,7 +8,7 @@ first failure:
 
 1. Clear selection: after a node is selected and the zoom set, "Clear selection" drops the focus
    from the address without a new history entry, keeps the zoom, and undims the graph.
-2. A Resources row's Graph link opens the Graph tab spotlighting that node.
+2. A Resources row's name link (stretched over the row) opens the Graph tab spotlighting that node.
 3. A group node expands in place and fits the view to its members; "Whole graph" collapses it.
 4. A live refresh keeps the tab, the focus, the selection and the zoom. The refresh is driven by
    dispatching the stream's upsert event for the page's topic on the stream listener, as the SSE
@@ -25,7 +25,7 @@ first failure:
 import json
 import sys
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 PODINFO = "/instances/default/podinfo"
 # The visible axis labels of the details panel, each with whether it has a box (a hidden one has none).
@@ -40,6 +40,12 @@ ROOT = "mi:default/podinfo"
 def check(engine, ok, line):
     print(f"{engine}: {line}")
     return ok
+
+
+def panel_is(page, title):
+    """Waits until the panel's heading reads title. The panel is never empty (it rests on the
+    owner), so a wait for any heading returns before the selected node's panel arrives."""
+    expect(page.locator("#detail .frag-h").first).to_have_text(title)
 
 
 def set_zoom(page, pct):
@@ -86,7 +92,7 @@ def run(p, engine, base):
             return False
 
         page.goto(base + PODINFO + "?tab=resources")
-        page.locator("#components a", has_text="Graph").first.click()
+        page.locator("#components a.row-link", has_text="podinfo-podinfo").first.click()
         page.wait_for_url("**tab=graph**")
         page.wait_for_selector(".node[aria-current]")
         dims = page.evaluate("document.querySelectorAll('.graph .node.dim').length")
@@ -136,7 +142,7 @@ def run(p, engine, base):
         # 6. The details panel after a node selection (instance-43).
         page.goto(base + PODINFO + "?tab=graph")
         activate(page, f'.node[data-node="{DEPLOY}"]')
-        page.wait_for_selector("#detail .frag-h")
+        panel_is(page, "podinfo-podinfo")
         name, facts, cur = page.evaluate(
             "[document.querySelector('#detail .frag-h').textContent.trim(),"
             " document.querySelector('#detail .facts').textContent,"
@@ -151,7 +157,7 @@ def run(p, engine, base):
         if engine != "firefox":
             page.goto(base + PODINFO + "?tab=graph")
             page.locator(f'.node[data-node="{DEPLOY}"]').first.click()
-            page.wait_for_selector("#detail .frag-h")
+            panel_is(page, "podinfo-podinfo")
             clicked = page.evaluate("document.querySelector('#detail .frag-h').textContent.trim()")
             if not check(engine, clicked == "podinfo-podinfo", f"pointer selection filled the panel: {clicked!r}"):
                 return False
