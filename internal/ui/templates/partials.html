@@ -305,7 +305,7 @@
     {{else}}
     <div class="field"><label for="{{.ID}}">{{.Label}}</label><input id="{{.ID}}" name="{{.Name}}" value="{{.Value}}" placeholder="{{.Placeholder}}"{{with .List}} list="{{.}}"{{end}} autocomplete="off" spellcheck="false">{{if .List}}<datalist id="{{.List}}">{{range .Suggestions}}<option value="{{.}}">{{end}}</datalist>{{end}}</div>
     {{end}}{{end}}
-    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    <div class="field field-submit"><button type="submit"{{with $key}} id="apply-{{.}}"{{end}}>Apply filters</button></div>
     {{if and (eq .Variant "strip") (ge .Total 0)}}{{template "filter-count" .}}{{end}}
   </div>
   {{$count := and (eq .Variant "card") (ge .Total 0)}}

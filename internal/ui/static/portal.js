@@ -305,13 +305,13 @@
       return;
     }
     // The count is the one inside the form that made the request: a page
-    // with two filter forms (the Platform page) has two counts.
+    // with two filter forms (the Platform page) has two counts. A form that
+    // shows none (a list the caller may not read) announces nothing, never
+    // another form's count.
     var form = filterChange ? document.querySelector('form[data-filters="' + CSS.escape(filterChange) + '"]') : null;
-    var count = (form && form.querySelector(".shown")) || document.getElementById("shown") || document.getElementById("events-shown");
+    var count = form && form.querySelector(".shown");
     filterChange = null;
-    if (count) {
-      setLiveNote((count.textContent || "").replace(/\s+/g, " ").trim());
-    }
+    setLiveNote(count ? (count.textContent || "").replace(/\s+/g, " ").trim() : "");
   });
 
   // ---- Stream topics ----
