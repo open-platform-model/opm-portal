@@ -2,7 +2,7 @@
 
 - [x] 1.1 Run `enh cite-rewrite --write` once and commit its result by place
 - [x] 1.2 Clear the worklist of 188 sites by hand and fix the tool's wrong edits
-- [x] 1.3 `task check` green, then commit `docs(openspec): clear the 0030 worklist of the archived changes`
+- [x] 1.3 `task check` green, then commit `docs(openspec): clear the worklist of the archived changes`
 
 ## 2. Rules
 
