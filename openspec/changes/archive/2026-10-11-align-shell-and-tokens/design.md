@@ -586,8 +586,9 @@ because a tint and a fill are what that mode replaces with the page colours. A C
 block (tasks 3.5, 4.4). The same block marks only the current tab: forced colours paint a
 transparent border, so every tab would show the current tab's underline. A page-colour border on
 the other tabs would instead cut the strip's 1 px baseline under them (each tab overlaps it by 1
-px), so the other tabs draw no bottom border and take its 3 px as padding. Screenshots in Chromium with forced colours emulated go into the evidence
-(task 5.1). Not verified here: a pass in a real Windows high-contrast theme.
+px), so the other tabs draw no bottom border and take its 3 px as padding. Screenshots in Chromium
+with forced colours emulated go into the evidence (task 5.1); they predate this tab rule, and the
+Live checks say what holds it. Not verified here: a pass in a real Windows high-contrast theme.
 
 ### The phone test (section 3, SH-A4)
 
@@ -752,9 +753,12 @@ Forced colours (SH-A3, Chromium with `forced_colors="active"`): Applied and Heal
 border and the page text is readable; the partial health is not on an F1 page, so only the CSS test
 holds its dashed border. The capture found one defect:
 every tab drew the current tab's underline, because forced colours paint a transparent border, so
-only the weight marked the current tab. Fixed in its own commit (a `Canvas` underline on the other
-tabs, `CanvasText` on the current one, with a CSS test); the captures committed are the later ones.
-The state block and the tip have no page yet, so their forced-colours look is covered by the CSS
+only the weight marked the current tab. The first fix drew a `Canvas` underline on the other tabs.
+Commit 44fb224 removed that rule: the other tabs now draw no bottom border and take 3 px of padding
+instead, and `CanvasText` still marks the current tab. The forced-colours captures committed
+predate 44fb224, so none of them shows the shipped tab strip. The rule is held only by
+`TestPortalCSSMarksOnlyTheCurrentTabInForcedColours`, a CSS text test; no browser capture of it
+exists. The state block and the tip have no page yet, so their forced-colours look is covered by the CSS
 tests of 3.5 and 4.4 and the screenshots of their fragments taken in section 4.
 
 Gaps still open, none in this change's scope: the provider pills (`accepted`, `active`) and the
