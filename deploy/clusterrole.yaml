@@ -35,6 +35,10 @@ rules:
   - apiGroups: ["batch"]
     resources: [jobs]
     verbs: [get, list, watch]
+  # The ready count of a Service's endpoints; the portal lists the slices and keeps one number.
+  - apiGroups: ["discovery.k8s.io"]
+    resources: [endpointslices]
+    verbs: [list]
   # The kinds the OPM catalog renders into an instance's inventory, except Secrets.
   - apiGroups: [""]
     resources: [configmaps, namespaces, persistentvolumeclaims, serviceaccounts, services]

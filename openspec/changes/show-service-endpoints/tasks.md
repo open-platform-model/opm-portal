@@ -7,10 +7,10 @@
 
 ## 2. The ClusterRole rule and its test (deploy, README.md, docs/site)
 
-- [ ] 2.1 `deploy/clusterrole.yaml`: one rule, group `discovery.k8s.io`, resource `endpointslices`, verb `list`, under a comment in the file's style that names what the portal keeps (one number) and cites no `portal:` decision. Verify: `go test ./deploy -run TestManifest` passes, and `git diff deploy/` shows the rule alone
-- [ ] 2.2 `deploy/manifest_test.go`: `TestRoleGrantsEndpointSlicesListOnly` reads `clusterrole.yaml`, finds the rules that name `endpointslices` in any group, and fails unless there is exactly one, in `discovery.k8s.io`, with verbs exactly `[list]` and no `resourceNames`; `TestCheckRoleRefuses` gains rows for a `create` verb on `endpointslices` and a wildcard group beside it. Verify: change the rule to `[get, list]` and then to `[list, create]` in the working tree, see the new test and the table fail with the rule named, and restore the file; `go test ./deploy` passes
-- [ ] 2.3 `README.md` ("Try it in a cluster"): one sentence that the role also lists EndpointSlices, so the Service panel can show a ready count, and that in this mode whoever holds the launch token sees that count for every inventory Service. `docs/site/operating/portal/portal-security.md`: the same widening, in the page's voice, beside the paragraph on the Pod run. Verify: `task docs:bundle:check` passes
-- [ ] 2.4 `task check` green, then commit `feat(deploy): let the reader role list EndpointSlices`
+- [x] 2.1 `deploy/clusterrole.yaml`: one rule, group `discovery.k8s.io`, resource `endpointslices`, verb `list`, under a comment in the file's style that names what the portal keeps (one number) and cites no `portal:` decision. Verify: `go test ./deploy -run TestManifest` passes, and `git diff deploy/` shows the rule alone
+- [x] 2.2 `deploy/manifest_test.go`: `TestRoleGrantsEndpointSlicesListOnly` reads `clusterrole.yaml`, finds the rules that name `endpointslices` in any group, and fails unless there is exactly one, in `discovery.k8s.io`, with verbs exactly `[list]` and no `resourceNames`; `TestCheckRoleRefuses` gains rows for a `create` verb on `endpointslices` and a wildcard group beside it. Verify: change the rule to `[get, list]` and then to `[list, create]` in the working tree, see the new test and the table fail with the rule named, and restore the file; `go test ./deploy` passes
+- [x] 2.3 `README.md` ("Try it in a cluster"): one sentence that the role also lists EndpointSlices, so the Service panel can show a ready count, and that in this mode whoever holds the launch token sees that count for every inventory Service. `docs/site/operating/portal/portal-security.md`: the same widening, in the page's voice, beside the paragraph on the Pod run. Verify: `task docs:bundle:check` passes
+- [x] 2.4 `task check` green, then commit `feat(deploy): let the reader role list EndpointSlices`
 
 ## 3. Read and count the slices (internal/readmodel)
 
