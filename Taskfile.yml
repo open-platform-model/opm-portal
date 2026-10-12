@@ -10,6 +10,10 @@ vars:
   OPENSPEC_VERSION: 1.12.0
   # Kept in lockstep with the oasdiff install in .github/workflows/lint.yml.
   OASDIFF_VERSION: v1.33.0
+  # The commit of open-platform-model/enhancements that holds the cite-lint
+  # tool. The CI call (.github/workflows/cite-lint.yml) builds the tool at the
+  # default of enh-ref in the .github workflow it calls; keep the two equal.
+  ENH_COMMIT: e0335b2ec44e659c0191bc3523d79d17f26f8e7d
 
 tasks:
   default:
@@ -169,6 +173,17 @@ tasks:
         msg: "openspec not found: run `task openspec:install` (needs npm)"
     cmds:
       - openspec validate --all --strict --no-interactive
+
+  #########################
+  ## Comment rule
+  #########################
+  cite-lint:
+    desc: Check Go and CUE comments for an enhancement cited by decision number or by a lone id (the cite-lint tool at ENH_COMMIT; needs the Go module proxy)
+    # No exclude: the repo needs none. A future exclude (--exclude=<pattern>)
+    # needs a reason here and the same pattern in the exclude input of
+    # .github/workflows/cite-lint.yml.
+    cmds:
+      - go run github.com/open-platform-model/enhancements/tools/enh@{{.ENH_COMMIT}} cite-lint --root .
 
   #########################
   ## Read API contract

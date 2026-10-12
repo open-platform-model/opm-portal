@@ -130,7 +130,7 @@ Read these first, in order:
 ├── test/e2e/         # throwaway kind fixture cluster: pins, scripts, fixture set F1
 ├── testdata/         # committed cluster captures for golden suites (generated, never hand-edited)
 ├── openspec/         # OpenSpec config, main specs, changes
-├── .github/          # workflows (Lint, Test, PR Title, Release, E2E, Docs) and release guard scripts
+├── .github/          # workflows (Lint, Cite lint, Test, PR Title, Release, E2E, Docs) and release guard scripts
 ├── ROADMAP.md        # plan and progress, updated in the PR that lands each change
 └── Taskfile.yml      # source of truth for build, lint, test
 ```
@@ -221,6 +221,9 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
 - `task test`: `go test -race ./...` (the race detector needs cgo and a C compiler).
 - `task openspec:check`: `openspec validate --all --strict` (install with
   `task openspec:install`).
+- `task cite-lint`: run the shared comment-rule tool (`enh cite-lint`) on the repo, at the commit
+  `ENH_COMMIT` in `Taskfile.yml`. The `Cite lint` workflow runs it on every pull request and push
+  to `main` through the reusable workflow of the `.github` repo; it is not part of `task check`.
 - `task deps:release-check`: the G1 release-pin gate.
 - `task api:breaking` (`BASE=<ref>`, default `origin/main`; `PR_TITLE` optional): fail on a
   breaking change to `openapi/v1alpha1.yaml` unless the title carries `!`. The `Lint` job runs
