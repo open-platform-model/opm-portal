@@ -15,7 +15,7 @@ import (
 // The trailing annotation is load-bearing: release-please's generic updater
 // rewrites this line on every release PR. Do not detach the comment from the
 // constant.
-const Version = "0.0.0" // x-release-please-version
+const Version = "0.1.0" // x-release-please-version
 
 // Full returns "v" + Version, matching the release tags.
 //
