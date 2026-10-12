@@ -8,7 +8,7 @@ topic-change request. This change fixes the contract both depend on, without imp
 
 The design draws on the portal architecture's stream section (one multiplexed stream per tab,
 2 streams per session in local mode, 500 per process, per-topic ring of about 1000 entries,
-heartbeat every 15 s, idle close after 30 min). Where that sketch and 0030 differ, 0030 wins; the
+heartbeat every 15 s, idle close after 30 min). Where that sketch and the withdrawn portal enhancement differ, the withdrawn portal enhancement wins; the
 one deviation from the sketch (in-band snapshot instead of a bare `resync`) is argued below.
 
 ## Goals / Non-Goals
@@ -189,7 +189,7 @@ it, or both.
 Event ids are `<epoch>.<stream id>.<n>`, where `n` counts the stream's own delivered events; the
 epoch is random per broker, so ids from a previous process never resume. The broker-wide sequence
 never leaves the process: its gaps would count other users' activity and the items left out for
-this reader (0030:D7:R2). Each stream remembers the sequence behind its last `QueueSize` ids, and a
+this reader. Each stream remembers the sequence behind its last `QueueSize` ids, and a
 resume from an id it no longer remembers snapshots every topic. A disconnected stream stays registered, detached, for `ResumeWindow`, keeping
 its topic subscriptions (and so the topics' rings) alive. `Open` with a `Last-Event-ID` naming a
 detached or still-attached stream of the same session reattaches it (a still-attached one is
@@ -214,7 +214,7 @@ replayed. Anything else opens a fresh stream with the URL's topics.
 **Context**: a reader may list instances in only some namespaces. Should that reader follow the
 cluster-wide `instances` topic, or must it require a cluster-wide `list`? And may event ids
 number every published change broker-wide? This is a design ruling by the swarm supervisor
-within 0030:D7:R2 and 0030:D5:R5, not an owner decision. It replaces an earlier ruling for
+within portal:D7:R2 and portal:D5:R5, not an owner decision. It replaces an earlier ruling for
 option (a), which rested on a wrong premise: that the read model filters a `GET` list per item.
 It does not. The merged `read-model` spec says "A list SHALL contain only items within the
 namespace scope of the caller's list grant", and `ListInstances` requires a covering list grant.
@@ -230,7 +230,7 @@ sent on a list topic. Event ids are numbered per stream (per subscriber connecti
 broker-wide, and `Last-Event-ID` resumes within that stream's own numbering.
 **Rationale**:
 - One rule for `GET` and stream: a list topic shows exactly what the list endpoint would, under
-  the same grant and the same denial (0030:D7:R2).
+  the same grant and the same denial.
 - Bounded review cost: one review per topic, not per item. Option (a) cost 202 reviews for one
   snapshot in the last review, and per-item decisions could fill the 4096-entry authz cache and evict
   decisions other readers rely on.
@@ -238,12 +238,12 @@ broker-wide, and `Last-Event-ID` resumes within that stream's own numbering.
   the whole topic, which told the reader something about a hidden item.
 How the UI learns which namespaces a reader may list is out of scope here: the UI change offers
 the kubeconfig's namespace plus namespaces the user enters, and a discovery helper may come
-later (0030:D5:R5). Per-stream ids keep a subscriber from counting hidden or other-tenant
+later. Per-stream ids keep a subscriber from counting hidden or other-tenant
 activity from gaps in the ids.
 
 ### How a reconnect learns it missed too much
 
-**Context**: 0030:D2:R5 asks that a reconnect "resumes from its last event or is told to
+**Context**: portal:D2:R5 asks that a reconnect "resumes from its last event or is told to
 re-read"; the architecture sketch sends a `resync` event and the client re-GETs.
 **Explored**: the architecture's stream section; the ordering of a re-GET against the live stream.
 **Options considered**:

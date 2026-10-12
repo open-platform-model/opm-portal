@@ -6,8 +6,8 @@ components still showed the old, healthy ReplicaSet. A live trace showed the rea
 new Pod within 0.7 s, but the page sent only two of its five region refreshes: every region
 refreshed through `htmx.ajax` without a source element, so htmx synchronised them on one element
 and dropped the rest. The review also found that the page showed condition meanings the read
-API does not serve, so the UI read something an API client cannot (0030:D2:R1); that the graph
-drew both axes on one stroke (0030:D3:R1); that the accent colour sat in the degraded red; that
+API does not serve, so the UI read something an API client cannot; that the graph
+drew both axes on one stroke; that the accent colour sat in the degraded red; that
 condition stripes were coloured by status only; and a set of graph, phone-width and repetition
 problems visible in the screenshots. No test failed if a page stopped escaping cluster text.
 
@@ -55,5 +55,5 @@ problems visible in the screenshots. No test failed if a page stopped escaping c
 - Principle V: unchanged. The new fields are the portal's own text and a function of the
   condition's type and status.
 - SemVer: MINOR after 1.0 (additive API fields); on the 0.x line it rides PR 22's `feat(ui)`.
-- Enhancement link: refines 0030:D2:R1, 0030:D3:R1/R3/R8, 0030:D4 and 0030:D5:R7 as shown on the
+- Enhancement link: refines portal:D2:R1, portal:D3:R1/R3/R8, portal:D4 and portal:D5:R7 as shown on the
   pages. See `enhancement.yaml`.

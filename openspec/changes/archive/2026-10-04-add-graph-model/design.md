@@ -13,7 +13,7 @@ Evidence used throughout:
   stuck at `SourceNotReady`, and the deliberately refused claim `default.refused-claim-fixture`
   whose `spec.providerRef` names an instance that does not exist and whose `spec.catalog` is in
   no registry.
-- The image-break samples from enhancement 0030 experiment 01, already in
+- The image-break samples from the withdrawn portal enhancement experiment 01, already in
   `internal/health/testdata/` (`mi-podinfo-image-broken.yaml`,
   `objects-podinfo-phase4-broken-1min.yaml`): two ReplicaSets, one Pod waiting on
   `ErrImagePull`. F1 holds no broken rollout.
@@ -32,7 +32,7 @@ Evidence used throughout:
 
 - Instance, package and platform graphs as pure functions of read-model views.
 - One named source per edge kind; a disagreement between two sources shown, not resolved.
-- Ids stable across restarts and across a delete and recreate (0030:D4:R6).
+- Ids stable across restarts and across a delete and recreate.
 - Collapse rules that keep cert-manager readable by default, with expansion by group id.
 - Layout data deterministic to the byte, so golden JSON and SVG tests are stable.
 
@@ -43,8 +43,8 @@ Evidence used throughout:
 - The SVG the UI serves, CSS, pan and zoom, and expansion clicks: `add-htmx-ui`. This change's
   SVG writer lives in a test file and exists so a reviewer can look at a golden layout.
 - Assembling the platform graph's provider lookups from the read model (which grants to ask
-  for): the API handler does it, because grants are its job (0030:D7).
-- Requires edges, and a column of consumer instances: 0030:D4:R3 defers them until the operator
+  for): the API handler does it, because grants are its job.
+- Requires edges, and a column of consumer instances: portal:D4:R3 defers them until the operator
   records provider demand.
 
 ## Authorization
@@ -57,7 +57,7 @@ inventory object's resource checked as the caller, and `get platforms` with
 
 The platform graph needs one more read the caller makes before calling `Platform`: for each
 distinct `spec.providerRef`, `get moduleinstances` on that name in that namespace, under its own
-grant (0030:D7). `add-read-api` owns obtaining that grant. A denial is passed as a lookup with
+grant. `add-read-api` owns obtaining that grant. A denial is passed as a lookup with
 access `forbidden`, and a provider the handler did not look up is drawn with reason
 `ProviderNotLookedUp`, so a missing grant never shows as an unreadable provider.
 
@@ -130,7 +130,7 @@ changes on upgrade.
 | `owns` | component -> object | `status.inventory` entries |
 | `controls` | object -> runtime child or Pod group | controller `metadata.ownerReferences` below an inventory object |
 
-Each edge carries its source string, so the API can show where an edge came from (0030:D4:R1).
+Each edge carries its source string, so the API can show where an edge came from.
 
 ### Collapse rules
 
@@ -174,7 +174,7 @@ of the right node, control points at the horizontal midpoint.
 
 ### Registration to catalog: spec or registry
 
-**Context**: The task brief says the edge comes from the registration's spec; 0030:D4 says from
+**Context**: The task brief says the edge comes from the registration's spec; portal:D4 says from
 "the registry entries a registration contributed". F1's refused claim names a catalog that is in
 no registry.
 **Options considered**:
@@ -188,12 +188,12 @@ that contributed it, so a duplicate claim on a contributed catalog (refused with
 The edge is drawn only for a registration that is accepted and active, the set the operator folds
 into the registry (`platform_controller.go:335`), at the version the entry resolved. The
 registration node keeps `spec.catalog` as text either way.
-**Rationale**: 0030 wins over the brief, and an edge the record does not support is worse than
-none (0030:D4 rationale).
+**Rationale**: The withdrawn portal enhancement wins over the brief, and an edge the record does not support is worse than
+none (portal:D4 rationale).
 
 ### Provider cross-check
 
-**Context**: 0030:D4:R2 wants the disagreement shown when the reference and the provider's
+**Context**: portal:D4:R2 wants the disagreement shown when the reference and the provider's
 inventory disagree. In F1 the refused claim's provider does not exist.
 **Decision**: The `providedBy` edge is always drawn and carries `verified`. It is verified only
 when the provider instance was read and its inventory holds a TransformerRegistration of that
@@ -253,4 +253,4 @@ The 19 default nodes are the module, the instance, the three workload components
 components and 42 inventory objects are all nodes; that is 70 against the spike's 86, which also
 drew contract and platform nodes. The graph build is a small part of a request: the read model's
 own view dominates, and both are four orders of magnitude below the spike's 7.4 to 9.4 s
-per-request graph (0030:D3:R9).
+per-request graph.

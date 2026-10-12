@@ -1,12 +1,12 @@
 ## Why
 
-The portal promises that a broken rollout looks broken within seconds (0030:D3), and its read API
+The portal promises that a broken rollout looks broken within seconds, and its read API
 carries a change stream with the same document shapes as its `GET`s, resumable or answered with a
-re-read (0030:D2:R5). In local mode the browser speaks HTTP/1.1 to loopback, so every tab shares
+re-read. In local mode the browser speaks HTTP/1.1 to loopback, so every tab shares
 six connections per host: one stream per tab, carrying every topic the page needs, is the only
 shape that leaves connections for ordinary requests. The broker also sits exactly where a shared
 cache meets many readers, so it must deliver to each subscriber only what that subscriber may
-read (0030:D7). The read model (change `add-read-model`) and the read API (`add-read-api`) are
+read. The read model (change `add-read-model`) and the read API (`add-read-api`) are
 built next to and after this change; both need the broker's contract fixed first.
 
 ## What Changes
@@ -58,7 +58,7 @@ None.
   survive reconnects and must not let one stalled tab hold memory or block the publisher.
 - SemVer: MINOR after 1.0 (a new internal capability). Nothing user-visible changes, so the PR
   title is `chore(stream)` and the 0.x line cuts no release for it.
-- Enhancement link: builds toward 0030:D2:R5 and the stream half of 0030:D7:R2; claims no decision
+- Enhancement link: builds toward portal:D2:R5 and the stream half of portal:D7:R2; claims no decision
   (`enhancement.yaml`), because neither is observable until the read API serves the stream.
 
 Not in this change: the `/api/v1alpha1/watch` route and its problem documents, the topic-change

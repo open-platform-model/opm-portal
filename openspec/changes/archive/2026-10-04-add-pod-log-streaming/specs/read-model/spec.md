@@ -11,7 +11,7 @@ caller's grant SHALL cover `get` on the Pod's `log` subresource before anything 
 Pod that does not exist, that no inventory reaches, or that is reached only through objects the
 caller may not read SHALL get one and the same refusal; a read the reading identity cannot make,
 and a caller check the authorizer cannot decide, the owner's included, SHALL be reported as
-unavailable rather than refused. Source: 0030:D10:R1, 0030:D7:R1.
+unavailable rather than refused.
 
 #### Scenario: A Pod below an inventory Deployment
 

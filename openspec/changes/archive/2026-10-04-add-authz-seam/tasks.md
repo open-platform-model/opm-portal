@@ -20,7 +20,7 @@
 
 ## 4. Review fixes (PR 8)
 
-- [x] 4.1 Claim no 0030 decision in `enhancement.yaml` (0030:D7 is delivered only in part); verify the proposal's enhancement link agrees
+- [x] 4.1 Claim no portal decision in `enhancement.yaml` (portal:D7 is delivered only in part); verify the proposal's enhancement link agrees
 - [x] 4.2 Leave the cause out of `DenialError.Error()` and keep it behind `Unwrap`; verify a test that an evaluation error's text does not reach the message
 - [x] 4.3 Bind a `Grant` to its identity (`Covers(who, req)`) and expire it with its decision; verify tests for another identity, reordered groups, expiry of a fresh, a cached and an uncached grant
 - [x] 4.4 Refuse every subresource but none, `status` and `log` before any review; verify cases for exec, attach, portforward and the proxy subresources
@@ -38,6 +38,6 @@
 ## 6. Per-mode write rule and seal allowlist (PR 8 re-check)
 
 - [x] 6.1 Merge origin/main (health, kind e2e) into the branch, keeping both dependency sets with k8s.io `api`, `apimachinery` and `client-go` at v0.36.4; `go mod tidy`; verify `task check` is green on the merge result
-- [x] 6.2 State Principle V per mode in `CONSTITUTION.md`, `AGENTS.md` (Security Rules and the verification checklist) and `openspec/config.yaml`: local mode creates only `selfsubjectaccessreviews` and `selfsubjectreviews` (0030:D5:R6), in-cluster mode only `subjectaccessreviews` (0030:D6:R9), and a self review in-cluster is forbidden; drop the AGENTS.md-only sentence on other non-persisted creates; align design.md
+- [x] 6.2 State Principle V per mode in `CONSTITUTION.md`, `AGENTS.md` (Security Rules and the verification checklist) and `openspec/config.yaml`: local mode creates only `selfsubjectaccessreviews` and `selfsubjectreviews`, in-cluster mode only `subjectaccessreviews`, and a self review in-cluster is forbidden; drop the AGENTS.md-only sentence on other non-persisted creates; align design.md
 - [x] 6.3 Switch the seal scan to an allowlist: flag any `sealed` selector outside issue, Valid, Identity, Attributes, Expires and Covers, any method on `grantData` and `new(grantData)` outside issue; verify a forgery case for each of the six re-check probes (var decl, call argument, return, address-of, slice alias, method on grantData); list the scan's limits under design.md Risks
 - [x] 6.4 `task check` green, then commit

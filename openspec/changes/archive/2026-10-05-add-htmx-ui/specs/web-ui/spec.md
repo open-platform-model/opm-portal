@@ -8,7 +8,7 @@ read the same fact with the same filtering. `internal/ui` SHALL NOT import `inte
 any package below it, and a test SHALL fail when a file of `internal/ui` does. A problem document
 SHALL render as a region of the page: `forbidden` as locked, `not_readable_by_portal` and
 `upstream_unavailable` as degraded with the code, `not_found` as a not-found page with status
-`404`, `unauthenticated` as a sign-in page with status `401`. Source: 0030:D2:R1.
+`404`, `unauthenticated` as a sign-in page with status `401`.
 
 #### Scenario: The UI reads through the API
 
@@ -37,8 +37,7 @@ pills, its verdict, and its refusal or removal-blocked reason and message. A rem
 registration SHALL show as removal blocked while still accepted and active, never as refused. A
 Platform reporting unfulfilled provider contracts SHALL show it as information, not as a failure.
 The page SHALL show the platform graph and the Platform's recent events. When the registrations
-the caller may read are not all of them, the page SHALL say so with the locked style. Source:
-0030:D4:R4/R7, 0030:D3:R8.
+the caller may read are not all of them, the page SHALL say so with the locked style.
 
 #### Scenario: The F1 platform
 
@@ -59,7 +58,7 @@ different shapes. `Ready=True` SHALL be shown as "Applied" and never as healthy.
 `ManagedExternally` SHALL render in a neutral style without an error colour. A partial health
 SHALL say partial; a health with an object refreshed by polling SHALL say it is not live and show
 when it was evaluated. An enum value the UI does not know SHALL render as "unknown", never as an
-error. Source: 0030:D3:R1/R5/R6, 0030:D2:R3.
+error.
 
 #### Scenario: The image-break sample
 
@@ -84,7 +83,6 @@ withheld SHALL render locked: a distinct locked style, a lock mark and text sayi
 not read it or the portal cannot, showing only what the API document carries, with no link to a
 detail it cannot open. A forbidden instance or package list SHALL render as a locked list with no
 count. A Secret in an inventory SHALL show that Secret data is never read, with no YAML action.
-Source: 0030:D5:R7, 0030:D7:R3.
 
 #### Scenario: A forbidden kind inside an instance
 
@@ -107,8 +105,7 @@ into one line with a count and the latest time. The feed SHALL be labelled as re
 that expires after about an hour, and the page SHALL say that render warnings are kept only as
 events. A logs panel SHALL offer each container of each Pod an inventory reaches, following its
 log topic, rendering log text as text only. The package page SHALL show the same for a
-ModulePackage, with its source and dependencies. Source: 0030:D4:R3, 0030:D9:R2/R3/R5,
-0030:D10.
+ModulePackage, with its source and dependencies.
 
 #### Scenario: podinfo's page
 
@@ -120,8 +117,7 @@ ModulePackage, with its source and dependencies. Source: 0030:D4:R3, 0030:D9:R2/
 ### Requirement: Objects can be viewed as YAML without values
 
 Selecting an object an inventory reaches SHALL show it as YAML from the read API's object
-resource, without `spec.values`, managed fields or the last-applied annotation. Source:
-0030:D8:R2/R3, 0030:D2:R4.
+resource, without `spec.values`, managed fields or the last-applied annotation.
 
 #### Scenario: podinfo's Deployment as YAML
 
@@ -135,7 +131,7 @@ Each graph SHALL render server-side as SVG from the read API's laid-out graph do
 edge from an instance to a contract. Nodes SHALL carry CSS classes for kind, health and access, an
 accessible name, and SHALL be reachable with the keyboard in document order. Activating a node
 SHALL show its detail panel; activating a group node SHALL show it expanded. The graph SHALL pan
-and zoom with pointer, wheel and buttons. Source: 0030:D4:R1/R3/R5.
+and zoom with pointer, wheel and buttons.
 
 #### Scenario: Keyboard focus
 

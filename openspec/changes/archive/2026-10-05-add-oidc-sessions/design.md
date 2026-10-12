@@ -3,11 +3,11 @@
 `main` serves local mode: `internal/auth.Local` admits one browser through a launch token and
 answers `Authenticate(r) (authz.Identity, string, error)`, which `cmd/opm-portal` adapts into
 `api.Config.Authenticate`. The read API refuses any request whose identity is not
-`Authenticated()` or whose session key is empty, before any review (0030:D6:R2). Milestone 2 needs
+`Authenticated()` or whose session key is empty, before any review. Milestone 2 needs
 a second implementation of the same hook for many users signing in through an OIDC issuer.
 
-Sources: 0030:D6 (R2, R3, R5, R6, R8), 0030:D7 (refusals before lookup), and the risk entry for
-CVE-2026-23990 in 0030's risks file. Where this design and 0030 disagree, 0030 wins. A parallel
+Sources: portal:D6 (R2, R3, R5, R6, R8), portal:D7 (refusals before lookup), and the risk entry for
+CVE-2026-23990 in the withdrawn portal enhancement's risks file. Where this design and the withdrawn portal enhancement disagree, the withdrawn portal enhancement wins. A parallel
 change adds the SubjectAccessReview authorizer; a later one builds `serve --mode in-cluster`.
 
 ## Goals / Non-Goals
@@ -23,7 +23,7 @@ change adds the SubjectAccessReview authorizer; a later one builds `serve --mode
 **Non-Goals:**
 
 - The in-cluster command, its flags, TLS serving, the install manifest (later change).
-- The SubjectAccessReview authorizer and the per-user access log, 0030:D6:R1/R7 (other changes).
+- The SubjectAccessReview authorizer and the per-user access log, portal:D6:R1/R7 (other changes).
 - Refresh tokens, sessions shared across replicas, UserInfo lookups, distributed claims.
 
 ## Decisions
@@ -44,7 +44,7 @@ type OIDCConfig struct {
     GroupsClaim    string // empty: no groups are read
     GroupsPrefix   string
     // APIServerTrustsIssuer declares the API server trusts this issuer with
-    // the same prefixes; only then may a prefix be empty (0030:D6:R6).
+    // the same prefixes; only then may a prefix be empty.
     APIServerTrustsIssuer bool
 
     PostLogoutRedirectURL string        // sent to the end-session endpoint, if any
@@ -84,7 +84,7 @@ func (m claimMapper) identity(claims map[string]any) (authz.Identity, error)
 4. The groups claim, when configured, MUST be absent, a string, or an array of strings; anything
    else is refused. Empty strings and raw `system:` groups are dropped, each remaining group is
    prefixed, mapped groups starting with `system:` are dropped again, then duplicates go, and
-   `system:authenticated` is appended (0030:D6:R3).
+   `system:authenticated` is appended.
 5. UID and Extra stay empty.
 
 The result is always `Authenticated()`. A refusal names the rule, never a claim value.
@@ -99,7 +99,7 @@ the asymmetric ones discovery advertises (RS256 when it advertises none; never `
 The session key is `bearer:` plus an HMAC-SHA-256 of the token under a per-process random key:
 stable for one token (so its streams count against one session), unlinkable to the token outside
 the process. A bearer client maps through the same claim mapper as a browser, so both see the
-same identity (0030:D6:R5).
+same identity.
 
 ### Signing keys: the portal's own cached key set
 
@@ -146,7 +146,7 @@ locally.
 ### Where sessions live
 
 **Context**: The task asks for an encrypted cookie or a server store, justified.
-**Explored**: 0030's design ("stateless apart from sessions") and operational notes ("no state
+**Explored**: the withdrawn portal enhancement's design ("stateless apart from sessions") and operational notes ("no state
 beyond in-memory sessions"); local mode's digest-keyed session.
 **Options considered**:
 1. Encrypted cookie holding the mapped identity - survives restarts and scales across replicas;
@@ -182,7 +182,7 @@ site cannot read, and every non-safe method passes `http.CrossOriginProtection`.
 
 ### Groups prefix when no groups claim is read
 
-**Context**: 0030:D6:R6 asks for non-empty username and groups prefixes.
+**Context**: portal:D6:R6 asks for non-empty username and groups prefixes.
 **Decision**: The groups prefix is required when `GroupsClaim` is set; with no groups claim the
 portal reads no groups and a prefix would apply to nothing. The only group then is
 `system:authenticated`.
