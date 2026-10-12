@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-12 (`show-service-endpoints` built in five sections and in review; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-12 (`show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -133,7 +133,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      own); a stall watchdog for a half-open connection needs the heartbeat interval on the page;
      and a closed log region says "no longer live" only to a pointer reader (`sse:closed` adds a
      class and a `title`).
-   - `show-service-endpoints` (built in five sections; in review): a Service's details panel
+   - `show-service-endpoints` (built in five sections; reviewed, fixed and archived): a Service's details panel
      shows "Endpoints N ready", the cluster's count of ready endpoints from its EndpointSlices, or
      "Could not be read" when the caller or the portal may not list them or the list failed; the
      portal's role gains `list` on `endpointslices` and nothing else (portal:D11:R7), and the count is
