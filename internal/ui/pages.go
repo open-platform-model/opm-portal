@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"sigs.k8s.io/yaml"
 
@@ -37,6 +38,10 @@ type eventsView struct {
 	Follow string
 	// Partial is true when the feed left out what the caller could not read.
 	Partial bool
+	// Read is when the handler rendered the feed, and Reload the address that
+	// renders it again: the note of a panel view that has gone stale.
+	Read   *time.Time
+	Reload string
 }
 
 // signIn answers a request the read API did not authenticate.
@@ -756,13 +761,30 @@ type objectYAML struct {
 	Ref     v1.ObjectRef
 	Text    string
 	YAML    string
+	// Read is when the handler rendered the view, and Reload the address that
+	// renders it again: the note of a panel view that has gone stale.
+	Read   *time.Time
+	Reload string
+}
+
+// reloadAddress is the request's own address, so the note's link renders the
+// same view again. It is built from the path the mux matched and the query the
+// request carried; nothing else reaches it.
+func reloadAddress(r *http.Request) string {
+	return (&url.URL{Path: r.URL.Path, RawQuery: r.URL.RawQuery}).String()
+}
+
+// readAt is the handler's clock, as the pointer the time partial takes.
+func (h *Handler) readAt() *time.Time {
+	t := h.cfg.Now().UTC()
+	return &t
 }
 
 func (h *Handler) ownerObject(k ownerKind) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		base := k.base(r.PathValue("namespace"), r.PathValue("name"))
 		var doc v1.Object
-		v := objectYAML{}
+		v := objectYAML{Read: h.readAt(), Reload: reloadAddress(r)}
 		if v.Problem = h.fetch(r, base+"/object", r.URL.Query(), &doc); v.Problem == nil {
 			v.Ref, v.Text = doc.Ref, refText(doc.Ref)
 			out, err := yaml.Marshal(doc.Object)
@@ -784,6 +806,7 @@ func (h *Handler) ownerEvents(k ownerKind) http.HandlerFunc {
 		base := k.base(r.PathValue("namespace"), r.PathValue("name"))
 		q := r.URL.Query()
 		ev := h.events(r, base+"/events", q, "")
+		ev.Read, ev.Reload = h.readAt(), reloadAddress(r)
 		if q.Get("kind") != "" {
 			ev.About = refText(v1.ObjectRef{Group: q.Get("group"), Kind: q.Get("kind"), Namespace: q.Get("namespace"), Name: q.Get("name")})
 		}

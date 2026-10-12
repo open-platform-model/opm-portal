@@ -1,7 +1,7 @@
 {{define "panel-body"}}
 {{if .Missing}}<h2 class="frag-h">Node</h2><p class="muted">The graph has no such node any more.</p>
 {{else}}
-{{with .Clear}}<a class="clear-pill" href="{{.}}" hx-boost="false" data-clear-selection title="Or click an empty part of the graph, or press Esc"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10"/></svg><span class="vh">Clear selection</span></a>{{end}}
+{{with .Clear}}<a class="clear-pill" href="{{.}}" hx-boost="false" data-clear-selection data-focus-key="panel-clear" title="Or click an empty part of the graph, or press Esc"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2 L10 10 M10 2 L2 10"/></svg><span class="vh">Clear selection</span></a>{{end}}
 <p class="kicker">{{.Kind}}</p>
 <h2 class="frag-h mono">{{template "breakable" .Label}}</h2>
 {{if .Locked}}{{template "locked" .Access}}{{with .RefText}}<p class="mono muted">{{.}}</p>{{end}}
@@ -37,6 +37,6 @@
 {{with .Contracts}}<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts">{{range .}}<li class="mono">{{.}}</li>{{end}}</ul>{{end}}
 {{end}}
 {{with .EdgesFrom}}<h3 class="sub-h">Edges</h3><ul class="edges-list">{{range .}}<li>{{.}}</li>{{end}}</ul>{{end}}
-{{with .Links}}<p class="panel-links">{{range .}}<a class="btn{{if .Dark}} btn-dark{{end}}" href="{{.Href}}"{{if .HX}} hx-get="{{.Href}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML"{{end}}>{{.Text}}</a>{{end}}</p>{{end}}
+{{with .Links}}<p class="panel-links">{{range .}}<a class="btn{{if .Dark}} btn-dark{{end}}" href="{{.Href}}"{{with .Key}} data-focus-key="{{.}}"{{end}}{{if .HX}} hx-get="{{.Href}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML"{{end}}>{{.Text}}</a>{{end}}</p>{{end}}
 {{end}}
 {{end}}

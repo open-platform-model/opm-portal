@@ -140,7 +140,7 @@ func TestPanelOfAComponent(t *testing.T) {
 func TestPanelOfTheOwnersNode(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	inst := panelOf(t, s, "/instances/default/podinfo", "mi:default/podinfo")
-	if strings.Contains(inst, "Open page") || !strings.Contains(inst, `<a class="btn" href="/instances/default/podinfo?tab=events">Events</a>`) || strings.Contains(inst, ">YAML</a>") {
+	if strings.Contains(inst, "Open page") || !strings.Contains(inst, `<a class="btn" href="/instances/default/podinfo?tab=events" data-focus-key="panel-events">Events</a>`) || strings.Contains(inst, ">YAML</a>") {
 		t.Errorf("instance root links:\n%s", between(inst, "panel-links", "</p>"))
 	}
 	facts := factsOfPanel(inst)
@@ -179,7 +179,7 @@ func TestPanelAtRest(t *testing.T) {
 	if strings.Contains(graph, `class="node kind-object health-healthy ap-`) && regexp.MustCompile(`class="node [^"]* dim"`).MatchString(graph) {
 		t.Error("a node is dimmed at rest")
 	}
-	if !regexp.MustCompile(`<a class="tool-link" href="/instances/default/podinfo\?tab=graph" hx-boost="false" data-clear-selection hidden>`).MatchString(graph) {
+	if !regexp.MustCompile(`<a class="tool-link" href="/instances/default/podinfo\?tab=graph" hx-boost="false" data-clear-selection data-focus-key="clear-[^"]+" hidden>`).MatchString(graph) {
 		t.Errorf("Clear selection at rest:\n%s", between(graph, "data-clear-selection", ">"))
 	}
 }
@@ -189,7 +189,7 @@ func TestPanelAtRest(t *testing.T) {
 func TestPanelOfASelection(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	sel := mainOf(s.get(t, "/instances/default/podinfo?tab=graph&focus="+url.QueryEscape(nodeDeployment)+"&node="+url.QueryEscape(nodeDeployment)).body)
-	if !regexp.MustCompile(`<a class="tool-link" href="/instances/default/podinfo\?tab=graph" hx-boost="false" data-clear-selection>`).MatchString(sel) {
+	if !regexp.MustCompile(`<a class="tool-link" href="/instances/default/podinfo\?tab=graph" hx-boost="false" data-clear-selection data-focus-key="clear-[^"]+">`).MatchString(sel) {
 		t.Errorf("Clear selection with a selection (a plain link without focus and node, shown):\n%s", between(sel, "data-clear-selection", ">"))
 	}
 	if d := between(sel, `id="detail"`, "</aside>"); !strings.Contains(d, "podinfo-podinfo") || !strings.Contains(d, `<p class="kicker">Object</p>`) {

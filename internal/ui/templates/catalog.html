@@ -1,6 +1,6 @@
 {{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Platform</a> <span aria-hidden="true">/</span> <a href="/?tab=catalogs">Catalogs</a> <span aria-hidden="true">/</span> <span class="crumb-here" aria-current="page">{{.Short}}</span></nav>
-<div class="summary reveal">
+<div class="summary">
   <section class="card" id="catalog-head" aria-label="Identity" data-follow="platform">
     <p class="kicker">Catalog <span class="origin {{.OriginClass}}">{{.Origin}}</span></p>
     <h1>{{.Short}}</h1>
@@ -20,7 +20,7 @@
 <p class="note">The cluster does not record a catalog's definitions, their descriptions or the transformers it ships, so they are not shown.</p>
 <nav class="tabs" aria-label="Views" hx-swap="outerHTML show:none">{{range .Tabs}}{{template "tab" .}}{{end}}</nav>
 {{if eq .Tab "claims"}}
-<section class="panel panel-wide panel-flush reveal" id="claims" aria-labelledby="claims-h" data-follow="platform">
+<section class="panel panel-wide panel-flush" id="claims" aria-labelledby="claims-h" data-follow="platform">
   <h2 class="vh" id="claims-h">Claims <span class="h-note">registrations that claim this catalog</span></h2>
   <div class="region">
   {{if .ClaimsLocked}}{{template "locked" .ClaimsLocked}}<p class="muted">The registrations claiming catalogs are not shown, so whether any claims this one is not known.</p>
@@ -41,7 +41,7 @@
   </div>
 </section>
 {{else}}
-<section class="panel panel-wide panel-flush reveal" id="events-panel" aria-labelledby="events-h">
+<section class="panel panel-wide panel-flush" id="events-panel" aria-labelledby="events-h">
   <h2 class="vh" id="events-h">Events <span class="h-note">the Platform's and its claimants'</span></h2>
   {{with .Events}}
   {{template "filter-form" .Form}}

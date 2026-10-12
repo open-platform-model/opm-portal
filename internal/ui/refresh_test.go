@@ -64,7 +64,7 @@ func TestALatePodGetsALogPane(t *testing.T) {
 		t.Errorf("Logs link %q names no option in the Pod / container select", m[1])
 	}
 
-	got := strings.TrimSpace(collapse(`<section class="panel panel-wide reveal" `+logs+"</section>")) + "\n"
+	got := strings.TrimSpace(collapse(`<section class="panel panel-wide" `+logs+"</section>")) + "\n"
 	golden := filepath.Join("testdata", "golden", "logs-podinfo-late-pod.html")
 	if *update {
 		if err := os.WriteFile(golden, []byte(got), 0o644); err != nil {
@@ -330,8 +330,10 @@ func TestARefreshKeepsTheTabAndTheFocus(t *testing.T) {
 		!strings.Contains(focused, `class="node kind-object health-degraded dim"`) && !strings.Contains(focused, " dim\"") {
 		t.Error("the focused render does not mark the node or dim the rest")
 	}
-	if !strings.Contains(focused, `data-clear-selection>Clear selection</a>`) {
-		t.Error("the focused render offers no Clear selection")
+	// The shown link ends its tag right after the focus key; the hidden one
+	// the toolbar renders with no node focused carries a hidden attribute.
+	if !regexp.MustCompile(`data-clear-selection data-focus-key="clear-[^"]+">Clear selection</a>`).MatchString(focused) {
+		t.Error("the focused render offers no visible Clear selection")
 	}
 }
 

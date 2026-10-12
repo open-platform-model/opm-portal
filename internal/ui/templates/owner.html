@@ -1,6 +1,6 @@
 {{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind={{.Kind.Topic}}">Installed</a> <span aria-hidden="true">/</span> <span class="mono">{{.Namespace}}</span> <span aria-hidden="true">/</span> <span>{{.Name}}</span></nav>
-<div class="summary reveal">
+<div class="summary">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="{{.Topic}}">
     <p class="kicker">{{.Kind.Title}}{{range .ProviderPills}} {{template "tip" .}}{{end}}</p>
     <h1>{{.Name}}</h1>
@@ -36,7 +36,7 @@
 {{if eq .Tab "graph"}}
 <div class="owner-row">
 <div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
-<section class="panel owner-panel reveal" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
+<section class="panel owner-panel" id="graph" aria-labelledby="graph-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
   {{if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}{{template "graph" .Graph}}{{end}}
 </section>
@@ -45,7 +45,7 @@
 </div>
 {{else if eq .Tab "resources"}}
 <div class="owner-row">
-<section class="panel owner-panel owner-main reveal" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
+<section class="panel owner-panel owner-main" id="components" aria-labelledby="components-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="components-h">Resources <span class="h-note">each object, and what the cluster made below it</span></h2>
   {{with .Resources.Chip}}<div class="filter-chips" hx-swap="outerHTML show:none"><a class="fchip" href="{{.Remove}}" aria-label="Remove the filter {{.Label}}: {{.Text}}"><span class="fchip-label">{{.Label}}</span> {{.Text}}<svg class="fchip-x" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></a></div>{{end}}
   {{if .Resources.Bodies}}
@@ -63,7 +63,7 @@
 {{template "detail" .}}
 </div>
 {{else if eq .Tab "events"}}
-<section class="panel owner-panel panel-wide reveal" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
+<section class="panel owner-panel panel-wide" id="events" aria-labelledby="events-h" data-follow="{{.Events.Follow}}">
   <h2 class="vh" id="events-h">Events</h2>
   {{with .EventsForm}}
   <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Filter events" hx-swap="outerHTML show:none" data-filters="owner-events">
@@ -88,7 +88,7 @@
   {{template "events-table" .EventsTable}}
 </section>
 {{else if eq .Tab "logs"}}
-<section class="panel owner-panel panel-wide reveal" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
+<section class="panel owner-panel panel-wide" id="logs" aria-labelledby="logs-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="logs-h">Logs</h2>
   {{with .Logs}}{{if .Pane}}
   <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Pick a container" hx-swap="outerHTML show:none" data-filters="owner-logs">
@@ -114,7 +114,7 @@
   {{else}}<p class="muted">No Pod below this inventory that you may read.</p>{{end}}{{end}}
 </section>
 {{else if eq .Tab "yaml"}}
-<section class="panel owner-panel panel-wide reveal" id="yaml" aria-labelledby="yaml-h" data-follow="{{.Topic}}">
+<section class="panel owner-panel panel-wide" id="yaml" aria-labelledby="yaml-h" data-follow="{{.Topic}}">
   <h2 class="vh" id="yaml-h">YAML</h2>
   {{with .YAML}}{{if .Groups}}
   <form class="filters" method="get" action="{{$v.Base}}" role="search" aria-label="Pick an object" hx-swap="outerHTML show:none" data-filters="owner-yaml">
@@ -131,7 +131,7 @@
   {{else}}<p class="muted">No object you may read.</p>{{end}}{{end}}
 </section>
 {{else if eq .Tab "provider"}}
-<section class="panel owner-panel panel-wide reveal" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">
+<section class="panel owner-panel panel-wide" id="provider" aria-labelledby="provider-tab-h" data-follow="{{.Topic}} platform instances">
   <h2 class="vh" id="provider-tab-h">Provider <span class="h-note">the registrations this {{.Kind.Topic}}'s inventory holds, as the controller judged them</span></h2>
   {{with .Provider}}
   {{if .PlatformLocked}}<div class="locked-panel">{{template "lock"}}<p>Locked: you may not read the Platform, so each claim's conditions, catalog and registry state are not shown. The standing below is the registration's own.</p></div>{{end}}
@@ -191,7 +191,7 @@
 </section>
 {{end}}
 
-<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="{{.Topic}}">
+<details class="panel panel-wide conditions-fold" id="conditions" data-follow="{{.Topic}}">
   <summary><h2 id="conditions-h">Conditions{{with .Instance}} and render contracts{{end}}</h2></summary>
   {{template "conditions" .Conditions}}
   {{with .Instance}}
@@ -204,7 +204,7 @@
 {{end}}{{end}}
 
 {{define "detail"}}
-<aside class="panel detail reveal" id="detail" aria-label="Details" aria-live="polite"{{with .PanelRoot}} data-root-panel="{{.}}"{{end}}>
+<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite"{{with .PanelRoot}} data-root-panel="{{.}}"{{end}}{{if .Panel}} data-topics="{{.Topic}}" data-follow="{{.Topic}}"{{end}}>
   {{if .Panel}}{{template "panel-body" .Panel}}{{else if .GraphProblem}}{{template "problem-region" .GraphProblem}}{{else}}<p class="muted">The graph has no node to show details for.</p>{{end}}
 </aside>
 {{end}}

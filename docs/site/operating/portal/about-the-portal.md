@@ -5,7 +5,7 @@ type: explanation
 weight: 10
 ---
 
-The OPM portal is a read-only view of what a cluster runs under OPM. It starts at the Platform, with its catalogs and the providers that claim them, lists everything installed (every ModuleInstance and ModulePackage) in one place, and goes down through each of them to the objects it applied and the Pods those objects run. Every page's header names the cluster context the portal reads, the user it reads as and the cluster's Kubernetes version. Everything it shows comes from what the OPM operator and the Kubernetes API server already record. The portal adds two things of its own: an access check before every read, and a health value computed from live objects.
+The OPM portal is a read-only view of what a cluster runs under OPM. It starts at the Platform, with its catalogs and the providers that claim them, lists everything installed (every ModuleInstance and ModulePackage) in one place, and goes down through each of them to the objects it applied and the Pods those objects run. Every page's header names the cluster context the portal reads, the user it reads as and the cluster's Kubernetes version. When the kubeconfig entry for the cluster has a different name from the context, the header shows both, the context first and the entry below it after the word "cluster". Everything it shows comes from what the OPM operator and the Kubernetes API server already record. The portal adds two things of its own: an access check before every read, and a health value computed from live objects.
 
 Where `kubectl get` shows one kind at a time, the portal joins the kinds OPM spreads a deployment over: the instance, its inventory, the workloads in the inventory and the Pods below them. The comparison stops at the edge of OPM. The portal shows only objects an OPM inventory reaches, so it is not a general cluster browser, and it never edits, restarts or deletes anything.
 
@@ -54,6 +54,12 @@ A click on a box selects it: the details panel on the right shows it, and nothin
 Fit sizes the whole graph to the pane, and the slider or Ctrl and scroll zooms from 30 to 200 percent. The full screen button fills the window; Esc steps back one thing at a time: a card, a selection, an open group, then full screen. Motion follows your operating system's reduced-motion setting.
 
 On a package graph the first node after the package is the source its `spec.sourceRef` names, read as you. It shows ready, not ready, or "No artifact yet". It shows "Kind not installed" until Flux serves the source kind; that clears within five minutes of installing Flux. The source box is locked when you may not read it, and the portal reads only the three Flux source kinds.
+
+### The page follows the cluster, and says when it does not
+
+The **Live** mark in the header says the page follows changes. Times on the page, such as "4m ago", keep counting without a reload; hold the pointer over one for the exact time in UTC. A request that takes longer than a second draws a thin bar along the foot of the header, and the details panel reads "Loading..." while its own request runs. When the stream drops, the header shows a banner: "Showing data read 20s ago. Reconnecting." It stays until the page has read the cluster again, not only until the stream is back. When the session expires or you are signed out, the banner says so and offers **Reload**, which opens the page with a new stream.
+
+The details panel follows the page. When a node's health changes, the graph and the panel beside it change together, and the node stays selected. A YAML view or an Events view in the panel does not follow, because the address does not hold it. When something it follows changes, the view keeps its text and a note appears: "Read 4m ago. The object may have changed since." **Reload this view** reads the object again.
 
 ### Events and logs are read when you look
 

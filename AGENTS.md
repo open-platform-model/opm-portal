@@ -299,6 +299,25 @@ no local registry. A fixture it ever publishes lives under `testing.opmodel.dev/
   panel, the Resources table or the selection code of the page script.
   `TestBrowserPhone` opens every F1 page at 360 px wide and fails on a scroll width above 360; run it
   after any change to layout CSS.
+  `TestBrowserLoading` holds requests the way a slow cluster would, against Playwright's clock: no
+  bar before a second, the header bar and the panel's "Loading..." after it, the bar until the last
+  of two requests ends, an end through an error or an abort, and nothing for the stream's
+  background refresh; its second case sets the browser clock ten minutes off the page's and checks
+  that relative times count by the rows of `internal/ui/testdata/relative-time.json` without a layout
+  shift. Run it after any change to the page script's loading or tick code, or to `relative` in
+  `internal/ui/view.go`.
+  `TestBrowserStale` holds a page open on a stream the test drives (`serveStaleSite`: heartbeats,
+  changes, a drop, refused connections, and a page fetch it holds, resets, answers 500 or 401) against
+  Playwright's clock: the banner's words and its time in the `time` partial's form, the time frozen
+  until a resync succeeds, one fetch before the banner goes, a failed fetch tried again on the next
+  heartbeat, the live mark as the only live region that changes, and the sticky header's height in
+  `scroll-padding-top` and the details panel's offset, with a focus move and a fragment link that stay
+  below the header, and the details panel: it follows a changed object beside the graph, keeps focus on
+  its links, keeps a request that is open, returns to the resting node when the selected node is gone,
+  and a YAML view stays as it is and shows its note (the pages render over the image-break capture when
+  the test says so). `TestBrowserExpired` also checks the expired banner and its Reload link, and
+  `TestBrowserPhone/<engine>/banner` holds 360 px with the banner and two 90 character names. Run
+  `TestBrowserStale` after any change to the page script's stream, banner or resync code.
 - `task e2e:capture`: snapshot that cluster into `testdata/clusters/f1/` (needs yq and jq);
   `task e2e:capture:check` runs `check-capture_test.sh`, then refuses any file under
   `testdata/clusters/` holding, at any depth, a Secret,

@@ -1,10 +1,10 @@
 {{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
-<header class="page-head reveal">
+<header class="page-head">
   <h1>Installed</h1>
   <p class="lede">Every module this cluster runs under OPM, as a ModuleInstance or a ModulePackage. <strong>Applied</strong> is what the controller applied, <strong>Health</strong> what the portal sees running; one never stands for the other.</p>
 </header>
 {{template "filter-form" .FilterForm}}
-<section class="panel panel-wide panel-flush reveal" id="list" aria-label="Installed" data-follow="{{index $p.Topics 0}}">
+<section class="panel panel-wide panel-flush" id="list" aria-label="Installed" data-follow="{{index $p.Topics 0}}">
   {{if .UsesSet}}<p class="note">Packages are not included: a package does not record which contracts its render used.</p>{{end}}
   {{with .InstancesProblem}}{{template "problem-region" .}}{{end}}
   {{if .InstancesLocked}}<div class="locked-panel locked-group">{{template "lock"}}<p><strong>Module instances</strong>: locked. You may not list ModuleInstances{{with index $v.Filters.Values "namespace"}} in namespace <span class="mono">{{.}}</span>{{else}} in every namespace; filter by a namespace you may read{{end}}.</p></div>{{end}}

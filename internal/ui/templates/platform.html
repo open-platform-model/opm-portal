@@ -1,5 +1,5 @@
 {{define "content"}}{{$p := .}}{{with .Main}}{{$v := .}}
-<div class="pf-summary reveal">
+<div class="pf-summary">
   <section class="card pf-identity" id="platform-head" aria-label="Identity" data-follow="platform">
     <p class="kicker">Platform</p>
     {{if .Problem}}<h1>The Platform</h1>
@@ -15,7 +15,7 @@
   {{if not .Problem}}{{template "state-block" .Block}}{{end}}
 </div>
 
-<section class="panel panel-wide panel-flush reveal" id="installed-card" aria-labelledby="installed-h" data-follow="instances">
+<section class="panel panel-wide panel-flush" id="installed-card" aria-labelledby="installed-h" data-follow="instances">
   <div class="card-headline"><h2 id="installed-h">Installed</h2><a href="/installed">Open the full list</a></div>
   {{with .Installed}}
   <div class="count-cols">
@@ -30,7 +30,7 @@
   {{end}}
 </section>
 
-<section class="panel panel-wide panel-flush reveal" id="parts" aria-label="Providers and catalogs">
+<section class="panel panel-wide panel-flush" id="parts" aria-label="Providers and catalogs">
   <nav class="tabs tabs-lg" aria-label="Platform parts" hx-swap="outerHTML show:none">{{range .Tabs}}{{template "tab" .}}{{end}}</nav>
   {{if eq .Tab "providers"}}
   {{template "filter-form" .Providers.Form}}
@@ -100,7 +100,7 @@
 </section>
 
 {{if not .Problem}}
-<section class="panel panel-wide panel-flush reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
+<section class="panel panel-wide panel-flush" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
   <h2 id="conditions-h">Conditions</h2>
   {{if .Platform.Conditions}}
   <ol class="conditions">
@@ -114,7 +114,7 @@
 </section>
 {{end}}
 
-<section class="panel panel-wide panel-flush reveal" id="events-panel" aria-labelledby="events-h">
+<section class="panel panel-wide panel-flush" id="events-panel" aria-labelledby="events-h">
   {{with .Events}}
   <form class="filters filters-inline events-head" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events" hx-sync="this:replace" hx-replace-url="true">
     {{range .Hidden}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}

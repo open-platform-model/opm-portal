@@ -103,8 +103,12 @@
 <span class="kind kind-{{.}}">{{if eq . "package"}}{{template "icon-package"}}Package{{else}}{{template "icon-instance"}}Instance{{end}}</span>
 {{- end}}
 
+{{define "stale-note" -}}
+<p class="stale-note" hidden>Read {{template "time" .Read}}. The object may have changed since. <a href="{{.Reload}}" hx-get="{{.Reload}}" hx-target="#detail" hx-select="unset" hx-swap="innerHTML" data-focus-key="stale-reload">Reload this view</a></p>
+{{- end}}
+
 {{define "time" -}}
-{{with stamp .}}<time datetime="{{.ISO}}" title="{{.Absolute}}">{{.Relative}}</time>{{else}}<span class="muted">never</span>{{end}}
+{{with stamp .}}<time datetime="{{.ISO}}" title="{{.Absolute}}" data-relative aria-live="off">{{.Relative}}</time>{{else}}<span class="muted">never</span>{{end}}
 {{- end}}
 
 {{define "lock" -}}
@@ -209,7 +213,7 @@
     {{with .ExpandAll}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-expand-all>Expand all</a>{{end}}
     {{with .CollapseAll}}<a class="tool-link tool-pill" href="{{.}}" hx-boost="false" data-collapse-all>Collapse all</a>{{end}}
     {{with .Switch}}<a class="tool-link tool-pill group-switch{{if .On}} is-on{{end}}" href="{{.Href}}" hx-boost="false" data-group-switch>Group configuration: {{if .On}}<svg class="ic" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6.5 2.5 2.5 4.5-5.5"/></svg>{{end}}<span class="sw-state">{{.Text}}</span></a>{{end}}
-    <a class="tool-link" href="{{.Clear}}" hx-boost="false" data-clear-selection{{if not .Focused}} hidden{{end}}>Clear selection</a>
+    <a class="tool-link" href="{{.Clear}}" hx-boost="false" data-clear-selection data-focus-key="clear-{{.ID}}"{{if not .Focused}} hidden{{end}}>Clear selection</a>
     <button type="button" data-zoom="fit" aria-pressed="true">Fit</button>
     <label class="zoom-label" title="Or hold Ctrl and scroll over the graph"><span>Zoom</span> <input type="range" min="30" max="200" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
     <button type="button" class="full-btn" data-graph-full aria-label="Show the graph full screen" title="Show the graph full screen"><svg class="ic ic-enter" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><svg class="ic ic-exit" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg></button>

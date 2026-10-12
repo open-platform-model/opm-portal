@@ -1,0 +1,12 @@
+[
+  {"age_seconds": -5, "text": "just now"},
+  {"age_seconds": 0, "text": "0s ago"},
+  {"age_seconds": 1, "text": "1s ago"},
+  {"age_seconds": 59, "text": "59s ago"},
+  {"age_seconds": 60, "text": "1m ago"},
+  {"age_seconds": 3599, "text": "59m ago"},
+  {"age_seconds": 3600, "text": "1h ago"},
+  {"age_seconds": 172799, "text": "47h ago"},
+  {"age_seconds": 172800, "text": "2d ago"},
+  {"age_seconds": 259200, "text": "3d ago"}
+]

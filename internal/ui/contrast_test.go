@@ -86,6 +86,18 @@ func buildContrastPairs() []contrastPair {
 		{"instance chip text on its fill", "--kind-instance-ink", "--kind-instance-bg", textFloor, ""},
 		{"package chip text on its fill", "--kind-package-ink", "--accent-field", textFloor, ""},
 		{"tip text on its box", "--hdr-ink", "--hdr-bg", textFloor, ""},
+		// The loading bar is drawn on the foot of the header (1.4.11).
+		{"loading bar on the header", "--hdr-accent", "--hdr-bg", boundaryFloor, ""},
+		// The details panel's loading line is drawn in the muted ink on the card.
+		{"loading line on the panel", "--muted", "--surface", textFloor, ""},
+		// The banner of a lost stream (progressing tones) and of an expired or
+		// signed-out session (degraded tones): its words and its Reload link
+		// are the tone's ink on its tint, and the link's focus ring is the same
+		// ink on the same tint (1.4.3, 1.4.11).
+		{"banner text on a lost stream's tint", "--progressing-ink", "--progressing-tint", textFloor, ""},
+		{"banner text on an expired session's tint", "--degraded-ink", "--degraded-tint", textFloor, ""},
+		{"banner border on a lost stream's tint", "--progressing", "--progressing-tint", boundaryFloor, ""},
+		{"banner border on an expired session's tint", "--degraded", "--degraded-tint", boundaryFloor, ""},
 		// The graph's own pairs (align-graph): the frame's header and the
 		// Collapse pill, the ghost's text and the legend on the pane, the
 		// hover card's lines on its dark fill, the node name on the tints.

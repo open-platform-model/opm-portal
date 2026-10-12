@@ -576,3 +576,219 @@ func TestPortalCSSDrawsADismissableHoverableTip(t *testing.T) {
 		t.Errorf("the check did not name the late show rule, the missing bridge and the missing trigger reset: %v", bad)
 	}
 }
+
+// loadingBarProblems names what is wrong with the loading bar and its line
+// in css: the bar takes no pointer and draws in the header's accent token,
+// moves only where motion is welcome, is a system color in forced colors,
+// and the panel's line and the ticking times are drawn as designed.
+func loadingBarProblems(css string) []string {
+	rules := parseCSS(css)
+	out := loadingBarRuleProblems(rules)
+	const guard = "@media (prefers-reduced-motion: no-preference)"
+	if i := strings.Index(css, guard); i < 0 {
+		out = append(out, "no reduced-motion guard for the loading bar")
+	} else if j := strings.Index(css[i:], "}"); j < 0 || !strings.Contains(css[i:i+j], "animation: loading-bar") {
+		out = append(out, "the loading bar's animation is not inside the no-preference guard")
+	}
+	forced := false
+	for _, r := range forcedColorsRules(css) {
+		if strings.Contains(r.selector, "body.is-loading .masthead::after") && r.decls["background"] == "Highlight" {
+			forced = true
+		}
+	}
+	if !forced {
+		out = append(out, "the loading bar is not Highlight in forced colors")
+	}
+	if line, ok := ruleFor(rules, ".detail-loading"); !ok || line["color"] != "var(--muted)" {
+		out = append(out, "the panel's loading line is not drawn in --muted")
+	}
+	if tm, ok := ruleFor(rules, "time[data-relative]"); !ok || tm["font-variant-numeric"] != "tabular-nums" {
+		out = append(out, "a ticking time does not take tabular numerals")
+	}
+	return out
+}
+
+// loadingBarRuleProblems checks the bar's own rule: it exists, takes no
+// pointer, is drawn in a token and does not move outside the guard.
+func loadingBarRuleProblems(rules []cssRuleOf) []string {
+	bar, ok := ruleFor(rules, "body.is-loading .masthead::after")
+	if !ok {
+		return []string{"no rule for body.is-loading .masthead::after"}
+	}
+	var out []string
+	if bar["pointer-events"] != "none" {
+		out = append(out, "the loading bar takes the pointer")
+	}
+	if bar["background"] != "var(--hdr-accent)" {
+		out = append(out, "the loading bar is not drawn in --hdr-accent: "+bar["background"])
+	}
+	if _, moves := bar["animation"]; moves {
+		out = append(out, "the loading bar moves outside the no-preference guard")
+	}
+	return out
+}
+
+func TestPortalCSSDrawsTheLoadingBar(t *testing.T) {
+	for _, line := range loadingBarProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	// The check can fail.
+	for name, tc := range map[string]struct{ css, want string }{
+		"a bar that takes the pointer":  {".detail-loading { color: var(--muted); } body.is-loading .masthead::after { background: var(--hdr-accent); }", "the loading bar takes the pointer"},
+		"a bar that always moves":       {"body.is-loading .masthead::after { background: var(--hdr-accent); pointer-events: none; animation: loading-bar 1s; }", "the loading bar moves outside the no-preference guard"},
+		"a bar in a raw color":          {"body.is-loading .masthead::after { background: #e3b45c; pointer-events: none; }", "the loading bar is not drawn in --hdr-accent"},
+		"a panel line in the ink token": {".detail-loading { color: var(--ink); }", "the panel's loading line is not drawn in --muted"},
+	} {
+		mustName(t, name, loadingBarProblems(tc.css), tc.want)
+	}
+}
+
+// mustName fails unless problems holds a line that names the defect want:
+// a case of "the check can fail" proves the one check it is about, not that
+// the sample CSS lacks many rules.
+func mustName(t *testing.T, name string, problems []string, want string) {
+	t.Helper()
+	for _, p := range problems {
+		if strings.Contains(p, want) {
+			return
+		}
+	}
+	t.Errorf("the check did not name %s (%q): %v", name, want, problems)
+}
+
+// bannerProblems names what is wrong with the banner and the header height
+// in css: the banner row is hidden by its attribute and fits the header,
+// its link is 44 px high, its focus ring is the tone's ink, forced colors
+// draw its border, and the page keeps clear of the sticky header through the
+// height the script writes (WCAG 2.2 2.4.11).
+func bannerProblems(css string) []string {
+	rules := parseCSS(css)
+	var out []string
+	row, ok := ruleFor(rules, ".region-banner")
+	switch {
+	case !ok:
+		out = append(out, "no rule for .region-banner")
+	case row["flex-basis"] != "100%" || row["max-height"] != "8rem" || row["overflow-y"] != "auto":
+		out = append(out, "the banner is not a full-width row capped at 8rem that scrolls")
+	}
+	if hide, ok := ruleFor(rules, ".region-banner[hidden]"); !ok || hide["display"] != "none" {
+		out = append(out, "a hidden banner is not display none")
+	}
+	if link, ok := ruleFor(rules, ".rb-reload"); !ok || link["min-height"] != "44px" {
+		out = append(out, "the Reload link is not 44 px high")
+	}
+	if ring, ok := ruleFor(rules, ".region-banner :focus-visible"); !ok || ring["outline-color"] != "var(--c-ink)" {
+		out = append(out, "the banner's focus ring is not the tone's ink")
+	}
+	if row, ok := ruleFor(rules, ".region-banner"); ok && !strings.HasSuffix(row["font-size"], "rem") {
+		out = append(out, "the banner's text is not sized in rem: "+row["font-size"])
+	}
+	out = append(out, clusterPillProblems(rules)...)
+	return append(out, headerClearanceProblems(css, rules)...)
+}
+
+// clusterPillProblems names what is wrong with the cluster pill: the word
+// "cluster" is sized in rem, and the pill and each name in it are one line cut
+// with an ellipsis, so two long names cannot grow the phone header.
+func clusterPillProblems(rules []cssRuleOf) []string {
+	var out []string
+	if k, ok := ruleFor(rules, ".conn-k"); !ok || !strings.HasSuffix(k["font-size"], "rem") {
+		out = append(out, `the "cluster" label is not sized in rem`)
+	}
+	for _, sel := range []string{".conn-cluster", ".conn-name"} {
+		r, ok := ruleFor(rules, sel)
+		if !ok || r["white-space"] != "nowrap" || r["overflow"] != "hidden" || r["text-overflow"] != "ellipsis" {
+			out = append(out, sel+" is not one line cut with an ellipsis")
+		}
+	}
+	return out
+}
+
+// headerClearanceProblems checks the banner in forced colors and the pages'
+// clearance of the sticky header.
+func headerClearanceProblems(css string, rules []cssRuleOf) []string {
+	var out []string
+	forced := false
+	for _, r := range forcedColorsRules(css) {
+		if strings.Contains(r.selector, ".region-banner") && strings.Contains(r.decls["border"], "CanvasText") {
+			forced = true
+		}
+	}
+	if !forced {
+		out = append(out, "the banner has no CanvasText border in forced colors")
+	}
+	pads := false
+	for _, r := range rules {
+		if r.selector == "html" && strings.Contains(r.decls["scroll-padding-top"], "var(--masthead-h") {
+			pads = true
+		}
+	}
+	if !pads {
+		out = append(out, "html does not keep clear of the header through --masthead-h")
+	}
+	if d, ok := ruleFor(rules, "#detail"); !ok || !strings.Contains(d["top"], "var(--masthead-h") || !strings.Contains(d["max-height"], "var(--masthead-h") {
+		out = append(out, "the sticky details panel does not take its offset and height from --masthead-h")
+	}
+	return out
+}
+
+func TestPortalCSSDrawsTheBannerAndKeepsClearOfTheHeader(t *testing.T) {
+	for _, line := range bannerProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	// The check can fail.
+	for name, tc := range map[string]struct{ css, want string }{
+		"no banner at all":     {"html { scroll-padding-top: calc(var(--masthead-h, 4.5rem) + 8px); } #detail { top: calc(var(--masthead-h, 72px) + 8px); max-height: calc(100vh - var(--masthead-h) - 28px); }", "no rule for .region-banner"},
+		"a fixed scroll pad":   {".region-banner { flex-basis: 100%; max-height: 8rem; overflow-y: auto; font-size: 0.875rem; } .region-banner[hidden] { display: none; } html { scroll-padding-top: 4rem; }", "html does not keep clear of the header through --masthead-h"},
+		"a fixed panel offset": {"#detail { top: 80px; max-height: calc(100vh - 100px); } html { scroll-padding-top: var(--masthead-h); }", "the sticky details panel does not take its offset and height from --masthead-h"},
+		"a banner in px":       {".region-banner { flex-basis: 100%; max-height: 8rem; overflow-y: auto; font-size: 14px; }", "the banner's text is not sized in rem"},
+		"a pill that wraps":    {".conn-cluster { overflow-wrap: anywhere; } .conn-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .conn-k { font-size: 11px; }", ".conn-cluster is not one line cut with an ellipsis"},
+		"a label in px":        {".conn-k { font-size: 11px; }", `the "cluster" label is not sized in rem`},
+	} {
+		mustName(t, name, bannerProblems(tc.css), tc.want)
+	}
+}
+
+// staleNoteProblems names what is wrong with the note of a stale panel view in
+// css: hidden by its attribute, in the lost-stream tone, a link of 44 px and a
+// CanvasText border in forced colors.
+func staleNoteProblems(css string) []string {
+	rules := parseCSS(css)
+	var out []string
+	note, ok := ruleFor(rules, ".stale-note")
+	if !ok || note["--c-ink"] != "var(--progressing-ink)" || note["--c-tint"] != "var(--progressing-tint)" {
+		out = append(out, "the note is not in the tone of a lost stream")
+	}
+	if hide, ok := ruleFor(rules, ".stale-note[hidden]"); !ok || hide["display"] != "none" {
+		out = append(out, "a hidden note is not display none")
+	}
+	if link, ok := ruleFor(rules, ".stale-note a"); !ok || link["min-height"] != "44px" {
+		out = append(out, "the Reload link of the note is not 44 px high")
+	}
+	if ring, ok := ruleFor(rules, ".stale-note :focus-visible"); !ok || ring["outline-color"] != "var(--c-ink)" {
+		out = append(out, "the note's focus ring is not the tone's ink")
+	}
+	forced := false
+	for _, r := range forcedColorsRules(css) {
+		if strings.Contains(r.selector, ".stale-note") && strings.Contains(r.decls["border"], "CanvasText") {
+			forced = true
+		}
+	}
+	if !forced {
+		out = append(out, "the note has no CanvasText border in forced colors")
+	}
+	return out
+}
+
+func TestPortalCSSDrawsTheStaleNote(t *testing.T) {
+	for _, line := range staleNoteProblems(readPortalCSS(t)) {
+		t.Error(line)
+	}
+	for name, tc := range map[string]struct{ css, want string }{
+		"no note at all":           {"", "the note is not in the tone of a lost stream"},
+		"a note that shows hidden": {".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note a { min-height: 44px; }", "a hidden note is not display none"},
+		"a short link":             {".stale-note { --c-ink: var(--progressing-ink); --c-tint: var(--progressing-tint); } .stale-note[hidden] { display: none; } .stale-note a { min-height: 20px; }", "the Reload link of the note is not 44 px high"},
+	} {
+		mustName(t, name, staleNoteProblems(tc.css), tc.want)
+	}
+}
