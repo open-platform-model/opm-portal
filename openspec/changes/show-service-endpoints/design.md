@@ -8,6 +8,11 @@ See proposal.md for why. The current state, read from the base `origin/main` (88
   (`panelfacts.go:43`), and the UI reads only the read API (`AGENTS.md`, "internal/ui reads only
   through the read API"; a test fails if it imports `internal/readmodel`). So the count must reach
   the UI on a wire type, and the graph node is the one the panel already holds.
+- **How the panel shows a read it could not make.** The Pods line reads "Could not be read; health
+  is the object's own status." whenever the children read is not OK, a caller's own denial
+  included (`internal/ui/templates/panel-body.html:25`, fed by `n.ChildrenUnread`,
+  `internal/ui/panel.go:154`; set by `markChildrenUnread`, `internal/health/rollup.go:199`). The
+  new fact follows that precedent.
 - **How the runtime children are read.** `childResources` is ReplicaSets, Pods and Jobs
   (`internal/readmodel/children.go:23`). `childrenIn` (`children.go:106`) asks the caller for
   `list` on all three kinds and returns nothing for the namespace if any one is denied. They are
@@ -16,6 +21,13 @@ See proposal.md for why. The current state, read from the base `origin/main` (88
   controller owner references with `reachInventory` (`evaluate.go:153`). A child whose chain
   reaches no inventory object is dropped. The openspec requirement "Instance views carry the
   runtime children below each inventory object" states the same rule.
+- **Who evaluates an inventory.** `inventoryHealth` (`evaluate.go:46`) is called by `ListInstances`
+  (`internal/readmodel/instances.go:29`), the package list (`packages.go:28`), `Instance`
+  (`instances.go:46`), `Package` (`packages.go:45`) and `ReachPod` (`reach.go:86`). `componentsOf`
+  (`evaluate.go:251`) is a pure function of an evaluation. It is called by `Instance`
+  (`instances.go:56`), `Package` (`packages.go:55`) and by `reachedVia` (`reach.go:124`) for
+  `ReachPod`. Only `Instance` and `Package` serve the graph the panel reads. A count computed in
+  `inventoryHealth` would therefore run for every list row and every log-topic admission.
 - **How a caller's access is decided.** `callerAccess` (`internal/readmodel/access.go:30`) asks the
   authorizer for the caller; `readerMay` (`access.go:59`) asks for the portal's own reader. Every
   read is preceded by both (`children.go:152` to `159`). `internal/authz/attributes.go` accepts any
@@ -29,34 +41,41 @@ See proposal.md for why. The current state, read from the base `origin/main` (88
   (`graph.go:303`), which `internal/graph/instance.go:352` fills from `readmodel.InventoryObject`.
 - **Evidence the plan rests on.** `agent-swarm/opm-portal-v1/design/T2.2.md` G14,
   `design/T2.4.md` slice S16, section 8 "G14, EndpointSlices", SR5 and SR10. Claims about general
-  Kubernetes behaviour below carry the mark *(K8s, to check)*: they come from Kubernetes
-  documentation and source known to the author, not from a file here, and task 1.2 checks each on a
-  live cluster.
+  Kubernetes behaviour below carry the mark *(K8s, to check)*: they are not in a file of this
+  repository. Where the pinned `k8s.io/api` v0.37.1 type documentation states a fact, the text cites
+  its file and line in the module cache (`discovery/v1/types.go`); task 1.2 checks the rest on the
+  live fixture cluster. There is no fetch grant, so no claim rests on a web page.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - Show "Endpoints N ready" in the Service panel, counted from the cluster's EndpointSlices, for a
-  caller who passes a separate review, and nothing in its place for a caller who does not.
+  caller who passes a separate review; show "Could not be read" for a read that was not made or
+  failed; show nothing only when the cluster records no slice.
 - Keep `portal:D7` true without an amendment, if the spike confirms the assumption below.
-- Cross into the wire and the page as one integer. No name, address, port, node or zone.
+- Cross into the wire and the page as one integer (or one flag). No name, address, port, node or
+  zone.
 
 **Non-Goals:**
 
 - A watch on EndpointSlices, so the count does not follow a Pod's readiness live (see "Reading").
-- The count on the hover card, the Resources tab or the Instance document.
+- The count on the hover card, the Resources tab, the Instance document, the instance and package
+  lists or `ReachPod`.
 - A second health signal: the count changes no Applied or Health badge and no rollup (portal:D3).
 - Showing the endpoints themselves, or per-address-type counts.
 
 ## Research & Decisions
 
-### D7: slices as runtime children
+### D7: slices owned by an inventory Service
 
 **Context**: T2.4 SR5 asks to read the slices "through the runtime-children path or amend
 `portal:D7`". D7 says the portal serves "only objects reachable from an OPM inventory" and that a
 request for an object no inventory reaches gets the same `forbidden` document as a denied read
-(R4). An amendment goes to the owner before implement; a reading that needs none does not.
+(R4). An amendment goes to the owner before implement; a reading that needs none does not. One
+word needs care: D4, D10 and D11 use "runtime children" for objects owned by *workloads* (Pods,
+ReplicaSets, Jobs). A Service is not a workload, so this change calls the slices "owned by an
+inventory Service", reads them by the same ownership rule, and has D11 name them apart (task 5.5).
 **Explored**: `children.go`, `evaluate.go` (above); the openspec requirement "Instance views carry
 the runtime children below each inventory object"; D11, which lists the child kinds the role grants.
 **Options considered**:
@@ -65,8 +84,8 @@ the runtime children below each inventory object"; D11, which lists the child ki
    denies the whole namespace's children when one kind is denied, so a caller without
    `endpointslices` would lose Pods, ReplicaSets and Jobs, a regression of every existing view; the
    children are attached to the wire as `RuntimeChild` with a `ref` that carries the slice name,
-   which D8 and OD12 forbid; and the Pod watches (`HoldChildren`) would gain a fourth informer and
-   a `watch` verb (SR10).
+   which OD12 forbids and D11:R7 will forbid; and the Pod watches (`HoldChildren`) would gain a
+   fourth informer and a `watch` verb (SR10).
 2. **A separate read keyed on the inventory Service, with the children rule for reach.** The read
    starts only from an inventory Service the caller may already read. It lists the slices of that
    Service in its namespace by the label `kubernetes.io/service-name` and counts only a slice whose
@@ -85,10 +104,17 @@ slice: there is no request that names one (`/object` refuses it as it refuses an
 reaches, D7:R4, and a test says so), and the one integer reaches the page only through an inventory
 Service the caller may read and a slice namespace the caller may list (D7:R1 to R3 hold, D5 holds).
 The count is derived from objects whose controller chain reaches the inventory, which is the
-meaning of "reachable from an OPM inventory" that `runtimeChildren` already implements. D11 does
-change: its decision text lists the child kinds the role grants. That edit records the owner's OD12
-answer and adds D11:R7; it changes no policy and does not renumber (task 5.5). The supervisor
-confirms that reading in "Questions" of the report.
+meaning of "reachable from an OPM inventory" that `runtimeChildren` already implements. Both
+proposal-gate lenses agree with this reading.
+**D11 does change, and the change is to the role contract.** D11 is a `contract` decision about what
+the portal's role grants. This change adds a kind to it (`list` on `endpointslices`) and, in
+`deploy/` mode, widens what every launch-token holder sees. The owner's OD12 answer ("Add the read",
+2026-10-12) is the source, so the edit is allowed in place (`docs/DESIGN.md:35-37`). The edit is not
+a clarification: task 5.5 states the rule in the decision text, adds D11:R7 and moves the three
+positions it turns down to "Alternatives considered" with their reasons (omit the read, OD12 option
+3; derive the count from the selector, OD12 option 2, refused by Principle IV; a watch, refused to
+avoid a second widening). It names the slices as owned by a Service, not among the workload
+children. It reuses no number.
 **Assumption (checked in task 1.2, *K8s, to check*)**: the EndpointSlice controller creates every
 slice of a Service with a selector with a controller owner reference to that Service, and with the
 label `kubernetes.io/service-name`; it also creates one slice with no endpoints when the Service
@@ -106,15 +132,16 @@ through the Service's own review.
 1. **Reuse the review for the Service** (`get` on `services`). Rejected: it is the threat.
 2. **`list` on `endpointslices` in the Service's namespace, no name** (`callerAccess` with
    `name == ""`). The read is a label-selected list, and the review asks for exactly that verb
-   and scope (D5:R7). A caller who holds `get` on named slices only cannot list them and sees
-   nothing; that is the conservative answer.
+   and scope (D5:R7). A caller who holds `get` on named slices only cannot list them and gets no
+   count; that is the conservative answer.
 3. **`get` per slice.** Needs the slice names first, which is the read the review guards.
 
 **Decision**: Option 2. The reviewed attributes are verb `list`, group `discovery.k8s.io`, version
 `v1`, resource `endpointslices`, the Service's namespace, no name. In local mode this is a
 `SelfSubjectAccessReview`; in-cluster, a `SubjectAccessReview` for the signed-in user (D6:R9), by
-the same `callerAccess`. A review that fails, times out or is denied serves no count (fail closed,
-AGENTS.md "Security Rules").
+the same `callerAccess`. A review that fails, times out or is denied serves no count and no read
+(fail closed, AGENTS.md "Security Rules"); the panel shows "Could not be read" (see "Could not be
+read, not absent").
 **Not covered by the eng skills read for this proposal**: asking the API server for a decision from
 backend code (SubjectAccessReview and its variants) is listed as not covered by the
 `eng-backend-security` guide `sign-in/kubernetes.md`. The decision above follows the portal's
@@ -122,63 +149,106 @@ existing, reviewed mechanism (`internal/authz`, `portal:D5/D6`) and adds no mech
 
 ### Reading
 
-**Context**: the count must be per Service, cheap, per caller at serve time, and hold no slice.
+**Context**: the count must be per Service, cheap, per caller at serve time, and hold no slice. It
+is needed only by the Instance and Package detail documents (see "Who evaluates an inventory").
 **Options considered**:
 
 1. **A watch (informer) per namespace.** Live, but needs `watch` (a second SR10 widening, and a
-   fourth held informer in `HoldChildren`). Not taken now; recorded as a follow-up the owner may
-   ask for.
+   fourth held informer in `HoldChildren`). Refused by the supervisor to avoid that second widening;
+   recorded as a follow-up the owner may ask for, and as an alternative in D11 (task 5.5).
 2. **One list per Service per evaluation, no cache.** Simple; a page load makes several
    evaluations, so it multiplies API-server calls by the number of Services.
 3. **One label-selected list per Service, cached for `ChildrenTTL` (10 s,
    `internal/readmodel/model.go:41`).** Matches how the runtime children are read when nobody holds
    interest (`children.go:144`), and adds no setting.
 
-**Decision**: Option 3. The cache key is namespace and Service name, and it holds the integer and
-whether any slice was found, never a slice (D8). The caller's review and the reader's review run
-before each serve, never when the cache is filled, so one caller's allow never serves another
-(read-authorization, "Decisions are cached briefly per identity and request"). Entries leave the cache in the same sweep that drops expired child lists
-(`internal/readmodel/tier2.go`). The cost is that the count can lag a Pod's readiness by up to ten
-seconds plus the control plane's own delay *(K8s, to check)*, and nothing triggers a refresh when
-only a slice changes. The panel shows the count the page read; a reload reads again after the TTL.
-The spike (task 1.2) measures the real delay on the fixture cluster and writes it here.
-Reversibility: cheap (a watch replaces the list behind the same function).
+**Decision**: Option 3, run only on the detail paths: after `componentsOf` in `Instance` and
+`Package`, by a new step that those two functions call (see "The read, in Go"). `inventoryHealth`,
+`componentsOf`, `ListInstances`, the package list and `ReachPod` make no review and no list for the
+count. A list view that needs the count later is a separate change. The cache key is namespace and
+Service name, and it holds the integer and whether any slice was found, never a slice. A failed
+read is not cached, so the next detail read tries again; it is bounded by the one detail read that
+asks. The caller's review and the reader's review run before each serve, never when the cache is
+filled, so one caller's allow never serves another (read-authorization, "Decisions are cached
+briefly per identity and request"). Entries leave the cache in the same sweep that drops expired
+child lists (`internal/readmodel/tier2.go`). The cost is that the count can lag a Pod's readiness by
+up to ten seconds plus the control plane's own delay *(K8s, to check)*, and nothing triggers a
+refresh when only a slice changes. The panel shows the count the page read; a reload reads again
+after the TTL. The spike (task 1.2) measures the real delay on the fixture cluster and writes it
+here. Reversibility: cheap (a watch replaces the list behind the same function).
 
 ### What is counted
 
-**Decision**: the number of endpoints with `conditions.ready` true or unset, summed over the slices
-of one address type, and the largest sum over the address types of that Service. *(K8s, to check)*:
-the API documents an unset `ready` as "unknown, interpret as ready"; a terminating endpoint has
-`ready` false; a dual-stack Service has an IPv4 and an IPv6 slice that list the same Pods, so
-summing the types would double the number. The count is of endpoints, not of addresses within an
-endpoint. A Service with no slice found carries no count; a Service with slices and no ready
-endpoint carries `0`.
+**Decision**: an endpoint is ready when `conditions.ready` is not false. The count keeps only slices
+of address type IPv4 and IPv6, counts each endpoint once within an address type, and is the largest
+sum over the two types.
+
+- **Ready.** The pinned `k8s.io/api` v0.37.1 documents an unset `ready` as "true"
+  (`discovery/v1/types.go:146-153`: "A nil value should be interpreted as 'true'"). A terminating
+  endpoint is `ready` false in the same text ("marked ready if it is serving and not terminating").
+- **Address types.** The type documentation says the EndpointSlice controller "only generates, and
+  kube-proxy only processes, slices of addressType IPv4 and IPv6" and that "no semantics are
+  defined for the FQDN type" (`types.go:41-50`). A slice of type FQDN (or any other type) is always
+  hand-made, so the count skips it. One FQDN slice holds up to 1000 endpoints (`types.go:56-57`) and
+  would otherwise set the number alone.
+- **Once within an address type.** The documentation says endpoints are "unique" within one slice
+  (`types.go:56-57`) and that a Service's slices "must be joined to produce the full set"
+  (`types.go:28-33`). It does not say that an endpoint cannot sit in two slices of the same type,
+  for example while the controller moves it during an update *(K8s, to check, task 1.2 (c))*. The
+  count therefore keys each endpoint within its address type: the `targetRef.uid` when the endpoint
+  has a target reference, otherwise its first address (`types.go:92-102`: a controller-made endpoint
+  has exactly one address). An endpoint with neither key counts on its own. An endpoint that appears
+  in several slices counts once, and counts as ready only if no copy says false, so a conflict never
+  claims readiness. The key is used in memory for the count and kept nowhere.
+- **Dual stack.** A dual-stack Service has an IPv4 slice and an IPv6 slice. The two sums are
+  separate key spaces, and the count takes the larger, so the same Pod seen on both addresses is
+  not counted twice. That the two slices list the same Pods is *(K8s, to check, task 1.2 (d))*; the
+  rule gives the right number whether they do or not.
+
+The count is of endpoints, not of addresses within an endpoint. A Service with no kept slice
+carries no count; a Service with kept slices and no ready endpoint carries `0`.
 **Rationale**: "N ready" must read as the number of Pods that take traffic, the thing a reader
 compares with the Replicas fact next to it. The unset-is-ready rule is the documented one, not a
-guess; if task 1.2 finds the API text says otherwise, this paragraph changes before code.
+guess; if task 1.2 finds the documentation says otherwise, this section changes before code.
 **Alternatives**: count `serving` (differs from `ready` while terminating; not what a reader asks);
 derive from the selector and the Pods (OD12 option 2, an invention, Principle IV); show per-slice
-numbers (a topology disclosure, SR5).
+numbers (a topology disclosure, SR5); sum every address type (double counts a dual-stack Service).
 
-### Absent, not locked
+### Could not be read, not absent
 
-**Context**: three states give no number: the caller lacks the review, the portal's reader lacks
-the verb (an install that predates the rule), or the cluster records no slice. Principle IV asks
-that a degraded read is not shown as empty; the brief asks that a caller without the review sees
-nothing that implies a fact.
+**Context**: four states give no number. The caller lacks the review; the portal's reader lacks the
+verb (an install that predates the rule); the list fails, times out or returns a continue token; or
+the cluster records no slice. Principle IV (`openspec/config.yaml:45`) says a degraded read (missing
+permission, unreachable API) "is shown as such, never as empty". The panel already does this for
+the Pods line (`panel-body.html:25`), a caller's own denial included. The first draft of this change
+showed no line in the first three states, to honour the plan's line that a caller without the review
+sees "nothing that implies" a fact. That line was the supervisor's, not the owner's, and the
+proposal gate ruled that the principle wins.
+**What a mark can disclose.** For a caller denied the review the portal makes no read, so a mark
+shown to that caller is the same whether or not slices exist: it tells the caller's own access, which
+`kubectl auth can-i` also tells. For the reader-denied and failed-list states the mark tells the
+portal's state. Neither discloses a slice. (The first draft's claim that a "locked" mark would reveal
+that slices exist was wrong for this reason.)
 **Options considered**:
 
-1. **A distinct mark for each state** ("Endpoints: locked", "not readable"). For the caller without
-   the review, "locked" tells that slices exist in that namespace; the brief rules it out.
-2. **No line in all three states.** The panel makes no claim: neither a zero nor a lock. The
-   existing facts follow the same shape (`appendFact` drops an empty value, `panelfacts.go:86`).
-3. **A line only for the portal-side failure.** Splits the three states, so a reader can infer the
-   caller's state from the other two.
+1. **A distinct mark for each state** ("locked", "not readable", "failed"). Splits states a reader
+   cannot act on differently, and "locked" copies a word the panel uses for a node. More states to
+   test.
+2. **No line in every state.** The first draft. Breaks Principle IV: an operator whose role predates
+   the rule, or whose list timed out, sees the same panel as a Service with no slices.
+3. **A mark only for the portal-side states.** Leaves the denied caller with silence, the same
+   break for that caller.
+4. **One mark, "Could not be read", for the denied caller, the denied reader and the failed list;
+   no line only when no slice is recorded.** Matches the Pods line in words and in the cases it
+   covers.
 
-**Decision**: Option 2: the wire field is absent and the panel shows no Endpoints line in all
-three states. Neither state is rendered as `0 ready`. The cost is that a reader cannot tell "not
-allowed" from "not recorded"; the docs page says what a missing line can mean. Reversibility:
-cheap.
+**Decision**: Option 4. The node carries `endpointsUnread: true` (and no `endpointsReady`) in the
+three states, as `childrenUnread` does for Pods; it carries `endpointsReady` when a count was made,
+including `0`; it carries neither when no slice is recorded. The two fields are never both set; a
+test says so. The panel shows `Endpoints` with the value `Could not be read`, and never `0 ready`
+for a read it could not make. The cost is that a reader cannot tell a denied caller from a denied
+reader from a failed list; the docs page says what the mark can mean (task 5.6). The server log
+names the reason (namespace, Service name and reason, no slice content). Reversibility: cheap.
 
 ## Decisions
 
@@ -210,29 +280,51 @@ var endpointSlices = schema.GroupVersionResource{Group: "discovery.k8s.io", Vers
 
 const serviceNameLabel = "kubernetes.io/service-name"
 
-// endpointsOf returns, per entry, the ready endpoints of an inventory Service for the caller, or
-// nil: the entry is not a readable Service, the caller or the reader may not list slices there, the
-// read failed, or no slice reached the Service.
-func (e *evaluator) endpointsOf(ctx context.Context, entries []health.Entry) []*int64
+// endpointsState is what the read gives for one Service.
+type endpointsState struct {
+	Ready  *int64 // set when a count was made, 0 included
+	Unread bool   // set when the read was not made or failed; never with Ready
+}
+
+// withEndpoints fills EndpointsReady or EndpointsUnread on the Service objects of comps. Only
+// Instance and Package call it, after componentsOf. inventoryHealth, componentsOf, the list
+// views and ReachPod do not.
+func (e *evaluator) withEndpoints(ctx context.Context, ev evaluation, comps []Component)
+
+// endpointsOf decides one Service entry: the state, or the zero value for "show nothing".
+func (e *evaluator) endpointsOf(ctx context.Context, entry health.Entry) endpointsState
 
 // readyEndpoints lists svc's slices (cached for ChildrenTTL) and counts them.
-func (m *Model) readyEndpoints(ctx context.Context, svc *unstructured.Unstructured) (ready int64, found bool)
+func (m *Model) readyEndpoints(ctx context.Context, svc *unstructured.Unstructured) (ready int64, found bool, err error)
 
-// countReady keeps a slice only if its controller owner reference reaches svc by reachInventory,
-// groups the kept slices by addressType, sums endpoints whose conditions.ready is not false, and
-// returns the largest sum. found is false when no slice was kept.
+// countReady keeps a slice only if its addressType is IPv4 or IPv6 and its controller owner
+// reference reaches svc by reachInventory. Within one address type it counts each endpoint once
+// (key: targetRef.uid, else the first address), as ready only if no copy has ready false. It
+// returns the larger of the two sums. found is false when no slice was kept.
 func countReady(slices []unstructured.Unstructured, svc types.UID) (ready int64, found bool)
 ```
 
-Order inside `endpointsOf` for one Service entry: skip unless `Access == AccessOK`, group `""`,
-kind `Service`, object non-nil; `callerAccess(list, endpointSlices, ns, "")` must be `AccessOK`; then
-`readerMay(list, endpointSlices, ns, "")`; then the cache; then a list with
-`LabelSelector: serviceNameLabel + "=" + name` under `readTimeout`. Any error, timeout or refusal
-yields nil and logs the namespace, the Service name and the reason, no slice content
-(`log/slog`, AGENTS.md "Error Handling And Logging"). A slice is counted and dropped, never
-stored. The result is stored in
-`InventoryObject.EndpointsReady *int64` for an entry whose access is OK (`componentsOf`,
-`evaluate.go:251`), and `internal/graph` copies it to `Node.EndpointsReady`
+`evaluation` keeps the `entries` that `inventoryHealth` already builds (a slice of references), so
+`withEndpoints` can reach each Service's object and UID; it matches an entry to its
+`InventoryObject` in `comps` by component name and reference. `Instance` and `Package` create the
+evaluator once (`ev := m.newEvaluator(who)`), call `ev.inventoryHealth`, `componentsOf`, then
+`ev.withEndpoints`.
+
+Order inside `endpointsOf` for one Service entry: skip (the zero value) unless `Access ==
+AccessOK`, group `""`, kind `Service`, object non-nil. Then:
+
+1. `callerAccess(list, endpointSlices, ns, "")` not `AccessOK` (denied or undecidable): `Unread`,
+   no read.
+2. `readerMay(list, endpointSlices, ns, "")` false: `Unread`, no read.
+3. The cache, then a list with `LabelSelector: serviceNameLabel + "=" + name` under `readTimeout`,
+   no page limit. An error, a timeout or a non-empty continue token: `Unread`. A failure is never an
+   undercount.
+4. `found` false: the zero value. Otherwise `Ready` set.
+
+Each `Unread` logs the namespace, the Service name and the reason, no slice content (`log/slog`,
+AGENTS.md "Error Handling And Logging"). A slice is counted and dropped, never stored. The result
+is stored in `InventoryObject.EndpointsReady *int64` and `InventoryObject.EndpointsUnread bool`
+(`views.go`) for an entry whose access is OK, and `internal/graph` copies both to the `Node`
 (`instance.go:352`).
 
 ### The wire
@@ -242,52 +334,77 @@ stored. The result is stored in
   "access": "ok", "endpointsReady": 2 }
 ```
 
-`GraphNode.EndpointsReady *int64 \`json:"endpointsReady,omitempty"\``; `openapi/v1alpha1.yaml`
+```json
+{ "id": "obj:_/Service/default/podinfo-podinfo", "kind": "object", "label": "podinfo-podinfo",
+  "access": "ok", "endpointsUnread": true }
+```
+
+`GraphNode.EndpointsReady *int64 \`json:"endpointsReady,omitempty"\`` and
+`GraphNode.EndpointsUnread bool \`json:"endpointsUnread,omitempty"\``. `openapi/v1alpha1.yaml`
 `GraphNode` gains `endpointsReady: {type: integer, format: int64, minimum: 0}` with a description
-that says "the ready endpoints the cluster records for a Service; absent when the caller may not
-list its EndpointSlices, the portal could not, or none are recorded". It is a pointer so that `0`
-differs from absent. No new path, no new error: a node the caller may not read still carries
-`access` only, and the `InventoryObject` of the Instance document is not changed.
+that says "the ready endpoints the cluster records for a Service; absent when the read was not made
+or failed, or when none are recorded", and `endpointsUnread: {type: boolean}` with "true when the
+ready endpoints of a Service could not be read: the caller or the portal may not list its
+EndpointSlices, or the list failed; never present with endpointsReady". `endpointsReady` is a pointer
+so that `0` differs from absent. No new path, no new error: a node the caller may not read still
+carries `access` only, and the `InventoryObject` of the Instance document is not changed.
 
 ### The panel
 
-`factsOf` is a function of the object document, so the count joins it from the node:
-`objectFacts` (`panelfacts.go:43`) appends `fact{Label: "Endpoints", Value: "N ready"}` after the
-Service's Ports when `n.EndpointsReady != nil`. Value format: `fmt.Sprintf("%d ready", n)`. Plain
-text through `html/template`, not monospace, no tone, no icon: it states a count and judges
-nothing, in the words of the Replicas fact ("2 ready of 2 desired"). The `0 ready` case reads the
-same way. The fixed list of facts grows by this one entry; nothing else changes. States of the
-panel, all existing: loading is the existing `aria-busy` and "Loading..." line; the object document
-unreadable keeps today's note and drops the fact with the other facts; a locked, forbidden or
-not-readable node has no facts and no request (the node carries no count). Empty (no count) and
-permission-denied (no count) are the same: no line (see "Absent, not locked").
+`factsOf` is a function of the object document, so the fact joins it from the node: `objectFacts`
+(`panelfacts.go:43`) appends, after the Service's Ports, `fact{Label: "Endpoints", Value: "N ready"}`
+when `n.EndpointsReady != nil` (value `fmt.Sprintf("%d ready", n)`), and `fact{Label: "Endpoints",
+Value: "Could not be read"}` when `n.EndpointsUnread`. Plain text through `html/template`, not
+monospace, no tone, no icon: it states a count and judges nothing, in the words of the Replicas fact
+("2 ready of 2 desired") and of the Pods line. The `0 ready` case reads the same way. The fixed list
+of facts grows by this one entry; nothing else changes. States of the panel:
 
-At 360 px the facts grid is one column (archived change `align-owner-pages`, task 6.6); one short line adds no
-width, and `TestBrowserPhone` holds it. The text is not colour-coded, so WCAG 2.2 AA contrast and
-non-colour cues need nothing new. The label and value stand in the same `dl` as the other facts, so
-a screen reader reads "Endpoints, 2 ready" in the order of the list.
+- **Loading:** the existing `aria-busy` and "Loading..." line.
+- **Empty (no slice recorded):** no Endpoints line.
+- **Error (the read failed, or the portal's reader is denied):** `Endpoints: Could not be read`.
+- **Permission denied (the caller lacks the review):** the same `Endpoints: Could not be read`, with
+  the Service's other facts shown.
+- **Object document unreadable:** today's note, and the facts of the object, the Endpoints fact
+  with them, are dropped.
+- **Node locked, forbidden or not readable:** no facts and no request, as now; the node carries no
+  count and no flag.
+
+At 360 px the facts grid is one column (archived change `align-owner-pages`, task 6.6); one short
+line adds no width, and `TestBrowserPhone` holds it. The text carries the state, not colour, so
+WCAG 2.2 AA contrast and non-colour cues need nothing new. The label and value stand in the same
+`dl` as the other facts, so a screen reader reads "Endpoints, 2 ready" or "Endpoints, Could not be
+read" in the order of the list. No element is focusable or new, so no keyboard path changes.
 
 ### Tests, and the new authorization case
 
 The case that must be able to fail: over F1 plus the recorded slice fixture, the caller `alice`
 with `AllowAll` reads `endpointsReady: 2` on podinfo's Service node; the same read with
-`DenyResources("endpointslices")` (the Service, Pods and the rest still allowed) carries no
-`endpointsReady`, and the panel shows no Endpoints line. A test that reused the Service's review
-would pass the first half and fail the second. Beside it:
+`DenyResources("endpointslices")` (the Service, Pods and the rest still allowed) carries
+`endpointsUnread: true` and no `endpointsReady`, and the panel shows `Endpoints: Could not be read`.
+A test that reused the Service's review would pass the first half and fail the second. Beside it:
 
 - **No read for a denied caller.** `readmodeltest.Actions` on the fake dynamic client shows no
   `list` of `endpointslices` when the caller's review is denied, and `Reviews.Asked()` shows a
   review with verb `list` and resource `endpointslices` in the Service's namespace when it is allowed.
 - **Per caller at serve time.** Caller A (allowed) reads and fills the cache; caller B (denied)
-  reads next and gets no count; the cache is warm for A.
-- **Fail closed.** A review that errors, and a reader that may not list, give no count and no panic.
+  reads next and gets `Unread` and no count; the cache is warm for A.
+- **Fail closed, shown as such.** A review that errors, a review that times out, a reader that may
+  not list, a list that errors, a list that times out and a list that returns a continue token each
+  give `Unread`, no count and no panic, and never `0`.
+- **No slice is not unread.** A Service with no slice carries neither field and the panel shows no
+  line.
+- **The two fields never meet.** No node carries both `endpointsReady` and `endpointsUnread`.
+- **Detail paths only.** `ListInstances`, the package list and `ReachPod` make no review of
+  `endpointslices` and no list of it (`Reviews.Asked()` and `Actions` are empty for it).
 - **Numbers only.** The fixture slices carry sentinel strings in every address, hostname, node name,
   zone, target Pod name and label value; the instance, graph, object, events and stream documents
   and every page contain none of them.
 - **Reach.** A slice with the label and no owner reference, a slice owned by another Service, and a
   slice owned by a Service outside the inventory add nothing.
 - **Count rules.** Table test of `countReady`: unset ready, false, terminating, two slices, a
-  dual-stack pair, only a placeholder slice (`0`), no slice (absent).
+  dual-stack pair, an FQDN slice (skipped), an endpoint in two slices of one type (counted once), the
+  same endpoint with ready true in one copy and false in the other (not counted), an endpoint without
+  `targetRef` (keyed by its address), only a placeholder slice (`0`), no slice (absent).
 - **D7:R4.** `GET .../object` for an EndpointSlice ref is refused like any object no inventory
   reaches.
 - **Other kinds unchanged.** The health rollup and the Applied badge of the Service are equal with
@@ -296,9 +413,9 @@ would pass the first half and fail the second. Beside it:
 The UI test reads the node from the API in process, as every panel test does. The browser check
 extends `TestBrowserOwner` (the details panel of an owner page) to select podinfo's Service node
 over F1 plus the slice fixture and read the Endpoints line, and `TestBrowserPhone` holds 360 px.
-The live check, `task e2e:m1` against the fixture cluster, gains an assertion that podinfo's
-Service node reports `endpointsReady` equal to its ready Pods. The implementing agent runs e2e
-only if its brief allows; otherwise the nightly `E2E` workflow runs it and the report says so.
+The live check, `task e2e:m1` against the throwaway fixture cluster
+`E2E_CLUSTER=opm-portal-e2e-show-service-endpoints`, gains an assertion that podinfo's Service node
+reports `endpointsReady` equal to its ready Pods.
 
 ### The recorded slice
 
@@ -306,10 +423,13 @@ F1 holds no EndpointSlice and is not recaptured by this change (a recapture woul
 golden for one kind). Section 1 records a live slice of the fixture cluster's podinfo Service, with
 `managedFields` and the last-applied annotation removed, as
 `internal/readmodel/testdata/endpointslices-podinfo.yaml`, and a helper in `readmodeltest` adds it
-to F1 the way `F1Broken` adds its samples. The capture check
-(`task e2e:capture:check`) covers only `testdata/clusters/`; the file holds Pod IPs and a node name of
-a throwaway kind cluster, nothing else, and carries no Secret. Recapturing F1 with slices is a
-follow-up the supervisor may want.
+to F1 the way `F1Broken` adds its samples. The capture check (`task e2e:capture:check`,
+`Taskfile.yml:151-155`) scans only `testdata/clusters/`, so the helper's own test does the same
+refusal for this file: it fails on a Secret, on `managedFields` and on the last-applied annotation,
+and so a later recapture cannot keep them unnoticed. (The other option, moving the file under
+`testdata/clusters/`, would put a `List` file among F1-shaped captures; the test is the smaller
+change.) The file holds Pod IPs and a node name of a throwaway kind cluster, nothing else, and
+carries no Secret. Recapturing F1 with slices is a follow-up the supervisor may want.
 
 ## Risks / Trade-offs
 
@@ -324,10 +444,17 @@ follow-up the supervisor may want.
   with `get` on the Service) → the proposal and the docs page call the number the cluster's record,
   not proof of health, and the panel claims nothing more (Principle IV).
 - **`deploy/` mode widens what every token holder sees** → stated in the proposal, the README and the
-  portal-security page; the rule is `list` only, one integer reaches the page.
+  portal-security page; the rule is `list` only, one integer reaches the page. D11 is edited as a
+  role-contract change (task 5.5).
 - **A label-selected list is bounded by the Service, not by the namespace** → the call sets no page
   limit, so the answer is whole, and `readTimeout` bounds it. A Service has one slice for every
   hundred endpoints or so (*K8s, to check*). If a response ever carried a continue token, the code
-  treats it as a failed read (no count) and never as an undercount.
+  treats it as a failed read (`Unread`) and never as an undercount.
+- **A detail read waits for one list per Service** → a cold detail read of an instance with many
+  Services lists once for each, each bounded by `readTimeout`; the lists and `ReachPod` are not
+  affected. If the wait shows in practice, the lists of one namespace can run together; that is an
+  implementation detail inside `withEndpoints`.
+- **The mark does not say why** → `Could not be read` covers three causes; the log and the docs page
+  name them. A distinct mark for each stays a cheap follow-up.
 - **A second read path** → one file, one function the evaluator calls, tested beside the children
   tests; `childrenIn` is not touched.
