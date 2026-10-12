@@ -1,8 +1,8 @@
 ## 1. Wire
 
-- [ ] 1.1 Add the task `cite-lint` to `Taskfile.yml` and run it (0 findings)
-- [ ] 1.2 Add `.github/workflows/cite-lint.yml` that calls the reusable workflow
-- [ ] 1.3 List the task and the workflow in `AGENTS.md`
+- [x] 1.1 Add the task `cite-lint` to `Taskfile.yml` and run it (0 findings)
+- [x] 1.2 Add `.github/workflows/cite-lint.yml` that calls the reusable workflow
+- [x] 1.3 List the task and the workflow in `AGENTS.md`
 
 ## 2. Close
 
