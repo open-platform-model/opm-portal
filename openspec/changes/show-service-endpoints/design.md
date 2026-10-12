@@ -26,8 +26,19 @@ See proposal.md for why. The current state, read from the base `origin/main` (88
   (`instances.go:46`), `Package` (`packages.go:45`) and `ReachPod` (`reach.go:86`). `componentsOf`
   (`evaluate.go:251`) is a pure function of an evaluation. It is called by `Instance`
   (`instances.go:56`), `Package` (`packages.go:55`) and by `reachedVia` (`reach.go:124`) for
-  `ReachPod`. Only `Instance` and `Package` serve the graph the panel reads. A count computed in
-  `inventoryHealth` would therefore run for every list row and every log-topic admission.
+  `ReachPod`. `Instance` and `Package` are themselves called by more paths than the panel's graph:
+  the graph handlers `instanceGraph` (`internal/api/handlers.go:192`) and `packageGraph` (`:261`,
+  through `packageWithSource`); the Instance and Package documents and their stream topics
+  (`handlers.go:168`, `source.go:26`, `producer.go:192,196`); the owner events endpoints and the
+  named-object check (`ownerComponents`, `handlers.go:598-604`, called at `:467` and `:572`); and the
+  provider lookup of the Platform graph (`lookupProvider`, `handlers.go:324`). Only the two graph
+  handlers return the Service graph nodes the panel reads. The Instance and Package documents carry
+  no field for the count (`convert.go:128-151`, `inventoryObject`), the stream topics render those
+  documents, and the Platform graph keeps only an instance's own node and its registration
+  (`internal/graph/platform.go:145,177-182`). A count computed in `inventoryHealth` would run for every
+  list row and every log-topic admission; a count computed in `Instance` and `Package` would still
+  run for the documents, the stream, the events endpoints and the provider lookup, none of which
+  shows it.
 - **How a caller's access is decided.** `callerAccess` (`internal/readmodel/access.go:30`) asks the
   authorizer for the caller; `readerMay` (`access.go:59`) asks for the portal's own reader. Every
   read is preceded by both (`children.go:152` to `159`). `internal/authz/attributes.go` accepts any
@@ -60,8 +71,9 @@ See proposal.md for why. The current state, read from the base `origin/main` (88
 **Non-Goals:**
 
 - A watch on EndpointSlices, so the count does not follow a Pod's readiness live (see "Reading").
-- The count on the hover card, the Resources tab, the Instance document, the instance and package
-  lists or `ReachPod`.
+- The count on the hover card, the Resources tab, the Instance and Package documents and their
+  stream topics, the owner events endpoints, the provider lookup, the instance and package lists or
+  `ReachPod`.
 - A second health signal: the count changes no Applied or Health badge and no rollup (portal:D3).
 - Showing the endpoints themselves, or per-address-type counts.
 
@@ -150,7 +162,7 @@ existing, reviewed mechanism (`internal/authz`, `portal:D5/D6`) and adds no mech
 ### Reading
 
 **Context**: the count must be per Service, cheap, per caller at serve time, and hold no slice. It
-is needed only by the Instance and Package detail documents (see "Who evaluates an inventory").
+is needed only by the instance graph and the package graph documents (see "Who evaluates an inventory").
 **Options considered**:
 
 1. **A watch (informer) per namespace.** Live, but needs `watch` (a second SR10 widening, and a
@@ -162,13 +174,18 @@ is needed only by the Instance and Package detail documents (see "Who evaluates 
    `internal/readmodel/model.go:41`).** Matches how the runtime children are read when nobody holds
    interest (`children.go:144`), and adds no setting.
 
-**Decision**: Option 3, run only on the detail paths: after `componentsOf` in `Instance` and
-`Package`, by a new step that those two functions call (see "The read, in Go"). `inventoryHealth`,
-`componentsOf`, `ListInstances`, the package list and `ReachPod` make no review and no list for the
-count. A list view that needs the count later is a separate change. The cache key is namespace and
-Service name, and it holds the integer and whether any slice was found, never a slice. A failed
-read is not cached, so the next detail read tries again; it is bounded by the one detail read that
-asks. The caller's review and the reader's review run before each serve, never when the cache is
+**Decision**: Option 3, run only on the two paths whose response carries the Service graph nodes the
+panel reads: `GET .../instances/{namespace}/{name}/graph` (`instanceGraph`) and
+`GET .../packages/{namespace}/{name}/graph` (`packageGraph`). They ask the model for the count
+through two new methods, `Model.InstanceWithEndpoints` and `Model.PackageWithEndpoints`, which run
+`Instance` and `Package` and then a new step (see "The read, in Go"). `Instance` and `Package`
+themselves, `inventoryHealth`, `componentsOf`, `ListInstances`, the package list and `ReachPod` make
+no review and no list for the count. So these paths do not read: the Instance and Package documents
+and their stream topics, the owner events endpoints and their named-object check, the provider
+lookup of the Platform graph, the lists and the log-topic admission. A list view that needs the
+count later is a separate change. The cache key is namespace and Service name, and it holds the
+integer and whether any slice was found, never a slice. A failed read is not cached, so the next
+graph read tries again; it is bounded by the one graph read that asks. The caller's review and the reader's review run before each serve, never when the cache is
 filled, so one caller's allow never serves another (read-authorization, "Decisions are cached
 briefly per identity and request"). Entries leave the cache in the same sweep that drops expired
 child lists (`internal/readmodel/tier2.go`). The cost is that the count can lag a Pod's readiness by
@@ -184,8 +201,15 @@ of address type IPv4 and IPv6, counts each endpoint once within an address type,
 sum over the two types.
 
 - **Ready.** The pinned `k8s.io/api` v0.37.1 documents an unset `ready` as "true"
-  (`discovery/v1/types.go:146-153`: "A nil value should be interpreted as 'true'"). A terminating
-  endpoint is `ready` false in the same text ("marked ready if it is serving and not terminating").
+  (`discovery/v1/types.go:146-153`: "A nil value should be interpreted as \"true\". In general, an
+  endpoint should be marked ready if it is serving and not terminating, though this can be
+  overridden in some cases, such as when the associated Service has set the
+  publishNotReadyAddresses flag."). So a terminating endpoint is `ready` false in general, and on a
+  Service with `publishNotReadyAddresses` set the controller can list a Pod that is not ready with
+  `ready` true. The count follows the slice and does not read the Service's flag, so on such a Service
+  (common for a headless StatefulSet Service) "N ready" can exceed the Pods that pass their
+  readiness probe. Task 1.2 (c) observes it on the cluster if it can; the docs page says it (task
+  5.6).
 - **Address types.** The type documentation says the EndpointSlice controller "only generates, and
   kube-proxy only processes, slices of addressType IPv4 and IPv6" and that "no semantics are
   defined for the FQDN type" (`types.go:41-50`). A slice of type FQDN (or any other type) is always
@@ -287,8 +311,8 @@ type endpointsState struct {
 }
 
 // withEndpoints fills EndpointsReady or EndpointsUnread on the Service objects of comps. Only
-// Instance and Package call it, after componentsOf. inventoryHealth, componentsOf, the list
-// views and ReachPod do not.
+// InstanceWithEndpoints and PackageWithEndpoints call it, after componentsOf. Instance, Package,
+// inventoryHealth, componentsOf, the list views and ReachPod do not.
 func (e *evaluator) withEndpoints(ctx context.Context, ev evaluation, comps []Component)
 
 // endpointsOf decides one Service entry: the state, or the zero value for "show nothing".
@@ -306,9 +330,13 @@ func countReady(slices []unstructured.Unstructured, svc types.UID) (ready int64,
 
 `evaluation` keeps the `entries` that `inventoryHealth` already builds (a slice of references), so
 `withEndpoints` can reach each Service's object and UID; it matches an entry to its
-`InventoryObject` in `comps` by component name and reference. `Instance` and `Package` create the
-evaluator once (`ev := m.newEvaluator(who)`), call `ev.inventoryHealth`, `componentsOf`, then
-`ev.withEndpoints`.
+`InventoryObject` in `comps` by component name and reference. `Instance` and `Package` become thin
+wrappers over unexported `instance` and `pkg` functions that take a `withEndpoints` flag; they pass
+`false`. `InstanceWithEndpoints` and `PackageWithEndpoints` pass `true`. The shared body creates the
+evaluator once (`ev := m.newEvaluator(who)`), calls `ev.inventoryHealth`, `componentsOf`, then
+`ev.withEndpoints` only when the flag is set. In `internal/api`, `instanceGraph` and `packageGraph`
+ask for the flag (`instanceDetail` and `packageWithSource` gain a `withEndpoints` argument); every
+other caller passes `false`.
 
 Order inside `endpointsOf` for one Service entry: skip (the zero value) unless `Access ==
 AccessOK`, group `""`, kind `Service`, object non-nil. Then:
@@ -394,8 +422,11 @@ A test that reused the Service's review would pass the first half and fail the s
 - **No slice is not unread.** A Service with no slice carries neither field and the panel shows no
   line.
 - **The two fields never meet.** No node carries both `endpointsReady` and `endpointsUnread`.
-- **Detail paths only.** `ListInstances`, the package list and `ReachPod` make no review of
-  `endpointslices` and no list of it (`Reviews.Asked()` and `Actions` are empty for it).
+- **Graph paths only.** `Instance`, `Package`, `ListInstances`, the package list and `ReachPod` make
+  no review of `endpointslices` and no list of it (`Reviews.Asked()` and `Actions` are empty for it).
+  At the API, the Instance and Package documents and their stream snapshot, the owner events
+  endpoints (and the named-object check), the provider lookup of the Platform graph and both lists
+  ask none either; the instance graph and the package graph ask one review for each Service.
 - **Numbers only.** The fixture slices carry sentinel strings in every address, hostname, node name,
   zone, target Pod name and label value; the instance, graph, object, events and stream documents
   and every page contain none of them.
@@ -450,9 +481,9 @@ carries no Secret. Recapturing F1 with slices is a follow-up the supervisor may 
   limit, so the answer is whole, and `readTimeout` bounds it. A Service has one slice for every
   hundred endpoints or so (*K8s, to check*). If a response ever carried a continue token, the code
   treats it as a failed read (`Unread`) and never as an undercount.
-- **A detail read waits for one list per Service** → a cold detail read of an instance with many
-  Services lists once for each, each bounded by `readTimeout`; the lists and `ReachPod` are not
-  affected. If the wait shows in practice, the lists of one namespace can run together; that is an
+- **A graph read waits for one list per Service** → a cold graph read of an instance with many
+  Services lists once for each, each bounded by `readTimeout`; the documents, the stream, the events
+  endpoints, the provider lookup, the lists and `ReachPod` are not affected. If the wait shows in practice, the lists of one namespace can run together; that is an
   implementation detail inside `withEndpoints`.
 - **The mark does not say why** → `Could not be read` covers three causes; the log and the docs page
   name them. A distinct mark for each stays a cheap follow-up.

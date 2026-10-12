@@ -29,9 +29,11 @@ and nothing else about them.
   Service but not its EndpointSlices sees no count; the panel says `Could not be read`, which
   states the caller's own access and nothing about the slices, because the portal makes no read
   for that caller. This is the new authorization case of the plan's security requirement SR5.
-- **The count is computed on the detail pages only.** The read runs for the Instance and Package
-  detail documents, which build the panel's graph. It does not run for the instance or package
-  lists, and not for `ReachPod` (the log-topic admission), which evaluate an inventory too.
+- **The count is computed on the two graph paths only.** The read runs for the instance graph and
+  the package graph documents, the only responses that carry the Service nodes the panel reads. It
+  does not run for the Instance and Package documents or their stream topics, the owner events
+  endpoints, the Platform graph's provider lookup, the instance or package lists, or `ReachPod` (the
+  log-topic admission), which all evaluate an inventory too.
 - **One new ClusterRole rule.** `deploy/clusterrole.yaml` gains `list` on `discovery.k8s.io`
   `endpointslices`, and nothing else: no `get`, no `watch`, no wildcard, no Secret (SR10). The role
   test holds the rule to exactly that.
@@ -58,8 +60,8 @@ and nothing else about them.
 
 Section 1 is a spike. It reads a live EndpointSlice of a fixture Service and writes the finding
 into design.md. If the controller does not set the owner reference the design relies on, the
-change stops there and goes back to the supervisor, because the slices would then not be runtime
-children and `portal:D7` would need an amendment the owner decides.
+change stops there and goes back to the supervisor, because the slices would then not be owned by
+an inventory Service and `portal:D7` would need an amendment the owner decides.
 
 ## Principle V
 
@@ -125,9 +127,9 @@ None.
 
 - `read-authorization`: adds the rule that a Service's EndpointSlices are read under their own
   review, never the Service's.
-- `read-model`: adds the ready count of an inventory Service, read as runtime children and
-  reduced to a number.
-- `read-api`: adds `endpointsReady` to the Service's graph node.
+- `read-model`: adds the ready count of an inventory Service, read for slices owned by that Service
+  and reduced to a number.
+- `read-api`: adds `endpointsReady` and `endpointsUnread` to the Service's graph node.
 - `web-ui`: adds the Endpoints fact to the Service panel, in the fixed list of facts.
 - `deploy-manifest`: adds `list` on `endpointslices` to what the role grants, and holds it to that.
 
@@ -145,7 +147,8 @@ None.
   `feat`, which releases, and carries no `!`.
 - **Complexity (Principle VII):** one read path, no new dependency, no new background watch. The
   cost is one label-selected list per inventory Service per ten seconds, and only while a caller
-  reads an Instance or Package detail document. The list views and `ReachPod` make no review and no
-  list for it (design.md, "Reading" and "The read, in Go").
+  reads an instance graph or a package graph. The Instance and Package documents and their stream,
+  the owner events endpoints, the provider lookup, the list views and `ReachPod` make no review and
+  no list for it (design.md, "Reading" and "The read, in Go").
 - **Not in this change:** a watch on EndpointSlices, a per-endpoint view, the Endpoints count on
   the Resources tab or the hover card, and any readiness for another kind.

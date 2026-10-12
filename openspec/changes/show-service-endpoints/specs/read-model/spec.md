@@ -40,16 +40,18 @@ count. The mark and a count SHALL never be set together. Source: portal:D3:R2, p
 - **THEN** the Service carries the unread mark and no count, the failure is logged without slice
   content, and the health of every object is unchanged
 
-### Requirement: The count is computed for detail views only
+### Requirement: The count is computed for the graph views only
 
-The count and the unread mark SHALL be computed only when the Instance or Package detail view is
-built. The instance list, the package list and the admission of a log topic SHALL ask no review of
-`endpointslices` and make no list of it. Source: portal:D3:R2.
+The count and the unread mark SHALL be computed only when the instance graph or the package graph
+is built. The Instance and Package documents and their stream topics, the owner events endpoints,
+the provider lookup of the Platform graph, the instance list, the package list and the admission of
+a log topic SHALL ask no review of `endpointslices` and make no list of it. Source: portal:D3:R2.
 
-#### Scenario: Lists and log admission
+#### Scenario: Paths that do not show the count
 
-- **WHEN** a client reads the instance list or the package list, or the portal admits a log topic
-  for a Pod
+- **WHEN** a client reads an Instance or Package document, opens its stream topic, reads the events
+  of an owner or of a named object, reads the Platform graph, reads the instance list or the package
+  list, or the portal admits a log topic for a Pod
 - **THEN** no review of `endpointslices` is asked and no list of `endpointslices` is made
 
 ### Requirement: Only slices that reach the Service are counted
