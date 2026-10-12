@@ -1,6 +1,6 @@
 """owner.py: the owner page's details panel, selection and Resources hand-off, in a real browser.
 
-Usage: python3 owner.py <browser> <site URL>
+Usage: python3 owner.py <browser> <site URL> [<counted site URL> <unread site URL>]
 
 The site is the portal's UI over the F1 capture, under the portal's page policy, which forbids
 eval inside the page: the script waits with selectors and URL predicates. Checks, each printing
@@ -32,6 +32,13 @@ one line, exiting 1 on the first failure:
    follows its own topic with no click, and the stream is told to add that topic and drop the old
    pane's. This runs the htmx:afterSettle listener of portal.js that follows a swapped-in pane,
    which the logs.py stub (no htmx) cannot.
+
+9. A Service's Endpoints fact (show-service-endpoints). Run only when the two extra sites are given:
+   the F1 capture plus the recorded EndpointSlice, once for a caller who may list EndpointSlices and
+   once for a caller who may not. Selecting podinfo's Service node (from the keyboard) shows the
+   Endpoints fact `2 ready` on the first, in plain text beside the Service's Type and Ports, and
+   `Could not be read` on the second with the same Type and Ports, never `0 ready`, and no text on
+   either panel that names EndpointSlices or says what is denied.
 
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
@@ -90,7 +97,7 @@ def activate(page, selector):
     page.keyboard.press("Enter")
 
 
-def run(p, engine, base):
+def run(p, engine, base, extra=()):
     browser = getattr(p, engine).launch()
     page = browser.new_context(viewport={"width": 1440, "height": 900}).new_page()
     try:
@@ -154,8 +161,11 @@ def run(p, engine, base):
         panel_is(page, DEP)
         if not check(engine, "focus=" in page.url, f"a click on the row opened {page.url} with the panel filled"):
             return False
-        return events_tab(page, engine, base) and panel_insets(page, engine, base) and stale_node(page, engine, base) \
+        ok = events_tab(page, engine, base) and panel_insets(page, engine, base) and stale_node(page, engine, base) \
             and logs_swap(page, engine, base)
+        if ok and extra:
+            ok = service_endpoints(page, engine, *extra)
+        return ok
     except Exception:
         print(f"{engine}: FAIL at {page.url}")  # the address shows which step stopped
         shoot(page)
@@ -255,6 +265,42 @@ def stale_node(page, engine, base):
                  f"a reload after Clear selection rests on the ModuleInstance at {page.url}")
 
 
+def service_fact(page, label):
+    """The text of a fact of the panel in #detail, or None when the panel does not show it."""
+    value = page.locator(f'#detail .facts dt:text-is("{label}") + dd')
+    return value.first.text_content().strip() if value.count() else None
+
+
+def select_service(page, base):
+    """Opens the Graph tab at base and selects podinfo's Service from the keyboard; the panel's own
+    heading is not enough to wait on (the Deployment has the same name), so it waits for the Service's
+    Object fact."""
+    page.goto(base + PODINFO + "?tab=graph")
+    panel_is(page, ROOT)
+    activate(page, f'.node[data-node="{SERVICE}"]')
+    expect(page.locator('#detail .facts dt:text-is("Object") + dd')).to_contain_text("Service")
+    expect(page.locator('#detail .facts dt:text-is("Type") + dd')).to_have_text("ClusterIP")
+
+
+def service_endpoints(page, engine, counted, unread):
+    """9. The Service panel's Endpoints fact, counted and unread."""
+    select_service(page, counted)
+    value = service_fact(page, "Endpoints")
+    plain = page.locator('#detail .facts dt:text-is("Endpoints") + dd').first.get_attribute("class")
+    ports = service_fact(page, "Ports")
+    if not check(engine, value == "2 ready" and plain is None and ports,
+                 f"the Service panel reads Endpoints {value!r} in plain text beside Ports {ports!r}"):
+        return False
+    select_service(page, unread)
+    value = service_fact(page, "Endpoints")
+    detail = page.locator("#detail").text_content()
+    ports = service_fact(page, "Ports")
+    named = [w for w in ("endpointslice", "endpoint slice", "forbidden", "denied") if w in detail.lower()]
+    return check(engine, value == "Could not be read" and "0 ready" not in detail and ports and not named,
+                 f"with the slices' review denied the Service panel reads Endpoints {value!r}, never '0 ready', "
+                 f"keeps Ports {ports!r} and names {named or 'nothing denied'}")
+
+
 def logs_swap(page, engine, base):
     """8. A Logs select change swaps the page in place (htmx, no reload); the swapped pane follows
     its own topic, and the stream is told to add it and to drop the old pane's. Only the real page
@@ -312,8 +358,12 @@ def main() -> int:
         print(__doc__)
         return 2
     engine, base = sys.argv[1], sys.argv[2].rstrip("/")
+    extra = tuple(u.rstrip("/") for u in sys.argv[3:5])
+    if len(extra) == 1:
+        print(__doc__)
+        return 2
     with sync_playwright() as p:
-        return 0 if run(p, engine, base) else 1
+        return 0 if run(p, engine, base, extra) else 1
 
 
 if __name__ == "__main__":
