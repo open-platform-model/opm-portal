@@ -822,6 +822,11 @@ its health, and its facts:
 
 - for a Deployment, StatefulSet, DaemonSet, ReplicaSet, Pod or Service, the replica, image,
   strategy, node, restart, start, type and port facts its object document carries;
+- for a Service also, an Endpoints fact. When its graph node carries `endpointsReady` the fact
+  reads "N ready" and nothing more: the count the cluster records in the Service's EndpointSlices,
+  which is not proof that the Service works. When the node carries `endpointsUnread` the fact reads
+  "Could not be read", the words of the Pods line, and never "0 ready". When the node carries
+  neither, because the cluster records no slice, the fact is left out;
 - for a component, that a component is not a Kubernetes object and has no events or YAML of its
   own, and what it renders;
 - for the item's own node, its identity facts and an Events link, and no link to the page already
@@ -859,7 +864,7 @@ Logs SHALL pick a Pod and container and follow its log as the logs panel does to
 
 YAML SHALL pick an object grouped by kind, open on the selected (`node`) object, else the
 focused (`focus`) object, else the first readable object, and show no Secret and no values.
-Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
+Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7, portal:D7, portal:D11:R7.
 
 #### Scenario: From Resources to the graph
 
@@ -975,6 +980,48 @@ Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7.
 
 - **WHEN** the user follows the Deployment's name in a line of podinfo's Events tab
 - **THEN** the tab lists only the Deployment's events, and the Resource choice reads its name
+
+#### Scenario: A Service's ready endpoints
+
+- **WHEN** the panel opens on podinfo's Service and its graph node carries `endpointsReady` 2
+- **THEN** the facts list ends with an Endpoints fact that reads "2 ready"
+
+#### Scenario: A Service with no ready endpoint
+
+- **WHEN** the panel opens on a Service whose graph node carries `endpointsReady` 0
+- **THEN** the Endpoints fact reads "0 ready", in the same words and without a tone
+
+#### Scenario: A Service whose endpoints the caller may not list
+
+- **WHEN** the caller may read Services but not EndpointSlices and the panel opens on podinfo's
+  Service
+- **THEN** the panel shows the Service's other facts and an Endpoints fact that reads "Could not be
+  read", no count, and nothing on the page names EndpointSlices or says what is denied
+
+#### Scenario: Endpoints the portal could not read
+
+- **WHEN** the portal's reader may not list EndpointSlices, or the list fails or times out, and
+  the panel opens on podinfo's Service
+- **THEN** the Endpoints fact reads "Could not be read", the same words as for a denied caller,
+  and it does not read "0 ready"
+
+#### Scenario: A Service with no recorded slice
+
+- **WHEN** the caller and the portal may list EndpointSlices and the cluster records none for the
+  Service
+- **THEN** the panel shows the Service's other facts and no Endpoints line
+
+#### Scenario: Endpoints at 360 px
+
+- **WHEN** a browser 360 px wide opens the panel on a Service whose Endpoints fact reads "2 ready"
+  or "Could not be read"
+- **THEN** the page does not scroll sideways
+
+#### Scenario: Nothing but a number
+
+- **WHEN** the panel opens on a Service whose slices hold addresses, a hostname, a node name and
+  Pod names
+- **THEN** none of those strings appears anywhere in the page
 
 ### Requirement: Graphs can be explored without leaving the page
 
