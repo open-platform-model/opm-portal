@@ -406,7 +406,9 @@ AccessOK`, group `""`, kind `Service`, object non-nil. Then:
 4. `found` false: the zero value. Otherwise `Ready` set.
 
 Each `Unread` logs the namespace, the Service name and the reason, no slice content (`log/slog`,
-AGENTS.md "Error Handling And Logging"). A slice is counted and dropped, never stored. The result
+AGENTS.md "Error Handling And Logging"). The level is Debug when the caller's own review refuses
+`list` on `endpointslices` (an expected denial is not a portal fault) and Warn for every other cause:
+the reader's refusal, an undecidable review, an error, a timeout or a continue token. A slice is counted and dropped, never stored. The result
 is stored in `InventoryObject.EndpointsReady *int64` and `InventoryObject.EndpointsUnread bool`
 (`views.go`) for an entry whose access is OK, and `internal/graph` copies both to the `Node`
 (`instance.go:352`).

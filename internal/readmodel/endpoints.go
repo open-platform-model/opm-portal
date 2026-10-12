@@ -113,17 +113,23 @@ func objectRefOf(r health.Ref) ObjectRef {
 func (e *evaluator) endpointsOf(ctx context.Context, entry health.Entry) endpointsState {
 	svc := entry.Object
 	ns := svc.GetNamespace()
-	if e.m.callerAccess(ctx, e.who, "list", endpointSlices, ns, "") != health.AccessOK {
-		unreadEndpoints(ctx, svc, "the caller may not list endpointslices")
+	if access := e.m.callerAccess(ctx, e.who, "list", endpointSlices, ns, ""); access != health.AccessOK {
+		// The caller's own refusal is expected, not a portal fault; an
+		// undecidable review is one.
+		if access == health.AccessForbidden {
+			unreadEndpoints(ctx, svc, slog.LevelDebug, "the caller may not list endpointslices")
+		} else {
+			unreadEndpoints(ctx, svc, slog.LevelWarn, "the review of the caller could not be decided")
+		}
 		return endpointsState{Unread: true}
 	}
 	if !e.m.readerMay(ctx, "list", endpointSlices, ns, "") {
-		unreadEndpoints(ctx, svc, "the portal's reader may not list endpointslices")
+		unreadEndpoints(ctx, svc, slog.LevelWarn, "the portal's reader may not list endpointslices")
 		return endpointsState{Unread: true}
 	}
 	ready, found, err := e.m.readyEndpoints(ctx, svc)
 	if err != nil {
-		unreadEndpoints(ctx, svc, listFailure(err))
+		unreadEndpoints(ctx, svc, slog.LevelWarn, listFailure(err))
 		return endpointsState{Unread: true}
 	}
 	if !found {
@@ -149,9 +155,10 @@ func listFailure(err error) string {
 }
 
 // unreadEndpoints logs why no count was served: the Service's namespace and
-// name and a reason in words, nothing a slice holds.
-func unreadEndpoints(ctx context.Context, svc *unstructured.Unstructured, reason string) {
-	slog.WarnContext(ctx, "endpoint count not served",
+// name and a reason in words, nothing a slice holds. The level is Debug for
+// the caller's own refusal and Warn for a fault of the portal or its role.
+func unreadEndpoints(ctx context.Context, svc *unstructured.Unstructured, level slog.Level, reason string) {
+	slog.Log(ctx, level, "endpoint count not served",
 		"namespace", svc.GetNamespace(), "service", svc.GetName(), "reason", reason)
 }
 

@@ -421,3 +421,66 @@ func TestEndpointsLeakNothingOfTheSlices(t *testing.T) {
 		}
 	}
 }
+
+// levelLog records the level of every record the default slog logger gets.
+type levelLog struct {
+	slog.Handler
+	levels *[]slog.Level
+}
+
+func (l levelLog) Handle(ctx context.Context, r slog.Record) error {
+	*l.levels = append(*l.levels, r.Level)
+	return l.Handler.Handle(ctx, r)
+}
+
+// captureLevels sends the default slog logger, at Debug, to a recorder of
+// record levels for the test.
+func captureLevels(t *testing.T) *[]slog.Level {
+	t.Helper()
+	var levels []slog.Level
+	var buf bytes.Buffer
+	prev := slog.Default()
+	h := slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug})
+	slog.SetDefault(slog.New(levelLog{Handler: h, levels: &levels}))
+	t.Cleanup(func() { slog.SetDefault(prev) })
+	return &levels
+}
+
+// The caller's own refusal of the slices is expected and logs at Debug; the
+// reader's refusal, an undecidable review and a failed list are faults of the
+// portal or its role and stay at Warn. Each case logs exactly one record.
+func TestEndpointsUnreadLogLevels(t *testing.T) {
+	cases := []struct {
+		name string
+		want slog.Level
+		env  func(t *testing.T) *env
+	}{
+		{"the caller may not list slices", slog.LevelDebug, func(t *testing.T) *env {
+			return newEnv(t, withSlices(t), denyResources("endpointslices"), allowAll)
+		}},
+		{"the reader may not list slices", slog.LevelWarn, func(t *testing.T) *env {
+			return newEnv(t, withSlices(t), allowAll, denyResources("endpointslices"))
+		}},
+		{"the review cannot be decided", slog.LevelWarn, func(t *testing.T) *env {
+			return newEnv(t, withSlices(t), allowAll, allowAll, func(c *Config) {
+				c.Authorizer = unavailableFor{resource: "endpointslices", inner: c.Authorizer}
+			})
+		}},
+		{"the list fails", slog.LevelWarn, func(t *testing.T) *env {
+			e := newEnv(t, withSlices(t), allowAll, allowAll)
+			e.client.PrependReactor("list", "endpointslices", sliceListFailures()["an error"])
+			return e
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			e := tc.env(t)
+			levels := captureLevels(t)
+			d := e.instanceWithEndpoints(t, "default", "podinfo")
+			wantUnread(t, podinfoNode(t, &d))
+			if len(*levels) != 1 || (*levels)[0] != tc.want {
+				t.Errorf("log levels = %v, want exactly [%v]", *levels, tc.want)
+			}
+		})
+	}
+}
