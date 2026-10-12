@@ -301,6 +301,13 @@ type Node struct {
 	// ChildrenUnread: the runtime children below this workload could not be
 	// read, so its health is the status rules alone.
 	ChildrenUnread bool `json:"childrenUnread,omitempty"`
+	// EndpointsReady is the ready endpoints the cluster records for a Service,
+	// 0 included; nil when the read was not made or failed, or when no slice
+	// is recorded. Only a Service node carries it, and never with
+	// EndpointsUnread.
+	EndpointsReady *int64 `json:"endpointsReady,omitempty"`
+	// EndpointsUnread: the ready endpoints of a Service could not be read.
+	EndpointsUnread bool `json:"endpointsUnread,omitempty"`
 	// HiddenScaledDown counts the ReplicaSets scaled to zero hidden below
 	// this node.
 	HiddenScaledDown int `json:"hiddenScaledDown,omitempty"`

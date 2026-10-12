@@ -5,15 +5,19 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	fakediscovery "k8s.io/client-go/discovery/fake"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 	"github.com/open-platform-model/opm-portal/internal/authz"
 	"github.com/open-platform-model/opm-portal/internal/readmodel/readmodeltest"
+	"github.com/open-platform-model/opm-portal/internal/stream"
 )
 
 func denyAll(string, authorizationv1.ResourceAttributes) bool { return false }
@@ -350,5 +354,204 @@ func TestGraphOptions(t *testing.T) {
 	}
 	if members == 0 || len(expanded.Nodes) <= len(collapsed.Nodes) {
 		t.Errorf("expanding %s: %d members, %d nodes against %d", group, members, len(expanded.Nodes), len(collapsed.Nodes))
+	}
+}
+
+// The authorization cases of the ready endpoint count at the API, for
+// podinfo's Service node of the instance graph (portal:D7). The caller's own
+// review of EndpointSlices decides the node; the Service's review does not
+// stand in for it.
+
+const (
+	endpointsGraph    = base + "/instances/default/podinfo/graph"
+	podinfoServiceID  = "obj:_/Service/default/" + readmodeltest.PodinfoServiceName
+	endpointSliceKind = "discovery.k8s.io"
+)
+
+// discoveryWithEndpointSlices is the fake cluster's discovery plus the kind a
+// real cluster serves, so that a refusal of an EndpointSlice is the
+// inventory's and not an unknown kind's.
+func discoveryWithEndpointSlices() *fakediscovery.FakeDiscovery {
+	kinds := append(slices.Clone(readmodeltest.Kinds), readmodeltest.Kind{
+		GVK:        schema.GroupVersionKind{Group: endpointSliceKind, Version: "v1", Kind: "EndpointSlice"},
+		Resource:   "endpointslices",
+		Namespaced: true,
+	})
+	return readmodeltest.Discovery(kinds...)
+}
+
+// graphNodeNamed reads path as a graph and returns the node with id.
+func graphNodeNamed(t *testing.T, e *env, path, id string) v1.GraphNode {
+	t.Helper()
+	res := e.get(t, path)
+	if res.status != http.StatusOK {
+		t.Fatalf("GET %s = %d %s", path, res.status, res.body)
+	}
+	var g v1.Graph
+	if err := json.Unmarshal(res.body, &g); err != nil {
+		t.Fatalf("graph body: %v", err)
+	}
+	for i := range g.Nodes {
+		if g.Nodes[i].ID == id {
+			return g.Nodes[i]
+		}
+	}
+	t.Fatalf("GET %s: no node %s", path, id)
+	return v1.GraphNode{}
+}
+
+func TestServiceNodeEndpointsFollowTheCallersReviewOfSlices(t *testing.T) {
+	objs := readmodeltest.WithEndpointSlices(t, loadF1(t))
+
+	allowed := graphNodeNamed(t, newEnv(t, objs, readmodeltest.AllowAll), endpointsGraph, podinfoServiceID)
+	if allowed.EndpointsReady == nil || *allowed.EndpointsReady != 2 || allowed.EndpointsUnread || allowed.Access != "ok" {
+		t.Fatalf("AllowAll: Service node = ready %v, unread %t, access %q, want 2, false, ok", allowed.EndpointsReady, allowed.EndpointsUnread, allowed.Access)
+	}
+
+	// Slices denied: the node is the same apart from the two fields.
+	denied := graphNodeNamed(t, newEnv(t, objs, readmodeltest.DenyResources("endpointslices")), endpointsGraph, podinfoServiceID)
+	if denied.EndpointsReady != nil || !denied.EndpointsUnread || denied.Access != "ok" {
+		t.Fatalf("slices denied: Service node = ready %v, unread %t, access %q, want no count, true, ok", denied.EndpointsReady, denied.EndpointsUnread, denied.Access)
+	}
+	sameApart, other := allowed, denied
+	sameApart.EndpointsReady, other.EndpointsUnread = nil, false
+	if !reflect.DeepEqual(sameApart, other) {
+		t.Errorf("the node differs beyond the endpoint fields:\nallowed %+v\ndenied  %+v", allowed, denied)
+	}
+
+	// Services denied: the node is locked and says nothing about endpoints.
+	locked := graphNodeNamed(t, newEnv(t, objs, readmodeltest.DenyResources("services")), endpointsGraph, podinfoServiceID)
+	if locked.Access != "forbidden" || locked.EndpointsReady != nil || locked.EndpointsUnread {
+		t.Errorf("services denied: Service node = access %q, ready %v, unread %t, want forbidden and neither", locked.Access, locked.EndpointsReady, locked.EndpointsUnread)
+	}
+}
+
+// A caller with no identity is refused before any review, so no review of
+// EndpointSlices is asked and no list is made.
+func TestNoIdentityIsRefusedBeforeAnyEndpointReview(t *testing.T) {
+	e := newEnv(t, readmodeltest.WithEndpointSlices(t, loadF1(t)), readmodeltest.AllowAll)
+	e.principal = Principal{}
+	expectProblem(t, e.get(t, endpointsGraph), http.StatusUnauthorized, v1.CodeUnauthenticated)
+	if n := e.az.callerChecks(); n != 0 {
+		t.Errorf("reviews asked for a caller with no identity = %d, want 0", n)
+	}
+	if n := endpointSliceLists(e); n != 0 {
+		t.Errorf("lists of endpointslices for a caller with no identity = %d, want 0", n)
+	}
+}
+
+// An EndpointSlice of the Service is no inventory object: reading it as one
+// is refused like any object no inventory reaches (portal:D7:R4), with the
+// body of a kind and name that do not exist.
+func TestAnEndpointSliceIsRefusedLikeAnUnreachedObject(t *testing.T) {
+	objs := readmodeltest.WithEndpointSlices(t, loadF1(t))
+	var slice string
+	for _, o := range objs {
+		if o.GetKind() == "EndpointSlice" {
+			slice = o.GetName()
+		}
+	}
+	if slice == "" {
+		t.Fatal("no EndpointSlice in the fixture")
+	}
+	e := newEnvWithDiscovery(t, objs, readmodeltest.AllowAll, readmodeltest.AllowAll, discoveryWithEndpointSlices())
+	const objectPath = base + "/instances/default/podinfo/object?"
+	missing := e.get(t, objectPath+"group=example.com&kind=Widget&namespace=default&name=w")
+	if missing.status != http.StatusForbidden {
+		t.Fatalf("an unreached object = %d %s, want forbidden", missing.status, missing.body)
+	}
+	for _, query := range []string{
+		"group=" + endpointSliceKind + "&kind=EndpointSlice&namespace=default&name=" + slice,
+		"group=" + endpointSliceKind + "&kind=EndpointSlice&namespace=default&name=" + readmodeltest.PodinfoServiceName,
+	} {
+		res := e.get(t, objectPath+query)
+		if res.status != missing.status || !bytes.Equal(res.body, missing.body) {
+			t.Errorf("GET object?%s = %d %s, want the body of an unreached object %s", query, res.status, res.body, missing.body)
+		}
+	}
+	if strings.Contains(string(missing.body), slice) {
+		t.Errorf("the refusal names the slice: %s", missing.body)
+	}
+}
+
+// The lists and the documents that read no count carry neither field.
+func TestDocumentsWithoutTheCountCarryNeitherField(t *testing.T) {
+	e := newEnv(t, readmodeltest.WithServicePackage(t, readmodeltest.WithEndpointSlices(t, loadF1(t))), readmodeltest.AllowAll)
+	for _, path := range []string{
+		base + "/instances",
+		base + "/instances?namespace=default",
+		base + "/packages",
+		base + "/instances/default/podinfo",
+		base + "/packages/pkg/" + readmodeltest.ServicePackageName,
+	} {
+		res := e.get(t, path)
+		if res.status != http.StatusOK {
+			t.Fatalf("GET %s = %d %s", path, res.status, res.body)
+		}
+		for _, field := range []string{"endpointsReady", "endpointsUnread"} {
+			if bytes.Contains(res.body, []byte(field)) {
+				t.Errorf("GET %s holds %s", path, field)
+			}
+		}
+	}
+}
+
+// With the sentinel slices, no document and no stream snapshot holds a
+// sentinel: the portal serves a count and nothing a slice records.
+func TestNoDocumentHoldsWhatASliceRecords(t *testing.T) {
+	sentinels := readmodeltest.Sentinels{
+		Address: "198.51.100.77", Hostname: "sentinel-hostname", NodeName: "sentinel-node", Zone: "sentinel-zone",
+		PodName: "sentinel-pod", PortName: "sentinel-port", LabelValue: "sentinel-label",
+	}
+	objs := withServiceInProvider(t, readmodeltest.WithServicePackage(t,
+		readmodeltest.WithEndpointSlices(t, loadF1(t), readmodeltest.WithSentinels(sentinels))))
+	e := newEnvWithDiscovery(t, objs, readmodeltest.AllowAll, readmodeltest.AllowAll, discoveryWithEndpointSlices(), fastStream)
+
+	var slice string
+	for _, o := range objs {
+		if o.GetKind() == "EndpointSlice" {
+			slice = o.GetName()
+		}
+	}
+	const pkg = base + "/packages/pkg/" + readmodeltest.ServicePackageName
+	svc := "kind=Service&namespace=default&name=" + readmodeltest.PodinfoServiceName
+	var bodies [][]byte
+	for _, path := range []string{
+		base + "/instances/default/podinfo",
+		endpointsGraph,
+		pkg + "/graph",
+		base + "/instances/default/podinfo/object?" + svc,
+		base + "/instances/default/podinfo/events?" + svc,
+		base + "/instances/default/podinfo/events?scope=all",
+		base + "/instances/default/podinfo/object?group=" + endpointSliceKind + "&kind=EndpointSlice&namespace=default&name=" + slice,
+		base + "/platform",
+		base + "/platform/graph",
+	} {
+		bodies = append(bodies, e.get(t, path).body)
+	}
+
+	ts := newHTTPServer(t, e)
+	c, res := openStream(t, ts, "instance:default/podinfo,package:pkg/"+readmodeltest.ServicePackageName)
+	if c == nil {
+		t.Fatalf("stream refused: %d %s", res.status, res.body)
+	}
+	for range 2 {
+		m := c.next(t, func(ev sse, _ message) bool { return ev.event == stream.EventSnapshot })
+		raw, err := json.Marshal(m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		bodies = append(bodies, raw)
+	}
+
+	for _, s := range sentinels.All() {
+		for i, b := range bodies {
+			if bytes.Contains(b, []byte(s)) {
+				t.Errorf("document %d holds the sentinel %q", i, s)
+			}
+		}
+	}
+	if !bytes.Contains(bodies[1], []byte(`"endpointsReady": 2`)) && !bytes.Contains(bodies[1], []byte(`"endpointsReady":2`)) {
+		t.Errorf("the graph holds no count, so the leak check proved nothing: %.200s", bodies[1])
 	}
 }

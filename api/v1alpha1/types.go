@@ -566,18 +566,27 @@ type GraphNode struct {
 	Path            string             `json:"path,omitempty"`
 	Registration    *GraphRegistration `json:"registration,omitempty"`
 	// SourceState is a package source node's state, as on the Package.
-	SourceState      *SourceState   `json:"sourceState,omitempty"`
-	Catalog          *GraphCatalog  `json:"catalog,omitempty"`
-	Platform         *GraphPlatform `json:"platform,omitempty"`
-	Group            *GraphGroup    `json:"group,omitempty"`
-	MemberOf         string         `json:"memberOf,omitempty"`
-	Replicas         *int64         `json:"replicas,omitempty"`
-	ChildrenUnread   bool           `json:"childrenUnread,omitempty"`
-	HiddenScaledDown int            `json:"hiddenScaledDown,omitempty"`
-	Column           int            `json:"column"`
-	Row              int            `json:"row"`
-	X                int            `json:"x"`
-	Y                int            `json:"y"`
+	SourceState    *SourceState   `json:"sourceState,omitempty"`
+	Catalog        *GraphCatalog  `json:"catalog,omitempty"`
+	Platform       *GraphPlatform `json:"platform,omitempty"`
+	Group          *GraphGroup    `json:"group,omitempty"`
+	MemberOf       string         `json:"memberOf,omitempty"`
+	Replicas       *int64         `json:"replicas,omitempty"`
+	ChildrenUnread bool           `json:"childrenUnread,omitempty"`
+	// EndpointsReady is the ready endpoints the cluster records for a Service:
+	// a count, 0 included. Absent when the read was not made or failed, when no
+	// EndpointSlice is recorded, and on every node that is not a Service the
+	// caller may read.
+	EndpointsReady *int64 `json:"endpointsReady,omitempty"`
+	// EndpointsUnread is true when the ready endpoints of a Service could not
+	// be read: the caller or the portal may not list its EndpointSlices, or the
+	// list failed. Never present with EndpointsReady.
+	EndpointsUnread  bool `json:"endpointsUnread,omitempty"`
+	HiddenScaledDown int  `json:"hiddenScaledDown,omitempty"`
+	Column           int  `json:"column"`
+	Row              int  `json:"row"`
+	X                int  `json:"x"`
+	Y                int  `json:"y"`
 }
 
 // GraphPoint is a position in a layout.
