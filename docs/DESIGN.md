@@ -14,7 +14,8 @@ in a Pod as a test tool. D14 to D18 and OQ22 to OQ25 (2026-10-05) come with the 
 `align-platform-installed-catalog`, `align-owner-pages` and `align-graph`), which also amends D1,
 D3 and D4:R5 and widens OQ25. The never-merged enhancements PR 101 drafted
 the same answers under other numbers (for OQ20 and for the version floor); those
-numbers were never adopted, and this file's are the only ones.
+numbers were never adopted, and this file's are the only ones. D11:R7 (2026-10-12) lets the role
+list EndpointSlices for the ready count of a Service (OpenSpec change `show-service-endpoints`).
 
 ## Citing this record
 
@@ -822,7 +823,9 @@ design, read from the Kubernetes controllers' ownerReference behaviour.
 **Decision:** The in-cluster portal's ClusterRole grants `get`, `list` and `watch` on the four OPM
 kinds and their status, on events, on every non-Secret kind the pinned OPM catalog's transformers
 can render, and on the runtime children those workloads own (Pods, `apps` ReplicaSets, and `batch`
-Jobs a CronJob creates); `create` on `subjectaccessreviews`; and `get` on `pods/log`. The role
+Jobs a CronJob creates); `list` on `endpointslices` in `discovery.k8s.io`, for the ready count of a
+Service (a Service owns its slices, so they are not among the workload children above);
+`create` on `subjectaccessreviews`; and `get` on `pods/log`. The role
 grants no other create, no update, patch or delete, no impersonate and no Secrets. The kind list is
 checked against the pinned catalog, so a catalog bump that adds a kind fails before release. Kinds
 that provider modules define (cert-manager's Certificate, for example) are not covered in V1 and
@@ -846,6 +849,9 @@ an administrator grants it.
   empty Platform.
 - R6: No viewer role the operator ships carries an aggregation label for the built-in `view`,
   `edit` or `admin` roles.
+- R7: The role grants `list` and no other verb on `endpointslices`, and the portal serves only a
+  ready count, or the mark that it could not be read, from them: no name, address, port, hostname,
+  node name, zone or Pod reference.
 
 **Alternatives considered:**
 
@@ -856,6 +862,12 @@ an administrator grants it.
   the same role.
 - **Aggregate the viewer roles into `view`** (OQ6's other answer). Every namespace viewer would see
   platform state, and in `kubectl` the `spec.values` of every ModuleInstance in reach.
+- **Omit the read.** The Service panel cannot say whether a Service has ready endpoints, which the
+  owner chose to fix (answer of 2026-10-12).
+- **Derive the count from the Service's selector and the Pods.** It invents a readiness the
+  cluster did not record, against Principle IV.
+- **A watch on EndpointSlices.** It needs `watch` and a held informer, a second widening of the
+  role. A supervisor ruling of 2026-10-12 refused it, and waits for the owner.
 
 **Rationale:** A read-only role is the in-cluster form of D1. Checking it against the catalog keeps
 "read-only" from silently turning into "cannot see half the objects" after a catalog bump.
@@ -863,7 +875,8 @@ an administrator grants it.
 **Source:** Owner decision 2026-10-04 ("Keep the seam"). opm-operator's shipped RBAC, read from
 source; kind list from the opm catalog's transformer outputs, read from source;
 [research](design/evidence/prior-art-and-access.md). R6: owner answer 2026-10-05 to OQ6 ("No
-aggregation").
+aggregation"). The `endpointslices` rule and R7: owner answer of 2026-10-12 on the Service panel's ready
+endpoints ("Add the read").
 
 ### D12: Kubernetes 1.34 is the supported floor
 
