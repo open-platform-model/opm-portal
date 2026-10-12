@@ -152,3 +152,7 @@ None.
   no list for it (design.md, "Reading" and "The read, in Go").
 - **Not in this change:** a watch on EndpointSlices, a per-endpoint view, the Endpoints count on
   the Resources tab or the hover card, and any readiness for another kind.
+
+## Enhancement
+
+None.
