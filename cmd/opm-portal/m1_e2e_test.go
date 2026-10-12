@@ -295,7 +295,7 @@ func (s m1Session) clusterAndInstalled(t *testing.T, kubeContext string) {
 		t.Errorf("/instances?namespace=default: %d; want 308 to Installed", res.status)
 	}
 	filtered := get(s.ctx, t, s.browser, s.base+"/installed?kind=instance&namespace=default", nil)
-	if !strings.Contains(filtered.body, `<span class="fchip-label">Kind</span> Instance`) || strings.Contains(filtered.body, `href="/packages/pkg/podinfo"`) {
+	if !strings.Contains(filtered.body, `<span class="fchip-label">Kind:</span> Instance`) || strings.Contains(filtered.body, `href="/packages/pkg/podinfo"`) {
 		t.Errorf("/installed?kind=instance&namespace=default is not filtered")
 	}
 }
