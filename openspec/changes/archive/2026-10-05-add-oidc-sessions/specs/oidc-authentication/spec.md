@@ -9,7 +9,7 @@ groups claim is configured with an empty groups prefix, unless the configuration
 the API server trusts the same issuer with the same prefixes. It SHALL also fail for any prefix
 that is a prefix of `system:` or starts with `system:`. It SHALL then fail when discovery or the
 first fetch of the issuer's signing keys fails, or when the discovered issuer differs from the
-configured one. Source: 0030:D6:R6.
+configured one.
 
 #### Scenario: Empty username prefix
 
@@ -42,8 +42,7 @@ applied. A raw or mapped username starting with `system:` SHALL be refused. When
 claim is `email`, a token with `email_verified` false SHALL be refused. A groups claim, when
 configured, SHALL be absent, a string, or a list of strings, and any other shape SHALL be
 refused. Every group that starts with `system:`, before or after the groups prefix is applied,
-SHALL be dropped, and `system:authenticated` SHALL be added to every mapped identity. Source:
-0030:D6:R2/R3.
+SHALL be dropped, and `system:authenticated` SHALL be added to every mapped identity.
 
 #### Scenario: Empty username claim (CVE-2026-23990 regression)
 
@@ -77,7 +76,6 @@ keys with an asymmetric algorithm, whose `iss` is the configured issuer, whose `
 configured audience, and which has not expired. Any other header or token SHALL be refused with
 no Kubernetes call made on its behalf, and the request SHALL NOT fall back to a session cookie.
 A bearer client SHALL map to the same identity a browser session for the same claims maps to.
-Source: 0030:D6:R5/R8.
 
 #### Scenario: Wrong audience, wrong issuer, expired, bad signature
 

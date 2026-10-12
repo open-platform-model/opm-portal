@@ -1,7 +1,7 @@
 # Design evidence
 
 The measurements and research that [DESIGN.md](../../DESIGN.md) cites. They were gathered on
-2026-10-04 for enhancement 0030 and moved here unchanged in substance when that entry was withdrawn
+2026-10-04 for the portal enhancement and moved here unchanged in substance when that entry was withdrawn
 on 2026-10-05. Each file is a snapshot: new evidence goes in a new directory or file, never an edit
 to an old one.
 

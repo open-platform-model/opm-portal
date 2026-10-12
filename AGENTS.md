@@ -153,7 +153,7 @@ hold in every change; a change that bends one needs a decision in `docs/DESIGN.m
   per portal:D5:R6. In-cluster mode (milestone 2) creates only `authorization.k8s.io`
   `subjectaccessreviews` (access checked as the signed-in user), per portal:D6:R9; a self review
   there would check the portal's own ServiceAccount, so it is forbidden. Writes start in V2,
-  through the 0027 kinds.
+  through the served kinds of enhancement 0027 (self-service kinds).
 - **Never read Secret data, and show no values in V1.** No `get`, `list` or `watch` on
   `secrets`. No API document, YAML view or page shows an instance's or package's `spec.values`,
   and the `kubectl.kubernetes.io/last-applied-configuration` annotation is stripped from every
@@ -400,8 +400,12 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
   PR.
 - A change that implements portal decisions cites them as `portal:Dn` in its proposal and
   design, and updates `docs/DESIGN.md` in the same PR when it changes or adds one. Only a change
-  that implements another enhancement's decisions (0027, for V2) carries `enhancement.yaml` (see
-  `openspec/config.yaml`, proposal rules).
+  that delivers a line of an enhancement's `tasks.md` (enhancement 0027, for V2) adds `## Enhancement`
+  to its proposal with one line `Delivers NNNN, task X.Y.` per task; otherwise it says `None.` Name
+  the delivered line in the PR body; after the repo PR merges, a PR on `enhancements` ticks that
+  line. Read an entry with `openspec show <id>-<slug> --store opm-enhancements`. If OpenSpec warns
+  that the store `opm-enhancements` is not registered, report the warning and go on; the human runs
+  `task enhancements:register`.
 - The PR that lands a change updates `ROADMAP.md`.
 - Go changes → `task check` before committing.
 - Workflow changes → `actionlint` as well.
@@ -425,12 +429,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Default is none: a comment says what the code does and why, in its own words.
 
 - When a rationale genuinely lives in a decision, cite it **once at the symbol**. A portal
-  decision in `docs/DESIGN.md` is `portal:D9`; an enhancement decision is `0027:D9` (enhancement
-  id, colon, decision id, no space). Several decisions share a head: `portal:D6/D7`. Across
-  sources, repeat the head: `portal:D9, 0027:D1`. A single requirement is `portal:D9:R2`; several
+  decision in `docs/DESIGN.md` is `portal:D9`. Several decisions share a head: `portal:D6/D7`. A
+  single requirement is `portal:D9:R2`; several
   under one decision share it (`portal:D9:R1/R2`). An open question is `portal:OQ20`.
-- Never write a `0030:` citation. Enhancement 0030 was withdrawn on 2026-10-05 and its numbers
-  moved unchanged into `docs/DESIGN.md`; archived changes keep the old head as history.
+- In any text (proposal, design, specs, comments), cite an enhancement only by its id beside a reason in words, such as "(enhancement 0027, the
+  self-service kinds)". Never write an enhancement id alone, and never write one of its decision
+  numbers. The portal enhancement was withdrawn on 2026-10-05 and its numbers moved unchanged into
+  `docs/DESIGN.md`; cite them as `portal:Dn`.
 - Decision numbers restart per source, so a bare `D9` names nothing. Never write one.
 - Never a section, slice, phase, task or design-doc-local number (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers. A requirement number (`R2` under a decision) is a stable identifier and is allowed.
 - Never in scaffold templates, generated files, fixtures a user copies, or user-facing strings (pages, API errors, log lines). Those reach people who do not read the design record.

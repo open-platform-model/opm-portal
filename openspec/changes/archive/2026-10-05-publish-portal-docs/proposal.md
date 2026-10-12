@@ -1,10 +1,10 @@
 ## Why
 
-Enhancement 0030 puts the portal's documentation on opmodel.dev, and 0030:D8:R4 requires that
+The withdrawn portal enhancement puts the portal's documentation on opmodel.dev, and portal:D8:R4 requires that
 documentation to say that values rendered into non-Secret objects stay readable to anyone who
 may read those objects. Every other OPM repository publishes its pages as a docs-kit bundle that
 the site pulls; the portal publishes nothing, so the site has nothing to pull and the security
-posture of local mode (0030:D5) is written down only in the enhancement and the code.
+posture of local mode is written down only in the enhancement and the code.
 
 ## What Changes
 
@@ -53,6 +53,6 @@ None.
   that pulls the bundle is separate (opmodel.dev).
 - SemVer: PATCH after 1.0 (documentation and CI only). The PR title is `docs:`, which cuts no
   release on the 0.x line.
-- Enhancement link: lands 0030:D8:R4 (the documentation statement) and documents 0030:D5. No
+- Enhancement link: lands portal:D8:R4 (the documentation statement) and documents portal:D5. No
   decision is claimed in `enhancement.yaml`: D8's YAML views and pages, and D5's local mode
   itself, are other changes'.

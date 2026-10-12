@@ -1,10 +1,9 @@
 ## Why
 
 Milestone 2 runs the portal in-cluster: people sign in, and the portal reads with its own
-ServiceAccount only after the cluster has said the signed-in person may make that read
-(0030:D6). `internal/authz` has the seam, the guards and the cache, but its only backend is the
+ServiceAccount only after the cluster has said the signed-in person may make that read. `internal/authz` has the seam, the guards and the cache, but its only backend is the
 local one, which asks with SelfSubjectAccessReviews. In-cluster a self review would answer for
-the portal's own ServiceAccount, not the person, so it is forbidden there (0030:D6:R9). This
+the portal's own ServiceAccount, not the person, so it is forbidden there. This
 change adds the in-cluster backend behind the same seam, so the in-cluster wiring can plug it in
 without touching a read path.
 
@@ -28,7 +27,7 @@ a grant", and every answer a user sees is still gated by a review as that user.
     API server gives it, so the grant asks the same question the API server answers for the read;
   - everyone else is a person: a `system:` username, or any `system:` group other than
     `system:authenticated`, is refused as unauthenticated with no call made, so a mapping slip
-    can never borrow the ServiceAccount's access or a privileged group (0030:D6:R3).
+    can never borrow the ServiceAccount's access or a privileged group.
 - `authz.ServiceAccountIdentity(username)` builds the reader identity from
   `system:serviceaccount:<namespace>:<name>` (the value a deployment flag will carry), and
   `authz.ServiceAccountFromToken(token)` reads that username from the in-cluster token's `sub`
@@ -36,7 +35,7 @@ a grant", and every answer a user sees is still gated by a review as that user.
 - `Options.AccessLog`: when set, one structured line per decision for a person (allowed or
   denied, cached or not): the username, verb, group, version, resource, subresource, namespace,
   name, decision and denial code. Never groups, extra values, tokens, the review's error text or
-  any object content (0030:D6:R7). The reader's own decisions are not logged.
+  any object content. The reader's own decisions are not logged.
 
 ## Capabilities
 
@@ -57,7 +56,7 @@ None.
 - Not wired yet: no command builds the in-cluster `Checker` until OIDC sign-in lands, so this
   change adds no flag. The in-cluster wiring passes the reader from a `--service-account` flag or
   from the mounted token, and the access log logger.
-- Principle V: in-cluster the portal creates only `subjectaccessreviews` (0030:D6:R9), checked by
+- Principle V: in-cluster the portal creates only `subjectaccessreviews`, checked by
   a test that records every action the fake cluster sees. The portal reads nothing new and no
   Secret. An empty identity, and an identity that names a system user or carries a system group,
   is refused before any call, never answered as the portal's ServiceAccount. The access log
@@ -67,5 +66,5 @@ None.
   verified.
 - SemVer: MINOR after 1.0 (a new authorizer). On the 0.x line it ships as `feat(authz)` and cuts
   a minor release.
-- Enhancement link: lands 0030:D6 R1, R2, R4, R7 and R9 on the authorizer side and R3's last line
+- Enhancement link: lands portal:D6 R1, R2, R4, R7 and R9 on the authorizer side and R3's last line
   of defence; D6 is not claimed until OIDC sign-in and identity mapping land.

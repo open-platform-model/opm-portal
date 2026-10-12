@@ -67,5 +67,5 @@ None.
   omission is one function over the wire documents, applied where a document leaves the server.
 - SemVer: MINOR after 1.0 (new behavior, additive contract); on the 0.x line a `feat`.
 - Design record: carries the answers to portal:OQ8 (owner; portal:D8:R5/R6, scope by supervisor
-  ruling under portal:D8) and portal:OQ20 (supervisor ruling; portal:D2:R7). Enhancement 0030 was
+  ruling under portal:D8) and portal:OQ20 (supervisor ruling; portal:D2:R7). The portal enhancement was
   withdrawn, so `enhancement.yaml` claims no decision.
