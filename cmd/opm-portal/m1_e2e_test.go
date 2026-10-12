@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -61,6 +62,9 @@ func TestM1(t *testing.T) {
 	t.Run("instance list keeps applied and health apart", s.instanceAxes)
 	t.Run("CLI-owned instance reads managed externally", s.cliOwned)
 	t.Run("the cluster document and Installed name what is read", func(t *testing.T) { s.clusterAndInstalled(t, kubeContext) })
+	t.Run("podinfo's Service reports its ready endpoints", func(t *testing.T) {
+		s.serviceEndpoints(t, restConfig(t, kubeconfig, kubeContext))
+	})
 	t.Run("image break turns health degraded while applied stays", func(t *testing.T) {
 		s.imageBreak(t, restConfig(t, kubeconfig, kubeContext))
 	})
@@ -162,6 +166,94 @@ func (s m1Session) instanceAxes(t *testing.T) {
 				key, it.Owner, it.Reconcile.State, it.Health.State, w.owner, w.applied, w.health)
 		}
 	}
+}
+
+// serviceEndpoints (show-service-endpoints): podinfo's Service node in the
+// instance graph reports endpointsReady equal to the number of podinfo Pods that
+// are ready, counted from the cluster with the Service's own selector. The
+// cluster and the portal's ten second cache lag a Pod's change, so the check
+// polls for the numbers to meet; a count that never meets the Pods fails with
+// both numbers.
+func (s m1Session) serviceEndpoints(t *testing.T, cfg *rest.Config) {
+	cs, err := kubernetes.NewForConfig(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ready int64
+	var node *v1.GraphNode
+	for deadline := time.Now().Add(40 * time.Second); ; time.Sleep(2 * time.Second) {
+		ready = s.readyPodinfoPods(t, cs)
+		node = s.serviceNode(t)
+		if ready > 0 && node.EndpointsReady != nil && *node.EndpointsReady == ready && !node.EndpointsUnread {
+			t.Logf("podinfo's Service node reports endpointsReady %d, the cluster has %d ready podinfo Pods", *node.EndpointsReady, ready)
+			return
+		}
+		if time.Now().After(deadline) {
+			break
+		}
+	}
+	got := "absent"
+	switch {
+	case node.EndpointsReady != nil:
+		got = strconv.FormatInt(*node.EndpointsReady, 10)
+	case node.EndpointsUnread:
+		got = "unread"
+	}
+	t.Fatalf("podinfo's Service node reports endpointsReady %s; the cluster has %d ready podinfo Pods (access %q)", got, ready, node.Access)
+}
+
+// readyPodinfoPods counts the ready Pods podinfo's Service selects, read from
+// the cluster with the Service's own selector.
+func (s m1Session) readyPodinfoPods(t *testing.T, cs kubernetes.Interface) int64 {
+	t.Helper()
+	svc, err := cs.CoreV1().Services("default").Get(s.ctx, "podinfo-podinfo", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("reading podinfo's Service: %v", err)
+	}
+	if len(svc.Spec.Selector) == 0 {
+		t.Fatal("podinfo's Service has no selector, so it has no endpoints to count")
+	}
+	selector := metav1.FormatLabelSelector(&metav1.LabelSelector{MatchLabels: svc.Spec.Selector})
+	pods, err := cs.CoreV1().Pods("default").List(s.ctx, metav1.ListOptions{LabelSelector: selector})
+	if err != nil {
+		t.Fatalf("listing podinfo's Pods: %v", err)
+	}
+	var ready int64
+	for i := range pods.Items {
+		if podReady(&pods.Items[i]) {
+			ready++
+		}
+	}
+	return ready
+}
+
+// serviceNode reads podinfo's instance graph and returns its Service node.
+func (s m1Session) serviceNode(t *testing.T) *v1.GraphNode {
+	t.Helper()
+	const nodeID = "obj:_/Service/default/podinfo-podinfo"
+	var g v1.Graph
+	getJSON(s.ctx, t, s.browser, s.api("/instances/default/podinfo/graph"), &g)
+	for i := range g.Nodes {
+		if g.Nodes[i].ID == nodeID {
+			return &g.Nodes[i]
+		}
+	}
+	t.Fatalf("the graph has no node %s", nodeID)
+	return nil
+}
+
+// podReady reports whether pod is running, not terminating and has the Ready
+// condition true.
+func podReady(pod *corev1.Pod) bool {
+	if pod.DeletionTimestamp != nil {
+		return false
+	}
+	for _, c := range pod.Status.Conditions {
+		if c.Type == corev1.PodReady {
+			return c.Status == corev1.ConditionTrue
+		}
+	}
+	return false
 }
 
 func (s m1Session) cliOwned(t *testing.T) {
