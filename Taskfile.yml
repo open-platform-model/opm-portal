@@ -178,7 +178,7 @@ tasks:
   ## Comment rule
   #########################
   cite-lint:
-    desc: Check Go comments for an enhancement cited by decision number or by a lone id (the cite-lint tool at ENH_COMMIT; needs the Go module proxy)
+    desc: Check Go and CUE comments for an enhancement cited by decision number or by a lone id (the cite-lint tool at ENH_COMMIT; needs the Go module proxy)
     # No exclude: the repo needs none. A future exclude (--exclude=<pattern>)
     # needs a reason here and the same pattern in the exclude input of
     # .github/workflows/cite-lint.yml.

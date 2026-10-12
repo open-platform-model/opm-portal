@@ -1,6 +1,6 @@
 ## Context
 
-The tool lints Go and CUE files. The repo holds Go files and no CUE file. At the base commit the tool reports 214 files checked and 0 findings with no exclude.
+The tool lints Go and CUE files. The repo holds 207 Go files and 7 CUE files. At the base commit the tool reports 214 files checked and 0 findings with no exclude.
 
 ## Decisions
 

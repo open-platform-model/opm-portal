@@ -6,5 +6,5 @@
 
 ## 2. Close
 
-- [ ] 2.1 `task check`, actionlint and zizmor pass; the OpenSpec pin count under 1.14.1 is confirmed
-- [ ] 2.2 Review, fixes, archive
+- [x] 2.1 `task check`, actionlint and zizmor pass; the OpenSpec pin count under 1.14.1 is confirmed
+- [x] 2.2 Review, fixes, archive
