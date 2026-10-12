@@ -38,7 +38,7 @@ one line, exiting 1 on the first failure:
    once for a caller who may not. Selecting podinfo's Service node (from the keyboard) shows the
    Endpoints fact `2 ready` on the first, in plain text beside the Service's Type and Ports, and
    `Could not be read` on the second with the same Type and Ports, never `0 ready`, and no text on
-   either panel that names EndpointSlices or says what is denied.
+   the second panel that names EndpointSlices or says what is denied.
 
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """

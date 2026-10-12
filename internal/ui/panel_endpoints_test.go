@@ -97,7 +97,7 @@ func TestPanelEndpointsUnread(t *testing.T) {
 }
 
 // TestPanelEndpointsAbsent: a Service whose cluster records no slice shows no
-// Endpoints line, and the unreadable forms of other nodes are unchanged.
+// Endpoints line.
 func TestPanelEndpointsAbsent(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	panel := panelOf(t, s, podinfo, nodeService)
