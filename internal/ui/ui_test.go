@@ -151,6 +151,25 @@ func TestGoldenPages(t *testing.T) {
 	checkGoldens(t, s, f1Pages)
 }
 
+// TestGoldenEndpoints (S16): the Service panel over F1 plus the recorded
+// slices in the three forms of the Endpoints fact: a count, the unread mark
+// and no line.
+func TestGoldenEndpoints(t *testing.T) {
+	const node = "/instances/default/podinfo/node?id=obj:_/Service/default/podinfo-podinfo"
+	t.Run("counted", func(t *testing.T) {
+		s := newSite(t, apitest.F1WithEndpointSlices(t), apitest.AllowAll)
+		checkGoldens(t, s, []goldenPage{{"fragment-node-service-endpoints", node, true}})
+	})
+	t.Run("unread", func(t *testing.T) {
+		s := newSite(t, apitest.F1WithEndpointSlices(t), apitest.DenyResources("endpointslices"))
+		checkGoldens(t, s, []goldenPage{{"fragment-node-service-endpoints-unread", node, true}})
+	})
+	t.Run("none", func(t *testing.T) {
+		s := newSite(t, apitest.F1(t), apitest.AllowAll)
+		checkGoldens(t, s, []goldenPage{{"fragment-node-service", node, true}})
+	})
+}
+
 // TestGoldenBrokenRollout: the image-break sample shows Applied and
 // Degraded side by side (portal:D3:R1/R2).
 func TestGoldenBrokenRollout(t *testing.T) {
