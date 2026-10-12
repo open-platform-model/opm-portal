@@ -1431,6 +1431,14 @@ components:
           type: integer
         childrenUnread:
           type: boolean
+        endpointsReady:
+          description: "The ready endpoints the cluster records for a Service, 0 included. Absent when the read was not made or failed, when no EndpointSlice is recorded, and on every node that is not a Service the caller may read."
+          type: integer
+          format: int64
+          minimum: 0
+        endpointsUnread:
+          description: "True when the ready endpoints of a Service could not be read: the caller or the portal may not list its EndpointSlices, or the list failed. Never present with endpointsReady."
+          type: boolean
         hiddenScaledDown:
           type: integer
         column:

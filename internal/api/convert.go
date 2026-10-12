@@ -386,6 +386,8 @@ func graphNode(n *graph.Node) v1.GraphNode {
 		MemberOf:         n.MemberOf,
 		Replicas:         n.Replicas,
 		ChildrenUnread:   n.ChildrenUnread,
+		EndpointsReady:   n.EndpointsReady,
+		EndpointsUnread:  n.EndpointsUnread,
 		HiddenScaledDown: n.HiddenScaledDown,
 		Column:           n.Column,
 		Row:              n.Row,

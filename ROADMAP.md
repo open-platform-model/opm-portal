@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-12 (`show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -133,6 +133,16 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      own); a stall watchdog for a half-open connection needs the heartbeat interval on the page;
      and a closed log region says "no longer live" only to a pointer reader (`sse:closed` adds a
      class and a `title`).
+   - `show-service-endpoints` (built in five sections; reviewed, fixed and archived): a Service's details panel
+     shows "Endpoints N ready", the cluster's count of ready endpoints from its EndpointSlices, or
+     "Could not be read" when the caller or the portal may not list them or the list failed; the
+     portal's role gains `list` on `endpointslices` and nothing else (portal:D11:R7), and the count is
+     read only for the instance and package graphs. What it uncovered: a watch on EndpointSlices
+     needs `watch` and a held informer, a second widening of the role that was refused; F1 holds no
+     slice, so the tests add a recorded one, and a recapture would move every golden; the count is not
+     on the hover card or in the lists; "Could not be read" covers three causes and a distinct mark
+     for each waits on the owner; on a Service with `publishNotReadyAddresses` the count can include
+     Pods that are not ready.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
 4. **What `align-owner-pages` uncovered, none blocking:**
@@ -145,8 +155,6 @@ cluster state; F1 holds an accepted, active registration on a released operator 
    - The Events tab and its count refresh with the owner's own events, so an event about a child
      alone shows on the next page read. A live refresh of child events needs a stream topic per
      reached object or a merged topic; none is built.
-   - The Service panel shows ports and no Endpoints: Endpoints need a read of EndpointSlices, a
-     new kind that waits on its own read decision (portal:D8:R4 applies the same way).
    - `CapText` and its 512-code-point cap on an event note are in `internal/readmodel/cap.go`,
      added here first; `align-graph` adopts them for any new cluster text it serves.
 5. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,

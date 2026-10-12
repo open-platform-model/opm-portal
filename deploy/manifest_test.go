@@ -191,6 +191,33 @@ func checkResource(at, res string, verbs []string) []error {
 	return nil
 }
 
+// checkEndpointSlices holds the rule that lets the portal count a Service's
+// ready endpoints: exactly one rule names endpointslices in any group, in
+// discovery.k8s.io, with the verb list and nothing else, for whole kinds.
+func checkEndpointSlices(r rbacv1.ClusterRole) error {
+	var rules []rbacv1.PolicyRule
+	for _, rule := range r.Rules {
+		if slices.Contains(rule.Resources, "endpointslices") {
+			rules = append(rules, rule)
+		}
+	}
+	if len(rules) != 1 {
+		return fmt.Errorf("role %s has %d rules that name endpointslices; want exactly 1", r.Name, len(rules))
+	}
+	rule := rules[0]
+	switch {
+	case !slices.Equal(rule.APIGroups, []string{"discovery.k8s.io"}):
+		return fmt.Errorf("the endpointslices rule names the API groups %v; want only discovery.k8s.io", rule.APIGroups)
+	case !slices.Equal(rule.Resources, []string{"endpointslices"}):
+		return fmt.Errorf("the endpointslices rule names the resources %v; want only endpointslices", rule.Resources)
+	case !slices.Equal(rule.Verbs, []string{"list"}):
+		return fmt.Errorf("the endpointslices rule grants the verbs %v; want exactly [list]", rule.Verbs)
+	case len(rule.ResourceNames) > 0:
+		return fmt.Errorf("the endpointslices rule narrows by resource name %v", rule.ResourceNames)
+	}
+	return nil
+}
+
 // exposing are the kinds that would open a network path to the portal.
 var exposing = []string{"Service", "Ingress", "IngressClass", "Gateway", "HTTPRoute", "GRPCRoute", "TCPRoute", "TLSRoute", "Route"}
 
@@ -419,6 +446,8 @@ func TestCheckRoleRefuses(t *testing.T) {
 		{"pods/proxy", sub("pods/proxy"), `subresource "pods/proxy"`},
 		{"services/proxy", sub("services/proxy"), `subresource "services/proxy"`},
 		{"deployments/scale", sub("deployments/scale"), `subresource "deployments/scale"`},
+		{"create on endpointslices", role(rbacv1.PolicyRule{APIGroups: []string{"discovery.k8s.io"}, Resources: []string{"endpointslices"}, Verbs: []string{"list", "create"}}), `verb "create"`},
+		{"a wildcard group beside endpointslices", role(rbacv1.PolicyRule{APIGroups: []string{"discovery.k8s.io", "*"}, Resources: []string{"endpointslices"}, Verbs: []string{"list"}}), `API group "*"`},
 		{"pods/log with list", role(rbacv1.PolicyRule{APIGroups: []string{""}, Resources: []string{"pods/log"}, Verbs: read}), "only get is needed"},
 		{"an aggregation rule", func() rbacv1.ClusterRole {
 			r := role()
@@ -433,6 +462,69 @@ func TestCheckRoleRefuses(t *testing.T) {
 				t.Fatalf("checkRole() = %v; want an error naming %q", err, tt.want)
 			}
 		})
+	}
+}
+
+// shippedRole returns the ClusterRole of deploy/.
+func shippedRole(t *testing.T) rbacv1.ClusterRole {
+	t.Helper()
+	for _, o := range readObjects(t, manifestFiles(t)) {
+		if o.kind != "ClusterRole" {
+			continue
+		}
+		var r rbacv1.ClusterRole
+		if err := yaml.UnmarshalStrict(o.raw, &r); err != nil {
+			t.Fatalf("%s: %v", o.file, err)
+		}
+		return r
+	}
+	t.Fatal("deploy/ holds no ClusterRole")
+	return rbacv1.ClusterRole{}
+}
+
+// TestRoleGrantsEndpointSlicesListOnly holds the one widening of the role
+// that the Service panel's ready count needs: list on endpointslices, and
+// no other verb, group or name. A later widening is a reviewed change of
+// this test.
+func TestRoleGrantsEndpointSlicesListOnly(t *testing.T) {
+	if err := checkEndpointSlices(shippedRole(t)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCheckEndpointSlicesRefuses(t *testing.T) {
+	rule := func(groups, verbs []string, names ...string) rbacv1.PolicyRule {
+		return rbacv1.PolicyRule{APIGroups: groups, Resources: []string{"endpointslices"}, Verbs: verbs, ResourceNames: names}
+	}
+	role := func(rules ...rbacv1.PolicyRule) rbacv1.ClusterRole {
+		return rbacv1.ClusterRole{ObjectMeta: metav1.ObjectMeta{Name: "bad"}, Rules: rules}
+	}
+	discovery := []string{"discovery.k8s.io"}
+	tests := []struct {
+		name string
+		role rbacv1.ClusterRole
+		want string
+	}{
+		{"no rule", role(), "0 rules"},
+		{"get beside list", role(rule(discovery, []string{"get", "list"})), "[get list]"},
+		{"list and watch", role(rule(discovery, []string{"list", "watch"})), "[list watch]"},
+		{"list and create", role(rule(discovery, []string{"list", "create"})), "[list create]"},
+		{"the legacy group", role(rule([]string{""}, []string{"list"})), "API groups"},
+		{"a second group", role(rule([]string{"discovery.k8s.io", "extensions"}, []string{"list"})), "API groups"},
+		{"a resource name", role(rule(discovery, []string{"list"}, "x")), "resource name"},
+		{"two rules", role(rule(discovery, []string{"list"}), rule([]string{"other.io"}, []string{"list"})), "2 rules"},
+		{"another resource in the rule", role(rbacv1.PolicyRule{APIGroups: discovery, Resources: []string{"endpointslices", "endpoints"}, Verbs: []string{"list"}}), "resources"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := checkEndpointSlices(tt.role)
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("checkEndpointSlices() = %v; want an error naming %q", err, tt.want)
+			}
+		})
+	}
+	if err := checkEndpointSlices(role(rule(discovery, []string{"list"}))); err != nil {
+		t.Fatalf("checkEndpointSlices() on the allowed rule = %v", err)
 	}
 }
 

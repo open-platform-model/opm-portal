@@ -10,6 +10,10 @@ import (
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 )
 
+// couldNotBeRead is what the Endpoints fact says of a count that could not be
+// read: the first words of the Pods line.
+const couldNotBeRead = "Could not be read"
+
 // A fact is one labeled line of the details panel. Its value reaches the page
 // as text through html/template (SR11).
 type fact struct {
@@ -52,7 +56,25 @@ func (h *Handler) objectFacts(r *http.Request, n *v1.GraphNode, ctx panelContext
 	if h.fetch(r, ctx.base+"/object", refQuery(*n.Ref), &doc) != nil {
 		return nil, true
 	}
-	return factsOf(n.Ref.Kind, doc.Object), false
+	return append(factsOf(n.Ref.Kind, doc.Object), endpointFacts(n)...), false
+}
+
+// endpointFacts is the Endpoints fact of a Service node: the count the graph
+// node carries, or the words of the Pods line when the count could not be read.
+// It is the cluster's count of ready endpoints and judges nothing, so it has no
+// tone. A node with neither field (the cluster records no slice) has no fact,
+// and a count of 0 reads "0 ready", never "Could not be read".
+func endpointFacts(n *v1.GraphNode) []fact {
+	if n.Ref == nil || n.Ref.Kind != kindService {
+		return nil
+	}
+	switch {
+	case n.EndpointsReady != nil:
+		return []fact{{Label: "Endpoints", Value: fmt.Sprintf("%d ready", *n.EndpointsReady)}}
+	case n.EndpointsUnread:
+		return []fact{{Label: "Endpoints", Value: couldNotBeRead}}
+	}
+	return nil
 }
 
 // factsOf lists the facts of kind from its object document.

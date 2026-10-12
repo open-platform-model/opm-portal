@@ -148,6 +148,9 @@ type Model struct {
 	inventory map[schema.GroupVersionResource]*inventoryKind
 	children  map[string]*childWatch
 	childList map[string]childListing
+	// endpointList holds the ready count of a Service for ChildrenTTL: a
+	// number, never a slice.
+	endpointList map[endpointKey]endpointListing
 
 	feed changeFeed
 
@@ -171,6 +174,8 @@ func New(cfg Config) (*Model, error) {
 		inventory: map[schema.GroupVersionResource]*inventoryKind{},
 		children:  map[string]*childWatch{},
 		childList: map[string]childListing{},
+
+		endpointList: map[endpointKey]endpointListing{},
 	}, nil
 }
 

@@ -83,6 +83,21 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	}
 }
 
+// TestGoldenEndpoints: podinfo's graph over F1 plus the recorded slices, once
+// with the count (a caller who may list the slices) and once with the unread
+// mark (a caller who may not). Everything else in both equals the F1 graph.
+func TestGoldenEndpoints(t *testing.T) {
+	graph := base + "/instances/default/podinfo/graph"
+	t.Run("counted", func(t *testing.T) {
+		e := newEnv(t, readmodeltest.WithEndpointSlices(t, loadF1(t)), readmodeltest.AllowAll)
+		checkGoldens(t, e, []goldenCase{{"instance-podinfo-graph-endpoints", graph}})
+	})
+	t.Run("unread", func(t *testing.T) {
+		e := newEnv(t, readmodeltest.WithEndpointSlices(t, loadF1(t)), readmodeltest.DenyResources("endpointslices"))
+		checkGoldens(t, e, []goldenCase{{"instance-podinfo-graph-endpoints-unread", graph}})
+	})
+}
+
 func checkGoldens(t *testing.T, e *env, cases []goldenCase) {
 	t.Helper()
 	for _, c := range cases {

@@ -9,6 +9,8 @@ When you run the portal on your machine, it reads a cluster as you and shows you
 
 To try the portal on a shared cluster, the same local mode can also run in a Pod, as the README's [Try it in a cluster](https://github.com/open-platform-model/opm-portal#try-it-in-a-cluster) section shows. There it reads as the Pod's ServiceAccount through a read-only role, not as you, and whoever holds its launch token sees what that ServiceAccount may read. Getting the token takes `pods/log`, and reaching the portal takes `pods/portforward`, in the portal's namespace, so whoever holds those grants holds the portal: treat it as a test tool, not as access checked per person. The built-in `view` role includes `pods/log`, so anyone who may view that namespace, or the whole cluster, can take a token that has not been used yet; log shippers and the node's `/var/log/pods` keep copies of it; and anyone who may patch the Deployment can get a new token with a rollout restart. Open the link right after deploying, since a used token opens nothing, and keep log, port-forward and patch access in that namespace to the people meant to use the portal.
 
+The role also lists EndpointSlices, so the Service panel can show how many of a Service's endpoints are ready. The portal keeps that one number and shows no address, name, port or node from the slices. In this mode, whoever holds the launch token sees the count for every Service in an inventory, whether or not they may list EndpointSlices themselves.
+
 This page assumes you know Kubernetes RBAC. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
 ## How it works

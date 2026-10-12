@@ -354,6 +354,8 @@ func (b *builder) object(comp string, o *readmodel.InventoryObject) {
 	if o.Access == health.AccessOK {
 		n.Health = objectHealth(o.Health)
 		n.Missing = o.Health.State == health.Missing
+		n.EndpointsReady = o.EndpointsReady
+		n.EndpointsUnread = o.EndpointsUnread
 	}
 	if o.Ref.Group == opmGroup && o.Ref.Kind == kindTransformer {
 		n.Registration = b.registration(o.Ref.Name)

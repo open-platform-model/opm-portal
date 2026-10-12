@@ -156,6 +156,13 @@ type InventoryObject struct {
 	// ChildrenUnread is set on a workload whose Pods could not be read, so
 	// its health is the status rules alone.
 	ChildrenUnread bool
+	// EndpointsReady is the number of ready endpoints of a Service, set only
+	// by InstanceWithEndpoints and PackageWithEndpoints and only when a count
+	// was made (0 included). EndpointsUnread is set instead when the count
+	// could not be read; the two are never both set, and a Service whose
+	// cluster records no EndpointSlice carries neither.
+	EndpointsReady  *int64
+	EndpointsUnread bool
 	// EvaluatedAt is when the object was last read; Live is false when it
 	// is polled rather than watched (portal:D3:R5).
 	EvaluatedAt time.Time

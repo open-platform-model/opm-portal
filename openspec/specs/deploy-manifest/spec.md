@@ -46,7 +46,7 @@ portal:D13:R2.
 The ClusterRole `opm-portal-reader` SHALL list every rule explicitly and SHALL grant only the
 verbs `get`, `list` and `watch`: on the four OPM kinds of `opmodel.dev`; on `events.k8s.io`
 `events` only the verb the portal uses, `list`; on `pods` and `get` on `pods/log`; on `apps`
-`replicasets` and `batch` `jobs`; and on the non-Secret kinds the OPM catalog's transformers
+`replicasets` and `batch` `jobs`; on `discovery.k8s.io` `endpointslices` only `list`; and on the non-Secret kinds the OPM catalog's transformers
 render, a list maintained by hand against catalog 4.6.0's transformers. It SHALL NOT grant any
 other verb, `secrets`, `impersonate`, a `*` in any group, resource or verb, any subresource but
 `pods/log` (no `exec`, `attach`, `portforward` or `proxy`), a non-resource URL, or an aggregation
@@ -73,6 +73,22 @@ portal:D13:R3.
 
 - **WHEN** an instance's inventory names a cert-manager Certificate and the portal runs in the Pod
 - **THEN** the object shows as not readable by the portal, and the rest of the instance renders
+
+#### Scenario: The EndpointSlices rule
+
+- **WHEN** the manifest test reads `deploy/clusterrole.yaml`
+- **THEN** it finds one rule for `discovery.k8s.io` `endpointslices`, and the rule's verbs are
+  exactly `list`
+
+#### Scenario: A wider EndpointSlices rule
+
+- **WHEN** the manifest test reads a role whose `endpointslices` rule also grants `get` or `watch`
+- **THEN** the test fails and names the rule
+
+#### Scenario: A write on EndpointSlices
+
+- **WHEN** the manifest test checks a role granting `create` on `endpointslices`
+- **THEN** the check returns an error naming the verb
 
 ### Requirement: The manifest names the image of its own release
 

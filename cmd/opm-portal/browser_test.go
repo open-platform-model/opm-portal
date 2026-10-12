@@ -189,18 +189,32 @@ func TestBrowserGraph(t *testing.T) {
 // test:browser): the panel at rest shows the ModuleInstance, a node click fills it
 // and Clear selection brings the ModuleInstance back, the YAML tab opens on the
 // selected object, and a click on a Resources row opens the Graph focused with
-// the panel filled.
+// the panel filled. A last step selects podinfo's Service over F1 plus the
+// recorded EndpointSlice and reads the Endpoints fact, once for a caller who
+// may list EndpointSlices (`2 ready`) and once for a caller who may not
+// (`Could not be read`, never `0 ready`).
 func TestBrowserOwner(t *testing.T) {
 	script := browserScript(t, "owner.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
 		t.Run(browser, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
 			defer cancel()
-			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t)); err != nil {
+			counted, unread := serveEndpointSites(t)
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), counted, unread); err != nil {
 				t.Fatalf("an owner page interaction did not hold: %v", err)
 			}
 		})
 	}
+}
+
+// serveEndpointSites serves F1 plus the recorded EndpointSlice of podinfo's
+// Service twice: for a caller who may list EndpointSlices, and for one who
+// may not.
+func serveEndpointSites(t *testing.T) (counted, unread string) {
+	t.Helper()
+	counted = serveSite(t, apitest.F1WithEndpointSlices(t))
+	srv := apitest.New(t, apitest.F1WithEndpointSlices(t), apitest.DenyResources("endpointslices"))
+	return counted, serveHandlerWith(t, srv, nil, nil, nil)
 }
 
 // TestBrowserTabCount drives a live tab count in real browsers (task
@@ -276,10 +290,12 @@ var phonePages = []string{
 // measures the layout shows content a phone would lose. The script first
 // proves the measure can fail with an element it adds that is 500 px wide.
 // A last step selects a graph node from the keyboard and measures again with
-// the details panel filled.
+// the details panel filled. The /endpoints leg opens the panel of podinfo's
+// Service with the Endpoints fact reading `2 ready` and `Could not be read`.
 func TestBrowserPhone(t *testing.T) {
 	script := browserScript(t, "phone.py")
 	banner := browserScript(t, "phone_banner.py")
+	endpoints := browserScript(t, "phone_endpoints.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
 		t.Run(browser, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
@@ -300,6 +316,14 @@ func TestBrowserPhone(t *testing.T) {
 			url := serveHandlerWith(t, srv, nil, nil, nil)
 			if err := playwright(ctx, t, banner, nil, browser, url, "/", "/instances/default/podinfo"); err != nil {
 				t.Fatalf("the header with a banner and two long names does not hold 360 px: %v", err)
+			}
+		})
+		t.Run(browser+"/endpoints", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			counted, unread := serveEndpointSites(t)
+			if err := playwright(ctx, t, endpoints, nil, browser, counted, unread); err != nil {
+				t.Fatalf("the Endpoints fact does not hold 360 px: %v", err)
 			}
 		})
 	}

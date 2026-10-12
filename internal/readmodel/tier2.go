@@ -207,7 +207,8 @@ func (k *inventoryKind) stop() {
 }
 
 // sweep stops every inventory kind no view has used for IdleTimeout, and
-// drops expired on-demand lists of runtime children. The next view that
+// drops expired on-demand lists of runtime children and expired endpoint
+// counts. The next view that
 // needs one starts or lists it again.
 func (m *Model) sweep() {
 	cutoff := m.cfg.Now().Add(-m.cfg.IdleTimeout)
@@ -223,6 +224,11 @@ func (m *Model) sweep() {
 	for ns, listing := range m.childList {
 		if !now.Before(listing.at.Add(m.cfg.ChildrenTTL)) {
 			delete(m.childList, ns)
+		}
+	}
+	for key, listing := range m.endpointList {
+		if !now.Before(listing.at.Add(m.cfg.ChildrenTTL)) {
+			delete(m.endpointList, key)
 		}
 	}
 	m.mu.Unlock()

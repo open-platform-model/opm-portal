@@ -46,17 +46,28 @@ func factsOfPanel(panel string) map[string]string {
 // and Service, read from the object document.
 func TestPanelFacts(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	withSlices := newSite(t, apitest.F1WithEndpointSlices(t), apitest.AllowAll)
 	for _, tc := range []struct {
 		node string
+		site *site // nil: F1 alone
 		want map[string]string
 		none []string
 	}{
-		{nodeDeployment, map[string]string{"Replicas": "2 ready of 2 desired", "Image": "ghcr.io/stefanprodan/podinfo:6.7.1", "Strategy": "RollingUpdate"}, []string{"Node", "Type"}},
-		{nodeReplicaSet, map[string]string{"Replicas": "2 ready of 2 desired"}, []string{"Image", "Strategy"}},
-		{nodePod, map[string]string{"Restarts": "0"}, []string{"Replicas", "Image"}},
-		{nodeService, map[string]string{"Type": "ClusterIP"}, []string{"Replicas", "Image"}},
+		{nodeDeployment, nil, map[string]string{"Replicas": "2 ready of 2 desired", "Image": "ghcr.io/stefanprodan/podinfo:6.7.1", "Strategy": "RollingUpdate"}, []string{"Node", "Type", "Endpoints"}},
+		{nodeReplicaSet, nil, map[string]string{"Replicas": "2 ready of 2 desired"}, []string{"Image", "Strategy", "Endpoints"}},
+		{nodePod, nil, map[string]string{"Restarts": "0"}, []string{"Replicas", "Image", "Endpoints"}},
+		{nodeService, nil, map[string]string{"Type": "ClusterIP"}, []string{"Replicas", "Image", "Endpoints"}},
+		// The recorded slice holds two ready endpoints (S16).
+		{nodeService, withSlices, map[string]string{"Type": "ClusterIP", "Endpoints": "2 ready"}, []string{"Replicas", "Image"}},
+		// Only a Service has the fact, slices or not.
+		{nodePod, withSlices, map[string]string{"Restarts": "0"}, []string{"Endpoints"}},
+		{nodeDeployment, withSlices, map[string]string{"Replicas": "2 ready of 2 desired"}, []string{"Endpoints"}},
 	} {
-		got := factsOfPanel(panelOf(t, s, "/instances/default/podinfo", tc.node))
+		site := s
+		if tc.site != nil {
+			site = tc.site
+		}
+		got := factsOfPanel(panelOf(t, site, "/instances/default/podinfo", tc.node))
 		for k, v := range tc.want {
 			if got[k] != v {
 				t.Errorf("%s: fact %s = %q, want %q (all: %v)", tc.node, k, got[k], v, got)
