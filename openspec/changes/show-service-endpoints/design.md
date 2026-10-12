@@ -274,6 +274,61 @@ for a read it could not make. The cost is that a reader cannot tell a denied cal
 reader from a failed list; the docs page says what the mark can mean (task 5.6). The server log
 names the reason (namespace, Service name and reason, no slice content). Reversibility: cheap.
 
+### Live checks
+
+Run on 2026-10-12 on the throwaway fixture cluster `opm-portal-e2e-show-service-endpoints` (kind
+v1.36.1 on podman, fixture set F1, `task e2e:up`), with `kubectl --kubeconfig
+.e2e/clusters/opm-portal-e2e-show-service-endpoints/kubeconfig --context
+kind-opm-portal-e2e-show-service-endpoints`. Extra scratch objects (namespace `t55`: Services
+`nopods`, `nosel`, `roll`, `bad`, `badpub`, a Deployment `roll` of three Pods, a Pod `bad1` whose
+readiness probe fails) were made on that cluster and are deleted with it. The Kubernetes
+type facts come from `k8s.io/api` v0.37.1 in the module cache.
+
+- **(a) Owner reference, label, managed-by label.** `kubectl -n default get endpointslice
+  podinfo-podinfo-smkg5 -o jsonpath=...` gives one controller owner reference `kind: Service`,
+  `controller: true`, `name: podinfo-podinfo`, `uid: f1b384bd-...`, equal to the Service's own
+  `metadata.uid` (`kubectl -n default get svc podinfo-podinfo -o jsonpath='{.metadata.uid}'`). The
+  slice carries `kubernetes.io/service-name: podinfo-podinfo` and
+  `endpointslice.kubernetes.io/managed-by: endpointslice-controller.k8s.io` (`LabelManagedBy`,
+  `well_known_labels.go:22`). The cert-manager Service's slice carries the same owner
+  reference. **The assumption holds**, so D7 needs no amendment. One counter-example the count
+  already handles: the slice `default/kubernetes`, which the API server makes for the Service
+  `kubernetes`, has the service-name label and **no** owner reference, so a slice with the label and
+  no owner is real and is not counted.
+- **(b) A Service with a selector and no Pod.** Service `t55/nopods`: one slice, `nopods-m9kn2`,
+  `addressType: IPv4`, `endpoints: null`, `ports: null`, controller owner reference to the Service.
+  So a placeholder slice with no endpoints exists and the count is `0` with `found` true. A Service
+  with no selector (`t55/nosel`) has no slice at all (0 slices with its label).
+- **(c) The ready rule.** Documented: an unset `ready` is "true" (`discovery/v1/types.go:146-153`),
+  the controller makes only IPv4 and IPv6 slices (`types.go:41-50`), endpoints are unique within one
+  slice (`types.go:56-57`). Observed: a script polled `kubectl get pods,endpointslice -o json` in
+  `t55` for 110 s while `kubectl rollout restart deploy/roll` ran three times and one Pod was
+  deleted: 8763 observations of endpoints of the Service `roll`, **none with `ready` unset**; `ready`
+  true for a Pod that passed its probe; `ready` false for a Pod whose probe had not passed yet (with
+  `serving` false) and for a Pod that is terminating (10 terminating endpoints seen, every one
+  `ready` false, `serving` true for part of the time). The failing Pod `t55/bad1` (probe path
+  `/nope`) is `ready: false, serving: false` in the slice of Service `bad`. **The unset-is-ready rule
+  of this design stands.** The **duplicate case**: during the three restarts the Service had exactly
+  one slice at every poll and no endpoint (same `targetRef.uid`) appeared twice: not seen, and the
+  documentation does not rule it out, so the once-per-type key stays. The **override** the same text
+  allows: Service `t55/badpub` (`publishNotReadyAddresses: true`, same selector as `bad`) has the
+  same Pod `bad1` as `ready: true, serving: false`. So on such a Service the count includes a Pod
+  that is not ready; the design and the docs say so (task 5.6).
+- **(d) Dual stack.** Documented: one address type for each slice (`types.go:41-47`); a Service's
+  `ipFamilyPolicy` of `PreferDualStack` or `RequireDualStack` gives it an IPv4 and an IPv6 slice
+  (`k8s.io/api` `core/v1/types.go:6234-6255`). Not run: the cluster is single stack (Service
+  `ipFamilies: ["IPv4"]`, `ipFamilyPolicy: SingleStack`, node `podCIDRs: ["10.244.0.0/24"]`), so the
+  dual-stack case is "documented, not run". The rule (larger of the two sums) is right whether the
+  two slices list the same Pods or not.
+- **(e) The `view` role.** `kubectl get clusterrole view -o yaml` lists `discovery.k8s.io`
+  `endpointslices` with verbs `get`, `list`, `watch`. A namespace reader that holds `view` therefore
+  holds the review the count asks (`list` on `endpointslices`).
+- **(f) The delay.** In the same run, for 13 Pods that turned ready, the endpoint was `ready` in the
+  same poll as the Pod's `Ready` condition: the delay is below the poll step (about 40 ms, from 8763
+  endpoint observations in 110 s; not measured more finely). So the control plane's own delay is
+  small on this cluster; the lag the panel shows is the ten-second cache of "Reading", not the
+  controller. A busy cluster can differ; this is one kind cluster with one node.
+
 ## Decisions
 
 ### The ClusterRole rule

@@ -6,6 +6,7 @@ package readmodeltest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -78,19 +79,28 @@ func LoadList(t testing.TB, path string) []*unstructured.Unstructured {
 	if err != nil {
 		t.Fatalf("reading %s: %v", path, err)
 	}
+	out, err := decodeList(raw)
+	if err != nil {
+		t.Fatalf("%s: %v", path, err)
+	}
+	return out
+}
+
+// decodeList decodes the bytes of a List file the way LoadList does.
+func decodeList(raw []byte) ([]*unstructured.Unstructured, error) {
 	js, err := yaml.YAMLToJSON(raw)
 	if err != nil {
-		t.Fatalf("converting %s to JSON: %v", path, err)
+		return nil, fmt.Errorf("converting to JSON: %w", err)
 	}
 	var list unstructured.UnstructuredList
 	if err := list.UnmarshalJSON(js); err != nil {
-		t.Fatalf("decoding %s: %v", path, err)
+		return nil, fmt.Errorf("decoding: %w", err)
 	}
 	out := make([]*unstructured.Unstructured, 0, len(list.Items))
 	for i := range list.Items {
 		out = append(out, &list.Items[i])
 	}
-	return out
+	return out, nil
 }
 
 // LoadCapture returns every object of the capture in dir: the four OPM

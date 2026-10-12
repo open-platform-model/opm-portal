@@ -1,0 +1,67 @@
+apiVersion: v1
+items:
+- addressType: IPv4
+  apiVersion: discovery.k8s.io/v1
+  endpoints:
+  - addresses:
+    - 10.244.0.9
+    conditions:
+      ready: true
+      serving: true
+      terminating: false
+    nodeName: opm-portal-e2e-show-service-endpoints-control-plane
+    targetRef:
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-qhdb7
+      namespace: default
+      uid: e2575e2a-6320-405c-b727-45731f57de0a
+  - addresses:
+    - 10.244.0.10
+    conditions:
+      ready: true
+      serving: true
+      terminating: false
+    nodeName: opm-portal-e2e-show-service-endpoints-control-plane
+    targetRef:
+      kind: Pod
+      name: podinfo-podinfo-d9585d794-ncjg9
+      namespace: default
+      uid: 10e306c9-df30-4576-852d-3a99d370124c
+  kind: EndpointSlice
+  metadata:
+    annotations:
+      endpoints.kubernetes.io/last-change-trigger-time: "2026-10-12T14:13:13Z"
+    creationTimestamp: "2026-10-12T14:13:00Z"
+    generateName: podinfo-podinfo-
+    generation: 5
+    labels:
+      app.kubernetes.io/instance: podinfo
+      app.kubernetes.io/managed-by: opm-controller
+      app.kubernetes.io/name: podinfo
+      component.opmodel.dev/name: podinfo
+      core.opmodel.dev/workload-type: stateless
+      endpointslice.kubernetes.io/managed-by: endpointslice-controller.k8s.io
+      kubernetes.io/service-name: podinfo-podinfo
+      module-instance.opmodel.dev/name: podinfo
+      module-instance.opmodel.dev/uuid: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+      module.opmodel.dev/name: podinfo
+      module.opmodel.dev/uuid: 88d73eac-695b-5baf-a3f1-1101b88eea73
+      module.opmodel.dev/version: 0.1.11
+    name: podinfo-podinfo-smkg5
+    namespace: default
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Service
+      name: podinfo-podinfo
+      uid: f1b384bd-eb74-4976-8b77-d5832f060bbe
+    resourceVersion: "843"
+    uid: b9f3ab5c-8bf7-4866-9f56-e51c43e83e1d
+  ports:
+  - name: http
+    port: 9898
+    protocol: TCP
+kind: List
+metadata:
+  resourceVersion: ""
