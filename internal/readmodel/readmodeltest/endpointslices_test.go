@@ -200,3 +200,24 @@ func TestRecordedSliceIsReadyAsCaptured(t *testing.T) {
 		t.Fatalf("the recorded slice holds %d ready endpoints, want 2 (podinfo has two Pods)", ready)
 	}
 }
+
+func TestWithServicePackageNamesTheF1Service(t *testing.T) {
+	f1 := LoadCapture(t, f1Capture)
+	before := len(f1)
+	got := WithServicePackage(t, f1)
+	if len(got) != before+1 || len(f1) != before {
+		t.Fatalf("objects = %d (input %d), want one more than %d and the input unchanged", len(got), len(f1), before)
+	}
+	pkg := Find(t, got, "ModulePackage", ServicePackageName)
+	entries, _, err := unstructured.NestedSlice(pkg.Object, "status", "inventory", "entries")
+	if err != nil || len(entries) != 1 {
+		t.Fatalf("inventory entries = %v (%v), want the one Service", entries, err)
+	}
+	e := entries[0].(map[string]any)
+	if e["kind"] != "Service" || e["name"] != PodinfoServiceName || e["namespace"] != PodinfoServiceNamespace {
+		t.Errorf("entry = %v, want Service %s/%s", e, PodinfoServiceNamespace, PodinfoServiceName)
+	}
+	if pkg.GetNamespace() != ServicePackageNamespace {
+		t.Errorf("namespace = %q, want %q", pkg.GetNamespace(), ServicePackageNamespace)
+	}
+}

@@ -148,6 +148,10 @@ func Dynamic(objs ...*unstructured.Unstructured) *dynfake.FakeDynamicClient {
 	for _, k := range KindsWithFlux() {
 		listKinds[k.GVR()] = k.GVK.Kind + "List"
 	}
+	// The fake client lists only the resources it was told of. The ready
+	// count of a Service lists EndpointSlices, which no capture inventory
+	// names, so they are not among Kinds.
+	listKinds[schema.GroupVersionResource{Group: "discovery.k8s.io", Version: "v1", Resource: "endpointslices"}] = "EndpointSliceList"
 	runtimeObjs := make([]runtime.Object, 0, len(objs))
 	for _, o := range objs {
 		runtimeObjs = append(runtimeObjs, o.DeepCopy())

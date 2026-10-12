@@ -165,17 +165,23 @@ func (s *Server) getInstance(ctx context.Context, p Principal, r *http.Request) 
 	if err != nil {
 		return nil, err
 	}
-	d, err := s.instanceDetail(ctx, p.Identity, o)
+	d, err := s.instanceDetail(ctx, p.Identity, o, false)
 	if err != nil {
 		return nil, err
 	}
 	return instanceDoc(d), nil
 }
 
-func (s *Server) instanceDetail(ctx context.Context, who authz.Identity, o owner) (readmodel.InstanceDetail, error) {
+// instanceDetail reads an instance for who. Only the instance graph passes
+// withEndpoints: no other view shows the ready-endpoint count, so none asks
+// for the review and the list it needs (portal:D11:R7).
+func (s *Server) instanceDetail(ctx context.Context, who authz.Identity, o owner, withEndpoints bool) (readmodel.InstanceDetail, error) {
 	g, err := s.authorize(ctx, who, o.get())
 	if err != nil {
 		return readmodel.InstanceDetail{}, err
+	}
+	if withEndpoints {
+		return s.cfg.Model.InstanceWithEndpoints(ctx, who, g[0], o.namespace, o.name)
 	}
 	return s.cfg.Model.Instance(ctx, who, g[0], o.namespace, o.name)
 }
@@ -189,7 +195,7 @@ func (s *Server) instanceGraph(ctx context.Context, p Principal, r *http.Request
 	if err != nil {
 		return nil, err
 	}
-	d, err := s.instanceDetail(ctx, p.Identity, o)
+	d, err := s.instanceDetail(ctx, p.Identity, o, true)
 	if err != nil {
 		return nil, err
 	}
@@ -230,17 +236,22 @@ func (s *Server) getPackage(ctx context.Context, p Principal, r *http.Request) (
 	if err != nil {
 		return nil, err
 	}
-	d, src, err := s.packageWithSource(ctx, p.Identity, o)
+	d, src, err := s.packageWithSource(ctx, p.Identity, o, false)
 	if err != nil {
 		return nil, err
 	}
 	return packageDoc(d, src), nil
 }
 
-func (s *Server) packageDetail(ctx context.Context, who authz.Identity, o owner) (readmodel.PackageDetail, error) {
+// packageDetail reads a package for who; withEndpoints is as for
+// instanceDetail.
+func (s *Server) packageDetail(ctx context.Context, who authz.Identity, o owner, withEndpoints bool) (readmodel.PackageDetail, error) {
 	g, err := s.authorize(ctx, who, o.get())
 	if err != nil {
 		return readmodel.PackageDetail{}, err
+	}
+	if withEndpoints {
+		return s.cfg.Model.PackageWithEndpoints(ctx, who, g[0], o.namespace, o.name)
 	}
 	return s.cfg.Model.Package(ctx, who, g[0], o.namespace, o.name)
 }
@@ -254,7 +265,7 @@ func (s *Server) packageGraph(ctx context.Context, p Principal, r *http.Request)
 	if err != nil {
 		return nil, err
 	}
-	d, src, err := s.packageWithSource(ctx, p.Identity, o)
+	d, src, err := s.packageWithSource(ctx, p.Identity, o, true)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +332,7 @@ func (s *Server) lookupProvider(ctx context.Context, who authz.Identity, ref rea
 		l.Access = health.AccessForbidden
 		return l
 	}
-	d, err := s.instanceDetail(ctx, who, instanceOwner(ref.Namespace, ref.Name))
+	d, err := s.instanceDetail(ctx, who, instanceOwner(ref.Namespace, ref.Name), false)
 	switch {
 	case err == nil:
 		l.Access, l.Instance = health.AccessOK, &d

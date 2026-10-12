@@ -22,9 +22,10 @@ const (
 
 // packageWithSource reads a package for who and looks up its source: the
 // view the package document, the package graph and the stream all build
-// from. The source is nil when the package names none.
-func (s *Server) packageWithSource(ctx context.Context, who authz.Identity, o owner) (readmodel.PackageDetail, *readmodel.SourceState, error) {
-	d, err := s.packageDetail(ctx, who, o)
+// from. The source is nil when the package names none. withEndpoints is as
+// for instanceDetail.
+func (s *Server) packageWithSource(ctx context.Context, who authz.Identity, o owner, withEndpoints bool) (readmodel.PackageDetail, *readmodel.SourceState, error) {
+	d, err := s.packageDetail(ctx, who, o, withEndpoints)
 	if err != nil {
 		return readmodel.PackageDetail{}, nil, err
 	}

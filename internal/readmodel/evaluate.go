@@ -37,6 +37,9 @@ func (m *Model) newEvaluator(who authz.Identity) *evaluator {
 type evaluation struct {
 	health.Result
 	children [][]RuntimeChild
+	// entries are the inventory entries as read, index for index with
+	// Result.Objects, so a step after componentsOf can reach an object.
+	entries []health.Entry
 }
 
 // inventoryHealth reads every entry of owner's inventory the caller may
@@ -77,9 +80,9 @@ func (e *evaluator) inventoryHealth(ctx context.Context, owner *unstructured.Uns
 	children, access := e.childrenOf(ctx, owner.GetName(), entries)
 	res := health.Evaluate(health.Input{Entries: entries, Children: children, ChildrenAccess: access})
 	if access != health.AccessOK {
-		return evaluation{Result: res}
+		return evaluation{Result: res, entries: entries}
 	}
-	return evaluation{Result: res, children: runtimeChildren(entries, children)}
+	return evaluation{Result: res, children: runtimeChildren(entries, children), entries: entries}
 }
 
 // maxOwnerHops bounds the controller walk from a child up to an inventory

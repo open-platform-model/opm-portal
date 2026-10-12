@@ -224,3 +224,34 @@ func hasControllerService(o *unstructured.Unstructured) bool {
 	}
 	return false
 }
+
+// ServicePackageNamespace and ServicePackageName name the ModulePackage
+// WithServicePackage adds.
+const (
+	ServicePackageNamespace = "pkg"
+	ServicePackageName      = "withsvc"
+)
+
+// WithServicePackage returns objs plus a ModulePackage pkg/withsvc whose
+// inventory is the podinfo Service.
+//
+// CONSTRUCTED, not captured: F1's only package has an empty inventory, and a
+// live package that deploys a Service needs a Flux source the fixture cluster
+// does not run. The package is pkg/podinfo renamed with one inventory entry
+// added, the shape of the instance's own entry for the same Service.
+func WithServicePackage(t testing.TB, objs []*unstructured.Unstructured) []*unstructured.Unstructured {
+	t.Helper()
+	pkg := Find(t, objs, "ModulePackage", "podinfo").DeepCopy()
+	pkg.SetName(ServicePackageName)
+	pkg.SetUID("00000000-0000-4000-8000-0000000051c0")
+	if err := unstructured.SetNestedField(pkg.Object, map[string]any{
+		"count": int64(1),
+		"entries": []any{map[string]any{
+			"component": "podinfo", "kind": "Service", "name": PodinfoServiceName, "namespace": PodinfoServiceNamespace, "v": "v1",
+		}},
+		"revision": int64(1),
+	}, "status", "inventory"); err != nil {
+		t.Fatal(err)
+	}
+	return append(objs, pkg)
+}

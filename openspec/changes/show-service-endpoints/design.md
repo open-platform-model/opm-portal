@@ -183,7 +183,8 @@ themselves, `inventoryHealth`, `componentsOf`, `ListInstances`, the package list
 no review and no list for the count. So these paths do not read: the Instance and Package documents
 and their stream topics, the owner events endpoints and their named-object check, the provider
 lookup of the Platform graph, the lists and the log-topic admission. A list view that needs the
-count later is a separate change. The cache key is namespace and Service name, and it holds the
+count later is a separate change. The cache key is namespace, Service name and uid (a Service made again under
+the same name does not inherit the count), and it holds the
 integer and whether any slice was found, never a slice. A failed read is not cached, so the next
 graph read tries again; it is bounded by the one graph read that asks. The caller's review and the reader's review run before each serve, never when the cache is
 filled, so one caller's allow never serves another (read-authorization, "Decisions are cached
