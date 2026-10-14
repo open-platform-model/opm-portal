@@ -1,10 +1,6 @@
 # Fixture cluster, captures and goldens
 
-Covers the throwaway kind cluster, the committed cluster captures and the golden files. Read it before you touch `test/e2e/`, `testdata/` or a golden file.
-
-## Why these tiers exist
-
-The default tier is `go test` (unit). Claims about operator output are tested against live cluster captures, not hand-written YAML. Use the lightest tier that proves the behaviour: unit, then envtest, then kind e2e. Browser tests are a separate tier.
+Covers the throwaway kind fixture cluster, the committed cluster captures and the golden files.
 
 ## The fixture cluster (`test/e2e/`)
 

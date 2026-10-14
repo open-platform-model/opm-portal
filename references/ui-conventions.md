@@ -1,6 +1,6 @@
 # UI conventions
 
-Covers the rules for `internal/ui`, the pages the portal serves: the Content-Security-Policy, the API-only data path, vendored assets, untrusted text, the dev server, the browser tests and the `deploy/` manifest that runs local mode in a Pod. Read it before you edit a template, the page script, a static asset or `deploy/`.
+Covers `internal/ui`, the pages the portal serves: the Content-Security-Policy, the API-only data path, vendored assets, untrusted text, the dev server and the browser tests.
 
 ## The data path
 
@@ -69,18 +69,6 @@ A Go client ignores SameSite, so only this tier catches a launch whose cookie a 
 
 Read each test's doc comment for the exact steps; this table is a summary and the code is the source.
 
-## The `deploy/` manifest
-
-`deploy/` is a kustomization that runs local mode in a Pod, as a test tool (portal:D13). It is plain YAML that users copy. Therefore:
-
-- No `portal:` citation in its comments. A user who copies the file cannot open the design record.
-- `go test ./deploy` holds the ClusterRole read-only: `get`, `list` and `watch` only, no Secrets, no `impersonate`, no wildcard.
-- The same test refuses a Service, an Ingress, a probe or a non-loopback bind.
-- The same test holds the image tag to `internal/version`. release-please rewrites the marked image line, so do not edit it by hand.
-- A rule added to the role widens what every token holder sees. Make it a reviewed decision, not a side effect.
-
-The Pod acts as its ServiceAccount for whoever holds its launch token, and prints its single-use launch URL on standard output (both portal:D13). These are the two sole exceptions in the security rules of `CONSTITUTION.md`, Principle V.
-
 ## Pitfalls
 
 - Treating a green `go test` as proof that a launch works in a browser. Only `test:browser` sees SameSite.
@@ -88,12 +76,11 @@ The Pod acts as its ServiceAccount for whoever holds its launch token, and print
 - Upgrading htmx by replacing the file only. The checksum test fails.
 - Reading `internal/readmodel` from a handler in `internal/ui` because it is faster. Add the field to the read API instead, additively.
 - Rendering a cluster string with `text/template` or `template.HTML`.
-- Citing a decision in a `deploy/` comment.
 
 ## Check before you finish
 
 - [ ] No inline script, no inline style, no `hx-on`, no trigger filter in any template.
 - [ ] Every cluster string reaches the page through `html/template`.
-- [ ] `go test ./internal/ui ./deploy` passes.
+- [ ] `go test ./internal/ui` passes.
 - [ ] You ran the matching `TestBrowser*` test for any change in the browser table above.
 - [ ] A vendored asset upgrade changed the file, `CHECKSUMS` and the layout in one diff.
