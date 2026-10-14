@@ -84,7 +84,7 @@ cmd/opm-portal/   main: version, and serve (local mode's flags and wiring)
 api/v1alpha1/     wire types of the read API, no logic
 internal/         auth, authz, readmodel, health, graph, stream, logs, api, ui, version
 deploy/           kustomization that runs local mode in a Pod as a test tool (portal:D13), with its tests
-openapi/          v1alpha1.yaml, the read API contract, held to the code by internal/api's tests
+openapi/          the read API contract, held to the code by internal/api's tests
 docs/DESIGN.md    the design record
 docs/design/      evidence/: live captures and research that DESIGN.md cites
 docs/site/        site pages, published as the opm-portal docs bundle (docs-kit.cue)
@@ -104,11 +104,11 @@ openspec/         config, main specs, changes
 | `task build` / `task run -- serve --open` | Build `bin/opm-portal` / run local mode against the current kubeconfig context | Local use |
 | `task fmt`, `task vet`, `task lint` (`lint:fix`) | gofmt and goimports, `go vet` (with `e2e,browser` tags), golangci-lint | Parts of `check` |
 | `task test` | `go test -race ./...` (needs cgo and a C compiler) | Part of `check` |
-| `go test ./cmd/opm-portal -run TestRun` | One test | Iterating |
+| `go test ./<package> -run <Name>` | One test | Iterating |
 | `task openspec:check` | `openspec validate --all --strict` (`task openspec:install` first) | Before committing an OpenSpec artifact |
 | `task cite-lint` | Reject enhancement citations by decision number or lone id (needs the Go proxy) | After editing comments |
 | `task deps:release-check` | Release-pin gate G1 | On release PRs |
-| `task api:breaking` | Fail on a breaking `openapi/v1alpha1.yaml` change unless the title has `!` | After an API change |
+| `task api:breaking` | Fail on a breaking `openapi/` change unless the title has `!` | After an API change |
 | `task docs:bundle:check` | Build and lint the docs bundle | After editing `docs/site/` or `docs-kit.cue` |
 | `task e2e:up` / `e2e:down` | Create or delete the fixture cluster | Before and after e2e work |
 | `task e2e:local`, `e2e:m1`, `e2e:pod` | Run the e2e tests against it | After changes to serve, reads or `deploy/` |
@@ -119,7 +119,7 @@ openspec/         config, main specs, changes
 ## Style
 
 - Go: the `go` directive in `go.mod` sets the version (CI reads it). golangci-lint v2 with the gofmt
-  and goimports formatters; CI pins the version in `.github/workflows/lint.yml`.
+  and goimports formatters; CI pins the version in the Lint workflow.
 - Import groups: stdlib, third-party, local module. No unused helpers, no speculative abstractions.
 - Names: lowercase package names; explicit lowerCamelCase JSON tags; concrete structs over
   `map[string]any` in API types.

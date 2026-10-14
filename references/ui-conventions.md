@@ -4,7 +4,7 @@ Covers `internal/ui`, the pages the portal serves: the Content-Security-Policy, 
 
 ## The data path
 
-`internal/ui` reads only through the read API. Its `fetch` runs the API handler in process. A test fails if `internal/ui` imports `internal/readmodel`. The reason is Principle III of `CONSTITUTION.md`: the UI is the first consumer of `/api/v1alpha1`, and it never reads anything the API does not expose. Tests build the API with `internal/api/apitest`.
+`internal/ui` reads only through the read API. It calls the API handler in process. A test fails if `internal/ui` imports `internal/readmodel`. The reason is Principle III of `CONSTITUTION.md`: the UI is the first consumer of `/api/v1alpha1`, and it never reads anything the API does not expose. Tests build the API with the helper package under `internal/api/`.
 
 ## Content-Security-Policy
 
@@ -31,15 +31,15 @@ The portal has no frontend build step. CSS is hand-written.
 
 ## Pages and goldens
 
-Each page has a golden file of its `<main>` (or of a fragment) in `internal/ui/testdata/golden/`. Update with `go test ./internal/ui -run TestGolden -update`, then read the diff before you commit.
+Each page has a golden file of its `<main>` (or of a fragment) in `internal/ui/testdata/golden/`. Update with `go test ./internal/ui -update`, then read the diff before you commit.
 
 ## Look at the pages without a cluster
 
 ```bash
-OPM_PORTAL_UI_DEV=127.0.0.1:18080 go test ./internal/ui -run TestDevServe -timeout 0
+OPM_PORTAL_UI_DEV=127.0.0.1:18080 go test ./internal/ui -run <dev-serve test> -timeout 0
 ```
 
-This serves the pages over the F1 capture. Optional variables (see `internal/ui/harness_test.go`):
+This serves the pages over the F1 capture. Optional variables (find the dev-serve test with `grep -rn OPM_PORTAL_UI_DEV internal/ui/`, which also shows the variables):
 
 - `OPM_PORTAL_UI_DEV_BROKEN=1`: the image-break sample.
 - `OPM_PORTAL_UI_DEV_DENY=<resource>`: show that resource locked.
@@ -48,26 +48,26 @@ This serves the pages over the F1 capture. Optional variables (see `internal/ui/
 
 ## Browser tests (`test/browser/`, build tag `browser`)
 
-`task test:browser` runs the `TestBrowser*` tests in `cmd/opm-portal/browser_test.go` in Chromium, Firefox and WebKit. It uses the Playwright image (podman by default; `OPM_PORTAL_CONTAINER_ENGINE=docker` otherwise). It pulls the image by its pinned digest and installs the matching Playwright package, so it needs the network. `OPM_PORTAL_BROWSER_SHOTS=<directory>` saves a screenshot of each failing browser there.
+`task test:browser` runs the browser tests of `cmd/opm-portal/` in Chromium, Firefox and WebKit. It uses the Playwright image (podman by default; `OPM_PORTAL_CONTAINER_ENGINE=docker` otherwise). It pulls the image by its pinned digest and installs the matching Playwright package, so it needs the network. `OPM_PORTAL_BROWSER_SHOTS=<directory>` saves a screenshot of each failing browser there.
 
-A Go client ignores SameSite, so only this tier catches a launch whose cookie a browser withholds. Run the matching test after a change to the code in the right column:
+A Go client ignores SameSite, so only this tier catches a launch whose cookie a browser withholds. Run `task test:browser` after a change to the code in the right column:
 
-| Test | Checks | Run after a change to |
+| Area | Checks | Run after a change to |
 | --- | --- | --- |
-| `TestBrowserLaunch` | A local session starts from the `--open` page (file://) and from the printed link | `internal/auth`, `openLaunch` |
-| `TestBrowserLogs` | A logs region refreshed under a tailed, focused pane keeps scroll offset, focus and tail | The page script's refresh or log code |
-| `TestBrowserExpired` | A stream ended with the `expired` event says so and does not reconnect | The stream or page script |
-| `TestBrowserTheme` | Over the F1 capture, a stored Dark theme paints dark first; a stored Installed filter opens filtered on a full load and on a boosted navigation | `prefs.js`, the page script's filter code |
-| `TestBrowserGraph` | Instance graph: Clear selection, the Resources hand-off, a group's fit and Whole graph, and the focus, zoom and full screen a live refresh keeps | The page script's graph code |
-| `TestBrowserOwner` | The details panel of an owner page and its Resources hand-off | The owner page or its details panel |
-| `TestBrowserPhone` | Every F1 page stays within 360 px wide | A template or CSS that changes page width |
-| `TestBrowserTip` | The info tip: dismiss, hover, tap, tab away | The info tip code |
-| `TestBrowserTabCount` | A tab count follows live changes | The tab count code |
-| `TestBrowserFilters` | Filter forms apply as you type and announce the count | The filter forms |
-| `TestBrowserLoading` | A slow request shows a loading state; relative times keep counting | The loading or time code |
-| `TestBrowserStale` | The banner of a lost stream shows, and the page resyncs | Stream or banner code |
+| Launch | A local session starts from the `--open` page (file://) and from the printed link | `internal/auth` or the launch code of `cmd/opm-portal/` |
+| Logs | A logs region refreshed under a tailed, focused pane keeps scroll offset, focus and tail | The page script's refresh or log code |
+| Expired stream | A stream ended with the `expired` event says so and does not reconnect | The stream or page script |
+| Theme and filters | Over the F1 capture, a stored Dark theme paints dark first; a stored Installed filter opens filtered on a full load and on a boosted navigation | `prefs.js`, the page script's filter code |
+| Graph | Instance graph: Clear selection, the Resources hand-off, a group's fit and Whole graph, and the focus, zoom and full screen a live refresh keeps | The page script's graph code |
+| Owner page | The details panel of an owner page and its Resources hand-off | The owner page or its details panel |
+| Phone width | Every F1 page stays within 360 px wide | A template or CSS that changes page width |
+| Info tip | The info tip: dismiss, hover, tap, tab away | The info tip code |
+| Tab count | A tab count follows live changes | The tab count code |
+| Filter forms | Filter forms apply as you type and announce the count | The filter forms |
+| Loading state | A slow request shows a loading state; relative times keep counting | The loading or time code |
+| Lost stream | The banner of a lost stream shows, and the page resyncs | Stream or banner code |
 
-Read each test's doc comment for the exact steps; this table is a summary and the code is the source.
+The browser tests in `cmd/opm-portal/` and the scripts in `test/browser/` are the source of the exact steps; this table is a summary.
 
 ## Pitfalls
 
@@ -82,5 +82,5 @@ Read each test's doc comment for the exact steps; this table is a summary and th
 - [ ] No inline script, no inline style, no `hx-on`, no trigger filter in any template.
 - [ ] Every cluster string reaches the page through `html/template`.
 - [ ] `go test ./internal/ui` passes.
-- [ ] You ran the matching `TestBrowser*` test for any change in the browser table above.
+- [ ] You ran `task test:browser` for any change in the browser table above.
 - [ ] A vendored asset upgrade changed the file, `CHECKSUMS` and the layout in one diff.
