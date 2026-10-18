@@ -36,10 +36,10 @@ Each page has a golden file of its `<main>` (or of a fragment) in `internal/ui/t
 ## Look at the pages without a cluster
 
 ```bash
-OPM_PORTAL_UI_DEV=127.0.0.1:18080 go test ./internal/ui -run <dev-serve test> -timeout 0
+task ui:dev
 ```
 
-This serves the pages over the F1 capture. Optional variables (find the dev-serve test with `grep -rn OPM_PORTAL_UI_DEV internal/ui/`, which also shows the variables):
+This serves the pages over the F1 capture at `127.0.0.1:18080`; set `UI_DEV_ADDR` to change the address. Optional variables, set in the environment:
 
 - `OPM_PORTAL_UI_DEV_BROKEN=1`: the image-break sample.
 - `OPM_PORTAL_UI_DEV_DENY=<resource>`: show that resource locked.
