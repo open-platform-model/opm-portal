@@ -11,8 +11,8 @@ updates:
       # It moves only with .opm-docs-version, after the site bumps (docs-kit C5, C12).
       - dependency-name: "open-platform-model/docs-kit*"
       # The cite-lint workflow references the org .github repository. It moves
-      # by the .github pin procedure only (.github README
-      # "Pinning and bumps"); a Dependabot bump would move one reference alone.
+      # by the .github pin procedure only (.github
+      # references/cascade-pinning.md); a Dependabot bump would move one reference alone.
       - dependency-name: "open-platform-model/.github*"
   - package-ecosystem: "gomod"
     directory: "/"
