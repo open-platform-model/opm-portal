@@ -187,4 +187,4 @@ Before merge, these MUST pass (`task check` runs all six):
 ## Further Reading
 
 - `openspec/config.yaml`: normative constitutional source
-- `AGENTS.md`: repository mechanics, commands, security rules and coding guidance
+- `AGENTS.md`: repository rules, commands, security working rules, citations and style
