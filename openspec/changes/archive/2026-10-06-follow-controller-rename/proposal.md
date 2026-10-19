@@ -60,3 +60,7 @@ None.
   PR title.
 - Coupling: merges after the controller release that renames the fields and the cli release that
   has `opm controller`; the e2e pins and the F1 recapture wait for those releases.
+
+## Enhancement
+
+None.
