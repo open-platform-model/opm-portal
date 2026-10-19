@@ -19,12 +19,11 @@ list EndpointSlices for the ready count of a Service (OpenSpec change `show-serv
 
 ## Citing this record
 
-Cite a portal decision as `portal:D7`, a requirement as `portal:D7:R4`, several decisions as
-`portal:D3/D4`, several requirements of one decision as `portal:D6:R2/R8`, and a question as
-`portal:OQ20`. Name an enhancement by its id and a reason in words, never by a decision number: `portal:D9` and
-enhancement 0027 (a platform-owned definition binds the module). A bare `D7` names
-nothing outside this file. Inside this file, decisions refer to one another without the `portal:`
-head.
+The citation rule is in the workspace file `references/enhancements.md`. This record adds one
+form, `portal:Dn`: cite a portal decision as `portal:D7`, a requirement as `portal:D7:R4`, several
+decisions as `portal:D3/D4`, several requirements of one decision as `portal:D6:R2/R8`, and a
+question as `portal:OQ20`. A bare `D7` names nothing outside this file. Inside this file, decisions
+refer to one another without the `portal:` head.
 
 Archived OpenSpec changes cite these decisions as `portal:Dn` too. No new text may cite the
 withdrawn entry.

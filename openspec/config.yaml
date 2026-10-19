@@ -150,7 +150,7 @@ context: |
   ### Comments
   - Default to no design reference: say what the code does and why, in the comment's own words.
   - When the rationale genuinely lives in a decision, cite it once at the symbol. A portal decision in `docs/DESIGN.md` is `portal:D9`. Several decisions: `portal:D6/D7`. One requirement: `portal:D9:R2`; several: `portal:D9:R1/R2`. An open question: `portal:OQ20`. A bare `D9` names nothing, because decision numbers restart per source.
-  - In any text (proposal, design, specs, comments), cite an enhancement only by its id beside a reason in words, such as "(enhancement 0027, the self-service kinds)". Never write an enhancement id alone, and never write one of its decision numbers. The portal enhancement was withdrawn on 2026-10-05 and its numbers moved unchanged into `docs/DESIGN.md`; cite them as `portal:Dn`.
+  - To cite an enhancement, follow the workspace file `references/enhancements.md`. The portal enhancement was withdrawn on 2026-10-05 and its numbers moved unchanged into `docs/DESIGN.md`; cite them as `portal:Dn`.
   - Never cite a section, slice, phase, task or design-doc-local id (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers; a requirement number (`R2`) is.
   - Never put a reference in a scaffold template, a generated file, a fixture a user copies, or a user-facing string (a page, an API error, a log line). Those reach people who do not read the design record.
   - No `Was:` rename history in comments; `git log` owns it.
@@ -217,8 +217,8 @@ rules:
     - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
     - When a requirement implements a portal requirement, cite `portal:DN:Rn` in its body
       (first sentence or a trailing `Source:` line), never inside the `### Requirement:` header,
-      which tools read as the requirement's name. Name an enhancement by its id and a reason in
-      words, never by a decision number.
+      which tools read as the requirement's name. Cite an enhancement as
+      `references/enhancements.md` says.
     - Describe observable behavior (API responses, rendered pages, stream events, exit codes).
     - Use ADDED/MODIFIED/REMOVED sections to show deltas.
     - Include scenarios, including the denied and degraded cases (no permission, unknown kind).
