@@ -837,7 +837,8 @@ Wording changes beyond the split (no rule changes):
 | `pod-logs`, `A container the Pod does not have ends the log topic` | "whose reason says so" became "whose reason says the Pod does not have it" | "so" pointed at the sentence before |
 | `pod-logs`, `A log follows with timestamps, ...` | "A stream SHALL never end" became "A log stream SHALL never end" | A split body names its subject |
 | `kind-e2e-environment`, `Fixture images are pinned by tag, ...` | "are pinned by tag only" became "SHALL be pinned by tag only" (and "is pinned by digest" became "SHALL be pinned by digest") | An ADDED block needs SHALL or MUST; the pin was already a rule of the old requirement |
-| `kind-e2e-environment`, `The capture runs the check last and every pull request runs it` | "The capture runs it last, and ... run it" became "SHALL run" | The old sentence had no keyword; the rule is unchanged |
+| `pod-logs`, `The initial tail of a log ends at its first live line and is delivered once it ends` | The old "the marker delay" is kept; the body adds ", the delay of requirement" and the exact header of the block that holds the delay | The old sentence naming the delay ("within a short delay") is in that block; DECISIONS.md 2026-10-19 16:55 |
+| `kind-e2e-environment`, `The capture runs the check last and every pull request runs it` | "The capture runs it last, and ... run it" became "The capture SHALL run the check last, and ... SHALL run it"; "the check" names the check of the body before, no task name is added | The old sentence had no keyword; the rule is unchanged (DECISIONS.md 2026-10-19 16:20) |
 | `kind-e2e-environment`, `The capture check fails a file that breaks a rule or does not parse` | "any of these rules" became the five rules of a captured file written out: no Secret, no `metadata.managedFields`, no last-applied annotation, no `spec.values` on a ModuleInstance or ModulePackage, no `spec.versions[].schema` on a CustomResourceDefinition | "these" pointed at the sentences before; the list is the rules those sentences state |
 | `read-api`, `A package's source artifact fetch URL is not served` | "SHALL not be served" became "SHALL NOT be served" | RFC 2119 form of the same rule |
 | `read-api`, `Joined fields` blocks | The sentence "Each subscriber is still written only a change to its own document." is repeated verbatim in both blocks | It applies to both clauses; it has no keyword in the old text and none was added |
@@ -1262,7 +1263,7 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | `task e2e:capture:check` SHALL check every file under `testdata/clusters/`, recursively and wha... | The capture check reads every file and every document under testdata/clusters | `task e2e:capture:check` SHALL check every file under `testdata/cluste... |
 | A file that breaks any of these rules, or does not parse, SHALL fail it. | The capture check fails a file that breaks a rule or does not parse | A file under `testdata/clusters/` that breaks any of the rules of a ca... |
 | `test/e2e/check-capture_test.sh` SHALL run the check against scratch cases for each rule before... | The capture check has a test with a scratch case for each rule | `test/e2e/check-capture_test.sh` SHALL run the check against scratch c... |
-| The capture runs it last, and `task check` and the `Test` check run it on every pull request. | The capture runs the check last and every pull request runs it | `task e2e:capture` SHALL run `task e2e:capture:check` last, and `task... |
+| The capture runs it last, and `task check` and the `Test` check run it on every pull request. | The capture runs the check last and every pull request runs it | The capture SHALL run the check last, and `task check` and the `Test` check SHALL run it on every... |
 
 | New scenario | In requirement | Restates |
 | --- | --- | --- |
@@ -1440,7 +1441,7 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | Two tabs, one upstream | All subscribers of one log topic share one upstream log stream, Two tabs, one upstream | no, byte for byte |
 | The last subscriber leaves | The upstream log stream closes when the log topic's last subscriber leaves, The last subscriber leaves | no, byte for byte |
 | Following again after the end | A new subscription after the read ended starts a new read, Following again after the end | no, byte for byte |
-| A reconnect after the end | A reconnect that resumes a log stream starts no new read, A reconnect after the end | no, byte for byte |
+| A reconnect after the end | A reconnect that resumes a stream starts no new read, A reconnect after the end | no, byte for byte |
 
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
@@ -1449,7 +1450,7 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | A subscriber that joins a topic already streaming SHALL receive the recent lines in its snapsho... | A subscriber that joins a streaming log topic receives the recent lines, numbered | A subscriber that joins a log topic already streaming SHALL receive th... |
 | each log message SHALL carry a sequence number, increasing along the topic, so a client can dis... | A subscriber that joins a streaming log topic receives the recent lines, numbered | A subscriber that joins a log topic already streaming SHALL receive th... |
 | A new subscription to a topic whose read has ended, while others still hold it, SHALL start a n... | A new subscription after the read ended starts a new read | A new subscription to a log topic whose read has ended, while others s... |
-| A reconnect that resumes a stream SHALL NOT start a new read: for a resumed subscription the `l... | A reconnect that resumes a log stream starts no new read | A reconnect that resumes a stream SHALL NOT start a new read: for a re... |
+| A reconnect that resumes a stream SHALL NOT start a new read: for a resumed subscription the `l... | A reconnect that resumes a stream starts no new read | A reconnect that resumes a stream SHALL NOT start a new read: for a re... |
 
 | New scenario | In requirement | Restates |
 | --- | --- | --- |

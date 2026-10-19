@@ -18,7 +18,7 @@
 
 ### Requirement: One upstream stream per log topic, closed with its last subscriber
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "All subscribers of one log topic share one upstream log stream", "The upstream log stream closes when the log topic's last subscriber leaves", "A subscriber that joins a streaming log topic receives the recent lines, numbered", "A new subscription after the read ended starts a new read", "A reconnect that resumes a log stream starts no new read".
+**Migration**: See "All subscribers of one log topic share one upstream log stream", "The upstream log stream closes when the log topic's last subscriber leaves", "A subscriber that joins a streaming log topic receives the recent lines, numbered", "A new subscription after the read ended starts a new read", "A reconnect that resumes a stream starts no new read".
 
 ## ADDED Requirements
 
@@ -135,7 +135,8 @@ a short delay when no line follows. Source: portal:D10:R3.
 ### Requirement: The initial tail of a log ends at its first live line and is delivered once it ends
 The initial tail of a followed container's log SHALL be at most the requested tail lines, ending at
 the first line stamped after the stream opened. It SHALL be delivered once it ends, and no later
-than the marker delay after its latest line when the container is quiet. Source: portal:D10:R3.
+than the marker delay after its latest line when the container is quiet, the delay of requirement
+"Log lines beyond the rate are dropped and counted by a rate-limited marker". Source: portal:D10:R3.
 
 #### Scenario: A quiet container's tail
 
@@ -254,7 +255,7 @@ new read with a fresh tail, which every subscriber of the topic receives after t
   and follows the topic again
 - **THEN** a new upstream log stream opens and both sessions receive its lines
 
-### Requirement: A reconnect that resumes a log stream starts no new read
+### Requirement: A reconnect that resumes a stream starts no new read
 A reconnect that resumes a stream SHALL NOT start a new read: for a resumed subscription the
 `logend` stays the end, and only unsubscribing and subscribing again follows the container afresh.
 

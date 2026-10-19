@@ -261,8 +261,8 @@ fail `task e2e:capture:check`. Source: portal:D8.
 - **THEN** `test/e2e/check-capture_test.sh` has run the check against scratch cases for each rule before the committed captures are checked
 
 ### Requirement: The capture runs the check last and every pull request runs it
-`task e2e:capture` SHALL run `task e2e:capture:check` last, and `task check` and the `Test` check
-SHALL run it on every pull request. Source: portal:D8.
+The capture SHALL run the check last, and `task check` and the `Test` check SHALL run it on every
+pull request. Source: portal:D8.
 
 #### Scenario: Hand-edited capture in a pull request
 

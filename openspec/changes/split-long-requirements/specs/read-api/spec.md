@@ -535,8 +535,8 @@ portal:D3:R8.
 
 ### Requirement: In-cluster mode serves no condition, reconcile, history or registration message
 In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carry
-text the operator wrote in a condition's `message` (a registration's `conditions` included), a
-reconcile `message`, a history entry's `message`, or a registration's `message` or `activeMessage`.
+text the operator wrote: a condition's `message` (a registration's `conditions` included), a
+reconcile `message`, a history entry's `message`, a registration's `message` or `activeMessage`.
 Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the supervisor ruling recorded under
 portal:D8.
 
