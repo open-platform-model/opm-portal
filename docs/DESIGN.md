@@ -116,7 +116,7 @@ the built-in `view` role.
 
 User stories:
 
-- As a **platform team controller**, I want to see the Platform's catalogs, the providers that
+- As a **platform team operator**, I want to see the Platform's catalogs, the providers that
   registered and whether each registration was accepted, so that I can tell what this cluster
   offers.
 - As an **application developer**, I want to open my instance and see its components, objects and
@@ -395,7 +395,7 @@ pending the supervisor and the owner).
 
 **Kind:** contract
 
-**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces")
+**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces")
 
 **Decision:** The portal never renders a module. Every node and edge comes from a field a Kubernetes
 object already carries, and each edge kind has exactly one source: subscriptions from the Platform's
@@ -465,7 +465,7 @@ team would act on it.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 2, 8, 9 and 13,
 phases 7 to 9; [evidence 02](design/evidence/02-live-graph-spike/). Registration verdicts as
-enhancement 0015 defines them (a registration is a cluster-scoped CR, gated by the RBAC the controller already enforces). R5: owner decision 2026-10-06, asked how the graph should group
+enhancement 0015 defines them (a registration is a cluster-scoped CR, gated by the RBAC the operator already enforces). R5: owner decision 2026-10-06, asked how the graph should group
 configuration: "Groups per kind (Recommended)" (groups per kind family, an accordion with one open
 at a time, a dotted frame, Collapse and Overview, zoom to the group;
 [evidence 05](design/evidence/05-canvas-gap-report/), gaps graph-01, graph-04, graph-06,
@@ -590,7 +590,7 @@ audit log sees only the portal's ServiceAccount.
 
 **Alternatives considered:**
 
-- **Impersonation** (the Flux Controller UI's model). Requires the impersonate verb, the blast radius
+- **Impersonation** (the Flux Operator UI's model). Requires the impersonate verb, the blast radius
   of the empty-identity bug class (CVE-2026-23990: empty claims fell through to the server's own
   identity). Revisiting it after V1 is OQ1.
 - **Token passthrough.** Works only where the API server trusts the portal's issuer; it stays an
@@ -1108,7 +1108,7 @@ naming a ModuleInstance.
 
 **Kind:** contract
 
-**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the controller already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")
+**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")
 
 **Decision:** The pages show, per ModuleInstance, the contracts its last successful render used,
 read from `status.requiredContracts` (served as `renderContracts`), under the label "Uses" with the
@@ -1359,7 +1359,7 @@ controller watches it and re-reconciles the package, which refreshes the package
 - **Watch source objects.** Another watched kind per namespace for a value the package's own topic
   already refreshes.
 - **Add the source kinds to the `deploy/` role.** Every launch-token holder would see Flux source
-  specs (repository URLs and references); left to the controller of the Pod.
+  specs (repository URLs and references); left to the operator of the Pod.
 
 **Rationale:** "Source not ready" has two very different causes, an unready artifact and a missing
 source-controller; reading the source as the caller tells them apart without trusting anything the
@@ -1515,7 +1515,7 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   another team's objects. *Mitigation:* D7 makes authorization the first step of every read and
   requires the same refusal for existing and missing objects; tests assert a principal without
   access gets zero items from every list.
-- **Empty or forged identity reaches the cluster** (CVE-2026-23990 in the Flux Controller UI).
+- **Empty or forged identity reaches the cluster** (CVE-2026-23990 in the Flux Operator UI).
   *Mitigation:* D6 refuses an empty username before any Kubernetes call, strips every `system:`
   group, requires prefixes, and holds no impersonate grant.
 - **Values leak through a side door**: the instance spec, the last-applied annotation, and controller
@@ -1549,7 +1549,7 @@ in the API server's audit log, so the portal's access log is the only record of 
 - **A Headlamp plugin instead of a portal.** Plugins run only in the browser, so per-user filtering
   of a shared cache, server-side health and log bounds cannot live there. A plugin over this API
   stays a follow-up.
-- **Embed the UI in the controller** (the Flux Controller model). The controller holds cluster-wide
+- **Embed the UI in the controller** (the Flux Operator model). The controller holds cluster-wide
   impersonate and write on ModuleInstances; a UI bug there has the controller's blast radius.
 - **Backstage as the base.** A heavy platform with a shared server-side identity by default; it
   stays an adapter target.

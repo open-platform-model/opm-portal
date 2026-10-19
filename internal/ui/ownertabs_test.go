@@ -212,11 +212,11 @@ func TestEventsTableShowsACappedNoteOnce(t *testing.T) {
 	}
 }
 
-// TestInClusterEventsTableHasNoOperatorNote (5.2, OP-A2): over the in-cluster
+// TestInClusterEventsTableHasNoControllerNote (5.2, OP-A2): over the in-cluster
 // read API the Events tab of the instance shows the note of neither writer of an
-// operator note: an event from opm-controller, and one with no reporter that
+// controller note: an event from opm-controller, and one with no reporter that
 // regards an OPM object. The local API serves both, built here from F1's events.
-func TestInClusterEventsTableHasNoOperatorNote(t *testing.T) {
+func TestInClusterEventsTableHasNoControllerNote(t *testing.T) {
 	const (
 		feed        = "/api/v1alpha1/clusters/default/instances/default/podinfo/events?scope=all"
 		anonymousOP = "A note with no reporter, about an OPM object."
@@ -237,16 +237,16 @@ func TestInClusterEventsTableHasNoOperatorNote(t *testing.T) {
 		}
 	}
 	if byController == "" || byOPMObject == "" {
-		t.Fatalf("the local API serves no event of both operator writers (controller %q, no reporter %q)", byController, byOPMObject)
+		t.Fatalf("the local API serves no event of both controller writers (controller %q, no reporter %q)", byController, byOPMObject)
 	}
 	if !strings.Contains(eventsRegion(local.get(t, eventsTabURL).body), html.EscapeString(byOPMObject)) {
-		t.Fatal("the local Events tab does not show the operator notes: the in-cluster check proves nothing")
+		t.Fatal("the local Events tab does not show the controller notes: the in-cluster check proves nothing")
 	}
 	in := newInClusterSite(t, objs, apitest.AllowAll)
 	region := eventsRegion(in.get(t, eventsTabURL).body)
 	for _, note := range []string{byController, byOPMObject} {
 		if strings.Contains(region, html.EscapeString(note)) {
-			t.Errorf("the in-cluster Events tab shows the operator note %q", note)
+			t.Errorf("the in-cluster Events tab shows the controller note %q", note)
 		}
 	}
 	if !strings.Contains(region, "ScalingReplicaSet") {
@@ -255,8 +255,8 @@ func TestInClusterEventsTableHasNoOperatorNote(t *testing.T) {
 }
 
 // withAnonymousOPMEvent adds to objs an event with no reporter that regards the
-// podinfo ModuleInstance, built from the operator's own: the second writer of an
-// operator note (OP-A2).
+// podinfo ModuleInstance, built from the controller's own: the second writer of an
+// controller note (OP-A2).
 func withAnonymousOPMEvent(t *testing.T, objs []*unstructured.Unstructured, note string) []*unstructured.Unstructured {
 	t.Helper()
 	for _, o := range slices.Clone(objs) {
@@ -271,7 +271,7 @@ func withAnonymousOPMEvent(t *testing.T, objs []*unstructured.Unstructured, note
 			return append(objs, twin)
 		}
 	}
-	t.Fatal("F1 holds no operator event of podinfo to copy")
+	t.Fatal("F1 holds no controller event of podinfo to copy")
 	return nil
 }
 

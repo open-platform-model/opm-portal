@@ -324,7 +324,7 @@ portal:D4:R4.
 
 - **WHEN** the instance graph of `default/backup-provider` is built from the F1 capture
 - **THEN** its TransformerRegistration node `default.backup-provider` is accepted and active, with
-  verdict `Accepted`, catalog `testing.opmodel.dev/catalogs/operator/backup@v0` and version `0.1.0`
+  verdict `Accepted`, catalog `testing.opmodel.dev/catalogs/controller/backup@v0` and version `0.1.0`
 
 #### Scenario: A package holder refused
 

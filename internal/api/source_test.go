@@ -421,7 +421,7 @@ func TestPackageSourceTextIsCut(t *testing.T) {
 }
 
 // TestInClusterSourceTextIsServedUpToItsCap: source-controller wrote the
-// Ready message, reason and revision, not the operator, so an in-cluster
+// Ready message, reason and revision, not the controller, so an in-cluster
 // server serves each of the three, cut to its cap, in the document and the
 // graph (SR3).
 func TestInClusterSourceTextIsServedUpToItsCap(t *testing.T) {

@@ -369,8 +369,8 @@ func TestMergedEventsProblems(t *testing.T) { //nolint:gocyclo // one test, one 
 	})
 }
 
-// operatorEvent builds an event about default/podinfo, an OPM object.
-func operatorEvent(name, reason, note, controller string) *unstructured.Unstructured {
+// controllerEvent builds an event about default/podinfo, an OPM object.
+func controllerEvent(name, reason, note, controller string) *unstructured.Unstructured {
 	ev := &unstructured.Unstructured{Object: map[string]any{
 		"apiVersion": "events.k8s.io/v1",
 		"kind":       "Event",
@@ -391,14 +391,14 @@ func operatorEvent(name, reason, note, controller string) *unstructured.Unstruct
 	return ev
 }
 
-// TestMergedEventsInCluster (OP-A2): in-cluster, both writers of an operator
+// TestMergedEventsInCluster (OP-A2): in-cluster, both writers of a controller
 // note lose it, the one that names its controller and the one that names none
 // and regards an OPM object; the kubelet's notes are served as written. In
 // local mode every note is served.
 func TestMergedEventsInCluster(t *testing.T) {
 	objs := append(loadF1(t),
-		operatorEvent("by-the-operator", "OperatorSaid", "operator text one", "opm-controller"),
-		operatorEvent("by-nobody-we-know", "SomebodySaid", "operator text two", ""),
+		controllerEvent("by-the-controller", "ControllerSaid", "controller text one", "opm-controller"),
+		controllerEvent("by-nobody-we-know", "SomebodySaid", "controller text two", ""),
 	)
 	notes := func(l v1.EventList) map[string]string {
 		out := map[string]string{}
@@ -413,7 +413,7 @@ func TestMergedEventsInCluster(t *testing.T) {
 	local := notes(decode[v1.EventList](t, newEnv(t, objs, readmodeltest.AllowAll).get(t, podinfoAll)))
 	in := notes(decode[v1.EventList](t, newEnv(t, objs, readmodeltest.AllowAll, inCluster).get(t, podinfoAll)))
 
-	for _, reason := range []string{"ModuleInstance/OperatorSaid", "ModuleInstance/SomebodySaid"} {
+	for _, reason := range []string{"ModuleInstance/ControllerSaid", "ModuleInstance/SomebodySaid"} {
 		if local[reason] == "" {
 			t.Errorf("local mode serves no note for %s: %v", reason, local)
 		}
@@ -437,7 +437,7 @@ func TestMergedEventsInCluster(t *testing.T) {
 }
 
 // TestMergedEventsInClusterOtherObjects (OP-A2, portal:D8:R5): the in-cluster
-// omission of an operator note applies to every item of the merged feed, not
+// omission of a controller note applies to every item of the merged feed, not
 // to the events about the owner only. backup-provider reaches the
 // TransformerRegistration default.backup-provider, an OPM object other than
 // the owner; an event of each writer about it loses its note in-cluster and
@@ -445,14 +445,14 @@ func TestMergedEventsInCluster(t *testing.T) {
 func TestMergedEventsInClusterOtherObjects(t *testing.T) {
 	const feed = base + "/instances/default/backup-provider/events?scope=all"
 	registrationEvent := func(name, reason, note, controller string) *unstructured.Unstructured {
-		ev := operatorEvent(name, reason, note, controller)
+		ev := controllerEvent(name, reason, note, controller)
 		ev.Object["regarding"] = map[string]any{
 			"apiVersion": "opmodel.dev/v1alpha1", "kind": "TransformerRegistration", "name": "default.backup-provider",
 		}
 		return ev
 	}
 	objs := append(loadF1(t),
-		registrationEvent("registration-by-the-operator", "RegistrationOperatorSaid", "registration text one", "opm-controller"),
+		registrationEvent("registration-by-the-controller", "RegistrationControllerSaid", "registration text one", "opm-controller"),
 		registrationEvent("registration-by-nobody-we-know", "RegistrationSomebodySaid", "registration text two", ""),
 	)
 	notes := func(l v1.EventList) map[string]string {
@@ -466,7 +466,7 @@ func TestMergedEventsInClusterOtherObjects(t *testing.T) {
 	}
 	local := notes(decode[v1.EventList](t, newEnv(t, objs, readmodeltest.AllowAll).get(t, feed)))
 	in := notes(decode[v1.EventList](t, newEnv(t, objs, readmodeltest.AllowAll, inCluster).get(t, feed)))
-	for _, reason := range []string{"RegistrationOperatorSaid", "RegistrationSomebodySaid"} {
+	for _, reason := range []string{"RegistrationControllerSaid", "RegistrationSomebodySaid"} {
 		if local[reason] == "" {
 			t.Errorf("local mode serves no note for %s: %v", reason, local)
 		}

@@ -45,7 +45,7 @@ func withControllerEventsOnTheRegistration(objs func(testing.TB) []*unstructured
 	return func(t testing.TB) []*unstructured.Unstructured {
 		out := objs(t)
 		for _, ev := range []struct{ name, reason, note, controller string }{
-			{"registration-by-the-controller", "RegistrationOperatorSaid", "registration text one", "opm-controller"},
+			{"registration-by-the-controller", "RegistrationControllerSaid", "registration text one", "opm-controller"},
 			{"registration-by-nobody-we-know", "RegistrationSomebodySaid", "registration text two", ""},
 		} {
 			e := &unstructured.Unstructured{Object: map[string]any{

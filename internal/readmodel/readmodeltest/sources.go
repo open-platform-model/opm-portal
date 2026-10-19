@@ -123,7 +123,7 @@ func ociRepositoryIn(namespace, name, uid string, conds []any, artifact bool) *u
 // WithUnversionedSourcePackage returns objs plus a ModulePackage
 // pkg/podinfo-unversioned whose spec.sourceRef names kind OCIRepository and
 // the name SourceReady and no apiVersion, which the controller accepts
-// because it reads the group from the kind alone (opm-operator
+// because it reads the group from the kind alone (opm-controller
 // internal/source/resolve.go).
 //
 // CONSTRUCTED, not captured: the package is pkg/podinfo renamed, with the

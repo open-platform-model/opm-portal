@@ -85,7 +85,7 @@ type InstanceItem struct {
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64
-	// InventoryRevision is status.inventory.revision when the operator
+	// InventoryRevision is status.inventory.revision when the controller
 	// recorded an integer of at least 1, else 0 (not recorded).
 	InventoryRevision int64
 	LastAppliedAt     time.Time
