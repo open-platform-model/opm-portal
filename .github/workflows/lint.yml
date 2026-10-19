@@ -47,7 +47,6 @@ jobs:
       - name: docs-kit pins agree
         run: task docs:pins:check
 
-      # Main specs and active changes validate under --strict.
       # The version moves with OPENSPEC_VERSION in Taskfile.yml.
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
