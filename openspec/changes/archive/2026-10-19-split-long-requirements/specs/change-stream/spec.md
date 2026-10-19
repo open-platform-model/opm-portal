@@ -338,7 +338,8 @@ cap, after first discarding the oldest disconnected stream in that scope.
 The portal SHALL accept exactly these topic names on a stream: `platform`, `instances`,
 `instances:<namespace>`, `instance:<namespace>/<name>`, `package:<namespace>/<name>`,
 `registration:<name>`, `events:<object topic>`, where an object topic is `platform`, `instance:…`,
-`package:…` or `registration:…`, and `log:<namespace>/<pod>/<container>`.
+`package:…` or `registration:…`, and `log:<namespace>/<pod>/<container>` with an optional trailing
+`/previous` segment that asks for the previous container's logs.
 
 #### Scenario: A well-formed topic is accepted
 

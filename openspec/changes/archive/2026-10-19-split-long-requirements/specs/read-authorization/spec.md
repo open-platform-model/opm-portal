@@ -194,9 +194,10 @@ ServiceAccount token's subject. Source: portal:D6:R10 (partial).
 - **THEN** it refuses to build
 
 ### Requirement: The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires
-The SubjectAccessReview SHALL be sent when the reader first needs the grant (at startup for the
-watched kinds) and, for polls and on-demand lists, again once the cached decision expires, so a
-revoked role reaches them within one time-to-live plus one review. Stopping a running informer when
+In-cluster the SubjectAccessReview naming the portal's own ServiceAccount SHALL be sent when the reader
+first needs the grant (at startup for the watched kinds) and, for polls and on-demand lists, again
+once the cached decision expires, so a revoked role reaches them within one time-to-live plus one
+review. Stopping a running informer when
 its review expires, as portal:D6:R10 requires, is deferred to the change that builds the in-cluster
 command. Source: portal:D6:R10 (partial).
 

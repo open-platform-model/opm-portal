@@ -303,17 +303,22 @@ portal:D13:R1/R2, portal:D5:R3/R4.
 - **AND** after `kubectl -n opm-portal rollout restart deploy/opm-portal` the new Pod's log holds
   a new launch URL that admits a browser
 
-### Requirement: In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward
-Every read SHALL be made as the Pod's ServiceAccount after a SelfSubjectAccessReview for it. The
-startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty context
-name. A browser reaches the portal only through `kubectl port-forward` to the bound port, and the
-`Host` allowlist SHALL admit only the bound port, so a forward from any other local port is refused.
-Source: portal:D13:R1/R2, portal:D5:R3/R4.
+### Requirement: In a Pod local mode reads as the ServiceAccount and logs source in-cluster
+When `opm-portal serve` finds no kubeconfig and client-go loads the in-cluster configuration,
+every read SHALL be made as the Pod's ServiceAccount after a SelfSubjectAccessReview for it. When `opm-portal serve` finds no kubeconfig and client-go
+loads the in-cluster configuration, the startup log line naming the identity SHALL carry
+`source=in-cluster` in place of an empty context name. Source: portal:D13:R1/R2, portal:D5:R3/R4.
 
 #### Scenario: The startup log line
 
 - **WHEN** the portal starts in a Pod
 - **THEN** the startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty context name
+
+### Requirement: In a Pod local mode is reached only through port-forward to the bound port
+When `opm-portal serve` finds no kubeconfig and client-go loads the in-cluster configuration,
+a browser reaches the portal only through `kubectl port-forward` to the bound port, and the `Host`
+allowlist SHALL admit only the bound port, so a forward from any other local port is refused.
+Source: portal:D13:R1/R2, portal:D5:R3/R4.
 
 #### Scenario: Port-forward to the bound port
 

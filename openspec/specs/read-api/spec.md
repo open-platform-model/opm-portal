@@ -898,10 +898,10 @@ portal:D2:R2.
 - **THEN** the `Lint` check's API gate passes
 
 ### Requirement: A removed enumerated value fails Lint and a test compares values with the Go constants
-Because `oasdiff` ignores `x-extensible-enum`, the required `Lint` check SHALL fail when a value the
-base OpenAPI document lists for an enumerated field is missing from the head, and a test SHALL fail
-when an enumerated field's values differ from the Go constants the server writes. Source:
-portal:D2:R2.
+Because `oasdiff` ignores `x-extensible-enum`, the required `Lint` check SHALL fail, unless the pull
+request's title marks a breaking change with `!`, when a value the base OpenAPI document lists for an
+enumerated field is missing from the head, and a test SHALL fail when an enumerated field's values
+differ from the Go constants the server writes. Source: portal:D2:R2.
 
 #### Scenario: An enumerated value removed
 

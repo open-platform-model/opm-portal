@@ -101,7 +101,6 @@ Wording changes beyond the split (no rule changes):
 | Place | Change | Why |
 | --- | --- | --- |
 | `A decision is cached ...` (change-stream, requirement `A revocation reaches the stream within one decision lifetime`) | "A decision SHALL be cached for at most its lifetime"; the old sentence had no keyword | An ADDED block needs SHALL or MUST; the cache bound was already a rule of the old requirement |
-| `The portal accepts exactly the named topics` | lists `log:<namespace>/<pod>/<container>` itself | The rule "exactly these names" stays whole in one block; the `/previous` segment is in its own requirement |
 | Bodies that start with a subject such as "The Applied card SHALL", "The Events tab SHALL" | the old text said "the card", "the tab" or "it" | A split body must name its subject; the verb and its strength are unchanged |
 | Tabs: Service Endpoints fact | "the fact SHALL read" where the old bullet said "the fact reads" | The bullet sat under "The panel SHALL show"; the new block needs its own keyword |
 | Header: cluster naming | "SHALL name the cluster by the kubeconfig context and, when ... or "in cluster"" | The old parenthesis moved into its own sentence |
@@ -1664,8 +1663,8 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 | --- | --- | --- |
 | In-cluster the read model's informers, polls and on-demand lists SHALL read only under a grant... | Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token | In-cluster the read model's informers, polls and on-demand lists SHALL... |
 | The ServiceAccount SHALL be named by the deployment or read from the mounted ServiceAccount tok... | Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token | In-cluster the read model's informers, polls and on-demand lists SHALL... |
-| The review SHALL be sent when the reader first needs the grant (at startup for the watched kind... | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires | The SubjectAccessReview SHALL be sent when the reader first needs the... |
-| Stopping a running informer when its review expires, as portal:D6:R10 requires, is deferred to... | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires | The SubjectAccessReview SHALL be sent when the reader first needs the... |
+| The review SHALL be sent when the reader first needs the grant (at startup for the watched kind... | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires | In-cluster the SubjectAccessReview naming the portal's own ServiceAccou... |
+| Stopping a running informer when its review expires, as portal:D6:R10 requires, is deferred to... | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires | In-cluster the SubjectAccessReview naming the portal's own ServiceAccou... |
 
 
 #### Spec `build-and-release`
@@ -1813,20 +1812,20 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 | An identity the cluster does not name | In a Pod local mode binds loopback and fails closed on an empty or anonymous identity, An identity the cluster does not name | no, byte for byte |
 | The Pod starts in local mode | In a Pod local mode prints the launch URL and applies the launch token and the browser protections, The Pod starts in local mode | no, byte for byte |
 | The token is spent | In a Pod local mode prints the launch URL and applies the launch token and the browser protections, The token is spent | no, byte for byte |
-| Port-forward to the bound port | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward, Port-forward to the bound port | no, byte for byte |
-| Port-forward from another local port | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward, Port-forward from another local port | no, byte for byte |
+| Port-forward to the bound port | In a Pod local mode is reached only through port-forward to the bound port, Port-forward to the bound port | no, byte for byte |
+| Port-forward from another local port | In a Pod local mode is reached only through port-forward to the bound port, Port-forward from another local port | no, byte for byte |
 
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
 | When `opm-portal serve` finds no kubeconfig and client-go loads the in-cluster configuration, t... | In a Pod local mode binds loopback and fails closed on an empty or anonymous identity | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
 | SHALL print the launch URL on standard output, which becomes the container log, and SHALL apply... | In a Pod local mode prints the launch URL and applies the launch token and the browser protections | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
-| Every read SHALL be made as that ServiceAccount after a SelfSubjectAccessReview for it. | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
-| The startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty c... | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
-| A browser reaches the portal only through `kubectl port-forward` to the bound port, and the `Ho... | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
+| Every read SHALL be made as that ServiceAccount after a SelfSubjectAccessReview for it. | In a Pod local mode reads as the ServiceAccount and logs source in-cluster | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
+| The startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty c... | In a Pod local mode reads as the ServiceAccount and logs source in-cluster | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
+| A browser reaches the portal only through `kubectl port-forward` to the bound port, and the `Ho... | In a Pod local mode is reached only through port-forward to the bound port | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
 
 | New scenario | In requirement | Restates |
 | --- | --- | --- |
-| The startup log line | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The startup log line | In a Pod local mode reads as the ServiceAccount and logs source in-cluster | the clause of that requirement; WHEN and THEN use only words of the old body |
 
 
 #### Spec `graph-model`
@@ -2031,6 +2030,7 @@ Every plain sentence that gained SHALL, MUST or MAY in a split block, by unit (D
 | --- | --- | --- | --- |
 | `change-stream`, `A revocation reaches the stream within one decision lifetime` (B1) | The cache bound | "A decision is cached for at most its lifetime" | "A decision SHALL be cached for at most its lifetime" |
 | `web-ui`, Service Endpoints fact (B1) | The fact in the Tabs block | "the fact reads" | "the fact SHALL read" |
+| `web-ui`, `A Service with no recorded slice has no Endpoints fact` (B1) | The Endpoints fact left out | "the fact is left out" | "the Endpoints fact SHALL be left out" |
 | `kind-e2e-environment`, `Fixture images are pinned by tag, ...` (B2) | Two pin sentences | "are pinned by tag only", "is pinned by digest" | "SHALL be pinned by tag only", "SHALL be pinned by digest" |
 | `kind-e2e-environment`, `The capture runs the check last and every pull request runs it` (B2) | Two run sentences | "The capture runs it last, and ... run it" | "The capture SHALL run the check last, and ... SHALL run it" |
 | `read-authorization`, `In-cluster mode treats every identity as a person unless the portal built it as its own ServiceAccount` (B3) | The person rule | "Every identity is a person unless the portal built it as its own ServiceAccount;" | "In-cluster every identity SHALL be a person unless the portal built it as its own ServiceAccount;" |
