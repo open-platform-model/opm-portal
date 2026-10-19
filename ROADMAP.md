@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-12 (`show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-19 (`split-long-requirements` built in four sections and archived, `--strict` back in `task openspec:check`; before that, 2026-10-12: `show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -62,6 +62,7 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 | 34 | Every citation of the withdrawn portal enhancement outside archived changes rewritten as `portal:` (issues 31 and 32) |
 | 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
 | 39 | Web UI redesign (`redesign-web-ui`): Platform and Installed views, a theme choice and remembered filters, summary cards and tabs on instance and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); the `Cluster` document, provider holders and package sources in the read API; local mode on `127.0.0.1:7878` |
+| this PR | Long requirements split (`split-long-requirements`): 85 requirements in 13 specs rewritten as shorter requirements, no rule changed; `task openspec:check` and the `Lint` job validate under `--strict` again |
 
 
 ### Next in V1

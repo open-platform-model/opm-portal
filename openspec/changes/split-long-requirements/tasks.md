@@ -29,9 +29,9 @@ Specs: `read-model` (6), `read-authorization` (5), `build-and-release` (4), `loc
 
 ## 4. Strict gate back, and the final gate
 
-- [ ] 4.1 `Taskfile.yml`: `openspec:check` runs `openspec validate --all --strict --no-interactive`; the `desc` drops "--strict is off until the long-requirement rewrite lands"
-- [ ] 4.2 `AGENTS.md` (command table) and `openspec/config.yaml` (validation gate 5): `task openspec:check` runs `openspec validate --all --strict`; drop the "off until" text
-- [ ] 4.3 `.github/workflows/lint.yml`: rename the step "OpenSpec" to "OpenSpec (strict)" and drop the comment that says validation runs without `--strict`; run `actionlint`
-- [ ] 4.4 `ROADMAP.md`: add the change to the done table, one line, and update "Last updated"
-- [ ] 4.5 Final gate (`LAST=1`, no warnings expected) in a scratch copy: `openspec validate split-long-requirements --strict` exits 0, `openspec validate --specs --strict` exits 0 after the archive, no "Archive would refuse" line, no new ERROR item; run it once more over the committed tree and read both exit codes
-- [ ] 4.6 `task check` green with `--strict` on, then commit `ci(openspec): validate with --strict again`
+- [x] 4.1 `Taskfile.yml`: `openspec:check` runs `openspec validate --all --strict --no-interactive`; the `desc` drops "--strict is off until the long-requirement rewrite lands"
+- [x] 4.2 `AGENTS.md` (command table) and `openspec/config.yaml` (validation gate 5): `task openspec:check` runs `openspec validate --all --strict`; drop the "off until" text
+- [x] 4.3 `.github/workflows/lint.yml`: rename the step "OpenSpec" to "OpenSpec (strict)" and drop the comment that says validation runs without `--strict`; run `actionlint`
+- [x] 4.4 `ROADMAP.md`: add the change to the done table, one line, and update "Last updated"
+- [x] 4.5 Final gate (`LAST=1`, no warnings expected) in a scratch copy: `openspec validate split-long-requirements --strict` exits 0, `openspec validate --specs --strict` exits 0 after the archive, no "Archive would refuse" line, no new ERROR item; run it once more over the committed tree and read both exit codes
+- [x] 4.6 `task check` green with `--strict` on (run in a scratch copy of the tree after the archive), then commit `ci(openspec): validate with --strict again`

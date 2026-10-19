@@ -47,7 +47,7 @@ jobs:
       - name: docs-kit pins agree
         run: task docs:pins:check
 
-      # Main specs and active changes validate without --strict until the long-requirement rewrite lands.
+      # Main specs and active changes validate under --strict.
       # The version moves with OPENSPEC_VERSION in Taskfile.yml.
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -57,7 +57,7 @@ jobs:
       - name: Install openspec
         run: npm install -g @fission-ai/openspec@1.14.1
 
-      - name: OpenSpec
+      - name: OpenSpec (strict)
         run: task openspec:check
 
       # The read API changes only additively within v1alpha1: a breaking change

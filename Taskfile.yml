@@ -174,12 +174,12 @@ tasks:
       - npm install -g @fission-ai/openspec@{{.OPENSPEC_VERSION}}
 
   openspec:check:
-    desc: Validate every main spec and active change (--strict is off until the long-requirement rewrite lands)
+    desc: Validate every main spec and active change under --strict
     preconditions:
       - sh: command -v openspec >/dev/null
         msg: "openspec not found: run `task openspec:install` (needs npm)"
     cmds:
-      - openspec validate --all --no-interactive
+      - openspec validate --all --strict --no-interactive
 
   #########################
   ## Comment rule

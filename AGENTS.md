@@ -105,7 +105,7 @@ openspec/         config, main specs, changes
 | `task fmt`, `task vet`, `task lint` (`lint:fix`) | gofmt and goimports, `go vet` (with `e2e,browser` tags), golangci-lint | Parts of `check` |
 | `task test` | `go test -race ./...` (needs cgo and a C compiler) | Part of `check` |
 | `go test ./<package> -run <Name>` | One test | Iterating |
-| `task openspec:check` | `openspec validate --all` (`--strict` is off until the long-requirement rewrite lands; `task openspec:install` first) | Before committing an OpenSpec artifact |
+| `task openspec:check` | `openspec validate --all --strict` (`task openspec:install` first) | Before committing an OpenSpec artifact |
 | `task cite-lint` | Reject enhancement citations by decision number or lone id (needs the Go proxy) | After editing comments |
 | `task deps:release-check` | Release-pin gate G1 | On release PRs |
 | `task api:breaking` | Fail on a breaking `openapi/` change unless the title has `!` | After an API change |
