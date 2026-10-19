@@ -149,8 +149,9 @@ portal:D6:R4.
 - **THEN** the topic is closed with code `forbidden` and delivers nothing
 
 ### Requirement: A list topic carries the items within its grant with no review per item
-A list topic SHALL carry only items within the namespace scope of the reader's grant, with no
-authorization review per item. Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
+A list topic (`instances` or `instances:<namespace>`) SHALL carry only items within the namespace
+scope of the reader's `list` grant, with no authorization review per item. Source: portal:D7:R2,
+portal:D5:R5, portal:D6:R4.
 
 #### Scenario: A list topic sends no review per item
 
@@ -337,8 +338,7 @@ cap, after first discarding the oldest disconnected stream in that scope.
 The portal SHALL accept exactly these topic names on a stream: `platform`, `instances`,
 `instances:<namespace>`, `instance:<namespace>/<name>`, `package:<namespace>/<name>`,
 `registration:<name>`, `events:<object topic>`, where an object topic is `platform`, `instance:…`,
-`package:…` or `registration:…`, and the log topic named in "A log topic names a Pod and a
-container".
+`package:…` or `registration:…`, and `log:<namespace>/<pod>/<container>`.
 
 #### Scenario: A well-formed topic is accepted
 

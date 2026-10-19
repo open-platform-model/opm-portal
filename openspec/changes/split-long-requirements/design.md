@@ -101,7 +101,7 @@ Wording changes beyond the split (no rule changes):
 | Place | Change | Why |
 | --- | --- | --- |
 | `A decision is cached ...` (change-stream, requirement `A revocation reaches the stream within one decision lifetime`) | "A decision SHALL be cached for at most its lifetime"; the old sentence had no keyword | An ADDED block needs SHALL or MUST; the cache bound was already a rule of the old requirement |
-| `The portal accepts exactly the named topics` | ends with "the log topic named in "A log topic names a Pod and a container"" | The log topic name moved to its own requirement; "exactly these names" stays true for the union |
+| `The portal accepts exactly the named topics` | lists `log:<namespace>/<pod>/<container>` itself | The rule "exactly these names" stays whole in one block; the `/previous` segment is in its own requirement |
 | Bodies that start with a subject such as "The Applied card SHALL", "The Events tab SHALL" | the old text said "the card", "the tab" or "it" | A split body must name its subject; the verb and its strength are unchanged |
 | Tabs: Service Endpoints fact | "the fact SHALL read" where the old bullet said "the fact reads" | The bullet sat under "The panel SHALL show"; the new block needs its own keyword |
 | Header: cluster naming | "SHALL name the cluster by the kubeconfig context and, when ... or "in cluster"" | The old parenthesis moved into its own sentence |
@@ -211,7 +211,7 @@ Known hits stay valid: `docs/DESIGN.md` names two requirements that are not long
 | --- | --- |
 | The instance page SHALL show: the instance's graph; its inventory objects and runtime children... | The instance page shows its graph, resources and conditions |
 | The instance page SHALL show: its status history, newest first, behind "Show history"; the rend... | The instance page shows its history, contracts and events |
-| The package page SHALL show the same for a ModulePackage, with its source, interval, prune sett... | The package page shows the same for a ModulePackage |
+| The package page SHALL show the same as the instance page for a ModulePackage (its graph, Resou... | The package page shows the same for a ModulePackage |
 | Configuration components SHALL be folded in the Resources tab into the same groups the graph fo... | The Resources tab folds configuration components and idle ReplicaSets |
 | The Events tab SHALL open on the events of the instance and of every object and runtime child i... | The Events tab merges the events of everything the inventory reaches |
 | When some reached objects' events could not be read, the Events tab SHALL say that they are lef... | The Events tab says when events could not be read |
@@ -306,7 +306,7 @@ Known hits stay valid: `docs/DESIGN.md` names two requirements that are not long
 | Old clause | New place |
 | --- | --- |
 | When the stream ends with an `expired` event, the page SHALL close its `EventSource`, so it doe... | An expired session closes the stream and marks the live mark |
-| The page SHALL show a visible banner in the sticky header that says the session expired, states... | An expired session shows a banner with the time of the data |
+| When the stream ends with an `expired` event, the page SHALL show a visible banner in the stick... | An expired session shows a banner with the time of the data |
 
 **The header names the cluster, the reader and the version** (form c2)
 
@@ -492,7 +492,7 @@ Known hits stay valid: `docs/DESIGN.md` names two requirements that are not long
 | Resources SHALL be a table with one row per inventory object and runtime child: kind, name, com... | Resources is a table of inventory objects and runtime children |
 | A Degraded or Missing row SHALL be marked apart, and the row of the `node` or `focus` object SH... | Resources rows are marked and link to the graph |
 | Configuration components SHALL fold as in the graph. The Resources table SHALL be filtered by a... | Resources folds configuration and filters by reason |
-| On a package page the first row SHALL be the package's source, with origin "source". With nothi... | A package's Resources start with its source |
+| On a package page the first row of the Resources table SHALL be the package's source, with orig... | A package's Resources start with its source |
 | At 360 px wide, no tab SHALL make the page scroll sideways, and the Resources and Events tables... | No tab makes the page scroll sideways at 360 px |
 | Events SHALL filter by resource (grouped by kind, with "All resources" and the item itself as c... | Events filter by resource |
 | Events SHALL filter by type and by reason, each choice with its count. The reason SHALL be show... | Events filter by type and reason |
@@ -583,8 +583,8 @@ Known hits stay valid: `docs/DESIGN.md` names two requirements that are not long
 | The Contracts fact SHALL have a text for every standing. A claim that is accepted but not activ... | A claim not yet active says that nothing is provided yet |
 | A claim whose removal is blocked SHALL give its counts in the Contracts fact and say the remova... | A claim whose removal is blocked says so |
 | A claim of unknown standing SHALL say in the Contracts fact that it is not known. | A claim of unknown standing says it is not known |
-| Below 760 px wide, each row of the table SHALL be a card. | Provider tab rows are cards below 760 px |
-| For each contract the table SHALL list the first three users and the count of the rest. It SHAL... | Each contract lists its first three users |
+| Below 760 px wide, each row of the Provider tab's table of what the registration provides SHALL... | Provider tab rows are cards below 760 px |
+| For each contract the Provider tab's table of what the registration provides SHALL list the fir... | Each contract lists its first three users |
 | When no readable instance uses the contract and the list is complete, the tab SHALL say no inst... | A contract nobody uses says so |
 | When the caller could not list instances everywhere, the list of users SHALL say it may be inco... | An incomplete list of users says it may be incomplete |
 | The registration's conditions, catalog and registry state come from the Platform document. When... | The Provider tab renders locked what the Platform document holds |
@@ -707,7 +707,7 @@ Known hits stay valid: `docs/DESIGN.md` names two requirements that are not long
 | A decision SHALL be cached for at most its lifetime (30 s by default), counted from when its re... | A revocation reaches the stream within one decision lifetime |
 | Re-validating one message SHALL take at most one decision lifetime (30 s by default): a message... | Re-validating one message has a deadline |
 | The list topics `instances` and `instances:<namespace>` SHALL follow the read model's list rule... | The instance list topics follow the read model's list rule |
-| A list topic SHALL carry only items within the namespace scope of the reader's grant, with no a... | A list topic carries the items within its grant with no review per item |
+| A list topic (`instances` or `instances:<namespace>`) SHALL carry only items within the namespa... | A list topic carries the items within its grant with no review per item |
 | On any other topic each change SHALL be delivered only to subscribers allowed to read the objec... | Any other topic delivers only what the subscriber may read |
 | A denied topic SHALL be closed on the stream with a `forbidden` code (or `unauthenticated` when... | A denied topic is closed and delivers nothing |
 | A closed message not written before its connection ends, including one for a topic denied while... | A closed message that did not leave is sent on the next connection |

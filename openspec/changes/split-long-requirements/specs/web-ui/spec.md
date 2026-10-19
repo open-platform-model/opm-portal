@@ -400,8 +400,9 @@ demand; its recent events. Source: portal:D4:R3, portal:D9:R2/R3/R5/R6, portal:D
 - **THEN** the page shows the status history newest first behind "Show history", the render contracts as plain text labelled as the contracts the render used and not the instance's provider demand, and the instance's recent events
 
 ### Requirement: The package page shows the same for a ModulePackage
-The package page SHALL show the same for a ModulePackage, with its source, interval, prune setting,
-source revision and dependencies. Source: portal:D4:R3, portal:D9:R2/R3/R5/R6, portal:D10,
+The package page SHALL show the same as the instance page for a ModulePackage (its graph, Resources,
+Conditions, status history, render contracts and recent events), with its source, interval, prune
+setting, source revision and dependencies. Source: portal:D4:R3, portal:D9:R2/R3/R5/R6, portal:D10,
 portal:D16:R1.
 
 #### Scenario: The package page record
@@ -702,11 +703,11 @@ in the live mark's capitalised wording. The page SHALL keep showing what it last
 - **AND** the page makes no further stream request
 
 ### Requirement: An expired session shows a banner with the time of the data
-The page SHALL show a visible banner in the sticky header that says the session expired, states the
-time of the data the page shows in the form of the `time` partial (relative text, the ISO time in
-`datetime`, the absolute time in UTC in `title`), and carries a Reload link that loads the page
-afresh. The banner SHALL be neither a live region nor given a role: the live mark SHALL stay the one
-announcer.
+When the stream ends with an `expired` event, the page SHALL show a visible banner in the sticky
+header that says the session expired, states the time of the data the page shows in the form of the
+`time` partial (relative text, the ISO time in `datetime`, the absolute time in UTC in `title`), and
+carries a Reload link that loads the page afresh. The banner SHALL be neither a live region nor
+given a role: the live mark SHALL stay the one announcer.
 
 #### Scenario: Reload after the session expired
 
@@ -1137,11 +1138,11 @@ portal:D14:R7, portal:D7, portal:D11:R7.
 - **THEN** the table is filtered by it and the filter shows as a removable chip
 
 ### Requirement: A package's Resources start with its source
-On a package page the first row SHALL be the package's source, with origin "source". With nothing
-applied, the tab SHALL read "Nothing applied yet. The graph fills in once an apply succeeds." on an
-instance, and "Nothing applied yet. The package has never fetched its source." on a package that has
-no source artifact. Source: portal:D8:R2, portal:D9:R3/R6, portal:D10, portal:D14:R7, portal:D7,
-portal:D11:R7.
+On a package page the first row of the Resources table SHALL be the package's source, with origin
+"source". With nothing applied, the Resources tab SHALL read "Nothing applied yet. The graph fills
+in once an apply succeeds." on an instance, and "Nothing applied yet. The package has never fetched
+its source." on a package that has no source artifact. Source: portal:D8:R2, portal:D9:R3/R6,
+portal:D10, portal:D14:R7, portal:D7, portal:D11:R7.
 
 #### Scenario: The package's source row
 
@@ -1446,8 +1447,8 @@ portal:D16:R3, portal:D4:R4, portal:D7:R3, portal:D15:R2/R3.
 - **THEN** the Contracts fact says it is not known
 
 ### Requirement: Provider tab rows are cards below 760 px
-Below 760 px wide, each row of the table SHALL be a card. Source: portal:D16:R3, portal:D4:R4,
-portal:D7:R3, portal:D15:R2/R3.
+Below 760 px wide, each row of the Provider tab's table of what the registration provides SHALL be a
+card. Source: portal:D16:R3, portal:D4:R4, portal:D7:R3, portal:D15:R2/R3.
 
 #### Scenario: The Provider tab at 360 px
 
@@ -1456,10 +1457,10 @@ portal:D7:R3, portal:D15:R2/R3.
   provides" is a card
 
 ### Requirement: Each contract lists its first three users
-For each contract the table SHALL list the first three users and the count of the rest. It SHALL
-link to Installed filtered by that contract as "Show in Installed" when there are three or fewer,
-and "All N in Installed" otherwise. Source: portal:D16:R3, portal:D4:R4, portal:D7:R3,
-portal:D15:R2/R3.
+For each contract the Provider tab's table of what the registration provides SHALL list the first
+three users and the count of the rest. It SHALL link to Installed filtered by that contract as "Show
+in Installed" when there are three or fewer, and "All N in Installed" otherwise. Source:
+portal:D16:R3, portal:D4:R4, portal:D7:R3, portal:D15:R2/R3.
 
 #### Scenario: Who uses the backup trait
 
