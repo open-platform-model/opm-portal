@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/fluxcd/cli-utils v1.3.0
-	golang.org/x/net v0.59.0
+	golang.org/x/net v0.60.0
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1
 	k8s.io/client-go v0.37.1
