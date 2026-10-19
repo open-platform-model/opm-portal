@@ -1,11 +1,11 @@
 ## 1. Batch B1: web-ui (20) and change-stream (8)
 
-- [ ] 1.1 Read the 28 long requirements of `web-ui` and `change-stream` (`openspec validate <spec> --type spec --strict --json`) and choose a form for each, by the table in `design.md`
-- [ ] 1.2 Write `specs/web-ui/spec.md` and `specs/change-stream/spec.md` as deltas; grep the repo for each old header before a rename, split or REMOVED
-- [ ] 1.3 Add the B1 ledger to `design.md`, with the clause table of every requirement that moves a clause
-- [ ] 1.4 Run the scenario check (checklist item 3) per rewritten requirement: no `DIFF`, no `LOST`
-- [ ] 1.5 Run the gate in a scratch copy with `N=28`: `GATE PASS`
-- [ ] 1.6 `task check` green, then commit `docs(openspec): split the long requirements of web-ui and change-stream`
+- [x] 1.1 Read the 28 long requirements of `web-ui` and `change-stream` (`openspec validate <spec> --type spec --strict --json`) and choose a form for each, by the table in `design.md`
+- [x] 1.2 Write `specs/web-ui/spec.md` and `specs/change-stream/spec.md` as deltas; grep the repo for each old header before a rename, split or REMOVED
+- [x] 1.3 Add the B1 ledger to `design.md`, with the clause table of every requirement that moves a clause
+- [x] 1.4 Run the scenario check (checklist item 3) per rewritten requirement: no `DIFF`, no `LOST`
+- [x] 1.5 Run the gate in a scratch copy with `N=28`: `GATE PASS`
+- [x] 1.6 `task check` green, then commit `docs(openspec): split the long requirements of web-ui and change-stream`
 
 ## 2. Batch B2: read-api (16), kind-e2e-environment (7), pod-logs (5)
 
