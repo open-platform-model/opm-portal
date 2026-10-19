@@ -1456,3 +1456,582 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | --- | --- | --- |
 | A subscriber joins a streaming topic | A subscriber that joins a streaming log topic receives the recent lines, numbered | the clause of that requirement; WHEN and THEN use only words of the old body |
 
+
+### Batch B3: eight specs (29)
+
+Forms used: c2 (REMOVED plus ADDED under new names) for all 29 requirements. A grep of the repo outside `openspec/changes/archive/` found no reference to any of the 29 old headers outside their own spec (the prose of `AGENTS.md` and `internal/health/rollup.go` names two rules, not headers), so no rename needs a stale-reference fix and form b was not needed. No requirement used form a or d. The 29 old bodies measured 502 to 1483 characters; the 81 new bodies measure 77 to 499 (the lengths are in the unit report). The new bodies are built from whole sentences of the old body (DECISIONS.md 2026-10-19 15:50): a sentence is copied unchanged, and the only added words are listed below.
+
+How the tables read:
+
+- First table of each requirement: every old scenario, its new requirement, and whether its text changed. All 105 old scenarios of the 29 requirements kept their WHEN and THEN byte for byte (scenario check, scoped per requirement: 105 `same`, no `DIFF`, no `LOST`).
+- Second table: each clause of an old body, the new requirement that carries it, and the opening words of that body. The `Source:` line of an old body is repeated whole in each block that carries one of its clauses; an old body with no `Source:` line got none.
+- Third table, where present: scenarios that are new. Each restates a clause of its own requirement, with WHEN and THEN using only words of the old body. A new block needs at least one scenario; where no old scenario fitted the behavior, one restatement was written. The only negative new scenario is `Standing is not attached for a caller who may not list registrations`, the plain negation of "only when the caller may list TransformerRegistrations". No other denied or degraded case was invented (DECISIONS.md 2026-10-19 14:00).
+
+Wording changes beyond the split (no rule changes). A first clause of a sentence repeated as context, a subject copied from the same old requirement and a cut of a long sentence at a list boundary use only words of the old text:
+
+| Place | Change | Why |
+| --- | --- | --- |
+| `read-model`, `The answer counts only what the caller may get, read and list` | "The answer SHALL count" became "The read model's answer SHALL count" | "The answer" pointed at the sentence before |
+| `read-model`, `A deletion of an OPM object is reported as a deletion` | The first clause of the first sentence, up to "whose view may have changed", is repeated before the deletion sentence | "the OPM object" is defined there |
+| `read-model`, the read-on-demand and registration blocks | "It SHALL keep", "It SHALL refuse" and "For a caller it SHALL include" became "The read model SHALL ..." | A split body names its subject |
+| `read-authorization`, `A refused read does not tell an existing object from a missing one` | The first clause of the first sentence, up to "before it reads the object", is repeated before the second sentence | "The decision" and "the object" point at it |
+| `read-authorization`, the in-cluster blocks | "The only object it SHALL create ... it SHALL NOT send" became "In-cluster the only object the portal SHALL create ... the portal SHALL NOT send"; "An identity with an empty ..." became "In-cluster an identity ..."; "Every identity is a person" became "In-cluster every identity SHALL be a person" | A split body names its subject and its condition ("In-cluster" opens the old requirement); the last sentence had no keyword |
+| `read-authorization`, `In-cluster mode treats every identity as a person ...` | See the strength table | The old sentence had no keyword |
+| `read-authorization`, `The portal's ServiceAccount is named by ...` | "The ServiceAccount SHALL" became "The portal's own ServiceAccount SHALL" | "the portal's own ServiceAccount" is the old words of the first sentence |
+| `build-and-release`, `The binary runs local mode ...` | "`serve` SHALL run" became "For the `opm-portal` binary, `serve` SHALL run" | A split body names its subject |
+| `local-mode`, `Local mode refuses ...` and `Local mode binds ...` | "It SHALL" became "`opm-portal serve` SHALL" | The subject of the first sentence of the old body |
+| `local-mode`, launch blocks | `A GET /launch spends the token` repeats the first clause of the first sentence ("At startup the portal SHALL print one launch URL on standard output carrying a random token") before the `GET /launch` sentence; `A GET /launch from a browser ...` adds "as listed in requirement" and the exact header of that block after "the same way", and "It SHALL NOT redirect" became "A `GET /launch` SHALL NOT redirect" | "that token" points at the first sentence; "the same way" points at the block before (DECISIONS.md 2026-10-19 16:55) |
+| `local-mode`, Pod blocks | The 555-character first sentence is cut at a list boundary in two: the part up to "an empty or anonymous one", and the condition clause plus "it SHALL print ... exactly as on a user's machine"; "that ServiceAccount" became "the Pod's ServiceAccount" (old words of the first sentence) | A sentence over 500 characters; "that" pointed at the first sentence |
+| `health-evaluation`, the roll-up blocks | The first sentence ("The portal SHALL roll object health up ...") is repeated as context in the two blocks whose sentences speak of "the roll-up", "the result" and "the instance" | A split body names its subject |
+| `health-evaluation`, `Applied state, first four matches` and `Applied state, remaining matches` | The 647-character first sentence is cut at the list of matches: the first block holds the matches from "a CLI owner" to "marked as retrying while `Reconciling=True`", the second block holds the matches from "`Reconciling=True` or `Ready=Unknown`" to "anything else is Unknown" and adds "when none of the matches listed in requirement" plus the exact header of the first block, "applies" | The list is read in order, so the second block must say that the first block comes first (DECISIONS.md 2026-10-19 16:55) |
+| `graph-model`, the edge blocks | The 691-character edge sentence is cut at the semicolons of its list; each block repeats the opening clause ("Every edge SHALL belong to one edge kind ... which the edge names:") | A sentence over 500 characters |
+| `deploy-manifest`, `Comments in the deploy files ...` | The first clause of the first sentence ("The repository SHALL ship `deploy/`, a kustomization of plain YAML") is repeated before the comment sentence | "the files" points at `deploy/` |
+| `deploy-manifest`, the role blocks | The first sentence is cut at its list of grants, each block repeating its head ("The ClusterRole `opm-portal-reader` SHALL list every rule explicitly and SHALL grant only the verbs `get`, `list` and `watch`:"); the block `Role grants nothing else` repeats "SHALL grant only the verbs `get`, `list` and `watch`" after the subject; the block `A Go test fails on a role that grants more` adds "as listed in requirements" and the exact headers of the four role blocks after "any of these" | "other verb" and "these" point at the first sentence and the second (DECISIONS.md 2026-10-19 16:55); the first sentence with its Source line is over 500 |
+| `deploy-manifest`, `Role grants on the non-Secret kinds ...` | The sentence "An automated check that the role covers every kind the pinned catalog renders stays with the in-cluster plan." stays word for word with no keyword | It states where a check lives; the old text had no keyword and none was added |
+| `read-authorization`, `Background reads ...` | The sentence "Stopping a running informer ... is deferred to the change that builds the in-cluster command." stays word for word with no keyword | Same reason |
+| `portal-docs`, security page blocks | "It SHALL state" became "The security page SHALL state"; the `Source:` line, which sat in the middle of the old body, is repeated in each of the three blocks | A split body names its subject (14:48 ruling on `Source:`) |
+| `portal-docs`, `The how-to builds from source with go install at latest` | "A note on building from source SHALL" became "A note on building from source in the how-to for running the portal locally SHALL"; "The commands install" became "The commands of the how-to for running the portal locally SHALL install" | A split body names its subject; the last sentence had no keyword |
+| `graph-model`, `An expanded configuration group's band is the one exception to barycenter order` | See the strength table | The old sentence had no keyword |
+
+The plain item 3 command compares by scenario name over the whole spec. Scenario names that occur twice inside one old spec would report a false `DIFF`; the unit ran the scoped variant of B1 and B2 (old text from the one requirement, new text from the blocks its Migration line names), and also ran the plain command for each requirement (output in the unit report).
+
+#### Spec `read-model`
+
+**Views mark unreadable items instead of failing** (form c2; old body 503 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Inventory kind the caller may not read | Every further object in a view is authorized and marked, never failing the view, Inventory kind the caller may not read | no, byte for byte |
+| Registrations the caller may not list | Every further object in a view is authorized and marked, never failing the view, Registrations the caller may not list | no, byte for byte |
+| Namespace-scoped list | A list holds only items within the caller's list grant, Namespace-scoped list | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Inside a view the caller may read, every further object (an inventory entry, a runtime child, a... | Every further object in a view is authorized and marked, never failing the view | Inside a view the caller may read, every further object (an inventory... |
+| An item the caller may not read SHALL be marked forbidden and shown without its content; an ite... | Every further object in a view is authorized and marked, never failing the view | Inside a view the caller may read, every further object (an inventory... |
+| A list SHALL contain only items within the namespace scope of the caller's list grant, with no... | A list holds only items within the caller's list grant | A list SHALL contain only items within the namespace scope of the call... |
+
+**Instance views carry the runtime children below each inventory object** (form c2; old body 550 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| podinfo's Deployment | An inventory object carries the runtime children whose controller chain reaches it, podinfo's Deployment | no, byte for byte |
+| Children unreadable | A child that reaches no inventory object is attached to none, and unreadable children are reported, Children unreadable | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| When the runtime children of an instance's namespaces could be read, each inventory object in t... | An inventory object carries the runtime children whose controller chain reaches it | When the runtime children of an instance's namespaces could be read, e... |
+| A child whose chain reaches no inventory object SHALL NOT be attached to any. | A child that reaches no inventory object is attached to none, and unreadable children are reported | A child whose chain reaches no inventory object SHALL NOT be attached... |
+| When the children could not be read, no object SHALL carry children and the workloads SHALL kee... | A child that reaches no inventory object is attached to none, and unreadable children are reported | A child whose chain reaches no inventory object SHALL NOT be attached... |
+
+**A Pod's reach from an inventory is answered for the caller** (form c2; old body 923 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A Pod below an inventory Deployment | The read model answers which inventory object a Pod is a runtime child of, A Pod below an inventory Deployment | no, byte for byte |
+| A grant that does not cover the Pod's log | The read model answers which inventory object a Pod is a runtime child of, A grant that does not cover the Pod's log | no, byte for byte |
+| A Pod reached only through an object the caller may not read | The answer counts only what the caller may get, read and list, A Pod reached only through an object the caller may not read | no, byte for byte |
+| A Pod whose owner the caller may not read | The answer counts only what the caller may get, read and list, A Pod whose owner the caller may not read | no, byte for byte |
+| A Pod no inventory reaches | A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable, A Pod no inventory reaches | no, byte for byte |
+| The owner check cannot be decided | A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable, The owner check cannot be decided | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The read model SHALL answer, for a caller and one Pod, the inventory object of a ModuleInstance... | The read model answers which inventory object a Pod is a runtime child of | The read model SHALL answer, for a caller and one Pod, the inventory o... |
+| The caller's grant SHALL cover `get` on the Pod's `log` subresource before anything is looked u... | The read model answers which inventory object a Pod is a runtime child of | The read model SHALL answer, for a caller and one Pod, the inventory o... |
+| The answer SHALL count only owners the caller may get, inventory objects the caller may read an... | The answer counts only what the caller may get, read and list | The read model's answer SHALL count only owners the caller may get, in... |
+| A Pod that does not exist, that no inventory reaches, or that is reached only through objects t... | A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable | A Pod that does not exist, that no inventory reaches, or that is reach... |
+
+**The read model reports which OPM object changed** (form c2; old body 521 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| An inventory object changes | The read model reports the OPM object whose view may have changed, An inventory object changes | no, byte for byte |
+| The instance is deleted | A deletion of an OPM object is reported as a deletion, The instance is deleted | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The read model SHALL report, to a registered listener, the kind, namespace and name of every OP... | The read model reports the OPM object whose view may have changed | The read model SHALL report, to a registered listener, the kind, names... |
+| A report SHALL carry no object content, so a listener learns nothing it could serve without a g... | The read model reports the OPM object whose view may have changed | The read model SHALL report, to a registered listener, the kind, names... |
+| A deletion of the OPM object itself SHALL be reported as a deletion. | A deletion of an OPM object is reported as a deletion | The read model SHALL report, to a registered listener, the kind, names... |
+
+**One inventory object is read on demand, stripped** (form c2; old body 523 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A Deployment with its template | One object is read on demand for a caller whose grant covers get, and is returned stripped, A Deployment with its template | no, byte for byte |
+| A Secret | A core Secret is refused before any review or read, A Secret | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The read model SHALL read one object by kind, namespace and name on demand for a caller whose g... | One object is read on demand for a caller whose grant covers get, and is returned stripped | The read model SHALL read one object by kind, namespace and name on de... |
+| It SHALL keep the fields the held copies drop for memory, such as a Deployment's pod template. | One object is read on demand for a caller whose grant covers get, and is returned stripped | The read model SHALL read one object by kind, namespace and name on de... |
+| It SHALL refuse a core Secret before any review or read. | A core Secret is refused before any review or read | The read model SHALL refuse a core Secret before any review or read. S... |
+
+**Registrations are joined to the owners that hold them** (form c2; old body 819 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The F1 join | The read model answers which owners hold a registration and which registrations an owner holds, The F1 join | no, byte for byte |
+| A package holder | The read model answers which owners hold a registration and which registrations an owner holds, A package holder | no, byte for byte |
+| A namespace the caller may not list | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise, A namespace the caller may not list | no, byte for byte |
+| Incomplete even with a holder | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise, Incomplete even with a holder | no, byte for byte |
+| A portal limited to namespaces | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise, A portal limited to namespaces | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The read model SHALL answer, from held state and without a read of its own, which ModuleInstanc... | The read model answers which owners hold a registration and which registrations an owner holds | The read model SHALL answer, from held state and without a read of its... |
+| For a caller it SHALL include an owner only when the caller may list that owner's kind in its n... | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise | For a caller the read model SHALL include an owner only when the calle... |
+| A registration's standing SHALL be attached only when the caller may list TransformerRegistrati... | A registration's standing is attached only when the caller may list registrations | A registration's standing SHALL be attached only when the caller may l... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Standing is attached for a caller who may list registrations | A registration's standing is attached only when the caller may list registrations | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Standing is not attached for a caller who may not list registrations | A registration's standing is attached only when the caller may list registrations | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+
+#### Spec `read-authorization`
+
+**Every read is authorized before anything is looked up** (form c2; old body 673 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A read path cannot forge an allow | A read path reads only with the proof of an allow, which covers one identity and one read, A read path cannot forge an allow | no, byte for byte |
+| A proof covers only its own read | A read path reads only with the proof of an allow, which covers one identity and one read, A proof covers only its own read | no, byte for byte |
+| A held proof expires with its decision | A read path reads only with the proof of an allow, which covers one identity and one read, A held proof expires with its decision | no, byte for byte |
+| Existing and missing objects are refused alike | A refused read does not tell an existing object from a missing one, Existing and missing objects are refused alike | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL decide every Kubernetes read on the caller's identity and the read's attribute... | A read path reads only with the proof of an allow, which covers one identity and one read | The portal SHALL decide every Kubernetes read on the caller's identity... |
+| The proof SHALL cover only the identity it was issued to and only its own read, and SHALL stop... | A read path reads only with the proof of an allow, which covers one identity and one read | The portal SHALL decide every Kubernetes read on the caller's identity... |
+| The decision SHALL be made without reading the object, so a caller without access receives the... | A refused read does not tell an existing object from a missing one | The portal SHALL decide every Kubernetes read on the caller's identity... |
+
+**Decisions are cached briefly per identity and request** (form c2; old body 580 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Repeat within the time-to-live | An allow or a deny is reused for a short time-to-live for the same identity and attributes, Repeat within the time-to-live | no, byte for byte |
+| Repeat after the time-to-live | An allow or a deny is reused for a short time-to-live for the same identity and attributes, Repeat after the time-to-live | no, byte for byte |
+| Failure is not remembered | An allow or a deny is reused for a short time-to-live for the same identity and attributes, Failure is not remembered | no, byte for byte |
+| Another identity or request | An allow or a deny is reused for a short time-to-live for the same identity and attributes, Another identity or request | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL reuse an allow or a deny for the same identity and the same attributes for at... | An allow or a deny is reused for a short time-to-live for the same identity and attributes | The portal SHALL reuse an allow or a deny for the same identity and th... |
+| A grant SHALL expire with the decision it was issued from, so a revocation is seen by new check... | A grant expires with the decision it was issued from | A grant SHALL expire with the decision it was issued from, so a revoca... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A grant expires with its decision | A grant expires with the decision it was issued from | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**In-cluster mode asks the cluster as the signed-in user** (form c2; old body 637 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Exact identity and attributes are reviewed | In-cluster mode decides each read for a person with a SubjectAccessReview, Exact identity and attributes are reviewed | no, byte for byte |
+| Review fails | In-cluster mode decides each read for a person with a SubjectAccessReview, Review fails | no, byte for byte |
+| No self review is ever sent | In-cluster mode creates only subjectaccessreviews, No self review is ever sent | no, byte for byte |
+| Empty claims do not fall through to the portal's identity | In-cluster mode refuses an identity with no username and does not answer it as the portal's ServiceAccount, Empty claims do not fall through to the portal's identity | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| In-cluster the portal SHALL decide each read for a person with a SubjectAccessReview carrying t... | In-cluster mode decides each read for a person with a SubjectAccessReview | In-cluster the portal SHALL decide each read for a person with a Subje... |
+| The only object it SHALL create is `authorization.k8s.io` `subjectaccessreviews`: it SHALL NOT... | In-cluster mode creates only subjectaccessreviews | In-cluster the only object the portal SHALL create is `authorization.k... |
+| An identity with an empty, blank or anonymous username SHALL be refused without any call, and S... | In-cluster mode refuses an identity with no username and does not answer it as the portal's ServiceAccount | In-cluster an identity with an empty, blank or anonymous username SHAL... |
+
+**In-cluster mode refuses system identities for people** (form c2; old body 502 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| System username | In-cluster mode refuses a person with a system username or group, System username | no, byte for byte |
+| System group | In-cluster mode refuses a person with a system username or group, System group | no, byte for byte |
+| Claims that spell the ServiceAccount | In-cluster mode treats every identity as a person unless the portal built it as its own ServiceAccount, Claims that spell the ServiceAccount | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| In-cluster the portal SHALL refuse as unauthenticated, without any call, a person whose usernam... | In-cluster mode refuses a person with a system username or group | In-cluster the portal SHALL refuse as unauthenticated, without any cal... |
+| Every identity is a person unless the portal built it as its own ServiceAccount; matching the S... | In-cluster mode treats every identity as a person unless the portal built it as its own ServiceAccount | In-cluster every identity SHALL be a person unless the portal built it... |
+
+**Background reads hold a grant for the portal's ServiceAccount** (form c2; old body 739 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The ServiceAccount is reviewed by name | Background reads hold a grant issued from a review of the portal's ServiceAccount, The ServiceAccount is reviewed by name | no, byte for byte |
+| Renewed per time-to-live | Background reads hold a grant issued from a review of the portal's ServiceAccount, Renewed per time-to-live | no, byte for byte |
+| Not a ServiceAccount | The portal's ServiceAccount is named by the deployment or the mounted token, Not a ServiceAccount | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| In-cluster the read model's informers, polls and on-demand lists SHALL read only under a grant... | Background reads hold a grant issued from a review of the portal's ServiceAccount | In-cluster the read model's informers, polls and on-demand lists SHALL... |
+| The review SHALL be sent when the reader first needs the grant (at startup for the watched kind... | Background reads hold a grant issued from a review of the portal's ServiceAccount | In-cluster the read model's informers, polls and on-demand lists SHALL... |
+| Stopping a running informer when its review expires, as portal:D6:R10 requires, is deferred to... | The portal's ServiceAccount is named by the deployment or the mounted token | Stopping a running informer when its review expires, as portal:D6:R10... |
+| The ServiceAccount SHALL be named by the deployment or read from the mounted ServiceAccount tok... | The portal's ServiceAccount is named by the deployment or the mounted token | Stopping a running informer when its review expires, as portal:D6:R10... |
+
+
+#### Spec `build-and-release`
+
+**The binary reports its version** (form c2; old body 567 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Version with no arguments | The binary prints its version and exits 0, Version with no arguments | no, byte for byte |
+| Version subcommand and flag | The binary prints its version and exits 0, Version subcommand and flag | no, byte for byte |
+| Unknown argument | The binary runs local mode for serve and refuses any other argument, Unknown argument | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The `opm-portal` binary SHALL print `opm-portal v<version>` on standard output and exit 0 when... | The binary prints its version and exits 0 | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
+| `<version>` SHALL be the version of the release the source was tagged with, optionally followed... | The binary prints its version and exits 0 | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
+| Reporting the version SHALL NOT open a network listener or contact a cluster. | The binary prints its version and exits 0 | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
+| `serve` SHALL run local mode (the `local-mode` capability). | The binary runs local mode for serve and refuses any other argument | For the `opm-portal` binary, `serve` SHALL run local mode (the `local-... |
+| Any other argument SHALL print a usage line on standard error and exit 2. | The binary runs local mode for serve and refuses any other argument | For the `opm-portal` binary, `serve` SHALL run local mode (the `local-... |
+
+**Pull requests pass the Lint and Test checks** (form c2; old body 777 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Ordinary PR | Every pull request runs a Lint check and a Test check, Ordinary PR | no, byte for byte |
+| Release PR with an unreleased OPM pin | Lint fails a release-please pull request with an unreleased OPM pin, Release PR with an unreleased OPM pin | no, byte for byte |
+| Breaking API change with a breaking title | Lint fails a breaking API change unless the pull request title carries a bang, Breaking API change with a breaking title | no, byte for byte |
+| Base branch without the document | Lint fails a breaking API change unless the pull request title carries a bang, Base branch without the document | no, byte for byte |
+| Non-conventional title | A pull request title is a Conventional Commit with a lowercase subject, Non-conventional title | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Every pull request SHALL run a check named exactly `Lint` and a check named `Test`. | Every pull request runs a Lint check and a Test check | Every pull request SHALL run a check named exactly `Lint` and a check... |
+| `Lint` SHALL run golangci-lint and validate every OpenSpec main spec and active change under `-... | Every pull request runs a Lint check and a Test check | Every pull request SHALL run a check named exactly `Lint` and a check... |
+| The repository SHALL have no other job named `Lint`. | Every pull request runs a Lint check and a Test check | Every pull request SHALL run a check named exactly `Lint` and a check... |
+| On a release-please pull request (`release-please--*` head branch) `Lint` SHALL also fail when... | Lint fails a release-please pull request with an unreleased OPM pin | On a release-please pull request (`release-please--*` head branch) `Li... |
+| On every pull request `Lint` SHALL compare the read API's OpenAPI document with the base branch... | Lint fails a breaking API change unless the pull request title carries a bang | On every pull request `Lint` SHALL compare the read API's OpenAPI docu... |
+| A pull request title SHALL be a Conventional Commit with a lowercase subject. | A pull request title is a Conventional Commit with a lowercase subject | A pull request title SHALL be a Conventional Commit with a lowercase s... |
+
+**A release is published only with all its assets** (form c2; old body 605 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Image job fails | A release is a draft until its archives and its signed image exist, Image job fails | no, byte for byte |
+| Image runs as nonroot | A release is a draft until its archives and its signed image exist, Image runs as nonroot | no, byte for byte |
+| Version image tag already holds another commit | A version image tag is never overwritten and no image is pushed outside a release, Version image tag already holds another commit | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A release SHALL be created as a draft. | A release is a draft until its archives and its signed image exist | A release SHALL be created as a draft. Before it is published it SHALL... |
+| Before it is published it SHALL carry the archives `opm-portal-linux-amd64.tar.gz`, `opm-portal... | A release is a draft until its archives and its signed image exist | A release SHALL be created as a draft. Before it is published it SHALL... |
+| The draft SHALL be published only after both have succeeded. | A release is a draft until its archives and its signed image exist | A release SHALL be created as a draft. Before it is published it SHALL... |
+| A version image tag SHALL never be overwritten with a different image. | A version image tag is never overwritten and no image is pushed outside a release | A version image tag SHALL never be overwritten with a different image.... |
+| No image SHALL be pushed outside a release. | A version image tag is never overwritten and no image is pushed outside a release | A version image tag SHALL never be overwritten with a different image.... |
+
+**The release key is read only on main** (form c2; old body 732 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A push to main | The release key is read in one job that runs in the release environment, A push to main | no, byte for byte |
+| A workflow on another branch asks for the key | The release key is read in one job that runs in the release environment, A workflow on another branch asks for the key | no, byte for byte |
+| A release builds without a cache | A job that builds or publishes a release artifact restores no Actions cache, A release builds without a cache | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The release workflow SHALL read `RELEASE_APP_PRIVATE_KEY` in exactly one job, `release-please`,... | The release key is read in one job that runs in the release environment | The release workflow SHALL read `RELEASE_APP_PRIVATE_KEY` in exactly o... |
+| The `release-please` job acts only through the App token and SHALL declare no `GITHUB_TOKEN` pe... | The release key is read in one job that runs in the release environment | The release workflow SHALL read `RELEASE_APP_PRIVATE_KEY` in exactly o... |
+| Every workflow SHALL declare its token permissions explicitly. | Every workflow declares its token permissions and a release job does not persist a write token | Every workflow SHALL declare its token permissions explicitly. A relea... |
+| A release job that holds a write token SHALL check out without persisting it. | Every workflow declares its token permissions and a release job does not persist a write token | Every workflow SHALL declare its token permissions explicitly. A relea... |
+| No job that builds or publishes a release artifact (`binaries`, `image-release`) SHALL restore... | A job that builds or publishes a release artifact restores no Actions cache | No job that builds or publishes a release artifact (`binaries`, `image... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A release job that holds a write token | Every workflow declares its token permissions and a release job does not persist a write token | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+
+#### Spec `local-mode`
+
+**Local mode listens on loopback only** (form c2; old body 717 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Default address | Local mode listens on the address --addr names, 127.0.0.1:7878 by default, Default address | no, byte for byte |
+| The Pod keeps its own address | Local mode listens on the address --addr names, 127.0.0.1:7878 by default, The Pod keeps its own address | no, byte for byte |
+| A non-loopback address | Local mode refuses an address that is not loopback, A non-loopback address | no, byte for byte |
+| The default port is taken | Local mode binds the address before it reads the kubeconfig, The default port is taken | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `opm-portal serve` SHALL listen on the address `--addr` names, `127.0.0.1:7878` by default, so... | Local mode listens on the address --addr names, 127.0.0.1:7878 by default | `opm-portal serve` SHALL listen on the address `--addr` names, `127.0.... |
+| `--addr 127.0.0.1:0` SHALL still pick a free port. | Local mode listens on the address --addr names, 127.0.0.1:7878 by default | `opm-portal serve` SHALL listen on the address `--addr` names, `127.0.... |
+| It SHALL refuse, with exit code 2 and before it reads the kubeconfig, an address whose host is... | Local mode refuses an address that is not loopback | `opm-portal serve` SHALL refuse, with exit code 2 and before it reads... |
+| It SHALL bind the address before it reads the kubeconfig or makes any cluster call; when the ad... | Local mode binds the address before it reads the kubeconfig | `opm-portal serve` SHALL bind the address before it reads the kubeconf... |
+
+**Local mode reads as the kubeconfig's identity and fails closed** (form c2; old body 617 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| An anonymous kubeconfig | Local mode learns the kubeconfig's identity at startup and reads only after a review, An anonymous kubeconfig | no, byte for byte |
+| The fixture cluster's admin | Local mode learns the kubeconfig's identity at startup and reads only after a review, The fixture cluster's admin | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| At startup the portal SHALL learn the kubeconfig's identity with one SelfSubjectReview and SHAL... | Local mode learns the kubeconfig's identity at startup and reads only after a review | At startup the portal SHALL learn the kubeconfig's identity with one S... |
+| Every read SHALL be preceded by a SelfSubjectAccessReview for that identity and the read's exac... | Local mode learns the kubeconfig's identity at startup and reads only after a review | At startup the portal SHALL learn the kubeconfig's identity with one S... |
+| In local mode the only create requests the portal sends SHALL be `selfsubjectreviews` and `self... | Local mode creates only two kinds of review | In local mode the only create requests the portal sends SHALL be `self... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Only review objects are created | Local mode creates only two kinds of review | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**A browser is admitted only through a one-time launch token** (form c2; old body 1483 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The launch page is removed once the token is spent | The portal prints one launch URL at startup and removes the launch page when the token is spent, The launch page is removed once the token is spent | no, byte for byte |
+| Launch and read | A GET /launch spends the token, Launch and read | no, byte for byte |
+| Launch from the --open page | A GET /launch from a browser that holds the live session answers the same way and does not redirect, Launch from the --open page | no, byte for byte |
+| The token is used twice | A missing, wrong or spent token is refused with the same body, The token is used twice | no, byte for byte |
+| A request without the session | A request without a live session is refused before any review or read, A request without the session | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| At startup the portal SHALL print one launch URL on standard output carrying a random token, an... | The portal prints one launch URL at startup and removes the launch page when the token is spent | At startup the portal SHALL print one launch URL on standard output ca... |
+| The portal SHALL remove that page and its directory as soon as the token is spent, through eith... | The portal prints one launch URL at startup and removes the launch page when the token is spent | At startup the portal SHALL print one launch URL on standard output ca... |
+| A `GET /launch` carrying that token SHALL spend it, set a session cookie and answer with the UI... | A GET /launch spends the token | At startup the portal SHALL print one launch URL on standard output ca... |
+| A `GET /launch` from a browser that already holds the live session SHALL answer the same way, w... | A GET /launch from a browser that holds the live session answers the same way and does not redirect | A `GET /launch` from a browser that already holds the live session SHA... |
+| It SHALL NOT redirect: a browser treats a redirect as part of the navigation that reached `/lau... | A GET /launch from a browser that holds the live session answers the same way and does not redirect | A `GET /launch` from a browser that already holds the live session SHA... |
+| A missing, wrong or already-spent token SHALL be refused with `403` and the same body for each. | A missing, wrong or spent token is refused with the same body | A missing, wrong or already-spent token SHALL be refused with `403` an... |
+| A request that does not carry a live session SHALL be refused before any authorization review o... | A request without a live session is refused before any review or read | A request that does not carry a live session SHALL be refused before a... |
+| `--open` SHALL open the launch URL in the default browser without putting the token on any proc... | --open opens the launch URL without the token on a command line | `--open` SHALL open the launch URL in the default browser without putt... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The browser is opened with the launch URL | --open opens the launch URL without the token on a command line | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Local mode runs unchanged in a Pod with in-cluster credentials** (form c2; old body 987 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| An identity the cluster does not name | In a Pod local mode binds loopback and fails closed on an empty or anonymous identity, An identity the cluster does not name | no, byte for byte |
+| The Pod starts in local mode | In a Pod local mode prints the launch URL and applies the launch token and the browser protections, The Pod starts in local mode | no, byte for byte |
+| The token is spent | In a Pod local mode prints the launch URL and applies the launch token and the browser protections, The token is spent | no, byte for byte |
+| Port-forward to the bound port | A browser reaches the portal only through kubectl port-forward to the bound port, Port-forward to the bound port | no, byte for byte |
+| Port-forward from another local port | A browser reaches the portal only through kubectl port-forward to the bound port, Port-forward from another local port | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| When `opm-portal serve` finds no kubeconfig and client-go loads the in-cluster configuration, t... | In a Pod local mode binds loopback and fails closed on an empty or anonymous identity | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
+| SHALL print the launch URL on standard output, which becomes the container log, and SHALL apply... | In a Pod local mode prints the launch URL and applies the launch token and the browser protections | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
+| Every read SHALL be made as that ServiceAccount after a SelfSubjectAccessReview for it. | In a Pod every read is made as the ServiceAccount and the log line says in-cluster | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
+| The startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty c... | In a Pod every read is made as the ServiceAccount and the log line says in-cluster | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
+| A browser reaches the portal only through `kubectl port-forward` to the bound port, and the `Ho... | A browser reaches the portal only through kubectl port-forward to the bound port | A browser reaches the portal only through `kubectl port-forward` to th... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The startup log line | In a Pod every read is made as the ServiceAccount and the log line says in-cluster | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+
+#### Spec `graph-model`
+
+**Every node and edge is traceable to a recorded field** (form c2; old body 975 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Refused claim's catalog | Every edge is drawn from its kind's one source, for platform, registration and provider edges, Refused claim's catalog | no, byte for byte |
+| Duplicate claim on a contributed catalog | Every edge is drawn from its kind's one source, for platform, registration and provider edges, Duplicate claim on a contributed catalog | no, byte for byte |
+| cert-manager's edges | Every edge is drawn from its kind's one source, for module, package, inventory and runtime child edges, cert-manager's edges | no, byte for byte |
+| Dependency in another namespace | A dependsOn entry in another namespace is drawn unverified, Dependency in another namespace | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A graph SHALL be built only from read-model views; no graph SHALL be produced by rendering a mo... | A graph is built only from read-model views | A graph SHALL be built only from read-model views; no graph SHALL be p... |
+| Every edge SHALL belong to one edge kind, and every edge of a kind SHALL be drawn from that kin... | Every edge is drawn from its kind's one source, for platform, registration and provider edges | Every edge SHALL belong to one edge kind, and every edge of a kind SHA... |
+| `spec.module` for instance to module; `spec.sourceRef` and `spec.dependsOn` for package to sour... | Every edge is drawn from its kind's one source, for module, package, inventory and runtime child edges | Every edge SHALL belong to one edge kind, and every edge of a kind SHA... |
+| A `spec.dependsOn` entry naming another namespace, which the operator refuses, SHALL be drawn u... | A dependsOn entry in another namespace is drawn unverified | A `spec.dependsOn` entry naming another namespace, which the operator... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A graph is built | A graph is built only from read-model views | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**A provider disagreement is shown, not resolved** (form c2; old body 584 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Accepted claim | A registration's edge to its provider instance is verified or unverified with a reason, Accepted claim | no, byte for byte |
+| Provider that does not exist | A registration's edge to its provider instance is verified or unverified with a reason, Provider that does not exist | no, byte for byte |
+| Provider the caller may not read | A provider that could not be read or was not looked up is still drawn, Provider the caller may not read | no, byte for byte |
+| Provider not looked up | A provider that could not be read or was not looked up is still drawn, Provider not looked up | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Every registration SHALL have an edge to the instance its `spec.providerRef` names. | A registration's edge to its provider instance is verified or unverified with a reason | Every registration SHALL have an edge to the instance its `spec.provid... |
+| The edge SHALL be verified only when that instance was read and its inventory holds a Transform... | A registration's edge to its provider instance is verified or unverified with a reason | Every registration SHALL have an edge to the instance its `spec.provid... |
+| A provider that could not be read SHALL still be drawn, marked with its access; one that was no... | A provider that could not be read or was not looked up is still drawn | A provider that could not be read SHALL still be drawn, marked with it... |
+
+**Layout is deterministic** (form c2; old body 641 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Golden stability | Each scope places nodes in fixed columns and the same graph gives the same layout, Golden stability | no, byte for byte |
+| A band keeps its members in name order | An expanded configuration group's band is the one exception to barycenter order, A band keeps its members in name order | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Each scope SHALL place nodes in a fixed column per node kind, order each column by the barycent... | Each scope places nodes in fixed columns and the same graph gives the same layout | Each scope SHALL place nodes in a fixed column per node kind, order ea... |
+| Building the same graph from the same views SHALL produce identical layouts. | Each scope places nodes in fixed columns and the same graph gives the same layout | Each scope SHALL place nodes in a fixed column per node kind, order ea... |
+| An expanded configuration group's band is the one exception to barycenter order: its members ar... | An expanded configuration group's band is the one exception to barycenter order | An expanded configuration group's band SHALL be the one exception to b... |
+
+
+#### Spec `health-evaluation`
+
+**Health rolls up worst-of and says when it is partial** (form c2; old body 819 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Forbidden object | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial, Forbidden object | no, byte for byte |
+| Secret in the inventory | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial, Secret in the inventory | no, byte for byte |
+| Nothing readable | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial, Nothing readable | no, byte for byte |
+| Pods not readable | Unread children below a workload make it, its component and the instance partial, Pods not readable | no, byte for byte |
+| Polled object | A result carries the oldest evaluation time and says when it is not live, Polled object | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL roll object health up to each component and to the instance as the worst state... | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial | The portal SHALL roll object health up to each component and to the in... |
+| An object the reader may not read, or could not read, SHALL be excluded from the roll-up and SH... | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial | The portal SHALL roll object health up to each component and to the in... |
+| A Secret SHALL never be evaluated, SHALL be excluded, and SHALL NOT mark the result partial. | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial | The portal SHALL roll object health up to each component and to the in... |
+| A result with nothing counted SHALL be Unknown. | Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial | The portal SHALL roll object health up to each component and to the in... |
+| When the runtime children below the inventory workloads could not be read, each readable worklo... | Unread children below a workload make it, its component and the instance partial | The portal SHALL roll object health up to each component and to the in... |
+| Each result SHALL carry the oldest evaluation time among the objects it counts, and SHALL say i... | A result carries the oldest evaluation time and says when it is not live | The portal SHALL roll object health up to each component and to the in... |
+
+**Applied state is read from the operator's conditions** (form c2; old body 955 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| CLI-owned instance | Applied state, first four matches, CLI-owned instance | no, byte for byte |
+| Apply failed and retrying | Applied state, first four matches, Apply failed and retrying | no, byte for byte |
+| Package without a source | Applied state, first four matches, Package without a source | no, byte for byte |
+| Spec edited, operator not caught up | Applied state, remaining matches, Spec edited, operator not caught up | no, byte for byte |
+| Unknown kind | Applied state, remaining matches, Unknown kind | no, byte for byte |
+| Ready instance with a broken rollout | Ready=True is Applied and never Healthy, Ready instance with a broken rollout | no, byte for byte |
+| Fresh Platform with unfulfilled contracts | Ready=True is Applied and never Healthy, Fresh Platform with unfulfilled contracts | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL read a ModuleInstance's, ModulePackage's, Platform's or TransformerRegistratio... | Applied state, first four matches | The portal SHALL read a ModuleInstance's, ModulePackage's, Platform's... |
+| `Reconciling=True` or `Ready=Unknown` is Reconciling; `Ready=True` whose `observedGeneration` i... | Applied state, remaining matches | The portal SHALL read a ModuleInstance's, ModulePackage's, Platform's... |
+| `Ready=True` SHALL be Applied and never Healthy, and the applied state SHALL NOT be derived fro... | Ready=True is Applied and never Healthy | `Ready=True` SHALL be Applied and never Healthy, and the applied state... |
+| Failure counters SHALL never change either axis. | Ready=True is Applied and never Healthy | `Ready=True` SHALL be Applied and never Healthy, and the applied state... |
+| `ContractsFulfilled=False` and `Drifted=True` SHALL be informational notes that never change th... | Ready=True is Applied and never Healthy | `Ready=True` SHALL be Applied and never Healthy, and the applied state... |
+
+**Registration verdicts come from the status fields** (form c2; old body 564 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Refused claim | A TransformerRegistration verdict is read from status.accepted and status.active, Refused claim | no, byte for byte |
+| Accepted and active claim | A TransformerRegistration verdict is read from status.accepted and status.active, Accepted and active claim | no, byte for byte |
+| Removal blocked | A TransformerRegistration verdict is read from status.accepted and status.active, Removal blocked | no, byte for byte |
+| Applied state does not separate refusal from removal | For a registration the verdict decides how it is shown, Applied state does not separate refusal from removal | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL read a TransformerRegistration's acceptance and activation from `status.accept... | A TransformerRegistration verdict is read from status.accepted and status.active | The portal SHALL read a TransformerRegistration's acceptance and activ... |
+| A registration whose `Ready` reason is `DependentsRemain` SHALL be RemovalBlocked and keep its... | A TransformerRegistration verdict is read from status.accepted and status.active | The portal SHALL read a TransformerRegistration's acceptance and activ... |
+| For a TransformerRegistration the verdict, not the applied state, SHALL decide how it is shown:... | For a registration the verdict decides how it is shown | For a TransformerRegistration the verdict, not the applied state, SHAL... |
+
+
+#### Spec `deploy-manifest`
+
+**The manifest runs local mode and opens no network path** (form c2; old body 1362 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Apply the manifest | The repository ships deploy/, a kustomization with five objects and no network path, Apply the manifest | no, byte for byte |
+| A Service is added | A Go test parses deploy/ and fails on a network path or a loosened setting, A Service is added | no, byte for byte |
+| The security context is loosened | A Go test parses deploy/ and fails on a network path or a loosened setting, The security context is loosened | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The repository SHALL ship `deploy/`, a kustomization of plain YAML holding exactly a Namespace... | The repository ships deploy/, a kustomization with five objects and no network path | The repository SHALL ship `deploy/`, a kustomization of plain YAML hol... |
+| It SHALL hold no Service, no Ingress, no Gateway route and no probe, so `kubectl port-forward`... | The repository ships deploy/, a kustomization with five objects and no network path | The repository SHALL ship `deploy/`, a kustomization of plain YAML hol... |
+| The Pod SHALL run as non-root with the `RuntimeDefault` seccomp profile, and the container SHAL... | The Pod and the Namespace are locked down | The Pod SHALL run as non-root with the `RuntimeDefault` seccomp profil... |
+| A Go test SHALL parse every `*.yaml` and `*.yml` file under `deploy/` and SHALL fail on a Servi... | A Go test parses deploy/ and fails on a network path or a loosened setting | A Go test SHALL parse every `*.yaml` and `*.yml` file under `deploy/`... |
+| Comments in the files SHALL carry no design citation. | Comments in the deploy files carry no design citation | The repository SHALL ship `deploy/`, a kustomization of plain YAML. Co... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The Pod is locked down | The Pod and the Namespace are locked down | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A comment in a deploy file | Comments in the deploy files carry no design citation | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The role only reads, and never Secrets** (form c2; old body 1188 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The shipped role | Role grants on the OPM kinds, events, pods, replicasets and jobs, The shipped role | no, byte for byte |
+| The EndpointSlices rule | Role grants on endpointslices, The EndpointSlices rule | no, byte for byte |
+| A wider EndpointSlices rule | Role grants on endpointslices, A wider EndpointSlices rule | no, byte for byte |
+| A write on EndpointSlices | Role grants on endpointslices, A write on EndpointSlices | no, byte for byte |
+| A provider kind | Role grants on the non-Secret kinds the catalog renders, A provider kind | no, byte for byte |
+| A denied role | A Go test fails on a role that grants more, A denied role | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The ClusterRole `opm-portal-reader` SHALL list every rule explicitly and SHALL grant only the v... | Role grants on the OPM kinds, events, pods, replicasets and jobs | The ClusterRole `opm-portal-reader` SHALL list every rule explicitly a... |
+| on `discovery.k8s.io` `endpointslices` only `list` | Role grants on endpointslices | The ClusterRole `opm-portal-reader` SHALL list every rule explicitly a... |
+| on the non-Secret kinds the OPM catalog's transformers render, a list maintained by hand agains... | Role grants on the non-Secret kinds the catalog renders | The ClusterRole `opm-portal-reader` SHALL list every rule explicitly a... |
+| An inventory object of a kind the role does not grant SHALL show as not readable, never omitted... | Role grants on the non-Secret kinds the catalog renders | The ClusterRole `opm-portal-reader` SHALL list every rule explicitly a... |
+| An automated check that the role covers every kind the pinned catalog renders stays with the in... | Role grants on the non-Secret kinds the catalog renders | The ClusterRole `opm-portal-reader` SHALL list every rule explicitly a... |
+| It SHALL NOT grant any other verb, `secrets`, `impersonate`, a `*` in any group, resource or ve... | Role grants nothing else | The ClusterRole `opm-portal-reader` SHALL grant only the verbs `get`,... |
+| A Go test SHALL fail on any of these, and SHALL show it does by refusing a table of denied role... | A Go test fails on a role that grants more | A Go test SHALL fail on any of these, as listed in requirements "Role... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The role grants no Secrets | Role grants nothing else | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+
+#### Spec `portal-docs`
+
+**The security page states what the portal reads and shows** (form c2; old body 869 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A reader asks whether a password set in values is safe | The security page states that Secret data and spec.values are never read, A reader asks whether a password set in values is safe | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The security page SHALL state that local mode listens on loopback only, admits a browser only t... | The security page states how local mode is closed to other readers | The security page SHALL state that local mode listens on loopback only... |
+| It SHALL state that the portal never reads Secret data and serves no instance's or package's `s... | The security page states that Secret data and spec.values are never read | The security page SHALL state that the portal never reads Secret data... |
+| It SHALL state that local mode shows condition messages and event notes verbatim, as the operat... | The security page states that local mode shows condition messages and event notes verbatim | The security page SHALL state that local mode shows condition messages... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Local mode is closed to other readers | The security page states how local mode is closed to other readers | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A reader looks up condition messages | The security page states that local mode shows condition messages and event notes verbatim | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The local-mode how-to installs from a release** (form c2; old body 504 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A reader follows the how-to in an older release's bundle | The how-to installs opm-portal from the GitHub releases page and names no version or branch, A reader follows the how-to in an older release's bundle | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The how-to for running the portal locally SHALL install `opm-portal` from the portal's GitHub r... | The how-to installs opm-portal from the GitHub releases page and names no version or branch | The how-to for running the portal locally SHALL install `opm-portal` f... |
+| Its commands SHALL name no version or branch, so they never break and never install unreleased... | The how-to installs opm-portal from the GitHub releases page and names no version or branch | The how-to for running the portal locally SHALL install `opm-portal` f... |
+| A note on building from source SHALL use `go install` with `latest`, never a branch. | The how-to builds from source with go install at latest | A note on building from source in the how-to for running the portal lo... |
+| The commands install the newest release, which can be newer than the pages of an older release'... | The how-to builds from source with go install at latest | A note on building from source in the how-to for running the portal lo... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A note on building from source | The how-to builds from source with go install at latest | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+
+## Strength table
+
+Every plain sentence that gained SHALL, MUST or MAY in a split block, by unit (DECISIONS.md 2026-10-19 16:20, 17:05). A restated scenario that repeats the SHALL of its own block is not listed. The human judges the rows.
+
+| Spec, block | Sentence | Old text | New text |
+| --- | --- | --- | --- |
+| `change-stream`, `A revocation reaches the stream within one decision lifetime` (B1) | The cache bound | "A decision is cached for at most its lifetime" | "A decision SHALL be cached for at most its lifetime" |
+| `web-ui`, Service Endpoints fact (B1) | The fact in the Tabs block | "the fact reads" | "the fact SHALL read" |
+| `kind-e2e-environment`, `Fixture images are pinned by tag, ...` (B2) | Two pin sentences | "are pinned by tag only", "is pinned by digest" | "SHALL be pinned by tag only", "SHALL be pinned by digest" |
+| `kind-e2e-environment`, `The capture runs the check last and every pull request runs it` (B2) | Two run sentences | "The capture runs it last, and ... run it" | "The capture SHALL run the check last, and ... SHALL run it" |
+| `read-authorization`, `In-cluster mode treats every identity as a person unless the portal built it as its own ServiceAccount` (B3) | The person rule | "Every identity is a person unless the portal built it as its own ServiceAccount;" | "In-cluster every identity SHALL be a person unless the portal built it as its own ServiceAccount;" |
+| `graph-model`, `An expanded configuration group's band is the one exception to barycenter order` (B3) | The band rule | "An expanded configuration group's band is the one exception to barycenter order:" | "An expanded configuration group's band SHALL be the one exception to barycenter order:" |
+| `portal-docs`, `The how-to builds from source with go install at latest` (B3) | The newest-release sentence | "The commands install the newest release, which can be newer than ..." | "The commands of the how-to for running the portal locally SHALL install the newest release, which can be newer than ..." |
+
+Two B3 sentences have no keyword in the old text and none was added: the deferral of the informer stop (`read-authorization`, `The portal's ServiceAccount is named by the deployment or the mounted token`) and the plan for the automated role check (`deploy-manifest`, `Role grants on the non-Secret kinds the catalog renders`).

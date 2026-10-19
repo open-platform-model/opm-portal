@@ -20,12 +20,12 @@
 
 Specs: `read-model` (6), `read-authorization` (5), `build-and-release` (4), `local-mode` (4), `graph-model` (3), `health-evaluation` (3), `deploy-manifest` (2), `portal-docs` (2).
 
-- [ ] 3.1 Read the 29 long requirements of the eight specs and choose a form for each
-- [ ] 3.2 Write the eight delta files under `specs/<spec>/spec.md`; grep for each old header first
-- [ ] 3.3 Add the B3 ledger and clause tables to `design.md`
-- [ ] 3.4 Run the scenario check per rewritten requirement: no `DIFF`, no `LOST`
-- [ ] 3.5 Run the gate in a scratch copy with `N=85`: `GATE PASS`
-- [ ] 3.6 `task check` green, then commit `docs(openspec): split the long requirements of eight portal specs`
+- [x] 3.1 Read the 29 long requirements of the eight specs and choose a form for each
+- [x] 3.2 Write the eight delta files under `specs/<spec>/spec.md`; grep for each old header first
+- [x] 3.3 Add the B3 ledger and clause tables to `design.md`
+- [x] 3.4 Run the scenario check per rewritten requirement: no `DIFF`, no `LOST`
+- [x] 3.5 Run the gate in a scratch copy with `N=85`: `GATE PASS`
+- [x] 3.6 `task check` green (unit suite and openspec:check only, DECISIONS.md 2026-10-19 15:05), then commit `docs(openspec): split the long requirements of eight portal specs`
 
 ## 4. Strict gate back, and the final gate
 
