@@ -133,8 +133,8 @@ a short delay when no line follows. Source: portal:D10:R3.
 - **THEN** a `rate-limited` marker with the number dropped is delivered within the marker delay
 
 ### Requirement: The initial tail of a log ends at its first live line and is delivered once it ends
-The initial tail of a followed container's log SHALL be at most the requested tail lines, ending at
-the first line stamped after the stream opened. It SHALL be delivered once it ends, and no later
+The initial tail SHALL be at most the requested tail lines, ending at the first line stamped after
+the stream opened. The initial tail SHALL be delivered once it ends, and no later
 than the marker delay after its latest line when the container is quiet, the delay of requirement
 "Log lines beyond the rate are dropped and counted by a rate-limited marker". Source: portal:D10:R3.
 
