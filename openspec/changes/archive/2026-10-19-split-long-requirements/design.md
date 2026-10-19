@@ -1473,7 +1473,7 @@ Wording changes beyond the split (no rule changes). A first clause of a sentence
 | --- | --- | --- |
 | `read-model`, `The answer about a Pod counts only what the caller may get, read and list` | "The answer SHALL count" became "The read model's answer, for a caller and one Pod, SHALL count" | "The answer" pointed at the first sentence; the added words are its words |
 | `read-model`, `A deletion of an OPM object is reported as a deletion` | The first clause of the first sentence, up to "whose view may have changed", is repeated before the deletion sentence | "the OPM object" is defined there |
-| `read-model`, the read-on-demand and registration blocks | "It SHALL keep", "It SHALL refuse" and "For a caller it SHALL include" became "The read model SHALL ..." | A split body names its subject |
+| `read-model`, the read-on-demand block and the registration block | "It SHALL keep" and "It SHALL refuse" became "The read model SHALL ..."; "For a caller it SHALL include" became "For a caller, in the answer which ModuleInstances and ModulePackages hold a TransformerRegistration of a given name, the read model SHALL include" | A split body names its subject; the added words are the first sentence of the old requirement, which gives the scope of "it" |
 | `read-authorization`, `A refused read does not tell an existing object from a missing one` | The first clause of the first sentence, up to "before it reads the object", is repeated before the second sentence | "The decision" and "the object" point at it |
 | `read-authorization`, the in-cluster blocks | "The only object it SHALL create ... it SHALL NOT send" became "In-cluster the only object the portal SHALL create ... the portal SHALL NOT send"; "An identity with an empty ..." became "In-cluster an identity ..."; "Every identity is a person" became "In-cluster every identity SHALL be a person" | A split body names its subject and its condition ("In-cluster" opens the old requirement); the last sentence had no keyword |
 | `read-authorization`, `In-cluster mode treats every identity as a person ...` | See the strength table | The old sentence had no keyword |
@@ -1573,14 +1573,14 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 | --- | --- | --- |
 | The F1 join | The read model answers which owners hold a registration and which registrations an owner holds, The F1 join | no, byte for byte |
 | A package holder | The read model answers which owners hold a registration and which registrations an owner holds, A package holder | no, byte for byte |
-| A namespace the caller may not list | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise, A namespace the caller may not list | no, byte for byte |
-| Incomplete even with a holder | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise, Incomplete even with a holder | no, byte for byte |
-| A portal limited to namespaces | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise, A portal limited to namespaces | no, byte for byte |
+| A namespace the caller may not list | An owner that holds a registration is included only when the caller may list its kind and the answer is marked incomplete otherwise, A namespace the caller may not list | no, byte for byte |
+| Incomplete even with a holder | An owner that holds a registration is included only when the caller may list its kind and the answer is marked incomplete otherwise, Incomplete even with a holder | no, byte for byte |
+| A portal limited to namespaces | An owner that holds a registration is included only when the caller may list its kind and the answer is marked incomplete otherwise, A portal limited to namespaces | no, byte for byte |
 
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
 | The read model SHALL answer, from held state and without a read of its own, which ModuleInstanc... | The read model answers which owners hold a registration and which registrations an owner holds | The read model SHALL answer, from held state and without a read of its... |
-| For a caller it SHALL include an owner only when the caller may list that owner's kind in its n... | An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise | For a caller the read model SHALL include an owner only when the calle... |
+| For a caller it SHALL include an owner only when the caller may list that owner's kind in its n... | An owner that holds a registration is included only when the caller may list its kind and the answer is marked incomplete otherwise | For a caller, in the answer which ModuleInstances and ModulePackages hold a Transfor... |
 | A registration's standing SHALL be attached only when the caller may list TransformerRegistrati... | A registration's standing is attached only when the caller may list registrations | A registration's standing SHALL be attached only when the caller may l... |
 
 | New scenario | In requirement | Restates |

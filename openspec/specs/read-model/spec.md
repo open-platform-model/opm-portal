@@ -641,8 +641,9 @@ portal:D15:R1/R2/R4, portal:D7:R2.
 - **THEN** the package is a holder of `pkg.provider`, and the registration's standing is read
   from its own status, unchanged
 
-### Requirement: An owner is included only when the caller may list its kind and the answer is marked incomplete otherwise
-For a caller the read model SHALL include an owner only when the caller may list that owner's kind
+### Requirement: An owner that holds a registration is included only when the caller may list its kind and the answer is marked incomplete otherwise
+For a caller, in the answer which ModuleInstances and ModulePackages hold a TransformerRegistration
+of a given name, the read model SHALL include an owner only when the caller may list that owner's kind
 in its namespace, and SHALL mark the answer incomplete whenever the caller lacks a cluster-wide list
 of ModuleInstances or of ModulePackages, or the portal does not hold every namespace, whether or not
 a holder was found. Source: portal:D15:R1/R2/R4, portal:D7:R2.
