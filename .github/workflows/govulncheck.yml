@@ -1,6 +1,6 @@
-# Fails when the code calls a function with a known vulnerability (govulncheck, default mode).
+# Scans the code that ships (./cmd/...) and fails on a reachable known vulnerability.
 # The weekly run exists because new advisories appear with no code change.
-# Pinned tool version: a bump is a reviewed change.
+# The tool version matches the shared tool pin, so local runs and CI agree.
 name: govulncheck
 
 on:
@@ -30,4 +30,4 @@ jobs:
           go-version-file: go.mod
 
       - name: Run govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./cmd/...
