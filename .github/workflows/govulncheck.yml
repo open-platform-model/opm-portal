@@ -1,6 +1,6 @@
 # Scans the code that ships (./cmd/...) and fails on a reachable known vulnerability.
 # The weekly run exists because new advisories appear with no code change.
-# The tool version matches the shared tool pin, so local runs and CI agree.
+# The tool version matches the shared tool pin.
 name: govulncheck
 
 on:
@@ -18,6 +18,7 @@ jobs:
   govulncheck:
     name: govulncheck
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Clone the code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
