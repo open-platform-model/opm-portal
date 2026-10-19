@@ -1459,29 +1459,28 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 
 ### Batch B3: eight specs (29)
 
-Forms used: c2 (REMOVED plus ADDED under new names) for all 29 requirements. A grep of the repo outside `openspec/changes/archive/` found no reference to any of the 29 old headers outside their own spec (the prose of `AGENTS.md` and `internal/health/rollup.go` names two rules, not headers), so no rename needs a stale-reference fix and form b was not needed. No requirement used form a or d. The 29 old bodies measured 502 to 1483 characters; the 81 new bodies measure 77 to 499 (the lengths are in the unit report). The new bodies are built from whole sentences of the old body (DECISIONS.md 2026-10-19 15:50): a sentence is copied unchanged, and the only added words are listed below.
+Forms used: c2 (REMOVED plus ADDED under new names) for all 29 requirements. A grep of the repo outside `openspec/changes/archive/` found no reference to any of the 29 old headers outside their own spec (the prose of `AGENTS.md` and `internal/health/rollup.go` names two rules, not headers), so no rename needs a stale-reference fix and form b was not needed. No requirement used form a or d. The 29 old bodies measured 502 to 1483 characters; the 80 new bodies measure 77 to 499 (the lengths are in the unit report). The new bodies are built from whole sentences of the old body (DECISIONS.md 2026-10-19 15:50): a sentence is copied unchanged, and the only added words are listed below.
 
 How the tables read:
 
 - First table of each requirement: every old scenario, its new requirement, and whether its text changed. All 105 old scenarios of the 29 requirements kept their WHEN and THEN byte for byte (scenario check, scoped per requirement: 105 `same`, no `DIFF`, no `LOST`).
 - Second table: each clause of an old body, the new requirement that carries it, and the opening words of that body. The `Source:` line of an old body is repeated whole in each block that carries one of its clauses; an old body with no `Source:` line got none.
-- Third table, where present: scenarios that are new. Each restates a clause of its own requirement, with WHEN and THEN using only words of the old body. A new block needs at least one scenario; where no old scenario fitted the behavior, one restatement was written. The only negative new scenario is `Standing is not attached for a caller who may not list registrations`, the plain negation of "only when the caller may list TransformerRegistrations". No other denied or degraded case was invented (DECISIONS.md 2026-10-19 14:00).
+- Third table, where present: scenarios that are new. Each restates a clause of its own requirement, with WHEN and THEN using only words of the old body. A new block needs at least one scenario; where no old scenario fitted the behavior, one restatement was written. The 15 new scenarios restate a block or negate its condition. The only negative one is `Standing is not attached for a caller who may not list registrations`, the plain negation of "only when the caller may list TransformerRegistrations". No other denied or degraded case was invented (DECISIONS.md 2026-10-19 14:00).
 
 Wording changes beyond the split (no rule changes). A first clause of a sentence repeated as context, a subject copied from the same old requirement and a cut of a long sentence at a list boundary use only words of the old text:
 
 | Place | Change | Why |
 | --- | --- | --- |
-| `read-model`, `The answer counts only what the caller may get, read and list` | "The answer SHALL count" became "The read model's answer SHALL count" | "The answer" pointed at the sentence before |
+| `read-model`, `The answer about a Pod counts only what the caller may get, read and list` | "The answer SHALL count" became "The read model's answer, for a caller and one Pod, SHALL count" | "The answer" pointed at the first sentence; the added words are its words |
 | `read-model`, `A deletion of an OPM object is reported as a deletion` | The first clause of the first sentence, up to "whose view may have changed", is repeated before the deletion sentence | "the OPM object" is defined there |
 | `read-model`, the read-on-demand and registration blocks | "It SHALL keep", "It SHALL refuse" and "For a caller it SHALL include" became "The read model SHALL ..." | A split body names its subject |
 | `read-authorization`, `A refused read does not tell an existing object from a missing one` | The first clause of the first sentence, up to "before it reads the object", is repeated before the second sentence | "The decision" and "the object" point at it |
 | `read-authorization`, the in-cluster blocks | "The only object it SHALL create ... it SHALL NOT send" became "In-cluster the only object the portal SHALL create ... the portal SHALL NOT send"; "An identity with an empty ..." became "In-cluster an identity ..."; "Every identity is a person" became "In-cluster every identity SHALL be a person" | A split body names its subject and its condition ("In-cluster" opens the old requirement); the last sentence had no keyword |
 | `read-authorization`, `In-cluster mode treats every identity as a person ...` | See the strength table | The old sentence had no keyword |
-| `read-authorization`, `The portal's ServiceAccount is named by ...` | "The ServiceAccount SHALL" became "The portal's own ServiceAccount SHALL" | "the portal's own ServiceAccount" is the old words of the first sentence |
-| `build-and-release`, `The binary runs local mode ...` | "`serve` SHALL run" became "For the `opm-portal` binary, `serve` SHALL run" | A split body names its subject |
+| `read-authorization`, `The review of the portal's ServiceAccount is sent ...` | "The review SHALL be sent" became "The SubjectAccessReview SHALL be sent" (the name is in the first sentence); the block keeps the informer deferral sentence with the renewal rule it qualifies | "The review" pointed at the first sentence |
 | `local-mode`, `Local mode refuses ...` and `Local mode binds ...` | "It SHALL" became "`opm-portal serve` SHALL" | The subject of the first sentence of the old body |
 | `local-mode`, launch blocks | `A GET /launch spends the token` repeats the first clause of the first sentence ("At startup the portal SHALL print one launch URL on standard output carrying a random token") before the `GET /launch` sentence; `A GET /launch from a browser ...` adds "as listed in requirement" and the exact header of that block after "the same way", and "It SHALL NOT redirect" became "A `GET /launch` SHALL NOT redirect" | "that token" points at the first sentence; "the same way" points at the block before (DECISIONS.md 2026-10-19 16:55) |
-| `local-mode`, Pod blocks | The 555-character first sentence is cut at a list boundary in two: the part up to "an empty or anonymous one", and the condition clause plus "it SHALL print ... exactly as on a user's machine"; "that ServiceAccount" became "the Pod's ServiceAccount" (old words of the first sentence) | A sentence over 500 characters; "that" pointed at the first sentence |
+| `local-mode`, Pod blocks | The 555-character first sentence is cut at a list boundary in two: the part up to "an empty or anonymous one", and the condition clause plus "it SHALL print ... exactly as on a user's machine"; "that ServiceAccount" became "the Pod's ServiceAccount" (old words of the first sentence); the port-forward sentence sits in the same block as the Pod rules it follows | A sentence over 500 characters; "that" pointed at the first sentence; the port-forward sentence needs the in-cluster condition |
 | `health-evaluation`, the roll-up blocks | The first sentence ("The portal SHALL roll object health up ...") is repeated as context in the two blocks whose sentences speak of "the roll-up", "the result" and "the instance" | A split body names its subject |
 | `health-evaluation`, `Applied state, first four matches` and `Applied state, remaining matches` | The 647-character first sentence is cut at the list of matches: the first block holds the matches from "a CLI owner" to "marked as retrying while `Reconciling=True`", the second block holds the matches from "`Reconciling=True` or `Ready=Unknown`" to "anything else is Unknown" and adds "when none of the matches listed in requirement" plus the exact header of the first block, "applies" | The list is read in order, so the second block must say that the first block comes first (DECISIONS.md 2026-10-19 16:55) |
 | `graph-model`, the edge blocks | The 691-character edge sentence is cut at the semicolons of its list; each block repeats the opening clause ("Every edge SHALL belong to one edge kind ... which the edge names:") | A sentence over 500 characters |
@@ -1530,8 +1529,8 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 | --- | --- | --- |
 | A Pod below an inventory Deployment | The read model answers which inventory object a Pod is a runtime child of, A Pod below an inventory Deployment | no, byte for byte |
 | A grant that does not cover the Pod's log | The read model answers which inventory object a Pod is a runtime child of, A grant that does not cover the Pod's log | no, byte for byte |
-| A Pod reached only through an object the caller may not read | The answer counts only what the caller may get, read and list, A Pod reached only through an object the caller may not read | no, byte for byte |
-| A Pod whose owner the caller may not read | The answer counts only what the caller may get, read and list, A Pod whose owner the caller may not read | no, byte for byte |
+| A Pod reached only through an object the caller may not read | The answer about a Pod counts only what the caller may get, read and list, A Pod reached only through an object the caller may not read | no, byte for byte |
+| A Pod whose owner the caller may not read | The answer about a Pod counts only what the caller may get, read and list, A Pod whose owner the caller may not read | no, byte for byte |
 | A Pod no inventory reaches | A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable, A Pod no inventory reaches | no, byte for byte |
 | The owner check cannot be decided | A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable, The owner check cannot be decided | no, byte for byte |
 
@@ -1539,7 +1538,7 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 | --- | --- | --- |
 | The read model SHALL answer, for a caller and one Pod, the inventory object of a ModuleInstance... | The read model answers which inventory object a Pod is a runtime child of | The read model SHALL answer, for a caller and one Pod, the inventory o... |
 | The caller's grant SHALL cover `get` on the Pod's `log` subresource before anything is looked u... | The read model answers which inventory object a Pod is a runtime child of | The read model SHALL answer, for a caller and one Pod, the inventory o... |
-| The answer SHALL count only owners the caller may get, inventory objects the caller may read an... | The answer counts only what the caller may get, read and list | The read model's answer SHALL count only owners the caller may get, in... |
+| The answer SHALL count only owners the caller may get, inventory objects the caller may read an... | The answer about a Pod counts only what the caller may get, read and list | The read model's answer, for a caller and one Pod, SHALL count only ow... |
 | A Pod that does not exist, that no inventory reaches, or that is reached only through objects t... | A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable | A Pod that does not exist, that no inventory reaches, or that is reach... |
 
 **The read model reports which OPM object changed** (form c2; old body 521 characters)
@@ -1657,16 +1656,16 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
-| The ServiceAccount is reviewed by name | Background reads hold a grant issued from a review of the portal's ServiceAccount, The ServiceAccount is reviewed by name | no, byte for byte |
-| Renewed per time-to-live | Background reads hold a grant issued from a review of the portal's ServiceAccount, Renewed per time-to-live | no, byte for byte |
-| Not a ServiceAccount | The portal's ServiceAccount is named by the deployment or the mounted token, Not a ServiceAccount | no, byte for byte |
+| The ServiceAccount is reviewed by name | Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token, The ServiceAccount is reviewed by name | no, byte for byte |
+| Not a ServiceAccount | Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token, Not a ServiceAccount | no, byte for byte |
+| Renewed per time-to-live | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires, Renewed per time-to-live | no, byte for byte |
 
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
-| In-cluster the read model's informers, polls and on-demand lists SHALL read only under a grant... | Background reads hold a grant issued from a review of the portal's ServiceAccount | In-cluster the read model's informers, polls and on-demand lists SHALL... |
-| The review SHALL be sent when the reader first needs the grant (at startup for the watched kind... | Background reads hold a grant issued from a review of the portal's ServiceAccount | In-cluster the read model's informers, polls and on-demand lists SHALL... |
-| Stopping a running informer when its review expires, as portal:D6:R10 requires, is deferred to... | The portal's ServiceAccount is named by the deployment or the mounted token | Stopping a running informer when its review expires, as portal:D6:R10... |
-| The ServiceAccount SHALL be named by the deployment or read from the mounted ServiceAccount tok... | The portal's ServiceAccount is named by the deployment or the mounted token | Stopping a running informer when its review expires, as portal:D6:R10... |
+| In-cluster the read model's informers, polls and on-demand lists SHALL read only under a grant... | Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token | In-cluster the read model's informers, polls and on-demand lists SHALL... |
+| The ServiceAccount SHALL be named by the deployment or read from the mounted ServiceAccount tok... | Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token | In-cluster the read model's informers, polls and on-demand lists SHALL... |
+| The review SHALL be sent when the reader first needs the grant (at startup for the watched kind... | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires | The SubjectAccessReview SHALL be sent when the reader first needs the... |
+| Stopping a running informer when its review expires, as portal:D6:R10 requires, is deferred to... | The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires | The SubjectAccessReview SHALL be sent when the reader first needs the... |
 
 
 #### Spec `build-and-release`
@@ -1675,17 +1674,21 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 
 | Old scenario name | New place (requirement, scenario name) | Changed text? |
 | --- | --- | --- |
-| Version with no arguments | The binary prints its version and exits 0, Version with no arguments | no, byte for byte |
-| Version subcommand and flag | The binary prints its version and exits 0, Version subcommand and flag | no, byte for byte |
-| Unknown argument | The binary runs local mode for serve and refuses any other argument, Unknown argument | no, byte for byte |
+| Version with no arguments | The binary prints its version when run with no arguments, with version or with --version, Version with no arguments | no, byte for byte |
+| Version subcommand and flag | The binary prints its version when run with no arguments, with version or with --version, Version subcommand and flag | no, byte for byte |
+| Unknown argument | The binary prints its version when run with no arguments, with version or with --version, Unknown argument | no, byte for byte |
 
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
-| The `opm-portal` binary SHALL print `opm-portal v<version>` on standard output and exit 0 when... | The binary prints its version and exits 0 | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
-| `<version>` SHALL be the version of the release the source was tagged with, optionally followed... | The binary prints its version and exits 0 | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
-| Reporting the version SHALL NOT open a network listener or contact a cluster. | The binary prints its version and exits 0 | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
-| `serve` SHALL run local mode (the `local-mode` capability). | The binary runs local mode for serve and refuses any other argument | For the `opm-portal` binary, `serve` SHALL run local mode (the `local-... |
-| Any other argument SHALL print a usage line on standard error and exit 2. | The binary runs local mode for serve and refuses any other argument | For the `opm-portal` binary, `serve` SHALL run local mode (the `local-... |
+| The `opm-portal` binary SHALL print `opm-portal v<version>` on standard output and exit 0 when... | The binary prints its version when run with no arguments, with version or with --version | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
+| `serve` SHALL run local mode (the `local-mode` capability). | The binary prints its version when run with no arguments, with version or with --version | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
+| Any other argument SHALL print a usage line on standard error and exit 2. | The binary prints its version when run with no arguments, with version or with --version | The `opm-portal` binary SHALL print `opm-portal v<version>` on standar... |
+| `<version>` SHALL be the version of the release the source was tagged with, optionally followed... | The reported version is the release tag and reporting it opens no network listener | `<version>` SHALL be the version of the release the source was tagged... |
+| Reporting the version SHALL NOT open a network listener or contact a cluster. | The reported version is the release tag and reporting it opens no network listener | `<version>` SHALL be the version of the release the source was tagged... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Reporting the version | The reported version is the release tag and reporting it opens no network listener | the clause of that requirement; WHEN and THEN use only words of the old body |
 
 **Pull requests pass the Lint and Test checks** (form c2; old body 777 characters)
 
@@ -1810,20 +1813,20 @@ The plain item 3 command compares by scenario name over the whole spec. Scenario
 | An identity the cluster does not name | In a Pod local mode binds loopback and fails closed on an empty or anonymous identity, An identity the cluster does not name | no, byte for byte |
 | The Pod starts in local mode | In a Pod local mode prints the launch URL and applies the launch token and the browser protections, The Pod starts in local mode | no, byte for byte |
 | The token is spent | In a Pod local mode prints the launch URL and applies the launch token and the browser protections, The token is spent | no, byte for byte |
-| Port-forward to the bound port | A browser reaches the portal only through kubectl port-forward to the bound port, Port-forward to the bound port | no, byte for byte |
-| Port-forward from another local port | A browser reaches the portal only through kubectl port-forward to the bound port, Port-forward from another local port | no, byte for byte |
+| Port-forward to the bound port | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward, Port-forward to the bound port | no, byte for byte |
+| Port-forward from another local port | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward, Port-forward from another local port | no, byte for byte |
 
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
 | When `opm-portal serve` finds no kubeconfig and client-go loads the in-cluster configuration, t... | In a Pod local mode binds loopback and fails closed on an empty or anonymous identity | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
 | SHALL print the launch URL on standard output, which becomes the container log, and SHALL apply... | In a Pod local mode prints the launch URL and applies the launch token and the browser protections | When `opm-portal serve` finds no kubeconfig and client-go loads the in... |
-| Every read SHALL be made as that ServiceAccount after a SelfSubjectAccessReview for it. | In a Pod every read is made as the ServiceAccount and the log line says in-cluster | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
-| The startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty c... | In a Pod every read is made as the ServiceAccount and the log line says in-cluster | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
-| A browser reaches the portal only through `kubectl port-forward` to the bound port, and the `Ho... | A browser reaches the portal only through kubectl port-forward to the bound port | A browser reaches the portal only through `kubectl port-forward` to th... |
+| Every read SHALL be made as that ServiceAccount after a SelfSubjectAccessReview for it. | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
+| The startup log line naming the identity SHALL carry `source=in-cluster` in place of an empty c... | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
+| A browser reaches the portal only through `kubectl port-forward` to the bound port, and the `Ho... | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | Every read SHALL be made as the Pod's ServiceAccount after a SelfSubje... |
 
 | New scenario | In requirement | Restates |
 | --- | --- | --- |
-| The startup log line | In a Pod every read is made as the ServiceAccount and the log line says in-cluster | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The startup log line | In a Pod local mode reads as the ServiceAccount, logs source in-cluster and is reached by port-forward | the clause of that requirement; WHEN and THEN use only words of the old body |
 
 
 #### Spec `graph-model`
@@ -2034,4 +2037,4 @@ Every plain sentence that gained SHALL, MUST or MAY in a split block, by unit (D
 | `graph-model`, `An expanded configuration group's band is the one exception to barycenter order` (B3) | The band rule | "An expanded configuration group's band is the one exception to barycenter order:" | "An expanded configuration group's band SHALL be the one exception to barycenter order:" |
 | `portal-docs`, `The how-to builds from source with go install at latest` (B3) | The newest-release sentence | "The commands install the newest release, which can be newer than ..." | "The commands of the how-to for running the portal locally SHALL install the newest release, which can be newer than ..." |
 
-Two B3 sentences have no keyword in the old text and none was added: the deferral of the informer stop (`read-authorization`, `The portal's ServiceAccount is named by the deployment or the mounted token`) and the plan for the automated role check (`deploy-manifest`, `Role grants on the non-Secret kinds the catalog renders`).
+Two B3 sentences have no keyword in the old text and none was added: the deferral of the informer stop (`read-authorization`, `The review of the portal's ServiceAccount is sent ...`) and the plan for the automated role check (`deploy-manifest`, `Role grants on the non-Secret kinds the catalog renders`).

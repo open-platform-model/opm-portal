@@ -2,7 +2,7 @@
 
 ### Requirement: The binary reports its version
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The binary prints its version and exits 0", "The binary runs local mode for serve and refuses any other argument".
+**Migration**: See "The binary prints its version when run with no arguments, with version or with --version", "The reported version is the release tag and reporting it opens no network listener".
 
 ### Requirement: Pull requests pass the Lint and Test checks
 **Reason**: Split into requirements that each state one behavior.
@@ -18,12 +18,10 @@
 
 ## ADDED Requirements
 
-### Requirement: The binary prints its version and exits 0
+### Requirement: The binary prints its version when run with no arguments, with version or with --version
 The `opm-portal` binary SHALL print `opm-portal v<version>` on standard output and exit 0 when it is
-run with no arguments, with `version`, or with `--version`. `<version>` SHALL be the version of the
-release the source was tagged with, optionally followed by `+g<short-revision>` (and `.dirty` for a
-modified tree) when the build carries VCS information. Reporting the version SHALL NOT open a
-network listener or contact a cluster.
+run with no arguments, with `version`, or with `--version`. `serve` SHALL run local mode (the
+`local-mode` capability). Any other argument SHALL print a usage line on standard error and exit 2.
 
 #### Scenario: Version with no arguments
 
@@ -37,16 +35,22 @@ network listener or contact a cluster.
 - **THEN** standard output is the same line as with no arguments
 - **AND** the exit code is 0
 
-### Requirement: The binary runs local mode for serve and refuses any other argument
-For the `opm-portal` binary, `serve` SHALL run local mode (the `local-mode` capability). Any other
-argument SHALL print a usage line on standard error and exit 2.
-
 #### Scenario: Unknown argument
 
 - **WHEN** a user runs `opm-portal start`
 - **THEN** standard error names the accepted arguments
 - **AND** standard output is empty
 - **AND** the exit code is 2
+
+### Requirement: The reported version is the release tag and reporting it opens no network listener
+`<version>` SHALL be the version of the release the source was tagged with, optionally followed by
+`+g<short-revision>` (and `.dirty` for a modified tree) when the build carries VCS information.
+Reporting the version SHALL NOT open a network listener or contact a cluster.
+
+#### Scenario: Reporting the version
+
+- **WHEN** the binary reports its version
+- **THEN** it SHALL NOT open a network listener or contact a cluster
 
 ### Requirement: Every pull request runs a Lint check and a Test check
 Every pull request SHALL run a check named exactly `Lint` and a check named `Test`. `Lint` SHALL run

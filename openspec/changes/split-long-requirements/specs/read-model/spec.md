@@ -10,7 +10,7 @@
 
 ### Requirement: A Pod's reach from an inventory is answered for the caller
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "The read model answers which inventory object a Pod is a runtime child of", "The answer counts only what the caller may get, read and list", "A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable".
+**Migration**: See "The read model answers which inventory object a Pod is a runtime child of", "The answer about a Pod counts only what the caller may get, read and list", "A Pod that is not reached gets one refusal, and a check that cannot be decided is unavailable".
 
 ### Requirement: The read model reports which OPM object changed
 **Reason**: Split into requirements that each state one behavior.
@@ -95,10 +95,10 @@ portal:D10:R1, portal:D7:R1.
 - **WHEN** a caller's grant does not cover `get pods/log` on the Pod
 - **THEN** the read model refuses before it reads anything
 
-### Requirement: The answer counts only what the caller may get, read and list
-The read model's answer SHALL count only owners the caller may get, inventory objects the caller may
-read and runtime children the caller may list; an owner SHALL be authorized before its inventory is
-read. Source: portal:D10:R1, portal:D7:R1.
+### Requirement: The answer about a Pod counts only what the caller may get, read and list
+The read model's answer, for a caller and one Pod, SHALL count only owners the caller may get,
+inventory objects the caller may read and runtime children the caller may list; an owner SHALL be
+authorized before its inventory is read. Source: portal:D10:R1, portal:D7:R1.
 
 #### Scenario: A Pod reached only through an object the caller may not read
 

@@ -97,7 +97,7 @@ portal:D13:R3.
 ### Requirement: Role grants on the non-Secret kinds the catalog renders
 The ClusterRole `opm-portal-reader` SHALL list every rule explicitly and SHALL grant only the verbs
 `get`, `list` and `watch`: on the non-Secret kinds the OPM catalog's transformers render, a list
-maintained by hand against catalog 4.6.0's transformers An inventory object of a kind the role does
+maintained by hand against catalog 4.6.0's transformers. An inventory object of a kind the role does
 not grant SHALL show as not readable, never omitted. An automated check that the role covers every
 kind the pinned catalog renders stays with the in-cluster plan. Source: portal:D13:R3.
 
@@ -116,7 +116,7 @@ never a group or a built-in role such as `view`. Source: portal:D13:R3.
 #### Scenario: The role grants no Secrets
 
 - **WHEN** the manifest test reads `deploy/clusterrole.yaml`
-- **THEN** it SHALL NOT grant `secrets`
+- **THEN** the role SHALL NOT grant `secrets`
 
 ### Requirement: A Go test fails on a role that grants more
 A Go test SHALL fail on any of these, as listed in requirements "Role grants on the OPM kinds,

@@ -18,7 +18,7 @@
 
 ### Requirement: Background reads hold a grant for the portal's ServiceAccount
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "Background reads hold a grant issued from a review of the portal's ServiceAccount", "The portal's ServiceAccount is named by the deployment or the mounted token".
+**Migration**: See "Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token", "The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires".
 
 ## ADDED Requirements
 
@@ -174,12 +174,11 @@ Source: portal:D6:R3.
 - **AND** the cluster receives no request
 - **AND** the access log records the denial
 
-### Requirement: Background reads hold a grant issued from a review of the portal's ServiceAccount
+### Requirement: Background reads hold a grant issued from a review of the portal's ServiceAccount, named by the deployment or the mounted token
 In-cluster the read model's informers, polls and on-demand lists SHALL read only under a grant
 issued from a SubjectAccessReview naming the portal's own ServiceAccount, with the groups the API
-server gives it. The review SHALL be sent when the reader first needs the grant (at startup for the
-watched kinds) and, for polls and on-demand lists, again once the cached decision expires, so a
-revoked role reaches them within one time-to-live plus one review. Source: portal:D6:R10 (partial).
+server gives it. The ServiceAccount SHALL be named by the deployment or read from the mounted
+ServiceAccount token's subject. Source: portal:D6:R10 (partial).
 
 #### Scenario: The ServiceAccount is reviewed by name
 
@@ -188,18 +187,20 @@ revoked role reaches them within one time-to-live plus one review. Source: porta
   `system:serviceaccount:<namespace>:<name>` and whose groups are `system:serviceaccounts`,
   `system:serviceaccounts:<namespace>` and `system:authenticated`
 
-#### Scenario: Renewed per time-to-live
-
-- **WHEN** the reader asks for the same read twice within the time-to-live, and again after it
-- **THEN** the cluster receives one review for the first two and a new review for the third
-
-### Requirement: The portal's ServiceAccount is named by the deployment or the mounted token
-Stopping a running informer when its review expires, as portal:D6:R10 requires, is deferred to the
-change that builds the in-cluster command. The portal's own ServiceAccount SHALL be named by the
-deployment or read from the mounted ServiceAccount token's subject. Source: portal:D6:R10 (partial).
-
 #### Scenario: Not a ServiceAccount
 
 - **WHEN** the in-cluster authorizer is built with a reader that is not a ServiceAccount
   username, or a token whose subject is not one
 - **THEN** it refuses to build
+
+### Requirement: The review of the portal's ServiceAccount is sent when the reader first needs the grant and again once the decision expires
+The SubjectAccessReview SHALL be sent when the reader first needs the grant (at startup for the
+watched kinds) and, for polls and on-demand lists, again once the cached decision expires, so a
+revoked role reaches them within one time-to-live plus one review. Stopping a running informer when
+its review expires, as portal:D6:R10 requires, is deferred to the change that builds the in-cluster
+command. Source: portal:D6:R10 (partial).
+
+#### Scenario: Renewed per time-to-live
+
+- **WHEN** the reader asks for the same read twice within the time-to-live, and again after it
+- **THEN** the cluster receives one review for the first two and a new review for the third
