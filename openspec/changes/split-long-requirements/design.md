@@ -818,3 +818,639 @@ Known hits stay valid: `docs/DESIGN.md` names two requirements that are not long
 | --- | --- | --- |
 | A control event carries no topic data | Control events carry only the stream's own fields | the clause of that requirement; WHEN and THEN use only words of the old body |
 
+
+### Batch B2: read-api (16), kind-e2e-environment (7) and pod-logs (5)
+
+Forms used: c2 (REMOVED plus ADDED under new names) for all 28 requirements. A grep of the repo outside `openspec/changes/archive/` found no reference to any of the 28 old headers outside their own spec, so no rename needs a stale-reference fix and form b was not needed. No requirement used form a or d. The 28 old bodies measured 507 to 1516 characters; the 131 new bodies measure 63 to 466 (the lengths are in the unit report).
+
+How the tables read:
+
+- First table of each requirement: every old scenario, its new requirement, and whether its text changed. All 97 old scenarios of the 28 requirements (`read-api` 49, `kind-e2e-environment` 29, `pod-logs` 19) kept their WHEN and THEN byte for byte. The scenario check, scoped per requirement (old text from the one requirement, new text from the blocks its Migration line names), gave 97 `same`, no `DIFF`, no `LOST`.
+- Second table: each clause of an old body, the new requirement that carries it, and the opening words of that body. Every clause is in exactly one new body, with its SHALL. The `Source:` line of an old body is repeated whole in each block that carries one of its clauses; an old body with no `Source:` line got none.
+- Third table, where present: scenarios that are new. Each restates a clause of its own requirement, with WHEN and THEN using only words and values of the old body. A new block needs at least one scenario; where no old scenario fitted the behavior, one restatement was written. No denied or degraded case was invented (DECISIONS.md 2026-10-19 14:00).
+
+Wording changes beyond the split (no rule changes):
+
+| Place | Change | Why |
+| --- | --- | --- |
+| `pod-logs`, `A log topic for a Pod no inventory reaches is closed as forbidden` | "SHALL each be closed" became "or ... SHALL be closed" over the same three cases | The block holds only the three cases; "each" had no list to point at once the first case left |
+| `pod-logs`, `A container the Pod does not have ends the log topic` | "whose reason says so" became "whose reason says the Pod does not have it" | "so" pointed at the sentence before |
+| `pod-logs`, `A log follows with timestamps, ...` | "A stream SHALL never end" became "A log stream SHALL never end" | A split body names its subject |
+| `kind-e2e-environment`, `Fixture images are pinned by tag, ...` | "are pinned by tag only" became "SHALL be pinned by tag only" (and "is pinned by digest" became "SHALL be pinned by digest") | An ADDED block needs SHALL or MUST; the pin was already a rule of the old requirement |
+| `kind-e2e-environment`, `The capture runs the check last and every pull request runs it` | "The capture runs it last, and ... run it" became "SHALL run" | The old sentence had no keyword; the rule is unchanged |
+| `kind-e2e-environment`, `The capture check fails a file that breaks a rule or does not parse` | "any of these rules" became the five rules of a captured file written out: no Secret, no `metadata.managedFields`, no last-applied annotation, no `spec.values`, no `spec.versions[].schema` | "these" pointed at the sentences before; the list is the rules those sentences state |
+| `read-api`, `A package's source artifact fetch URL is not served` | "SHALL not be served" became "SHALL NOT be served" | RFC 2119 form of the same rule |
+| `read-api`, `Joined fields` blocks | The sentence "Each subscriber is still written only a change to its own document." is repeated verbatim in both blocks | It applies to both clauses; it has no keyword in the old text and none was added |
+| `read-api`, `A condition's tone follows its type and status` | "`Stalled=True` SHALL be `abnormal`, `Reconciling=True` `progressing`, ..." became "`tone` SHALL be `abnormal` for `Stalled=True`, `progressing` for `Reconciling=True`, ..." | The elliptic list needs its verb and subject in a split body; the same five pairs and the unknown rule |
+| `read-api`, resource blocks | The list of 15 paths is split into three blocks (instances, packages, cluster/platform/stream) with the path prefix and "with `GET` only" repeated | The list alone is over 500 characters |
+
+The plain item 3 command compares by scenario name over the whole spec. In `read-api`, `In-cluster` and `The F1 package` also name scenarios of requirements that this unit does not rewrite, so the plain command reports a false `DIFF` for those two names (and for a new scenario named `A kind the cluster does not serve`, which was renamed to `An object of a kind the cluster does not serve` once the check showed the clash). The unit therefore ran the scoped variant of B1, which gives the same result on every other name. The names `An object no inventory reaches` and `A package holder` occur in two requirements of `read-api` each; both copies are kept, in their old order.
+
+#### Spec `read-api`
+
+**Resources live under a versioned, cluster-parameterized path** (form c2; old body 1062 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The default cluster | Instance resources live under the versioned cluster path, The default cluster | no, byte for byte |
+| The cluster itself | The cluster, platform and stream resources live under the versioned cluster path, The cluster itself | no, byte for byte |
+| Another cluster | Only the cluster default is served in milestone 1, Another cluster | no, byte for byte |
+| A write method | A method a resource does not take is answered 405, A write method | no, byte for byte |
+| A malformed name | A malformed namespace or name is answered 400 before any review, A malformed name | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL serve every read API resource under `/api/v1alpha1/clusters/{cluster}`, with `... | Instance resources live under the versioned cluster path | The portal SHALL serve the instance resources `instances`, `instances/... |
+| `packages`, `packages/{namespace}/{name}`, `packages/{namespace}/{name}/graph`, `packages/{name... | Package resources live under the versioned cluster path | The portal SHALL serve the package resources `packages`, `packages/{na... |
+| the cluster itself, ... `platform`, `platform/graph`, `platform/events`, `platform/registration... | The cluster, platform and stream resources live under the versioned cluster path | The portal SHALL serve the cluster itself, `platform`, `platform/graph... |
+| The one exception SHALL be `stream/{stream}/topics`, which takes `POST` only. | The stream topics resource takes POST only | The one exception to `GET` only SHALL be `stream/{stream}/topics` unde... |
+| In milestone 1 the only cluster served SHALL be `default`. Any other cluster name SHALL be answ... | Only the cluster default is served in milestone 1 | In milestone 1 the only cluster served SHALL be `default`. Any other c... |
+| A method a resource does not take SHALL be answered `405` with code `method_not_allowed`. | A method a resource does not take is answered 405 | A method a resource does not take SHALL be answered `405` with code `m... |
+| A namespace that is not a DNS-1123 label, or a name that is not a DNS-1123 subdomain, SHALL be... | A malformed namespace or name is answered 400 before any review | A namespace that is not a DNS-1123 label, or a name that is not a DNS-... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The package list | Package resources live under the versioned cluster path | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The topics resource | The stream topics resource takes POST only | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Documents are portal-shaped and versioned** (form c2; old body 585 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Both axes on an applied, degraded instance | An instance and a package carry applied state and health as two blocks, Both axes on an applied, degraded instance | no, byte for byte |
+| A CLI-owned instance | An instance and a package carry applied state and health as two blocks, A CLI-owned instance | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Every document SHALL carry `apiVersion: portal.opmodel.dev/v1alpha1` and a `kind`. | Every document carries apiVersion and kind and embeds no raw status | Every document SHALL carry `apiVersion: portal.opmodel.dev/v1alpha1` a... |
+| No document SHALL embed a raw custom-resource status. | Every document carries apiVersion and kind and embeds no raw status | Every document SHALL carry `apiVersion: portal.opmodel.dev/v1alpha1` a... |
+| An instance and a package SHALL carry the operator's applied state (`reconcile`: state, reason,... | An instance and a package carry applied state and health as two blocks | An instance and a package SHALL carry the operator's applied state (`r... |
+| Enumerated values SHALL be documented as open: a client is told to treat an unknown value as un... | Enumerated values are documented as open | Enumerated values SHALL be documented as open: a client is told to tre... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A document's identity | Every document carries apiVersion and kind and embeds no raw status | the clause of that requirement; WHEN and THEN use only words of the old body |
+| An unknown value | Enumerated values are documented as open | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Errors are problem documents** (form c2; old body 585 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Authorization unavailable | The error codes of a problem document are a documented open set, Authorization unavailable | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Every error SHALL be an RFC 9457 `application/problem+json` document with `type`, `title`, `sta... | Every error is a problem document with a code | Every error SHALL be an RFC 9457 `application/problem+json` document w... |
+| The codes SHALL be `unauthenticated` (401), `forbidden` (403), `not_found` (404), `bad_request`... | The error codes of a problem document are a documented open set | The `code` of a problem document SHALL be `unauthenticated` (401), `fo... |
+| No problem document SHALL carry a credential, an identity or a review's error text. | No problem document carries a credential, an identity or a review's error text | No problem document SHALL carry a credential, an identity or a review'... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A problem document | Every error is a problem document with a code | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A review fails | No problem document carries a credential, an identity or a review's error text | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Events are served only about objects an inventory reaches** (form c2; old body 918 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| An inventory object's events | An events resource serves the feed about its owner or one named object, An inventory object's events | no, byte for byte |
+| A registration's events | An events resource serves the feed about its owner or one named object, A registration's events | no, byte for byte |
+| A kind the cluster does not serve | The named object's kind is resolved after get on the owner, from the held discovery, A kind the cluster does not serve | no, byte for byte |
+| An object no inventory reaches | An object no inventory reaches is refused with the forbidden document, An object no inventory reaches | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| An events resource SHALL serve the folded recent-activity feed about its owner (the instance, t... | An events resource serves the feed about its owner or one named object | An events resource SHALL serve the folded recent-activity feed about i... |
+| It SHALL authorize get on the owner, get on the named object, and list of events in the namespa... | An events resource authorizes the owner, the object and the events before any lookup | An events resource SHALL authorize get on the owner, get on the named... |
+| the named object's kind SHALL be resolved only after get on the owner is allowed, from the disc... | The named object's kind is resolved after get on the owner, from the held discovery | The kind of the object an events resource names SHALL be resolved only... |
+| An object that is neither the owner, nor in its inventory, nor a runtime child below an invento... | An object no inventory reaches is refused with the forbidden document | An object that is neither the owner, nor in its inventory, nor a runti... |
+| Lines SHALL carry type, reason, note, reporting controller, the object regarded, a count and th... | Event lines carry type, reason, note, controller, object, count and time | The lines of an events resource SHALL carry type, reason, note, report... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Three checks before the lookup | An events resource authorizes the owner, the object and the events before any lookup | the clause of that requirement; WHEN and THEN use only words of the old body |
+| An event line | Event lines carry type, reason, note, controller, object, count and time | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Graphs are served as documents** (form c2; old body 595 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The platform graph with a forbidden provider | The platform graph authorizes each registration's provider instance, The platform graph with a forbidden provider | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The graph resources SHALL serve the instance, package and platform graphs as `Graph` documents:... | Graph resources serve Graph documents with nodes, edges and layout | The graph resources SHALL serve the instance, package and platform gra... |
+| The `expand` query parameter, repeatable, SHALL expand the group node it names, and `showScaled... | The expand and showScaledDown parameters change the graph's nodes | The `expand` query parameter of a graph resource, repeatable, SHALL ex... |
+| The platform graph SHALL authorize get on each registration's provider instance for the caller... | The platform graph authorizes each registration's provider instance | The platform graph SHALL authorize get on each registration's provider... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A Graph document | Graph resources serve Graph documents with nodes, edges and layout | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Expanded and scaled-down nodes | The expand and showScaledDown parameters change the graph's nodes | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The change stream carries the GET documents** (form c2; old body 898 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A deleted instance | A deleted or missing object's topic carries a Removed document, A deleted instance | no, byte for byte |
+| Deleted and recreated before the next publish | A deleted or missing object's topic carries a Removed document, Deleted and recreated before the next publish | no, byte for byte |
+| An instance topic follows a health change | A change to an OPM object, an inventory object or a runtime child reaches the topics showing it, An instance topic follows a health change | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The `stream` resource SHALL open a server-sent-events stream on the topics named by its `topics... | The stream resource opens an event stream on the named topics | The `stream` resource SHALL open a server-sent-events stream on the to... |
+| Each topic SHALL carry exactly one document, the one its `GET` returns: `platform` the `Platfor... | Each topic carries the document its GET returns, rendered for the subscriber | Each topic of the `stream` resource SHALL carry exactly one document,... |
+| Snapshot and upsert messages SHALL carry that document rendered for the subscriber. | Each topic carries the document its GET returns, rendered for the subscriber | Each topic of the `stream` resource SHALL carry exactly one document,... |
+| When the object is deleted, or does not exist at the snapshot, the topic SHALL carry a `Removed... | A deleted or missing object's topic carries a Removed document | When the object is deleted, or does not exist at the snapshot, the top... |
+| A change to an OPM object, to an inventory object or to a runtime child below one SHALL reach t... | A change to an OPM object, an inventory object or a runtime child reaches the topics showing it | A change to an OPM object, to an inventory object or to a runtime chil... |
+| Topics the broker does not serve SHALL be refused with `400` and code `bad_request`; a stream b... | A topic the broker does not serve is refused and a stream beyond the cap gets 429 | Topics the broker does not serve SHALL be refused with `400` and code... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| An opened stream | The stream resource opens an event stream on the named topics | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A topic's document | Each topic carries the document its GET returns, rendered for the subscriber | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A topic the broker does not serve | A topic the broker does not serve is refused and a stream beyond the cap gets 429 | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A stream beyond the cap | A topic the broker does not serve is refused and a stream beyond the cap gets 429 | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The OpenAPI document is the contract** (form c2; old body 713 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A field renamed without a breaking title | A breaking change to the OpenAPI document fails Lint unless the title marks it, A field renamed without a breaking title | no, byte for byte |
+| A field added | A breaking change to the OpenAPI document fails Lint unless the title marks it, A field added | no, byte for byte |
+| An enumerated value removed | A removed enumerated value fails Lint and a test compares values with the Go constants, An enumerated value removed | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The repository SHALL hold an OpenAPI 3.1 document of the read API. Every served route SHALL app... | The OpenAPI document lists every route and matches the wire types | The repository SHALL hold an OpenAPI 3.1 document of the read API. Eve... |
+| A pull request that changes the document in a way `oasdiff breaking` reports as an error SHALL... | A breaking change to the OpenAPI document fails Lint unless the title marks it | A pull request that changes the OpenAPI document in a way `oasdiff bre... |
+| Because `oasdiff` ignores `x-extensible-enum`, the same check SHALL fail when a value the base... | A removed enumerated value fails Lint and a test compares values with the Go constants | Because `oasdiff` ignores `x-extensible-enum`, the required `Lint` che... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A route or a wire type that differs | The OpenAPI document lists every route and matches the wire types | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**A stream's topics change through one request** (form c2; old body 757 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Moving a stream to another page | A topics request attaches the added topics, detaches the removed ones and answers 204, Moving a stream to another page | no, byte for byte |
+| A form post | A topics request of another type or shape or with an unparsable topic is answered 400, A form post | no, byte for byte |
+| Another session's stream | A topics request for a stream that is not the session's open stream is answered 404, Another session's stream | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `POST /api/v1alpha1/clusters/{cluster}/stream/{stream}/topics` with `Content-Type: application/... | A topics request attaches the added topics, detaches the removed ones and answers 204 | `POST /api/v1alpha1/clusters/{cluster}/stream/{stream}/topics` with `C... |
+| A body of another type or shape, or a topic that does not parse, SHALL be answered `400` with c... | A topics request of another type or shape or with an unparsable topic is answered 400 | A `POST` to `stream/{stream}/topics` with a body of another type or sh... |
+| a stream that is not this session's open stream `404` with `not_found`; | A topics request for a stream that is not the session's open stream is answered 404 | A `POST` to `stream/{stream}/topics` for a stream that is not this ses... |
+| a request without the session `401` with `unauthenticated`. | A topics request without the session is answered 401 | A `POST` to `stream/{stream}/topics` without the session SHALL be answ... |
+| The request SHALL read and create nothing in the cluster. | A topics request reads and creates nothing in the cluster | A `POST` to `stream/{stream}/topics` SHALL read and create nothing in... |
+| In local mode a cross-origin request SHALL be refused by the front door before it reaches the r... | In local mode a cross-origin topics request is refused by the front door | In local mode a cross-origin `POST` to `stream/{stream}/topics` SHALL... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| No session | A topics request without the session is answered 401 | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Nothing in the cluster | A topics request reads and creates nothing in the cluster | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A cross-origin post | In local mode a cross-origin topics request is refused by the front door | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**One object an inventory reaches is served stripped** (form c2; old body 860 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| podinfo's Deployment | An object resource serves an Object document with the object's reference, podinfo's Deployment | no, byte for byte |
+| An object no inventory reaches | A kind the cluster does not serve and an object no inventory reaches are refused, An object no inventory reaches | no, byte for byte |
+| A Secret | A core Secret is refused before any review about it, A Secret | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `GET …/instances/{namespace}/{name}/object` and `GET …/packages/{namespace}/{name}/object`, wit... | An object resource serves an Object document with the object's reference | `GET …/instances/{namespace}/{name}/object` and `GET …/packages/{names... |
+| without `metadata.managedFields`, the `kubectl.kubernetes.io/last-applied-configuration` annota... | A served object lacks managed fields, the apply annotation and values | The object an `Object` document carries SHALL lack `metadata.managedFi... |
+| The reads SHALL be authorized as the events about one object are, before any lookup: `get` on t... | The object reads are authorized on the owner and then on the object before any lookup | The `object` reads of an instance or package SHALL be authorized as th... |
+| a kind the cluster does not serve, an object the owner's inventory does not reach, ... SHALL ea... | A kind the cluster does not serve and an object no inventory reaches are refused | A kind the cluster does not serve and an object the owner's inventory... |
+| and a core Secret SHALL each be refused `403` with code `forbidden`, a Secret before any review... | A core Secret is refused before any review about it | A core Secret SHALL be refused `403` with code `forbidden` by an `obje... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A stripped ModuleInstance | A served object lacks managed fields, the apply annotation and values | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Owner, then object | The object reads are authorized on the owner and then on the object before any lookup | the clause of that requirement; WHEN and THEN use only words of the old body |
+| An object of a kind the cluster does not serve | A kind the cluster does not serve and an object no inventory reaches are refused | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Conditions carry their tone and the portal's explanation** (form c2; old body 604 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A refused registration's platform | A condition's tone follows its type and status, A refused registration's platform | no, byte for byte |
+| An unknown reason | A condition carries its meaning and next step only for a reason the portal explains, An unknown reason | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Every condition a document serves SHALL carry `tone`, how the condition reads for its type: `no... | Every condition carries a tone | Every condition a document serves SHALL carry `tone`, how the conditio... |
+| `Stalled=True` SHALL be `abnormal`, `Reconciling=True` `progressing`, `ContractsFulfilled=False... | A condition's tone follows its type and status | A condition's `tone` SHALL be `abnormal` for `Stalled=True`, `progress... |
+| A condition whose reason the portal explains SHALL carry its `meaning` and, when a person can a... | A condition carries its meaning and next step only for a reason the portal explains | A condition whose reason the portal explains SHALL carry its `meaning`... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A condition's tone | Every condition carries a tone | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**In-cluster mode serves no operator text** (form c2; old body 1516 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A failed instance in-cluster | In-cluster mode serves no condition, reconcile, history or registration message, A failed instance in-cluster | no, byte for byte |
+| Registration conditions in-cluster | In-cluster mode serves no condition, reconcile, history or registration message, Registration conditions in-cluster | no, byte for byte |
+| Local mode | In-cluster mode serves no condition, reconcile, history or registration message, Local mode | no, byte for byte |
+| Events in-cluster | In-cluster mode serves no operator-reported event note, Events in-cluster | no, byte for byte |
+| An OPM object's YAML in-cluster | In-cluster mode serves no health message of an opmodel.dev object or status message in an Object, An OPM object's YAML in-cluster | no, byte for byte |
+| The kubelet's events in-cluster | In-cluster mode serves text other writers wrote as written, The kubelet's events in-cluster | no, byte for byte |
+| Events differing only in their note in-cluster | In-cluster mode serves events left alike once their notes are dropped as one line, Events differing only in their note in-cluster | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carr... | In-cluster mode serves no condition, reconcile, history or registration message | In `in-cluster` mode no document, whether served by a `GET` or on the... |
+| the `note` of an event the operator reported (its `reportingController` is `opm-controller`, or... | In-cluster mode serves no operator-reported event note | In `in-cluster` mode no document, whether served by a `GET` or on the... |
+| the health `message` of an inventory object or graph node of an `opmodel.dev` kind, or, in an `... | In-cluster mode serves no health message of an opmodel.dev object or status message in an Object | In `in-cluster` mode no document, whether served by a `GET` or on the... |
+| Every reason, state, `tone`, `meaning`, `nextStep`, history `outcome` and `providerOf` standing... | In-cluster mode keeps every reason, state, tone, meaning, next step, outcome and providerOf standing | In `in-cluster` mode every reason, state, `tone`, `meaning`, `nextStep... |
+| Text other writers wrote SHALL be served as written: the notes of events the kubelet or another... | In-cluster mode serves text other writers wrote as written | In `in-cluster` mode text other writers wrote SHALL be served as writt... |
+| Events the operator reported that are left alike once their notes are dropped (same type, reaso... | In-cluster mode serves events left alike once their notes are dropped as one line | In `in-cluster` mode events the operator reported that are left alike... |
+| A document type the omission does not know SHALL fail with `upstream_unavailable` rather than b... | In-cluster mode fails a document type the omission does not know | In `in-cluster` mode a document type the omission does not know SHALL... |
+| The OpenAPI document SHALL say, on each of those fields, that it is absent in-cluster. | The OpenAPI document says which fields are absent in-cluster | The OpenAPI document SHALL say, on each field whose operator text is o... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Reasons and states stay | In-cluster mode keeps every reason, state, tone, meaning, next step, outcome and providerOf standing | the clause of that requirement; WHEN and THEN use only words of the old body |
+| An unknown document type in-cluster | In-cluster mode fails a document type the omission does not know | the clause of that requirement; WHEN and THEN use only words of the old body |
+| An omitted field in the OpenAPI document | The OpenAPI document says which fields are absent in-cluster | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The cluster document names the connection** (form c2; old body 775 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Local mode on the fixture cluster | The Cluster document names the cluster, mode, source, context and caller, Local mode on the fixture cluster | no, byte for byte |
+| Version not read | The Cluster document carries the API server version when the read model holds it, Version not read | no, byte for byte |
+| Nothing else about the kubeconfig | The Cluster document carries no server URL or credential and makes no cluster read, Nothing else about the kubeconfig | no, byte for byte |
+| In-cluster | The Cluster document is served unchanged in-cluster, In-cluster | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `GET /api/v1alpha1/clusters/{cluster}` SHALL serve a `Cluster` document: the path cluster's `na... | The Cluster document names the cluster, mode, source, context and caller | `GET /api/v1alpha1/clusters/{cluster}` SHALL serve a `Cluster` documen... |
+| and the API server's `kubernetesVersion` as the read model holds it, absent when the read model... | The Cluster document carries the API server version when the read model holds it | The `Cluster` document SHALL carry the API server's `kubernetesVersion... |
+| It SHALL carry no server URL, kubeconfig user entry or credential, and no other identity than t... | The Cluster document carries no server URL or credential and makes no cluster read | The `Cluster` document SHALL carry no server URL, kubeconfig user entr... |
+| A request without a principal SHALL be answered `401` with code `unauthenticated`. | A Cluster request without a principal is answered 401 | A request for the `Cluster` document without a principal SHALL be answ... |
+| In `in-cluster` mode the document SHALL be served unchanged: it carries no operator text. | The Cluster document is served unchanged in-cluster | In `in-cluster` mode the `Cluster` document SHALL be served unchanged:... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| No principal | A Cluster request without a principal is answered 401 | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Packages carry their interval and source artifact** (form c2; old body 538 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The F1 package | A package carries its interval and source artifact as recorded, The F1 package | no, byte for byte |
+| A package with an applier | A package document carries its serviceAccountName when set, A package with an applier | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A package document and a package list item SHALL carry `interval`, the package's `spec.interval... | A package carries its interval and source artifact as recorded | A package document and a package list item SHALL carry `interval`, the... |
+| Neither SHALL be filled with a default or a guess. | A package carries its interval and source artifact as recorded | A package document and a package list item SHALL carry `interval`, the... |
+| The source artifact's fetch URL SHALL not be served. | A package's source artifact fetch URL is not served | The fetch URL of a package's source artifact SHALL NOT be served. Sour... |
+| A package document SHALL also carry `serviceAccountName`, the package's `spec.serviceAccountNam... | A package document carries its serviceAccountName when set | A package document SHALL also carry `serviceAccountName`, the package'... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The fetch URL | A package's source artifact fetch URL is not served | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Registrations carry their conditions and holders** (form c2; old body 600 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The accepted claim's holder | A registration carries the instances and packages that hold it, The accepted claim's holder | no, byte for byte |
+| A claim nobody holds | A registration carries the instances and packages that hold it, A claim nobody holds | no, byte for byte |
+| A package holder | A registration carries the instances and packages that hold it, A package holder | no, byte for byte |
+| Instances not listable everywhere | heldByPartial is true whenever the caller cannot see every holder, Instances not listable everywhere | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Each registration in the platform document SHALL carry its `conditions` with `tone`, `meaning`... | A registration carries its conditions with tone, meaning and next step | Each registration in the platform document SHALL carry its `conditions... |
+| and `heldBy`: the ModuleInstances and ModulePackages the caller may read whose inventory holds... | A registration carries the instances and packages that hold it | Each registration in the platform document SHALL carry `heldBy`: the M... |
+| `heldByPartial` SHALL be true whenever the caller lacks a cluster-wide list of ModuleInstances... | heldByPartial is true whenever the caller cannot see every holder | `heldByPartial` of a registration SHALL be true whenever the caller la... |
+| `provider` SHALL keep naming the ModuleInstance `spec.providerRef` names. | A registration's provider keeps naming the ModuleInstance its providerRef names | The `provider` of a registration SHALL keep naming the ModuleInstance... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A registration's conditions | A registration carries its conditions with tone, meaning and next step | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The provider | A registration's provider keeps naming the ModuleInstance its providerRef names | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Instances and packages name the registrations they hold** (form c2; old body 782 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The F1 provider | An instance or package carries one providerOf entry per registration it holds, The F1 provider | no, byte for byte |
+| A package holder | providerRefMatches is true only for a ModuleInstance the providerRef names, A package holder | no, byte for byte |
+| Registrations forbidden | A registration the caller may not read carries its name and access only, Registrations forbidden | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| An instance or package, in its document and its list item, SHALL carry `providerOf`: one entry... | An instance or package carries one providerOf entry per registration it holds | An instance or package, in its document and its list item, SHALL carry... |
+| `providerRefMatches`: true only when the owner is a ModuleInstance whose namespace and name the... | providerRefMatches is true only for a ModuleInstance the providerRef names | The `providerRefMatches` of a `providerOf` entry SHALL be true only wh... |
+| A registration the inventory names but the cluster does not hold SHALL carry verdict `Unknown`... | A registration the cluster does not hold carries verdict Unknown | A `providerOf` entry for a registration the inventory names but the cl... |
+| A registration the caller may not read SHALL carry its name and `access: forbidden` only, with... | A registration the caller may not read carries its name and access only | A `providerOf` entry for a registration the caller may not read SHALL... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A registration the cluster does not hold | A registration the cluster does not hold carries verdict Unknown | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Joined fields follow changes on both sides** (form c2; old body 515 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A claim becomes active | A change to a registration reaches the topics of the owners that hold it, A claim becomes active | no, byte for byte |
+| A holder drops its claim | A change to a holder reaches the platform topic, A holder drops its claim | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A change to a TransformerRegistration SHALL reach the `instance:` or `package:` topic of every... | A change to a registration reaches the topics of the owners that hold it | A change to a TransformerRegistration SHALL reach the `instance:` or `... |
+| Each subscriber is still written only a change to its own document. | A change to a registration reaches the topics of the owners that hold it | A change to a TransformerRegistration SHALL reach the `instance:` or `... |
+| A change to a ModuleInstance or ModulePackage whose inventory holds a TransformerRegistration,... | A change to a holder reaches the platform topic | A change to a ModuleInstance or ModulePackage whose inventory holds a... |
+| Each subscriber is still written only a change to its own document. | A change to a holder reaches the platform topic | A change to a ModuleInstance or ModulePackage whose inventory holds a... |
+
+
+#### Spec `kind-e2e-environment`
+
+**The fixture cluster is created from pinned released artifacts** (form c2; old body 1184 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Fresh environment | The fixture cluster is a kind cluster named in the opm-portal-e2e family, Fresh environment | no, byte for byte |
+| Second cluster beside the default | The fixture cluster is a kind cluster named in the opm-portal-e2e family, Second cluster beside the default | no, byte for byte |
+| Cluster name outside the family | The fixture cluster is a kind cluster named in the opm-portal-e2e family, Cluster name outside the family | no, byte for byte |
+| Cluster already exists | The fixture cluster is a kind cluster named in the opm-portal-e2e family, Cluster already exists | no, byte for byte |
+| kind differs from the pin | The environment refuses a kind that is not the pinned release, kind differs from the pin | no, byte for byte |
+| Tampered download | The opm CLI download is compared with its pinned sha256, Tampered download | no, byte for byte |
+| Catalog pin | The operator and the cluster Platform are installed at pinned versions, Catalog pin | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `task e2e:up` SHALL create a kind cluster named `opm-portal-e2e`, or the name `E2E_CLUSTER` giv... | The fixture cluster is a kind cluster named in the opm-portal-e2e family | `task e2e:up` SHALL create a kind cluster named `opm-portal-e2e`, or t... |
+| from the node image pinned in `test/e2e/versions.env`, | The kind cluster uses the pinned node image and a recorded provider | `task e2e:up` SHALL create the kind cluster from the node image pinned... |
+| with podman as the default provider and docker when `E2E_PROVIDER=docker`, and SHALL record the... | The kind cluster uses the pinned node image and a recorded provider | `task e2e:up` SHALL create the kind cluster from the node image pinned... |
+| It SHALL refuse to run when the `kind` on `PATH` is not the pinned release. | The environment refuses a kind that is not the pinned release | `task e2e:up` SHALL refuse to run when the `kind` on `PATH` is not the... |
+| It SHALL download the `opm` CLI release pinned in `versions.env`, SHALL compare the archive's s... | The opm CLI download is compared with its pinned sha256 | `task e2e:up` SHALL download the `opm` CLI release pinned in `versions... |
+| It SHALL install the opm-operator release `OPM_OPERATOR_VERSION` names (the CLI's embedded vers... | The operator and the cluster Platform are installed at pinned versions | `task e2e:up` SHALL install the opm-operator release `OPM_OPERATOR_VER... |
+| Container images a fixture module chooses itself (cert-manager's three images share one digest... | Fixture images are pinned by tag, the CLI-owned instance's image by digest | Container images a fixture module chooses itself (cert-manager's three... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The recorded provider | The kind cluster uses the pinned node image and a recorded provider | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Image pins | Fixture images are pinned by tag, the CLI-owned instance's image by digest | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The scripts touch only the fixture cluster** (form c2; old body 507 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Developer's own context is untouched | Every e2e script call names the fixture cluster's kubeconfig and context, Developer's own context is untouched | no, byte for byte |
+| Non-loopback server | An e2e script checks that the API server is on a loopback address, Non-loopback server | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| Every `kubectl` and `opm` call the e2e scripts make SHALL pass the fixture cluster's kubeconfig... | Every e2e script call names the fixture cluster's kubeconfig and context | Every `kubectl` and `opm` call the e2e scripts make SHALL pass the fix... |
+| Before applying or reading anything, a script SHALL check that the context's API server is on a... | An e2e script checks that the API server is on a loopback address | Before applying or reading anything, an e2e script SHALL check that th... |
+| `task e2e:down` SHALL delete only the fixture cluster it names. | task e2e:down deletes only the fixture cluster it names | `task e2e:down` SHALL delete only the fixture cluster it names.... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| Down names one cluster | task e2e:down deletes only the fixture cluster it names | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The F1 fixture set covers the states the portal renders** (form c2; old body 986 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Deliberate refusal fixture | The deliberate refusal fixture is a registration no operator accepts, Deliberate refusal fixture | no, byte for byte |
+| A required fixture never becomes ready | task e2e:up fails when a required fixture is not ready, A required fixture never becomes ready | no, byte for byte |
+| Deliberate refusal fixture accepted | task e2e:up fails when the deliberate refusal fixture gets no verdict or is accepted, Deliberate refusal fixture accepted | no, byte for byte |
+| Released operator refuses the backup claim | task e2e:up records the state of the package, the claim and the consumer without failing, Released operator refuses the backup claim | no, byte for byte |
+| Operator accepts the backup claim | task e2e:up records the state of the package, the claim and the consumer without failing, Operator accepts the backup claim | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `task e2e:up` SHALL apply the fixture set F1 and wait until it settles: cert-manager (`opmodel.... | task e2e:up applies the fixture set F1 and waits until it settles | `task e2e:up` SHALL apply the fixture set F1 and wait until it settles... |
+| a deliberate refusal fixture: a TransformerRegistration applied by hand, labelled `e2e.opmodel.... | The deliberate refusal fixture is a registration no operator accepts | The fixture set F1 SHALL hold a deliberate refusal fixture: a Transfor... |
+| It SHALL fail when cert-manager, podinfo, backup-provider or the CLI-owned instance does not be... | task e2e:up fails when a required fixture is not ready | `task e2e:up` SHALL fail when cert-manager, podinfo, backup-provider o... |
+| or when the deliberate refusal fixture gets no verdict or is accepted, | task e2e:up fails when the deliberate refusal fixture gets no verdict or is accepted | `task e2e:up` SHALL fail when the deliberate refusal fixture of the fi... |
+| and SHALL record, without failing, the state of the ModulePackage, the backup claim and the bac... | task e2e:up records the state of the package, the claim and the consumer without failing | `task e2e:up` SHALL record, without failing, the state of the ModulePa... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The fixture set F1 | task e2e:up applies the fixture set F1 and waits until it settles | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**A capture holds only what the portal may serve** (form c2; old body 1333 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Clean capture | A capture writes the OPM kinds, their inventories and the fixture events, Clean capture | no, byte for byte |
+| Secret in a capture | The capture check reads every file and every document under testdata/clusters, Secret in a capture | no, byte for byte |
+| Values left in a capture | The capture check fails a file that breaks a rule or does not parse, Values left in a capture | no, byte for byte |
+| Unparseable capture file | The capture check fails a file that breaks a rule or does not parse, Unparseable capture file | no, byte for byte |
+| Hand-edited capture in a pull request | The capture runs the check last and every pull request runs it, Hand-edited capture in a pull request | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `task e2e:capture` SHALL write the four OPM kinds, the objects their inventories name, the Repl... | A capture writes the OPM kinds, their inventories and the fixture events | `task e2e:capture` SHALL write the four OPM kinds, the objects their i... |
+| It SHALL NOT get, list or watch Secrets, and SHALL skip any inventory entry of kind `Secret`. | A capture never reads a Secret | `task e2e:capture` SHALL NOT get, list or watch Secrets, and SHALL ski... |
+| Every captured object SHALL lack `metadata.managedFields` and the `kubectl.kubernetes.io/last-a... | A captured object lacks managed fields, the apply annotation and values | Every object `task e2e:capture` writes SHALL lack `metadata.managedFie... |
+| `task e2e:capture:check` SHALL check every file under `testdata/clusters/`, recursively and wha... | The capture check reads every file and every document under testdata/clusters | `task e2e:capture:check` SHALL check every file under `testdata/cluste... |
+| A file that breaks any of these rules, or does not parse, SHALL fail it. | The capture check fails a file that breaks a rule or does not parse | A file under `testdata/clusters/` that breaks any of the rules of a ca... |
+| `test/e2e/check-capture_test.sh` SHALL run the check against scratch cases for each rule before... | The capture check has a test with a scratch case for each rule | `test/e2e/check-capture_test.sh` SHALL run the check against scratch c... |
+| The capture runs it last, and `task check` and the `Test` check run it on every pull request. | The capture runs the check last and every pull request runs it | `task e2e:capture` SHALL run `task e2e:capture:check` last, and `task... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A Secret in an inventory | A capture never reads a Secret | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A captured object | A captured object lacks managed fields, the apply annotation and values | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A scratch case per rule | The capture check has a test with a scratch case for each rule | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Milestone 1 reads are checked end to end on the fixture cluster** (form c2; old body 1369 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Namespace-scoped reader | task e2e:m1 checks what a namespace-scoped reader lists and gets, Namespace-scoped reader | no, byte for byte |
+| Image break | task e2e:m1 breaks podinfo's image and checks the stream reports Degraded, Image break | no, byte for byte |
+| Health stops following the stream | task e2e:m1 breaks podinfo's image and checks the stream reports Degraded, Health stops following the stream | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `task e2e:m1` SHALL run the built binary in local mode against the fixture cluster and SHALL fa... | task e2e:m1 checks the Platform's registrations | `task e2e:m1` SHALL run the built binary in local mode against the fix... |
+| the instance list shows each F1 instance's applied state and health as two values (the operator... | task e2e:m1 checks the instance list and the web/web page | `task e2e:m1` SHALL run the built binary in local mode against the fix... |
+| and a ServiceAccount that may read the OPM kinds only in `default`, run with `--namespaces defa... | task e2e:m1 checks what a namespace-scoped reader lists and gets | `task e2e:m1` SHALL run the built binary in local mode against the fix... |
+| sees podinfo's inventory objects as forbidden with a partial health and as locked rows on the p... | task e2e:m1 checks what a namespace-scoped reader sees of podinfo and on the stream | `task e2e:m1` SHALL run the built binary in local mode against the fix... |
+| It SHALL patch podinfo's image tag to one that does not exist and SHALL fail unless the stream... | task e2e:m1 breaks podinfo's image and checks the stream reports Degraded | `task e2e:m1` SHALL patch podinfo's image tag to one that does not exi... |
+| It SHALL revert the patch and wait for podinfo to settle before it ends. | task e2e:m1 reverts the patch and waits for podinfo to settle | `task e2e:m1` SHALL revert the patch to podinfo's image tag and wait f... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The Platform's registrations | task e2e:m1 checks the Platform's registrations | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The instance list and the web/web page | task e2e:m1 checks the instance list and the web/web page | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The reader and podinfo's inventory | task e2e:m1 checks what a namespace-scoped reader sees of podinfo and on the stream | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The revert | task e2e:m1 reverts the patch and waits for podinfo to settle | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The environment runs on a schedule, never on pull requests** (form c2; old body 1008 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Pull request | The e2e workflow is triggered by dispatch and a nightly schedule only, Pull request | no, byte for byte |
+| Nightly run | The e2e workflow uploads the capture and deletes the cluster, Nightly run | no, byte for byte |
+| Verdict drift | The e2e workflow fails when the capture differs from the committed meta, Verdict drift | no, byte for byte |
+| A failing local-mode test | The e2e workflow runs the local, m1 and pod tests on the cluster it created, A failing local-mode test | no, byte for byte |
+| A launch regression | The e2e workflow runs the browser tests in a parallel job, A launch regression | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The repository SHALL run `task e2e:up` and `task e2e:capture` on docker kind in a workflow trig... | The e2e workflow is triggered by dispatch and a nightly schedule only | The repository SHALL run `task e2e:up` and `task e2e:capture` on docke... |
+| No pull request check SHALL depend on this workflow. | The e2e workflow is triggered by dispatch and a nightly schedule only | The repository SHALL run `task e2e:up` and `task e2e:capture` on docke... |
+| SHALL upload the capture as a workflow artifact, and SHALL delete the cluster whether or not th... | The e2e workflow uploads the capture and deletes the cluster | The e2e workflow SHALL upload the capture as a workflow artifact, and... |
+| It SHALL fail when the capture's `meta.yaml`, apart from the capture time, the provider and the... | The e2e workflow fails when the capture differs from the committed meta | The e2e workflow SHALL fail when the capture's `meta.yaml`, apart from... |
+| On the same cluster it SHALL run `task e2e:local`, `task e2e:m1` and then `task e2e:pod` whenev... | The e2e workflow runs the local, m1 and pod tests on the cluster it created | On the same cluster the e2e workflow SHALL run `task e2e:local`, `task... |
+| and in a parallel job it SHALL run `task test:browser` with docker and the Playwright image pin... | The e2e workflow runs the browser tests in a parallel job | In a parallel job the e2e workflow SHALL run `task test:browser` with... |
+| When a test fails it SHALL upload the test output, a dump of the fixture cluster's OPM objects,... | A failing test uploads its output, a cluster dump and the screenshots | When a test fails the e2e workflow SHALL upload the test output, a dum... |
+| The workflow SHALL hold only the `contents: read` permission and SHALL use no secrets. | The e2e workflow holds only contents read and uses no secrets | The e2e workflow SHALL hold only the `contents: read` permission and S... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A failing test | A failing test uploads its output, a cluster dump and the screenshots | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Permissions of the workflow | The e2e workflow holds only contents read and uses no secrets | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**The portal image is checked in a Pod on the fixture cluster** (form c2; old body 903 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| The image runs in the fixture cluster | task e2e:pod builds the portal image, loads it and waits for the rollout, The image runs in the fixture cluster | no, byte for byte |
+| A manifest that does not run | task e2e:pod builds the portal image, loads it and waits for the rollout, A manifest that does not run | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| `task e2e:pod` SHALL build the portal image from the repository's `Dockerfile` with the e2e pro... | task e2e:pod builds the portal image, loads it and waits for the rollout | `task e2e:pod` SHALL build the portal image from the repository's `Doc... |
+| It SHALL then run `TestPod` (build tag `e2e`), which SHALL fail unless: the Pod log names the S... | task e2e:pod runs TestPod and checks the Pod log | `task e2e:pod` SHALL then run `TestPod` (build tag `e2e`), which SHALL... |
+| with `kubectl port-forward` from local port 8090 to the Pod's port 8090, a launch with the toke... | TestPod checks a launch and the instance list through a port-forward | `TestPod` (build tag `e2e`) SHALL fail unless, with `kubectl port-forw... |
+| and a forward from local port 8091 to port 8090 is refused with `403`. | TestPod checks a forward from another local port is refused | `TestPod` (build tag `e2e`) SHALL fail unless a forward from local por... |
+| It SHALL touch only the fixture cluster, through the kubeconfig and context the other e2e tasks... | task e2e:pod touches only the fixture cluster | `task e2e:pod` SHALL touch only the fixture cluster, through the kubec... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| The Pod log | task e2e:pod runs TestPod and checks the Pod log | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A launch through the forward | TestPod checks a launch and the instance list through a port-forward | the clause of that requirement; WHEN and THEN use only words of the old body |
+| A second forward | TestPod checks a forward from another local port is refused | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Only the fixture cluster | task e2e:pod touches only the fixture cluster | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+
+#### Spec `pod-logs`
+
+**Logs are served only for Pods an OPM inventory reaches** (form c2; old body 561 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A Pod of an instance | A log topic attaches only for a Pod an inventory reaches, A Pod of an instance | no, byte for byte |
+| A Pod outside every inventory | A log topic for a Pod no inventory reaches is closed as forbidden, A Pod outside every inventory | no, byte for byte |
+| A Pod whose owning instance the caller may not read | A log topic for a Pod no inventory reaches is closed as forbidden, A Pod whose owning instance the caller may not read | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A log topic SHALL attach only when its Pod is a runtime child of an inventory object the caller... | A log topic attaches only for a Pod an inventory reaches | A log topic SHALL attach only when its Pod is a runtime child of an in... |
+| A topic for a Pod no inventory reaches, a Pod reached only through objects the caller may not r... | A log topic for a Pod no inventory reaches is closed as forbidden | A log topic for a Pod no inventory reaches, for a Pod reached only thr... |
+| No upstream log stream SHALL be opened for a topic that did not attach. | No upstream log stream opens for a log topic that did not attach | No upstream log stream SHALL be opened for a log topic that did not at... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A topic that did not attach | No upstream log stream opens for a log topic that did not attach | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Pod log access is checked before the stream starts and before each delivery** (form c2; old body 588 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| No permission, no upstream read | A log topic's read is authorized before the lookup and before the upstream stream opens, No permission, no upstream read | no, byte for byte |
+| Reconnect re-checks | A log topic's authorization is renewed before delivery and on reconnect, Reconnect re-checks | no, byte for byte |
+| Revoked mid-stream | A revoked permission closes a log topic within one decision lifetime plus one heartbeat, Revoked mid-stream | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A log topic's read SHALL be `get` on the Pod's `log` subresource. | A log topic's read is authorized before the lookup and before the upstream stream opens | A log topic's read SHALL be `get` on the Pod's `log` subresource. It S... |
+| It SHALL be authorized for the caller before the reachability lookup and before any upstream st... | A log topic's read is authorized before the lookup and before the upstream stream opens | A log topic's read SHALL be `get` on the Pod's `log` subresource. It S... |
+| The reading identity SHALL also be allowed the read before the upstream stream opens. | A log topic's read is authorized before the lookup and before the upstream stream opens | A log topic's read SHALL be `get` on the Pod's `log` subresource. It S... |
+| re-checked before every delivery once the decision behind it has expired, | A log topic's authorization is renewed before delivery and on reconnect | A log topic's read, `get` on the Pod's `log` subresource, SHALL be re-... |
+| and authorized again, with the reachability, on every reconnect. | A log topic's authorization is renewed before delivery and on reconnect | A log topic's read, `get` on the Pod's `log` subresource, SHALL be re-... |
+| A revoked permission SHALL close the topic with `forbidden` within one decision lifetime plus o... | A revoked permission closes a log topic within one decision lifetime plus one heartbeat | A revoked permission SHALL close a log topic with `forbidden` within o... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| An expired decision | A log topic's authorization is renewed before delivery and on reconnect | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Log output is bounded by the portal and marked** (form c2; old body 1274 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| An oversize line | A log line longer than the line cap is cut and marked truncated, An oversize line | no, byte for byte |
+| A burst over the rate | Log lines beyond the rate are dropped and counted by a rate-limited marker, A burst over the rate | no, byte for byte |
+| A burst followed by silence | Log lines beyond the rate are dropped and counted by a rate-limited marker, A burst followed by silence | no, byte for byte |
+| A quiet container's tail | The initial tail of a log ends at its first live line and is delivered once it ends, A quiet container's tail | no, byte for byte |
+| A large initial tail | An initial tail larger than the tail byte cap keeps its newest lines and announces the skipped ones, A large initial tail | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| The portal SHALL follow a container's log with timestamps and a capped initial tail, and SHALL... | A log follows with timestamps, a capped initial tail and no byte limit of the API server | The portal SHALL follow a container's log with timestamps and a capped... |
+| A stream SHALL never end because of a byte limit. | A log follows with timestamps, a capped initial tail and no byte limit of the API server | The portal SHALL follow a container's log with timestamps and a capped... |
+| A line longer than the line cap SHALL be cut and marked `truncated` with the number of bytes cu... | A log line longer than the line cap is cut and marked truncated | A log line longer than the line cap SHALL be cut and marked `truncated... |
+| Lines beyond the per-topic line rate or byte rate SHALL be dropped, and a `rate-limited` marker... | Log lines beyond the rate are dropped and counted by a rate-limited marker | Log lines beyond the per-topic line rate or byte rate SHALL be dropped... |
+| The initial tail SHALL be at most the requested tail lines, ending at the first line stamped af... | The initial tail of a log ends at its first live line and is delivered once it ends | The initial tail of a followed container's log SHALL be at most the re... |
+| The initial tail SHALL be delivered once it ends, and no later than the marker delay after its... | The initial tail of a log ends at its first live line and is delivered once it ends | The initial tail of a followed container's log SHALL be at most the re... |
+| An initial tail larger than the tail byte cap SHALL keep its newest lines within the cap and sk... | An initial tail larger than the tail byte cap keeps its newest lines and announces the skipped ones | An initial tail larger than the tail byte cap SHALL keep its newest li... |
+| The stamps are the node's clock and the stream's opening is the portal's, so clock skew can cou... | Clock skew leaves a log line bounded and counted | The stamps of log lines are the node's clock and the stream's opening... |
+| Log lines SHALL NOT appear in the portal's own logs. | Log lines never appear in the portal's own logs | Log lines SHALL NOT appear in the portal's own logs. Source: portal:D1... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A followed container | A log follows with timestamps, a capped initial tail and no byte limit of the API server | the clause of that requirement; WHEN and THEN use only words of the old body |
+| Clock skew | Clock skew leaves a log line bounded and counted | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The portal's own logs | Log lines never appear in the portal's own logs | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**Containers are chosen explicitly and a stopped container ends its stream** (form c2; old body 679 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| A container the Pod does not have | A container the Pod does not have ends the log topic, A container the Pod does not have | no, byte for byte |
+| A crash-looping container | The previous form reads the last terminated instance once, A crash-looping container | no, byte for byte |
+| A container that stops | A stopped container ends its log topic with a logend message, A container that stops | no, byte for byte |
+| A container that has not started | A container that has not started ends a live log topic as waiting, A container that has not started | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| A log topic SHALL name its container, which SHALL be one of the Pod's containers, init containe... | A log topic names one container of the Pod | A log topic SHALL name its container, which SHALL be one of the Pod's... |
+| a container the Pod does not have SHALL end the topic with a `logend` message whose reason says... | A container the Pod does not have ends the log topic | A log topic that names a container the Pod does not have SHALL end wit... |
+| The `previous` form SHALL read the last terminated instance of the container once, without foll... | The previous form reads the last terminated instance once | The `previous` form of a log topic SHALL read the last terminated inst... |
+| When the followed container stops, or the previous output has been read, the topic SHALL delive... | A stopped container ends its log topic with a logend message | When the followed container of a log topic stops, or the previous outp... |
+| A live topic for a container that has not started yet SHALL end with a `logend` whose reason sa... | A container that has not started ends a live log topic as waiting | A live log topic for a container that has not started yet SHALL end wi... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A named container | A log topic names one container of the Pod | the clause of that requirement; WHEN and THEN use only words of the old body |
+
+**One upstream stream per log topic, closed with its last subscriber** (form c2; old body 888 characters)
+
+| Old scenario name | New place (requirement, scenario name) | Changed text? |
+| --- | --- | --- |
+| Two tabs, one upstream | All subscribers of one log topic share one upstream log stream, Two tabs, one upstream | no, byte for byte |
+| The last subscriber leaves | The upstream log stream closes when the log topic's last subscriber leaves, The last subscriber leaves | no, byte for byte |
+| Following again after the end | A new subscription after the read ended starts a new read, Following again after the end | no, byte for byte |
+| A reconnect after the end | A reconnect that resumes a log stream starts no new read, A reconnect after the end | no, byte for byte |
+
+| Old clause | New requirement | New sentence (opening words of its body) |
+| --- | --- | --- |
+| All subscribers of one log topic SHALL share one upstream log stream. | All subscribers of one log topic share one upstream log stream | All subscribers of one log topic SHALL share one upstream log stream.... |
+| The upstream stream SHALL be closed when the topic's last subscriber leaves, whether by detachi... | The upstream log stream closes when the log topic's last subscriber leaves | The upstream log stream of a log topic SHALL be closed when the topic'... |
+| A subscriber that joins a topic already streaming SHALL receive the recent lines in its snapsho... | A subscriber that joins a streaming log topic receives the recent lines, numbered | A subscriber that joins a log topic already streaming SHALL receive th... |
+| each log message SHALL carry a sequence number, increasing along the topic, so a client can dis... | A subscriber that joins a streaming log topic receives the recent lines, numbered | A subscriber that joins a log topic already streaming SHALL receive th... |
+| A new subscription to a topic whose read has ended, while others still hold it, SHALL start a n... | A new subscription after the read ended starts a new read | A new subscription to a log topic whose read has ended, while others s... |
+| A reconnect that resumes a stream SHALL NOT start a new read: for a resumed subscription the `l... | A reconnect that resumes a log stream starts no new read | A reconnect that resumes a stream SHALL NOT start a new read: for a re... |
+
+| New scenario | In requirement | Restates |
+| --- | --- | --- |
+| A subscriber joins a streaming topic | A subscriber that joins a streaming log topic receives the recent lines, numbered | the clause of that requirement; WHEN and THEN use only words of the old body |
+

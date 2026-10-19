@@ -9,12 +9,12 @@
 
 ## 2. Batch B2: read-api (16), kind-e2e-environment (7), pod-logs (5)
 
-- [ ] 2.1 Read the 28 long requirements of the three specs and choose a form for each
-- [ ] 2.2 Write `specs/read-api/spec.md`, `specs/kind-e2e-environment/spec.md` and `specs/pod-logs/spec.md` as deltas; grep for each old header first
-- [ ] 2.3 Add the B2 ledger and clause tables to `design.md`
-- [ ] 2.4 Run the scenario check per rewritten requirement: no `DIFF`, no `LOST`
-- [ ] 2.5 Run the gate in a scratch copy with `N=56`: `GATE PASS`
-- [ ] 2.6 `task check` green, then commit `docs(openspec): split the long requirements of read-api, kind-e2e-environment and pod-logs`
+- [x] 2.1 Read the 28 long requirements of the three specs and choose a form for each
+- [x] 2.2 Write `specs/read-api/spec.md`, `specs/kind-e2e-environment/spec.md` and `specs/pod-logs/spec.md` as deltas; grep for each old header first
+- [x] 2.3 Add the B2 ledger and clause tables to `design.md`
+- [x] 2.4 Run the scenario check per rewritten requirement: no `DIFF`, no `LOST`
+- [x] 2.5 Run the gate in a scratch copy with `N=56`: `GATE PASS`
+- [x] 2.6 `task check` green, then commit `docs(openspec): split the long requirements of read-api, kind-e2e-environment and pod-logs`
 
 ## 3. Batch B3: eight specs (29)
 
