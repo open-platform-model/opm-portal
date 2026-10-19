@@ -838,11 +838,11 @@ Wording changes beyond the split (no rule changes):
 | `pod-logs`, `A log follows with timestamps, ...` | "A stream SHALL never end" became "A log stream SHALL never end" | A split body names its subject |
 | `kind-e2e-environment`, `Fixture images are pinned by tag, ...` | "are pinned by tag only" became "SHALL be pinned by tag only" (and "is pinned by digest" became "SHALL be pinned by digest") | An ADDED block needs SHALL or MUST; the pin was already a rule of the old requirement |
 | `kind-e2e-environment`, `The capture runs the check last and every pull request runs it` | "The capture runs it last, and ... run it" became "SHALL run" | The old sentence had no keyword; the rule is unchanged |
-| `kind-e2e-environment`, `The capture check fails a file that breaks a rule or does not parse` | "any of these rules" became the five rules of a captured file written out: no Secret, no `metadata.managedFields`, no last-applied annotation, no `spec.values`, no `spec.versions[].schema` | "these" pointed at the sentences before; the list is the rules those sentences state |
+| `kind-e2e-environment`, `The capture check fails a file that breaks a rule or does not parse` | "any of these rules" became the five rules of a captured file written out: no Secret, no `metadata.managedFields`, no last-applied annotation, no `spec.values` on a ModuleInstance or ModulePackage, no `spec.versions[].schema` on a CustomResourceDefinition | "these" pointed at the sentences before; the list is the rules those sentences state |
 | `read-api`, `A package's source artifact fetch URL is not served` | "SHALL not be served" became "SHALL NOT be served" | RFC 2119 form of the same rule |
 | `read-api`, `Joined fields` blocks | The sentence "Each subscriber is still written only a change to its own document." is repeated verbatim in both blocks | It applies to both clauses; it has no keyword in the old text and none was added |
 | `read-api`, `A condition's tone follows its type and status` | "`Stalled=True` SHALL be `abnormal`, `Reconciling=True` `progressing`, ..." became "`tone` SHALL be `abnormal` for `Stalled=True`, `progressing` for `Reconciling=True`, ..." | The elliptic list needs its verb and subject in a split body; the same five pairs and the unknown rule |
-| `read-api`, resource blocks | The list of 15 paths is split into three blocks (instances, packages, cluster/platform/stream) with the path prefix and "with `GET` only" repeated | The list alone is over 500 characters |
+| `read-api`, resource blocks | The list of 15 paths is split into three blocks (instances, packages, cluster/platform/stream) with the path prefix and "with `GET` only" repeated; the whole-set rule "every read API resource ... with `GET` only" and its one exception stay in their own block | The list alone is over 500 characters |
 
 The plain item 3 command compares by scenario name over the whole spec. In `read-api`, `In-cluster` and `The F1 package` also name scenarios of requirements that this unit does not rewrite, so the plain command reports a false `DIFF` for those two names (and for a new scenario named `A kind the cluster does not serve`, which was renamed to `An object of a kind the cluster does not serve` once the check showed the clash). The unit therefore ran the scoped variant of B1, which gives the same result on every other name. The names `An object no inventory reaches` and `A package holder` occur in two requirements of `read-api` each; both copies are kept, in their old order.
 
@@ -863,7 +863,8 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | The portal SHALL serve every read API resource under `/api/v1alpha1/clusters/{cluster}`, with `... | Instance resources live under the versioned cluster path | The portal SHALL serve the instance resources `instances`, `instances/... |
 | `packages`, `packages/{namespace}/{name}`, `packages/{namespace}/{name}/graph`, `packages/{name... | Package resources live under the versioned cluster path | The portal SHALL serve the package resources `packages`, `packages/{na... |
 | the cluster itself, ... `platform`, `platform/graph`, `platform/events`, `platform/registration... | The cluster, platform and stream resources live under the versioned cluster path | The portal SHALL serve the cluster itself, `platform`, `platform/graph... |
-| The one exception SHALL be `stream/{stream}/topics`, which takes `POST` only. | The stream topics resource takes POST only | The one exception to `GET` only SHALL be `stream/{stream}/topics` unde... |
+| The portal SHALL serve every read API resource under `/api/v1alpha1/clusters/{cluster}`, with `... | Every read API resource is GET only except the stream topics resource | Every read API resource SHALL be served under `/api/v1alpha1/clusters/... |
+| The one exception SHALL be `stream/{stream}/topics`, which takes `POST` only. | Every read API resource is GET only except the stream topics resource | Every read API resource SHALL be served under `/api/v1alpha1/clusters/... |
 | In milestone 1 the only cluster served SHALL be `default`. Any other cluster name SHALL be answ... | Only the cluster default is served in milestone 1 | In milestone 1 the only cluster served SHALL be `default`. Any other c... |
 | A method a resource does not take SHALL be answered `405` with code `method_not_allowed`. | A method a resource does not take is answered 405 | A method a resource does not take SHALL be answered `405` with code `m... |
 | A namespace that is not a DNS-1123 label, or a name that is not a DNS-1123 subdomain, SHALL be... | A malformed namespace or name is answered 400 before any review | A namespace that is not a DNS-1123 label, or a name that is not a DNS-... |
@@ -871,7 +872,7 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | New scenario | In requirement | Restates |
 | --- | --- | --- |
 | The package list | Package resources live under the versioned cluster path | the clause of that requirement; WHEN and THEN use only words of the old body |
-| The topics resource | The stream topics resource takes POST only | the clause of that requirement; WHEN and THEN use only words of the old body |
+| The topics resource | Every read API resource is GET only except the stream topics resource | the clause of that requirement; WHEN and THEN use only words of the old body |
 
 **Documents are portal-shaped and versioned** (form c2; old body 585 characters)
 
@@ -961,7 +962,7 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | The `stream` resource SHALL open a server-sent-events stream on the topics named by its `topics... | The stream resource opens an event stream on the named topics | The `stream` resource SHALL open a server-sent-events stream on the to... |
 | Each topic SHALL carry exactly one document, the one its `GET` returns: `platform` the `Platfor... | Each topic carries the document its GET returns, rendered for the subscriber | Each topic of the `stream` resource SHALL carry exactly one document,... |
 | Snapshot and upsert messages SHALL carry that document rendered for the subscriber. | Each topic carries the document its GET returns, rendered for the subscriber | Each topic of the `stream` resource SHALL carry exactly one document,... |
-| When the object is deleted, or does not exist at the snapshot, the topic SHALL carry a `Removed... | A deleted or missing object's topic carries a Removed document | When the object is deleted, or does not exist at the snapshot, the top... |
+| When the object is deleted, or does not exist at the snapshot, the topic SHALL carry a `Removed... | A deleted or missing object's topic carries a Removed document | When the object a topic of the `stream` resource shows is deleted, or... |
 | A change to an OPM object, to an inventory object or to a runtime child below one SHALL reach t... | A change to an OPM object, an inventory object or a runtime child reaches the topics showing it | A change to an OPM object, to an inventory object or to a runtime chil... |
 | Topics the broker does not serve SHALL be refused with `400` and code `bad_request`; a stream b... | A topic the broker does not serve is refused and a stream beyond the cap gets 429 | Topics the broker does not serve SHALL be refused with `400` and code... |
 
@@ -1329,7 +1330,7 @@ The plain item 3 command compares by scenario name over the whole spec. In `read
 | Old clause | New requirement | New sentence (opening words of its body) |
 | --- | --- | --- |
 | `task e2e:pod` SHALL build the portal image from the repository's `Dockerfile` with the e2e pro... | task e2e:pod builds the portal image, loads it and waits for the rollout | `task e2e:pod` SHALL build the portal image from the repository's `Doc... |
-| It SHALL then run `TestPod` (build tag `e2e`), which SHALL fail unless: the Pod log names the S... | task e2e:pod runs TestPod and checks the Pod log | `task e2e:pod` SHALL then run `TestPod` (build tag `e2e`), which SHALL... |
+| It SHALL then run `TestPod` (build tag `e2e`), which SHALL fail unless: the Pod log names the S... | task e2e:pod runs TestPod and checks the Pod log | After the Deployment has rolled out, `task e2e:pod` SHALL run `TestPod... |
 | with `kubectl port-forward` from local port 8090 to the Pod's port 8090, a launch with the toke... | TestPod checks a launch and the instance list through a port-forward | `TestPod` (build tag `e2e`) SHALL fail unless, with `kubectl port-forw... |
 | and a forward from local port 8091 to port 8090 is refused with `403`. | TestPod checks a forward from another local port is refused | `TestPod` (build tag `e2e`) SHALL fail unless a forward from local por... |
 | It SHALL touch only the fixture cluster, through the kubeconfig and context the other e2e tasks... | task e2e:pod touches only the fixture cluster | `task e2e:pod` SHALL touch only the fixture cluster, through the kubec... |

@@ -237,9 +237,9 @@ both `kind` and `metadata` as an object, and any map of kind `Secret` carrying `
 
 ### Requirement: The capture check fails a file that breaks a rule or does not parse
 A file under `testdata/clusters/` that breaks any of the rules of a capture (no Secret, no
-`metadata.managedFields`, no last-applied annotation, no `spec.values`, no
-`spec.versions[].schema`), or does not parse, SHALL fail `task e2e:capture:check`. Source:
-portal:D8.
+`metadata.managedFields`, no last-applied annotation, no `spec.values` on a ModuleInstance or
+ModulePackage, no `spec.versions[].schema` on a CustomResourceDefinition), or does not parse, SHALL
+fail `task e2e:capture:check`. Source: portal:D8.
 
 #### Scenario: Values left in a capture
 
@@ -429,8 +429,9 @@ overlay under `test/e2e/pod/`, which uses `deploy/` unchanged apart from the ima
 - **THEN** `task e2e:pod` fails, at the rollout wait or in `TestPod`'s instance list
 
 ### Requirement: task e2e:pod runs TestPod and checks the Pod log
-`task e2e:pod` SHALL then run `TestPod` (build tag `e2e`), which SHALL fail unless the Pod log names
-the ServiceAccount identity and holds a launch URL. Source: portal:D13:R1/R2.
+After the Deployment has rolled out, `task e2e:pod` SHALL run `TestPod` (build tag `e2e`), which
+SHALL fail unless the Pod log names the ServiceAccount identity and holds a launch URL. Source:
+portal:D13:R1/R2.
 
 #### Scenario: The Pod log
 

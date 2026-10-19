@@ -2,7 +2,7 @@
 
 ### Requirement: Resources live under a versioned, cluster-parameterized path
 **Reason**: Split into requirements that each state one behavior.
-**Migration**: See "Instance resources live under the versioned cluster path", "Package resources live under the versioned cluster path", "The cluster, platform and stream resources live under the versioned cluster path", "The stream topics resource takes POST only", "Only the cluster default is served in milestone 1", "A method a resource does not take is answered 405", "A malformed namespace or name is answered 400 before any review".
+**Migration**: See "Instance resources live under the versioned cluster path", "Package resources live under the versioned cluster path", "The cluster, platform and stream resources live under the versioned cluster path", "Every read API resource is GET only except the stream topics resource", "Only the cluster default is served in milestone 1", "A method a resource does not take is answered 405", "A malformed namespace or name is answered 400 before any review".
 
 ### Requirement: Documents are portal-shaped and versioned
 **Reason**: Split into requirements that each state one behavior.
@@ -98,9 +98,9 @@ The portal SHALL serve the cluster itself, `platform`, `platform/graph`, `platfo
 - **WHEN** a client sends `GET /api/v1alpha1/clusters/default`
 - **THEN** the response is a `Cluster` document
 
-### Requirement: The stream topics resource takes POST only
-The one exception to `GET` only SHALL be `stream/{stream}/topics` under
-`/api/v1alpha1/clusters/{cluster}`, which takes `POST` only. Source: portal:D2:R2.
+### Requirement: Every read API resource is GET only except the stream topics resource
+Every read API resource SHALL be served under `/api/v1alpha1/clusters/{cluster}` with `GET` only.
+The one exception SHALL be `stream/{stream}/topics`, which takes `POST` only. Source: portal:D2:R2.
 
 #### Scenario: The topics resource
 
@@ -309,8 +309,8 @@ upsert messages SHALL carry that document rendered for the subscriber. Source: p
 - **THEN** each snapshot and upsert message carries the `Instance` document, rendered for the subscriber
 
 ### Requirement: A deleted or missing object's topic carries a Removed document
-When the object is deleted, or does not exist at the snapshot, the topic SHALL carry a `Removed`
-document naming it. Source: portal:D2:R5.
+When the object a topic of the `stream` resource shows is deleted, or does not exist at the
+snapshot, that topic SHALL carry a `Removed` document naming it. Source: portal:D2:R5.
 
 #### Scenario: A deleted instance
 
