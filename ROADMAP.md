@@ -214,7 +214,7 @@ What it would take, in order:
    in-cluster mode ships.
 5. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
    selectors, and the floor documented (portal:D12). Cross-repo: the owner's 1.34 answer also puts
-   opm-controller on that floor, declared, with its own CI job on 1.34; tracked here until an
+   opm-controller on that floor, declared, with its own CI job on 1.34; tracked here until a
    controller issue carries it.
 
 Exit gate:

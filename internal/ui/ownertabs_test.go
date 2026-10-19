@@ -213,7 +213,7 @@ func TestEventsTableShowsACappedNoteOnce(t *testing.T) {
 }
 
 // TestInClusterEventsTableHasNoControllerNote (5.2, OP-A2): over the in-cluster
-// read API the Events tab of the instance shows the note of neither writer of an
+// read API the Events tab of the instance shows the note of neither writer of a
 // controller note: an event from opm-controller, and one with no reporter that
 // regards an OPM object. The local API serves both, built here from F1's events.
 func TestInClusterEventsTableHasNoControllerNote(t *testing.T) {
@@ -255,7 +255,7 @@ func TestInClusterEventsTableHasNoControllerNote(t *testing.T) {
 }
 
 // withAnonymousOPMEvent adds to objs an event with no reporter that regards the
-// podinfo ModuleInstance, built from the controller's own: the second writer of an
+// podinfo ModuleInstance, built from the controller's own: the second writer of a
 // controller note (OP-A2).
 func withAnonymousOPMEvent(t *testing.T, objs []*unstructured.Unstructured, note string) []*unstructured.Unstructured {
 	t.Helper()

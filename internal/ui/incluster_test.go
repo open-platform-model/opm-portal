@@ -75,7 +75,7 @@ func withControllerEventsOnTheRegistration(objs func(testing.TB) []*unstructured
 // event note the local read API serves for F1 and the broken sample, the
 // merged feed (scope=all) that the owner pages render included, and fails
 // when one of them appears on the matching in-cluster page. F1 gains two
-// events on a reached object other than the owner, so the walk covers an
+// events on a reached object other than the owner, so the walk covers a
 // controller note that is not about the owner (portal:D8:R5).
 func TestNoControllerTextOnAnInClusterPage(t *testing.T) {
 	const apiBase = "/api/v1alpha1/clusters/default"
