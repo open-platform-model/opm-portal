@@ -2,7 +2,7 @@
 
 Every claim the portal makes about operator output is to be tested against a live cluster
 capture, never hand-written YAML (`AGENTS.md`, "Testing Style"). The only capture so far
-(enhancement 0030, experiment 01) was taken by hand with scratch scripts, kept a trimmed sample
+(the withdrawn portal enhancement, experiment 01) was taken by hand with scratch scripts, kept a trimmed sample
 in the enhancements repo, and cannot be rerun when the operator pin moves. The read model, graph,
 health and read API changes need a reproducible fixture cluster and a committed capture to seed
 their golden suites, and the milestone 1 e2e (a later part of this change line) needs the same
@@ -69,5 +69,5 @@ None.
 - Complexity (Principle VII): shell scripts plus `kubectl` and `yq`, which GitHub's Ubuntu
   runners carry; no new Go code. The nightly job is the only way to notice a released operator
   or fixture change that breaks the environment, without pulling from GHCR on every pull request.
-- Implements no 0030 decision; it produces the captures the 0030 implementations test against,
+- Implements no portal decision; it produces the captures the portal implementations test against,
   so it carries no `enhancement.yaml`.

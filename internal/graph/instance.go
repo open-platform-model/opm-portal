@@ -12,16 +12,19 @@ import (
 // Columns of the instance and package scopes. A runtime child sits in the
 // column after its inventory object's plus its depth below it, less one.
 const (
-	colUpstream = iota // module, or source and dependencies
+	colUpstream = iota // module (instance graphs only)
 	colOwner
 	colComponent
 	colObject
 	colRuntime
 )
 
+// Column titles up to the objects; a runtime column is titled from the kinds
+// it holds (layout.go runtimeTitle). A package graph has nothing in its
+// first column: its source and dependencies sit in the components column.
 var (
-	instanceTitles = []string{"Module", "Instance", "Components", "Objects", "Runtime", "Runtime"}
-	packageTitles  = []string{"Source", "Package", "Components", "Objects", "Runtime", "Runtime"}
+	instanceTitles = []string{"Module", "Instance", "Components", "Objects"}
+	packageTitles  = []string{"", "Package", "Source and components", "Objects"}
 )
 
 // podGroupThreshold is the most Pods under one parent shown one by one.
@@ -50,6 +53,7 @@ func Instance(d readmodel.InstanceDetail, opts Options) Graph {
 	b := newBuilder(ScopeInstance, instanceTitles, opts)
 	root := instanceNode(d.InstanceItem)
 	root.RenderContracts = d.RenderContracts
+	b.claims = claimsByName(d.ProviderOf)
 	b.root = root.ID
 	b.add(root, colOwner)
 	if d.Module.Path != "" {
@@ -68,9 +72,17 @@ func Instance(d readmodel.InstanceDetail, opts Options) Graph {
 
 // Package returns the graph of one ModulePackage: its source, the packages
 // it depends on, its components, their inventory objects and the runtime
-// children below them.
-func Package(d readmodel.PackageDetail, opts Options) Graph {
-	b := newBuilder(ScopePackage, packageTitles, opts)
+// children below them. src is the source as the caller read it, cut for
+// serving, or nil when it was not looked up: the source node then carries
+// no access and no state. The source's health is the node's own; it is not
+// counted in the package's (portal:D3).
+func Package(d readmodel.PackageDetail, src *readmodel.SourceState, opts Options) Graph {
+	titles := slices.Clone(packageTitles)
+	if d.Source.Kind == "" && len(d.DependsOn) == 0 {
+		titles[colComponent] = "Components"
+	}
+	b := newBuilder(ScopePackage, titles, opts)
+	b.claims = claimsByName(d.ProviderOf)
 	ns := d.Ref.Namespace
 	root := Node{
 		ID:      packageID(ns, d.Ref.Name),
@@ -84,21 +96,27 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 	}
 	b.root = root.ID
 	b.add(root, colOwner)
-	if src := d.Source; src.Kind != "" && src.Name != "" {
-		group, version := splitAPIVersion(src.APIVersion)
+	if ref := d.Source; ref.Kind != "" && ref.Name != "" {
+		group, version := splitAPIVersion(ref.APIVersion)
+		if readmodel.SourceSupported(ref.Kind) {
+			// The controller chooses the group from the kind and ignores
+			// sourceRef.apiVersion, so the node names the group it reads.
+			group, version = readmodel.FluxGroup, "v1"
+		}
 		// The controller reads the source from the package's namespace when
 		// sourceRef names none (opm-controller modulepackage_controller.go).
-		srcNS := src.Namespace
+		srcNS := ref.Namespace
 		if srcNS == "" {
 			srcNS = ns
 		}
 		n := Node{
-			ID:    sourceID(group, src.Kind, srcNS, src.Name),
+			ID:    sourceID(group, ref.Kind, srcNS, ref.Name),
 			Kind:  KindSource,
-			Label: src.Kind + " " + src.Name,
-			Ref:   &Ref{Group: group, Version: version, Kind: src.Kind, Namespace: srcNS, Name: src.Name},
+			Label: ref.Kind + " " + ref.Name,
+			Ref:   &Ref{Group: group, Version: version, Kind: ref.Kind, Namespace: srcNS, Name: ref.Name},
 		}
-		b.add(n, colUpstream)
+		sourceNode(&n, src)
+		b.add(n, colComponent)
 		b.edge(EdgeSourcedFrom, root.ID, n.ID)
 	}
 	for _, dep := range d.DependsOn {
@@ -109,7 +127,7 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 		ref := dep
 		ref.Namespace = depNS
 		n := Node{ID: packageID(depNS, dep.Name), Kind: KindPackage, Label: depNS + "/" + dep.Name, Ref: refOf(ref)}
-		b.add(n, colUpstream)
+		b.add(n, colComponent)
 		e := b.edge(EdgeDependsOn, root.ID, n.ID)
 		// The controller refuses a dependency in another namespace
 		// (opm-controller modulepackage_types.go dependsOn), so the edge is
@@ -121,6 +139,28 @@ func Package(d readmodel.PackageDetail, opts Options) Graph {
 	}
 	b.inventory(root.ID, d.Components)
 	return b.finish()
+}
+
+// sourceNode sets the access, state and health of a source node from the
+// state the caller read (nil: not looked up, so the node says nothing).
+func sourceNode(n *Node, src *readmodel.SourceState) {
+	if src == nil {
+		return
+	}
+	n.Access = src.Access
+	n.SourceState = &SourceState{Access: src.Access, State: src.Readiness, Reason: src.Reason, Message: src.Message, Revision: src.Revision}
+	switch src.Readiness {
+	case readmodel.SourceReady:
+		n.Health = &Health{State: health.Healthy}
+	case readmodel.SourceNotReady:
+		n.Health = &Health{State: health.Degraded, Reason: src.Reason, Message: src.Message}
+	case readmodel.SourceNoArtifact, readmodel.SourceUnknown:
+		n.Health = &Health{State: health.Unknown}
+	case readmodel.SourceNotFound, readmodel.SourceKindNotServed:
+		n.Missing = true
+	case readmodel.SourceUnsupported:
+		// Not read: no health, and not missing.
+	}
 }
 
 // instanceNode is an instance with both axes, as the read model filled
@@ -139,23 +179,28 @@ func instanceNode(it readmodel.InstanceItem) Node {
 }
 
 // inventory adds an owner's components, their objects and the runtime
-// children below them. Configuration components are grouped into one node
-// when there are two or more, unless the group is expanded.
+// children below them. Configuration components are sorted into kind
+// families; a family whose components hold two or more objects is one group
+// node, unless the group is expanded. A component that holds a
+// TransformerRegistration is never folded.
 func (b *builder) inventory(owner string, components []readmodel.Component) {
-	group := groupID(GroupConfiguration, owner)
-	config := 0
-	for i := range components {
-		if isConfiguration(&components[i]) {
-			config++
-		}
-	}
-	grouped := config >= 2 && !b.expanded(group)
-	var groupNode *Node
+	families := make([]Family, len(components))
+	objects := map[Family]int{}
 	for i := range components {
 		c := &components[i]
-		isConfig := isConfiguration(c)
-		if grouped && isConfig {
-			groupNode = addToGroup(groupNode, group, c)
+		if isConfiguration(c) && !holdsClaim(c) {
+			families[i] = familyOf(c)
+			objects[families[i]] += len(c.Objects)
+		}
+	}
+	groups := map[Family]*Node{}
+	for i := range components {
+		c := &components[i]
+		fam := families[i]
+		group := familyGroupID(owner, fam)
+		formed := fam != "" && objects[fam] >= 2
+		if formed && !b.expanded(group) {
+			groups[fam] = addToGroup(groups[fam], group, fam, c)
 			continue
 		}
 		label := c.Name
@@ -168,7 +213,7 @@ func (b *builder) inventory(owner string, components []readmodel.Component) {
 			Label:  label,
 			Health: summaryHealth(c.Health),
 		}
-		if isConfig && config >= 2 {
+		if formed {
 			comp.MemberOf = group
 		}
 		b.add(comp, colComponent)
@@ -177,13 +222,72 @@ func (b *builder) inventory(owner string, components []readmodel.Component) {
 			b.object(comp.ID, &c.Objects[j])
 		}
 	}
-	if groupNode != nil {
+	for _, fam := range Families {
+		g := groups[fam]
+		if g == nil {
+			continue
+		}
 		// Sorted, so reordering status.inventory does not change the group.
-		slices.Sort(groupNode.Group.Members)
-		groupNode.Label = plural(len(groupNode.Group.Members), "configuration component", "configuration components")
-		b.add(*groupNode, colComponent)
-		b.edge(EdgeHasComponent, owner, groupNode.ID)
+		slices.Sort(g.Group.Members)
+		g.Group.ObjectKinds = sortedKindCounts(g.Group.ObjectKinds)
+		g.Label = fam.Label() + " · " + plural(len(g.Group.Members), "component", "components")
+		b.add(*g, colComponent)
+		b.edge(EdgeHasComponent, owner, g.ID)
 	}
+}
+
+// familyGroupID is the id of the configuration group of one family under an
+// owner.
+func familyGroupID(owner string, fam Family) string {
+	if fam == "" {
+		return ""
+	}
+	return groupID(GroupConfiguration, owner) + "/" + part(string(fam))
+}
+
+// API groups that decide a configuration component's family.
+const (
+	groupCRDs     = "apiextensions.k8s.io"
+	groupRBAC     = "rbac.authorization.k8s.io"
+	groupWebhooks = "admissionregistration.k8s.io"
+)
+
+// familyOf is the kind family of a configuration component: the family all
+// its objects are in by API group, else Other.
+func familyOf(c *readmodel.Component) Family {
+	if len(c.Objects) == 0 {
+		return FamilyOther
+	}
+	var fam Family
+	for i := range c.Objects {
+		var f Family
+		switch c.Objects[i].Ref.Group {
+		case groupCRDs:
+			f = FamilyCRDs
+		case groupRBAC:
+			f = FamilyRBAC
+		case groupWebhooks:
+			f = FamilyWebhooks
+		default:
+			return FamilyOther
+		}
+		if fam != "" && f != fam {
+			return FamilyOther
+		}
+		fam = f
+	}
+	return fam
+}
+
+// holdsClaim reports whether a component holds a TransformerRegistration:
+// the claim the provider views point at, so it is never folded.
+func holdsClaim(c *readmodel.Component) bool {
+	for i := range c.Objects {
+		if r := c.Objects[i].Ref; r.Group == opmGroup && r.Kind == kindTransformer {
+			return true
+		}
+	}
+	return false
 }
 
 // isConfiguration reports whether a component holds no workload.
@@ -197,15 +301,16 @@ func isConfiguration(c *readmodel.Component) bool {
 	return true
 }
 
-// addToGroup folds a component into the configuration group: worst state,
-// partial and not live when any member is, counts summed.
-func addToGroup(g *Node, id string, c *readmodel.Component) *Node {
+// addToGroup folds a component into its family's group: worst state,
+// partial and not live when any member is, counts summed, the objects it
+// holds counted by kind.
+func addToGroup(g *Node, id string, fam Family, c *readmodel.Component) *Node {
 	if g == nil {
 		g = &Node{
 			ID:     id,
 			Kind:   KindGroup,
 			Health: &Health{State: health.Healthy, Counts: &Counts{}},
-			Group:  &Group{Kind: GroupConfiguration},
+			Group:  &Group{Kind: GroupConfiguration, Family: fam},
 		}
 	}
 	h := summaryHealth(c.Health)
@@ -214,7 +319,25 @@ func addToGroup(g *Node, id string, c *readmodel.Component) *Node {
 	g.Health.NotLive = g.Health.NotLive || h.NotLive
 	g.Health.Counts.add(h.Counts)
 	g.Group.Members = append(g.Group.Members, c.Name)
+	for i := range c.Objects {
+		g.Group.ObjectKinds = addKind(g.Group.ObjectKinds, c.Objects[i].Ref.Kind)
+	}
 	return g
+}
+
+func addKind(counts []KindCount, kind string) []KindCount {
+	for i := range counts {
+		if counts[i].Kind == kind {
+			counts[i].Count++
+			return counts
+		}
+	}
+	return append(counts, KindCount{Kind: kind, Count: 1})
+}
+
+func sortedKindCounts(counts []KindCount) []KindCount {
+	slices.SortFunc(counts, func(a, b KindCount) int { return compareStrings(a.Kind, b.Kind) })
+	return counts
 }
 
 // object adds one inventory object below its component, and its runtime
@@ -231,10 +354,50 @@ func (b *builder) object(comp string, o *readmodel.InventoryObject) {
 	if o.Access == health.AccessOK {
 		n.Health = objectHealth(o.Health)
 		n.Missing = o.Health.State == health.Missing
+		n.EndpointsReady = o.EndpointsReady
+		n.EndpointsUnread = o.EndpointsUnread
+	}
+	if o.Ref.Group == opmGroup && o.Ref.Kind == kindTransformer {
+		n.Registration = b.registration(o.Ref.Name)
 	}
 	n.HiddenScaledDown = b.children(o.Children)
 	b.add(n, colObject)
 	b.edge(EdgeOwns, comp, n.ID)
+}
+
+// claimsByName indexes an owner's provider claims by registration name.
+func claimsByName(cs []readmodel.ProviderClaim) map[string]readmodel.ProviderClaim {
+	if len(cs) == 0 {
+		return nil
+	}
+	out := make(map[string]readmodel.ProviderClaim, len(cs))
+	for i := range cs {
+		out[cs[i].Registration] = cs[i]
+	}
+	return out
+}
+
+// registration is the standing the owner's claim for a registration the
+// inventory holds, exactly as a registration node of the platform graph
+// carries it. It is nil when the caller may not read the registration, or
+// the cluster does not hold it: a claim not read says nothing.
+func (b *builder) registration(name string) *Registration {
+	c, ok := b.claims[name]
+	if !ok || !c.Read() {
+		return nil
+	}
+	return &Registration{
+		Catalog:       c.Catalog,
+		Version:       c.Version,
+		Provides:      c.Provides,
+		Accepted:      c.Standing.Accepted,
+		Active:        c.Standing.Active,
+		Verdict:       c.Standing.Verdict,
+		Reason:        c.Standing.Reason,
+		Message:       c.Standing.Message,
+		ActiveReason:  c.Standing.ActiveReason,
+		ActiveMessage: c.Standing.ActiveMessage,
+	}
 }
 
 // children adds the runtime children below an inventory object, each below

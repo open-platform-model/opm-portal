@@ -10,14 +10,17 @@ import (
 	"go/token"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
 
 	"golang.org/x/net/html"
+	authorizationv1 "k8s.io/api/authorization/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
@@ -127,10 +130,13 @@ var f1Pages = []goldenPage{
 	{"instance-backup-provider-provider", "/instances/default/backup-provider?tab=provider", false},
 	{"catalog-backup", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0", false},
 	{"catalog-refused-claim", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0", false},
+	{"catalog-opm", "/catalog?path=opmodel.dev/catalogs/opm@v4", false},
 	{"catalog-opm-events", "/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events", false},
+	{"catalog-backup-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events", false},
+	{"catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved", false},
 	{"instance-cert-manager-resources", "/instances/cert-manager/cert-manager?tab=resources", false},
 	{"instance-cert-manager", "/instances/cert-manager/cert-manager", false},
-	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager", false},
+	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac", false},
 	{"instance-web-cli-owned", "/instances/web/web", false},
 	{"package-podinfo", "/packages/pkg/podinfo", false},
 	{"package-podinfo-resources", "/packages/pkg/podinfo?tab=resources", false},
@@ -146,6 +152,25 @@ func TestGoldenPages(t *testing.T) {
 	checkGoldens(t, s, f1Pages)
 }
 
+// TestGoldenEndpoints (S16): the Service panel over F1 plus the recorded
+// slices in the three forms of the Endpoints fact: a count, the unread mark
+// and no line.
+func TestGoldenEndpoints(t *testing.T) {
+	const node = "/instances/default/podinfo/node?id=obj:_/Service/default/podinfo-podinfo"
+	t.Run("counted", func(t *testing.T) {
+		s := newSite(t, apitest.F1WithEndpointSlices(t), apitest.AllowAll)
+		checkGoldens(t, s, []goldenPage{{"fragment-node-service-endpoints", node, true}})
+	})
+	t.Run("unread", func(t *testing.T) {
+		s := newSite(t, apitest.F1WithEndpointSlices(t), apitest.DenyResources("endpointslices"))
+		checkGoldens(t, s, []goldenPage{{"fragment-node-service-endpoints-unread", node, true}})
+	})
+	t.Run("none", func(t *testing.T) {
+		s := newSite(t, apitest.F1(t), apitest.AllowAll)
+		checkGoldens(t, s, []goldenPage{{"fragment-node-service", node, true}})
+	})
+}
+
 // TestGoldenBrokenRollout: the image-break sample shows Applied and
 // Degraded side by side (portal:D3:R1/R2).
 func TestGoldenBrokenRollout(t *testing.T) {
@@ -154,7 +179,8 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	body := s.get(t, "/instances/default/podinfo").body
 	applied := between(body, `id="applied-card"`, "</section>")
 	health := between(body, `id="health-card"`, "</section>")
-	if !strings.Contains(applied, `class="applied applied-applied"`) || !strings.Contains(health, `class="health health-degraded"`) {
+	if !strings.Contains(body, `class="state-block hue-applied" id="applied-card"`) || !strings.Contains(body, `class="state-block hue-degraded" id="health-card"`) ||
+		!strings.Contains(applied, `<span class="sb-word">Applied</span>`) || !strings.Contains(health, `<span class="sb-word">Degraded</span>`) {
 		t.Errorf("the broken rollout's cards do not show Applied and Degraded apart:\n%s\n%s", applied, health)
 	}
 	if !strings.Contains(health, `href="/instances/default/podinfo?reason=ImagePullBackOff&amp;tab=resources"`) &&
@@ -163,13 +189,20 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	}
 }
 
+// TestGoldenPackageHolder: a package holding a refused claim shows its
+// Provider tab (align-owner-pages, 6.2).
+func TestGoldenPackageHolder(t *testing.T) {
+	s := newSite(t, apitest.F1PackageHolder(t), apitest.AllowAll)
+	checkGoldens(t, s, []goldenPage{{"package-provider-provider", "/packages/pkg/provider?tab=provider", false}})
+}
+
 // TestGoldenLocked: an unreadable kind inside an instance, and a list the
 // caller may not read, render locked (portal:D5:R7).
 func TestGoldenLocked(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.DenyResources("services"))
 	checkGoldens(t, s, []goldenPage{{"instance-podinfo-services-locked", "/instances/default/podinfo?tab=resources", false}})
 	main := mainOf(s.get(t, "/instances/default/podinfo?tab=resources").body)
-	if !strings.Contains(main, `<li class="object locked">`) || !strings.Contains(main, "Service default/<wbr>podinfo-podinfo") {
+	if !strings.Contains(main, `row-locked`) || !strings.Contains(main, "default/<wbr>podinfo-podinfo") {
 		t.Error("the forbidden Service is not rendered locked")
 	}
 	if main := mainOf(s.get(t, "/instances/default/podinfo").body); !strings.Contains(main, `class="node kind-object locked"`) {
@@ -443,7 +476,7 @@ func TestPagesDeclareTheirTopics(t *testing.T) {
 	for path, want := range map[string]string{
 		"/":                                "platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture",
 		"/installed":                       "instances",
-		"/installed?namespace=web":         "instances:web",
+		"/installed?namespace=web":         "instances", // the lists are read for every namespace (installed-23)
 		"/installed?namespace=Not_A_Label": "instances",
 		"/instances/default/backup-provider?tab=provider": "instance:default/backup-provider events:instance:default/backup-provider platform instances",
 		"/instances/default/podinfo":                      "instance:default/podinfo events:instance:default/podinfo",
@@ -543,6 +576,306 @@ func TestStaticAssetsAreServed(t *testing.T) {
 
 func v1Reconcile(state string) v1.Reconcile { return v1.Reconcile{State: state} }
 
+// onlyIn is a caller who may use the named resources in one namespace only
+// (a RoleBinding there) and everything else everywhere.
+func onlyIn(ns string, resources ...string) apitest.Rule {
+	return func(_ string, ra authorizationv1.ResourceAttributes) bool {
+		return !slices.Contains(resources, ra.Resource) || ra.Namespace == ns
+	}
+}
+
+var (
+	selectRE = regexp.MustCompile(`(?s)<select id="f-([a-z]+)"[^>]*>(.*?)</select>`)
+	optionRE = regexp.MustCompile(`<option value="([^"]*)"[^>]*>([^<]*)</option>`)
+	listRE   = regexp.MustCompile(`(?s)<datalist id="f-([a-z]+)-list">(.*?)</datalist>`)
+	countRE  = regexp.MustCompile(` \((\d+)\)$`)
+)
+
+// installedForm reads the Installed filter form of a page: each select's
+// options as "value|text", each datalist's values, and the count row.
+func installedForm(t *testing.T, body string) (selects, lists map[string][]string, shown string) {
+	t.Helper()
+	main := mainOf(body)
+	selects, lists = map[string][]string{}, map[string][]string{}
+	for _, m := range selectRE.FindAllStringSubmatch(main, -1) {
+		for _, o := range optionRE.FindAllStringSubmatch(m[2], -1) {
+			selects[m[1]] = append(selects[m[1]], o[1]+"|"+o[2])
+		}
+	}
+	for _, m := range listRE.FindAllStringSubmatch(main, -1) {
+		for _, o := range regexp.MustCompile(`<option value="([^"]*)">`).FindAllStringSubmatch(m[2], -1) {
+			lists[m[1]] = append(lists[m[1]], o[1])
+		}
+	}
+	return selects, lists, collapse(between(main, `class="shown"`, "</p>"))
+}
+
+// optionValues are the values of "value|text" options.
+func optionValues(opts []string) []string {
+	out := make([]string, 0, len(opts))
+	for _, o := range opts {
+		v, _, _ := strings.Cut(o, "|")
+		out = append(out, v)
+	}
+	return out
+}
+
+// checkCountsInside fails for any option count above total: a count that
+// large includes a row outside the namespace.
+func checkCountsInside(t *testing.T, selects map[string][]string, total int) {
+	t.Helper()
+	for name, opts := range selects {
+		for _, o := range opts {
+			if m := countRE.FindStringSubmatch(o); m != nil {
+				if n, _ := strconv.Atoi(m[1]); n > total {
+					t.Errorf("%s option %q counts %d rows, more than the %d in default", name, o, n, total)
+				}
+			}
+		}
+	}
+}
+
+// checkDefaultOnly asserts what a reader who may list only in default sees
+// on /installed?namespace=default (cases 1 and 2).
+func checkDefaultOnly(t *testing.T, s *site) {
+	t.Helper()
+	res := s.get(t, "/installed?namespace=default")
+	selects, lists, shown := installedForm(t, res.body)
+	if shown != `class="shown" id="shown" data-follow="instances:default">Showing <strong>3</strong> of 3 in default` {
+		t.Errorf("count row = %q; want 3 of 3 in default", shown)
+	}
+	checkCountsInside(t, selects, 3)
+	if got, want := selects["kind"], []string{"|Any kind", "instance|Instance (3)", "package|Package (0)"}; !slices.Equal(got, want) {
+		t.Errorf("kind options = %q; want %q", got, want)
+	}
+	if got := lists["namespace"]; !slices.Equal(got, []string{"default"}) {
+		t.Errorf("namespace choices = %q; want default only", got)
+	}
+	if _, isSelect := selects["namespace"]; isSelect {
+		t.Error("the namespace is a select; a reader who may list one namespace must be able to type another")
+	}
+	uses := optionValues(selects["uses"])
+	for _, outside := range []string{"resources/crds", "resources/namespaces", "resources/mutating-webhooks", "resources/role@", "traits/workload-identity"} {
+		if slices.ContainsFunc(uses, func(u string) bool { return strings.Contains(u, outside) }) {
+			t.Errorf("the Uses options hold %s, which only rows outside default use: %q", outside, uses)
+		}
+	}
+	for _, row := range rowLinks(mainOf(res.body)) {
+		if !strings.Contains(row, "/default/") {
+			t.Errorf("the list holds %s, outside default", row)
+		}
+	}
+}
+
+// checkUsesAreTheRowsContracts is case 4: the Uses choices are the union of
+// the readable instances' renderContracts, so no blueprint name appears.
+func checkUsesAreTheRowsContracts(t *testing.T, s *site) {
+	t.Helper()
+	var doc v1.InstanceList
+	if err := json.Unmarshal([]byte(s.get(t, defaultAPIBase+"/instances").body), &doc); err != nil {
+		t.Fatal(err)
+	}
+	var want []string
+	for i := range doc.Items {
+		for _, c := range doc.Items[i].RenderContracts {
+			if !slices.Contains(want, c) {
+				want = append(want, c)
+			}
+		}
+	}
+	slices.Sort(want)
+	selects, _, _ := installedForm(t, s.get(t, "/installed").body)
+	got := optionValues(selects["uses"])[1:] // after the empty choice
+	if !slices.Equal(got, want) {
+		t.Errorf("Uses choices = %q; want the union of the rows' renderContracts %q", got, want)
+	}
+	for _, c := range got {
+		if strings.Contains(c, "/blueprints/") {
+			t.Errorf("the Uses options hold a blueprint: %s", c)
+		}
+	}
+}
+
+// TestInstalledCountsFollowTheCallersNamespaces (SR8, portal:D14:R7,
+// portal:D7:R2): a number on the Installed form is a count over rows the
+// caller may list. The read API returns nothing outside a granted
+// namespace, so no choice or count can include a row outside it; the page
+// keeps both kinds to the filtered namespace where one kind is read there.
+func TestInstalledCountsFollowTheCallersNamespaces(t *testing.T) {
+	f1 := apitest.F1(t)
+	t.Run("case 1: instances and packages in default only", func(t *testing.T) {
+		checkDefaultOnly(t, newSite(t, f1, onlyIn("default", "moduleinstances", "modulepackages")))
+	})
+	t.Run("case 2: instances everywhere, packages in default only", func(t *testing.T) {
+		checkDefaultOnly(t, newSite(t, f1, onlyIn("default", "modulepackages")))
+	})
+	t.Run("case 3: a reader who may list everywhere", func(t *testing.T) {
+		s := newSite(t, f1, apitest.AllowAll)
+		selects, _, shown := installedForm(t, s.get(t, "/installed?namespace=default").body)
+		if shown != `class="shown" id="shown" data-follow="instances">Showing <strong>3</strong> of 6` {
+			t.Errorf("count row = %q; want 3 of 6", shown)
+		}
+		want := []string{"|All namespaces", "cert-manager|cert-manager (1)", "default|default (3)", "pkg|pkg (1)", "web|web (1)"}
+		if !slices.Equal(selects["namespace"], want) {
+			t.Errorf("namespace options = %q; want %q", selects["namespace"], want)
+		}
+		if !slices.ContainsFunc(selects["uses"], func(u string) bool { return strings.Contains(u, "resources/crds") }) {
+			t.Error("the Uses options leave out a contract that a row outside default uses")
+		}
+	})
+	t.Run("case 4: the Uses choices are the contracts of the readable rows", func(t *testing.T) {
+		checkUsesAreTheRowsContracts(t, newSite(t, f1, apitest.AllowAll))
+	})
+}
+
+// TestInstalledTotalCoversEveryNamespace (installed-23): with the caller
+// allowed everywhere, a namespace filter narrows the rows and not the total.
+func TestInstalledTotalCoversEveryNamespace(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	_, _, shown := installedForm(t, s.get(t, "/installed?namespace=default").body)
+	if !strings.HasSuffix(shown, "Showing <strong>3</strong> of 6") {
+		t.Errorf("count row = %q; want Showing 3 of 6", shown)
+	}
+	// The namespace-only reader reads each kind in the namespace asked and
+	// follows its stream; the others follow every namespace.
+	ns := newSite(t, apitest.F1(t), onlyIn("default", "moduleinstances", "modulepackages"))
+	if body := ns.get(t, "/installed?namespace=default").body; !strings.Contains(body, `data-topics="instances:default"`) {
+		t.Error("the scoped fallback does not follow instances:default")
+	}
+	// Both lists locked for every namespace and no namespace named: both
+	// render locked, the namespace is a field to type into, and no option
+	// count stands for a locked list.
+	res := ns.get(t, "/installed")
+	selects, lists, _ := installedForm(t, res.body)
+	if _, isSelect := selects["namespace"]; isSelect || len(lists["namespace"]) != 0 {
+		t.Errorf("namespace = select %v, datalist %v; want a text field and no names read", selects["namespace"], lists["namespace"])
+	}
+	if got := selects["kind"]; !slices.Equal(got, []string{"|Any kind", "instance|Instance (locked)", "package|Package (locked)"}) {
+		t.Errorf("kind options = %q; want both kinds locked with no count", got)
+	}
+	// Nor does a count stand for health, applied, provider or owner: with
+	// neither list read, "(0)" would say nothing is unhealthy (portal:D14:R7).
+	for _, name := range []string{"health", "applied", "provider", "owner"} {
+		for _, o := range selects[name] {
+			if strings.Contains(o, "(0)") {
+				t.Errorf("%s option %q carries a zero count for a list the caller may not read", name, o)
+			}
+		}
+	}
+	main := mainOf(res.body)
+	if strings.Count(main, "locked-panel") != 2 {
+		t.Errorf("want both kinds rendered locked:\n%s", between(main, `id="list"`, "</section>"))
+	}
+}
+
+// TestInstalledPackageSourceIsAModule (installed-26, installed-19): the
+// module filter offers a package's source string and matches it, no note
+// says packages are excluded, and search matches the kind word and the
+// source.
+func TestInstalledPackageSourceIsAModule(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	const source = "OCIRepository pkg/podinfo-release"
+	res := s.get(t, "/installed?module="+url.QueryEscape(source))
+	main := mainOf(res.body)
+	if got := rowLinks(main); !slices.Equal(got, []string{"/packages/pkg/podinfo"}) {
+		t.Errorf("module=%s lists %v; want the package only", source, got)
+	}
+	if strings.Contains(main, "records a source, not a module") || strings.Contains(main, "Packages are not included") {
+		t.Error("a note still says packages are left out of the module filter")
+	}
+	selects, _, _ := installedForm(t, res.body)
+	if !slices.Contains(selects["module"], source+"|"+source+" (1)") {
+		t.Errorf("module options = %q; want the package's source with its count", selects["module"])
+	}
+	for q, want := range map[string][]string{
+		"package":        {"/packages/pkg/podinfo"},
+		"ocirepository":  {"/packages/pkg/podinfo"},
+		"pkg/podinfo-re": {"/packages/pkg/podinfo"},
+	} {
+		if got := rowLinks(mainOf(s.get(t, "/installed?q="+url.QueryEscape(q)).body)); !slices.Equal(got, want) {
+			t.Errorf("q=%s lists %v; want %v", q, got, want)
+		}
+	}
+}
+
+// TestInstalledRowsMatchTheCanvas (installed-07, -09, -11, -15, -17): the
+// F1 rows carry the health class, the kind icons, the provider tip, the two
+// lines of the source cell, and no "path ."; the empty state offers a
+// button.
+func TestInstalledRowsMatchTheCanvas(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	main := mainOf(s.get(t, "/installed").body)
+	row := func(name string) string {
+		return between(main, `<a class="row-link" href="`+name, "</tr>")
+	}
+	pkg := row("/packages/pkg/podinfo")
+	for _, want := range []string{
+		`<span class="src mono">OCIRepository pkg/podinfo-release</span><span class="ver block">no revision recorded</span>`,
+		`kind-icon`, `>Package</span>`,
+	} {
+		if !strings.Contains(pkg, want) {
+			t.Errorf("the package row lacks %s:\n%s", want, pkg)
+		}
+	}
+	if strings.Contains(pkg, "path .") || strings.Contains(pkg, "path") && strings.Contains(pkg, "· path") {
+		t.Errorf("the package row shows an empty path:\n%s", pkg)
+	}
+	prov := row("/instances/default/backup-provider")
+	for _, want := range []string{
+		`<span class="prov prov-active">`, `<span class="vh">standing: active</span>`,
+		`role="tooltip">Registration default.backup-provider is accepted and active.`,
+	} {
+		if !strings.Contains(prov, want) {
+			t.Errorf("the provider row lacks %s:\n%s", want, prov)
+		}
+	}
+	// The F1 instances are healthy: no row is tinted as degraded.
+	if strings.Contains(main, "row-degraded") {
+		t.Error("a healthy F1 row is tinted as degraded")
+	}
+	if !strings.Contains(row("/instances/web/web"), `<td data-label="Owner">cli</td>`) {
+		t.Error("web/web is not owned by the cli")
+	}
+	empty := mainOf(s.get(t, "/installed?q=zzz").body)
+	if !strings.Contains(empty, `<p class="empty-title">Nothing matches these filters</p>`) ||
+		!strings.Contains(empty, `<a class="btn" href="/installed" data-filters-explicit data-clear-filters="installed">Clear filters</a>`) {
+		t.Errorf("the empty state lacks its title or its button:\n%s", between(empty, `class="empty"`, "</div>"))
+	}
+}
+
+// TestInstalledRowOfAPackageWithARevision (installed-15): a package that
+// recorded a source artifact shows the digest as sha256 and its first eight
+// hex characters, the revision in the title, and its path when it has one.
+func TestInstalledRowOfAPackageWithARevision(t *testing.T) {
+	row := packageRow(&v1.PackageSummary{
+		Ref: v1.ObjectRef{Namespace: "pkg", Name: "x"}, Path: "./deploy",
+		Source:         v1.SourceRef{Kind: "OCIRepository", Name: "x-release"},
+		SourceArtifact: &v1.SourceArtifact{Revision: "v1.2.3@sha256:abcdef0123456789", Digest: "sha256:abcdef0123456789"},
+	})
+	if got := row.Revision(); got.Text != "sha256:abcdef01" || got.Title != "v1.2.3@sha256:abcdef0123456789" {
+		t.Errorf("revision line = %+v", got)
+	}
+	if !row.ShowPath() {
+		t.Error("a path other than . is not shown")
+	}
+	row.Path = "."
+	if row.ShowPath() {
+		t.Error("the path . is shown")
+	}
+	row.SourceArtifact = &v1.SourceArtifact{Revision: "main@sha1:aa"}
+	if got := row.Revision(); got.Text != "main@sha1:aa" {
+		t.Errorf("a revision with no digest reads %+v", got)
+	}
+	row.Health.State = "Degraded"
+	if got := row.RowClass(); got != "row-degraded" {
+		t.Errorf("a Degraded row has class %q", got)
+	}
+	row.Health.State = "Odd"
+	if got := row.RowClass(); got != "row-unknown" {
+		t.Errorf("a health the portal does not know has class %q", got)
+	}
+}
+
 // TestPlatformNamesTheControllerVersion: the version the Platform's
 // status.controllerVersion records reaches the API document, the platform
 // graph's platform node and the page. The F1 capture predates the rename (its
@@ -580,7 +913,7 @@ func TestPlatformNamesTheControllerVersion(t *testing.T) {
 	if len(got) != 1 || got[0] != want {
 		t.Errorf("platform graph platform controllerVersion = %q, want one node with %s", got, want)
 	}
-	if main := mainOf(s.get(t, "/").body); !strings.Contains(main, `<dt>Controller version</dt><dd class="mono">`+want+`</dd>`) {
+	if main := mainOf(s.get(t, "/").body); !strings.Contains(main, `<dt>Controller</dt><dd class="mono">`+want+`</dd>`) {
 		t.Errorf("the platform page does not name the controller version:\n%s", main)
 	}
 }
@@ -618,10 +951,10 @@ func TestUnknownOwnerIsShownAsWritten(t *testing.T) {
 		t.Errorf("the Installed list does not mark the owner unknown:\n%s", main)
 	}
 	main := mainOf(s.get(t, "/instances/default/podinfo").body)
-	if !strings.Contains(main, `<dt>Applied by</dt><dd>`+marked+`</dd>`) {
+	if !strings.Contains(main, `<dd>`+old+` (unknown)</dd>`) {
 		t.Errorf("the instance page does not mark the owner unknown:\n%s", main)
 	}
-	if strings.Contains(main, `<dt>Applied by</dt><dd>the controller</dd>`) {
+	if strings.Contains(main, `<dd>the controller</dd>`) {
 		t.Error("the instance page reads an unknown owner as the controller")
 	}
 }

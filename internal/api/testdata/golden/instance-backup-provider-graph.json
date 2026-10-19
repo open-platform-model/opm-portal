@@ -1,0 +1,215 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Graph",
+  "scope": "instance",
+  "root": "mi:default/backup-provider",
+  "layout": {
+    "width": 1040,
+    "height": 132,
+    "nodeWidth": 216,
+    "nodeHeight": 72,
+    "columns": [
+      {
+        "title": "Module",
+        "x": 16
+      },
+      {
+        "title": "Instance",
+        "x": 280
+      },
+      {
+        "title": "Components",
+        "x": 544
+      },
+      {
+        "title": "Objects",
+        "x": 808
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0",
+      "kind": "module",
+      "label": "testing.opmodel.dev/modules/operator/backup_provider@v0",
+      "version": "v0.1.0",
+      "column": 0,
+      "row": 0,
+      "x": 16,
+      "y": 44
+    },
+    {
+      "id": "mi:default/backup-provider",
+      "kind": "instance",
+      "label": "default/backup-provider",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "backup-provider"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded"
+      },
+      "owner": "controller",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
+      ],
+      "column": 1,
+      "row": 0,
+      "x": 280,
+      "y": 44
+    },
+    {
+      "id": "comp:mi/default/backup-provider/registration",
+      "kind": "component",
+      "label": "registration",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 0,
+      "x": 544,
+      "y": 44
+    },
+    {
+      "id": "obj:opmodel.dev/TransformerRegistration/_/default.backup-provider",
+      "kind": "object",
+      "label": "default.backup-provider",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "TransformerRegistration",
+        "name": "default.backup-provider"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is Ready"
+      },
+      "registration": {
+        "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+        "version": "0.1.0",
+        "provides": [
+          "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
+        ],
+        "accepted": true,
+        "active": true,
+        "verdict": "Accepted",
+        "reason": "Accepted",
+        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
+        "activeReason": "ProviderReady",
+        "activeMessage": "Provider ModuleInstance default/backup-provider is Ready"
+      },
+      "column": 3,
+      "row": 0,
+      "x": 808,
+      "y": 44
+    }
+  ],
+  "edges": [
+    {
+      "id": "hasComponent|mi:default/backup-provider|comp:mi/default/backup-provider/registration",
+      "kind": "hasComponent",
+      "from": "mi:default/backup-provider",
+      "to": "comp:mi/default/backup-provider/registration",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 80
+        },
+        {
+          "x": 520,
+          "y": 80
+        },
+        {
+          "x": 520,
+          "y": 80
+        },
+        {
+          "x": 544,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "id": "instantiates|mi:default/backup-provider|mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0",
+      "kind": "instantiates",
+      "from": "mi:default/backup-provider",
+      "to": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0",
+      "source": "ModuleInstance spec.module",
+      "route": [
+        {
+          "x": 280,
+          "y": 80
+        },
+        {
+          "x": 256,
+          "y": 80
+        },
+        {
+          "x": 256,
+          "y": 80
+        },
+        {
+          "x": 232,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/default/backup-provider/registration|obj:opmodel.dev/TransformerRegistration/_/default.backup-provider",
+      "kind": "owns",
+      "from": "comp:mi/default/backup-provider/registration",
+      "to": "obj:opmodel.dev/TransformerRegistration/_/default.backup-provider",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 80
+        },
+        {
+          "x": 784,
+          "y": 80
+        },
+        {
+          "x": 784,
+          "y": 80
+        },
+        {
+          "x": 808,
+          "y": 80
+        }
+      ]
+    }
+  ]
+}

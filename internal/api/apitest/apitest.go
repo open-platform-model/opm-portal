@@ -64,6 +64,29 @@ func F1(t testing.TB) []*unstructured.Unstructured {
 	return readmodeltest.LoadCapture(t, filepath.Join(root(), "testdata", "clusters", "f1"))
 }
 
+// SliceOption, Sentinels and the two options below are the options of
+// readmodeltest.WithEndpointSlices, so that a test of the UI builds the slices
+// without importing the read model.
+type (
+	SliceOption = readmodeltest.SliceOption
+	Sentinels   = readmodeltest.Sentinels
+)
+
+// WithSentinels writes marker strings into every address, hostname, node name,
+// zone, Pod name, port name and label value of the slices.
+func WithSentinels(s Sentinels) SliceOption { return readmodeltest.WithSentinels(s) }
+
+// WithNoReadyEndpoints sets ready false on every endpoint of the slices.
+func WithNoReadyEndpoints() SliceOption { return readmodeltest.WithNoReadyEndpoints() }
+
+// F1WithEndpointSlices is F1 plus the EndpointSlice of podinfo's Service,
+// recorded from a live cluster, for the tests of the Service panel. The slice
+// holds two ready endpoints.
+func F1WithEndpointSlices(t testing.TB, opts ...SliceOption) []*unstructured.Unstructured {
+	t.Helper()
+	return readmodeltest.WithEndpointSlices(t, F1(t), opts...)
+}
+
 // F1Broken is F1 with default/podinfo and its objects replaced by the
 // design evidence 01 image-break samples: Applied and Degraded.
 func F1Broken(t testing.TB) []*unstructured.Unstructured {
@@ -104,6 +127,14 @@ func New(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server
 	return newServer(t, objs, rule, api.ModeLocal)
 }
 
+// NewWithReaderRule is New with the portal's own reader reviewed by readerRule
+// instead of allowed everything, for the tests of a read the reader may not
+// make.
+func NewWithReaderRule(t testing.TB, objs []*unstructured.Unstructured, rule, readerRule Rule) *api.Server {
+	t.Helper()
+	return newServerWith(t, objs, rule, readerRule, api.ModeLocal, Context, Context)
+}
+
 // NewInCluster is New in in-cluster mode: no document carries text the
 // controller wrote.
 func NewInCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server {
@@ -111,10 +142,28 @@ func NewInCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *a
 	return newServer(t, objs, rule, api.ModeInCluster)
 }
 
+// NewWithCluster is New over a kubeconfig whose context is named context and
+// whose cluster entry is named entry. The other constructors name both
+// Context, so the API goldens keep one name.
+func NewWithCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule, context, entry string) *api.Server {
+	t.Helper()
+	return newServerAs(t, objs, rule, api.ModeLocal, context, entry)
+}
+
 func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode api.Mode) *api.Server {
 	t.Helper()
+	return newServerAs(t, objs, rule, mode, Context, Context)
+}
+
+func newServerAs(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode api.Mode, context, entry string) *api.Server {
+	t.Helper()
+	return newServerWith(t, objs, rule, readmodeltest.AllowAll, mode, context, entry)
+}
+
+func newServerWith(t testing.TB, objs []*unstructured.Unstructured, rule, readerRule Rule, mode api.Mode, context, entry string) *api.Server {
+	t.Helper()
 	caller, _ := readmodeltest.NewChecker(t, Caller, rule, authz.Options{})
-	readerChecker, _ := readmodeltest.NewChecker(t, reader, readmodeltest.AllowAll, authz.Options{})
+	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
 	az := readmodeltest.ByIdentity{Caller.Username: caller, reader.Username: readerChecker}
 	m, err := readmodel.New(readmodel.Config{
 		Dynamic:     readmodeltest.Dynamic(objs...),
@@ -131,7 +180,7 @@ func newServer(t testing.TB, objs []*unstructured.Unstructured, rule Rule, mode 
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
-	conn := api.Connection{Source: v1.SourceKubeconfig, Context: Context, ClusterEntry: Context}
+	conn := api.Connection{Source: v1.SourceKubeconfig, Context: context, ClusterEntry: entry}
 	if mode == api.ModeInCluster {
 		conn = api.Connection{Source: v1.SourceInCluster}
 	}

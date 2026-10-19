@@ -1,119 +1,170 @@
 <main id="main" tabindex="-1" data-topics="package:pkg/podinfo events:package:pkg/podinfo" data-canonical="/packages/pkg/podinfo">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=package">Installed</a> <span aria-hidden="true">/</span> <span class="mono">pkg</span> <span aria-hidden="true">/</span> <span>podinfo</span></nav>
-<div class="summary reveal">
+<div class="summary">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="package:pkg/podinfo">
     <p class="kicker">Package</p>
     <h1>podinfo</h1>
-    
+    <p class="subtitle mono">from OCIRepository pkg/<wbr>podinfo-release</p>
     <dl class="facts">
       <dt>Namespace</dt><dd class="mono">pkg</dd>
-      <dt>Source</dt><dd class="mono">OCIRepository podinfo-release</dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-owner">Owner</button><span class="tipbox" id="tip-owner" role="tooltip">Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.</span></span></dt><dd>the controller</dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-applier">Applier</button><span class="tipbox" id="tip-applier" role="tooltip">The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount.</span></span></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
+      <dt>Source</dt><dd class="mono">OCIRepository pkg/podinfo-release</dd>
       <dt>Path</dt><dd class="mono">.</dd>
-      <dt>Interval</dt><dd><span class="mono">1m</span></dd>
+      <dt>Interval</dt><dd>every 1 min</dd>
+      <dt>Prune</dt><dd>on</dd>
       <dt>Revision</dt><dd><span class="muted">not recorded</span></dd>
       <dt>Depends on</dt><dd><span class="muted">nothing</span></dd>
-      <dt>Applied by</dt><dd>the controller</dd>
-      <dt><abbr title="The ServiceAccount the controller applies this package's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
       <dt>Objects</dt><dd>0</dd>
       <dt>Last applied</dt><dd><span class="muted">never</span></dd>
     </dl>
-    
-  </section>
-  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="package:pkg/podinfo events:package:pkg/podinfo">
-    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
-    <div class="axes"><span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span><span class="mono">SourceNotReady</span></div>
-    <p class="card-meaning">The package&#39;s source is not ready or does not exist.</p>
-    <p class="reconciling"><span class="label">Reconciling</span> <span class="mono">Progressing</span> since <time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></p>
-    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><a class="count count-warning" href="/packages/pkg/podinfo?reason=SourceNotReady&amp;tab=events&amp;type=Warning">SourceNotReady <span class="count-n">3</span></a></div>
-    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-failed" role="img" tabindex="0" title="#1 reconcile: failed, 2026-10-04 18:03:54 UTC" aria-label="#1 reconcile: failed, 2026-10-04 18:03:54 UTC"></span><span class="adot dot-failed" role="img" tabindex="0" title="#2 reconcile: failed, 2026-10-04 18:04:23 UTC" aria-label="#2 reconcile: failed, 2026-10-04 18:04:23 UTC"></span><span class="adot dot-failed" role="img" tabindex="0" title="#3 reconcile: failed, 2026-10-04 18:04:23 UTC" aria-label="#3 reconcile: failed, 2026-10-04 18:04:23 UTC"></span></span></div>
-    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
-    <details class="history-fold" id="history-fold"><summary>Show history</summary>
-<ol class="timeline">
-  <li class="tl-item">
-    <div class="tl-head"><span class="tl-seq">#3</span><span class="tl-action">reconcile</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
-    <p class="tl-meta mono">0 objects</p>
-  </li>
-  <li class="tl-item">
-    <div class="tl-head"><span class="tl-seq">#2</span><span class="tl-action">reconcile</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
-    <p class="tl-meta mono">0 objects</p>
-  </li>
-  <li class="tl-item">
-    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
-    <p class="tl-meta mono">0 objects</p>
-  </li>
-</ol>
-</details>
-  </section>
-  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="package:pkg/podinfo">
-    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span><span class="axis">Health axis</span>Unknown (not live)</span></div>
-    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
   </section>
   
+<section class="state-block hue-degraded" id="applied-card" aria-label="Applied status" data-follow="package:pkg/podinfo events:package:pkg/podinfo">
+  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10v9M18 25v.5"/></svg><span class="sb-word">Failed, retrying</span></div>
+  <p class="sb-summary">Failed on the last 3 attempts, retrying every 1 min</p>
+  <p class="sb-note">The package&#39;s source is not ready or does not exist.</p><p class="sb-note reconciling">Reconciling: Progressing, since 6m ago</p>
+  <p class="sb-caption">Warning events, last hour</p>
+  <div class="sb-reasons"><span class="muted">No reconcile errors</span></div>
+  <div class="hist">
+  <div class="hist-bar"><span class="hist-label">History</span>
+    <span class="adots"><span class="adot dot-failed"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-1" aria-label="#1 failed">✕</button><span class="tipbox" id="attempt-1" role="tooltip">#1 reconcile: failed, 2026-10-04 18:03:54 UTC</span></span></span><span class="adot dot-failed"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-2" aria-label="#2 failed">✕</button><span class="tipbox" id="attempt-2" role="tooltip">#2 reconcile: failed, 2026-10-04 18:04:23 UTC</span></span></span><span class="adot dot-failed"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-3" aria-label="#3 failed">✕</button><span class="tipbox" id="attempt-3" role="tooltip">#3 reconcile: failed, 2026-10-04 18:04:23 UTC</span></span></span></span><span class="hist-count">last 3 attempts</span>
+  </div>
+  <details class="hist-fold" id="history-fold"><summary><span class="hist-closed">Show history ▾</span><span class="hist-open">Hide history ▴</span></summary>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+<ol class="timeline">
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#3</span><span class="outcome outcome-failed">Failed</span><span class="tl-message"></span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · 0 objects</p>
+  </li>
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#2</span><span class="outcome outcome-failed">Failed</span><span class="tl-message"></span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · 0 objects</p>
+  </li>
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="outcome outcome-failed">Failed</span><span class="tl-message"></span><span class="tl-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · 0 objects</p>
+  </li>
+</ol>
+  </details>
 </div>
-<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="package:pkg/podinfo">
+</section>
+  
+<section class="state-block hue-unknown" id="health-card" aria-label="Health status" data-follow="package:pkg/podinfo">
+  <div class="sb-head"><span class="sb-eyebrow">Health · everything it runs</span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10.5V18l5 3"/></svg><span class="sb-word">Unknown</span></div>
+  <p class="sb-summary">Nothing applied yet, so nothing to check</p>
+  
+  <div class="sb-reasons"><span class="muted">No unhealthy resources</span></div>
+  
+</section>
+  
+</div>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph" aria-current="page">Graph</a><a href="/packages/pkg/podinfo?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span></a><a href="/packages/pkg/podinfo?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="package:pkg/podinfo events:package:pkg/podinfo">1</span></a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
+<div class="owner-row">
+<div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
+<section class="panel owner-panel" id="graph" aria-labelledby="graph-h" data-follow="package:pkg/podinfo">
+  <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
+<div class="graph" data-graph="package-graph" data-resting-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo">
+  <div class="graph-tools" role="group" aria-label="Graph view">
+    <span class="hint">Select a box to see its details on the right.</span>
+    <span class="graph-count" data-box-count>2 of 2 boxes</span>
+    
+    
+    <a class="tool-link" href="/packages/pkg/podinfo" hx-boost="false" data-clear-selection data-focus-key="clear-package-graph" hidden>Clear selection</a>
+    <button type="button" data-zoom="fit" aria-pressed="true">Fit</button>
+    <label class="zoom-label" title="Or hold Ctrl and scroll over the graph"><span>Zoom</span> <input type="range" min="30" max="200" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
+    <button type="button" class="full-btn" data-graph-full aria-label="Show the graph full screen" title="Show the graph full screen"><svg class="ic ic-enter" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><svg class="ic ic-exit" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg></button>
+  </div>
+  <div class="graph-frame">
+  <svg viewBox="0 0 512 260" width="512" height="260" role="group" aria-label="Relationship graph">
+    <defs>
+      <pattern id="package-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+      <pattern id="package-graph-ghatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="8" height="8"/><line class="ghatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
+    </defs>
+    <g class="viewport">
+      <text class="col-title" x="16" y="20">Package</text><text class="col-title" x="280" y="20">Source and components</text>
+      <path class="edge edge-sourcedFrom" d="M232 80 H256 V80 H280" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
+      <path class="edge edge-ghost" d="M232 80 H256 V192 H280"/>
+      
+      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?node=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, Unknown, Failed, retrying" aria-describedby="package-graph-card-0" data-resting>
+        <title>pkg/podinfo</title>
+        <rect class="node-halo" x="6" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="12" y="40" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="16" y="44" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="28" y="64">Package</text>
+        <text class="node-label" x="28" y="86">pkg/podinfo</text>
+        <circle class="node-dot" cx="32" cy="101" r="3"/>
+        <text class="node-status" x="41" y="104">Unknown</text>
+        <rect class="node-stamp" x="216" y="50" width="10" height="10" rx="1"/>
+      </a>
+      <a class="node kind-source health-missing" href="/packages/pkg/podinfo?node=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release, Kind not installed" aria-describedby="package-graph-card-1">
+        <title>OCIRepository podinfo-release</title>
+        <rect class="node-halo" x="270" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="40" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="280" y="44" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="292" y="64">OCIRepository</text>
+        <text class="node-label node-mono" x="292" y="86">podinfo-release</text>
+        <circle class="node-dot" cx="296" cy="101" r="3"/>
+        <text class="node-status" x="305" y="104">Kind not installed</text>
+      </a>
+      
+      <g class="ghost">
+        <rect class="ghost-box" x="280" y="140" width="216" height="104" rx="6"/>
+        <text class="ghost-text"><tspan x="292" y="164">Nothing applied yet. The graph</tspan><tspan x="292" y="180">fills in once an apply</tspan><tspan x="292" y="196">succeeds.</tspan><tspan x="292" y="212">The package has never fetched</tspan><tspan x="292" y="228">its source.</tspan></text>
+      </g>
+    </g>
+  </svg>
+  </div>
+  <ul class="graph-legend" aria-label="Legend">
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-stamp" x="19" y="4" width="5" height="5"/></svg>Applied by the controller</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-dashed" x="1" y="1" width="26" height="16" rx="3"/></svg>Made by the cluster</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/></svg>Read by the controller, owned by Flux. Components and dependency packages are drawn the same way</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-stack" x="1" y="1" width="26" height="16" rx="3" transform="translate(2 2)"/><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-hatch" x="1" y="1" width="26" height="16" rx="3" fill="url(#package-graph-ghatch)"/></svg>Group of configuration components (CRDs, RBAC, webhooks, other). Click to open; one opens at a time</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-health" x="1" y="1" width="26" height="16" rx="3"/></svg>Fill and outline: health</li>
+    <li class="lg-item"><kbd>Ctrl</kbd> + scroll to zoom</li>
+    <li class="lg-item"><kbd>Esc</kbd> to step back</li>
+  </ul>
+  <div class="node-cards">
+  <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-unknown">Unknown</span> <span class="label">Applied</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">Reconciled by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">pkg/podinfo-release</strong> <span class="nc-reason mono">Kind not installed</span> <span class="nc-origin">Read by the controller, owned by Flux</span> <span class="nc-hint">Click for details</span></div>
+  </div>
+</div>
+</section>
+</div>
+<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-topics="package:pkg/podinfo" data-follow="package:pkg/podinfo">
+<p class="kicker">Package</p>
+<h2 class="frag-h mono">pkg/<wbr>podinfo</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-failed"><span class="axis">Applied axis</span>Failed, retrying</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-unknown"><span class="axis">Health axis</span>Unknown</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModulePackage.<wbr>opmodel.<wbr>dev pkg/<wbr>podinfo</dd>
+  <dt>Not live</dt><dd>Some objects are polled rather than watched.</dd>
+  <dt>Applied reason</dt><dd class="mono">SourceNotReady</dd>
+  <dt>Source</dt><dd class="mono">OCIRepository pkg/<wbr>podinfo-release</dd><dt>Path</dt><dd class="mono">.</dd><dt>Interval</dt><dd>every 1 min</dd><dt>Revision</dt><dd>not recorded</dd><dt>Owner</dt><dd>the controller</dd><dt>Applier</dt><dd>the controller&#39;s own ServiceAccount</dd>
+  
+  
+  
+  
+</dl>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>sourcedFrom (ModulePackage spec.sourceRef)</li></ul>
+<p class="panel-links"><a class="btn" href="/packages/pkg/podinfo?tab=events" data-focus-key="panel-events">Events</a></p>
+</aside>
+</div>
+<details class="panel panel-wide conditions-fold" id="conditions" data-follow="package:pkg/podinfo">
   <summary><h2 id="conditions-h">Conditions</h2></summary>
 <ol class="conditions">
   <li class="condition tone-progressing">
-    <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
     <p class="cond-meaning">The controller is working on the latest change.</p>
   </li>
   <li class="condition tone-abnormal">
-    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC">6m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
     <p class="cond-meaning">The package&#39;s source is not ready or does not exist.</p><p class="cond-next"><span class="label">Next step</span> Check the source object the package names; the controller retries.</p>
   </li>
 </ol>
   
 </details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/podinfo?tab=graph" aria-current="page">Graph</a><a href="/packages/pkg/podinfo?tab=resources">Resources</a><a href="/packages/pkg/podinfo?tab=events">Events</a><a href="/packages/pkg/podinfo?tab=logs">Logs</a><a href="/packages/pkg/podinfo?tab=yaml">YAML</a></nav>
-<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
-<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="package:pkg/podinfo">
-  <h2 id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
-<div class="graph" data-graph="package-graph">
-  <div class="graph-tools" role="group" aria-label="Graph view">
-    <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
-    <a class="tool-link" href="/packages/pkg/podinfo" hx-boost="false" data-clear-selection hidden>Clear selection</a>
-    <button type="button" data-zoom="fit">Fit</button>
-    <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
-    <button type="button" data-graph-full aria-pressed="false">Full screen</button>
-  </div>
-  <div class="graph-frame">
-  <svg viewBox="0 0 496 104" width="496" height="104" role="group" aria-label="Relationship graph">
-    <defs>
-      <marker id="package-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
-      <pattern id="package-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
-    </defs>
-    <g class="viewport">
-      <text class="col-title" x="16" y="20">Source</text><text class="col-title" x="280" y="20">Package</text>
-      <path class="edge edge-sourcedFrom" d="M280 66 C248 66, 248 66, 216 66" data-from="mp:pkg/podinfo" data-to="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" marker-end="url(#package-graph-arrow)"><title>sourcedFrom, from ModulePackage spec.sourceRef</title></path>
-      <a class="node kind-source" href="/packages/pkg/podinfo?focus=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=src%3Asource.toolkit.fluxcd.io%2FOCIRepository%2Fpkg%2Fpodinfo-release" data-node="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" tabindex="0" aria-label="Source, OCIRepository podinfo-release" aria-describedby="package-graph-card-0">
-        <title>OCIRepository podinfo-release</title>
-        <rect class="node-ring" x="16" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="16" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="16" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="63">OCIReposi…odinfo-release</text>
-        <text class="node-sub" x="28" y="78">OCIRepository</text>
-      </a>
-      <a class="node kind-package health-unknown ap-failed" href="/packages/pkg/podinfo?focus=mp%3Apkg%2Fpodinfo&amp;tab=graph" data-panel="/packages/pkg/podinfo/node?id=mp%3Apkg%2Fpodinfo" data-node="mp:pkg/podinfo" tabindex="0" aria-label="Package, pkg/podinfo, health Unknown, Failed, retrying" aria-describedby="package-graph-card-1">
-        <title>pkg/podinfo</title>
-        <rect class="node-ring" x="280" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="280" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="280" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="292" y="63">pkg/podinfo</text>
-        <text class="node-sub" x="292" y="78">Package</text>
-        <rect class="node-stamp" x="464" y="50" width="10" height="10" rx="1"/>
-      </a>
-    </g>
-  </svg>
-  </div>
-  <div class="node-cards">
-  <div class="node-card" id="package-graph-card-0" role="tooltip" data-card-for="src:source.toolkit.fluxcd.io/OCIRepository/pkg/podinfo-release" hidden><span class="nc-kind">OCIRepository</span> <strong class="nc-name mono">OCIRepository podinfo-release</strong> <span class="nc-origin">The source the package reads</span></div>
-  <div class="node-card" id="package-graph-card-1" role="tooltip" data-card-for="mp:pkg/podinfo" hidden><span class="nc-kind">Package</span> <strong class="nc-name mono">pkg/podinfo</strong> <span class="nc-marks"><span class="health health-unknown"><span class="dot" aria-hidden="true"></span>Unknown</span> <span class="applied applied-failed">Failed, retrying</span></span> <span class="nc-origin">The ModulePackage</span></div>
-  </div>
-</div>
-</section>
-</div>
-<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
-</aside>
 </main>

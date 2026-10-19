@@ -4,10 +4,10 @@
   "scope": "instance",
   "root": "mi:cert-manager/cert-manager",
   "layout": {
-    "width": 1552,
-    "height": 440,
-    "nodeWidth": 200,
-    "nodeHeight": 44,
+    "width": 1568,
+    "height": 804,
+    "nodeWidth": 216,
+    "nodeHeight": 72,
     "columns": [
       {
         "title": "Module",
@@ -26,11 +26,11 @@
         "x": 808
       },
       {
-        "title": "Runtime",
+        "title": "ReplicaSets",
         "x": 1072
       },
       {
-        "title": "Runtime",
+        "title": "Pods",
         "x": 1336
       }
     ]
@@ -44,7 +44,7 @@
       "column": 0,
       "row": 0,
       "x": 16,
-      "y": 212
+      "y": 380
     },
     {
       "id": "mi:cert-manager/cert-manager",
@@ -97,7 +97,7 @@
       "column": 1,
       "row": 0,
       "x": 280,
-      "y": 212
+      "y": 380
     },
     {
       "id": "comp:mi/cert-manager/cert-manager/cainjector",
@@ -119,7 +119,7 @@
       "column": 2,
       "row": 0,
       "x": 544,
-      "y": 128
+      "y": 92
     },
     {
       "id": "comp:mi/cert-manager/cert-manager/controller",
@@ -141,7 +141,29 @@
       "column": 2,
       "row": 1,
       "x": 544,
-      "y": 184
+      "y": 188
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/namespace",
+      "kind": "component",
+      "label": "namespace",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 2,
+      "x": 544,
+      "y": 284
     },
     {
       "id": "comp:mi/cert-manager/cert-manager/webhook",
@@ -161,18 +183,18 @@
         }
       },
       "column": 2,
-      "row": 2,
+      "row": 3,
       "x": 544,
-      "y": 240
+      "y": 380
     },
     {
-      "id": "grp:configuration/mi/cert-manager/cert-manager",
+      "id": "grp:configuration/mi/cert-manager/cert-manager/crds",
       "kind": "group",
-      "label": "17 configuration components",
+      "label": "CRDs · 1 component",
       "health": {
         "state": "Healthy",
         "counts": {
-          "healthy": 35,
+          "healthy": 6,
           "progressing": 0,
           "degraded": 0,
           "missing": 0,
@@ -184,6 +206,42 @@
       },
       "group": {
         "kind": "configuration",
+        "family": "crds",
+        "members": [
+          "crds"
+        ],
+        "objectKinds": [
+          {
+            "kind": "CustomResourceDefinition",
+            "count": 6
+          }
+        ]
+      },
+      "column": 2,
+      "row": 4,
+      "x": 544,
+      "y": 476
+    },
+    {
+      "id": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "kind": "group",
+      "label": "RBAC · 13 components",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 26,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "group": {
+        "kind": "configuration",
+        "family": "rbac",
         "members": [
           "cainjector-leaderelection-role",
           "cainjector-rbac",
@@ -196,18 +254,72 @@
           "controller-issuers-rbac",
           "controller-leaderelection-role",
           "controller-orders-rbac",
-          "crds",
-          "namespace",
           "webhook-dynamic-serving-role",
-          "webhook-mutating",
-          "webhook-sar-rbac",
-          "webhook-validating"
+          "webhook-sar-rbac"
+        ],
+        "objectKinds": [
+          {
+            "kind": "ClusterRole",
+            "count": 10
+          },
+          {
+            "kind": "ClusterRoleBinding",
+            "count": 10
+          },
+          {
+            "kind": "Role",
+            "count": 3
+          },
+          {
+            "kind": "RoleBinding",
+            "count": 3
+          }
         ]
       },
       "column": 2,
-      "row": 3,
+      "row": 5,
       "x": 544,
-      "y": 296
+      "y": 572
+    },
+    {
+      "id": "grp:configuration/mi/cert-manager/cert-manager/webhooks",
+      "kind": "group",
+      "label": "Webhook configuration · 2 components",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "group": {
+        "kind": "configuration",
+        "family": "webhooks",
+        "members": [
+          "webhook-mutating",
+          "webhook-validating"
+        ],
+        "objectKinds": [
+          {
+            "kind": "MutatingWebhookConfiguration",
+            "count": 1
+          },
+          {
+            "kind": "ValidatingWebhookConfiguration",
+            "count": 1
+          }
+        ]
+      },
+      "column": 2,
+      "row": 6,
+      "x": 544,
+      "y": 668
     },
     {
       "id": "obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
@@ -250,7 +362,7 @@
       "column": 3,
       "row": 1,
       "x": 808,
-      "y": 100
+      "y": 140
     },
     {
       "id": "obj:_/ServiceAccount/cert-manager/cert-manager",
@@ -271,7 +383,7 @@
       "column": 3,
       "row": 2,
       "x": 808,
-      "y": 156
+      "y": 236
     },
     {
       "id": "obj:apps/Deployment/cert-manager/cert-manager-controller",
@@ -293,7 +405,27 @@
       "column": 3,
       "row": 3,
       "x": 808,
-      "y": 212
+      "y": 332
+    },
+    {
+      "id": "obj:_/Namespace/_/cert-manager",
+      "kind": "object",
+      "label": "cert-manager",
+      "ref": {
+        "version": "v1",
+        "kind": "Namespace",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 4,
+      "x": 808,
+      "y": 428
     },
     {
       "id": "obj:_/Service/cert-manager/cert-manager-webhook",
@@ -312,9 +444,9 @@
         "message": "Service is ready"
       },
       "column": 3,
-      "row": 4,
+      "row": 5,
       "x": 808,
-      "y": 268
+      "y": 524
     },
     {
       "id": "obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
@@ -333,9 +465,9 @@
         "message": "Resource is current"
       },
       "column": 3,
-      "row": 5,
+      "row": 6,
       "x": 808,
-      "y": 324
+      "y": 620
     },
     {
       "id": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
@@ -355,9 +487,9 @@
         "message": "Deployment is available. Replicas: 1"
       },
       "column": 3,
-      "row": 6,
+      "row": 7,
       "x": 808,
-      "y": 380
+      "y": 716
     },
     {
       "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
@@ -380,7 +512,7 @@
       "column": 4,
       "row": 0,
       "x": 1072,
-      "y": 156
+      "y": 284
     },
     {
       "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
@@ -403,7 +535,7 @@
       "column": 4,
       "row": 1,
       "x": 1072,
-      "y": 212
+      "y": 380
     },
     {
       "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
@@ -426,7 +558,7 @@
       "column": 4,
       "row": 2,
       "x": 1072,
-      "y": 268
+      "y": 476
     },
     {
       "id": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
@@ -447,7 +579,7 @@
       "column": 5,
       "row": 0,
       "x": 1336,
-      "y": 156
+      "y": 284
     },
     {
       "id": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
@@ -468,7 +600,7 @@
       "column": 5,
       "row": 1,
       "x": 1336,
-      "y": 212
+      "y": 380
     },
     {
       "id": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
@@ -489,7 +621,7 @@
       "column": 5,
       "row": 2,
       "x": 1336,
-      "y": 268
+      "y": 476
     }
   ],
   "edges": [
@@ -501,20 +633,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1008,
-          "y": 122
+          "x": 1024,
+          "y": 176
         },
         {
-          "x": 1040,
-          "y": 122
+          "x": 1048,
+          "y": 176
         },
         {
-          "x": 1040,
-          "y": 178
+          "x": 1048,
+          "y": 320
         },
         {
           "x": 1072,
-          "y": 178
+          "y": 320
         }
       ]
     },
@@ -526,20 +658,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1008,
-          "y": 234
+          "x": 1024,
+          "y": 368
         },
         {
-          "x": 1040,
-          "y": 234
+          "x": 1048,
+          "y": 368
         },
         {
-          "x": 1040,
-          "y": 234
+          "x": 1048,
+          "y": 416
         },
         {
           "x": 1072,
-          "y": 234
+          "y": 416
         }
       ]
     },
@@ -551,20 +683,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1008,
-          "y": 402
+          "x": 1024,
+          "y": 752
         },
         {
-          "x": 1040,
-          "y": 402
+          "x": 1048,
+          "y": 752
         },
         {
-          "x": 1040,
-          "y": 290
+          "x": 1048,
+          "y": 512
         },
         {
           "x": 1072,
-          "y": 290
+          "y": 512
         }
       ]
     },
@@ -576,20 +708,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1272,
-          "y": 178
+          "x": 1288,
+          "y": 320
         },
         {
-          "x": 1304,
-          "y": 178
+          "x": 1312,
+          "y": 320
         },
         {
-          "x": 1304,
-          "y": 178
+          "x": 1312,
+          "y": 320
         },
         {
           "x": 1336,
-          "y": 178
+          "y": 320
         }
       ]
     },
@@ -601,20 +733,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1272,
-          "y": 234
+          "x": 1288,
+          "y": 416
         },
         {
-          "x": 1304,
-          "y": 234
+          "x": 1312,
+          "y": 416
         },
         {
-          "x": 1304,
-          "y": 234
+          "x": 1312,
+          "y": 416
         },
         {
           "x": 1336,
-          "y": 234
+          "y": 416
         }
       ]
     },
@@ -626,20 +758,20 @@
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
-          "x": 1272,
-          "y": 290
+          "x": 1288,
+          "y": 512
         },
         {
-          "x": 1304,
-          "y": 290
+          "x": 1312,
+          "y": 512
         },
         {
-          "x": 1304,
-          "y": 290
+          "x": 1312,
+          "y": 512
         },
         {
           "x": 1336,
-          "y": 290
+          "y": 512
         }
       ]
     },
@@ -651,20 +783,20 @@
       "source": "status.inventory entries, by component",
       "route": [
         {
-          "x": 480,
-          "y": 234
+          "x": 496,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 234
+          "x": 520,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 150
+          "x": 520,
+          "y": 128
         },
         {
           "x": 544,
-          "y": 150
+          "y": 128
         }
       ]
     },
@@ -676,20 +808,45 @@
       "source": "status.inventory entries, by component",
       "route": [
         {
-          "x": 480,
-          "y": 234
+          "x": 496,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 234
+          "x": 520,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 206
+          "x": 520,
+          "y": 224
         },
         {
           "x": 544,
-          "y": 206
+          "y": 224
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/namespace",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/namespace",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 416
+        },
+        {
+          "x": 520,
+          "y": 416
+        },
+        {
+          "x": 520,
+          "y": 320
+        },
+        {
+          "x": 544,
+          "y": 320
         }
       ]
     },
@@ -701,45 +858,95 @@
       "source": "status.inventory entries, by component",
       "route": [
         {
-          "x": 480,
-          "y": 234
+          "x": 496,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 234
+          "x": 520,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 262
+          "x": 520,
+          "y": 416
         },
         {
           "x": 544,
-          "y": 262
+          "y": 416
         }
       ]
     },
     {
-      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager",
+      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager/crds",
       "kind": "hasComponent",
       "from": "mi:cert-manager/cert-manager",
-      "to": "grp:configuration/mi/cert-manager/cert-manager",
+      "to": "grp:configuration/mi/cert-manager/cert-manager/crds",
       "source": "status.inventory entries, by component",
       "route": [
         {
-          "x": 480,
-          "y": 234
+          "x": 496,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 234
+          "x": 520,
+          "y": 416
         },
         {
-          "x": 512,
-          "y": 318
+          "x": 520,
+          "y": 512
         },
         {
           "x": 544,
-          "y": 318
+          "y": 512
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 416
+        },
+        {
+          "x": 520,
+          "y": 416
+        },
+        {
+          "x": 520,
+          "y": 608
+        },
+        {
+          "x": 544,
+          "y": 608
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager/webhooks",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "grp:configuration/mi/cert-manager/cert-manager/webhooks",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 416
+        },
+        {
+          "x": 520,
+          "y": 416
+        },
+        {
+          "x": 520,
+          "y": 704
+        },
+        {
+          "x": 544,
+          "y": 704
         }
       ]
     },
@@ -752,19 +959,19 @@
       "route": [
         {
           "x": 280,
-          "y": 234
+          "y": 416
         },
         {
-          "x": 248,
-          "y": 234
+          "x": 256,
+          "y": 416
         },
         {
-          "x": 248,
-          "y": 234
+          "x": 256,
+          "y": 416
         },
         {
-          "x": 216,
-          "y": 234
+          "x": 232,
+          "y": 416
         }
       ]
     },
@@ -776,20 +983,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 150
+          "x": 760,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 150
+          "x": 784,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 66
+          "x": 784,
+          "y": 80
         },
         {
           "x": 808,
-          "y": 66
+          "y": 80
         }
       ]
     },
@@ -801,20 +1008,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 150
+          "x": 760,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 150
+          "x": 784,
+          "y": 128
         },
         {
-          "x": 776,
-          "y": 122
+          "x": 784,
+          "y": 176
         },
         {
           "x": 808,
-          "y": 122
+          "y": 176
         }
       ]
     },
@@ -826,20 +1033,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 206
+          "x": 760,
+          "y": 224
         },
         {
-          "x": 776,
-          "y": 206
+          "x": 784,
+          "y": 224
         },
         {
-          "x": 776,
-          "y": 178
+          "x": 784,
+          "y": 272
         },
         {
           "x": 808,
-          "y": 178
+          "y": 272
         }
       ]
     },
@@ -851,20 +1058,45 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 206
+          "x": 760,
+          "y": 224
         },
         {
-          "x": 776,
-          "y": 206
+          "x": 784,
+          "y": 224
         },
         {
-          "x": 776,
-          "y": 234
+          "x": 784,
+          "y": 368
         },
         {
           "x": 808,
-          "y": 234
+          "y": 368
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/namespace|obj:_/Namespace/_/cert-manager",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/namespace",
+      "to": "obj:_/Namespace/_/cert-manager",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 320
+        },
+        {
+          "x": 784,
+          "y": 320
+        },
+        {
+          "x": 784,
+          "y": 464
+        },
+        {
+          "x": 808,
+          "y": 464
         }
       ]
     },
@@ -876,20 +1108,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 262
+          "x": 760,
+          "y": 416
         },
         {
-          "x": 776,
-          "y": 262
+          "x": 784,
+          "y": 416
         },
         {
-          "x": 776,
-          "y": 290
+          "x": 784,
+          "y": 560
         },
         {
           "x": 808,
-          "y": 290
+          "y": 560
         }
       ]
     },
@@ -901,20 +1133,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 262
+          "x": 760,
+          "y": 416
         },
         {
-          "x": 776,
-          "y": 262
+          "x": 784,
+          "y": 416
         },
         {
-          "x": 776,
-          "y": 346
+          "x": 784,
+          "y": 656
         },
         {
           "x": 808,
-          "y": 346
+          "y": 656
         }
       ]
     },
@@ -926,20 +1158,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 262
+          "x": 760,
+          "y": 416
         },
         {
-          "x": 776,
-          "y": 262
+          "x": 784,
+          "y": 416
         },
         {
-          "x": 776,
-          "y": 402
+          "x": 784,
+          "y": 752
         },
         {
           "x": 808,
-          "y": 402
+          "y": 752
         }
       ]
     }

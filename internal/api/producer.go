@@ -189,12 +189,13 @@ func (p *producer) render(ctx context.Context, who authz.Identity, t stream.Topi
 		doc = platformDoc(view)
 	case stream.KindInstance:
 		var d readmodel.InstanceDetail
-		d, err = s.instanceDetail(ctx, who, tg.owner())
+		d, err = s.instanceDetail(ctx, who, tg.owner(), false)
 		doc = instanceDoc(d)
 	case stream.KindPackage:
 		var d readmodel.PackageDetail
-		d, err = s.packageDetail(ctx, who, tg.owner())
-		doc = packageDoc(d)
+		var src *readmodel.SourceState
+		d, src, err = s.packageWithSource(ctx, who, tg.owner(), false)
+		doc = packageDoc(d, src)
 	case stream.KindEvents:
 		ref, _ := t.Ref()
 		tg = targetOf(ref)

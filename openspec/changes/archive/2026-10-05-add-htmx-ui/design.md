@@ -5,10 +5,10 @@ local mode's front door (`internal/auth`: launch token, session cookie, Host all
 `http.CrossOriginProtection`, `Content-Security-Policy: default-src 'none'`). The launch answers
 with a meta-refresh page that moves on to the instance list JSON. There is no HTML.
 
-Sources: 0030:D2 (the UI consumes the API in-process from the same documents), 0030:D3 (two
-axes), 0030:D4 (graphs, contracts as text, accepted and active apart), 0030:D5:R7 (locked shown
-up front), 0030:D8 (no Secret data, no values, no last-applied), 0030:D9 (events feed), 0030:D10
-(logs). Owner: "Go API + HTMX on top"; "Keep the seam". Where this design and 0030 disagree, 0030
+Sources: portal:D2 (the UI consumes the API in-process from the same documents), portal:D3 (two
+axes), portal:D4 (graphs, contracts as text, accepted and active apart), portal:D5:R7 (locked shown
+up front), portal:D8 (no Secret data, no values, no last-applied), portal:D9 (events feed), portal:D10
+(logs). Owner: "Go API + HTMX on top"; "Keep the seam". Where this design and the withdrawn portal enhancement disagree, the withdrawn portal enhancement
 wins.
 
 ## Goals / Non-Goals
@@ -18,7 +18,7 @@ wins.
 - A person who launches the portal lands on the Platform and can reach every instance, package,
   object, event and log line the read API serves to them, and nothing else.
 - Every fact on a page comes from a read API document fetched through the API's own handler
-  chain, so the API stays complete (0030:D2:R1).
+  chain, so the API stays complete.
 - Pages stay under a CSP with no `'unsafe-inline'` and no `'unsafe-eval'`; untrusted text is only
   ever rendered by `html/template` or assigned as `textContent`.
 - Readable at phone width; dark and light follow the OS.
@@ -57,7 +57,7 @@ through a new `internal/api/apitest` helper.
 
 **Research & Decisions**
 
-**Context**: 0030:D2 says the UI renders from the API's documents in-process.
+**Context**: portal:D2 says the UI renders from the API's documents in-process.
 **Options considered**:
 1. Exported Go methods on `api.Server` returning DTOs - fast, but a second entry point beside the
    HTTP handlers that can drift (a check added to one path and not the other).
@@ -91,7 +91,7 @@ read; a namespace-scoped user's launch lands on a locked Platform this way),
 `not_found` a not-found page with `404`, `unauthenticated` a sign-in page with `401` telling the
 user to open a new launch link.
 
-### Locked rendering (0030:D5:R7)
+### Locked rendering
 
 Anything the API reports with `access` `forbidden`, `notReadable` or `withheld`, a list with
 access `forbidden`, a problem `forbidden`, or a graph node whose access is not `ok`, renders with
@@ -100,14 +100,14 @@ the `locked` class: a hatched surface, a lock glyph and the words "Locked: you m
 (an inventory reference), never more, and offers no link to a detail it cannot open. A Secret in
 an inventory shows "Secret data is never read" and no YAML action.
 
-### Two axes, never merged (0030:D3)
+### Two axes, never merged
 
 Each instance and package shows two badges with different shapes so they cannot be read as one:
 **Applied** (operator state; `Applied`, `Reconciling`, `Failed`, `Stalled`, `Suspended`,
 `ManagedExternally` neutral, `Unknown`) as a squared stamp, **Health** (`Healthy`, `Progressing`,
 `Degraded`, `Missing`, `Unknown`) as a dot and word. A partial health says "partial", a polled one
 says "not live" with the evaluation time. Any enum value the UI does not know renders as
-"unknown" with the raw value in a title (0030:D2:R3).
+"unknown" with the raw value in a title.
 
 ### Graph rendering
 
@@ -178,15 +178,15 @@ GET /api/v1alpha1/clusters/default/instances/default/podinfo/object?group=apps&k
  "object": {"apiVersion": "apps/v1", "kind": "Deployment", "metadata": {}, "spec": {}, "status": {}}}
 ```
 
-Authorization in order, all before any lookup, exactly as the events of one object (0030:D7):
+Authorization in order, all before any lookup, exactly as the events of one object:
 `get` on the owner; a Secret refused as `forbidden` before anything else about it; the kind
 resolved through cached discovery (unknown is `forbidden`); `get` on the object; the owner's
 inventory must reach it (else `forbidden`). Then `readmodel.Model.Object` reads it on demand as
 the reader, after the reader's own `get` review, and strips `metadata.managedFields`, the
 `kubectl.kubernetes.io/last-applied-configuration` annotation and, for ModuleInstance and
-ModulePackage, `spec.values` (0030:D8:R2/R3). Unlike the held copies it keeps the bulky fields
+ModulePackage, `spec.values`. Unlike the held copies it keeps the bulky fields
 health drops (a Deployment's template, a ConfigMap's data): the YAML view shows the object as
-`kubectl get -o yaml` would, which is why 0030:D8:R4 documents that values rendered into
+`kubectl get -o yaml` would, which is why portal:D8:R4 documents that values rendered into
 non-Secret objects are visible. The UI renders it as YAML with `sigs.k8s.io/yaml` (already a
 module dependency).
 
@@ -248,14 +248,14 @@ On the throwaway cluster `opm-portal-e2e-ui` (operator v1.0.0-beta.6, F1), with
 reported `ErrImagePull` 2.08 s after the patch (kubectl polled every 0.25 s); the open page, with
 no reload, showed **Degraded** 0.92 s after that, while its Applied badge still read **Applied**
 and the instance stayed `Ready=True`. The 0.92 s holds the producer's 250 ms coalescing and the
-page's 400 ms region debounce (0030:D3:R3). Repeated on a fresh cluster after regions moved to
+page's 400 ms region debounce. Repeated on a fresh cluster after regions moved to
 `htmx.ajax` refreshes: `ErrImagePull` at +1.85 s, Degraded on the open page at +2.85 s (1.0 s
 later), still Applied. Screenshot: `instance-podinfo-image-break-light.png`.
 
 ## Risks / Trade-offs
 
 - [Re-fetching a region per change costs a page render] → `delay:400ms` coalesces bursts; the API
-  answers from held state (0030:D3:R9).
+  answers from held state.
 - [The stream's per-session cap is two] → one `EventSource` per tab; a third tab's stream makes
   room by discarding the oldest detached stream, as the broker already does.
 - [The object resource reads on demand] → one `get` per click, as the reader, after both reviews;

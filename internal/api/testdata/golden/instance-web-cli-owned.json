@@ -37,6 +37,7 @@
     "live": true
   },
   "inventoryCount": 2,
+  "inventoryRevision": 1,
   "lastAppliedAt": "2026-10-04T18:04:30Z",
   "renderContracts": [],
   "conditions": [

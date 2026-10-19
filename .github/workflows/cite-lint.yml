@@ -1,0 +1,27 @@
+name: Cite lint
+
+# The comment rule of openspec/config.yaml, checked by the shared reusable
+# workflow of open-platform-model/.github: a comment names an enhancement id
+# only beside a reason in words, never a decision number, never a lone id.
+# Local run: task cite-lint. The tool commit is the enh-ref default of the
+# called workflow; Taskfile.yml (ENH_COMMIT) holds the same commit. The repo
+# needs no exclude; one would go in `with.exclude` and in the task, with a
+# reason.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cite-lint:
+    name: Cite lint
+    permissions:
+      contents: read
+    uses: open-platform-model/.github/.github/workflows/cite-lint.yml@2b66da51fede4332969c324b069012632d8edea9 # .github main

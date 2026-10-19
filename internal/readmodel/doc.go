@@ -30,6 +30,20 @@
 // holders (the instances and packages whose inventory holds it) are joined
 // from held state, kind-agnostic, for the caller.
 //
+// # The ready count of a Service
+//
+// InstanceWithEndpoints and PackageWithEndpoints add, to each Service of the
+// inventory, the number of its ready endpoints, or the mark that the number
+// could not be read. They are the only reads that make it: Instance,
+// Package, the lists, the events checks and ReachPod ask no review of
+// EndpointSlices and list none. For each Service the caller's list review
+// of endpointslices in its namespace comes first, then the reader's, then one
+// list selected by the Service's name, reused for ChildrenTTL. A refused or
+// undecidable review and a failed, timed-out or partial list give the
+// mark, never a count of 0; a Service the cluster records no slice for
+// carries neither. Only a slice owned by the Service counts, and the
+// result is a number: no slice, address, name or label is kept or served.
+//
 // # Changes
 //
 // OnChange tells a listener which OPM object's view may have changed: the

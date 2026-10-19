@@ -9,6 +9,8 @@ When you run the portal on your machine, it reads a cluster as you and shows you
 
 To try the portal on a shared cluster, the same local mode can also run in a Pod, as the README's [Try it in a cluster](https://github.com/open-platform-model/opm-portal#try-it-in-a-cluster) section shows. There it reads as the Pod's ServiceAccount through a read-only role, not as you, and whoever holds its launch token sees what that ServiceAccount may read. Getting the token takes `pods/log`, and reaching the portal takes `pods/portforward`, in the portal's namespace, so whoever holds those grants holds the portal: treat it as a test tool, not as access checked per person. The built-in `view` role includes `pods/log`, so anyone who may view that namespace, or the whole cluster, can take a token that has not been used yet; log shippers and the node's `/var/log/pods` keep copies of it; and anyone who may patch the Deployment can get a new token with a rollout restart. Open the link right after deploying, since a used token opens nothing, and keep log, port-forward and patch access in that namespace to the people meant to use the portal.
 
+The role also lists EndpointSlices, so the Service panel can show how many of a Service's endpoints are ready. The portal keeps that one number and shows no address, name, port or node from the slices. In this mode, whoever holds the launch token sees the count for every Service in an inventory, whether or not they may list EndpointSlices themselves.
+
 This page assumes you know Kubernetes RBAC. To start the portal, see [Run the portal locally](/docs/operating/portal/run-the-portal-locally/).
 
 ## How it works
@@ -34,6 +36,14 @@ The portal learns who your kubeconfig authenticates as with a SelfSubjectReview 
 Each answer is cached for up to 30 seconds from when it arrives, for that identity and that exact request. A permission granted or revoked in the cluster therefore takes effect in the portal within about 35 seconds: the 30 seconds an answer is kept, plus up to 5 seconds for the check that produced it. That holds for a change stream or log stream already open too.
 
 The check runs on the request's attributes before anything is looked up. When you may not read a kind in a namespace, the portal gives the same `forbidden` answer whether the object exists or not, and a list you may not read is empty, with no count of what it hides. Inside a page you may read, an object you may not read is marked forbidden instead of failing the page.
+
+### A package's source is read as you
+
+A package's page and graph show the Flux source its `spec.sourceRef` names: whether it is ready, its revision, and whether the cluster serves its kind at all. The portal reads that source as it reads everything else, as you, with `get` only and by name. It reads three kinds, `OCIRepository`, `GitRepository` and `Bucket` in `source.toolkit.fluxcd.io`, chosen by the kind alone as the package controller chooses them, so a `sourceRef` that names another kind is shown as not read, without a review or a read. It looks for the source in the namespace the `sourceRef` names, or else the package's. A user who may read the package in one namespace and not its source in another sees the source locked, and the portal sends no `get` for it. It never reads the source's `secretRef`, and never serves the artifact's URL.
+
+The Ready condition's message, its reason and the artifact's revision are text that Flux wrote from errors it met. The portal serves them in both modes, cut to 1024 Unicode code points for the message and 256 for the reason and the revision. A cut value ends with an ellipsis, and the full text stays in the cluster for `kubectl describe`.
+
+The portal's roles carry no rule for the source kinds. In a Pod run from `deploy/`, the ServiceAccount is the caller, so the source shows locked unless you add a rule for it. In-cluster, a user the cluster allows to get the source sees it as not readable by the portal. The portal asks its discovery client every five minutes, never on a request, whether the cluster serves the three kinds, so "kind not installed" clears within five minutes of Flux being installed.
 
 ### Nothing is written
 

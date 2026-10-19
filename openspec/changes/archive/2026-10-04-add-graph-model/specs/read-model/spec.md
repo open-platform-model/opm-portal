@@ -7,7 +7,7 @@ instance or package view SHALL carry the ReplicaSets, Pods and Jobs whose chain 
 owner references reaches it, each with its direct controller owner, its health, and for a
 ReplicaSet its desired replica count. A child whose chain reaches no inventory object SHALL NOT
 be attached to any. When the children could not be read, no object SHALL carry children and the
-workloads SHALL keep saying their children are unread. Source: 0030:D4:R1.
+workloads SHALL keep saying their children are unread.
 
 #### Scenario: podinfo's Deployment
 

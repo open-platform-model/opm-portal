@@ -1,5 +1,9 @@
 schema: spec-driven
 
+references:
+  - id: opm-enhancements
+    remote: https://github.com/open-platform-model/enhancements.git
+
 context: |
   # OPM Portal Development Constitution
 
@@ -9,6 +13,11 @@ context: |
   Milestone 1 runs on the user's machine with their kubeconfig; milestone 2, in-cluster with
   OIDC and SubjectAccessReview-as-user, is a future plan (OIDC was removed on 2026-10-05). The design record is `docs/DESIGN.md`: its decisions
   are cited as `portal:Dn` and bind every change. Plan and progress live in `ROADMAP.md`.
+  Enhancements (design intent that spans repos) live in the OpenSpec store `opm-enhancements`,
+  declared under `references:`. Read an entry with
+  `openspec show <id>-<slug> --store opm-enhancements`. If OpenSpec warns that the store
+  `opm-enhancements` is not registered, report the warning and go on; the human runs
+  `task enhancements:register`.
 
   ## Core Principles (Web Portal)
 
@@ -140,8 +149,8 @@ context: |
 
   ### Comments
   - Default to no design reference: say what the code does and why, in the comment's own words.
-  - When the rationale genuinely lives in a decision, cite it once at the symbol. A portal decision in `docs/DESIGN.md` is `portal:D9`; an enhancement decision is `0027:D9` (enhancement id, colon, decision id, no space). Several decisions: `portal:D6/D7`. Across sources: `portal:D9, 0027:D1`. One requirement: `portal:D9:R2`; several: `portal:D9:R1/R2`. An open question: `portal:OQ20`. A bare `D9` names nothing, because decision numbers restart per source.
-  - Never write a `0030:` citation. Enhancement 0030 was withdrawn on 2026-10-05 and its numbers moved unchanged into `docs/DESIGN.md`; archived changes keep the old head as history.
+  - When the rationale genuinely lives in a decision, cite it once at the symbol. A portal decision in `docs/DESIGN.md` is `portal:D9`. Several decisions: `portal:D6/D7`. One requirement: `portal:D9:R2`; several: `portal:D9:R1/R2`. An open question: `portal:OQ20`. A bare `D9` names nothing, because decision numbers restart per source.
+  - To cite an enhancement, follow the workspace file `references/enhancements.md`. The portal enhancement was withdrawn on 2026-10-05 and its numbers moved unchanged into `docs/DESIGN.md`; cite them as `portal:Dn`.
   - Never cite a section, slice, phase, task or design-doc-local id (`§8.1`, `slice C2`, `task 4.2`, `design LD3`). They are not stable identifiers; a requirement number (`R2`) is.
   - Never put a reference in a scaffold template, a generated file, a fixture a user copies, or a user-facing string (a page, an API error, a log line). Those reach people who do not read the design record.
   - No `Was:` rename history in comments; `git log` owns it.
@@ -172,9 +181,10 @@ rules:
       consumer must pick up a published pin mid-change, add exactly one line to the proposal,
       `Delivery: one PR per section (<consumer> needs <pin> after section <N>)`, and the change
       ships section by section. In that mode the change stays active on main between PRs, and
-      spec sync and enhancement delivery logging wait for archive after the last PR."
-    - "Name the portal decisions the change implements as `portal:Dn` (docs/DESIGN.md). A change that alters a decision, adds one or answers an open question edits docs/DESIGN.md in the same PR, keeping every existing number; it creates no enhancement.yaml for portal decisions."
-    - "Only if this change implements decisions from another enhancement in the sibling enhancements/ repo (0027, for V2 writes), create enhancement.yaml in this change directory declaring it (implements: [{enhancement: \"NNNN\", decisions: [D1, ...], resolves: []}]). Write it at creation time, while the enhancement is in context; it is what makes archive-time delivery logging mechanical."
+      spec sync and the tick of the enhancement's tasks line wait for archive after the last PR."
+    - "Name the portal decisions the change implements as `portal:Dn` (docs/DESIGN.md). A change that alters a decision, adds one or answers an open question edits docs/DESIGN.md in the same PR, keeping every existing number."
+    - "If the change delivers a line of an enhancement's `tasks.md`, add `## Enhancement` with one line `Delivers NNNN, task X.Y.` per task; otherwise `None.`"
+    - "Name an enhancement only by its id beside a reason in words, never alone, never a decision number."
 
   design:
     - "Focus: HOW we'll implement it technically"
@@ -199,15 +209,16 @@ rules:
       each read requires."
     - "Claims about controller output MUST name their evidence: a live cluster capture, or the
       controller source file and line."
+    - "Name an enhancement only by its id beside a reason in words, never alone, never a decision number."
 
   specs:
     - "Focus: WHAT behavior is changing (not HOW it's implemented)"
     - "Updates when: New or changed requirements emerge"
     - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY).
-    - When a requirement implements a portal or enhancement requirement, cite `portal:DN:Rn` or
-      `NNNN:DN:Rn` in its body
+    - When a requirement implements a portal requirement, cite `portal:DN:Rn` in its body
       (first sentence or a trailing `Source:` line), never inside the `### Requirement:` header,
-      which tools read as the requirement's name.
+      which tools read as the requirement's name. Cite an enhancement as
+      `references/enhancements.md` says.
     - Describe observable behavior (API responses, rendered pages, stream events, exit codes).
     - Use ADDED/MODIFIED/REMOVED sections to show deltas.
     - Include scenarios, including the denied and degraded cases (no permission, unknown kind).
@@ -261,8 +272,8 @@ operations:
         releasing patch type (`fix`, `deps`, `perf`, `refactor`, `revert`) over a hidden type),
         because under the `BLANK` squash message only the title reaches `main`. In per-section
         mode each section commit is the PR title and therefore a release trigger; the change
-        stays active on main between PRs, and spec sync and enhancement delivery logging wait
-        for archive after the last PR."
+        stays active on main between PRs, and spec sync and the tick of the enhancement's tasks
+        line wait for archive after the last PR."
   archive:
     guidance:
-      - "If this change directory contains enhancement.yaml, finish the archive by logging the landing: from the workspace root run `task enhancements:delivery:log FROM=<archived-change-path> SUMMARY=\"<one line: what landed>\"`. It appends a CUE-validated entry to each declared enhancement's delivery.yaml; confirm it printed 'logged' for every declared enhancement."
+      - "If the change delivers a line of an enhancement's `tasks.md`, name it in the PR body; after the repo PR merges, a PR on `enhancements` ticks that line."

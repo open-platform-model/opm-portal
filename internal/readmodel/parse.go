@@ -192,6 +192,16 @@ func inventoryCount(u *unstructured.Unstructured, entries []health.Ref) int64 {
 	return int64(len(entries))
 }
 
+// inventoryRevision is status.inventory.revision when the controller wrote an
+// integer of at least 1, else 0 (not recorded). The controller starts at 1, so
+// a smaller number or another type is not the controller's.
+func inventoryRevision(u *unstructured.Unstructured) int64 {
+	if n, found := i64(u.Object, "status", "inventory", "revision"); found && n >= 1 {
+		return n
+	}
+	return 0
+}
+
 // ownerOf reads spec.owner. An absent owner is the controller's, as the CRD
 // defaults it. A value that is neither known one is returned as written and
 // never mapped to a known one, so a reader sees that the portal does not know

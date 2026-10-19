@@ -35,10 +35,14 @@ var inClusterGoldens = []goldenCase{
 	{"in-cluster/instance-backup-provider", base + "/instances/default/backup-provider"},
 	{"in-cluster/instance-backup-provider-object-registration", backupRegistrationObject},
 	{"in-cluster/instance-podinfo-graph", base + "/instances/default/podinfo/graph"},
+	{"in-cluster/instance-backup-provider-graph", base + "/instances/default/backup-provider/graph"},
 	{"in-cluster/instance-podinfo-events", base + "/instances/default/podinfo/events"},
+	{"in-cluster/instance-podinfo-events-all", base + "/instances/default/podinfo/events?scope=all"},
+	{"in-cluster/instance-cert-manager-events-all", base + "/instances/cert-manager/cert-manager/events?scope=all"},
 	{"in-cluster/instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
 	{"in-cluster/package-list", base + "/packages"},
 	{"in-cluster/package-podinfo", base + "/packages/pkg/podinfo"},
+	{"in-cluster/package-podinfo-events-all", base + "/packages/pkg/podinfo/events?scope=all"},
 	{"in-cluster/package-podinfo-graph", base + "/packages/pkg/podinfo/graph"},
 	{"in-cluster/platform", base + "/platform"},
 	{"in-cluster/platform-graph", base + "/platform/graph"},
@@ -53,6 +57,55 @@ func TestGoldenInCluster(t *testing.T) {
 	checkGoldens(t, e, inClusterGoldens)
 	for _, c := range inClusterGoldens {
 		assertNoControllerText(t, c.path, e.get(t, c.path).body)
+	}
+}
+
+// registrationNodes returns the registration of every node of a graph body
+// that carries one, by node id.
+func registrationNodes(t *testing.T, body []byte) map[string]v1.GraphRegistration {
+	t.Helper()
+	var g v1.Graph
+	if err := json.Unmarshal(body, &g); err != nil {
+		t.Fatal(err)
+	}
+	out := map[string]v1.GraphRegistration{}
+	for i := range g.Nodes {
+		if r := g.Nodes[i].Registration; r != nil {
+			out[g.Nodes[i].ID] = *r
+		}
+	}
+	return out
+}
+
+// TestInClusterGraphRegistrationsCarryNoMessage: the registration an
+// instance or a package graph attaches to the node of a registration its
+// inventory holds carries its standing in-cluster but no text the controller
+// wrote, as a platform graph's node does; local mode serves the text.
+func TestInClusterGraphRegistrationsCarryNoMessage(t *testing.T) {
+	objs := readmodeltest.WithPackageHolder(t, loadF1(t))
+	local := newEnv(t, objs, readmodeltest.AllowAll)
+	in := newEnv(t, objs, readmodeltest.AllowAll, inCluster)
+	for _, path := range []string{
+		base + "/instances/default/backup-provider/graph",
+		base + "/packages/" + readmodeltest.PackageHolderNamespace + "/" + readmodeltest.PackageHolderName + "/graph",
+	} {
+		l := registrationNodes(t, local.get(t, path).body)
+		i := registrationNodes(t, in.get(t, path).body)
+		if len(l) != 1 || len(i) != 1 {
+			t.Fatalf("GET %s: %d local and %d in-cluster registration nodes, want 1 each", path, len(l), len(i))
+		}
+		for id, r := range l {
+			if r.Message == "" {
+				t.Errorf("GET %s: local %s carries no message, so the in-cluster check proves nothing", path, id)
+			}
+			got := i[id]
+			if got.Message != "" || got.ActiveMessage != "" {
+				t.Errorf("GET %s: in-cluster %s carries message %q and activeMessage %q", path, id, got.Message, got.ActiveMessage)
+			}
+			if got.Verdict != r.Verdict || got.Catalog != r.Catalog || got.Accepted != r.Accepted {
+				t.Errorf("GET %s: in-cluster %s = %+v, want the standing of %+v", path, id, got, r)
+			}
+		}
 	}
 }
 
@@ -294,7 +347,7 @@ func controllerTextFields(t *testing.T, body []byte) []string {
 					continue
 				}
 				if s, ok := child.(string); ok && s != "" {
-					if f := classifyText(parentKey, parent, k); f != "" {
+					if f := classifyText(parentKey, parent, x, k); f != "" {
 						out = append(out, f)
 					}
 				}
@@ -329,13 +382,15 @@ func objectStatusText(body []byte) []string {
 	return out
 }
 
-// classifyText names the controller-text field key is inside a map reached
-// through parentKey, or "" when key carries no controller text there.
-func classifyText(parentKey string, parent map[string]any, key string) string {
+// classifyText names the controller-text field key is inside the map self,
+// which was reached through parentKey from parent, or "" when key carries no
+// controller text there. A note is read against its own event (self): a list of
+// events holds the notes of many writers.
+func classifyText(parentKey string, parent, self map[string]any, key string) string {
 	switch key {
 	case "note":
-		ref, _ := parent["regarding"].(map[string]any)
-		switch parent["reportingController"] {
+		ref, _ := self["regarding"].(map[string]any)
+		switch self["reportingController"] {
 		case opmController:
 			return "note (controller)"
 		case nil, "":

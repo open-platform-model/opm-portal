@@ -1,0 +1,119 @@
+<main id="main" tabindex="-1" data-topics="package:pkg/provider events:package:pkg/provider platform instances" data-canonical="/packages/pkg/provider">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=package">Installed</a> <span aria-hidden="true">/</span> <span class="mono">pkg</span> <span aria-hidden="true">/</span> <span>provider</span></nav>
+<div class="summary">
+  <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="package:pkg/provider">
+    <p class="kicker">Package <span class="tip"><button type="button" class="tip-t" aria-describedby="tip-prov-package-pkg-provider-0"><span class="prov prov-refused"><svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>Provider</span><span class="vh">standing: refused</span></button><span class="tipbox" id="tip-prov-package-pkg-provider-0" role="tooltip">Registration pkg.provider is refused: ProviderMismatch.</span></span></p>
+    <h1>provider</h1>
+    <p class="subtitle mono">from OCIRepository pkg/<wbr>podinfo-release</p>
+    <dl class="facts">
+      <dt>Namespace</dt><dd class="mono">pkg</dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-owner">Owner</button><span class="tipbox" id="tip-owner" role="tooltip">Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.</span></span></dt><dd>the controller</dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-applier">Applier</button><span class="tipbox" id="tip-applier" role="tooltip">The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount.</span></span></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
+      <dt>Source</dt><dd class="mono">OCIRepository pkg/podinfo-release</dd>
+      <dt>Path</dt><dd class="mono">.</dd>
+      <dt>Interval</dt><dd>every 1 min</dd>
+      <dt>Prune</dt><dd>on</dd>
+      <dt>Revision</dt><dd><span class="muted">not recorded</span></dd>
+      <dt>Depends on</dt><dd><span class="muted">nothing</span></dd>
+      <dt>Objects</dt><dd>1</dd>
+      <dt>Last applied</dt><dd><span class="muted">never</span></dd>
+    </dl>
+  </section>
+  
+<section class="state-block hue-degraded" id="applied-card" aria-label="Applied status" data-follow="package:pkg/provider events:package:pkg/provider">
+  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10v9M18 25v.5"/></svg><span class="sb-word">Failed, retrying</span></div>
+  <p class="sb-summary">Failed on the last 3 attempts, retrying every 1 min</p>
+  <p class="sb-note">The package&#39;s source is not ready or does not exist.</p><p class="sb-note says">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p><p class="sb-note reconciling">Reconciling: Progressing, since 6m ago</p>
+  <p class="sb-caption">Warning events, last hour</p>
+  <div class="sb-reasons"><span class="muted">No reconcile errors</span></div>
+  <div class="hist">
+  <div class="hist-bar"><span class="hist-label">History</span>
+    <span class="adots"><span class="adot dot-failed"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-1" aria-label="#1 failed">✕</button><span class="tipbox" id="attempt-1" role="tooltip">#1 reconcile: failed, 2026-10-04 18:03:54 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span></span></span><span class="adot dot-failed"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-2" aria-label="#2 failed">✕</button><span class="tipbox" id="attempt-2" role="tooltip">#2 reconcile: failed, 2026-10-04 18:04:23 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span></span></span><span class="adot dot-failed"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-3" aria-label="#3 failed">✕</button><span class="tipbox" id="attempt-3" role="tooltip">#3 reconcile: failed, 2026-10-04 18:04:23 UTC: getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span></span></span></span><span class="hist-count">last 3 attempts</span>
+  </div>
+  <details class="hist-fold" id="history-fold"><summary><span class="hist-closed">Show history ▾</span><span class="hist-open">Hide history ▴</span></summary>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+<ol class="timeline">
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#3</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · 0 objects</p>
+  </li>
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#2</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · 0 objects</p>
+  </li>
+  <li class="tl-item">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="outcome outcome-failed">Failed</span><span class="tl-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</span><span class="tl-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · 0 objects</p>
+  </li>
+</ol>
+  </details>
+</div>
+</section>
+  
+<section class="state-block hue-missing" id="health-card" aria-label="Health status" data-follow="package:pkg/provider">
+  <div class="sb-head"><span class="sb-eyebrow">Health · everything it runs</span><span class="sb-when">checked live</span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10v9M18 25v.5"/></svg><span class="sb-word">Missing</span></div>
+  <p class="sb-summary">1 of 1 resource unhealthy</p>
+  
+  <div class="sb-reasons"><a href="/packages/pkg/provider?reason=NotFound&amp;tab=resources"><strong>1</strong> <span class="mono">NotFound</span></a></div>
+  
+</section>
+  
+<section class="state-block hue-degraded" id="provider-card" aria-label="Provider status" data-follow="package:pkg/provider platform">
+  <div class="sb-head"><span class="sb-eyebrow">Provider · its registration</span><span class="sb-when">refused <time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC" data-relative aria-live="off">5m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M18 10v9M18 25v.5"/></svg><span class="sb-word">Refused</span></div>
+  <p class="sb-summary">Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output</p>
+  <p class="sb-note">The registration did not come from the provider instance it names.</p>
+  <div class="sb-reasons"><a href="/packages/pkg/provider?tab=provider"><strong>1</strong> <span class="mono">ProviderMismatch</span></a></div>
+  <p class="sb-links"><a href="/packages/pkg/provider?tab=provider">Open the Provider tab</a></p>
+</section>
+  
+</div>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/packages/pkg/provider?tab=graph">Graph</a><a href="/packages/pkg/provider?tab=provider" aria-current="page">Provider</a><a href="/packages/pkg/provider?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="package:pkg/provider events:package:pkg/provider">2</span></a><a href="/packages/pkg/provider?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="package:pkg/provider events:package:pkg/provider">0</span></a><a href="/packages/pkg/provider?tab=logs">Logs</a><a href="/packages/pkg/provider?tab=yaml">YAML</a></nav>
+<section class="panel owner-panel panel-wide" id="provider" aria-labelledby="provider-tab-h" data-follow="package:pkg/provider platform instances">
+  <h2 class="vh" id="provider-tab-h">Provider <span class="h-note">the registrations this package's inventory holds, as the controller judged them</span></h2>
+  
+  
+  <article class="claim" aria-label="Registration pkg.provider">
+    <p class="claim-intro">This package is also a provider: it registers a catalog with the platform. The controller refused the claim, so it provides nothing.</p>
+    <h3 class="mono">pkg.<wbr>provider</h3>
+    <p class="pills"><span class="pill pill-no">not accepted</span>
+      <span class="pill pill-no">inactive</span> <span class="mono">ProviderMismatch</span></p>
+    
+    <dl class="facts-grid">
+      <div><dt>Registration</dt><dd class="mono">TransformerRegistration pkg.<wbr>provider</dd></div>
+      <div><dt>Claims catalog</dt><dd><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</a> <span class="ver">0.1.0</span></dd></div>
+      <div><dt>Registry</dt><dd>In the Platform's resolved registry, contributed by <span class="mono">default.backup-provider</span>.</dd></div>
+      <div><dt>Contracts</dt><dd>none: the claim is refused</dd></div>
+      <div><dt>providerRef</dt><dd>names ModuleInstance <span class="mono">pkg/provider</span>, not this package</dd></div>
+      <div><dt>Controller says</dt><dd>Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output</dd></div>
+    </dl>
+    <h4 class="sec-h">Registration conditions</h4>
+    <div class="table-wrap"><table class="table rows">
+      <thead><tr><th scope="col">Condition</th><th scope="col">Status</th><th scope="col">Reason</th><th scope="col">Meaning</th><th scope="col">Since</th></tr></thead>
+      <tbody><tr><th scope="row" data-label="Condition">Stalled</th><td data-label="Status"><span class="cond-badge tone-abnormal">True</span></td><td data-label="Reason" class="mono">ProviderMismatch</td><td data-label="Meaning">The registration did not come from the provider instance it names.<p class="cond-message">Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC" data-relative aria-live="off">5m ago</time></td></tr><tr><th scope="row" data-label="Condition">Ready</th><td data-label="Status"><span class="cond-badge tone-abnormal">False</span></td><td data-label="Reason" class="mono">ProviderMismatch</td><td data-label="Meaning">The registration did not come from the provider instance it names.<p class="cond-message">Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output</p></td><td data-label="Since"><time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC" data-relative aria-live="off">5m ago</time></td></tr></tbody>
+    </table></div>
+    <h4 class="sec-h">What it provides</h4>
+    <p class="muted">Nothing. The controller refused the claim, so it provides no contract.</p>
+    
+  </article>
+  
+</section>
+<details class="panel panel-wide conditions-fold" id="conditions" data-follow="package:pkg/provider">
+  <summary><h2 id="conditions-h">Conditions</h2></summary>
+<ol class="conditions">
+  <li class="condition tone-progressing">
+    <div class="cond-head"><span class="cond-type">Reconciling</span><span class="cond-status">True</span><span class="cond-reason">Progressing</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
+    <p class="cond-message">Reconciliation in progress</p>
+    <p class="cond-meaning">The controller is working on the latest change.</p>
+  </li>
+  <li class="condition tone-abnormal">
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">False</span><span class="cond-reason">SourceNotReady</span><span class="cond-time"><time datetime="2026-10-04T18:03:54Z" title="2026-10-04 18:03:54 UTC" data-relative aria-live="off">6m ago</time></span></div>
+    <p class="cond-message">getting OCIRepository pkg/podinfo-release: no matches for kind &#34;OCIRepository&#34; in version &#34;source.toolkit.fluxcd.io/v1&#34;</p>
+    <p class="cond-meaning">The package&#39;s source is not ready or does not exist.</p><p class="cond-next"><span class="label">Next step</span> Check the source object the package names; the controller retries.</p>
+  </li>
+</ol>
+  
+</details>
+</main>

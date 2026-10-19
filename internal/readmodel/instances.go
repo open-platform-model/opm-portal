@@ -34,8 +34,20 @@ func (m *Model) ListInstances(ctx context.Context, who authz.Identity, g authz.G
 }
 
 // Instance returns one ModuleInstance with its inventory grouped by
-// component. g must cover get moduleinstances namespace/name.
+// component. g must cover get moduleinstances namespace/name. It makes no
+// review and no list of EndpointSlices: see InstanceWithEndpoints.
 func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string) (InstanceDetail, error) {
+	return m.instance(ctx, who, g, namespace, name, false)
+}
+
+// InstanceWithEndpoints is Instance with the ready-endpoint count of each
+// Service of the inventory, or the mark that it could not be read. Only the
+// graph view, which shows the count, asks for it (portal:D11:R7).
+func (m *Model) InstanceWithEndpoints(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string) (InstanceDetail, error) {
+	return m.instance(ctx, who, g, namespace, name, true)
+}
+
+func (m *Model) instance(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string, withEndpoints bool) (InstanceDetail, error) {
 	if err := covers(who, g, "get", moduleInstances, namespace, name); err != nil {
 		return InstanceDetail{}, err
 	}
@@ -43,7 +55,7 @@ func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant,
 	if err != nil {
 		return InstanceDetail{}, err
 	}
-	res := m.newEvaluator(who).inventoryHealth(ctx, u)
+	res, components := m.evaluated(ctx, who, u, withEndpoints)
 	item := instanceItem(u)
 	item.Health = res.Instance
 	item.ProviderOf = m.newClaims(ctx, who).of(u)
@@ -53,7 +65,7 @@ func (m *Model) Instance(ctx context.Context, who authz.Identity, g authz.Grant,
 		Conditions:         conditions(u),
 		History:            history(u),
 		LastApplied:        lastApplied(u),
-		Components:         componentsOf(res),
+		Components:         components,
 	}, nil
 }
 
@@ -71,13 +83,14 @@ func (m *Model) InstanceExists(ctx context.Context, who authz.Identity, g authz.
 
 func instanceItem(u *unstructured.Unstructured) InstanceItem {
 	return InstanceItem{
-		Ref:             refOf(u),
-		UID:             string(u.GetUID()),
-		Module:          ModuleRef{Path: str(u.Object, "spec", "module", "path"), Version: str(u.Object, "spec", "module", "version")},
-		Owner:           ownerOf(u),
-		Applied:         health.ReadApplied(u),
-		InventoryCount:  inventoryCount(u, inventory(u)),
-		LastAppliedAt:   timestamp(u.Object, "status", "lastAppliedAt"),
-		RenderContracts: strs(u.Object, "status", "requiredContracts"),
+		Ref:               refOf(u),
+		UID:               string(u.GetUID()),
+		Module:            ModuleRef{Path: str(u.Object, "spec", "module", "path"), Version: str(u.Object, "spec", "module", "version")},
+		Owner:             ownerOf(u),
+		Applied:           health.ReadApplied(u),
+		InventoryCount:    inventoryCount(u, inventory(u)),
+		InventoryRevision: inventoryRevision(u),
+		LastAppliedAt:     timestamp(u.Object, "status", "lastAppliedAt"),
+		RenderContracts:   strs(u.Object, "status", "requiredContracts"),
 	}
 }

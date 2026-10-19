@@ -1,6 +1,6 @@
 ## Context
 
-Enhancement 0030, experiment 01 captured a released operator on throwaway podman kind clusters
+The withdrawn portal enhancement, experiment 01 captured a released operator on throwaway podman kind clusters
 (2026-10-04): CLI v1.0.0-beta.7 installed operator v1.0.0-beta.5, the Platform subscribed
 `opmodel.dev/catalogs/opm@v4` 4.5.2, and the inputs were cert-manager, podinfo, two hand-applied
 registrations, a ModulePackage without Flux and a CLI-owned `web_app` instance. A second cluster
@@ -204,7 +204,7 @@ v1.0.0-beta.2 or later; the released beta.5 operator refuses it `CatalogUnresolv
 (experiment 01, phase 7).
 **Options considered**:
 1. Build the operator from `main` for the capture: tests an unreleased build, the thing
-   0030's graduation gate rules out as evidence.
+   the withdrawn portal enhancement's graduation gate rules out as evidence.
 2. Leave the backup fixtures out until a release: loses the refused-claim and
    consumer-without-provider states.
 3. Apply them and record the verdict (chosen).
@@ -230,4 +230,4 @@ beta.5, was not taken: it would pin a superseded release and double the capture.
 - [A tag-pinned fixture image is re-pushed] → cert-manager's and podinfo's images are pinned by
   tag only; the Pods' `imageID` in the capture shows the digest that ran.
 - [Rendered values reach non-Secret objects, such as a ConfigMap or a container env] → the same
-  holds in `kubectl` and for the portal (0030:D8:R4); the fixtures carry no secret material.
+  holds in `kubectl` and for the portal; the fixtures carry no secret material.

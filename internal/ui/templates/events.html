@@ -1,7 +1,8 @@
 {{define "content"}}{{with .Main}}
-<div class="fragment">
+<div class="fragment"{{if not .Problem}} data-view="events"{{end}}>
 <h2 class="frag-h">Recent events{{with .About}} <span class="mono h-note">{{.}}</span>{{end}}</h2>
-{{template "events-note"}}
-{{template "events-list" .}}
+{{if not .Problem}}{{template "stale-note" .}}{{end}}
+{{template "events-recent"}}
+{{template "events-table" .Table}}
 </div>
 {{end}}{{end}}

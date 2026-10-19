@@ -1,0 +1,2921 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "Graph",
+  "scope": "instance",
+  "root": "mi:cert-manager/cert-manager",
+  "layout": {
+    "width": 1568,
+    "height": 3396,
+    "nodeWidth": 216,
+    "nodeHeight": 72,
+    "columns": [
+      {
+        "title": "Module",
+        "x": 16
+      },
+      {
+        "title": "Instance",
+        "x": 280
+      },
+      {
+        "title": "Components",
+        "x": 544
+      },
+      {
+        "title": "Objects",
+        "x": 808
+      },
+      {
+        "title": "ReplicaSets",
+        "x": 1072
+      },
+      {
+        "title": "Pods",
+        "x": 1336
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5",
+      "kind": "module",
+      "label": "opmodel.dev/modules/cert_manager@v2",
+      "version": "v2.0.5",
+      "column": 0,
+      "row": 13,
+      "x": 16,
+      "y": 1385
+    },
+    {
+      "id": "mi:cert-manager/cert-manager",
+      "kind": "instance",
+      "label": "cert-manager/cert-manager",
+      "ref": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 42,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "reconcile": {
+        "state": "Applied",
+        "reason": "ReconciliationSucceeded",
+        "message": "Reconciliation succeeded"
+      },
+      "owner": "controller",
+      "renderContracts": [
+        "opmodel.dev/catalogs/opm/resources/container@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1",
+        "opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1",
+        "opmodel.dev/catalogs/opm/resources/role@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/service-account@v1beta1",
+        "opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1",
+        "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/init-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/scaling@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/security-context@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1",
+        "opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1"
+      ],
+      "column": 1,
+      "row": 13,
+      "x": 280,
+      "y": 1385
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/cainjector",
+      "kind": "component",
+      "label": "cainjector",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 0,
+      "x": 544,
+      "y": 44
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role",
+      "kind": "component",
+      "label": "cainjector-leaderelection-role",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 2,
+      "x": 544,
+      "y": 284
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/cainjector-rbac",
+      "kind": "component",
+      "label": "cainjector-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 3,
+      "x": 544,
+      "y": 380
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-approve-rbac",
+      "kind": "component",
+      "label": "controller-approve-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 4,
+      "x": 544,
+      "y": 476
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-certificates-rbac",
+      "kind": "component",
+      "label": "controller-certificates-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 5,
+      "x": 544,
+      "y": 572
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-challenges-rbac",
+      "kind": "component",
+      "label": "controller-challenges-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 6,
+      "x": 544,
+      "y": 668
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac",
+      "kind": "component",
+      "label": "controller-clusterissuers-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 7,
+      "x": 544,
+      "y": 764
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-csr-rbac",
+      "kind": "component",
+      "label": "controller-csr-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 8,
+      "x": 544,
+      "y": 860
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac",
+      "kind": "component",
+      "label": "controller-ingress-shim-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 9,
+      "x": 544,
+      "y": 956
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-issuers-rbac",
+      "kind": "component",
+      "label": "controller-issuers-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 10,
+      "x": 544,
+      "y": 1052
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-leaderelection-role",
+      "kind": "component",
+      "label": "controller-leaderelection-role",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 11,
+      "x": 544,
+      "y": 1148
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller-orders-rbac",
+      "kind": "component",
+      "label": "controller-orders-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 12,
+      "x": 544,
+      "y": 1244
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role",
+      "kind": "component",
+      "label": "webhook-dynamic-serving-role",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 13,
+      "x": 544,
+      "y": 1340
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/webhook-sar-rbac",
+      "kind": "component",
+      "label": "webhook-sar-rbac",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "memberOf": "grp:configuration/mi/cert-manager/cert-manager/rbac",
+      "column": 2,
+      "row": 14,
+      "x": 544,
+      "y": 1436
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/controller",
+      "kind": "component",
+      "label": "controller",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 29,
+      "x": 544,
+      "y": 2828
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/namespace",
+      "kind": "component",
+      "label": "namespace",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 1,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 30,
+      "x": 544,
+      "y": 2924
+    },
+    {
+      "id": "comp:mi/cert-manager/cert-manager/webhook",
+      "kind": "component",
+      "label": "webhook",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 3,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "column": 2,
+      "row": 31,
+      "x": 544,
+      "y": 3020
+    },
+    {
+      "id": "grp:configuration/mi/cert-manager/cert-manager/crds",
+      "kind": "group",
+      "label": "CRDs · 1 component",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 6,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "group": {
+        "kind": "configuration",
+        "family": "crds",
+        "members": [
+          "crds"
+        ],
+        "objectKinds": [
+          {
+            "kind": "CustomResourceDefinition",
+            "count": 6
+          }
+        ]
+      },
+      "column": 2,
+      "row": 32,
+      "x": 544,
+      "y": 3116
+    },
+    {
+      "id": "grp:configuration/mi/cert-manager/cert-manager/webhooks",
+      "kind": "group",
+      "label": "Webhook configuration · 2 components",
+      "health": {
+        "state": "Healthy",
+        "counts": {
+          "healthy": 2,
+          "progressing": 0,
+          "degraded": 0,
+          "missing": 0,
+          "unknown": 0,
+          "forbidden": 0,
+          "notReadable": 0,
+          "withheld": 0
+        }
+      },
+      "group": {
+        "kind": "configuration",
+        "family": "webhooks",
+        "members": [
+          "webhook-mutating",
+          "webhook-validating"
+        ],
+        "objectKinds": [
+          {
+            "kind": "MutatingWebhookConfiguration",
+            "count": 1
+          },
+          {
+            "kind": "ValidatingWebhookConfiguration",
+            "count": 1
+          }
+        ]
+      },
+      "column": 2,
+      "row": 33,
+      "x": 544,
+      "y": 3212
+    },
+    {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
+      "kind": "object",
+      "label": "cert-manager-cainjector",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 0,
+      "x": 808,
+      "y": 44
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "kind": "object",
+      "label": "cert-manager-cainjector",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 1,
+      "x": 808,
+      "y": 140
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager-cainjector%3Aleaderelection",
+      "kind": "object",
+      "label": "cert-manager-cainjector:leaderelection",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "Role",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector:leaderelection"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 2,
+      "x": 808,
+      "y": 284
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager-cainjector%3Aleaderelection",
+      "kind": "object",
+      "label": "cert-manager-cainjector:leaderelection",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "RoleBinding",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector:leaderelection"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 3,
+      "x": 808,
+      "y": 380
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-cainjector",
+      "kind": "object",
+      "label": "cert-manager-cainjector",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-cainjector"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 4,
+      "x": 808,
+      "y": 476
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-cainjector",
+      "kind": "object",
+      "label": "cert-manager-cainjector",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-cainjector"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 5,
+      "x": 808,
+      "y": 572
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-approve%3Acert-manager-io",
+      "kind": "object",
+      "label": "cert-manager-controller-approve:cert-manager-io",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-approve:cert-manager-io"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 6,
+      "x": 808,
+      "y": 668
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-approve%3Acert-manager-io",
+      "kind": "object",
+      "label": "cert-manager-controller-approve:cert-manager-io",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-approve:cert-manager-io"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 7,
+      "x": 808,
+      "y": 764
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-certificates",
+      "kind": "object",
+      "label": "cert-manager-controller-certificates",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-certificates"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 8,
+      "x": 808,
+      "y": 860
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-certificates",
+      "kind": "object",
+      "label": "cert-manager-controller-certificates",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-certificates"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 9,
+      "x": 808,
+      "y": 956
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-challenges",
+      "kind": "object",
+      "label": "cert-manager-controller-challenges",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-challenges"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 10,
+      "x": 808,
+      "y": 1052
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-challenges",
+      "kind": "object",
+      "label": "cert-manager-controller-challenges",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-challenges"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 11,
+      "x": 808,
+      "y": 1148
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-clusterissuers",
+      "kind": "object",
+      "label": "cert-manager-controller-clusterissuers",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-clusterissuers"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 12,
+      "x": 808,
+      "y": 1244
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-clusterissuers",
+      "kind": "object",
+      "label": "cert-manager-controller-clusterissuers",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-clusterissuers"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 13,
+      "x": 808,
+      "y": 1340
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-certificatesigningrequests",
+      "kind": "object",
+      "label": "cert-manager-controller-certificatesigningrequests",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-certificatesigningrequests"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 14,
+      "x": 808,
+      "y": 1436
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-certificatesigningrequests",
+      "kind": "object",
+      "label": "cert-manager-controller-certificatesigningrequests",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-certificatesigningrequests"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 15,
+      "x": 808,
+      "y": 1532
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-ingress-shim",
+      "kind": "object",
+      "label": "cert-manager-controller-ingress-shim",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-ingress-shim"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 16,
+      "x": 808,
+      "y": 1628
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-ingress-shim",
+      "kind": "object",
+      "label": "cert-manager-controller-ingress-shim",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-ingress-shim"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 17,
+      "x": 808,
+      "y": 1724
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-issuers",
+      "kind": "object",
+      "label": "cert-manager-controller-issuers",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-issuers"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 18,
+      "x": 808,
+      "y": 1820
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-issuers",
+      "kind": "object",
+      "label": "cert-manager-controller-issuers",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-issuers"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 19,
+      "x": 808,
+      "y": 1916
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager%3Aleaderelection",
+      "kind": "object",
+      "label": "cert-manager:leaderelection",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "Role",
+        "namespace": "cert-manager",
+        "name": "cert-manager:leaderelection"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 20,
+      "x": 808,
+      "y": 2012
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager%3Aleaderelection",
+      "kind": "object",
+      "label": "cert-manager:leaderelection",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "RoleBinding",
+        "namespace": "cert-manager",
+        "name": "cert-manager:leaderelection"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 21,
+      "x": 808,
+      "y": 2108
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-orders",
+      "kind": "object",
+      "label": "cert-manager-controller-orders",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-controller-orders"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 22,
+      "x": 808,
+      "y": 2204
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-orders",
+      "kind": "object",
+      "label": "cert-manager-controller-orders",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-controller-orders"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 23,
+      "x": 808,
+      "y": 2300
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager-webhook%3Adynamic-serving",
+      "kind": "object",
+      "label": "cert-manager-webhook:dynamic-serving",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "Role",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook:dynamic-serving"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 24,
+      "x": 808,
+      "y": 2396
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager-webhook%3Adynamic-serving",
+      "kind": "object",
+      "label": "cert-manager-webhook:dynamic-serving",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "RoleBinding",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook:dynamic-serving"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 25,
+      "x": 808,
+      "y": 2492
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-webhook%3Asubjectaccessreviews",
+      "kind": "object",
+      "label": "cert-manager-webhook:subjectaccessreviews",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRole",
+        "name": "cert-manager-webhook:subjectaccessreviews"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 26,
+      "x": 808,
+      "y": 2588
+    },
+    {
+      "id": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-webhook%3Asubjectaccessreviews",
+      "kind": "object",
+      "label": "cert-manager-webhook:subjectaccessreviews",
+      "ref": {
+        "group": "rbac.authorization.k8s.io",
+        "version": "v1",
+        "kind": "ClusterRoleBinding",
+        "name": "cert-manager-webhook:subjectaccessreviews"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 27,
+      "x": 808,
+      "y": 2684
+    },
+    {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager",
+      "kind": "object",
+      "label": "cert-manager",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 29,
+      "x": 808,
+      "y": 2828
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "kind": "object",
+      "label": "cert-manager-controller",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 30,
+      "x": 808,
+      "y": 2924
+    },
+    {
+      "id": "obj:_/Namespace/_/cert-manager",
+      "kind": "object",
+      "label": "cert-manager",
+      "ref": {
+        "version": "v1",
+        "kind": "Namespace",
+        "name": "cert-manager"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 31,
+      "x": 808,
+      "y": 3020
+    },
+    {
+      "id": "obj:_/Service/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "version": "v1",
+        "kind": "Service",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Service is ready"
+      },
+      "column": 3,
+      "row": 32,
+      "x": 808,
+      "y": 3116
+    },
+    {
+      "id": "obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "version": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Resource is current"
+      },
+      "column": 3,
+      "row": 33,
+      "x": 808,
+      "y": 3212
+    },
+    {
+      "id": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "kind": "object",
+      "label": "cert-manager-webhook",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Deployment is available. Replicas: 1"
+      },
+      "column": 3,
+      "row": 34,
+      "x": 808,
+      "y": 3308
+    },
+    {
+      "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "kind": "runtime",
+      "label": "cert-manager-cainjector-5d69c59bd",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 0,
+      "x": 1072,
+      "y": 44
+    },
+    {
+      "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "kind": "runtime",
+      "label": "cert-manager-controller-7c9bddd644",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 29,
+      "x": 1072,
+      "y": 2828
+    },
+    {
+      "id": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "kind": "runtime",
+      "label": "cert-manager-webhook-6c5bb576f5",
+      "ref": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "ReplicaSet is available. Replicas: 1"
+      },
+      "replicas": 1,
+      "column": 4,
+      "row": 30,
+      "x": 1072,
+      "y": 2924
+    },
+    {
+      "id": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "kind": "runtime",
+      "label": "cert-manager-cainjector-5d69c59bd-htjjq",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 0,
+      "x": 1336,
+      "y": 44
+    },
+    {
+      "id": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "kind": "runtime",
+      "label": "cert-manager-controller-7c9bddd644-cr5qm",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 29,
+      "x": 1336,
+      "y": 2828
+    },
+    {
+      "id": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "kind": "runtime",
+      "label": "cert-manager-webhook-6c5bb576f5-slp22",
+      "ref": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+      },
+      "access": "ok",
+      "health": {
+        "state": "Healthy",
+        "reason": "Current",
+        "message": "Pod is Ready"
+      },
+      "column": 5,
+      "row": 30,
+      "x": 1336,
+      "y": 2924
+    }
+  ],
+  "edges": [
+    {
+      "id": "controls|obj:apps/Deployment/cert-manager/cert-manager-cainjector|obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "to": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1024,
+          "y": 176
+        },
+        {
+          "x": 1048,
+          "y": 176
+        },
+        {
+          "x": 1048,
+          "y": 80
+        },
+        {
+          "x": 1072,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/Deployment/cert-manager/cert-manager-controller|obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "to": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1024,
+          "y": 2960
+        },
+        {
+          "x": 1048,
+          "y": 2960
+        },
+        {
+          "x": 1048,
+          "y": 2864
+        },
+        {
+          "x": 1072,
+          "y": 2864
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/Deployment/cert-manager/cert-manager-webhook|obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "kind": "controls",
+      "from": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "to": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1024,
+          "y": 3344
+        },
+        {
+          "x": 1048,
+          "y": 3344
+        },
+        {
+          "x": 1048,
+          "y": 2960
+        },
+        {
+          "x": 1072,
+          "y": 2960
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd|obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
+      "to": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1288,
+          "y": 80
+        },
+        {
+          "x": 1312,
+          "y": 80
+        },
+        {
+          "x": 1312,
+          "y": 80
+        },
+        {
+          "x": 1336,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644|obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
+      "to": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1288,
+          "y": 2864
+        },
+        {
+          "x": 1312,
+          "y": 2864
+        },
+        {
+          "x": 1312,
+          "y": 2864
+        },
+        {
+          "x": 1336,
+          "y": 2864
+        }
+      ]
+    },
+    {
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5|obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "kind": "controls",
+      "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
+      "to": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "source": "metadata.ownerReferences, controller only",
+      "route": [
+        {
+          "x": 1288,
+          "y": 2960
+        },
+        {
+          "x": 1312,
+          "y": 2960
+        },
+        {
+          "x": 1312,
+          "y": 2960
+        },
+        {
+          "x": 1336,
+          "y": 2960
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/cainjector",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/cainjector",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 80
+        },
+        {
+          "x": 544,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 320
+        },
+        {
+          "x": 544,
+          "y": 320
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/cainjector-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/cainjector-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 416
+        },
+        {
+          "x": 544,
+          "y": 416
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 2864
+        },
+        {
+          "x": 544,
+          "y": 2864
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-approve-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-approve-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 512
+        },
+        {
+          "x": 544,
+          "y": 512
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-certificates-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-certificates-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 608
+        },
+        {
+          "x": 544,
+          "y": 608
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-challenges-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-challenges-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 704
+        },
+        {
+          "x": 544,
+          "y": 704
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 800
+        },
+        {
+          "x": 544,
+          "y": 800
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-csr-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-csr-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 896
+        },
+        {
+          "x": 544,
+          "y": 896
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 992
+        },
+        {
+          "x": 544,
+          "y": 992
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-issuers-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-issuers-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1088
+        },
+        {
+          "x": 544,
+          "y": 1088
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-leaderelection-role",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-leaderelection-role",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1184
+        },
+        {
+          "x": 544,
+          "y": 1184
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/controller-orders-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/controller-orders-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1280
+        },
+        {
+          "x": 544,
+          "y": 1280
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/namespace",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/namespace",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 2960
+        },
+        {
+          "x": 544,
+          "y": 2960
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/webhook",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/webhook",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 3056
+        },
+        {
+          "x": 544,
+          "y": 3056
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1376
+        },
+        {
+          "x": 544,
+          "y": 1376
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|comp:mi/cert-manager/cert-manager/webhook-sar-rbac",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "comp:mi/cert-manager/cert-manager/webhook-sar-rbac",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1472
+        },
+        {
+          "x": 544,
+          "y": 1472
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager/crds",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "grp:configuration/mi/cert-manager/cert-manager/crds",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 3152
+        },
+        {
+          "x": 544,
+          "y": 3152
+        }
+      ]
+    },
+    {
+      "id": "hasComponent|mi:cert-manager/cert-manager|grp:configuration/mi/cert-manager/cert-manager/webhooks",
+      "kind": "hasComponent",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "grp:configuration/mi/cert-manager/cert-manager/webhooks",
+      "source": "status.inventory entries, by component",
+      "route": [
+        {
+          "x": 496,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 1421
+        },
+        {
+          "x": 520,
+          "y": 3248
+        },
+        {
+          "x": 544,
+          "y": 3248
+        }
+      ]
+    },
+    {
+      "id": "instantiates|mi:cert-manager/cert-manager|mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5",
+      "kind": "instantiates",
+      "from": "mi:cert-manager/cert-manager",
+      "to": "mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5",
+      "source": "ModuleInstance spec.module",
+      "route": [
+        {
+          "x": 280,
+          "y": 1421
+        },
+        {
+          "x": 256,
+          "y": 1421
+        },
+        {
+          "x": 256,
+          "y": 1421
+        },
+        {
+          "x": 232,
+          "y": 1421
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role|obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager-cainjector%3Aleaderelection",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role",
+      "to": "obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager-cainjector%3Aleaderelection",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 320
+        },
+        {
+          "x": 784,
+          "y": 320
+        },
+        {
+          "x": 784,
+          "y": 320
+        },
+        {
+          "x": 808,
+          "y": 320
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role|obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager-cainjector%3Aleaderelection",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector-leaderelection-role",
+      "to": "obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager-cainjector%3Aleaderelection",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 320
+        },
+        {
+          "x": 784,
+          "y": 320
+        },
+        {
+          "x": 784,
+          "y": 416
+        },
+        {
+          "x": 808,
+          "y": 416
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-cainjector",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-cainjector",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 416
+        },
+        {
+          "x": 784,
+          "y": 416
+        },
+        {
+          "x": 784,
+          "y": 512
+        },
+        {
+          "x": 808,
+          "y": 512
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-cainjector",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-cainjector",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 416
+        },
+        {
+          "x": 784,
+          "y": 416
+        },
+        {
+          "x": 784,
+          "y": 608
+        },
+        {
+          "x": 808,
+          "y": 608
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector|obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector",
+      "to": "obj:_/ServiceAccount/cert-manager/cert-manager-cainjector",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 80
+        },
+        {
+          "x": 784,
+          "y": 80
+        },
+        {
+          "x": 784,
+          "y": 80
+        },
+        {
+          "x": 808,
+          "y": 80
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/cainjector|obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/cainjector",
+      "to": "obj:apps/Deployment/cert-manager/cert-manager-cainjector",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 80
+        },
+        {
+          "x": 784,
+          "y": 80
+        },
+        {
+          "x": 784,
+          "y": 176
+        },
+        {
+          "x": 808,
+          "y": 176
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-approve-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-approve%3Acert-manager-io",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-approve-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-approve%3Acert-manager-io",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 512
+        },
+        {
+          "x": 784,
+          "y": 512
+        },
+        {
+          "x": 784,
+          "y": 704
+        },
+        {
+          "x": 808,
+          "y": 704
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-approve-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-approve%3Acert-manager-io",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-approve-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-approve%3Acert-manager-io",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 512
+        },
+        {
+          "x": 784,
+          "y": 512
+        },
+        {
+          "x": 784,
+          "y": 800
+        },
+        {
+          "x": 808,
+          "y": 800
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-certificates-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-certificates",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-certificates-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-certificates",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 608
+        },
+        {
+          "x": 784,
+          "y": 608
+        },
+        {
+          "x": 784,
+          "y": 896
+        },
+        {
+          "x": 808,
+          "y": 896
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-certificates-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-certificates",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-certificates-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-certificates",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 608
+        },
+        {
+          "x": 784,
+          "y": 608
+        },
+        {
+          "x": 784,
+          "y": 992
+        },
+        {
+          "x": 808,
+          "y": 992
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-challenges-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-challenges",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-challenges-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-challenges",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 704
+        },
+        {
+          "x": 784,
+          "y": 704
+        },
+        {
+          "x": 784,
+          "y": 1088
+        },
+        {
+          "x": 808,
+          "y": 1088
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-challenges-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-challenges",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-challenges-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-challenges",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 704
+        },
+        {
+          "x": 784,
+          "y": 704
+        },
+        {
+          "x": 784,
+          "y": 1184
+        },
+        {
+          "x": 808,
+          "y": 1184
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-clusterissuers",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-clusterissuers",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 800
+        },
+        {
+          "x": 784,
+          "y": 800
+        },
+        {
+          "x": 784,
+          "y": 1280
+        },
+        {
+          "x": 808,
+          "y": 1280
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-clusterissuers",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-clusterissuers-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-clusterissuers",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 800
+        },
+        {
+          "x": 784,
+          "y": 800
+        },
+        {
+          "x": 784,
+          "y": 1376
+        },
+        {
+          "x": 808,
+          "y": 1376
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-csr-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-certificatesigningrequests",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-csr-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-certificatesigningrequests",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 896
+        },
+        {
+          "x": 784,
+          "y": 896
+        },
+        {
+          "x": 784,
+          "y": 1472
+        },
+        {
+          "x": 808,
+          "y": 1472
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-csr-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-certificatesigningrequests",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-csr-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-certificatesigningrequests",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 896
+        },
+        {
+          "x": 784,
+          "y": 896
+        },
+        {
+          "x": 784,
+          "y": 1568
+        },
+        {
+          "x": 808,
+          "y": 1568
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-ingress-shim",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-ingress-shim",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 992
+        },
+        {
+          "x": 784,
+          "y": 992
+        },
+        {
+          "x": 784,
+          "y": 1664
+        },
+        {
+          "x": 808,
+          "y": 1664
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-ingress-shim",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-ingress-shim-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-ingress-shim",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 992
+        },
+        {
+          "x": 784,
+          "y": 992
+        },
+        {
+          "x": 784,
+          "y": 1760
+        },
+        {
+          "x": 808,
+          "y": 1760
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-issuers-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-issuers",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-issuers-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-issuers",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1088
+        },
+        {
+          "x": 784,
+          "y": 1088
+        },
+        {
+          "x": 784,
+          "y": 1856
+        },
+        {
+          "x": 808,
+          "y": 1856
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-issuers-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-issuers",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-issuers-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-issuers",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1088
+        },
+        {
+          "x": 784,
+          "y": 1088
+        },
+        {
+          "x": 784,
+          "y": 1952
+        },
+        {
+          "x": 808,
+          "y": 1952
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-leaderelection-role|obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager%3Aleaderelection",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-leaderelection-role",
+      "to": "obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager%3Aleaderelection",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1184
+        },
+        {
+          "x": 784,
+          "y": 1184
+        },
+        {
+          "x": 784,
+          "y": 2048
+        },
+        {
+          "x": 808,
+          "y": 2048
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-leaderelection-role|obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager%3Aleaderelection",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-leaderelection-role",
+      "to": "obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager%3Aleaderelection",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1184
+        },
+        {
+          "x": 784,
+          "y": 1184
+        },
+        {
+          "x": 784,
+          "y": 2144
+        },
+        {
+          "x": 808,
+          "y": 2144
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-orders-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-orders",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-orders-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-controller-orders",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1280
+        },
+        {
+          "x": 784,
+          "y": 1280
+        },
+        {
+          "x": 784,
+          "y": 2240
+        },
+        {
+          "x": 808,
+          "y": 2240
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller-orders-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-orders",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller-orders-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-controller-orders",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1280
+        },
+        {
+          "x": 784,
+          "y": 1280
+        },
+        {
+          "x": 784,
+          "y": 2336
+        },
+        {
+          "x": 808,
+          "y": 2336
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller|obj:_/ServiceAccount/cert-manager/cert-manager",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller",
+      "to": "obj:_/ServiceAccount/cert-manager/cert-manager",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 2864
+        },
+        {
+          "x": 784,
+          "y": 2864
+        },
+        {
+          "x": 784,
+          "y": 2864
+        },
+        {
+          "x": 808,
+          "y": 2864
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/controller|obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/controller",
+      "to": "obj:apps/Deployment/cert-manager/cert-manager-controller",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 2864
+        },
+        {
+          "x": 784,
+          "y": 2864
+        },
+        {
+          "x": 784,
+          "y": 2960
+        },
+        {
+          "x": 808,
+          "y": 2960
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/namespace|obj:_/Namespace/_/cert-manager",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/namespace",
+      "to": "obj:_/Namespace/_/cert-manager",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 2960
+        },
+        {
+          "x": 784,
+          "y": 2960
+        },
+        {
+          "x": 784,
+          "y": 3056
+        },
+        {
+          "x": 808,
+          "y": 3056
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role|obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager-webhook%3Adynamic-serving",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role",
+      "to": "obj:rbac.authorization.k8s.io/Role/cert-manager/cert-manager-webhook%3Adynamic-serving",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1376
+        },
+        {
+          "x": 784,
+          "y": 1376
+        },
+        {
+          "x": 784,
+          "y": 2432
+        },
+        {
+          "x": 808,
+          "y": 2432
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role|obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager-webhook%3Adynamic-serving",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook-dynamic-serving-role",
+      "to": "obj:rbac.authorization.k8s.io/RoleBinding/cert-manager/cert-manager-webhook%3Adynamic-serving",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1376
+        },
+        {
+          "x": 784,
+          "y": 1376
+        },
+        {
+          "x": 784,
+          "y": 2528
+        },
+        {
+          "x": 808,
+          "y": 2528
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook-sar-rbac|obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-webhook%3Asubjectaccessreviews",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook-sar-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRole/_/cert-manager-webhook%3Asubjectaccessreviews",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1472
+        },
+        {
+          "x": 784,
+          "y": 1472
+        },
+        {
+          "x": 784,
+          "y": 2624
+        },
+        {
+          "x": 808,
+          "y": 2624
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook-sar-rbac|obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-webhook%3Asubjectaccessreviews",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook-sar-rbac",
+      "to": "obj:rbac.authorization.k8s.io/ClusterRoleBinding/_/cert-manager-webhook%3Asubjectaccessreviews",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 1472
+        },
+        {
+          "x": 784,
+          "y": 1472
+        },
+        {
+          "x": 784,
+          "y": 2720
+        },
+        {
+          "x": 808,
+          "y": 2720
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook|obj:_/Service/cert-manager/cert-manager-webhook",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook",
+      "to": "obj:_/Service/cert-manager/cert-manager-webhook",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 3056
+        },
+        {
+          "x": 784,
+          "y": 3056
+        },
+        {
+          "x": 784,
+          "y": 3152
+        },
+        {
+          "x": 808,
+          "y": 3152
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook|obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook",
+      "to": "obj:_/ServiceAccount/cert-manager/cert-manager-webhook",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 3056
+        },
+        {
+          "x": 784,
+          "y": 3056
+        },
+        {
+          "x": 784,
+          "y": 3248
+        },
+        {
+          "x": 808,
+          "y": 3248
+        }
+      ]
+    },
+    {
+      "id": "owns|comp:mi/cert-manager/cert-manager/webhook|obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "kind": "owns",
+      "from": "comp:mi/cert-manager/cert-manager/webhook",
+      "to": "obj:apps/Deployment/cert-manager/cert-manager-webhook",
+      "source": "status.inventory entries",
+      "route": [
+        {
+          "x": 760,
+          "y": 3056
+        },
+        {
+          "x": 784,
+          "y": 3056
+        },
+        {
+          "x": 784,
+          "y": 3344
+        },
+        {
+          "x": 808,
+          "y": 3344
+        }
+      ]
+    }
+  ]
+}

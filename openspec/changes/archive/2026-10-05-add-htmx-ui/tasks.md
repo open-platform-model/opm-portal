@@ -28,7 +28,7 @@
 ## 4. End to end, screenshots and docs (test, README, AGENTS.md)
 
 - [x] 4.1 Throwaway cluster `opm-portal-e2e-ui`: `task e2e:local`, serve, screenshot every page light, dark and at phone width with the Playwright image, run the scripted image break and record when the UI shows Degraded, delete the cluster
-- [x] 4.2 README (pages, what the YAML view shows per 0030:D8:R4) and `AGENTS.md` (layout, `internal/ui`, UI goldens, the dev server)
+- [x] 4.2 README (pages, what the YAML view shows per portal:D8:R4) and `AGENTS.md` (layout, `internal/ui`, UI goldens, the dev server)
 - [x] 4.3 Fix from the e2e run: a namespace-scoped user's launch landed on a 403 (the Platform is forbidden to them); a forbidden page now renders its locked region with 200, and htmx swaps 4xx and 5xx fragments so their regions show; commit `fix(ui): serve a locked page as 200 and show error fragments`
 - [x] 4.4 `task check` green, then commit `docs(ui): document the portal pages`
 
@@ -38,5 +38,5 @@
 - [x] 5.2 Tests for states F1 lacks: an accepted, inactive claim and a removal-blocked claim on the Platform page; a Secret row without a YAML link; a page that replaces only the Content-Security-Policy behind the front door
 - [x] 5.3 Browser run: one stream across boosted navigation, topics moved by POST, keyboard activation of a graph node; the scripted image break on the live cluster again
 - [x] 5.4 `task check` green, then commit `fix(ui): refresh live regions from the page script`
-- [x] 5.5 A polled object shows when it was read, and a health that is not live when it was evaluated (0030:D3:R5); test
+- [x] 5.5 A polled object shows when it was read, and a health that is not live when it was evaluated; test
 - [x] 5.6 `task check` green, then commit `fix(ui): show when a polled object was read`

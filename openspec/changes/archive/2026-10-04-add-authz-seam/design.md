@@ -4,8 +4,8 @@ The repo holds only the version binary (see proposal.md, Why). The portal's desi
 authorization package between identity and every read: `auth -> authz -> readmodel -> ...`
 (Principle II). Milestone 1 authorizes with SelfSubjectAccessReviews under the user's kubeconfig;
 milestone 2 (change `add-sar-authorizer`) will plug a SubjectAccessReview backend into the same
-seam. It lands the seam for 0030:D7 (authorize before lookup) and the milestone 1 guards of
-0030:D6 (empty identity, deny on error) and 0030:D5 (the kubeconfig boundary); it claims none of
+seam. It lands the seam for portal:D7 (authorize before lookup) and the milestone 1 guards of
+portal:D6 (empty identity, deny on error) and portal:D5 (the kubeconfig boundary); it claims none of
 them (`enhancement.yaml`).
 
 ## Goals / Non-Goals
@@ -24,7 +24,7 @@ them (`enhancement.yaml`).
 
 - Resolving who the kubeconfig is at startup. `NewLocal` takes the identity from its caller;
   `add-local-mode` decides how to obtain it (see Open Questions).
-- List filtering, per-item access states and the inventory reach check (0030:D7:R2-R4).
+- List filtering, per-item access states and the inventory reach check.
 - An HTTP surface, an access log, identity mapping.
 
 ## Decisions
@@ -79,7 +79,7 @@ they return becomes a denial.
 
 #### How to make a Grant unforgeable
 
-**Context**: 0030:D7 asks that no read path can skip authorization. In Go another package can
+**Context**: portal:D7 asks that no read path can skip authorization. In Go another package can
 always write the zero value of an exported struct type, so "cannot construct" has to mean "cannot
 construct a valid one".
 **Explored**: a sealed interface (an interface with an unexported method), a struct with
@@ -103,7 +103,7 @@ package itself honest, where the compiler cannot help. Neither proves that a rea
 
 #### Where the empty-identity guard sits
 
-**Context**: 0030:D6:R2 (the Flux Operator CVE-2026-23990 class: empty claims fell through to the
+**Context**: portal:D6:R2 (the Flux Operator CVE-2026-23990 class: empty claims fell through to the
 server's own identity). Each backend could check, and one would forget.
 **Options considered**:
 1. Each backend checks the identity - duplicated, easy to miss in M2.
@@ -131,8 +131,7 @@ sorted groups, sorted extra), so group order does not matter.
 **Decision**: verbs other than `get`, `list`, `watch` are `forbidden` (the portal is read-only,
 Principle V); a subresource other than none, `status` or `log` is `forbidden`, because a `get` on
 `pods/exec`, `pods/attach`, `pods/portforward` or a `proxy` subresource opens a stream into a
-workload or node (`nodes/proxy` is a known exec path) and 0030 needs only `pods/log` (0030:D10,
-0030:D11) and status; core `secrets` is `forbidden` whatever RBAC says (0030:D8:R1); an empty verb
+workload or node (`nodes/proxy` is a known exec path) and the withdrawn portal enhancement needs only `pods/log` and status; core `secrets` is `forbidden` whatever RBAC says; an empty verb
 or resource or a `*` in any attribute is `invalid`. None reaches a backend or the cache.
 **Rationale**: these are portal policy, not RBAC questions; asking the cluster would only add a
 way to get them wrong.
@@ -144,7 +143,7 @@ way to get them wrong.
 error and so `unavailable`; neither flag is `forbidden`. A transport or API error, a timeout
 (`Options.Timeout`, default 5 s) or a nil response is `unavailable`. `unavailable` wraps its cause
 for server-side logs; the read API will map it to its own problem code.
-**Rationale**: 0030:D6:R4 and the architecture's "error, timeout or evaluationError without
+**Rationale**: portal:D6:R4 and the architecture's "error, timeout or evaluationError without
 allowed is a deny".
 
 #### What a denial says
@@ -154,13 +153,13 @@ namespace <ns>]`. It never names the object or the identity, and it leaves out t
 `unavailable` denial: a transport error names the API server and a webhook authorizer's
 evaluation error can name users, roles or objects. The cause stays reachable through `Unwrap`, for
 server-side logs only.
-**Rationale**: 0030:D7:R1 (identical for existing and missing objects) and the security rule that
+**Rationale**: portal:D7:R1 (identical for existing and missing objects) and the security rule that
 no principal or credential appears in an error.
 
 #### Covers semantics
 
 **Decision**: `Covers(who, req)` first compares `who`'s canonical key with the key of the identity
-the grant was issued to, so a grant kept in shared state (the read model under 0030:D6 reads as
+the grant was issued to, so a grant kept in shared state (the read model under portal:D6 reads as
 the portal's ServiceAccount) cannot lend one caller's access to another. It then refuses an expired
 grant. Verb, group/version/resource and subresource must match exactly; a grant with an empty
 namespace covers any namespace and one with an empty name covers any name, matching how RBAC
@@ -169,8 +168,7 @@ names the identity or the object.
 
 #### Grant lifetime
 
-**Context**: a grant with no lifetime would let a long-lived holder (the change stream of
-0030:D2:R5, a log stream) keep reading after a revocation that new checks see within one TTL.
+**Context**: a grant with no lifetime would let a long-lived holder (the change stream, a log stream) keep reading after a revocation that new checks see within one TTL.
 **Decision**: a grant expires when the decision it was issued from expires: a fresh decision's
 expiry is issue time plus the TTL, a cached decision's is the cached entry's expiry, and a decision
 the full cache could not store still gets one TTL. The grant keeps the cache's clock, so tests
@@ -191,8 +189,8 @@ which the architecture's per-node locked state cannot afford).
 
 The change reads no object. Its only cluster call is `create` on `authorization.k8s.io/v1`
 `selfsubjectaccessreviews`, made with the user's own kubeconfig and never stored. Principle V
-allows it in local mode only (0030:D5:R6) once this PR amends the constitution (see Open
-Questions); in-cluster, the backend creates `subjectaccessreviews` only (0030:D6:R9).
+allows it in local mode only once this PR amends the constitution (see Open
+Questions); in-cluster, the backend creates `subjectaccessreviews` only.
 
 ## Risks / Trade-offs
 
@@ -216,10 +214,10 @@ Questions); in-cluster, the backend creates `subjectaccessreviews` only (0030:D6
   with no seam rewrite. This PR amends Principle V in `CONSTITUTION.md`, the Security Rules in
   `AGENTS.md` and `openspec/config.yaml` so the only allowed writes are `create` on review APIs
   that store nothing, per mode: local mode creates only `authorization.k8s.io`
-  `selfsubjectaccessreviews` and `authentication.k8s.io` `selfsubjectreviews` (0030:D5:R6), and
-  in-cluster mode creates only `authorization.k8s.io` `subjectaccessreviews` (0030:D6:R9). A
+  `selfsubjectaccessreviews` and `authentication.k8s.io` `selfsubjectreviews`, and
+  in-cluster mode creates only `authorization.k8s.io` `subjectaccessreviews`. A
   self review in-cluster would check the portal's own ServiceAccount, not the user, so it is
-  forbidden there. The 0030 amendment is enhancements PR 98, which merges before this PR.
+  forbidden there. The amendment to the withdrawn portal enhancement is enhancements PR 98, which merges before this PR.
 - Resolved by the same answer: `add-local-mode` may learn the kubeconfig's identity with a
   `SelfSubjectReview` (`authentication.k8s.io/v1`), now named in Principle V. It changes nothing
   here: `NewLocal` takes the identity from its caller either way.

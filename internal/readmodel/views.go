@@ -85,7 +85,10 @@ type InstanceItem struct {
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64
-	LastAppliedAt  time.Time
+	// InventoryRevision is status.inventory.revision when the operator
+	// recorded an integer of at least 1, else 0 (not recorded).
+	InventoryRevision int64
+	LastAppliedAt     time.Time
 	// RenderContracts are every contract the instance's render used, most
 	// of them fulfilled by the catalog itself. They are not the provider
 	// contracts the instance demands (portal:D4:R3).
@@ -116,12 +119,25 @@ type ProviderClaim struct {
 	Access health.Access
 	// Standing is the registration's own, as the controller wrote it.
 	Standing health.Registration
+	// Catalog, Version and Provides are the registration's spec.catalog,
+	// spec.version and spec.provides: the claim's own words, read from the
+	// object the standing came from. Empty unless Read reports true.
+	Catalog  string
+	Version  string
+	Provides []string
 	// ProviderRefMatches: the owner is a ModuleInstance whose namespace and
 	// name the registration's spec.providerRef names. Always false for a
 	// ModulePackage, since the reference names a ModuleInstance. Nil when
 	// no registration was read: the caller may not read it, or the model
 	// does not hold it.
 	ProviderRefMatches *bool
+}
+
+// Read reports whether the registration was read: the caller may read
+// registrations and the cluster holds this one, so Standing and the claim's
+// catalog, version and provides mean something.
+func (c ProviderClaim) Read() bool {
+	return c.Access == health.AccessOK && c.ProviderRefMatches != nil
 }
 
 // Component is one component of an inventory with its objects, in
@@ -141,6 +157,13 @@ type InventoryObject struct {
 	// ChildrenUnread is set on a workload whose Pods could not be read, so
 	// its health is the status rules alone.
 	ChildrenUnread bool
+	// EndpointsReady is the number of ready endpoints of a Service, set only
+	// by InstanceWithEndpoints and PackageWithEndpoints and only when a count
+	// was made (0 included). EndpointsUnread is set instead when the count
+	// could not be read; the two are never both set, and a Service whose
+	// cluster records no EndpointSlice carries neither.
+	EndpointsReady  *int64
+	EndpointsUnread bool
 	// EvaluatedAt is when the object was last read; Live is false when it
 	// is polled rather than watched (portal:D3:R5).
 	EvaluatedAt time.Time
@@ -193,8 +216,11 @@ type PackageItem struct {
 	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.
-	DependsOn      []ObjectRef
-	Path           string
+	DependsOn []ObjectRef
+	Path      string
+	// Prune is spec.prune as written; nil when the package does not set it,
+	// never a default.
+	Prune          *bool
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64

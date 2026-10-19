@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,6 +84,186 @@ func (m *Model) Events(ctx context.Context, who authz.Identity, g authz.Grant, a
 		}
 	}
 	return foldEvents(matching), nil
+}
+
+// eventListConcurrency bounds the lists EventsAbout runs at once.
+const eventListConcurrency = 4
+
+// eventGroup is one list of EventsAbout: the events of one regarded kind in
+// one event namespace.
+type eventGroup struct {
+	namespace, kind string
+	refs            int
+}
+
+// EventsAbout returns the folded events about each of refs, merged newest
+// first (portal:D9:R6). It reads one list per event namespace and regarded
+// kind, never one per object, at most four at a time under readTimeout; each
+// list carries a regarding.kind field selector, and the result is filtered to
+// refs by group, kind, namespace and name, so the feed never shows an event
+// about another object.
+//
+// refs[0] is the owner. owner is the caller's grant to list events in the
+// owner's event namespace, which is not optional: the reader denied there,
+// or a list failing there, is ErrUnavailable, as for Events. others maps
+// every other event namespace to the caller's grant to list events there. A
+// ref whose namespace has no grant, whose namespace the reader may not list,
+// or whose list failed is left out and counted in skipped; no list runs in a
+// namespace without a grant or without the reader's.
+//
+// The caller decides which refs the caller may read: EventsAbout reads
+// events about the refs it is given and nothing else (portal:D7).
+func (m *Model) EventsAbout(ctx context.Context, who authz.Identity, owner authz.Grant, others map[string]authz.Grant, refs []ObjectRef) (evs []Event, skipped int, err error) {
+	if len(refs) == 0 {
+		return nil, 0, nil
+	}
+	ownerNamespace := EventNamespace(refs[0])
+	grants := make(map[string]authz.Grant, len(others)+1)
+	for ns, g := range others {
+		grants[ns] = g
+	}
+	grants[ownerNamespace] = owner
+	wanted, groups := groupRefs(refs)
+	runnable, skipped, err := m.runnableGroups(ctx, who, grants, groups, ownerNamespace)
+	if err != nil {
+		return nil, 0, err
+	}
+	found, failed, err := m.listGroups(ctx, runnable, wanted, ownerNamespace)
+	if err != nil {
+		return nil, 0, err
+	}
+	var matching []*unstructured.Unstructured
+	for _, part := range found {
+		matching = append(matching, part...)
+	}
+	return foldEvents(matching), skipped + failed, nil
+}
+
+// groupRefs names the wanted refs and groups them into one list each: by
+// event namespace and regarded kind, in a fixed order.
+func groupRefs(refs []ObjectRef) (wanted map[string]bool, groups []*eventGroup) {
+	wanted = make(map[string]bool, len(refs))
+	byGroup := map[[2]string]*eventGroup{}
+	for _, r := range refs {
+		key := reachKey(r.Group, r.Kind, r.Namespace, r.Name)
+		if wanted[key] {
+			continue
+		}
+		wanted[key] = true
+		gk := [2]string{EventNamespace(r), r.Kind}
+		if byGroup[gk] == nil {
+			byGroup[gk] = &eventGroup{namespace: gk[0], kind: gk[1]}
+		}
+		byGroup[gk].refs++
+	}
+	groups = make([]*eventGroup, 0, len(byGroup))
+	for _, g := range byGroup {
+		groups = append(groups, g)
+	}
+	sort.Slice(groups, func(i, j int) bool {
+		if groups[i].namespace != groups[j].namespace {
+			return groups[i].namespace < groups[j].namespace
+		}
+		return groups[i].kind < groups[j].kind
+	})
+	return wanted, groups
+}
+
+// runnableGroups decides each event namespace once, before any list runs: a
+// namespace without a grant, or that the portal's reader may not list, is
+// skipped and its refs counted. The owner's own namespace is not optional.
+func (m *Model) runnableGroups(ctx context.Context, who authz.Identity, grants map[string]authz.Grant, groups []*eventGroup, ownerNamespace string) (runnable []*eventGroup, skipped int, err error) {
+	readable := map[string]bool{}
+	for _, g := range groups {
+		ok, decided := readable[g.namespace]
+		if !decided {
+			grant, granted := grants[g.namespace]
+			if granted {
+				if err := covers(who, grant, "list", events, g.namespace, ""); err != nil {
+					return nil, 0, err
+				}
+				ok = m.readerMay(ctx, "list", events, g.namespace, "")
+			}
+			readable[g.namespace] = ok
+			if !ok && g.namespace == ownerNamespace && granted {
+				return nil, 0, ErrUnavailable
+			}
+		}
+		if !ok {
+			skipped += g.refs
+			continue
+		}
+		runnable = append(runnable, g)
+	}
+	return runnable, skipped, nil
+}
+
+// listGroups runs the lists, at most eventListConcurrency at a time. Each list
+// writes its own slot, so the lines reach the fold in a fixed order whatever
+// order the lists finish in: lines with one time keep it. failed counts the
+// refs of a list that failed outside the owner's namespace; one that fails
+// there fails the feed.
+func (m *Model) listGroups(ctx context.Context, runnable []*eventGroup, wanted map[string]bool, ownerNamespace string) (found [][]*unstructured.Unstructured, failed int, err error) {
+	var (
+		mu       sync.Mutex
+		wg       sync.WaitGroup
+		ownerErr error
+		slots    = make(chan struct{}, eventListConcurrency)
+	)
+	found = make([][]*unstructured.Unstructured, len(runnable))
+	for i, g := range runnable {
+		wg.Add(1)
+		slots <- struct{}{}
+		go func() {
+			defer wg.Done()
+			defer func() { <-slots }()
+			items, err := m.listEventsRegarding(ctx, g)
+			if err != nil {
+				mu.Lock()
+				defer mu.Unlock()
+				if g.namespace == ownerNamespace && ownerErr == nil {
+					ownerErr = fmt.Errorf("%w: listing events: %w", ErrUnavailable, err)
+				}
+				failed += g.refs
+				return
+			}
+			for j := range items {
+				// The server applied the kind selector; this repeats it, so an
+				// event is taken from the one list of its own kind.
+				r := regardingRef(object(items[j].Object, "regarding"))
+				if r.Kind == g.kind && wanted[reachKey(r.Group, r.Kind, r.Namespace, r.Name)] {
+					found[i] = append(found[i], &items[j])
+				}
+			}
+		}()
+	}
+	wg.Wait()
+	if err := ctx.Err(); err != nil {
+		return nil, 0, err
+	}
+	if ownerErr != nil {
+		return nil, 0, ownerErr
+	}
+	return found, failed, nil
+}
+
+// listEventsRegarding lists the events of one kind in one namespace under
+// readTimeout. The field selector narrows the list on the server; the caller
+// filters to the objects it wants.
+func (m *Model) listEventsRegarding(ctx context.Context, g *eventGroup) ([]unstructured.Unstructured, error) {
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
+	defer cancel()
+	selector := fields.Set{"regarding.kind": g.kind}.AsSelector().String()
+	list, err := m.cfg.Dynamic.Resource(events).Namespace(g.namespace).List(ctx, metav1.ListOptions{FieldSelector: selector})
+	if err != nil {
+		return nil, err
+	}
+	return list.Items, nil
+}
+
+// reachKey names an object for the filter of EventsAbout.
+func reachKey(group, kind, namespace, name string) string {
+	return strings.Join([]string{group, kind, namespace, name}, "\x00")
 }
 
 // regards reports whether ev is about the object about.

@@ -9,7 +9,7 @@ lands under the same rules.
 ## What Changes
 
 - Repository guides: `LICENSE` (Apache-2.0, the operator's text), `README.md` (what the portal is,
-  that nothing is built yet, a link to enhancement 0030), `AGENTS.md` (attribution, bare-`@`,
+  that nothing is built yet, a link to the withdrawn portal enhancement), `AGENTS.md` (attribution, bare-`@`,
   250-word PR rules verbatim from the siblings; the portal's security rules; routing to
   OpenSpec), `CONSTITUTION.md` (the reader-friendly form of `openspec/config.yaml`).
 - Go module `github.com/open-platform-model/opm-portal` (`go 1.26.0`, as the cli) with no
@@ -51,5 +51,5 @@ None (the repo has no specs yet).
   `RELEASE_APP_CLIENT_ID` / `RELEASE_APP_PRIVATE_KEY`, require the `Lint` check in the `main`
   ruleset, add the repo to the tag rulesets and enable immutable releases before the first
   release, and make the GHCR package public after the first image push.
-- Enhancement link: the portal is designed in enhancement 0030; this change implements no 0030
+- Enhancement link: the portal is designed in the withdrawn portal enhancement; this change implements no portal
   decision, so it carries no `enhancement.yaml`.

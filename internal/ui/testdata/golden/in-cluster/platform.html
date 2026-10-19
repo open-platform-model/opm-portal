@@ -1,80 +1,70 @@
 <main id="main" tabindex="-1" data-topics="platform instances events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture" data-canonical="/">
-<div class="pf-summary reveal">
+<div class="pf-summary">
   <section class="card pf-identity" id="platform-head" aria-label="Identity" data-follow="platform">
     <p class="kicker">Platform</p>
     <h1>cluster</h1>
     <dl class="facts">
       <dt>Type</dt><dd>kubernetes</dd>
-      <dt>Controller version</dt><dd class="mono"><span class="muted">not recorded</span></dd>
+      <dt>Controller</dt><dd class="mono"><span class="muted">not recorded</span></dd>
     </dl>
   </section>
-  <section class="card pf-status" id="platform-status" aria-labelledby="status-h" data-follow="platform">
-    <h2 id="status-h">Status <span class="h-note">what the controller reports</span></h2>
-    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></div>
-    <p class="pf-line">2 catalogs resolved from 1 subscription · 1 claim active</p>
-    <ul class="reason-links">
-      <li><a href="#cond-Ready"><span class="label">Ready</span> <span class="mono">Generated</span></a> <span class="muted">The platform module was generated and built.</span></li>
-      <li class="reason-info"><a href="#cond-ContractsFulfilled"><span class="label">Contracts</span> <span class="mono">UnfulfilledContracts</span></a> <span class="muted">information, not a failure</span></li>
-    </ul>
-  </section>
+<section class="state-block hue-applied" id="platform-status" aria-label="Platform status" data-follow="platform">
+  <div class="sb-head"><span class="sb-eyebrow">Platform · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC" data-relative aria-live="off">6m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Applied</span></div>
+  <p class="sb-summary">2 catalogs resolved from 1 subscription · 1 claim active</p>
+  
+  <div class="sb-reasons"><a href="/?tab=providers&amp;pstatus=refused#parts" class="hue-degraded"><strong>1</strong> <span class="mono">CatalogUnresolved</span></a><a href="/?tab=catalogs#contracts" class="hue-unknown"><span class="mono">UnfulfilledContracts</span></a></div>
+  
+</section>
 </div>
-<section class="panel panel-wide reveal" id="installed-card" aria-labelledby="installed-h" data-follow="instances">
+<section class="panel panel-wide panel-flush" id="installed-card" aria-labelledby="installed-h" data-follow="instances">
   <div class="card-headline"><h2 id="installed-h">Installed</h2><a href="/installed">Open the full list</a></div>
-  <div class="count-groups">
-    <div class="count-group"><span class="label">Health</span><a class="count health health-healthy" href="/installed?health=Healthy">Healthy <span class="count-n">5</span></a><a class="count health health-unknown" href="/installed?health=Unknown">Unknown <span class="count-n">1</span></a></div>
-    <div class="count-group"><span class="label">Applied</span><a class="count applied applied-applied" href="/installed?applied=Applied">Applied <span class="count-n">4</span></a><a class="count applied applied-failed" href="/installed?applied=Failed">Failed <span class="count-n">1</span></a><a class="count applied applied-managedexternally" href="/installed?applied=ManagedExternally">Managed externally <span class="count-n">1</span></a></div>
+  <div class="count-cols">
+    <div class="count-col"><p class="label">Health</p><a class="count count-row health health-healthy" href="/installed?health=Healthy" title="Show the 5 installed with health Healthy"><span class="count-badge">Healthy</span><span class="count-n">5</span></a><a class="count count-row health health-unknown" href="/installed?health=Unknown" title="Show the 1 installed with health Unknown"><span class="count-badge">Unknown</span><span class="count-n">1</span></a></div>
+    <div class="count-col"><p class="label">Applied</p><a class="count count-row applied applied-applied" href="/installed?applied=Applied" title="Show the 4 installed with applied state Applied"><span class="count-badge">Applied</span><span class="count-n">4</span></a><a class="count count-row applied applied-failed" href="/installed?applied=Failed" title="Show the 1 installed with applied state Failed"><span class="count-badge">Failed</span><span class="count-n">1</span></a><a class="count count-row applied applied-managedexternally" href="/installed?applied=ManagedExternally" title="Show the 1 installed with applied state Managed externally"><span class="count-badge">Managed externally</span><span class="count-n">1</span></a></div>
   </div>
-  <p class="pf-line">6 installed: 5 instances, 1 package; 1 of them holds a registration.</p>
+  <p class="pf-line">6 installed: 5 instances, 1 package · 1 of them is a provider</p>
   
   
 </section>
-<section class="panel panel-wide reveal" id="parts" aria-label="Providers and catalogs">
-  <nav class="tabs" aria-label="Platform parts" hx-swap="outerHTML show:none">
-    <a href="/?tab=providers" aria-current="page">Providers</a>
-    <a href="/?tab=catalogs">Catalogs</a>
-  </nav>
-  <form class="filters" method="get" action="/" role="search" aria-label="Filter providers" hx-swap="outerHTML show:none" data-filters="providers">
-  
+<section class="panel panel-wide panel-flush" id="parts" aria-label="Providers and catalogs">
+  <nav class="tabs tabs-lg" aria-label="Platform parts" hx-swap="outerHTML show:none"><a href="/?tab=providers" aria-current="page">Providers <span class="tab-n" id="tab-n-providers" data-follow="platform">2</span></a><a href="/?tab=catalogs">Catalogs <span class="tab-n" id="tab-n-catalogs" data-follow="platform">3</span></a></nav>
+  <form class="filters filters-strip" method="get" action="/" role="search" aria-label="Filter providers" hx-swap="outerHTML show:none" data-filters="providers" hx-sync="this:replace" hx-replace-url="true">
   <div class="filter-fields">
-    <div class="field field-search"><label for="f-pq">Search</label><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></div>
     
-    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="" selected>Any</option><option value="active">active</option><option value="accepted">accepted</option><option value="refused">refused</option><option value="blocked">removal blocked</option><option value="pending">pending</option></select></div>
+    <div class="field field-search"><label for="f-pq">Search</label><span class="search-box"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="f-pq" name="pq" type="search" value="" placeholder="Name, catalog, contract or holder" autocomplete="off" spellcheck="false"></span></div>
     
-    <div class="field"><label for="f-provides">Provides</label><input id="f-provides" name="provides" value="" placeholder="a contract" list="f-provides-list" autocomplete="off" spellcheck="false"><datalist id="f-provides-list"><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1"></datalist></div>
-    <div class="field field-submit"><button type="submit">Apply filters</button></div>
+    <div class="field"><label for="f-pstatus">Status</label><select id="f-pstatus" name="pstatus"><option value="" selected>Any status</option><option value="accepted">Accepted (1)</option><option value="active">Active (1)</option><option value="refused">Refused (1)</option><option value="inactive">Inactive (0)</option><option value="blocked">Removal blocked (0)</option><option value="pending">Pending (0)</option></select></div>
+    
+    <div class="field"><label for="f-provides">Provides</label><select id="f-provides" name="provides"><option value="" selected>Anything</option><option value="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1 (1)</option></select></div>
+    <div class="field field-submit"><button type="submit" id="apply-providers">Apply filters</button></div>
+    <p class="shown" id="shown" data-follow="platform">Showing <strong>2</strong> of 2</p>
   </div>
   
 </form>
-  <div id="providers" data-follow="platform">
-  <p class="shown">Showing <strong>2</strong> of 2</p>
+  <div id="providers" class="region" data-follow="platform">
+  
   <div class="table-wrap">
   <table class="table rows providers">
     <thead><tr><th scope="col">Provider</th><th scope="col">Catalog</th><th scope="col">Provides</th><th scope="col">Installed as</th><th scope="col">Status</th></tr></thead>
     <tbody>
     <tr class="reg reg-Accepted">
-      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>backup-provider</span></th>
+      <th scope="row" data-label="Provider"><span class="mono row-heading"><a href="/instances/default/backup-provider?tab=provider">default.<wbr>backup-provider</a></span></th>
       <td data-label="Catalog"><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>backup@v0</a> <span class="ver">0.1.0</span></td>
-      <td data-label="Provides"><span class="mono chip" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span> </td>
-      <td data-label="Installed as"><span class="holder"><span class="kind kind-instance">Instance</span> <a class="mono" href="/instances/default/backup-provider?tab=provider">default/backup-provider</a></span> </td>
+      <td data-label="Provides"><span class="mono chip-contract" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span> </td>
+      <td data-label="Installed as"><span class="holder"><span class="kind kind-instance"><svg class="kind-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/></svg>Instance</span> <a class="mono" href="/instances/default/backup-provider?tab=provider">default/backup-provider</a></span> </td>
       <td data-label="Status">
-        <p class="pills">
-          <span class="pill pill-yes">accepted</span>
-          <span class="pill pill-yes">active</span>
-        </p>
-        
+        <p class="pills"><span class="sq hue-healthy">Accepted</span><span class="sq hue-healthy">Active</span></p>
       </td>
     </tr>
     <tr class="reg reg-Refused">
-      <th scope="row" data-label="Provider"><span class="mono">default.<wbr>refused-claim-fixture</span></th>
+      <th scope="row" data-label="Provider"><span class="mono row-heading">default.<wbr>refused-claim-fixture</span></th>
       <td data-label="Catalog"><a class="mono" href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0">testing.<wbr>opmodel.<wbr>dev/<wbr>catalogs/<wbr>operator/<wbr>refused-claim-fixture-absent@v0</a> <span class="ver">0.1.0</span></td>
       <td data-label="Provides"><span class="muted">nothing</span></td>
       <td data-label="Installed as"><span class="muted">held by nothing you may read</span><p class="muted holder-note">spec.providerRef names ModuleInstance <span class="mono">default/refused-claim-fixture</span>.</p></td>
       <td data-label="Status">
-        <p class="pills">
-          <span class="pill pill-no">not accepted</span>
-          <span class="pill pill-no">inactive</span>
-        </p>
-        <p class="verdict-why"><span class="verdict verdict-refused">Refused</span> <span class="mono">CatalogUnresolved</span></p>
+        <p class="pills"><span class="sq hue-degraded">Refused</span><span class="sq hue-neutral">Inactive</span></p>
+<p class="verdict-why hue-degraded"><span class="mono">CatalogUnresolved</span></p>
       </td>
     </tr>
     </tbody>
@@ -83,41 +73,52 @@
   
   </div>
 </section>
-<section class="panel panel-wide reveal" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
+<section class="panel panel-wide panel-flush" id="conditions" aria-labelledby="conditions-h" data-follow="platform">
   <h2 id="conditions-h">Conditions</h2>
   <ol class="conditions">
     <li class="condition tone-normal" id="cond-Ready">
-      <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">Generated</span><span class="cond-time"><time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC">6m ago</time></span></div>
+      <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">Generated</span><span class="cond-time"><time datetime="2026-10-04T18:03:50Z" title="2026-10-04 18:03:50 UTC" data-relative aria-live="off">6m ago</time></span></div>
     <p class="cond-meaning">The platform module was generated and built.</p>
     </li>
     <li class="condition tone-informational" id="cond-ContractsFulfilled">
-      <div class="cond-head"><span class="cond-type">ContractsFulfilled</span><span class="cond-status">False</span><span class="cond-reason">UnfulfilledContracts</span><span class="cond-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
+      <div class="cond-head"><span class="cond-type">ContractsFulfilled</span><span class="cond-status">False</span><span class="cond-reason">UnfulfilledContracts</span><span class="cond-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></span></div>
     <p class="cond-meaning">Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers.</p>
     </li>
   </ol>
 </section>
-<section class="panel panel-wide reveal" id="events-panel" aria-labelledby="events-h">
-  <h2 id="events-h">Recent events</h2>
-  <form class="filters filters-inline" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events">
+<section class="panel panel-wide panel-flush" id="events-panel" aria-labelledby="events-h">
+  <form class="filters filters-inline events-head" method="get" action="/" role="search" aria-label="Filter recent events" hx-swap="outerHTML show:none" data-filters="events" hx-sync="this:replace" hx-replace-url="true">
+    <h2 id="events-h">Recent events</h2>
     <div class="filter-fields">
-      <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><option value="" selected>Everything</option><optgroup label="Platform"><option value="platform">the Platform</option></optgroup><optgroup label="Providers"><option value="registration:default.backup-provider">default.backup-provider</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture</option></optgroup></select></div>
+      <div class="field"><label for="f-eresource">Resource</label><select id="f-eresource" name="eresource"><optgroup label="Everything"><option value="" selected>All resources (2)</option></optgroup><optgroup label="Platform"><option value="platform">cluster (1)</option></optgroup><optgroup label="Providers (TransformerRegistration)"><option value="registration:default.backup-provider">default.backup-provider (0)</option><option value="registration:default.refused-claim-fixture">default.refused-claim-fixture (1)</option></optgroup></select></div>
       <div class="field field-submit"><button type="submit">Show</button></div>
     </div>
+    <p class="shown" id="events-shown" data-follow="events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture">Showing <strong>2</strong> of 2, newest first, repeats folded</p>
   </form>
-  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
-  <div id="events" data-follow="events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture">
-    <p class="shown">Showing <strong>2</strong> of 2, newest first, repeats folded</p>
+  <div id="events" class="region" data-follow="events:platform events:registration:default.backup-provider events:registration:default.refused-claim-fixture">
     
-<ol class="events">
-  <li class="event ev-warning">
-    <div class="ev-head"><span class="ev-type">Warning</span><span class="ev-reason">CatalogUnresolved</span><span class="ev-time"><time datetime="2026-10-04T18:04:26Z" title="2026-10-04 18:04:26 UTC">5m ago</time></span></div>
-    <p class="ev-meta mono">TransformerRegistration.opmodel.dev default.refused-claim-fixture · opm-controller</p>
-  </li>
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Generated</span><span class="ev-count" title="Repeats folded into one line">×2</span><span class="ev-time"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC">5m ago</time></span></div>
-    <p class="ev-meta mono">Platform.opmodel.dev cluster · opm-controller</p>
-  </li>
-</ol>
+<div class="table-wrap">
+<table class="table rows events-table">
+  <thead><tr><th scope="col" class="c-type">Type</th><th scope="col" class="c-reason">Reason</th><th scope="col" class="c-resource">Resource</th><th scope="col">Message</th><th scope="col" class="c-age">Age</th></tr></thead>
+  <tbody>
+  <tr class="ev-warning">
+    <td data-label="Type" class="ev-type">Warning</td>
+    <td data-label="Reason" class="mono ev-reason">CatalogUnresolved</td>
+    <td data-label="Resource"><a class="ev-resource" href="/?eresource=registration%3Adefault.refused-claim-fixture" title="Show only this resource's events"><span class="ev-kind">TransformerRegistration</span><span class="mono">default.refused-claim-fixture</span></a></td>
+    <td data-label="Message"> <span class="muted ev-by">opm-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:26Z" title="2026-10-04 18:04:26 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Generated</td>
+    <td data-label="Resource"><a class="ev-resource" href="/?eresource=platform" title="Show only this resource's events"><span class="ev-kind">Platform</span><span class="mono">cluster</span></a></td>
+    <td data-label="Message"> <span class="ev-count" title="Repeats folded into one line">×2</span> <span class="muted ev-by">opm-controller</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-04T18:04:23Z" title="2026-10-04 18:04:23 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  </tbody>
+</table>
+</div>
   </div>
+  <p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
 </section>
 </main>

@@ -2,6 +2,7 @@ package ui
 
 import (
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -23,7 +24,6 @@ import (
 
 var (
 	idAttr     = regexp.MustCompile(`\sid="([^"]*)"`)
-	logLinkRe  = regexp.MustCompile(`data-log-link="([^"]*)"`)
 	followAttr = regexp.MustCompile(`id="(components|logs)"[^>]*data-follow="([^"]*)"`)
 )
 
@@ -50,26 +50,21 @@ func TestALatePodGetsALogPane(t *testing.T) {
 	}
 
 	logs := between(after, `id="logs"`, "</section>")
-	ids := map[string]bool{}
-	for _, m := range idAttr.FindAllStringSubmatch(logs, -1) {
-		ids[m[1]] = true
+	// The Pod's row is in the Resources table, and its panel links to a pane
+	// the Logs tab's select offers (the Logs link moved from the row to the panel).
+	if !strings.Contains(between(resources, `id="components"`, "</section>"), late) {
+		t.Errorf("the late Pod %s has no row in the Resources table", late)
 	}
-	links := logLinkRe.FindAllStringSubmatch(between(resources, `id="components"`, "</section>"), -1)
-	if len(links) == 0 {
-		t.Fatal("no Pod row offers its logs")
+	panel := broken.get(t, "/instances/default/podinfo/node?id="+url.QueryEscape("obj:_/Pod/default/"+late), htmxRequest).body
+	m := regexp.MustCompile(`href="/instances/default/podinfo\?tab=logs&amp;log=([^"]+)"`).FindStringSubmatch(panel)
+	if len(m) < 2 || !strings.Contains(m[1], late) {
+		t.Fatalf("the late Pod's panel has no Logs link to its pane:\n%s", panel)
 	}
-	var lateLink bool
-	for _, m := range links {
-		if !ids[m[1]] {
-			t.Errorf("Logs link %q names no pane in the logs region", m[1])
-		}
-		lateLink = lateLink || strings.Contains(m[1], late)
-	}
-	if !lateLink {
-		t.Errorf("the late Pod %s has no Logs link", late)
+	if !strings.Contains(logs, `<option value="`+m[1]+`"`) {
+		t.Errorf("Logs link %q names no option in the Pod / container select", m[1])
 	}
 
-	got := strings.TrimSpace(collapse(`<section class="panel panel-wide reveal" `+logs+"</section>")) + "\n"
+	got := strings.TrimSpace(collapse(`<section class="panel panel-wide" `+logs+"</section>")) + "\n"
 	golden := filepath.Join("testdata", "golden", "logs-podinfo-late-pod.html")
 	if *update {
 		if err := os.WriteFile(golden, []byte(got), 0o644); err != nil {
@@ -152,7 +147,7 @@ func TestOldRevisionsFoldHasAnID(t *testing.T) {
 	if res.status != http.StatusOK {
 		t.Fatalf("GET = %d\n%s", res.status, res.body)
 	}
-	fold := regexp.MustCompile(`<details class="old-revs" id="([^"]+)">`).FindStringSubmatch(res.body)
+	fold := regexp.MustCompile(`<details id="(old_[^"]+)"`).FindStringSubmatch(res.body)
 	if fold == nil {
 		t.Fatalf("no old-revisions fold with an id:\n%s", between(mainOf(res.body), `id="components"`, "</section>"))
 	}
@@ -161,33 +156,29 @@ func TestOldRevisionsFoldHasAnID(t *testing.T) {
 	}
 }
 
-// TestStampedLabelsLeaveRoomForTheStamp: a node with an applied stamp
-// clips its label shorter, so the stamp does not cover the label's end.
-func TestStampedLabelsLeaveRoomForTheStamp(t *testing.T) {
+// TestNodeLinesFitTheirBox: the three lines of a node are clipped to what
+// fits a 216 px box, the kind line short enough to leave the applied
+// square its corner, and a clipped name keeps its tail, which tells
+// siblings apart.
+func TestNodeLinesFitTheirBox(t *testing.T) {
+	d := &drawing{g: &v1.Graph{Layout: v1.GraphLayout{NodeWidth: 216, NodeHeight: 72}}, byID: map[string]*v1.GraphNode{}}
 	ready := v1.Reconcile{}
-	label := "cert-manager/cert-manager"
-	stamped := nodeOf(&v1.GraphNode{ID: "a", Kind: "instance", Label: label, Reconcile: &ready}, 200, 44, "/", "/node")
-	plain := nodeOf(&v1.GraphNode{ID: "b", Kind: "instance", Label: label}, 200, 44, "/", "/node")
-	if n := len([]rune(stamped.Label)); !stamped.Applied || n > stampedLabel {
-		t.Errorf("stamped label %q is %d characters, want at most %d", stamped.Label, n, stampedLabel)
-	}
-	if n := len([]rune(plain.Label)); n > maxLabel || n <= stampedLabel {
-		t.Errorf("unstamped label %q is %d characters, want %d to %d", plain.Label, n, stampedLabel+1, maxLabel)
-	}
-}
-
-// TestModuleSubLineShowsTheHost: two modules that share their path's tail
-// but not its host read apart on the sub-line.
-func TestModuleSubLineShowsTheHost(t *testing.T) {
-	for _, tc := range []struct{ label, want string }{
-		{"opmodel.dev/modules/podinfo", "Module · opmodel.dev/…"},
-		{"testing.opmodel.dev/modules/podinfo", "Module · testing.opmodel.de…"},
-		{"opmodel.dev/podinfo", "Module · opmodel.dev"},
-	} {
-		_, sub := displayLabel(&v1.GraphNode{Kind: "module", Label: tc.label}, "Module", false)
-		if sub != tc.want {
-			t.Errorf("%s: sub-line %q, want %q", tc.label, sub, tc.want)
+	n := d.nodeOf(&v1.GraphNode{
+		ID: "a", Kind: "object", Label: "a-very-long-name-that-is-not-short-enough-podinfo-7c9d8f",
+		Ref:       &v1.ObjectRef{Kind: "MutatingWebhookConfigurationList", Name: "x"},
+		Reconcile: &ready,
+		Health:    &v1.GraphHealth{State: "Degraded", Reason: "ProgressDeadlineExceededAtTheRolloutOfTheDeployment"},
+	})
+	for name, got := range map[string]struct {
+		text string
+		max  int
+	}{"kind": {n.Kind, maxKind}, "name": {n.Label, maxLabel}, "status": {n.Status, maxStatus}} {
+		if r := len([]rune(got.text)); r > got.max {
+			t.Errorf("%s line %q is %d characters, want at most %d", name, got.text, r, got.max)
 		}
+	}
+	if !strings.HasSuffix(n.Label, "8f") || !n.Applied {
+		t.Errorf("name %q lost its tail, or the applied square is missing (%v)", n.Label, n.Applied)
 	}
 }
 
@@ -339,7 +330,196 @@ func TestARefreshKeepsTheTabAndTheFocus(t *testing.T) {
 		!strings.Contains(focused, `class="node kind-object health-degraded dim"`) && !strings.Contains(focused, " dim\"") {
 		t.Error("the focused render does not mark the node or dim the rest")
 	}
-	if !strings.Contains(focused, `data-clear-selection>Clear selection</a>`) {
-		t.Error("the focused render offers no Clear selection")
+	// The shown link ends its tag right after the focus key; the hidden one
+	// the toolbar renders with no node focused carries a hidden attribute.
+	if !regexp.MustCompile(`data-clear-selection data-focus-key="clear-[^"]+">Clear selection</a>`).MatchString(focused) {
+		t.Error("the focused render offers no visible Clear selection")
+	}
+}
+
+// TestANewEventReplacesTheTabCountAndNothingElse (portal:D19:R3): the live
+// refresh replaces only elements that carry an id and data-follow, so a new
+// event on events:<topic> swaps the Events count and leaves the strip's
+// links, and their attributes, as they were.
+func TestANewEventReplacesTheTabCountAndNothingElse(t *testing.T) {
+	const path = "/instances/default/podinfo?tab=resources"
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		// An event of the ModuleInstance itself: the feed the Events tab opens with.
+		if name, _, _ := unstructured.NestedString(o.Object, "regarding", "name"); o.GetKind() != "Event" || o.GetNamespace() != "default" || name != "podinfo" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("podinfo.new-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e1e1")
+		if err := unstructured.SetNestedField(extra.Object, "BackOff", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		if err := unstructured.SetNestedField(extra.Object, "Back-off restarting failed container", "note"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of podinfo to copy")
+	}
+	before := mainOf(newSite(t, objs, apitest.AllowAll).get(t, path).body)
+	after := mainOf(newSite(t, more, apitest.AllowAll).get(t, path).body)
+
+	count := regexp.MustCompile(`<span class="tab-n" id="tab-n-events" data-follow="([^"]*)">(\d+)</span>`)
+	b, a := count.FindStringSubmatch(before), count.FindStringSubmatch(after)
+	if b == nil || a == nil {
+		t.Fatalf("no Events count in the strips:\n%s\n%s", tabsOf(before), tabsOf(after))
+	}
+	if !slices.Contains(strings.Fields(b[1]), "events:instance:default/podinfo") {
+		t.Errorf("the Events count follows %q, not events:instance:default/podinfo", b[1])
+	}
+	if b[2] == a[2] {
+		t.Errorf("the Events count stayed %s after a new event", b[2])
+	}
+	// The strip itself carries no id and no data-follow, so a refresh cannot
+	// replace it; with the counts taken out the two strips are identical.
+	nav := regexp.MustCompile(`<nav class="tabs[^>]*>`).FindString(before)
+	if strings.Contains(nav, "id=") || strings.Contains(nav, "data-follow") {
+		t.Errorf("the strip is a followed region: %s", nav)
+	}
+	strip := func(s string) string { return count.ReplaceAllString(tabsOf(s), "") }
+	if strip(before) != strip(after) {
+		t.Errorf("the strips differ beyond the count:\n%s\n%s", strip(before), strip(after))
+	}
+}
+
+// TestARefreshKeepsTheOpenGroupAndTheSelection: the refresh fetches the
+// page's own address, so the fresh render holds the same open group, the
+// same frame and the same selected node as the page it replaces.
+func TestARefreshKeepsTheOpenGroupAndTheSelection(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	path := "/instances/cert-manager/cert-manager?tab=graph&expand=" + url.QueryEscape(cmRBAC)
+	page := mainOf(s.get(t, path).body)
+	member := regexp.MustCompile(`data-node="([^"]*)" data-member-of=`).FindStringSubmatch(page)
+	if member == nil {
+		t.Fatal("no member in the open group")
+	}
+	path += "&node=" + url.QueryEscape(member[1])
+	for i, body := range []string{mainOf(s.get(t, path).body), mainOf(s.get(t, path).body)} {
+		if strings.Count(body, `class="group-frame-box"`) != 1 || !strings.Contains(body, `data-frame-for="`+cmRBAC+`"`) {
+			t.Errorf("render %d: the open group has no frame", i)
+		}
+		if !regexp.MustCompile(`data-node="` + regexp.QuoteMeta(member[1]) + `"[^>]*aria-current="true"`).MatchString(body) {
+			t.Errorf("render %d: the selected member is not marked", i)
+		}
+	}
+}
+
+// TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot (installed-06, PIC-L1): the
+// live refresh replaces only elements that carry an id and data-follow, so
+// "Showing n of M" in a filter form refreshes with its list and leaves the
+// fields beside it alone, and the hidden count note in the header's status
+// region has neither, so no refresh can write it. The header's region is the
+// one status region on the page, not atomic, and holds the note beside the
+// stream's text.
+func TestTheCountIsAFollowedRegionAndTheLiveNoteIsNot(t *testing.T) {
+	s := newSite(t, apitest.F1(t), apitest.AllowAll)
+	region := regexp.MustCompile(`<p class="shown" id="shown" data-follow="([^"]+)">`)
+	for path, list := range map[string]string{
+		"/installed":              `id="list"`,
+		"/installed?q=zzz":        `id="list"`,
+		"/":                       `id="providers"`,
+		"/?tab=catalogs":          `id="catalogs"`,
+		"/installed?kind=package": `id="list"`,
+	} {
+		page := s.get(t, path).body
+		m := region.FindStringSubmatch(mainOf(page))
+		if m == nil {
+			t.Errorf("%s: no followed count region", path)
+			continue
+		}
+		after := between(mainOf(page), list, ">")
+		if !strings.Contains(after, `data-follow="`+m[1]+`"`) {
+			t.Errorf("%s: the count follows %q, the list %s", path, m[1], after)
+		}
+		if n := strings.Count(page, `role="status"`); n != 1 {
+			t.Errorf("%s: %d status regions; the header's is the only one", path, n)
+		}
+		live := between(page, `<p class="live"`, "</p>")
+		if !strings.Contains(live, `id="live" role="status" aria-live="polite" aria-atomic="false"`) ||
+			!strings.Contains(live, `<span class="live-text">Not live</span><span class="live-note"></span>`) {
+			t.Errorf("%s: the status region is not the atomic-free text and note: %s", path, live)
+		}
+	}
+}
+
+// TestANewPlatformEventReplacesTheEventsCount (platform-24): the Platform
+// page's "Showing n of M" for Recent events is its own followed region,
+// `#events-shown`, with the topics of the feed beside it, so a new event
+// changes its text and the refresh that replaces it needs nothing else.
+func TestANewPlatformEventReplacesTheEventsCount(t *testing.T) {
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		if kind, _, _ := unstructured.NestedString(o.Object, "regarding", "kind"); o.GetKind() != "Event" || kind != "Platform" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("platform.new-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e2e2")
+		if err := unstructured.SetNestedField(extra.Object, "NewReason", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of the Platform to copy")
+	}
+	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
+	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, "/").body))
+	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, "/").body))
+	if before == nil || after == nil {
+		t.Fatal("the Platform page has no followed #events-shown region")
+	}
+	if !slices.Contains(strings.Fields(before[1]), "events:platform") {
+		t.Errorf("the count follows %q, not events:platform", before[1])
+	}
+	if before[2] == after[2] || !strings.Contains(after[2], "<strong>3</strong> of 3") {
+		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
+	}
+}
+
+// TestANewEventReplacesTheCatalogEventsCount: the Catalog page's Events count
+// is a followed region, and a new Platform event changes it.
+func TestANewEventReplacesTheCatalogEventsCount(t *testing.T) {
+	objs := apitest.F1(t)
+	more := slices.Clone(objs)
+	for _, o := range objs {
+		if kind, _, _ := unstructured.NestedString(o.Object, "regarding", "kind"); o.GetKind() != "Event" || kind != "Platform" {
+			continue
+		}
+		extra := o.DeepCopy()
+		extra.SetName("platform.new-catalog-event")
+		extra.SetUID("00000000-0000-0000-0000-00000000e2e3")
+		if err := unstructured.SetNestedField(extra.Object, "NewReason", "reason"); err != nil {
+			t.Fatal(err)
+		}
+		more = append(more, extra)
+		break
+	}
+	if len(more) == len(objs) {
+		t.Fatal("F1 holds no event of the Platform to copy")
+	}
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events"
+	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
+	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, path).body))
+	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, path).body))
+	if before == nil || after == nil {
+		t.Fatal("the Catalog Events tab has no followed #events-shown region")
+	}
+	if !slices.Contains(strings.Fields(before[1]), "events:platform") {
+		t.Errorf("the count follows %q, not events:platform", before[1])
+	}
+	if before[2] == after[2] || !strings.Contains(after[2], "<strong>3</strong> of 3") {
+		t.Errorf("the count did not follow the new event:\n%s\n%s", before[2], after[2])
 	}
 }

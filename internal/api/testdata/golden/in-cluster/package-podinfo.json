@@ -16,6 +16,7 @@
   },
   "interval": "1m",
   "path": ".",
+  "prune": true,
   "reconcile": {
     "state": "Failed",
     "reason": "SourceNotReady",
@@ -89,5 +90,9 @@
     }
   ],
   "lastApplied": {},
-  "components": []
+  "components": [],
+  "sourceState": {
+    "access": "ok",
+    "state": "kindNotServed"
+  }
 }
