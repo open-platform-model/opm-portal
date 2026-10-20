@@ -160,7 +160,7 @@ context: |
   2. `task vet` — `go vet` passes.
   3. `task lint` — golangci-lint passes.
   4. `task test` — all tests pass.
-  5. `task openspec:check` — main specs and active changes validate under `--strict`.
+  5. `task openspec:check` — `openspec validate --all --strict`: main specs and active changes validate.
   6. `task e2e:capture:check` — no committed cluster capture holds a Secret, values or managedFields.
   `task check` runs all six.
 
