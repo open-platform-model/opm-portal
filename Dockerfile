@@ -1,7 +1,7 @@
 # Build the portal binary.
 # The builder runs on the *build* platform and cross-compiles to the target
 # arch via GOARCH (pure Go, CGO_ENABLED=0), so multi-arch builds need no QEMU.
-FROM --platform=$BUILDPLATFORM golang:1.26.9@sha256:37cfcca63222ec499bec5e8ad7aad52dbf7529db36d5812b8eae2f0621aa92d6 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.10@sha256:3745f1aa11822297b79113f5e84ce2bffeb039734571c39855809cfe9e5d7be6 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
