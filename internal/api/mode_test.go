@@ -39,7 +39,7 @@ var inClusterGoldens = []goldenCase{
 	{"in-cluster/instance-podinfo-events", base + "/instances/default/podinfo/events"},
 	{"in-cluster/instance-podinfo-events-all", base + "/instances/default/podinfo/events?scope=all"},
 	{"in-cluster/instance-cert-manager-events-all", base + "/instances/cert-manager/cert-manager/events?scope=all"},
-	{"in-cluster/instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+	{"in-cluster/instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"},
 	{"in-cluster/package-list", base + "/packages"},
 	{"in-cluster/package-podinfo", base + "/packages/pkg/podinfo"},
 	{"in-cluster/package-podinfo-events-all", base + "/packages/pkg/podinfo/events?scope=all"},
@@ -153,7 +153,7 @@ func withASecondApplied(t *testing.T, objs []*unstructured.Unstructured) []*unst
 		ev.SetName(o.GetName() + "-again")
 		ev.SetUID(types.UID(string(o.GetUID()) + "-again"))
 		ev.Object["note"] = "Applied 3 resources (0 created, 3 updated, 0 unchanged)"
-		ev.Object["eventTime"] = "2026-10-04T18:05:00.000000Z"
+		ev.Object["eventTime"] = "2026-10-21T16:05:00.000000Z"
 		return append(objs, ev)
 	}
 	t.Fatal("F1 has no Applied event about default/podinfo")
@@ -266,7 +266,7 @@ func TestInClusterKeepsOtherWritersText(t *testing.T) {
 		{f1Broken(t), base + "/instances/default/podinfo"},
 		{f1Broken(t), base + "/instances/default/podinfo/graph"},
 		// The scheduler's and the kubelet's events about a Pod.
-		{loadF1(t), base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+		{loadF1(t), base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"},
 	} {
 		in := newEnv(t, c.objs, readmodeltest.AllowAll, inCluster)
 		local := newEnv(t, c.objs, readmodeltest.AllowAll)

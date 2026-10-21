@@ -23,7 +23,7 @@ func TestBackupProvidersProviderTab(t *testing.T) {
 		"<dt>Contracts</dt><dd>1 provided, 1 in use</dd>", "This instance is also a provider: it registers a catalog with the platform",
 		`<h4 class="sec-h">Registration conditions</h4>`, `<span class="cond-badge tone-normal">True</span>`,
 		`<span class="contract-pill" title="opmodel.dev/catalogs/opm/traits/backup@v1alpha1">traits/backup@v1alpha1</span>`,
-		`href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"`,
+		`href="/catalog?path=testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0"`,
 		"In the Platform's resolved registry, contributed by this registration.",
 		">Ready</th>", ">Accepted</td>",
 	} {
@@ -78,8 +78,8 @@ func TestPackageHolderProviderTab(t *testing.T) {
 }
 
 const (
-	backupCatalog  = "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0"
-	refusedCatalog = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0"
+	backupCatalog  = "/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0"
+	refusedCatalog = "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0"
 	opmCatalog     = "/catalog?path=opmodel.dev/catalogs/opm@v4"
 )
 
@@ -209,7 +209,7 @@ func TestCatalogBlockSaysSinceWhenTheClaimWasRefused(t *testing.T) {
 		t.Error("the refused block is not in the degraded hue")
 	}
 	block := between(refusedMain, `id="catalog-resolved"`, "</section>")
-	for _, want := range []string{`refused since <time datetime="2026-10-04T18:04:26Z"`, `<span class="sb-word">Unresolved</span>`,
+	for _, want := range []string{`refused since <time datetime="2026-10-21T16:04:50Z"`, `<span class="sb-word">Unresolved</span>`,
 		"Not in the resolved registry. Claimed by default.refused-claim-fixture",
 		`reason=CatalogUnresolved&amp;tab=events" class="hue-degraded"><strong>1</strong> <span class="mono">CatalogUnresolved</span>`} {
 		if !strings.Contains(block, want) {
@@ -298,7 +298,7 @@ func TestCatalogClaimsLockedWithRegistrations(t *testing.T) {
 // the claiming registrations, and an empty count span when they are locked;
 // Events never carries a count, because the page reads events only on that tab.
 func TestCatalogTabsCarryTheirCounts(t *testing.T) {
-	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0"
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0"
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for _, p := range []string{path, path + "&tab=events"} {
 		tabs := tabsOf(mainOf(s.get(t, p).body))
@@ -346,7 +346,7 @@ func TestCatalogEventsReasonDeepLink(t *testing.T) {
 	}
 	main := mainOf(s.get(t, refusedCatalog+"&tab=events&reason=CatalogUnresolved").body)
 	panel := between(main, `id="events-panel"`, "</section>")
-	for _, want := range []string{`<input type="hidden" name="path" value="testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0">`,
+	for _, want := range []string{`<input type="hidden" name="path" value="testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0">`,
 		`<input type="hidden" name="reason" value="CatalogUnresolved">`, `<input type="hidden" name="tab" value="events">`,
 		`aria-label="Remove Reason filter"><span class="fchip-label">Reason:</span> CatalogUnresolved`, "Showing <strong>1</strong> of 2", `<td data-label="Reason" class="mono ev-reason">CatalogUnresolved</td>`} {
 		if !strings.Contains(panel, want) {

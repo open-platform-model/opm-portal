@@ -128,12 +128,12 @@ var f1Pages = []goldenPage{
 	{"instance-podinfo-yaml", "/instances/default/podinfo?tab=yaml&object=apps/Deployment/default/podinfo-podinfo", false},
 	{"instance-backup-provider", "/instances/default/backup-provider", false},
 	{"instance-backup-provider-provider", "/instances/default/backup-provider?tab=provider", false},
-	{"catalog-backup", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0", false},
-	{"catalog-refused-claim", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0", false},
+	{"catalog-backup", "/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0", false},
+	{"catalog-refused-claim", "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0", false},
 	{"catalog-opm", "/catalog?path=opmodel.dev/catalogs/opm@v4", false},
 	{"catalog-opm-events", "/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events", false},
-	{"catalog-backup-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events", false},
-	{"catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved", false},
+	{"catalog-backup-events", "/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0&tab=events", false},
+	{"catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved", false},
 	{"instance-cert-manager-resources", "/instances/cert-manager/cert-manager?tab=resources", false},
 	{"instance-cert-manager", "/instances/cert-manager/cert-manager", false},
 	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac", false},
@@ -142,7 +142,7 @@ var f1Pages = []goldenPage{
 	{"package-podinfo-resources", "/packages/pkg/podinfo?tab=resources", false},
 	{"fragment-object-deployment", "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo", true},
 	{"fragment-node-deployment", "/instances/default/podinfo/node?id=obj:apps/Deployment/default/podinfo-podinfo", true},
-	{"fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
+	{"fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74", true},
 }
 
 // TestGoldenPages renders every page over the F1 capture and compares its
@@ -712,10 +712,10 @@ func TestInstalledCountsFollowTheCallersNamespaces(t *testing.T) {
 	t.Run("case 3: a reader who may list everywhere", func(t *testing.T) {
 		s := newSite(t, f1, apitest.AllowAll)
 		selects, _, shown := installedForm(t, s.get(t, "/installed?namespace=default").body)
-		if shown != `class="shown" id="shown" data-follow="instances">Showing <strong>3</strong> of 6` {
-			t.Errorf("count row = %q; want 3 of 6", shown)
+		if shown != `class="shown" id="shown" data-follow="instances">Showing <strong>3</strong> of 7` {
+			t.Errorf("count row = %q; want 3 of 7", shown)
 		}
-		want := []string{"|All namespaces", "cert-manager|cert-manager (1)", "default|default (3)", "pkg|pkg (1)", "web|web (1)"}
+		want := []string{"|All namespaces", "cert-manager|cert-manager (1)", "default|default (3)", "opm-system|opm-system (1)", "pkg|pkg (1)", "web|web (1)"}
 		if !slices.Equal(selects["namespace"], want) {
 			t.Errorf("namespace options = %q; want %q", selects["namespace"], want)
 		}
@@ -733,8 +733,8 @@ func TestInstalledCountsFollowTheCallersNamespaces(t *testing.T) {
 func TestInstalledTotalCoversEveryNamespace(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	_, _, shown := installedForm(t, s.get(t, "/installed?namespace=default").body)
-	if !strings.HasSuffix(shown, "Showing <strong>3</strong> of 6") {
-		t.Errorf("count row = %q; want Showing 3 of 6", shown)
+	if !strings.HasSuffix(shown, "Showing <strong>3</strong> of 7") {
+		t.Errorf("count row = %q; want Showing 3 of 7", shown)
 	}
 	// The namespace-only reader reads each kind in the namespace asked and
 	// follows its stream; the others follow every namespace.
@@ -878,8 +878,8 @@ func TestInstalledRowOfAPackageWithARevision(t *testing.T) {
 
 // TestPlatformNamesTheControllerVersion: the version the Platform's
 // status.controllerVersion records reaches the API document, the platform
-// graph's platform node and the page. The F1 capture predates the rename (its
-// Platform wrote status.operatorVersion), so the goldens carry no version.
+// graph's platform node and the page. The F1 capture records the same
+// version, so the goldens carry it.
 func TestPlatformNamesTheControllerVersion(t *testing.T) {
 	const want = "v1.0.0-beta.9"
 	objs := apitest.F1(t)

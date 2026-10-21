@@ -28,8 +28,8 @@ const (
 
 // The two Pods of F1's podinfo, and the ReplicaSet that made them.
 const (
-	podinfoPodA = "podinfo-podinfo-d9585d794-4lg6h"
-	podinfoPodB = "podinfo-podinfo-d9585d794-kp2jx"
+	podinfoPodA = "podinfo-podinfo-d9585d794-67j74"
+	podinfoPodB = "podinfo-podinfo-d9585d794-74b7v"
 )
 
 func listsOf(e *env) int {
@@ -126,7 +126,7 @@ func TestMergedEventsHideWhatTheCallerCannotGet(t *testing.T) { //nolint:gocyclo
 		if kindsOf(listA)["Deployment"] == 0 {
 			t.Error("alice's list lost the Deployment's own events")
 		}
-		for _, leak := range []string{podinfoPodA, podinfoPodB, "Created pod", "4lg6h", "kp2jx"} {
+		for _, leak := range []string{podinfoPodA, podinfoPodB, "Created pod", "67j74", "74b7v"} {
 			if bytes.Contains(a.body, []byte(leak)) {
 				t.Errorf("alice's body holds %q", leak)
 			}
@@ -375,9 +375,9 @@ func controllerEvent(name, reason, note, controller string) *unstructured.Unstru
 		"apiVersion": "events.k8s.io/v1",
 		"kind":       "Event",
 		"metadata": map[string]any{
-			"name": name, "namespace": "default", "uid": name + "-uid", "creationTimestamp": "2026-10-04T18:06:00Z",
+			"name": name, "namespace": "default", "uid": name + "-uid", "creationTimestamp": "2026-10-21T16:06:00Z",
 		},
-		"eventTime": "2026-10-04T18:06:00.000000Z",
+		"eventTime": "2026-10-21T16:06:00.000000Z",
 		"reason":    reason,
 		"note":      note,
 		"type":      "Normal",
@@ -552,9 +552,9 @@ func longEvent(name, kind, apiVersion, object, controller, note, uid string) *un
 		"apiVersion": "events.k8s.io/v1",
 		"kind":       "Event",
 		"metadata": map[string]any{
-			"name": name, "namespace": "default", "uid": name + "-" + uid, "creationTimestamp": "2026-10-04T18:07:00Z",
+			"name": name, "namespace": "default", "uid": name + "-" + uid, "creationTimestamp": "2026-10-21T16:07:00Z",
 		},
-		"eventTime":           "2026-10-04T18:07:00.000000Z",
+		"eventTime":           "2026-10-21T16:07:00.000000Z",
 		"reason":              "LongNote",
 		"note":                note,
 		"type":                "Warning",

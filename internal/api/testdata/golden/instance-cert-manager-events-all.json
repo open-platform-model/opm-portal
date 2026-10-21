@@ -22,22 +22,22 @@
         "name": "cert-manager"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:31.336781Z"
+      "lastSeen": "2026-10-21T16:04:47.99473Z"
     },
     {
       "type": "Normal",
       "reason": "Pulled",
-      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-cainjector:v1.21.0\" in 2.102s (6.839s including waiting). Image size: 12363199 bytes.",
+      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-webhook:v1.21.0\" in 2.181s (6.979s including waiting). Image size: 19683061 bytes.",
       "reportingController": "kubelet",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
       },
-      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "fieldPath": "spec.containers{cert-manager-webhook}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:13Z"
+      "lastSeen": "2026-10-21T16:04:34Z"
     },
     {
       "type": "Normal",
@@ -48,11 +48,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
       },
-      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "fieldPath": "spec.containers{cert-manager-webhook}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:13Z"
+      "lastSeen": "2026-10-21T16:04:34Z"
     },
     {
       "type": "Normal",
@@ -63,26 +63,26 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
       },
-      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "fieldPath": "spec.containers{cert-manager-webhook}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:13Z"
+      "lastSeen": "2026-10-21T16:04:34Z"
     },
     {
       "type": "Normal",
       "reason": "Pulled",
-      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-webhook:v1.21.0\" in 2.064s (4.744s including waiting). Image size: 19683061 bytes.",
+      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-cainjector:v1.21.0\" in 1.985s (4.817s including waiting). Image size: 12363199 bytes.",
       "reportingController": "kubelet",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
       },
-      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:11Z"
+      "lastSeen": "2026-10-21T16:04:32Z"
     },
     {
       "type": "Normal",
@@ -93,11 +93,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
       },
-      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:11Z"
+      "lastSeen": "2026-10-21T16:04:32Z"
     },
     {
       "type": "Normal",
@@ -108,26 +108,26 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
       },
-      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:11Z"
+      "lastSeen": "2026-10-21T16:04:32Z"
     },
     {
       "type": "Normal",
       "reason": "Pulled",
-      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-controller:v1.21.0\" in 2.822s (2.823s including waiting). Image size: 24827652 bytes.",
+      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-controller:v1.21.0\" in 2.978s (2.978s including waiting). Image size: 24827652 bytes.",
       "reportingController": "kubelet",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
       },
       "fieldPath": "spec.containers{cert-manager-controller}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:09Z"
+      "lastSeen": "2026-10-21T16:04:30Z"
     },
     {
       "type": "Normal",
@@ -138,11 +138,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
       },
       "fieldPath": "spec.containers{cert-manager-controller}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:09Z"
+      "lastSeen": "2026-10-21T16:04:30Z"
     },
     {
       "type": "Normal",
@@ -153,11 +153,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
       },
       "fieldPath": "spec.containers{cert-manager-controller}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:09Z"
+      "lastSeen": "2026-10-21T16:04:30Z"
     },
     {
       "type": "Normal",
@@ -168,11 +168,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
       },
       "fieldPath": "spec.containers{cert-manager-cainjector}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:27Z"
     },
     {
       "type": "Normal",
@@ -183,11 +183,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
       },
       "fieldPath": "spec.containers{cert-manager-controller}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:27Z"
     },
     {
       "type": "Normal",
@@ -198,11 +198,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
       },
       "fieldPath": "spec.containers{cert-manager-webhook}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:27Z"
     },
     {
       "type": "Normal",
@@ -217,7 +217,7 @@
         "name": "cert-manager"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05.989952Z"
+      "lastSeen": "2026-10-21T16:04:26.960214Z"
     },
     {
       "type": "Normal",
@@ -232,7 +232,7 @@
         "name": "cert-manager"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05.989855Z"
+      "lastSeen": "2026-10-21T16:04:26.96014Z"
     },
     {
       "type": "Normal",
@@ -247,7 +247,7 @@
         "name": "cert-manager-cainjector"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
@@ -262,7 +262,7 @@
         "name": "cert-manager-controller"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
@@ -277,54 +277,54 @@
         "name": "cert-manager-webhook"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
       "reason": "Scheduled",
-      "note": "Successfully assigned cert-manager/cert-manager-cainjector-5d69c59bd-htjjq to opm-portal-e2e-fix-control-plane",
+      "note": "Successfully assigned cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx to opm-portal-e2e-control-plane",
       "reportingController": "default-scheduler",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
       "reason": "Scheduled",
-      "note": "Successfully assigned cert-manager/cert-manager-controller-7c9bddd644-cr5qm to opm-portal-e2e-fix-control-plane",
+      "note": "Successfully assigned cert-manager/cert-manager-controller-7c9bddd644-hvrqf to opm-portal-e2e-control-plane",
       "reportingController": "default-scheduler",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
       "reason": "Scheduled",
-      "note": "Successfully assigned cert-manager/cert-manager-webhook-6c5bb576f5-slp22 to opm-portal-e2e-fix-control-plane",
+      "note": "Successfully assigned cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk to opm-portal-e2e-control-plane",
       "reportingController": "default-scheduler",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
       "reason": "SuccessfulCreate",
-      "note": "Created pod: cert-manager-cainjector-5d69c59bd-htjjq",
+      "note": "Created pod: cert-manager-cainjector-5d69c59bd-kbvjx",
       "reportingController": "replicaset-controller",
       "regarding": {
         "group": "apps",
@@ -334,12 +334,12 @@
         "name": "cert-manager-cainjector-5d69c59bd"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
       "reason": "SuccessfulCreate",
-      "note": "Created pod: cert-manager-controller-7c9bddd644-cr5qm",
+      "note": "Created pod: cert-manager-controller-7c9bddd644-hvrqf",
       "reportingController": "replicaset-controller",
       "regarding": {
         "group": "apps",
@@ -349,12 +349,12 @@
         "name": "cert-manager-controller-7c9bddd644"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     },
     {
       "type": "Normal",
       "reason": "SuccessfulCreate",
-      "note": "Created pod: cert-manager-webhook-6c5bb576f5-slp22",
+      "note": "Created pod: cert-manager-webhook-6c5bb576f5-nv7pk",
       "reportingController": "replicaset-controller",
       "regarding": {
         "group": "apps",
@@ -364,7 +364,7 @@
         "name": "cert-manager-webhook-6c5bb576f5"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:05Z"
+      "lastSeen": "2026-10-21T16:04:26Z"
     }
   ],
   "scope": "all"

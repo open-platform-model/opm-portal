@@ -115,7 +115,7 @@ func TestCLIOwnedInstanceHealth(t *testing.T) {
 // while the controller still says Applied.
 func TestPodRuleReachesHeldInstances(t *testing.T) {
 	objs := loadF1(t)
-	pod := find(t, objs, "Pod", "podinfo-podinfo-d9585d794-4lg6h")
+	pod := find(t, objs, "Pod", "podinfo-podinfo-d9585d794-67j74")
 	statuses, _, err := unstructured.NestedSlice(pod.Object, "status", "containerStatuses")
 	if err != nil || len(statuses) == 0 {
 		t.Fatalf("pod has no container statuses: %v", err)

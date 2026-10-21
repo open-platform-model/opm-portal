@@ -129,8 +129,8 @@ func TestEventsResourceNarrowsInThePage(t *testing.T) {
 	if !strings.Contains(owner, `<option value="`+podinfoOwner+`" selected>This instance (`) {
 		t.Errorf("This instance is not selected:\n%s", owner)
 	}
-	pod := eventsRegion(s.get(t, eventsTabURL+"&resource=/Pod/default/podinfo-podinfo-d9585d794-4lg6h").body)
-	if !strings.Contains(pod, "Ignored filter") && !strings.Contains(pod, "podinfo-podinfo-d9585d794-4lg6h") {
+	pod := eventsRegion(s.get(t, eventsTabURL+"&resource=/Pod/default/podinfo-podinfo-d9585d794-67j74").body)
+	if !strings.Contains(pod, "Ignored filter") && !strings.Contains(pod, "podinfo-podinfo-d9585d794-67j74") {
 		t.Errorf("the Pod's lines are neither shown nor named as ignored:\n%s", pod)
 	}
 	if !strings.Contains(eventsRegion(s.get(t, eventsTabURL+"&resource=/Pod/default/nope").body), "Ignored filter") {
@@ -183,10 +183,10 @@ func TestEventsTableShape(t *testing.T) {
 	if !strings.Contains(region, `title="Show only this resource's events"`) || !strings.Contains(region, "type=Normal") || !strings.Contains(region, "?resource=") {
 		t.Errorf("the resource cell is not a filter link that keeps the type:\n%s", region)
 	}
-	if !strings.Contains(region, `<time datetime="`) || !strings.Contains(between(region, "<tbody>", "</tbody>"), ` ago</time>`) || !strings.Contains(region, `title="2026-10-04 18:04:`) {
+	if !strings.Contains(region, `<time datetime="`) || !strings.Contains(between(region, "<tbody>", "</tbody>"), ` ago</time>`) || !strings.Contains(region, `title="2026-10-21 16:04:`) {
 		t.Errorf("the age is not the relative form, with its time in a title:\n%s", region)
 	}
-	frag := s.get(t, "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", htmxRequest).body
+	frag := s.get(t, "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74", htmxRequest).body
 	if !strings.Contains(frag, `class="table rows events-table"`) || strings.Contains(between(frag, "<thead>", "</thead>"), "Resource") {
 		t.Errorf("the panel's Events view is not the table without the Resource column:\n%s", frag)
 	}

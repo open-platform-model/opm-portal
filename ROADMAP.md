@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-19 (`split-long-requirements` built in four sections and archived, `--strict` back in `task openspec:check`; before that, 2026-10-12: `show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
+Last updated: 2026-10-21 (F1 recaptured on the released controller; before that, 2026-10-19: `split-long-requirements` built in four sections and archived, `--strict` back in `task openspec:check`; before that, 2026-10-12: `show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -44,7 +44,7 @@ A binary on the user's machine reads with their kubeconfig behind a loopback lau
 
 Exit evidence shown: every page renders from the read API over the F1 capture; the scripted image
 break turns health Degraded while Applied stays (portal:D3:R2/R3); goldens come from captured
-cluster state; F1 holds an accepted, active registration on a released controller (v1.0.0-beta.6).
+cluster state; F1 holds an accepted, active registration on a released controller (v1.0.0-beta.9).
 
 ### V1 M1 hardening (done)
 
@@ -67,11 +67,10 @@ cluster state; F1 holds an accepted, active registration on a released controlle
 
 ### Next in V1
 
-1. **First release, 0.1.0** (PR 18), held until OpenSpec change `follow-controller-rename` (in
-   review) merges: the read API names the controller (owner `controller`, `controllerVersion`),
-   pages and docs say "controller", and the e2e cluster installs with `opm controller install`.
-   Before the release, F1 is recaptured on the released controller and cli, which moves the
-   captured fixture paths and goldens to `testing.opmodel.dev/*/controller/*`.
+1. **First release, 0.1.0** (PR 18), held until OpenSpec change `follow-controller-rename` merges:
+   the read API names the controller (owner `controller`, `controllerVersion`), pages and docs say
+   "controller", the e2e cluster installs with `opm controller install`, and F1 is captured on the
+   released controller v1.0.0-beta.9 and cli v1.0.0-beta.12.
 2. **Canvas alignment** (planned 2026-10-06; four OpenSpec changes closing the verified gaps
    between the owner's canvas and the live pages,
    [evidence 05](docs/design/evidence/05-canvas-gap-report/); portal:D19, D20, D4:R5 as amended,

@@ -349,7 +349,7 @@ func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstr
 	claim.SetUID("00000000-0000-4000-8000-00000000c1a1")
 	claim.SetLabels(nil)
 	spec := map[string]any{
-		"catalog":     "testing.opmodel.dev/catalogs/operator/backup@v0",
+		"catalog":     "testing.opmodel.dev/catalogs/controller/backup@v0",
 		"version":     "0.1.0",
 		"provides":    []any{},
 		"providerRef": map[string]any{"namespace": PackageHolderNamespace, "name": PackageHolderName},
@@ -357,9 +357,9 @@ func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstr
 	const msg = "Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output"
 	conds := []any{
 		map[string]any{"type": "Stalled", "status": "True", "reason": "ProviderMismatch", "message": msg,
-			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+			"lastTransitionTime": "2026-10-21T16:04:30Z", "observedGeneration": int64(1)},
 		map[string]any{"type": "Ready", "status": "False", "reason": "ProviderMismatch", "message": msg,
-			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+			"lastTransitionTime": "2026-10-21T16:04:30Z", "observedGeneration": int64(1)},
 	}
 	if err := unstructured.SetNestedField(claim.Object, spec, "spec"); err != nil {
 		t.Fatal(err)

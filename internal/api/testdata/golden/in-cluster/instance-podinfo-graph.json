@@ -37,10 +37,10 @@
   },
   "nodes": [
     {
-      "id": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11",
+      "id": "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fpodinfo%40v0/v0.1.12",
       "kind": "module",
-      "label": "testing.opmodel.dev/modules/operator/podinfo@v0",
-      "version": "v0.1.11",
+      "label": "testing.opmodel.dev/modules/controller/podinfo@v0",
+      "version": "v0.1.12",
       "column": 0,
       "row": 0,
       "x": 16,
@@ -179,14 +179,14 @@
       "y": 92
     },
     {
-      "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
+      "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74",
       "kind": "runtime",
-      "label": "podinfo-podinfo-d9585d794-4lg6h",
+      "label": "podinfo-podinfo-d9585d794-67j74",
       "ref": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
+        "name": "podinfo-podinfo-d9585d794-67j74"
       },
       "access": "ok",
       "health": {
@@ -200,14 +200,14 @@
       "y": 44
     },
     {
-      "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx",
+      "id": "obj:_/Pod/default/podinfo-podinfo-d9585d794-74b7v",
       "kind": "runtime",
-      "label": "podinfo-podinfo-d9585d794-kp2jx",
+      "label": "podinfo-podinfo-d9585d794-74b7v",
       "ref": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
+        "name": "podinfo-podinfo-d9585d794-74b7v"
       },
       "access": "ok",
       "health": {
@@ -248,10 +248,10 @@
       ]
     },
     {
-      "id": "controls|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794|obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
+      "id": "controls|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794|obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74",
       "kind": "controls",
       "from": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
-      "to": "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h",
+      "to": "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74",
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
@@ -273,10 +273,10 @@
       ]
     },
     {
-      "id": "controls|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794|obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx",
+      "id": "controls|obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794|obj:_/Pod/default/podinfo-podinfo-d9585d794-74b7v",
       "kind": "controls",
       "from": "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794",
-      "to": "obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx",
+      "to": "obj:_/Pod/default/podinfo-podinfo-d9585d794-74b7v",
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
@@ -323,10 +323,10 @@
       ]
     },
     {
-      "id": "instantiates|mi:default/podinfo|mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11",
+      "id": "instantiates|mi:default/podinfo|mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fpodinfo%40v0/v0.1.12",
       "kind": "instantiates",
       "from": "mi:default/podinfo",
-      "to": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11",
+      "to": "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fpodinfo%40v0/v0.1.12",
       "source": "ModuleInstance spec.module",
       "route": [
         {

@@ -155,14 +155,14 @@
       "y": 92
     },
     {
-      "id": "obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2",
+      "id": "obj:_/Pod/web/web-web-6f7fbf94f9-p2vl7",
       "kind": "runtime",
-      "label": "web-web-6f7fbf94f9-v6hw2",
+      "label": "web-web-6f7fbf94f9-p2vl7",
       "ref": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "web",
-        "name": "web-web-6f7fbf94f9-v6hw2"
+        "name": "web-web-6f7fbf94f9-p2vl7"
       },
       "access": "ok",
       "health": {
@@ -203,10 +203,10 @@
       ]
     },
     {
-      "id": "controls|obj:apps/ReplicaSet/web/web-web-6f7fbf94f9|obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2",
+      "id": "controls|obj:apps/ReplicaSet/web/web-web-6f7fbf94f9|obj:_/Pod/web/web-web-6f7fbf94f9-p2vl7",
       "kind": "controls",
       "from": "obj:apps/ReplicaSet/web/web-web-6f7fbf94f9",
-      "to": "obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2",
+      "to": "obj:_/Pod/web/web-web-6f7fbf94f9-p2vl7",
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {

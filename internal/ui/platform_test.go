@@ -15,9 +15,9 @@ import (
 // TestPlatformStatusLinksItsReasons: the status card names Ready's and
 // ContractsFulfilled's own reasons, each linking to its condition row, and
 // the page draws no graph and no Platform health (portal:D17). The F1
-// Platform was captured before the controller rename and records no
-// status.controllerVersion, so its version reads "not recorded";
-// TestPlatformNamesTheControllerVersion covers a recorded one.
+// Platform was captured on the released controller v1.0.0-beta.9, so its
+// version reads v1.0.0-beta.9; TestPlatformNamesTheControllerVersion sets
+// the version itself.
 func TestPlatformStatusLinksItsReasons(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
 	for _, want := range []string{
@@ -26,7 +26,7 @@ func TestPlatformStatusLinksItsReasons(t *testing.T) {
 		`<span class="sb-word">Applied</span>`,
 		`<a href="/?tab=providers&amp;pstatus=refused#parts" class="hue-degraded"><strong>1</strong> <span class="mono">CatalogUnresolved</span></a>`,
 		`<a href="/?tab=catalogs#contracts" class="hue-unknown"><span class="mono">UnfulfilledContracts</span></a>`,
-		`id="cond-Ready"`, `id="cond-ContractsFulfilled"`, `<dt>Controller</dt><dd class="mono"><span class="muted">not recorded</span></dd>`,
+		`id="cond-Ready"`, `id="cond-ContractsFulfilled"`, `<dt>Controller</dt><dd class="mono">v1.0.0-beta.9</dd>`,
 	} {
 		if !strings.Contains(main, want) {
 			t.Errorf("the Platform page lacks %s", want)
@@ -43,9 +43,9 @@ func TestPlatformStatusLinksItsReasons(t *testing.T) {
 // it, and a list the caller may not read is locked, not zero.
 func TestPlatformCountsHandOff(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.AllowAll).get(t, "/").body)
-	for _, want := range []string{`href="/installed?health=Healthy" title="Show the 5 installed with health Healthy"><span class="count-badge">Healthy</span><span class="count-n">5</span>`,
+	for _, want := range []string{`href="/installed?health=Healthy" title="Show the 6 installed with health Healthy"><span class="count-badge">Healthy</span><span class="count-n">6</span>`,
 		`href="/installed?applied=Failed" title="Show the 1 installed with applied state Failed"><span class="count-badge">Failed</span><span class="count-n">1</span>`,
-		"6 installed: 5 instances, 1 package · 1 of them is a provider"} {
+		"7 installed: 6 instances, 1 package · 1 of them is a provider"} {
 		if !strings.Contains(main, want) {
 			t.Errorf("the Installed card lacks %s", want)
 		}

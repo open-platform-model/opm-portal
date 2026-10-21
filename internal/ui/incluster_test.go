@@ -15,10 +15,10 @@ import (
 // local mode, rendered over an in-cluster read API.
 var inClusterPages = []goldenPage{
 	{"in-cluster/platform", "/", false},
-	{"in-cluster/catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events", false},
+	{"in-cluster/catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events", false},
 	{"in-cluster/instance-podinfo", "/instances/default/podinfo", false},
 	{"in-cluster/package-podinfo", "/packages/pkg/podinfo", false},
-	{"in-cluster/fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
+	{"in-cluster/fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74", true},
 }
 
 func TestGoldenPagesInCluster(t *testing.T) {
@@ -52,9 +52,9 @@ func withControllerEventsOnTheRegistration(objs func(testing.TB) []*unstructured
 				"apiVersion": "events.k8s.io/v1",
 				"kind":       "Event",
 				"metadata": map[string]any{
-					"name": ev.name, "namespace": "default", "uid": ev.name + "-uid", "creationTimestamp": "2026-10-04T18:06:00Z",
+					"name": ev.name, "namespace": "default", "uid": ev.name + "-uid", "creationTimestamp": "2026-10-21T16:06:00Z",
 				},
-				"eventTime": "2026-10-04T18:06:00.000000Z",
+				"eventTime": "2026-10-21T16:06:00.000000Z",
 				"reason":    ev.reason,
 				"note":      ev.note,
 				"type":      "Normal",
@@ -86,9 +86,9 @@ func TestNoControllerTextOnAnInClusterPage(t *testing.T) {
 		"/instances/default/podinfo?tab=events":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events?scope=all"},
 		"/instances/default/backup-provider?tab=events": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events?scope=all"},
 		"/packages/pkg/podinfo?tab=events":              {apiBase + "/packages/pkg/podinfo", apiBase + "/packages/pkg/podinfo/events?scope=all"},
-		"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=claims": {apiBase + "/platform"},
-		"/instances/default/backup-provider?tab=provider":                                                {apiBase + "/platform", apiBase + "/instances/default/backup-provider"},
-		"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events": {apiBase + "/platform",
+		"/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=claims": {apiBase + "/platform"},
+		"/instances/default/backup-provider?tab=provider":                                                  {apiBase + "/platform", apiBase + "/instances/default/backup-provider"},
+		"/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events": {apiBase + "/platform",
 			apiBase + "/platform/events", apiBase + "/platform/registrations/default.refused-claim-fixture/events"},
 		"/instances/default/podinfo":         {apiBase + "/instances/default/podinfo", apiBase + "/instances/default/podinfo/events?scope=all"},
 		"/instances/default/backup-provider": {apiBase + "/instances/default/backup-provider", apiBase + "/instances/default/backup-provider/events?scope=all"},
@@ -177,8 +177,8 @@ func controllerEvent(ev map[string]any) bool {
 func TestInClusterCardsShowReasonsAndMeaningsOnly(t *testing.T) {
 	s := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
 	applied := between(mainOf(s.get(t, "/packages/pkg/podinfo").body), `id="applied-card"`, "</section>")
-	for _, want := range []string{`<span class="sb-word">Failed, retrying</span>`, "Failed on the last 3 attempts, retrying every 1 min",
-		"The package&#39;s source is not ready or does not exist.", "Reconciling: Progressing", "last 3 attempts"} {
+	for _, want := range []string{`<span class="sb-word">Failed, retrying</span>`, "Failed on the last 2 attempts, retrying every 1 min",
+		"The package&#39;s source is not ready or does not exist.", "Reconciling: Progressing", "last 2 attempts"} {
 		if !strings.Contains(applied, want) {
 			t.Errorf("in-cluster Applied block lacks %q:\n%s", want, applied)
 		}
@@ -235,7 +235,7 @@ func TestInClusterPlatformPageShowsReasonsOnly(t *testing.T) {
 // keeps the reason and drops the controller's note in-cluster, and the
 // resolved block and claim rows show no controller message (portal:D8:R5).
 func TestInClusterCatalogEventsShowReasonsOnly(t *testing.T) {
-	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0"
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0"
 	local := newSite(t, apitest.F1(t), apitest.AllowAll)
 	in := newInClusterSite(t, apitest.F1(t), apitest.AllowAll)
 	events := between(mainOf(in.get(t, path+"&tab=events").body), `<table class="table rows events-table">`, "</table>")

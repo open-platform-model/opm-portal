@@ -29,13 +29,13 @@ func TestStartRefusesASecondStart(t *testing.T) {
 }
 
 // TestPlatformViewControllerVersion: the version comes from
-// status.controllerVersion and from no other field. F1 was captured on a
-// controller released as opm-operator, which wrote status.operatorVersion, so
-// the captured Platform shows none until the F1 recapture.
+// status.controllerVersion and from no other field. F1 was captured on the
+// released controller v1.0.0-beta.9, which writes status.controllerVersion, so
+// the captured Platform shows that version.
 func TestPlatformViewControllerVersion(t *testing.T) {
 	for _, tc := range []struct {
 		name, set, want string
-	}{{"captured", "", ""}, {"set", "v1.0.0-beta.9", "v1.0.0-beta.9"}} {
+	}{{"captured", "", "v1.0.0-beta.9"}, {"set", "v1.0.0-beta.9", "v1.0.0-beta.9"}} {
 		t.Run(tc.name, func(t *testing.T) {
 			objs := loadF1(t)
 			if tc.set != "" {
@@ -103,7 +103,7 @@ func checkCatalogs(t *testing.T, v PlatformView) {
 	}
 	wantCatalogs := []Catalog{
 		{Catalog: "opmodel.dev/catalogs/opm@v4", Version: "4.6.0", Enabled: true, Source: "Subscription"},
-		{Catalog: "testing.opmodel.dev/catalogs/operator/backup@v0", Version: "0.1.0", Enabled: true, Source: "Registration",
+		{Catalog: "testing.opmodel.dev/catalogs/controller/backup@v0", Version: "0.1.0", Enabled: true, Source: "Registration",
 			Registrations: []string{"default.backup-provider"}},
 	}
 	if len(v.Catalogs) != len(wantCatalogs) {
@@ -163,7 +163,7 @@ func TestPackageView(t *testing.T) {
 	if p.Source.Kind != "OCIRepository" || p.Source.Name != "podinfo-release" || p.Path != "." {
 		t.Errorf("source = %+v path %q", p.Source, p.Path)
 	}
-	if len(p.History) != 3 || p.History[0].Sequence != 3 || p.InventoryCount != 0 {
+	if len(p.History) != 2 || p.History[0].Sequence != 2 || p.InventoryCount != 0 {
 		t.Errorf("history = %d entries (first %+v), inventory %d", len(p.History), p.History, p.InventoryCount)
 	}
 	list, err := e.m.ListPackages(t.Context(), alice, e.grant(t, "list", modulePackages, "", ""), "")
@@ -241,8 +241,8 @@ func TestListInstancesStaysInTheGrantedNamespace(t *testing.T) {
 		t.Errorf("default = %v, want %v", names(got), want)
 	}
 	got, err = e.m.ListInstances(t.Context(), alice, e.grant(t, "list", moduleInstances, "", ""), "")
-	if err != nil || len(got) != 5 {
-		t.Errorf("all namespaces = %v, %v; want 5", names(got), err)
+	if err != nil || len(got) != 6 {
+		t.Errorf("all namespaces = %v, %v; want 6", names(got), err)
 	}
 	// A grant for one namespace does not cover another, or all of them.
 	g := e.grant(t, "list", moduleInstances, "default", "")

@@ -10,12 +10,12 @@
       <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-owner">Owner</button><span class="tipbox" id="tip-owner" role="tooltip">Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.</span></span></dt><dd>the opm CLI</dd>
       <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-applier">Applier</button><span class="tipbox" id="tip-applier" role="tooltip">The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount.</span></span></dt><dd><span class="muted">the controller's own ServiceAccount</span></dd>
       <dt>Objects</dt><dd>2</dd>
-      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:30Z" title="2026-10-04 18:04:30 UTC" data-relative aria-live="off">5m ago</time></dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-21T16:04:56Z" title="2026-10-21 16:04:56 UTC" data-relative aria-live="off">5m ago</time></dd>
     </dl>
   </section>
   
 <section class="state-block hue-neutral" id="applied-card" aria-label="Applied status" data-follow="instance:web/web events:instance:web/web">
-  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC" data-relative aria-live="off">5m ago</time></span></div>
+  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-21T16:04:56Z" title="2026-10-21 16:04:56 UTC" data-relative aria-live="off">5m ago</time></span></div>
   <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Managed externally</span></div>
   <p class="sb-summary">Applied by the opm CLI; the controller does not manage it</p>
   <p class="sb-note">The CLI applied this instance; the controller only records it.</p><p class="sb-note says">ModuleInstance is managed externally by the CLI</p>
@@ -62,7 +62,7 @@
     </defs>
     <g class="viewport">
       <text class="col-title" x="16" y="20">Instance</text><text class="col-title" x="280" y="20">Components</text><text class="col-title" x="544" y="20">Objects</text><text class="col-title" x="808" y="20">ReplicaSets</text><text class="col-title" x="1072" y="20">Pods</text>
-      <path class="edge edge-controls" d="M760 176 H784 V128 H808" data-from="obj:apps/Deployment/web/web-web" data-to="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1024 128 H1048 V128 H1072" data-from="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" data-to="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M232 128 H256 V128 H280" data-from="mi:web/web" data-to="comp:mi/web/web/web"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-owns" d="M496 128 H520 V80 H544" data-from="comp:mi/web/web/web" data-to="obj:_/Service/web/web-web"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 128 H520 V176 H544" data-from="comp:mi/web/web/web" data-to="obj:apps/Deployment/web/web-web"><title>owns, from status.inventory entries</title></path>
+      <path class="edge edge-controls" d="M760 176 H784 V128 H808" data-from="obj:apps/Deployment/web/web-web" data-to="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1024 128 H1048 V128 H1072" data-from="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" data-to="obj:_/Pod/web/web-web-6f7fbf94f9-p2vl7"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M232 128 H256 V128 H280" data-from="mi:web/web" data-to="comp:mi/web/web/web"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-owns" d="M496 128 H520 V80 H544" data-from="comp:mi/web/web/web" data-to="obj:_/Service/web/web-web"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 128 H520 V176 H544" data-from="comp:mi/web/web/web" data-to="obj:apps/Deployment/web/web-web"><title>owns, from status.inventory entries</title></path>
       
       <a class="node kind-instance health-healthy ap-managedexternally" href="/instances/web/web?node=mi%3Aweb%2Fweb&amp;tab=graph" data-panel="/instances/web/web/node?id=mi%3Aweb%2Fweb" data-node="mi:web/web" tabindex="0" aria-label="Instance, web/web, Healthy, Managed externally" aria-describedby="instance-graph-card-0" data-resting>
         <title>web/web</title>
@@ -120,14 +120,14 @@
         <circle class="node-dot" cx="824" cy="149" r="3"/>
         <text class="node-status" x="833" y="152">1 desired</text>
       </a>
-      <a class="node kind-runtime health-healthy" href="/instances/web/web?node=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-v6hw2" data-node="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9-v6hw2, Current" aria-describedby="instance-graph-card-5">
-        <title>web-web-6f7fbf94f9-v6hw2</title>
+      <a class="node kind-runtime health-healthy" href="/instances/web/web?node=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-p2vl7&amp;tab=graph" data-panel="/instances/web/web/node?id=obj%3A_%2FPod%2Fweb%2Fweb-web-6f7fbf94f9-p2vl7" data-node="obj:_/Pod/web/web-web-6f7fbf94f9-p2vl7" tabindex="0" aria-label="Runtime, web-web-6f7fbf94f9-p2vl7, Current" aria-describedby="instance-graph-card-5">
+        <title>web-web-6f7fbf94f9-p2vl7</title>
         <rect class="node-halo" x="1062" y="82" width="236" height="92" rx="18"/>
         <rect class="node-ring" x="1068" y="88" width="224" height="80" rx="11"/>
         <rect class="node-box" x="1072" y="92" width="216" height="72" rx="6"/>
         
         <text class="node-kind" x="1084" y="112">Pod</text>
-        <text class="node-label node-mono" x="1084" y="134">web-web-6f7fbf94f9-v6hw2</text>
+        <text class="node-label node-mono" x="1084" y="134">web-web-6f7fbf94f9-p2vl7</text>
         <circle class="node-dot" cx="1088" cy="149" r="3"/>
         <text class="node-status" x="1097" y="152">Current</text>
       </a>
@@ -149,7 +149,7 @@
   <div class="node-card" id="instance-graph-card-2" role="tooltip" data-card-for="obj:_/Service/web/web-web" hidden><span class="nc-kind">Service</span> <strong class="nc-name mono">web/web-web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Service is ready</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
   <div class="node-card" id="instance-graph-card-3" role="tooltip" data-card-for="obj:apps/Deployment/web/web-web" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">web/web-web</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Deployment is available. Replicas: 1</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
   <div class="node-card" id="instance-graph-card-4" role="tooltip" data-card-for="obj:apps/ReplicaSet/web/web-web-6f7fbf94f9" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">web/web-web-6f7fbf94f9</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">ReplicaSet is available. Replicas: 1</span> <span class="nc-fact">Replicas: 1</span> <span class="nc-origin">Created by the cluster from Deployment web-web</span> <span class="nc-hint">Click for details</span></div>
-  <div class="node-card" id="instance-graph-card-5" role="tooltip" data-card-for="obj:_/Pod/web/web-web-6f7fbf94f9-v6hw2" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">web/web-web-6f7fbf94f9-v6hw2</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Pod is Ready</span> <span class="nc-origin">Created by the cluster from ReplicaSet web-web-6f7fbf94f9</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-5" role="tooltip" data-card-for="obj:_/Pod/web/web-web-6f7fbf94f9-p2vl7" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">web/web-web-6f7fbf94f9-p2vl7</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Pod is Ready</span> <span class="nc-origin">Created by the cluster from ReplicaSet web-web-6f7fbf94f9</span> <span class="nc-hint">Click for details</span></div>
   </div>
 </div>
 </section>
@@ -175,7 +175,7 @@
   <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
 <ol class="conditions">
   <li class="condition tone-unknown">
-    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">Unknown</span><span class="cond-reason">ManagedExternally</span><span class="cond-time"><time datetime="2026-10-04T18:04:31Z" title="2026-10-04 18:04:31 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">Unknown</span><span class="cond-reason">ManagedExternally</span><span class="cond-time"><time datetime="2026-10-21T16:04:56Z" title="2026-10-21 16:04:56 UTC" data-relative aria-live="off">5m ago</time></span></div>
     <p class="cond-message">ModuleInstance is managed externally by the CLI</p>
     <p class="cond-meaning">The CLI applied this instance; the controller only records it.</p>
   </li>

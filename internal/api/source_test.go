@@ -372,7 +372,7 @@ func longSources(t testing.TB, message, reason, revision string) []*unstructured
 	objs := naming(t, fluxObjs(t), "OCIRepository", readmodeltest.SourceNotReady)
 	src := readmodeltest.Find(t, objs, "OCIRepository", readmodeltest.SourceNotReady)
 	conds := []any{map[string]any{"type": "Ready", "status": "False", "reason": reason, "message": message,
-		"observedGeneration": int64(1), "lastTransitionTime": "2026-10-04T18:04:00Z"}}
+		"observedGeneration": int64(1), "lastTransitionTime": "2026-10-21T16:04:00Z"}}
 	if err := unstructured.SetNestedSlice(src.Object, conds, "status", "conditions"); err != nil {
 		t.Fatal(err)
 	}
