@@ -35,10 +35,13 @@ func TestStartRefusesASecondStart(t *testing.T) {
 func TestPlatformViewControllerVersion(t *testing.T) {
 	for _, tc := range []struct {
 		name, set, want string
-	}{{"captured", "", "v1.0.0-beta.9"}, {"set", "v1.0.0-beta.9", "v1.0.0-beta.9"}} {
+	}{{"captured", "", "v1.0.0-beta.9"}, {"set", "v1.0.0-beta.99", "v1.0.0-beta.99"}, {"absent", "-", ""}} {
 		t.Run(tc.name, func(t *testing.T) {
 			objs := loadF1(t)
-			if tc.set != "" {
+			if tc.set == "-" {
+				p := find(t, objs, "Platform", "cluster")
+				unstructured.RemoveNestedField(p.Object, "status", "controllerVersion")
+			} else if tc.set != "" {
 				p := find(t, objs, "Platform", "cluster")
 				if err := unstructured.SetNestedField(p.Object, tc.set, "status", "controllerVersion"); err != nil {
 					t.Fatal(err)

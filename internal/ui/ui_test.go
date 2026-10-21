@@ -878,10 +878,10 @@ func TestInstalledRowOfAPackageWithARevision(t *testing.T) {
 
 // TestPlatformNamesTheControllerVersion: the version the Platform's
 // status.controllerVersion records reaches the API document, the platform
-// graph's platform node and the page. The F1 capture records the same
-// version, so the goldens carry it.
+// graph's platform node and the page. The value differs
+// from the one the F1 capture holds, so the test proves which field is read.
 func TestPlatformNamesTheControllerVersion(t *testing.T) {
-	const want = "v1.0.0-beta.9"
+	const want = "v1.0.0-beta.99"
 	objs := apitest.F1(t)
 	for _, o := range objs {
 		if o.GetKind() == "Platform" {
