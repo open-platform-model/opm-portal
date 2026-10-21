@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # shellcheck source-path=SCRIPTDIR
-# up.sh: create the throwaway kind cluster opm-portal-e2e, install the released opm-operator
+# up.sh: create the throwaway kind cluster opm-portal-e2e, install the released opm-controller
 # with the pinned, checksum-verified opm CLI, apply the fixture set F1 and wait for it to settle.
 # F1 includes one claim that is refused on purpose (fixtures/f1/60-refused-claim.yaml).
 #
 #   E2E_PROVIDER=podman (default) | docker; recorded in .e2e/provider for capture and down
 #   E2E_CLUSTER=opm-portal-e2e-<suffix>  a second cluster, its state under .e2e/clusters/<name>/
-#   OPM_OPERATOR_VERSION=<release tag>  install that operator instead of the versions.env pin
+#   OPM_CONTROLLER_VERSION=<X.Y.Z>  install that opm_controller module version instead of the versions.env pin
 # shellcheck source=lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
@@ -68,11 +68,11 @@ create_cluster() {
   echo "$E2E_PROVIDER" >"$PROVIDER_FILE"
 }
 
-# install_operator installs the operator without the CLI's Platform, which would subscribe to the
+# install_controller installs the controller without the CLI's Platform, which would subscribe to the
 # newest catalog release, and applies one pinned to OPM_CATALOG_VERSION instead.
-install_operator() {
-  local args=(operator install --skip-platform --timeout 5m)
-  [ -n "$OPM_OPERATOR_VERSION" ] && args+=(--version "$OPM_OPERATOR_VERSION")
+install_controller() {
+  local args=(controller install --skip-platform --timeout 5m)
+  [ -n "$OPM_CONTROLLER_VERSION" ] && args+=(--version "$OPM_CONTROLLER_VERSION")
   opm_k "${args[@]}"
   log "applying the cluster Platform pinned to $OPM_CATALOG $OPM_CATALOG_VERSION"
   k apply -f - <<EOF
@@ -123,7 +123,7 @@ apply_fixtures() {
   log "applying the backup provider"
   k apply -f "$FIXTURES/40-backup-provider.yaml"
   require_ready default backup-provider 300
-  # The claim's verdict depends on the operator's library; record it, do not judge it.
+  # The claim's verdict depends on the controller's library; record it, do not judge it.
   wait_until 180 "claim default.backup-provider has a verdict" \
     ready_at_generation transformerregistrations.opmodel.dev - default.backup-provider ||
     log "warning: claim default.backup-provider has no Ready condition; recorded as is"
@@ -161,7 +161,7 @@ summary() {
   accepted=$(k get transformerregistrations.opmodel.dev default.backup-provider -o jsonpath='{.status.accepted}' 2>/dev/null || true)
   active=$(k get transformerregistrations.opmodel.dev default.backup-provider -o jsonpath='{.status.active}' 2>/dev/null || true)
   if [ "$accepted" != true ] || [ "$active" != true ]; then
-    log "note: the backup claim is not accepted and active; an operator built on library v1.0.0-beta.2 or later is needed for that"
+    log "note: the backup claim is not accepted and active; a controller built on library v1.0.0-beta.2 or later is needed for that"
   fi
   log "note: default.refused-claim-fixture is refused on purpose (a deliberate refusal fixture)"
 }
@@ -171,7 +171,7 @@ fetch_cli
 "$OPM_BIN" version >&2
 create_cluster
 require_fixture_cluster
-install_operator
+install_controller
 apply_fixtures
 summary
 log "ready: kubectl --kubeconfig $KC --context $CTX get moduleinstances -A"

@@ -17,19 +17,19 @@ Verified facts are stated plainly. Recommendations are marked **Recommendation**
 
 ## Access and identity
 
-- **CVE-2026-23990** (Flux Operator web UI, affected 0.36.0 up to but not including 0.40.0, fixed in 0.40.0, CVSS 5.3, published 2026-01-21): an embedded UI that impersonates users and ends up with empty claims runs requests as the operator's own ServiceAccount.
-- **opm-operator's manager role already holds cluster-wide impersonate** on users, groups and ServiceAccounts with no `resourceNames`, and write on ModuleInstances. A UI inside the manager process would inherit that blast radius.
-- **The shipped viewer role covers ModuleInstances only** (get, list, watch, and get on status). None of the operator's twelve roles carries an aggregate-to-view, edit or admin label. Platforms, ModulePackages and TransformerRegistrations are unreadable to non-admins.
-- **The operator has no redaction code.** Redaction of marked secret paths in diagnostics is a kernel contract (entry 0013), not an operator feature; whether the embedded library applies it to condition and event messages was not verified.
-- **No Kubernetes floor is declared.** The operator README carries a boilerplate "v1.11.3+", envtest follows k8s.io/api v0.36, the CLI's kind image is v1.34.3, and the opm quickstart was tested on v1.36.1. ConstrainedImpersonation (KEP-5284) is alpha in 1.35, beta in 1.36 and planned stable in 1.38.
-- **Recommendation:** run the portal as a separate Deployment with its own narrow ServiceAccount; use SubjectAccessReview-as-user, then read with the portal's ServiceAccount, which needs no impersonate grant; fail closed on empty identity with a regression test mirroring the CVE's empty-claims case; ship an unbound platform viewer role from the operator.
+- **CVE-2026-23990** (Flux Operator web UI, affected 0.36.0 up to but not including 0.40.0, fixed in 0.40.0, CVSS 5.3, published 2026-01-21): an embedded UI that impersonates users and ends up with empty claims runs requests as the Flux Operator's own ServiceAccount.
+- **opm-controller's manager role already holds cluster-wide impersonate** on users, groups and ServiceAccounts with no `resourceNames`, and write on ModuleInstances. A UI inside the manager process would inherit that blast radius.
+- **The shipped viewer role covers ModuleInstances only** (get, list, watch, and get on status). None of the controller's twelve roles carries an aggregate-to-view, edit or admin label. Platforms, ModulePackages and TransformerRegistrations are unreadable to non-admins.
+- **The controller has no redaction code.** Redaction of marked secret paths in diagnostics is a kernel contract (entry 0013), not a controller feature; whether the embedded library applies it to condition and event messages was not verified.
+- **No Kubernetes floor is declared.** The controller README carries a boilerplate "v1.11.3+", envtest follows k8s.io/api v0.36, the CLI's kind image is v1.34.3, and the opm quickstart was tested on v1.36.1. ConstrainedImpersonation (KEP-5284) is alpha in 1.35, beta in 1.36 and planned stable in 1.38.
+- **Recommendation:** run the portal as a separate Deployment with its own narrow ServiceAccount; use SubjectAccessReview-as-user, then read with the portal's ServiceAccount, which needs no impersonate grant; fail closed on empty identity with a regression test mirroring the CVE's empty-claims case; ship an unbound platform viewer role from the controller.
 
-## Operator surface (OPM, read from source)
+## Controller surface (OPM, read from source)
 
 - Four CRDs in `opmodel.dev/v1alpha1` (ModuleInstance, ModulePackage, Platform, TransformerRegistration), all with a status subresource and Flux-style conditions; events through the events.k8s.io/v1 recorder.
 - Owned objects are findable by inventory entries (group, kind, namespace, name, version, component) and by labels, but there are no ownerReferences, so the instance graph must come from the inventory.
 - `Ready=True` means applied: the apply path does not wait on workload health.
 - The CRDs carry no module display metadata (name, description, icon, config schema) and the inventory carries no per-object hash or health.
-- **Recommendation:** compute per-object health in the portal backend with kstatus; raise a `Healthy` condition or per-entry health as a separate operator question.
+- **Recommendation:** compute per-object health in the portal backend with kstatus; raise a `Healthy` condition or per-entry health as a separate controller question.
 
 The live capture in [experiment 01](01-live-cluster-capture/) later checked these claims on a running cluster and corrected several; where they disagree, the experiment wins.

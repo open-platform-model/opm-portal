@@ -83,7 +83,7 @@ func TestChangesNameTheOwningInstance(t *testing.T) {
 	}
 	defer release()
 	rec.reset()
-	pod := find(t, loadF1(t), "Pod", "podinfo-podinfo-d9585d794-4lg6h")
+	pod := find(t, loadF1(t), "Pod", "podinfo-podinfo-d9585d794-67j74")
 	pod.SetAnnotations(map[string]string{"touched": "yes"})
 	if _, err := e.client.Resource(pods).Namespace("default").Update(t.Context(), pod, metav1.UpdateOptions{}); err != nil {
 		t.Fatal(err)

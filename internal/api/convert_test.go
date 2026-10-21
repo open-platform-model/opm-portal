@@ -9,7 +9,7 @@ import (
 )
 
 // TestConditionCarriesToneAndExplanation: a known reason brings its meaning,
-// an unknown one brings none and keeps the operator's message.
+// an unknown one brings none and keeps the controller's message.
 func TestConditionCarriesToneAndExplanation(t *testing.T) {
 	known := condition(health.Condition{Type: "Stalled", Status: metav1.ConditionTrue, Reason: "RenderFailed", Message: "boom"})
 	if known.Tone != "abnormal" || known.Meaning == "" {

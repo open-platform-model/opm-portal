@@ -283,6 +283,18 @@
 {{- end}}
 
 
+{{/* owner-value is an owner as the read API serves it. A value other than
+     controller and cli is shown as written and marked unknown. */}}
+{{define "owner-value" -}}
+{{if or (eq . "controller") (eq . "cli")}}{{.}}{{else}}<span class="mono">{{.}}</span> <span class="muted">(unknown)</span>{{end}}
+{{- end}}
+
+{{/* applied-by names who applies an instance; an owner the portal does not
+     know is never named as the controller. */}}
+{{define "applied-by" -}}
+{{if eq . "cli"}}the opm CLI{{else if eq . "controller"}}the controller{{else}}{{template "owner-value" .}}{{end}}
+{{- end}}
+
 {{/* breakable is text that may wrap after a dot or a slash, and nowhere
      else. */}}
 {{define "breakable" -}}

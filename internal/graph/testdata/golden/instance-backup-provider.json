@@ -27,10 +27,10 @@
   },
   "nodes": [
     {
-      "id": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0",
+      "id": "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fbackup_provider%40v0/v0.1.1",
       "kind": "module",
-      "label": "testing.opmodel.dev/modules/operator/backup_provider@v0",
-      "version": "v0.1.0",
+      "label": "testing.opmodel.dev/modules/controller/backup_provider@v0",
+      "version": "v0.1.1",
       "column": 0,
       "row": 0,
       "x": 16,
@@ -59,7 +59,7 @@
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
       ],
@@ -100,7 +100,7 @@
         "message": "Resource is Ready"
       },
       "registration": {
-        "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+        "catalog": "testing.opmodel.dev/catalogs/controller/backup@v0",
         "version": "0.1.0",
         "provides": [
           "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
@@ -109,7 +109,7 @@
         "active": true,
         "verdict": "Accepted",
         "reason": "Accepted",
-        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
+        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/controller/backup@v0 at 0.1.0",
         "activeReason": "ProviderReady",
         "activeMessage": "Provider ModuleInstance default/backup-provider is Ready"
       },
@@ -146,10 +146,10 @@
       ]
     },
     {
-      "id": "instantiates|mi:default/backup-provider|mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0",
+      "id": "instantiates|mi:default/backup-provider|mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fbackup_provider%40v0/v0.1.1",
       "kind": "instantiates",
       "from": "mi:default/backup-provider",
-      "to": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_provider%40v0/v0.1.0",
+      "to": "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fbackup_provider%40v0/v0.1.1",
       "source": "ModuleInstance spec.module",
       "route": [
         {

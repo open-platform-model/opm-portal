@@ -17,7 +17,7 @@ import (
 
 const (
 	nodeDeployment = "obj:apps/Deployment/default/podinfo-podinfo"
-	nodePod        = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
+	nodePod        = "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74"
 	nodeService    = "obj:_/Service/default/podinfo-podinfo"
 	nodeReplicaSet = "obj:apps/ReplicaSet/default/podinfo-podinfo-d9585d794"
 )
@@ -155,7 +155,7 @@ func TestPanelOfTheOwnersNode(t *testing.T) {
 		t.Errorf("instance root links:\n%s", between(inst, "panel-links", "</p>"))
 	}
 	facts := factsOfPanel(inst)
-	if facts["Module"] != "testing.opmodel.dev/modules/operator/podinfo@v0" || facts["Version"] != "v0.1.11" || facts["Owner"] != "the controller" ||
+	if facts["Module"] != "testing.opmodel.dev/modules/controller/podinfo@v0" || facts["Version"] != "v0.1.12" || facts["Owner"] != "the controller" ||
 		facts["Applier"] != "ServiceAccount podinfo-applier" {
 		t.Errorf("instance facts: %v", facts)
 	}

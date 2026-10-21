@@ -1,7 +1,7 @@
 # opm-portal repository guide
 
 A Go web portal over OPM clusters: a versioned JSON/SSE read API (`/api/v1alpha1`) with an HTMX UI as
-its first consumer. V1 is read-only: status as the operator reports it, events, pod logs and a
+its first consumer. V1 is read-only: status as the controller reports it, events, pod logs and a
 relationship graph, from the Platform down to Pods.
 
 - Milestone 1 runs locally with the user's kubeconfig: `opm-portal serve` puts
@@ -29,7 +29,7 @@ lands by PR. Squash merges carry the PR title only, so the title is the CHANGELO
 - `/api/v1alpha1` changes only additively (Principle III). `task api:breaking` enforces it.
 - Standard library first: `net/http` routing, `html/template`, `log/slog`. A dependency earns its place
   in the change that adds it.
-- Claims about operator output are tested against live cluster captures, not hand-written YAML.
+- Claims about controller output are tested against live cluster captures, not hand-written YAML.
 - The portal publishes no CUE module and needs no local registry. A fixture it ever publishes lives
   under `testing.opmodel.dev/*`, never under `opmodel.dev/*`.
 

@@ -348,7 +348,7 @@ def run(p, engine, base, context):
         page.context.close()
 
         # 11: the Catalog page's Events tab: a Type change keeps the reason and announces the count.
-        CAT = "/catalog?path=testing.opmodel.dev%2Fcatalogs%2Foperator%2Frefused-claim-fixture-absent%40v0"
+        CAT = "/catalog?path=testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Frefused-claim-fixture-absent%40v0"
         page = fresh()
         page.goto(base + CAT + "&reason=CatalogUnresolved&tab=events", wait_until="load")
         page.evaluate("window.__m = 1")

@@ -40,7 +40,7 @@ func TestInstalledFilters(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for query, want := range map[string][]string{
 		"kind=package":                          {"/packages/pkg/podinfo"},
-		"kind=instance&owner=cli":               {"/instances/web/web"},
+		"kind=instance&owner=cli":               {"/instances/opm-system/opm-controller", "/instances/web/web"},
 		"provider=yes":                          {"/instances/default/backup-provider"},
 		"applied=Failed":                        {"/packages/pkg/podinfo"},
 		"module=opmodel.dev/modules/web_app@v1": {"/instances/web/web"},
@@ -54,7 +54,7 @@ func TestInstalledFilters(t *testing.T) {
 		}
 	}
 	main := mainOf(s.get(t, "/installed?health=Bogus").body)
-	if len(rowLinks(main)) != 6 || !strings.Contains(main, "Ignored filter <span class=\"mono\">health=Bogus</span>") {
+	if len(rowLinks(main)) != 7 || !strings.Contains(main, "Ignored filter <span class=\"mono\">health=Bogus</span>") {
 		t.Errorf("an unknown health value is not ignored with a note:\n%s", main)
 	}
 	if main := mainOf(s.get(t, "/installed?uses=x").body); !strings.Contains(main, "Packages are not included") {
@@ -76,8 +76,8 @@ func rowLinks(main string) []string {
 // TestInstalledPackagesForbidden: one kind locked, the other listed.
 func TestInstalledPackagesForbidden(t *testing.T) {
 	main := mainOf(newSite(t, apitest.F1(t), apitest.DenyResources("modulepackages")).get(t, "/installed").body)
-	if !strings.Contains(main, "Module packages</strong>: locked") || len(rowLinks(main)) != 5 {
-		t.Errorf("packages forbidden: want the five instances and a locked package group:\n%s", main)
+	if !strings.Contains(main, "Module packages</strong>: locked") || len(rowLinks(main)) != 6 {
+		t.Errorf("packages forbidden: want the six instances and a locked package group:\n%s", main)
 	}
 }
 
@@ -247,7 +247,7 @@ func TestFilterFormsRenderTheCountRowAndTheChips(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	all := mainOf(s.get(t, "/installed").body)
 	for _, want := range []string{
-		`<p class="shown" id="shown" data-follow="instances">Showing <strong>6</strong> of 6</p>`,
+		`<p class="shown" id="shown" data-follow="instances">Showing <strong>7</strong> of 7</p>`,
 		`data-filters="installed" hx-sync="this:replace" hx-replace-url="true"`,
 		`<span class="search-box"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">`,
 	} {

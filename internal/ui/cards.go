@@ -284,7 +284,7 @@ func (v *ownerView) inventoryCount() int64 {
 // only for SourceNotReady: the controller requeues at the package interval
 // only for source-resolution failures; apply-phase failures retry on the
 // package backoff and stalled ones on the stalled recheck interval
-// (opm-operator internal/reconcile/modulepackage.go:515,528,542 against
+// (opm-controller internal/reconcile/modulepackage.go:515,528,542 against
 // :632,665,741,762), so an interval named for those would state a false
 // cadence.
 func (v *ownerView) failedSummary() string {
@@ -712,10 +712,15 @@ func identityOf(v *ownerView) ownerIdentity {
 	case v.Instance != nil:
 		m := v.Instance.Module
 		id.Subtitle, id.Version = m.Path, m.Version
-		if v.Instance.Owner == ownerCLI {
+		switch v.Instance.Owner {
+		case ownerCLI:
 			id.Owner = "the opm CLI"
-		} else {
+		case ownerController:
 			id.Owner = "the " + ownerController
+		default:
+			// A spec.owner value the portal does not know is shown as
+			// written and never named as the controller.
+			id.Owner = v.Instance.Owner + " (unknown)"
 		}
 	case v.Package != nil:
 		p := v.Package

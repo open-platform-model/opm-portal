@@ -8,16 +8,16 @@
     "namespace": "default",
     "name": "backup-provider"
   },
-  "uid": "92a79284-19de-43ac-9629-3b75e8a0aa51",
+  "uid": "64292f5c-6fd6-481b-9b02-7c5b8efa4b2a",
   "module": {
-    "path": "testing.opmodel.dev/modules/operator/backup_provider@v0",
-    "version": "v0.1.0"
+    "path": "testing.opmodel.dev/modules/controller/backup_provider@v0",
+    "version": "v0.1.1"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",
-    "since": "2026-10-04T18:04:21Z"
+    "since": "2026-10-21T16:04:45Z"
   },
   "health": {
     "state": "Healthy",
@@ -32,12 +32,12 @@
       "withheld": 0
     },
     "partial": false,
-    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "evaluatedAt": "2026-10-21T16:10:00Z",
     "live": true
   },
   "inventoryCount": 1,
   "inventoryRevision": 1,
-  "lastAppliedAt": "2026-10-04T18:04:21Z",
+  "lastAppliedAt": "2026-10-21T16:04:45Z",
   "renderContracts": [
     "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
   ],
@@ -58,16 +58,25 @@
       "type": "Ready",
       "status": "True",
       "reason": "ReconciliationSucceeded",
-      "lastTransitionTime": "2026-10-04T18:04:21Z",
+      "lastTransitionTime": "2026-10-21T16:04:45Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "Every object was applied. This says nothing about whether the workloads run; see Health."
     },
     {
+      "type": "Healthy",
+      "status": "True",
+      "reason": "RolledOut",
+      "lastTransitionTime": "2026-10-21T16:04:45Z",
+      "observedGeneration": 1,
+      "tone": "unknown",
+      "meaning": "Every object of the inventory was read after the apply and judged healthy."
+    },
+    {
       "type": "ModuleResolved",
       "status": "True",
       "reason": "ModuleResolved",
-      "lastTransitionTime": "2026-10-04T18:04:21Z",
+      "lastTransitionTime": "2026-10-21T16:04:45Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "The module version was found in the registry."
@@ -79,21 +88,21 @@
       "phase": "complete",
       "outcome": "Succeeded",
       "sequence": 1,
-      "startedAt": "2026-10-04T18:04:21Z",
-      "finishedAt": "2026-10-04T18:04:21Z",
+      "startedAt": "2026-10-21T16:04:45Z",
+      "finishedAt": "2026-10-21T16:04:45Z",
       "inventoryCount": 1,
-      "inventoryDigest": "sha256:84e2a1d301d1c82d1e7948f7a78bb57902cadef80350e90591308c52b3d77e00",
+      "inventoryDigest": "sha256:338fdb667274734d730d2dfb2093d31c806a1d55d70d4c7a976d08ac35d281ae",
       "digests": {
-        "source": "sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1",
+        "source": "sha256:19a2554048b56f831ea738ffd7a909b1886289e57bc1bf33a9a3ecb513ba75b1",
         "config": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "render": "sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b"
+        "render": "sha256:c6bbde78bf7496da0e4d4dc92875b19afbb30c81af11e5a5036647560dc9192e"
       }
     }
   ],
   "lastApplied": {
-    "source": "sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1",
+    "source": "sha256:19a2554048b56f831ea738ffd7a909b1886289e57bc1bf33a9a3ecb513ba75b1",
     "config": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "render": "sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b"
+    "render": "sha256:c6bbde78bf7496da0e4d4dc92875b19afbb30c81af11e5a5036647560dc9192e"
   },
   "components": [
     {
@@ -111,7 +120,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -127,7 +136,7 @@
             "state": "Healthy",
             "reason": "Current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]

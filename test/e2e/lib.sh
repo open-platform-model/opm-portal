@@ -9,11 +9,11 @@ set -euo pipefail
 E2E_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "$E2E_DIR/../.." && pwd)
 
-_operator_override=${OPM_OPERATOR_VERSION-}
+_controller_override=${OPM_CONTROLLER_VERSION-}
 # shellcheck source=versions.env
 . "$E2E_DIR/versions.env"
-if [ -n "$_operator_override" ]; then
-  OPM_OPERATOR_VERSION=$_operator_override
+if [ -n "$_controller_override" ]; then
+  OPM_CONTROLLER_VERSION=$_controller_override
 fi
 
 # E2E_CLUSTER names a second fixture cluster beside the default one; it must start with

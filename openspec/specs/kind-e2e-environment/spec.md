@@ -14,7 +14,7 @@ which SHALL be `opm-portal-e2e` or start with `opm-portal-e2e-`.
 #### Scenario: Fresh environment
 
 - **WHEN** a developer runs `task e2e:up` with no cluster named `opm-portal-e2e`
-- **THEN** the cluster exists, the operator Deployment is available, the cluster Platform is
+- **THEN** the cluster exists, the controller Deployment is available, the cluster Platform is
   `Ready=True`, and the kubeconfig is written to `.e2e/kubeconfig`
 
 #### Scenario: Second cluster beside the default
@@ -61,10 +61,11 @@ from a cached archive, and SHALL stop with a non-zero exit on a mismatch.
 - **WHEN** the downloaded CLI archive's sha256 differs from the pinned value
 - **THEN** `task e2e:up` exits non-zero naming the mismatch, before any cluster object is applied
 
-### Requirement: The operator and the cluster Platform are installed at pinned versions
-`task e2e:up` SHALL install the opm-operator release `OPM_OPERATOR_VERSION` names (the CLI's
-embedded version when it is empty) without the CLI's Platform, and SHALL apply a cluster Platform
-subscribed to the catalog version `versions.env` pins.
+### Requirement: The controller and the cluster Platform are installed at pinned versions
+`task e2e:up` SHALL install the `opm_controller` module version `OPM_CONTROLLER_VERSION` names,
+with `opm controller install --version` (the version the CLI pins when it is empty), without the
+CLI's Platform, and SHALL apply a cluster Platform subscribed to the catalog version
+`versions.env` pins.
 
 #### Scenario: Catalog pin
 
@@ -112,24 +113,24 @@ loopback address and SHALL exit non-zero otherwise.
 ### Requirement: task e2e:up applies the fixture set F1 and waits until it settles
 `task e2e:up` SHALL apply the fixture set F1 and wait until it settles: cert-manager
 (`opmodel.dev/modules/cert_manager@v2`) under an applier ServiceAccount allowed to write
-cluster-scoped kinds, the operator's podinfo test module, a ModulePackage on a cluster without Flux,
+cluster-scoped kinds, the controller's podinfo test module, a ModulePackage on a cluster without Flux,
 the backup provider and backup consumer test modules (`testing.opmodel.dev/...`), a CLI-owned
 `web_app` instance applied with `opm instance apply`, and a deliberate refusal fixture.
 
 #### Scenario: The fixture set F1
 
 - **WHEN** `task e2e:up` applies the fixture set F1
-- **THEN** it waits until the set settles: cert-manager under an applier ServiceAccount allowed to write cluster-scoped kinds, the operator's podinfo test module, a ModulePackage on a cluster without Flux, the backup provider and backup consumer test modules, a CLI-owned `web_app` instance applied with `opm instance apply`, and a deliberate refusal fixture
+- **THEN** it waits until the set settles: cert-manager under an applier ServiceAccount allowed to write cluster-scoped kinds, the controller's podinfo test module, a ModulePackage on a cluster without Flux, the backup provider and backup consumer test modules, a CLI-owned `web_app` instance applied with `opm instance apply`, and a deliberate refusal fixture
 
-### Requirement: The deliberate refusal fixture is a registration no operator accepts
+### Requirement: The deliberate refusal fixture is a registration no controller accepts
 The fixture set F1 SHALL hold a deliberate refusal fixture: a TransformerRegistration applied by
 hand, labelled `e2e.opmodel.dev/fixture: deliberate-refusal`, naming a catalog published nowhere and
-providing no contract, so golden suites keep a refused registration whichever operator is installed.
+providing no contract, so golden suites keep a refused registration whichever controller is installed.
 
 #### Scenario: Deliberate refusal fixture
 
 - **WHEN** `task e2e:up` applies the claim `default.refused-claim-fixture`
-- **THEN** the operator refuses it (`Ready=False`, no `status.accepted` or `status.active`), and
+- **THEN** the controller refuses it (`Ready=False`, no `status.accepted` or `status.active`), and
   the capture's `meta.yaml` records it with `deliberateRefusal: true` and a note saying it is
   refused on purpose
 
@@ -148,22 +149,22 @@ or is accepted.
 
 #### Scenario: Deliberate refusal fixture accepted
 
-- **WHEN** the installed operator accepts `default.refused-claim-fixture`
+- **WHEN** the installed controller accepts `default.refused-claim-fixture`
 - **THEN** `task e2e:up` exits non-zero and prints the claim's conditions
 
 ### Requirement: task e2e:up records the state of the package, the claim and the consumer without failing
 `task e2e:up` SHALL record, without failing, the state of the ModulePackage, the backup claim and
 the backup consumer of the fixture set F1.
 
-#### Scenario: Released operator refuses the backup claim
+#### Scenario: Released controller refuses the backup claim
 
-- **WHEN** the installed operator is built on a library older than v1.0.0-beta.2
+- **WHEN** the installed controller is built on a library older than v1.0.0-beta.2
 - **THEN** `task e2e:up` succeeds, prints the claim's `Ready` reason, and the capture's
   `meta.yaml` marks the claim as not accepted and active
 
-#### Scenario: Operator accepts the backup claim
+#### Scenario: Controller accepts the backup claim
 
-- **WHEN** the installed operator accepts the claim
+- **WHEN** the installed controller accepts the claim
 - **THEN** the capture's `meta.yaml` records `accepted: true` and `active: true` for it with no
   note
 
@@ -260,14 +261,14 @@ reason and message. Source: portal:D3:R2/R3, portal:D4:R4, portal:D5:R5/R7.
 ### Requirement: task e2e:m1 checks the instance list and the web/web page
 `task e2e:m1` SHALL run the built binary in local mode against the fixture cluster and SHALL fail
 unless, through the read API and its stream, the instance list shows each F1 instance's applied
-state and health as two values (the operator's instances Applied and Healthy, the CLI-owned
+state and health as two values (the controller's instances Applied and Healthy, the CLI-owned
 `web/web` ManagedExternally and Healthy) and the `web/web` page reads "Managed externally". Source:
 portal:D3:R2/R3, portal:D4:R4, portal:D5:R5/R7.
 
 #### Scenario: The instance list and the web/web page
 
 - **WHEN** `task e2e:m1` runs the built binary in local mode against the fixture cluster
-- **THEN** it fails unless the instance list shows each F1 instance's applied state and health as two values (the operator's instances Applied and Healthy, the CLI-owned `web/web` ManagedExternally and Healthy), and the `web/web` page reads "Managed externally"
+- **THEN** it fails unless the instance list shows each F1 instance's applied state and health as two values (the controller's instances Applied and Healthy, the CLI-owned `web/web` ManagedExternally and Healthy), and the `web/web` page reads "Managed externally"
 
 ### Requirement: task e2e:m1 checks what a namespace-scoped reader lists and gets
 `task e2e:m1` SHALL run the built binary in local mode against the fixture cluster and SHALL fail
@@ -347,7 +348,7 @@ provider and the cluster name, differs from the committed one.
 
 #### Scenario: Verdict drift
 
-- **WHEN** a nightly capture records a different `Ready` reason, claim verdict, operator or
+- **WHEN** a nightly capture records a different `Ready` reason, claim verdict, controller or
   catalog version than the committed `meta.yaml`
 - **THEN** the workflow run fails and its summary shows the difference
 

@@ -130,9 +130,9 @@ the latest occurrence time. Source: portal:D9:R3/R4.
 - **THEN** each line's time is the deprecated last timestamp and its count is the deprecated
   count
 
-### Requirement: Views show the operator's verdicts on their own axis
+### Requirement: Views show the controller's verdicts on their own axis
 
-The instance, package and platform views SHALL carry the applied state read from the operator's
+The instance, package and platform views SHALL carry the applied state read from the controller's
 conditions beside, never merged with, the workload health; a registration SHALL carry accepted,
 active and its verdict as separate values. Source: portal:D3:R1/R6, portal:D4:R4.
 

@@ -173,7 +173,7 @@ func TestInstanceTopicFollowsAPodBreaking(t *testing.T) {
 
 	pods := podsGVR
 	breakPod := func() error {
-		pod, err := e.client.Resource(pods).Namespace("default").Get(t.Context(), "podinfo-podinfo-d9585d794-4lg6h", metav1.GetOptions{})
+		pod, err := e.client.Resource(pods).Namespace("default").Get(t.Context(), "podinfo-podinfo-d9585d794-67j74", metav1.GetOptions{})
 		if err != nil {
 			return err
 		}

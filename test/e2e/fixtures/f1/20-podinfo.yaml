@@ -1,4 +1,4 @@
-# The operator's podinfo test module (Deployment + Service) under a namespaced applier.
+# The controller's podinfo test module (Deployment + Service) under a namespaced applier.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -39,8 +39,8 @@ metadata:
   namespace: default
 spec:
   module:
-    path: testing.opmodel.dev/modules/operator/podinfo@v0
-    version: v0.1.11
+    path: testing.opmodel.dev/modules/controller/podinfo@v0
+    version: v0.1.12
   serviceAccountName: podinfo-applier
   values:
     replicas: 2

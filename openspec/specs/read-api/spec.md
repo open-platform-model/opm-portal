@@ -75,8 +75,8 @@ no authorization review and no read. Source: portal:D6:R2.
 
 No document SHALL contain an instance's or package's `spec.values`, Secret data, or the
 `kubectl.kubernetes.io/last-applied-configuration` annotation. In `local` mode condition, history
-and event messages SHALL be served as the operator and the API server wrote them; in
-`in-cluster` mode the text the operator wrote SHALL be omitted, as the in-cluster requirement
+and event messages SHALL be served as the controller and the API server wrote them; in
+`in-cluster` mode the text the controller wrote SHALL be omitted, as the in-cluster requirement
 lists. Source: portal:D8:R2/R3/R5/R6.
 
 #### Scenario: No values in any document
@@ -94,7 +94,7 @@ registry's contribution is joined to, by the same rule the platform graph draws 
 #### Scenario: The accepted claim contributed the backup catalog
 
 - **WHEN** a caller reads the F1 platform
-- **THEN** catalog `testing.opmodel.dev/catalogs/operator/backup@v0` has `contributedBy`
+- **THEN** catalog `testing.opmodel.dev/catalogs/controller/backup@v0` has `contributedBy`
   `default.backup-provider`
 
 ### Requirement: The change stream serves the topic kinds the mode routes to it
@@ -260,20 +260,20 @@ one-object feed omits. Source: portal:D7:R4, portal:D8:R5.
 - **THEN** the response is `200` with no event about the Service, no list runs for the Service,
   and the list carries `partial: true`
 
-#### Scenario: Operator notes in-cluster
+#### Scenario: Controller notes in-cluster
 
-- **WHEN** a client of an in-cluster server reads a merged feed holding the operator's events and
+- **WHEN** a client of an in-cluster server reads a merged feed holding the controller's events and
   the kubelet's
-- **THEN** the operator's lines carry no `note`, and the kubelet's carry theirs as written
+- **THEN** the controller's lines carry no `note`, and the kubelet's carry theirs as written
 
-#### Scenario: Both writers of an operator note in-cluster
+#### Scenario: Both writers of a controller note in-cluster
 
 - **WHEN** a client of an in-cluster server reads a merged feed that holds an event whose
   `reportingController` is `opm-controller`, an event with no `reportingController` that regards
   the instance, and the kubelet's events about its Pods
 - **THEN** the first two carry no `note`, and the kubelet's carry theirs as written
 
-#### Scenario: Operator notes on another object in-cluster
+#### Scenario: Controller notes on another object in-cluster
 
 - **WHEN** a client of an in-cluster server reads the merged feed of `default/backup-provider`,
   which holds an event whose `reportingController` is `opm-controller` and an event with no
@@ -494,7 +494,7 @@ source node's `sourceState`, and in the health message of the source node. Sourc
 - **WHEN** a client of an in-cluster server reads the package, whose OCIRepository has a Ready
   message, a Ready reason and an artifact revision each longer than its cap
 - **THEN** `sourceState.message`, `sourceState.reason` and `sourceState.revision` are served as
-  source-controller wrote them, since the operator did not write them, each cut to its cap with an
+  source-controller wrote them, since the controller did not write them, each cut to its cap with an
   ellipsis as in a local server
 
 ### Requirement: Instances carry their inventory revision
@@ -671,14 +671,14 @@ embed a raw custom-resource status. Source: portal:D2:R3/R4, portal:D3:R1.
 - **THEN** it carries `apiVersion: portal.opmodel.dev/v1alpha1` and a `kind`, and embeds no raw custom-resource status
 
 ### Requirement: An instance and a package carry applied state and health as two blocks
-An instance and a package SHALL carry the operator's applied state (`reconcile`: state, reason,
+An instance and a package SHALL carry the controller's applied state (`reconcile`: state, reason,
 message, since) and the portal's workload health (`health`: state, per-state and per-access counts,
 `partial`, `evaluatedAt`, `live`) as two separate blocks, never one merged status. Source:
 portal:D2:R3/R4, portal:D3:R1.
 
 #### Scenario: Both axes on an applied, degraded instance
 
-- **WHEN** a client reads an instance the operator applied whose Pod waits on `ErrImagePull`
+- **WHEN** a client reads an instance the controller applied whose Pod waits on `ErrImagePull`
 - **THEN** its `reconcile.state` is `Applied` and its `health.state` is `Degraded`
 
 #### Scenario: A CLI-owned instance
@@ -1060,7 +1060,7 @@ portal:D3:R8.
 
 ### Requirement: In-cluster mode serves no condition, reconcile, history or registration message
 In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carry
-text the operator wrote: a condition's `message` (a registration's `conditions` included), a
+text the controller wrote: a condition's `message` (a registration's `conditions` included), a
 reconcile `message`, a history entry's `message`, a registration's `message` or `activeMessage`.
 Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the supervisor ruling recorded under
 portal:D8.
@@ -1081,18 +1081,18 @@ portal:D8.
 #### Scenario: Local mode
 
 - **WHEN** a client of a local server reads the same documents
-- **THEN** every message and note is served as the operator and the API server wrote it
+- **THEN** every message and note is served as the controller and the API server wrote it
 
-### Requirement: In-cluster mode serves no operator-reported event note
+### Requirement: In-cluster mode serves no controller-reported event note
 In `in-cluster` mode no document, whether served by a `GET` or on the change stream, SHALL carry the
-`note` of an event the operator reported (its `reportingController` is `opm-controller`, or it names
+`note` of an event the controller reported (its `reportingController` is `opm-controller`, or it names
 none and regards an `opmodel.dev` object). Source: owner answer to portal:OQ8 (portal:D8:R5); its
 scope is the supervisor ruling recorded under portal:D8.
 
 #### Scenario: Events in-cluster
 
 - **WHEN** a client of an in-cluster server reads an `EventList` or follows its `events:` topic
-- **THEN** every event the operator reported carries its type, reason, count and times, and no
+- **THEN** every event the controller reported carries its type, reason, count and times, and no
   `note`
 
 ### Requirement: In-cluster mode serves no health message of an opmodel.dev object or status message in an Object
@@ -1131,7 +1131,7 @@ portal:D8.
 - **THEN** each of those events carries its `note` as the kubelet wrote it
 
 ### Requirement: In-cluster mode serves events left alike once their notes are dropped as one line
-In `in-cluster` mode events the operator reported that are left alike once their notes are dropped
+In `in-cluster` mode events the controller reported that are left alike once their notes are dropped
 (same type, reason, reporting controller, regarded object and field path) SHALL be served as one
 line, their counts summed and its time the latest, so the number of lines does not tell how many
 distinct notes were dropped. Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the
@@ -1154,13 +1154,13 @@ scope is the supervisor ruling recorded under portal:D8.
 - **THEN** it fails with `upstream_unavailable` rather than being served
 
 ### Requirement: The OpenAPI document says which fields are absent in-cluster
-The OpenAPI document SHALL say, on each field whose operator text is omitted in `in-cluster` mode,
+The OpenAPI document SHALL say, on each field whose controller text is omitted in `in-cluster` mode,
 that it is absent in-cluster. Source: owner answer to portal:OQ8 (portal:D8:R5); its scope is the
 supervisor ruling recorded under portal:D8.
 
 #### Scenario: An omitted field in the OpenAPI document
 
-- **WHEN** a field's operator text is omitted in `in-cluster` mode
+- **WHEN** a field's controller text is omitted in `in-cluster` mode
 - **THEN** the OpenAPI document says on that field that it is absent in-cluster
 
 ### Requirement: The Cluster document names the cluster, mode, source, context and caller
@@ -1205,7 +1205,7 @@ A request for the `Cluster` document without a principal SHALL be answered `401`
 - **THEN** the response is `401` with code `unauthenticated`
 
 ### Requirement: The Cluster document is served unchanged in-cluster
-In `in-cluster` mode the `Cluster` document SHALL be served unchanged: it carries no operator text.
+In `in-cluster` mode the `Cluster` document SHALL be served unchanged: it carries no controller text.
 Source: portal:D18:R1/R2/R3.
 
 #### Scenario: In-cluster
@@ -1358,3 +1358,44 @@ is still written only a change to its own document. Source: portal:D2:R5/R7, por
   `default.backup-provider`
 - **THEN** the stream delivers a `Platform` whose registration `default.backup-provider` has no
   `heldBy`
+
+### Requirement: Owner values use the controller's names
+
+An instance summary's `owner` SHALL be `cli` when the instance's `spec.owner` is `cli`, and
+`controller` when it is `controller` or absent. Any other `spec.owner` value SHALL be served as
+the instance holds it and SHALL NOT be mapped to `controller` or `cli`. The OpenAPI document
+SHALL list the known owner values as `[controller, cli]`.
+
+#### Scenario: An instance the controller applies
+
+- **WHEN** a client lists instances and one has `spec.owner: controller`, and another has no
+  `spec.owner`
+- **THEN** both summaries carry `owner: controller`
+
+#### Scenario: An owner value the portal does not know
+
+- **WHEN** a client lists instances and one has a `spec.owner` that is neither `controller` nor
+  `cli`
+- **THEN** its summary carries that value as written, and not `controller`
+
+#### Scenario: A CLI-owned instance
+
+- **WHEN** a client lists instances and one has `spec.owner: cli`
+- **THEN** its summary carries `owner: cli` and its reconcile state is `ManagedExternally`
+
+### Requirement: The controller version uses the controller's name
+
+The Platform document and the platform of a graph SHALL carry `controllerVersion`, read from the
+Platform's `status.controllerVersion` and from no other field; when that field is absent,
+`controllerVersion` SHALL be absent.
+
+#### Scenario: The Platform reports its controller version
+
+- **WHEN** a client reads the Platform whose `status.controllerVersion` is `v1.0.0-beta.9`
+- **THEN** the document carries `controllerVersion: v1.0.0-beta.9`, and the platform of the
+  platform graph carries the same value
+
+#### Scenario: The Platform reports no controller version
+
+- **WHEN** a client reads a Platform whose status has no `controllerVersion`
+- **THEN** the document carries no `controllerVersion` field and no version from any other field

@@ -14,24 +14,24 @@ import (
 type Mode string
 
 const (
-	// ModeLocal serves one user with their own kubeconfig: operator text is
+	// ModeLocal serves one user with their own kubeconfig: controller text is
 	// served as written, since the user's kubeconfig reads it with kubectl.
 	ModeLocal Mode = "local"
-	// ModeInCluster serves many users from one process: operator text is
-	// omitted (omitOperatorText).
+	// ModeInCluster serves many users from one process: controller text is
+	// omitted (omitControllerText).
 	ModeInCluster Mode = "in-cluster"
 )
 
 func (m Mode) valid() bool { return m == ModeLocal || m == ModeInCluster }
 
-// omitOperatorText returns doc without the text the operator wrote: the
+// omitControllerText returns doc without the text the controller wrote: the
 // message of every condition (a registration's included), reconcile state,
-// history entry and registration, the note of every event the operator
+// history entry and registration, the note of every event the controller
 // reported (folding the events that leaves alike), the health message of an
 // OPM object (kstatus copies its Ready message into it), and the condition
 // and history messages in the raw status of an OPM object. Reasons, states,
 // tone, meaning, next step, history outcomes and provider standings stay.
-// The operator's kernel does not redact secret values it copies into that
+// The controller's kernel does not redact secret values it copies into that
 // text, and the portal cannot tell a secret from other text, so in-cluster
 // it serves none of it.
 //
@@ -44,7 +44,7 @@ func (m Mode) valid() bool { return m == ModeLocal || m == ModeInCluster }
 //
 // It errors on a document type it does not know, so a new document cannot
 // leave an in-cluster server with text this function never saw.
-func omitOperatorText(doc any) (any, error) {
+func omitControllerText(doc any) (any, error) {
 	switch d := doc.(type) {
 	case v1.InstanceList:
 		for i := range d.Items {
@@ -82,17 +82,17 @@ func omitOperatorText(doc any) (any, error) {
 		return d, nil
 	case v1.Cluster:
 		// The connection's names, the caller's username and the server
-		// version: no text the operator wrote.
+		// version: no text the controller wrote.
 		return d, nil
 	}
-	return nil, fmt.Errorf("omitting operator text: unknown document type %T", doc)
+	return nil, fmt.Errorf("omitting controller text: unknown document type %T", doc)
 }
 
-// foldWithoutNotes drops the note of every event the operator reported
-// (operatorReported) and folds the events left alike into one line, summing
+// foldWithoutNotes drops the note of every event the controller reported
+// (controllerReported) and folds the events left alike into one line, summing
 // their counts and keeping the latest time seen. The read model folds on the
 // note too (portal:D9:R3), so without the second fold a note that differs
-// between events (the operator's Applied note counts resources) would leave
+// between events (the controller's Applied note counts resources) would leave
 // rows that look the same, and their number would tell how many distinct
 // notes were hidden. Another writer's events keep their notes, and fold
 // only with events of the same note, as the read model folded them. Events
@@ -106,7 +106,7 @@ func foldWithoutNotes(items []v1.Event) []v1.Event {
 	out := make([]v1.Event, 0, len(items))
 	for i := range items {
 		ev := items[i]
-		if operatorReported(ev) {
+		if controllerReported(ev) {
 			ev.Note = ""
 		}
 		k := key{ev.Type, ev.Reason, ev.Note, ev.ReportingController, ev.FieldPath, ev.Regarding}
@@ -125,17 +125,17 @@ func foldWithoutNotes(items []v1.Event) []v1.Event {
 	return out
 }
 
-// operatorController is the reportingController the operator's event
+// opmController is the reportingController the controller's event
 // recorders write.
-const operatorController = "opm-controller"
+const opmController = "opm-controller"
 
-// operatorReported reports whether the operator may have written ev's note:
-// its reportingController is the operator's, or it names none and regards
+// controllerReported reports whether the controller may have written ev's note:
+// its reportingController is the controller's, or it names none and regards
 // an OPM object, so its writer cannot be told and it is treated as the
-// operator's.
-func operatorReported(ev v1.Event) bool {
+// controller's.
+func controllerReported(ev v1.Event) bool {
 	switch ev.ReportingController {
-	case operatorController:
+	case opmController:
 		return true
 	case "":
 		return ev.Regarding.Group == opmGroup
@@ -157,7 +157,7 @@ func newestFirst(x, y *time.Time) int {
 	return y.Compare(*x)
 }
 
-// omitDetail omits the operator text of an instance's or package's record.
+// omitDetail omits the controller text of an instance's or package's record.
 func omitDetail(r *v1.Reconcile, cs []v1.Condition, hs []v1.HistoryEntry, comps []v1.Component) {
 	omitReconcile(r)
 	omitConditions(cs)
@@ -198,7 +198,7 @@ func omitHistory(hs []v1.HistoryEntry) {
 
 // omitComponents drops the health message of every OPM inventory object. A
 // workload's health message (a Pod waiting on an image) is the API server's
-// and the kubelet's text, not the operator's, and stays.
+// and the kubelet's text, not the controller's, and stays.
 func omitComponents(cs []v1.Component) {
 	for i := range cs {
 		for j := range cs[i].Objects {

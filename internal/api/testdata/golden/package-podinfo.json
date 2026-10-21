@@ -8,7 +8,7 @@
     "namespace": "pkg",
     "name": "podinfo"
   },
-  "uid": "5ae341c6-7de4-41d8-8799-817d4cb56ead",
+  "uid": "c425f412-c48e-4bc0-ad0b-3ac9145a6137",
   "source": {
     "apiVersion": "source.toolkit.fluxcd.io/v1",
     "kind": "OCIRepository",
@@ -21,7 +21,7 @@
     "state": "Failed",
     "reason": "SourceNotReady",
     "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
-    "since": "2026-10-04T18:03:54Z",
+    "since": "2026-10-21T16:04:21Z",
     "retrying": true
   },
   "health": {
@@ -46,40 +46,30 @@
       "status": "True",
       "reason": "Progressing",
       "message": "Reconciliation in progress",
-      "lastTransitionTime": "2026-10-04T18:03:54Z",
+      "lastTransitionTime": "2026-10-21T16:04:21Z",
       "observedGeneration": 1,
       "tone": "progressing",
-      "meaning": "The operator is working on the latest change."
+      "meaning": "The controller is working on the latest change."
     },
     {
       "type": "Ready",
       "status": "False",
       "reason": "SourceNotReady",
       "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
-      "lastTransitionTime": "2026-10-04T18:03:54Z",
+      "lastTransitionTime": "2026-10-21T16:04:21Z",
       "observedGeneration": 1,
       "tone": "abnormal",
       "meaning": "The package's source is not ready or does not exist.",
-      "nextStep": "Check the source object the package names; the operator retries."
+      "nextStep": "Check the source object the package names; the controller retries."
     }
   ],
   "history": [
     {
       "action": "reconcile",
       "outcome": "Failed",
-      "sequence": 3,
-      "startedAt": "2026-10-04T18:04:23Z",
-      "finishedAt": "2026-10-04T18:04:23Z",
-      "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
-      "inventoryCount": 0,
-      "digests": {}
-    },
-    {
-      "action": "reconcile",
-      "outcome": "Failed",
       "sequence": 2,
-      "startedAt": "2026-10-04T18:04:23Z",
-      "finishedAt": "2026-10-04T18:04:23Z",
+      "startedAt": "2026-10-21T16:04:46Z",
+      "finishedAt": "2026-10-21T16:04:46Z",
       "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
       "inventoryCount": 0,
       "digests": {}
@@ -88,8 +78,8 @@
       "action": "reconcile",
       "outcome": "Failed",
       "sequence": 1,
-      "startedAt": "2026-10-04T18:03:54Z",
-      "finishedAt": "2026-10-04T18:03:54Z",
+      "startedAt": "2026-10-21T16:04:21Z",
+      "finishedAt": "2026-10-21T16:04:21Z",
       "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
       "inventoryCount": 0,
       "digests": {}

@@ -2,7 +2,7 @@
 
 ## Purpose
 How the portal derives workload health from live objects, how it reads applied state and
-registration verdicts from the operator's status, and how it explains an operator reason, kept
+registration verdicts from the controller's status, and how it explains a controller reason, kept
 as two axes that never merge.
 
 ## Requirements
@@ -69,9 +69,9 @@ Source: portal:D3:R2/R3.
 - **WHEN** the healthy podinfo instance is evaluated with its ReplicaSet and Pods as children
 - **THEN** the instance counts only its two inventory objects
 
-### Requirement: Every operator condition reason has an explanation
+### Requirement: Every controller condition reason has an explanation
 
-The portal SHALL hold, for every reason the operator writes into a condition, a short meaning
+The portal SHALL hold, for every reason the controller writes into a condition, a short meaning
 and, where a person can act, a next step. A reason the portal does not know SHALL be shown
 raw, with no explanation and no error. Explanations SHALL NOT cite enhancement decisions.
 
@@ -82,12 +82,12 @@ raw, with no explanation and no error. Explanations SHALL NOT cite enhancement d
 
 #### Scenario: Unknown reason
 
-- **WHEN** the explanation for a reason the operator does not write is requested
+- **WHEN** the explanation for a reason the controller does not write is requested
 - **THEN** no explanation is returned
 
-#### Scenario: Operator adds a reason
+#### Scenario: Controller adds a reason
 
-- **WHEN** the copied list of operator reasons gains a reason the table has no row for
+- **WHEN** the copied list of controller reasons gains a reason the table has no row for
 - **THEN** the test suite fails, naming the reason
 
 ### Requirement: Health rolls up worst-of, leaves out what the reader cannot read and says when it is partial
@@ -170,7 +170,7 @@ state, first four matches" applies, by the first match of: `Reconciling=True` or
 Reconciling; `Ready=True` whose `observedGeneration` is older than the object's generation is
 Reconciling; `Ready=True` is Applied; anything else is Unknown. Source: portal:D3:R1/R6/R7/R8.
 
-#### Scenario: Spec edited, operator not caught up
+#### Scenario: Spec edited, controller not caught up
 
 - **WHEN** the captured podinfo ModuleInstance is read with its generation one past the
   `observedGeneration` of its `Ready=True` condition
@@ -178,7 +178,7 @@ Reconciling; `Ready=True` is Applied; anything else is Unknown. Source: portal:D
 
 #### Scenario: Unknown kind
 
-- **WHEN** an object of a kind other than the four operator kinds is read
+- **WHEN** an object of a kind other than the four controller kinds is read
 - **THEN** its applied state is Unknown
 
 ### Requirement: Ready=True is Applied and never Healthy
@@ -223,7 +223,7 @@ be RemovalBlocked and keep its accepted and active values, never Refused. Source
 
 - **WHEN** the captured claim deleted while a consumer demands its contract
   (`Stalled=True` and `Ready=False/DependentsRemain`, `accepted: true`, `active: true`) is read
-- **THEN** its verdict is RemovalBlocked with the operator's message, and it stays accepted and
+- **THEN** its verdict is RemovalBlocked with the controller's message, and it stays accepted and
   active
 
 ### Requirement: For a registration the verdict decides how it is shown

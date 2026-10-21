@@ -95,7 +95,7 @@ func TestF1ProviderJoin(t *testing.T) {
 	if s := d.ProviderOf[0].Standing; !s.Accepted || !s.Active || s.Verdict != health.VerdictAccepted {
 		t.Errorf("standing = %+v; want accepted, active, Accepted", s)
 	}
-	if c := d.ProviderOf[0]; !c.Read() || c.Catalog != "testing.opmodel.dev/catalogs/operator/backup@v0" || c.Version != "0.1.0" || len(c.Provides) != 1 {
+	if c := d.ProviderOf[0]; !c.Read() || c.Catalog != "testing.opmodel.dev/catalogs/controller/backup@v0" || c.Version != "0.1.0" || len(c.Provides) != 1 {
 		t.Errorf("claim = %+v; want it read, with the registration's catalog, version 0.1.0 and one provided contract", c)
 	}
 }
@@ -128,7 +128,7 @@ func TestF1InstanceListJoin(t *testing.T) {
 	}
 }
 
-// TestF1HistoryOutcomes: pkg/podinfo's three entries carry a message and no
+// TestF1HistoryOutcomes: pkg/podinfo's two entries carry a message and no
 // phase, the instances' carry phase complete.
 func TestF1HistoryOutcomes(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
@@ -136,7 +136,7 @@ func TestF1HistoryOutcomes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(p.History) != 3 {
+	if len(p.History) != 2 {
 		t.Fatalf("pkg/podinfo history = %+v", p.History)
 	}
 	for _, h := range p.History {
@@ -167,7 +167,7 @@ func TestOutcomeOf(t *testing.T) {
 		{"", "", OutcomeUnknown},
 		{"complete", "a success entry with a message", OutcomeSucceeded},
 		{"applying", "", OutcomeUnknown},
-		{"applying", "a phase the operator never writes", OutcomeUnknown},
+		{"applying", "a phase the controller never writes", OutcomeUnknown},
 	} {
 		if got := outcomeOf(tt.phase, tt.message); got != tt.want {
 			t.Errorf("outcomeOf(%q, %q) = %s; want %s", tt.phase, tt.message, got, tt.want)

@@ -31,8 +31,8 @@ from playwright.sync_api import expect, sync_playwright
 
 PODINFO = "/instances/default/podinfo"
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
-POD = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
-T0 = datetime(2026, 10, 4, 18, 10, 0, tzinfo=timezone.utc)  # the page's start: any fixed time
+POD = "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74"
+T0 = datetime(2026, 10, 21, 16, 10, 0, tzinfo=timezone.utc)  # the page's start: any fixed time
 
 STATE = """() => ({
     loading: document.body.classList.contains("is-loading"),
@@ -151,7 +151,7 @@ def run(p, engine, base):
             return False
         page.clock.run_for(300)
         fast.release()
-        expect(page.locator("#detail .frag-h").first).to_have_text("podinfo-podinfo-d9585d794-4lg6h")
+        expect(page.locator("#detail .frag-h").first).to_have_text("podinfo-podinfo-d9585d794-67j74")
         # A second request starts at 800 ms: the first one's second must not carry over to it.
         page.clock.run_for(500)
         activate(page, DEPLOY)
@@ -185,7 +185,7 @@ def run(p, engine, base):
         if not check(s["loading"] and s["busy"] == "true", f"with two requests open the bar is on ({s['loading']}) and #detail is busy ({s['busy']!r})"):
             return False
         panel.release()
-        expect(page.locator("#detail .frag-h").first).to_have_text("podinfo-podinfo-d9585d794-4lg6h")
+        expect(page.locator("#detail .frag-h").first).to_have_text("podinfo-podinfo-d9585d794-67j74")
         page.clock.run_for(100)
         s = page.evaluate(STATE)
         if not check(s["loading"] and s["busy"] is None and s["line"] is None,

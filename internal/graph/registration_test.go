@@ -13,7 +13,7 @@ import (
 const (
 	backupClaim    = "obj:opmodel.dev/TransformerRegistration/_/default.backup-provider"
 	holderClaim    = "obj:opmodel.dev/TransformerRegistration/_/pkg.provider"
-	backupCatalog  = "testing.opmodel.dev/catalogs/operator/backup@v0"
+	backupCatalog  = "testing.opmodel.dev/catalogs/controller/backup@v0"
 	backupProvider = "default"
 )
 

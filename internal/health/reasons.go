@@ -1,26 +1,26 @@
 package health
 
-// Explanation says what an operator condition reason means and, when a
+// Explanation says what a controller condition reason means and, when a
 // person can act on it, what to do next. The text is shown to users as is.
 type Explanation struct {
 	Meaning  string
 	NextStep string
 }
 
-// Explain returns the explanation for an operator condition reason. A reason
+// Explain returns the explanation for a controller condition reason. A reason
 // the portal does not know returns false; callers show it raw.
 func Explain(reason string) (Explanation, bool) {
 	e, ok := reasonExplanations[reason]
 	return e, ok
 }
 
-// reasonExplanations holds one row per reason the operator writes into a
-// condition. The test suite compares its keys with the operator's reason
+// reasonExplanations holds one row per reason the controller writes into a
+// condition. The test suite compares its keys with the controller's reason
 // constants.
 var reasonExplanations = map[string]Explanation{
 	// Progress and success.
 	"Progressing": {
-		Meaning: "The operator is working on the latest change.",
+		Meaning: "The controller is working on the latest change.",
 	},
 	"ReconciliationSucceeded": {
 		Meaning: "Every object was applied. This says nothing about whether the workloads run; see Health.",
@@ -29,13 +29,13 @@ var reasonExplanations = map[string]Explanation{
 		Meaning: "The module version was found in the registry.",
 	},
 	"Suspended": {
-		Meaning: "Reconciliation is suspended; the operator applies nothing until it is resumed.",
+		Meaning: "Reconciliation is suspended; the controller applies nothing until it is resumed.",
 	},
 	"ManagedExternally": {
-		Meaning: "The CLI applied this instance; the operator only records it.",
+		Meaning: "The CLI applied this instance; the controller only records it.",
 	},
 	"DriftDetected": {
-		Meaning:  "Some applied objects differ from what the operator applied last.",
+		Meaning:  "Some applied objects differ from what the controller applied last.",
 		NextStep: "Inspect the drifted objects; the next reconcile reapplies them.",
 	},
 
@@ -65,16 +65,32 @@ var reasonExplanations = map[string]Explanation{
 		NextStep: "Check that the applying ServiceAccount may delete the objects the message names.",
 	},
 	"ImpersonationFailed": {
-		Meaning:  "The operator could not act as the ServiceAccount the spec names.",
-		NextStep: "Check that the ServiceAccount exists and that the operator may impersonate it.",
+		Meaning:  "The controller could not act as the ServiceAccount the spec names.",
+		NextStep: "Check that the ServiceAccount exists and that the controller may impersonate it.",
 	},
 	"DeletionSAMissing": {
 		Meaning:  "Deletion is blocked: the ServiceAccount needed to prune the objects is gone.",
 		NextStep: "Restore the ServiceAccount, set spec.prune to false and delete again, or annotate the object with opm.dev/force-delete-orphan=true to leave the objects behind.",
 	},
 	"SelfManagementRefused": {
-		Meaning:  "This instance deploys the operator itself, which the operator never manages.",
+		Meaning:  "This instance deploys the controller itself, which the controller never manages.",
 		NextStep: "Set spec.owner to cli.",
+	},
+	"ClaimConflict": {
+		Meaning:  "The API server refused the update of a PersistentVolumeClaim, and the controller does not delete and recreate a claim unless spec.dataPolicy is Delete. Nothing was applied; the controller retries.",
+		NextStep: "Resolve the conflict on the claim the message names; the controller retries.",
+	},
+	"ReconcilePanic": {
+		Meaning:  "The controller hit an internal error while it reconciled this object, and recorded the attempt as failed.",
+		NextStep: "Read the controller log for the panic and report it; the controller retries.",
+	},
+	"RenderTimedOut": {
+		Meaning:  "The render did not finish within the controller's render timeout, or an earlier render that did not finish is still running. The controller retries.",
+		NextStep: "If it keeps happening, check the module for an expensive or unbounded definition, or raise the controller's render timeout.",
+	},
+	"DriftCheckForbidden": {
+		Meaning:  "The API server refused the dry run that detects drift for the identity that applies this instance, so whether an object drifted is not known.",
+		NextStep: "Grant the applying ServiceAccount the permissions the message names.",
 	},
 	"PlatformNotReady": {
 		Meaning:  "The Platform is not ready, so nothing can be rendered against it yet.",
@@ -85,14 +101,30 @@ var reasonExplanations = map[string]Explanation{
 		NextStep: "Remove the dependent instances the message names first.",
 	},
 
+	// Health of the applied objects, as the controller judges it.
+	"RolledOut": {
+		Meaning: "Every object of the inventory was read after the apply and judged healthy.",
+	},
+	"NotRolledOut": {
+		Meaning:  "An object of the inventory is not healthy yet, or does not exist.",
+		NextStep: "Open the objects that are not ready and read their conditions and events.",
+	},
+	"ProgressDeadlineExceeded": {
+		Meaning:  "A Deployment reports that its rollout stalled past its progress deadline.",
+		NextStep: "Open the Deployment's Pods and read their events and logs.",
+	},
+	"HealthUnknown": {
+		Meaning: "The controller could not judge the health: an object could not be read, or the inventory is empty.",
+	},
+
 	// ModulePackage.
 	"SourceNotReady": {
 		Meaning:  "The package's source is not ready or does not exist.",
-		NextStep: "Check the source object the package names; the operator retries.",
+		NextStep: "Check the source object the package names; the controller retries.",
 	},
 	"FetchFailed": {
 		Meaning:  "The package's artifact could not be fetched.",
-		NextStep: "Check the source's artifact URL and that the operator can reach it.",
+		NextStep: "Check the source's artifact URL and that the controller can reach it.",
 	},
 	"PathNotFound": {
 		Meaning:  "The path the package names does not exist in the artifact.",
@@ -103,7 +135,7 @@ var reasonExplanations = map[string]Explanation{
 		NextStep: "Check that the artifact contains the instance file at spec.path.",
 	},
 	"UnsupportedKind": {
-		Meaning:  "The package holds a kind the operator does not deploy.",
+		Meaning:  "The package holds a kind the controller does not deploy.",
 		NextStep: "Package a supported kind.",
 	},
 	"DependenciesNotReady": {
@@ -117,7 +149,7 @@ var reasonExplanations = map[string]Explanation{
 	},
 	"GenerateFailed": {
 		Meaning:  "The platform module could not be written.",
-		NextStep: "Read the message; this is usually an operator storage problem.",
+		NextStep: "Read the message; this is usually a controller storage problem.",
 	},
 	"BuildFailed": {
 		Meaning:  "The platform module did not build: a catalog did not resolve, or its contracts could not be read.",

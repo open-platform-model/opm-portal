@@ -9,7 +9,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 ## Before you begin
 
-- A kubeconfig for a cluster that runs OPM: the operator, or instances applied with the `opm` CLI.
+- A kubeconfig for a cluster that runs OPM: the controller, or instances applied with the `opm` CLI.
 - Read access, as that kubeconfig's identity, to the OPM resources you want to see: `get`, `list` and `watch` on `moduleinstances`, `modulepackages`, `platforms` and `transformerregistrations` in the group `opmodel.dev`, and on the objects their inventories name. The portal shows a resource you may not read as locked.
 - Linux or macOS, on `amd64` or `arm64`.
 
@@ -75,7 +75,7 @@ Run the portal locally to see what a cluster runs under OPM with your own access
 
 After the launch, the browser shows the Platform page at `http://127.0.0.1:7878/`: the Platform's status, the counts of what is installed, and its Providers and Catalogs. The page header names the context the portal reads, the user it reads as and the Kubernetes version; check that they are the cluster and the identity you meant. A **Live** mark in the header says the page follows changes. If the stream drops, a banner under the header says how old the data on screen is and that the page is reconnecting; **Reload** in the banner opens the page again. When the kubeconfig entry has a different name from its context, the header shows the entry name below the context, so you can tell which cluster entry the portal reads.
 
-Open **Installed**. Each instance and package shows two values: **Applied**, what the operator applied, and **Health**, what is running. On an instance's page, the node's outline and left rail in the graph show its health, and the small square in its corner shows its applied state. A locked group means your identity may not list ModuleInstances, or ModulePackages, in that scope: check your access with:
+Open **Installed**. Each instance and package shows two values: **Applied**, what the controller applied, and **Health**, what is running. On an instance's page, the node's outline and left rail in the graph show its health, and the small square in its corner shows its applied state. A locked group means your identity may not list ModuleInstances, or ModulePackages, in that scope: check your access with:
 
 ```sh
 kubectl --context my-cluster auth can-i list moduleinstances.opmodel.dev --all-namespaces

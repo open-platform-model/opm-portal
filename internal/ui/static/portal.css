@@ -1071,7 +1071,7 @@ tbody.group:has(details:not([open])) > tr.member { display: none; }
    have more specificity than a bare .node:focus-visible. */
 .node:focus-visible .node-ring, .node[aria-current="true"]:focus-visible .node-ring, .graph:not(.has-selection) .node[data-resting]:focus-visible .node-ring { stroke: var(--focus); stroke-width: 4; }
 .node:hover .node-box { stroke-width: 2.5; }
-/* The applied stamp: the operator's axis, shaped like the applied badge. */
+/* The applied stamp: the controller's axis, shaped like the applied badge. */
 .node-stamp { fill: var(--applied); stroke: var(--applied); stroke-width: 1.2; }
 .node.ap-failed .node-stamp, .node.ap-stalled .node-stamp { fill: var(--degraded); stroke: var(--degraded); }
 .node.ap-reconciling .node-stamp { fill: var(--progressing); stroke: var(--progressing); }

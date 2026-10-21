@@ -133,8 +133,8 @@ func TestResourcesTableRowsOnF1(t *testing.T) {
 	rows := rowsOf(main)
 	want := []resourceRowWant{
 		{"Deployment", "default/podinfo-podinfo", "applied", ""},
-		{"Pod", "default/podinfo-podinfo-d9585d794-4lg6h", "made by the cluster", " row-child"},
-		{"Pod", "default/podinfo-podinfo-d9585d794-kp2jx", "made by the cluster", " row-child"},
+		{"Pod", "default/podinfo-podinfo-d9585d794-67j74", "made by the cluster", " row-child"},
+		{"Pod", "default/podinfo-podinfo-d9585d794-74b7v", "made by the cluster", " row-child"},
 		{"ReplicaSet", "default/podinfo-podinfo-d9585d794", "made by the cluster", " row-child"},
 		{"Service", "default/podinfo-podinfo", "applied", ""},
 	}

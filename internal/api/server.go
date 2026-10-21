@@ -37,7 +37,7 @@ type Principal struct {
 type Config struct {
 	// Mode is where the portal runs: ModeLocal or ModeInCluster. Required,
 	// so a caller that forgets it does not get the mode that serves more.
-	// In ModeInCluster no document carries text the operator wrote.
+	// In ModeInCluster no document carries text the controller wrote.
 	Mode Mode
 	// Model is the started read model every document is built from.
 	Model *readmodel.Model
@@ -302,7 +302,7 @@ func (s *Server) document(serve func(*Server, context.Context, Principal, *http.
 // the server through here: the GET handlers' and the change stream's.
 func (s *Server) forMode(doc any) (any, error) {
 	if s.cfg.Mode == ModeInCluster {
-		return omitOperatorText(doc)
+		return omitControllerText(doc)
 	}
 	return doc, nil
 }

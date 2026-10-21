@@ -133,14 +133,14 @@ anyone who may read that object, in the portal as in `kubectl`. Source: portal:D
 
 ### Requirement: The security page states that local mode shows condition messages and event notes verbatim
 The security page SHALL state that local mode shows condition messages and event notes verbatim, as
-the operator and the API server wrote them, and that the in-cluster mode, when built, will show only
-the reasons of the text the operator writes, and the kubelet's and other controllers' text as
+the controller and the API server wrote them, and that the in-cluster mode, when built, will show only
+the reasons of the text the controller writes, and the kubelet's and other controllers' text as
 written. Source: portal:D8:R4.
 
 #### Scenario: A reader looks up condition messages
 
 - **WHEN** a reader looks up condition messages and event notes
-- **THEN** the security page SHALL state that local mode shows them verbatim, as the operator and the API server wrote them
+- **THEN** the security page SHALL state that local mode shows them verbatim, as the controller and the API server wrote them
 
 ### Requirement: The how-to installs opm-portal from the GitHub releases page and names no version or branch
 The how-to for running the portal locally SHALL install `opm-portal` from the portal's GitHub

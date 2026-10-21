@@ -11,7 +11,7 @@
     "apiVersion": "opmodel.dev/v1alpha1",
     "kind": "TransformerRegistration",
     "metadata": {
-      "creationTimestamp": "2026-10-04T18:04:21Z",
+      "creationTimestamp": "2026-10-21T16:04:45Z",
       "finalizers": [
         "opmodel.dev/dependents"
       ],
@@ -22,17 +22,17 @@
         "app.kubernetes.io/name": "registration",
         "component.opmodel.dev/name": "registration",
         "module-instance.opmodel.dev/name": "backup-provider",
-        "module-instance.opmodel.dev/uuid": "ad4c18d3-442d-5255-a0e1-ae43ea2a6030",
+        "module-instance.opmodel.dev/uuid": "d798fcea-6b78-56dd-a3b1-d68f00529dca",
         "module.opmodel.dev/name": "backup_provider",
-        "module.opmodel.dev/uuid": "9ede50a5-502d-5749-ab7a-07923793c01e",
-        "module.opmodel.dev/version": "0.1.0"
+        "module.opmodel.dev/uuid": "b5e3a4bb-5c52-5ce1-9ea2-c24771316cbe",
+        "module.opmodel.dev/version": "0.1.1"
       },
       "name": "default.backup-provider",
-      "resourceVersion": "917",
-      "uid": "4722ee5d-bb19-4a17-b48a-8e605e4d622d"
+      "resourceVersion": "884",
+      "uid": "fe5fad13-ba43-4636-b43c-a46daf7bc8e4"
     },
     "spec": {
-      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "catalog": "testing.opmodel.dev/catalogs/controller/backup@v0",
       "providerRef": {
         "name": "backup-provider",
         "namespace": "default"
@@ -47,14 +47,14 @@
       "active": true,
       "conditions": [
         {
-          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "lastTransitionTime": "2026-10-21T16:04:45Z",
           "observedGeneration": 1,
           "reason": "Accepted",
           "status": "True",
           "type": "Ready"
         },
         {
-          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "lastTransitionTime": "2026-10-21T16:04:45Z",
           "observedGeneration": 1,
           "reason": "ProviderReady",
           "status": "True",

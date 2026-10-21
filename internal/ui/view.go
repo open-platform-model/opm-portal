@@ -81,7 +81,7 @@ func known(prefix string, table map[string]string, value string) badge {
 
 func slug(s string) string { return strings.ToLower(s) }
 
-// appliedBadge is the operator's axis: a squared stamp. Ready=True reads
+// appliedBadge is the controller's axis: a squared stamp. Ready=True reads
 // Applied; ManagedExternally is neutral (portal:D3:R1/R6).
 func appliedBadge(r v1.Reconcile) badge {
 	b := known("applied", appliedText, r.State)
@@ -233,18 +233,6 @@ func claimBadge(c v1.ProviderClaim) badge {
 	return b
 }
 
-// ownerText is an owner as the pages say it: the read API's operator is
-// the controller (portal:D17:R2).
-func ownerText(owner string) string {
-	switch owner {
-	case "operator", ownerController:
-		return ownerController
-	case "cli":
-		return "cli"
-	}
-	return owner
-}
-
 // accessText says why something is locked.
 func accessText(access string) string {
 	switch access {
@@ -375,7 +363,6 @@ var funcs = template.FuncMap{
 	"claimBadge":    claimBadge,
 	"providerPill":  providerPill,
 	"outcomeBadge":  outcomeBadge,
-	"ownerText":     ownerText,
 	"accessText":    accessText,
 	"toneClass":     toneClass,
 	"short":         short,

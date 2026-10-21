@@ -107,7 +107,7 @@ func TestRootPanelInventoryByWhatIsRecorded(t *testing.T) {
 		{"no revision recorded", func(u *unstructured.Unstructured) {
 			unstructured.RemoveNestedField(u.Object, "status", "inventory", "revision")
 		}, "2 objects", ""},
-		{"a revision the operator does not write", func(u *unstructured.Unstructured) {
+		{"a revision the controller does not write", func(u *unstructured.Unstructured) {
 			_ = unstructured.SetNestedField(u.Object, "3", "status", "inventory", "revision")
 		}, "2 objects", ""},
 	} {

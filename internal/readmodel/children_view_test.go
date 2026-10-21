@@ -52,7 +52,7 @@ func TestChildrenUnreadLeaveNone(t *testing.T) {
 // name whose controller is no inventory object is attached to nothing.
 func TestChildOutsideTheChainIsLeftOut(t *testing.T) {
 	objs := loadF1(t)
-	stray := find(t, objs, "Pod", "podinfo-podinfo-d9585d794-4lg6h").DeepCopy()
+	stray := find(t, objs, "Pod", "podinfo-podinfo-d9585d794-67j74").DeepCopy()
 	stray.SetName("stray")
 	stray.SetUID("stray-uid")
 	refs := stray.GetOwnerReferences()

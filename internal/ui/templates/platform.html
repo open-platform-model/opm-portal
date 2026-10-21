@@ -8,7 +8,7 @@
     <h1>{{.Name}}</h1>
     <dl class="facts">
       <dt>Type</dt><dd>{{with .Type}}{{.}}{{else}}<span class="muted">not set</span>{{end}}</dd>
-      <dt>Controller</dt><dd class="mono">{{with .OperatorVersion}}{{.}}{{else}}<span class="muted">not recorded</span>{{end}}</dd>
+      <dt>Controller</dt><dd class="mono">{{with .ControllerVersion}}{{.}}{{else}}<span class="muted">not recorded</span>{{end}}</dd>
     </dl>
     {{end}}{{end}}
   </section>

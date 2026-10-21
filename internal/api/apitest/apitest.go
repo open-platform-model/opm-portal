@@ -36,7 +36,7 @@ var (
 	Caller = authz.Identity{Username: "alice", Groups: []string{"system:authenticated"}}
 	reader = authz.Identity{Username: "portal-reader", Groups: []string{"system:authenticated"}}
 	// Now is the read model's clock, so evaluation times are stable.
-	Now = time.Date(2026, 10, 4, 18, 10, 0, 0, time.UTC)
+	Now = time.Date(2026, 10, 21, 16, 10, 0, 0, time.UTC)
 )
 
 // Rule answers the caller's access reviews.
@@ -136,7 +136,7 @@ func NewWithReaderRule(t testing.TB, objs []*unstructured.Unstructured, rule, re
 }
 
 // NewInCluster is New in in-cluster mode: no document carries text the
-// operator wrote.
+// controller wrote.
 func NewInCluster(t testing.TB, objs []*unstructured.Unstructured, rule Rule) *api.Server {
 	t.Helper()
 	return newServer(t, objs, rule, api.ModeInCluster)

@@ -359,7 +359,7 @@ Source: portal:D19:R4, portal:D7:R2/R3.
 
 #### Scenario: The Catalog page's tabs
 
-- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` on the
+- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0` on the
   F1 capture
 - **THEN** the Claims tab carries the number of registrations that claim the catalog and the
   Events tab carries none
@@ -936,7 +936,7 @@ A claim the caller may not read SHALL render locked. Source: portal:D15:R2/R3/R4
 
 - **WHEN** a browser opens backup-provider's Graph tab on the F1 capture
 - **THEN** the `default.backup-provider` node reads "Accepted · active" in the healthy tone, and its
-  panel names the catalog `testing.opmodel.dev/catalogs/operator/backup@v0` and version `0.1.0`
+  panel names the catalog `testing.opmodel.dev/catalogs/controller/backup@v0` and version `0.1.0`
 
 #### Scenario: Locked claim
 
@@ -952,7 +952,7 @@ it. Source: portal:D15:R2/R3, portal:D8:R5.
 #### Scenario: In-cluster registration panel
 
 - **WHEN** backup-provider's registration panel is rendered over an in-cluster read API
-- **THEN** it shows the standing and reason and no message text the operator wrote
+- **THEN** it shows the standing and reason and no message text the controller wrote
 
 ### Requirement: A source node is toned and labelled by the source's state
 
@@ -1596,7 +1596,7 @@ portal:D16:R1.
 - **WHEN** an event in the merged feed carries a note of 2,000 code points
 - **THEN** the table shows the note as the API served it, capped, and the page clips it no further
 
-#### Scenario: Events of both operator writers in-cluster
+#### Scenario: Events of both controller writers in-cluster
 
 - **WHEN** an in-cluster browser opens the Events tab of an instance whose feed holds an event from
   `opm-controller` and an event with no controller that regards the instance, beside the kubelet's
@@ -1816,23 +1816,23 @@ and SHALL not scroll horizontally at a 360 px wide viewport. Source: portal:D14:
 - **WHEN** a page is served to a browser with a chosen theme, or under System, at a 360 px wide viewport
 - **THEN** the page follows the chosen theme, or the OS light or dark preference under System, and does not scroll horizontally
 
-### Requirement: In-cluster pages omit the operator's messages
+### Requirement: In-cluster pages omit the controller's messages
 Pages served over an `in-cluster` read API SHALL show no condition message (the conditions of a
 registration included), reconcile message, history message, registration message or note of an event
-the operator reported, because the read API does not serve them. Source: owner answer to portal:OQ8
+the controller reported, because the read API does not serve them. Source: owner answer to portal:OQ8
 (portal:D8:R5); its scope is the supervisor ruling recorded under portal:D8.
 
 #### Scenario: The broken podinfo page in-cluster
 
 - **WHEN** the instance page of the image-break sample is rendered over an in-cluster read API
 - **THEN** it shows the applied and health badges, each condition's reason, meaning and next
-  step, and no message text the operator wrote
+  step, and no message text the controller wrote
 
 #### Scenario: Attempt dots and the Provider tab in-cluster
 
 - **WHEN** backup-provider's page is rendered over an in-cluster read API
 - **THEN** its attempt dots keep their outcomes, its registration conditions show type, status,
-  reason and meaning, and no message text the operator wrote appears
+  reason and meaning, and no message text the controller wrote appears
 
 ### Requirement: In-cluster pages keep reasons, standings and other writers' notes
 In-cluster pages SHALL still show every reason, state, history outcome, provider standing and the
@@ -2664,7 +2664,7 @@ portal:D15:R2/R3.
 
 #### Scenario: The contributed backup catalog
 
-- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` on the
+- **WHEN** a browser opens `/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0` on the
   F1 capture
 - **THEN** it shows the headline `backup`, version `0.1.0`, origin from a provider, the source
   `default.backup-provider` linking to the Provider tab of `default/backup-provider`, and resolved
@@ -2766,7 +2766,7 @@ portal:D9:R2, portal:D19:R5.
 #### Scenario: Platform forbidden
 
 - **WHEN** a caller who may not get the Platform opens
-  `/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0` and
+  `/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0` and
   `/catalog?path=example.com/nothing@v0`
 - **THEN** both render the same locked page with status `403`
 
@@ -2782,21 +2782,29 @@ with status `404`. Source: portal:D17:R3, portal:D3:R8, portal:D7:R1, portal:D9:
 ### Requirement: Page text names kinds in a platform team's words
 Page text SHALL name kinds in the words a platform team uses: "Providers" for
 TransformerRegistrations and the instances and packages that hold them, "Installed" for
-ModuleInstances and ModulePackages, and "controller" for the opm-operator. The YAML view shows
+ModuleInstances and ModulePackages, and "controller" for opm-controller. The YAML view shows
 objects as the cluster serves them and is exempt. Source: portal:D17:R2.
 
 #### Scenario: The platform team's words
-- **WHEN** a page names TransformerRegistrations, ModuleInstances, ModulePackages or the opm-operator
+- **WHEN** a page names TransformerRegistrations, ModuleInstances, ModulePackages or opm-controller
 - **THEN** it uses "Providers", "Installed" and "controller"
 
 ### Requirement: The controller version and owner are worded as controller
-The read API's `operatorVersion` SHALL be labelled "Controller", and its owner value `operator`
-SHALL read "controller". Source: portal:D17:R2.
+The read API's `controllerVersion` SHALL be labelled "Controller", and its owner values
+`controller` and `cli` SHALL read as they are. Any other owner value SHALL be shown as the read API
+serves it, marked as unknown, and SHALL NOT read as the controller or the CLI. Source: portal:D17:R2.
 
 #### Scenario: The owner column
 
-- **WHEN** the Installed list shows an instance whose owner is `operator` in the read API
+- **WHEN** the Installed list shows an instance whose owner is `controller` in the read API
 - **THEN** its owner cell reads "controller"
+
+#### Scenario: An owner value the portal does not know
+
+- **WHEN** the Installed list and an instance page show an instance whose owner in the read API
+  is neither `controller` nor `cli`
+- **THEN** the owner cell and the identity card's owner show that value marked "(unknown)", and
+  neither names the controller
 
 ### Requirement: The Installed card counts providers
 The Installed card SHALL count the items that hold a registration as providers. Source:

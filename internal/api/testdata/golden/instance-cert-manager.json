@@ -8,17 +8,17 @@
     "namespace": "cert-manager",
     "name": "cert-manager"
   },
-  "uid": "5744c33f-e06a-4f6b-b78d-652ec49c10d6",
+  "uid": "87058aec-4351-4703-bc35-a1f4dfe98f39",
   "module": {
     "path": "opmodel.dev/modules/cert_manager@v2",
     "version": "v2.0.5"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",
     "message": "Reconciliation succeeded",
-    "since": "2026-10-04T18:04:05Z"
+    "since": "2026-10-21T16:04:26Z"
   },
   "health": {
     "state": "Healthy",
@@ -33,12 +33,12 @@
       "withheld": 0
     },
     "partial": false,
-    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "evaluatedAt": "2026-10-21T16:10:00Z",
     "live": true
   },
   "inventoryCount": 42,
   "inventoryRevision": 1,
-  "lastAppliedAt": "2026-10-04T18:04:05Z",
+  "lastAppliedAt": "2026-10-21T16:04:26Z",
   "renderContracts": [
     "opmodel.dev/catalogs/opm/resources/container@v1beta1",
     "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
@@ -63,17 +63,27 @@
       "status": "True",
       "reason": "ReconciliationSucceeded",
       "message": "Reconciliation succeeded",
-      "lastTransitionTime": "2026-10-04T18:04:05Z",
+      "lastTransitionTime": "2026-10-21T16:04:26Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "Every object was applied. This says nothing about whether the workloads run; see Health."
+    },
+    {
+      "type": "Healthy",
+      "status": "True",
+      "reason": "RolledOut",
+      "message": "42/42 objects ready",
+      "lastTransitionTime": "2026-10-21T16:04:42Z",
+      "observedGeneration": 1,
+      "tone": "unknown",
+      "meaning": "Every object of the inventory was read after the apply and judged healthy."
     },
     {
       "type": "ModuleResolved",
       "status": "True",
       "reason": "ModuleResolved",
       "message": "module resolved: opmodel.dev/modules/cert_manager@v2@v2.0.5",
-      "lastTransitionTime": "2026-10-04T18:04:03Z",
+      "lastTransitionTime": "2026-10-21T16:04:24Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "The module version was found in the registry."
@@ -85,21 +95,21 @@
       "phase": "complete",
       "outcome": "Succeeded",
       "sequence": 1,
-      "startedAt": "2026-10-04T18:04:05Z",
-      "finishedAt": "2026-10-04T18:04:05Z",
+      "startedAt": "2026-10-21T16:04:26Z",
+      "finishedAt": "2026-10-21T16:04:26Z",
       "inventoryCount": 42,
-      "inventoryDigest": "sha256:92152ea359e8efddb5951d60176267ffb914a5796c50b2eca3115b87e8344b1e",
+      "inventoryDigest": "sha256:110dd3fb7572b7eba21f1d1cf412c2e12e66cf29d35a331afa1904937d997677",
       "digests": {
         "source": "sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7",
         "config": "sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4",
-        "render": "sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c"
+        "render": "sha256:e91579e8c3e5906699a2b80ca80b6e2a8847b8f6fb2a63dd969490229e15dfd4"
       }
     }
   ],
   "lastApplied": {
     "source": "sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7",
     "config": "sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4",
-    "render": "sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c"
+    "render": "sha256:e91579e8c3e5906699a2b80ca80b6e2a8847b8f6fb2a63dd969490229e15dfd4"
   },
   "components": [
     {
@@ -117,7 +127,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -133,7 +143,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -153,7 +163,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -170,7 +180,7 @@
             "reason": "Current",
             "message": "CRD is established"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -186,7 +196,7 @@
             "reason": "Current",
             "message": "CRD is established"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -202,7 +212,7 @@
             "reason": "Current",
             "message": "CRD is established"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -218,7 +228,7 @@
             "reason": "Current",
             "message": "CRD is established"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -234,7 +244,7 @@
             "reason": "Current",
             "message": "CRD is established"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -250,7 +260,7 @@
             "reason": "Current",
             "message": "CRD is established"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -270,7 +280,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -287,7 +297,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -304,7 +314,7 @@
             "reason": "Current",
             "message": "Deployment is available. Replicas: 1"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true,
           "children": [
             {
@@ -312,7 +322,7 @@
                 "version": "v1",
                 "kind": "Pod",
                 "namespace": "cert-manager",
-                "name": "cert-manager-controller-7c9bddd644-cr5qm"
+                "name": "cert-manager-controller-7c9bddd644-hvrqf"
               },
               "owner": {
                 "group": "apps",
@@ -371,7 +381,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -388,7 +398,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -405,7 +415,7 @@
             "reason": "Current",
             "message": "Deployment is available. Replicas: 1"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true,
           "children": [
             {
@@ -413,7 +423,7 @@
                 "version": "v1",
                 "kind": "Pod",
                 "namespace": "cert-manager",
-                "name": "cert-manager-webhook-6c5bb576f5-slp22"
+                "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
               },
               "owner": {
                 "group": "apps",
@@ -468,7 +478,7 @@
             "reason": "Current",
             "message": "Service is ready"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -488,7 +498,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -505,7 +515,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -522,7 +532,7 @@
             "reason": "Current",
             "message": "Deployment is available. Replicas: 1"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true,
           "children": [
             {
@@ -530,7 +540,7 @@
                 "version": "v1",
                 "kind": "Pod",
                 "namespace": "cert-manager",
-                "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+                "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
               },
               "owner": {
                 "group": "apps",
@@ -589,7 +599,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -606,7 +616,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -626,7 +636,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -643,7 +653,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -663,7 +673,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -680,7 +690,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -696,7 +706,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -716,7 +726,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -733,7 +743,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -749,7 +759,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -769,7 +779,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -786,7 +796,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -802,7 +812,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -822,7 +832,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -839,7 +849,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -855,7 +865,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -875,7 +885,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -892,7 +902,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -908,7 +918,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -928,7 +938,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -945,7 +955,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -961,7 +971,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -981,7 +991,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -998,7 +1008,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1014,7 +1024,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -1034,7 +1044,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -1051,7 +1061,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1067,7 +1077,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -1087,7 +1097,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -1104,7 +1114,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1120,7 +1130,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -1140,7 +1150,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -1157,7 +1167,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1173,7 +1183,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -1193,7 +1203,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -1211,7 +1221,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1228,7 +1238,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -1248,7 +1258,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -1266,7 +1276,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1283,7 +1293,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]
@@ -1303,7 +1313,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -1321,7 +1331,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         },
         {
@@ -1338,7 +1348,7 @@
             "reason": "Current",
             "message": "Resource is current"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]

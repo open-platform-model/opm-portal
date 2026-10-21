@@ -15,7 +15,7 @@
       "annotations": {
         "deployment.kubernetes.io/revision": "1"
       },
-      "creationTimestamp": "2026-10-04T18:04:06Z",
+      "creationTimestamp": "2026-10-21T16:04:28Z",
       "generation": 1,
       "labels": {
         "app.kubernetes.io/instance": "podinfo",
@@ -24,15 +24,15 @@
         "component.opmodel.dev/name": "podinfo",
         "core.opmodel.dev/workload-type": "stateless",
         "module-instance.opmodel.dev/name": "podinfo",
-        "module-instance.opmodel.dev/uuid": "e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c",
+        "module-instance.opmodel.dev/uuid": "de596576-f602-5d23-aee5-d6066bc3cb6d",
         "module.opmodel.dev/name": "podinfo",
-        "module.opmodel.dev/uuid": "88d73eac-695b-5baf-a3f1-1101b88eea73",
-        "module.opmodel.dev/version": "0.1.11"
+        "module.opmodel.dev/uuid": "c028cba8-f3af-5081-a85c-e69163f990ba",
+        "module.opmodel.dev/version": "0.1.12"
       },
       "name": "podinfo-podinfo",
       "namespace": "default",
-      "resourceVersion": "893",
-      "uid": "29b73074-fde9-4910-9d57-6676b1c5fd1f"
+      "resourceVersion": "846",
+      "uid": "b7471604-a33d-4ef4-bdf4-b511f05e82bc"
     },
     "spec": {
       "progressDeadlineSeconds": 600,
@@ -114,16 +114,16 @@
       "availableReplicas": 2,
       "conditions": [
         {
-          "lastTransitionTime": "2026-10-04T18:04:17Z",
-          "lastUpdateTime": "2026-10-04T18:04:17Z",
+          "lastTransitionTime": "2026-10-21T16:04:38Z",
+          "lastUpdateTime": "2026-10-21T16:04:38Z",
           "message": "Deployment has minimum availability.",
           "reason": "MinimumReplicasAvailable",
           "status": "True",
           "type": "Available"
         },
         {
-          "lastTransitionTime": "2026-10-04T18:04:06Z",
-          "lastUpdateTime": "2026-10-04T18:04:17Z",
+          "lastTransitionTime": "2026-10-21T16:04:28Z",
+          "lastUpdateTime": "2026-10-21T16:04:38Z",
           "message": "ReplicaSet \"podinfo-podinfo-d9585d794\" has successfully progressed.",
           "reason": "NewReplicaSetAvailable",
           "status": "True",

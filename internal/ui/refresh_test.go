@@ -509,7 +509,7 @@ func TestANewEventReplacesTheCatalogEventsCount(t *testing.T) {
 	if len(more) == len(objs) {
 		t.Fatal("F1 holds no event of the Platform to copy")
 	}
-	const path = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events"
+	const path = "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events"
 	count := regexp.MustCompile(`(?s)<p class="shown" id="events-shown" data-follow="([^"]*)">(.*?)</p>`)
 	before := count.FindStringSubmatch(mainOf(newSite(t, objs, apitest.AllowAll).get(t, path).body))
 	after := count.FindStringSubmatch(mainOf(newSite(t, more, apitest.AllowAll).get(t, path).body))

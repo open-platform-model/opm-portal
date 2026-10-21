@@ -29,7 +29,7 @@ Source: portal:D4:R4/R7.
 
 - **WHEN** the platform graph is built from the F1 capture
 - **THEN** node `treg:default.refused-claim-fixture` is neither accepted nor active, its verdict
-  is `Refused` with reason `CatalogUnresolved` and the operator's message
+  is `Refused` with reason `CatalogUnresolved` and the controller's message
 - **AND** node `treg:default.backup-provider` is accepted and active with verdict `Accepted`
 
 ### Requirement: Node ids are stable
@@ -229,7 +229,7 @@ portal:D4:R4.
 
 - **WHEN** the instance graph of `default/backup-provider` is built from the F1 capture
 - **THEN** its TransformerRegistration node `default.backup-provider` is accepted and active, with
-  verdict `Accepted`, catalog `testing.opmodel.dev/catalogs/operator/backup@v0` and version `0.1.0`
+  verdict `Accepted`, catalog `testing.opmodel.dev/catalogs/controller/backup@v0` and version `0.1.0`
 
 #### Scenario: A package holder refused
 
@@ -306,11 +306,11 @@ registration's `spec.providerRef` for registration to provider instance. Source:
 - **THEN** registration `default.refused-claim-fixture` has no `contributes` edge, because its
   `spec.catalog` is in no registry entry, and its node still names that catalog as text
 - **AND** registration `default.backup-provider` contributes to
-  `testing.opmodel.dev/catalogs/operator/backup@v0`
+  `testing.opmodel.dev/catalogs/controller/backup@v0`
 
 #### Scenario: Duplicate claim on a contributed catalog
 
-- **WHEN** a second registration claims `testing.opmodel.dev/catalogs/operator/backup@v0` and is
+- **WHEN** a second registration claims `testing.opmodel.dev/catalogs/controller/backup@v0` and is
   refused as a duplicate, accepted but not active, or claims another version
 - **THEN** it has no `contributes` edge, and `default.backup-provider` still contributes
 
@@ -328,7 +328,7 @@ portal:D4:R1.
   and names its source
 
 ### Requirement: A dependsOn entry in another namespace is drawn unverified
-A `spec.dependsOn` entry naming another namespace, which the operator refuses, SHALL be drawn
+A `spec.dependsOn` entry naming another namespace, which the controller refuses, SHALL be drawn
 unverified with reason `ForeignNamespace`. Source: portal:D4:R1.
 
 #### Scenario: Dependency in another namespace
