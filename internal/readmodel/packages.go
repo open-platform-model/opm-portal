@@ -33,8 +33,20 @@ func (m *Model) ListPackages(ctx context.Context, who authz.Identity, g authz.Gr
 }
 
 // Package returns one ModulePackage. g must cover get modulepackages
-// namespace/name.
+// namespace/name. It makes no review and no list of EndpointSlices: see
+// PackageWithEndpoints.
 func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string) (PackageDetail, error) {
+	return m.pkg(ctx, who, g, namespace, name, false)
+}
+
+// PackageWithEndpoints is Package with the ready-endpoint count of each
+// Service of the inventory, or the mark that it could not be read. Only the
+// graph view, which shows the count, asks for it (portal:D11:R7).
+func (m *Model) PackageWithEndpoints(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string) (PackageDetail, error) {
+	return m.pkg(ctx, who, g, namespace, name, true)
+}
+
+func (m *Model) pkg(ctx context.Context, who authz.Identity, g authz.Grant, namespace, name string, withEndpoints bool) (PackageDetail, error) {
 	if err := covers(who, g, "get", modulePackages, namespace, name); err != nil {
 		return PackageDetail{}, err
 	}
@@ -42,7 +54,7 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 	if err != nil {
 		return PackageDetail{}, err
 	}
-	res := m.newEvaluator(who).inventoryHealth(ctx, u)
+	res, components := m.evaluated(ctx, who, u, withEndpoints)
 	item := packageItem(u)
 	item.Health = res.Instance
 	item.ProviderOf = m.newClaims(ctx, who).of(u)
@@ -52,7 +64,7 @@ func (m *Model) Package(ctx context.Context, who authz.Identity, g authz.Grant, 
 		Conditions:         conditions(u),
 		History:            history(u),
 		LastApplied:        lastApplied(u),
-		Components:         componentsOf(res),
+		Components:         components,
 	}, nil
 }
 
@@ -82,10 +94,20 @@ func packageItem(u *unstructured.Unstructured) PackageItem {
 		SourceArtifact: sourceArtifact(u),
 		DependsOn:      dependsOn(u),
 		Path:           str(u.Object, "spec", "path"),
+		Prune:          pruneOf(u),
 		Applied:        health.ReadApplied(u),
 		InventoryCount: inventoryCount(u, inventory(u)),
 		LastAppliedAt:  timestamp(u.Object, "status", "lastAppliedAt"),
 	}
+}
+
+// pruneOf reads spec.prune as written: nil when the package does not set it.
+func pruneOf(u *unstructured.Unstructured) *bool {
+	v, found := boolean(u.Object, "spec", "prune")
+	if !found {
+		return nil
+	}
+	return &v
 }
 
 // dependsOn reads spec.dependsOn as written.
@@ -105,7 +127,7 @@ func dependsOn(u *unstructured.Unstructured) []ObjectRef {
 }
 
 // sourceArtifact reads the revision and digest of status.source, or nil
-// when the operator recorded neither. status.source.artifactURL is a fetch
+// when the controller recorded neither. status.source.artifactURL is a fetch
 // URL inside the cluster and is not read.
 func sourceArtifact(u *unstructured.Unstructured) *SourceArtifact {
 	a := SourceArtifact{

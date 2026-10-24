@@ -21,8 +21,16 @@
 //
 // # Collapse rules
 //
-//   - Two or more configuration components of one owner (no workload
-//     among their objects) are one group node; Options.Expand shows them.
+//   - Configuration components of one owner (no workload among their
+//     objects) are sorted into kind families by the API group of their
+//     objects: CRDs (apiextensions.k8s.io), RBAC (rbac.authorization.k8s.io),
+//     Webhook configuration (admissionregistration.k8s.io), and Other for
+//     anything else or a mix. A family whose components hold two or more
+//     objects in all is one group node, id
+//     "grp:configuration/<owner>/<family>"; Options.Expand shows it. A
+//     smaller family shows its components one by one. A component that
+//     holds an opmodel.dev TransformerRegistration is never folded, so the
+//     claim stays in view.
 //   - ReplicaSets scaled to zero are hidden behind a count on their parent;
 //     Options.ShowScaledDown shows them.
 //   - More than five Pods under one parent are one group node.
@@ -31,8 +39,23 @@
 //
 // # Layout
 //
-// Each scope has a fixed column per node kind. Within a column nodes are
-// ordered by the barycenter of their neighbors with a stable tie-break,
-// and placed on an integer grid; each edge gets a cubic Bézier route. The
-// same views always give the same graph, byte for byte.
+// Each scope has a fixed column per node kind. A package graph starts at
+// the package; its source and the packages it depends on come first in the
+// components column, so every edge it draws runs rightward. A runtime
+// column is titled by the kinds it holds. Nodes are 216 by 72 on a row
+// pitch of 96 and a column pitch of 264, so a gutter is 48 wide.
+//
+// Within a column nodes are ordered by the barycenter of their neighbors
+// with a stable tie-break, and placed on an integer grid. Each edge gets an
+// elbow route of four points: the start, the two corners in the middle of
+// the gutter, and the end.
+//
+// An expanded configuration group is laid out as a band (band.go): a run of
+// rows across the components column and every column to its right, holding
+// the group's members, ordered by name, and their objects, and no other
+// node. Once a graph holds a band every column is placed on one row grid,
+// and the other nodes sit in segments above, between and below the bands,
+// with half a row of margin around each band; no edge between two nodes
+// outside a band crosses it. A graph with no band centers each column
+// instead. The same views always give the same graph, byte for byte.
 package graph

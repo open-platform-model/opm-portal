@@ -15,7 +15,7 @@ type link struct {
 // sbNote is one secondary line of a state block.
 type sbNote struct {
 	Text  string
-	Class string // "" (muted ink), "locked" (the lock style), "partial", "reconciling"
+	Class string // "" (muted ink), "locked" (the lock style), "partial", "reconciling", "says" (the controller's own words, line breaks kept)
 	Mono  bool   // a reason or other machine word
 }
 
@@ -40,13 +40,40 @@ type stateBlock struct {
 	Links    []link      // footer links, e.g. "Open the Provider tab"
 	Follow   string      // data-follow topics
 	Problem  *v1.Problem // set: the block renders the problem region in place of the state
+	// History draws the attempt strip inside the block's section, after the
+	// reasons; nil for a block with none. Only the Applied card sets it.
+	History *historyStrip
 }
+
+// historyStrip is the Applied card's attempts: a dot per recorded attempt,
+// oldest first, and the attempts themselves in a fold the pill opens.
+type historyStrip struct {
+	Dots  []attemptDot
+	Count string // "last 3 attempts", "1 attempt"
+	// Rows are the recorded attempts, newest first, as the fold lists them.
+	Rows []v1.HistoryEntry
+}
+
+// attemptDot is one status.history entry as a dot: marked by the outcome
+// the read API decided, so the mark, not the color, names it. The tip
+// carries the attempt's words (WCAG 2.2 1.4.13).
+type attemptDot struct {
+	Class string // dot-succeeded, dot-failed or dot-unknown
+	Mark  string // the glyph in the dot
+	Tip   tipData
+}
+
+// hueLocked is the hue and note class of what the caller may not read.
+const hueLocked = "locked"
+
+// wordLocked is the word shown, and read aloud, where a source is locked.
+const wordLocked = hueLocked
 
 // stateBlockHues are the hues the state block draws: the seven tones and the
 // locked standing.
 var stateBlockHues = map[string]bool{
 	"applied": true, "healthy": true, "progressing": true, "degraded": true,
-	"unknown": true, "neutral": true, "missing": true, "locked": true,
+	"unknown": true, hueNeutral: true, "missing": true, hueLocked: true,
 }
 
 // newStateBlock returns b with its hue settled. A hue the block does not know
@@ -56,9 +83,9 @@ var stateBlockHues = map[string]bool{
 func newStateBlock(b stateBlock) stateBlock {
 	switch {
 	case b.Problem != nil && b.Problem.Code == v1.CodeForbidden:
-		b.Hue = "locked"
+		b.Hue = hueLocked
 	case b.Problem != nil:
-		b.Hue = "neutral"
+		b.Hue = hueNeutral
 	case !stateBlockHues[b.Hue]:
 		b.Hue = "unknown"
 	}
@@ -70,6 +97,15 @@ func newStateBlock(b stateBlock) stateBlock {
 type tipData struct {
 	ID      string // the box's id, which the trigger's aria-describedby names
 	Trigger string // the words the trigger draws
+	Label   string // the trigger's accessible name, when its words are only a mark; "" for none
 	Text    string // the tip
 	End     bool   // align the box to the trigger's end, near the right edge
+	// Pill, when set, draws the trigger's words inside span.<Pill> (its
+	// classes), after the icon named Icon; Hidden is visually hidden text
+	// that follows the trigger, so a color is never the only carrier of
+	// what the pill says.
+	Pill, Icon, Hidden string
 }
+
+// hueNeutral is the hue of a block with nothing to say about health.
+const hueNeutral = "neutral"

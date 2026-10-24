@@ -156,16 +156,17 @@ func instanceSummary(it readmodel.InstanceItem) v1.InstanceSummary {
 		contracts = []string{}
 	}
 	return v1.InstanceSummary{
-		Ref:             objectRef(it.Ref),
-		UID:             it.UID,
-		Module:          v1.Module{Path: it.Module.Path, Version: it.Module.Version},
-		Owner:           string(it.Owner),
-		Reconcile:       reconcile(it.Applied),
-		Health:          healthSummary(it.Health),
-		InventoryCount:  it.InventoryCount,
-		LastAppliedAt:   timePtr(it.LastAppliedAt),
-		RenderContracts: contracts,
-		ProviderOf:      providerClaims(it.ProviderOf),
+		Ref:               objectRef(it.Ref),
+		UID:               it.UID,
+		Module:            v1.Module{Path: it.Module.Path, Version: it.Module.Version},
+		Owner:             string(it.Owner),
+		Reconcile:         reconcile(it.Applied),
+		Health:            healthSummary(it.Health),
+		InventoryCount:    it.InventoryCount,
+		InventoryRevision: it.InventoryRevision,
+		LastAppliedAt:     timePtr(it.LastAppliedAt),
+		RenderContracts:   contracts,
+		ProviderOf:        providerClaims(it.ProviderOf),
 	}
 }
 
@@ -213,6 +214,7 @@ func packageSummary(it readmodel.PackageItem) v1.PackageSummary {
 		},
 		Interval:       it.Interval,
 		Path:           it.Path,
+		Prune:          it.Prune,
 		Reconcile:      reconcile(it.Applied),
 		Health:         healthSummary(it.Health),
 		InventoryCount: it.InventoryCount,
@@ -228,8 +230,11 @@ func packageSummary(it readmodel.PackageItem) v1.PackageSummary {
 	return out
 }
 
-func packageDoc(d readmodel.PackageDetail) v1.Package {
+// packageDoc converts a package. src is its source as the caller read it,
+// already cut for serving, or nil when the package names none.
+func packageDoc(d readmodel.PackageDetail, src *readmodel.SourceState) v1.Package {
 	return v1.Package{
+		SourceState:        sourceState(src),
 		TypeMeta:           meta(v1.KindPackage),
 		PackageSummary:     packageSummary(d.PackageItem),
 		ServiceAccountName: d.ServiceAccountName,
@@ -246,7 +251,7 @@ func platformDoc(p readmodel.PlatformView) v1.Platform {
 		Name:                p.Name,
 		UID:                 p.UID,
 		Type:                p.Type,
-		OperatorVersion:     p.OperatorVersion,
+		ControllerVersion:   p.ControllerVersion,
 		Reconcile:           reconcile(p.Applied),
 		Conditions:          conditions(p.Conditions),
 		Subscriptions:       make([]v1.Subscription, 0, len(p.Subscriptions)),
@@ -306,6 +311,14 @@ func registration(r *readmodel.RegistrationView) v1.Registration {
 	return out
 }
 
+// eventNoteCap is the most Unicode code points of an event note the API
+// serves. One note is one table line; the rest of a longer note stays in the
+// cluster's own record.
+const eventNoteCap = 512
+
+// eventListDoc converts the model's folded events. The cap on a note runs
+// here, after the model folded on the whole note, so it never changes which
+// events fold together (design.md "Where the length cap lives").
 func eventListDoc(about readmodel.ObjectRef, evs []readmodel.Event) v1.EventList {
 	out := v1.EventList{TypeMeta: meta(v1.KindEventList), Regarding: objectRef(about), Items: make([]v1.Event, 0, len(evs))}
 	for i := range evs {
@@ -313,7 +326,7 @@ func eventListDoc(about readmodel.ObjectRef, evs []readmodel.Event) v1.EventList
 		out.Items = append(out.Items, v1.Event{
 			Type:                e.Type,
 			Reason:              e.Reason,
-			Note:                e.Note,
+			Note:                readmodel.CapText(e.Note, eventNoteCap),
 			ReportingController: e.ReportingController,
 			Regarding:           objectRef(e.Regarding),
 			FieldPath:           e.FieldPath,
@@ -373,6 +386,8 @@ func graphNode(n *graph.Node) v1.GraphNode {
 		MemberOf:         n.MemberOf,
 		Replicas:         n.Replicas,
 		ChildrenUnread:   n.ChildrenUnread,
+		EndpointsReady:   n.EndpointsReady,
+		EndpointsUnread:  n.EndpointsUnread,
 		HiddenScaledDown: n.HiddenScaledDown,
 		Column:           n.Column,
 		Row:              n.Row,
@@ -403,18 +418,36 @@ func graphNode(n *graph.Node) v1.GraphNode {
 			ActiveReason: r.ActiveReason, ActiveMessage: r.ActiveMessage,
 		}
 	}
+	out.SourceState = graphSourceState(n.SourceState)
 	if c := n.Catalog; c != nil {
 		out.Catalog = &v1.GraphCatalog{Version: c.Version, Enabled: c.Enabled, Source: c.Source}
 	}
 	if p := n.Platform; p != nil {
-		out.Platform = &v1.GraphPlatform{Type: p.Type, OperatorVersion: p.OperatorVersion, RegistrationsAccess: string(p.RegistrationsAccess)}
+		out.Platform = &v1.GraphPlatform{Type: p.Type, ControllerVersion: p.ControllerVersion, RegistrationsAccess: string(p.RegistrationsAccess)}
 	}
 	if g := n.Group; g != nil {
-		gg := &v1.GraphGroup{Kind: string(g.Kind), Members: g.Members}
+		gg := &v1.GraphGroup{Kind: string(g.Kind), Family: string(g.Family), Members: g.Members}
+		for _, k := range g.ObjectKinds {
+			gg.ObjectKinds = append(gg.ObjectKinds, v1.GraphKindCount{Kind: k.Kind, Count: k.Count})
+		}
 		for _, h := range g.Hidden {
 			gg.Hidden = append(gg.Hidden, v1.GraphKindCount{Kind: h.Kind, Count: h.Count})
 		}
 		out.Group = gg
 	}
 	return out
+}
+
+func sourceState(s *readmodel.SourceState) *v1.SourceState {
+	if s == nil {
+		return nil
+	}
+	return &v1.SourceState{Access: string(s.Access), State: string(s.Readiness), Reason: s.Reason, Message: s.Message, Revision: s.Revision}
+}
+
+func graphSourceState(s *graph.SourceState) *v1.SourceState {
+	if s == nil {
+		return nil
+	}
+	return &v1.SourceState{Access: string(s.Access), State: string(s.State), Reason: s.Reason, Message: s.Message, Revision: s.Revision}
 }

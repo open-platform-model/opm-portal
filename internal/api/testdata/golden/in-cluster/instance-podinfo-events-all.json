@@ -1,0 +1,279 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "default",
+    "name": "podinfo"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "NoOp",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:47.076975Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "note": "Successfully pulled image \"ghcr.io/stefanprodan/podinfo:6.7.1\" in 577ms (9.187s including waiting). Image size: 31081621 bytes.",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "note": "Container created",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "note": "Container started",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Warning",
+      "reason": "Unhealthy",
+      "note": "Readiness probe failed: Get \"http://10.244.0.10:9898/readyz\": dial tcp 10.244.0.10:9898: connect: connection refused",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "note": "Successfully pulled image \"ghcr.io/stefanprodan/podinfo:6.7.1\" in 2.807s (8.612s including waiting). Image size: 31081621 bytes.",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "note": "Container created",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "note": "Container started",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Warning",
+      "reason": "Unhealthy",
+      "note": "Readiness probe failed: Get \"http://10.244.0.9:9898/readyz\": dial tcp 10.244.0.9:9898: connect: connection refused",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:37Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ReconciliationSucceeded",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28.302964Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Applied",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "default",
+        "name": "podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28.302911Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "note": "Scaled up replica set podinfo-podinfo-d9585d794 from 0 to 2",
+      "reportingController": "deployment-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "default",
+        "name": "podinfo-podinfo"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "note": "Successfully assigned default/podinfo-podinfo-d9585d794-67j74 to opm-portal-e2e-control-plane",
+      "reportingController": "default-scheduler",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"ghcr.io/stefanprodan/podinfo:6.7.1\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "note": "Successfully assigned default/podinfo-podinfo-d9585d794-74b7v to opm-portal-e2e-control-plane",
+      "reportingController": "default-scheduler",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"ghcr.io/stefanprodan/podinfo:6.7.1\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "note": "Created pod: podinfo-podinfo-d9585d794-74b7v",
+      "reportingController": "replicaset-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "note": "Created pod: podinfo-podinfo-d9585d794-67j74",
+      "reportingController": "replicaset-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
+    }
+  ],
+  "scope": "all"
+}

@@ -10,6 +10,9 @@
   "use strict";
 
   var root = document.documentElement;
+  // Script runs: the stylesheet may hide what only a page without script
+  // needs, such as a filter form's Apply button.
+  root.classList.add("opm-js");
   var THEME_KEY = "opm-portal.theme";
 
   function read(key) {

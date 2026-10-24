@@ -8,17 +8,17 @@
     "namespace": "default",
     "name": "podinfo"
   },
-  "uid": "c6f5d8d6-af26-447e-8ac0-96b5cc25c40f",
+  "uid": "4df78151-c93a-4255-8fde-5f49eaa810b1",
   "module": {
-    "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
-    "version": "v0.1.11"
+    "path": "testing.opmodel.dev/modules/controller/podinfo@v0",
+    "version": "v0.1.12"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",
     "message": "Reconciliation succeeded",
-    "since": "2026-10-04T18:04:06Z"
+    "since": "2026-10-21T16:04:28Z"
   },
   "health": {
     "state": "Healthy",
@@ -33,11 +33,12 @@
       "withheld": 0
     },
     "partial": false,
-    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "evaluatedAt": "2026-10-21T16:10:00Z",
     "live": true
   },
   "inventoryCount": 2,
-  "lastAppliedAt": "2026-10-04T18:04:06Z",
+  "inventoryRevision": 1,
+  "lastAppliedAt": "2026-10-21T16:04:28Z",
   "renderContracts": [
     "opmodel.dev/catalogs/opm/resources/container@v1beta1",
     "opmodel.dev/catalogs/opm/traits/expose@v1beta1",
@@ -54,17 +55,27 @@
       "status": "True",
       "reason": "ReconciliationSucceeded",
       "message": "Reconciliation succeeded",
-      "lastTransitionTime": "2026-10-04T18:04:06Z",
+      "lastTransitionTime": "2026-10-21T16:04:28Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "Every object was applied. This says nothing about whether the workloads run; see Health."
     },
     {
+      "type": "Healthy",
+      "status": "True",
+      "reason": "RolledOut",
+      "message": "2/2 objects ready",
+      "lastTransitionTime": "2026-10-21T16:04:38Z",
+      "observedGeneration": 1,
+      "tone": "unknown",
+      "meaning": "Every object of the inventory was read after the apply and judged healthy."
+    },
+    {
       "type": "ModuleResolved",
       "status": "True",
       "reason": "ModuleResolved",
-      "message": "module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11",
-      "lastTransitionTime": "2026-10-04T18:04:06Z",
+      "message": "module resolved: testing.opmodel.dev/modules/controller/podinfo@v0@v0.1.12",
+      "lastTransitionTime": "2026-10-21T16:04:28Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "The module version was found in the registry."
@@ -76,21 +87,21 @@
       "phase": "complete",
       "outcome": "Succeeded",
       "sequence": 1,
-      "startedAt": "2026-10-04T18:04:06Z",
-      "finishedAt": "2026-10-04T18:04:06Z",
+      "startedAt": "2026-10-21T16:04:28Z",
+      "finishedAt": "2026-10-21T16:04:28Z",
       "inventoryCount": 2,
-      "inventoryDigest": "sha256:eb44516d458a23e3a71316e94e842a07cbd8f0ee7de5985c98c86c128853fced",
+      "inventoryDigest": "sha256:ee3441945e8348db2f2a6c4bacedefbf96b3577b6c6444399174acb79ee4f60f",
       "digests": {
-        "source": "sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969",
+        "source": "sha256:da9817862883191d223271ff01f2bbb0a9cbf8d639e2ada65a61a36090a18937",
         "config": "sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44",
-        "render": "sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e"
+        "render": "sha256:897aad054ec012460aebd64c5c777db301a2b06cd01c63de8e2f6f25f865fbf8"
       }
     }
   ],
   "lastApplied": {
-    "source": "sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969",
+    "source": "sha256:da9817862883191d223271ff01f2bbb0a9cbf8d639e2ada65a61a36090a18937",
     "config": "sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44",
-    "render": "sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e"
+    "render": "sha256:897aad054ec012460aebd64c5c777db301a2b06cd01c63de8e2f6f25f865fbf8"
   },
   "components": [
     {
@@ -108,7 +119,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -126,7 +137,7 @@
             "reason": "Current",
             "message": "Deployment is available. Replicas: 2"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true,
           "children": [
             {
@@ -134,7 +145,7 @@
                 "version": "v1",
                 "kind": "Pod",
                 "namespace": "default",
-                "name": "podinfo-podinfo-d9585d794-4lg6h"
+                "name": "podinfo-podinfo-d9585d794-67j74"
               },
               "owner": {
                 "group": "apps",
@@ -157,7 +168,7 @@
                 "version": "v1",
                 "kind": "Pod",
                 "namespace": "default",
-                "name": "podinfo-podinfo-d9585d794-kp2jx"
+                "name": "podinfo-podinfo-d9585d794-74b7v"
               },
               "owner": {
                 "group": "apps",
@@ -212,7 +223,7 @@
             "reason": "Current",
             "message": "Service is ready"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]

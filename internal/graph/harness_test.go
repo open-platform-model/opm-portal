@@ -115,7 +115,12 @@ func (c *cluster) instance(t testing.TB, ns, name string) readmodel.InstanceDeta
 // pkg reads F1's one package, pkg/podinfo.
 func (c *cluster) pkg(t testing.TB) readmodel.PackageDetail {
 	t.Helper()
-	const ns, name = "pkg", "podinfo"
+	return c.pkgNamed(t, "pkg", "podinfo")
+}
+
+// pkgNamed reads one package.
+func (c *cluster) pkgNamed(t testing.TB, ns, name string) readmodel.PackageDetail {
+	t.Helper()
 	g, err := c.get(t, modulePackages, ns, name)
 	if err != nil {
 		t.Fatalf("grant: %v", err)

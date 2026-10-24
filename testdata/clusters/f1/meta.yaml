@@ -1,42 +1,47 @@
-capturedAt: "2026-10-04T18:04:44Z"
+capturedAt: "2026-10-21T16:05:06Z"
 cluster:
-  name: opm-portal-e2e-fix
+  name: opm-portal-e2e
   provider: podman
   kind: v0.32.0
   nodeImage: kindest/node:v1.36.1@sha256:3489c7674813ba5d8b1a9977baea8a6e553784dab7b84759d1014dbd78f7ebd5
   kubernetes: v1.36.1
-opmCLI: v1.0.0-beta.8
-operator:
-  image: ghcr.io/open-platform-model/opm-operator:v1.0.0-beta.6@sha256:7871a5dd6c2251196b4ac7ce50136a9491f4004e33036c64fa63a20ffaa9825e
-  version: v1.0.0-beta.6
+opmCLI: v1.0.0-beta.12
+controller:
+  image: ghcr.io/open-platform-model/opm-controller:v1.0.0-beta.9@sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e
+  version: v1.0.0-beta.9
 catalogs:
   - catalog: opmodel.dev/catalogs/opm@v4
     version: 4.6.0
     source: Subscription
-  - catalog: testing.opmodel.dev/catalogs/operator/backup@v0
+  - catalog: testing.opmodel.dev/catalogs/controller/backup@v0
     version: 0.1.0
     source: Registration
 instances:
   - namespace: cert-manager
     name: cert-manager
-    owner: operator
+    owner: controller
     ready: "True"
     reason: ReconciliationSucceeded
   - namespace: default
     name: backup-consumer
-    owner: operator
+    owner: controller
     ready: "True"
     reason: ReconciliationSucceeded
   - namespace: default
     name: backup-provider
-    owner: operator
+    owner: controller
     ready: "True"
     reason: ReconciliationSucceeded
   - namespace: default
     name: podinfo
-    owner: operator
+    owner: controller
     ready: "True"
     reason: ReconciliationSucceeded
+  - namespace: opm-system
+    name: opm-controller
+    owner: cli
+    ready: Unknown
+    reason: ManagedExternally
   - namespace: web
     name: web
     owner: cli
@@ -61,6 +66,6 @@ registrations:
     deliberateRefusal: true
     note: 'deliberate refusal fixture (test/e2e/fixtures/f1/60-refused-claim.yaml): refused on purpose'
 inventory:
-  objects: 59
+  objects: 83
   secretsSkipped: 0
   missing: []

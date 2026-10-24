@@ -26,7 +26,7 @@ const f1Dir = "../../testdata/clusters/f1"
 
 // f1Pod and f1Container are one of the podinfo Deployment's Pods in F1.
 const (
-	f1Pod       = "podinfo-podinfo-d9585d794-4lg6h"
+	f1Pod       = "podinfo-podinfo-d9585d794-67j74"
 	f1Container = "podinfo"
 )
 

@@ -45,46 +45,53 @@ func TestAcceptedAndActiveApart(t *testing.T) {
 	v.Providers.Form = newFilterForm(parseFilters(&providerFilters, nil), "Filter providers", nil, nil, nil)
 	v.Events.Filters = parseFilters(&filterView{Path: "/"}, nil)
 	out := renderMain(t, "platform", v)
-	pending := between(out, `<span class="mono">pending</span></th>`, "</tr>")
-	if !strings.Contains(pending, ">accepted<") || !strings.Contains(pending, ">inactive<") {
+	pending := between(out, `pending</span></th>`, "</tr>")
+	if !strings.Contains(pending, ">Accepted<") || !strings.Contains(pending, ">Inactive<") {
 		t.Errorf("accepted, inactive claim:\n%s", pending)
 	}
-	leaving := between(out, `<span class="mono">leaving</span></th>`, "</tr>")
-	if !strings.Contains(leaving, "Removal blocked") || !strings.Contains(leaving, ">accepted<") || !strings.Contains(leaving, ">active<") ||
+	leaving := between(out, `leaving</span></th>`, "</tr>")
+	if !strings.Contains(leaving, "Removal blocked") || !strings.Contains(leaving, ">Accepted<") || !strings.Contains(leaving, ">Active<") ||
 		strings.Contains(leaving, "Refused") || !strings.Contains(leaving, "DependentsRemain") {
 		t.Errorf("removal-blocked claim:\n%s", leaving)
 	}
 }
 
 // TestSecretsOfferNoYAML (portal:D8:R1): a Secret in an inventory says its
-// data is never read and links to nothing.
+// data is never read and links to nothing. The read API serves it with access
+// "withheld"; the "ok" case stays as a guard on the same text.
 func TestSecretsOfferNoYAML(t *testing.T) {
-	h := &Handler{cfg: Config{Now: time.Now}}
-	ref := v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}
-	v := ownerView{Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources, Components: h.components("/instances/default/app", []v1.Component{{
-		Name:    "db",
-		Objects: []v1.InventoryObject{{Ref: ref, Access: v1.AccessOK, Health: &v1.ObjectHealth{State: "Healthy"}, Live: true}},
-	}})}
-	out := between(renderMain(t, "owner", v), `id="components"`, "</section>")
-	if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "kind=Secret") {
-		t.Errorf("Secret row:\n%s", out)
+	for _, access := range []string{v1.AccessWithheld, v1.AccessOK} {
+		h := &Handler{cfg: Config{Now: time.Now}}
+		ref := v1.ObjectRef{Version: "v1", Kind: "Secret", Namespace: "default", Name: "db"}
+		v := ownerView{Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources, Components: h.components("/instances/default/app", []v1.Component{{
+			Name:    "db",
+			Objects: []v1.InventoryObject{{Ref: ref, Access: access, Health: &v1.ObjectHealth{State: "Healthy"}, Live: true}},
+		}})}
+		v.Resources = resourcesOf(nil, &v, &v1.Graph{})
+		out := between(renderMain(t, "owner", v), `id="components"`, "</section>")
+		if !strings.Contains(out, "Secret data is never read") || strings.Contains(out, "kind=Secret") || strings.Contains(out, "Withheld:") {
+			t.Errorf("Secret row with access %q:\n%s", access, out)
+		}
 	}
 }
 
 // TestPolledObjectsSayWhenTheyWereRead (portal:D3:R5): a polled object and
-// a health that is not live show when they were evaluated.
+// a health that is not live show when they were evaluated, on the Health
+// block and on the object's row.
 func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 	h := &Handler{cfg: Config{Now: func() time.Time { return time.Date(2026, 10, 5, 12, 1, 0, 0, time.UTC) }}}
 	read := time.Date(2026, 10, 5, 12, 0, 30, 0, time.UTC)
 	ref := v1.ObjectRef{Version: "v1", Kind: "Service", Namespace: "default", Name: "web"}
 	v := ownerView{
 		Kind: instanceKind, Namespace: "default", Name: "app", Tab: tabResources,
-		Health: v1.Health{State: "Healthy", Live: false, EvaluatedAt: &read},
+		Health: v1.Health{State: "Healthy", Counts: v1.HealthCounts{Healthy: 1}, Live: false, EvaluatedAt: &read},
 		Components: h.components("/instances/default/app", []v1.Component{{
 			Name:    "web",
 			Objects: []v1.InventoryObject{{Ref: ref, Access: v1.AccessOK, Health: &v1.ObjectHealth{State: "Healthy"}, EvaluatedAt: &read}},
 		}}),
 	}
+	v.Cards = h.cardsOf(&v)
+	v.Resources = resourcesOf(nil, &v, &v1.Graph{})
 	pages, err := parsePages(h.templateFuncs())
 	if err != nil {
 		t.Fatal(err)
@@ -94,7 +101,7 @@ func TestPolledObjectsSayWhenTheyWereRead(t *testing.T) {
 		t.Fatal(err)
 	}
 	out := b.String()
-	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "evaluated <time") || !strings.Contains(out, "Healthy (not live)") {
+	if !strings.Contains(out, "not live · read <time datetime=\"2026-10-05T12:00:30Z\"") || !strings.Contains(out, "not live, evaluated <time") {
 		t.Errorf("polled object without its read time:\n%s", between(out, `id="health-card"`, `id="detail"`))
 	}
 }
@@ -133,7 +140,7 @@ func TestBadgesAreOneShapeAndNameTheirAxis(t *testing.T) {
 			t.Errorf("%s partial still draws a dot: %q", name, tc.out)
 		}
 	}
-	partial := renderPartial(t, "health", v1.Health{State: "Healthy", Partial: true, Live: false})
+	partial := renderPartial(t, "health", v1.Health{State: "Healthy", Partial: true, Live: false, Counts: v1.HealthCounts{Healthy: 1}})
 	if !strings.Contains(partial, "health-partial") || !strings.Contains(partial, "Healthy (partial, not live)") {
 		t.Errorf("a partial health keeps its class and words: %q", partial)
 	}
@@ -417,5 +424,72 @@ func TestTipPartial(t *testing.T) {
 	_, box, found := strings.Cut(out, `<span class="tipbox"`)
 	if !found || strings.Contains(box, "<a ") || strings.Contains(box, "<button") || !strings.HasSuffix(strings.TrimSpace(out), "</span></span>") {
 		t.Errorf("the box holds text only and is the last child of span.tip: %s", out)
+	}
+}
+
+// TestHealthBadgeNotesNotLiveOnlyForCountedObjects (instance-39): a health
+// that counted nothing polled nothing, so its badge adds no "not live" note;
+// a polled health with counts still does.
+func TestHealthBadgeNotesNotLiveOnlyForCountedObjects(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		health v1.Health
+		want   string
+	}{
+		{"nothing counted", v1.Health{State: "Healthy", Live: false}, "Healthy"},
+		{"polled and counted", v1.Health{State: "Healthy", Live: false, Counts: v1.HealthCounts{Healthy: 2}}, "Healthy (not live)"},
+		{"live and counted", v1.Health{State: "Healthy", Live: true, Counts: v1.HealthCounts{Healthy: 2}}, "Healthy"},
+		{"partial, nothing counted", v1.Health{State: "Unknown", Partial: true}, "Unknown (partial)"},
+	} {
+		if got := healthBadge(tc.health).Text; got != tc.want {
+			t.Errorf("%s: badge %q; want %q", tc.name, got, tc.want)
+		}
+	}
+}
+
+// TestProviderPillNamesEveryStanding (installed-11, portal:D15:R2/R4): the
+// pill is colored by the registration's standing, its tooltip names the
+// registration and the standing in words from the controller's reason, and
+// the standing is in hidden text too, so color is never the only carrier. A
+// registration the caller may not read gets the locked pill and no name.
+func TestProviderPillNamesEveryStanding(t *testing.T) {
+	ok := func(c v1.ProviderClaim) v1.ProviderClaim {
+		c.Registration, c.Access = "default.x", v1.AccessOK
+		return c
+	}
+	for _, tc := range []struct {
+		name  string
+		claim v1.ProviderClaim
+		class string
+		text  string
+		vh    string
+	}{
+		{"active", ok(v1.ProviderClaim{Verdict: "Accepted", Active: true}), "prov prov-active", "Registration default.x is accepted and active.", "standing: active"},
+		{"inactive", ok(v1.ProviderClaim{Verdict: "Accepted"}), "prov prov-inactive", "Registration default.x is accepted and not active.", "standing: accepted, not active"},
+		{"refused", ok(v1.ProviderClaim{Verdict: "Refused", Reason: "CatalogUnresolved"}), "prov prov-refused", "Registration default.x is refused: CatalogUnresolved.", "standing: refused"},
+		{"pending", ok(v1.ProviderClaim{Verdict: "Pending", Reason: "Waiting"}), "prov prov-pending", "Registration default.x is pending: Waiting.", "standing: pending"},
+		{"blocked", ok(v1.ProviderClaim{Verdict: "RemovalBlocked", Reason: "StillHeld"}), "prov prov-blocked", "Registration default.x is accepted, removal blocked: StillHeld.", "standing: removal blocked"},
+		{"no reason", ok(v1.ProviderClaim{Verdict: "Refused"}), "prov prov-refused", "Registration default.x is refused.", "standing: refused"},
+		{"unknown", ok(v1.ProviderClaim{Verdict: "Odd"}), "prov prov-unknown", "Registration default.x has a standing the portal does not know.", "standing: unknown"},
+		{"locked", v1.ProviderClaim{Registration: "default.secret", Access: v1.AccessForbidden}, "prov prov-locked", "Holds a registration whose standing you may not read.", "standing: locked"},
+	} {
+		td := providerPill(tc.claim, "tip-"+strings.ReplaceAll(tc.name, " ", "-"))
+		if td.Pill != tc.class || td.Text != tc.text || td.Hidden != tc.vh || td.Trigger != "Provider" {
+			t.Errorf("%s: pill %+v; want class %q, text %q, hidden %q", tc.name, td, tc.class, tc.text, tc.vh)
+		}
+		out := renderPartialAt(t, "tip", td)
+		for _, want := range []string{`<span class="` + tc.class + `">`, `>Provider</span><span class="vh">` + tc.vh + `</span></button>`, `role="tooltip">` + tc.text} {
+			if !strings.Contains(out, want) {
+				t.Errorf("%s: the tip lacks %s:\n%s", tc.name, want, out)
+			}
+		}
+	}
+	if td := providerPill(v1.ProviderClaim{Registration: "default.secret", Access: v1.AccessForbidden}, "t"); strings.Contains(td.Text, "secret") {
+		t.Errorf("a locked pill names the registration: %q", td.Text)
+	}
+	// A hostile reason is escaped like any cluster text.
+	bad := renderPartialAt(t, "tip", providerPill(ok(v1.ProviderClaim{Verdict: "Refused", Reason: hostile}), "t"))
+	if strings.Contains(bad, "<script") || strings.Contains(bad, "<img") {
+		t.Errorf("a hostile reason is not escaped:\n%s", bad)
 	}
 }

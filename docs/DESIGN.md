@@ -5,28 +5,28 @@ change, and the questions still open. Plan and progress live in [ROADMAP.md](../
 mechanism lives in the OpenSpec changes under `openspec/`.
 
 **Numbering.** Decisions D1 to D11, their requirements and the open questions OQ1 to OQ20 were
-enhancement 0030's numbers until that entry was withdrawn on 2026-10-05; the numbers are unchanged,
-so `0030:D7:R4` and `portal:D7:R4` name the same requirement. Numbers added here start at D12 and
-OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
+the numbers of the portal enhancement until that entry was withdrawn on 2026-10-05. The numbers
+are unchanged. Numbers added here start at D12 and OQ21. The 2026-10-05 answers for the in-cluster milestone added D2:R7, D6:R10, D8:R5, D8:R6,
 D11:R6, D12 and OQ21, and closed OQ2, OQ6, OQ8 and OQ20. D13 (2026-10-05) lets local mode run
 in a Pod as a test tool. D14 to D18 and OQ22 to OQ25 (2026-10-05) come with the web UI redesign
 (OpenSpec change `redesign-web-ui`), which also narrows OQ18. D19, D20, D9:R6, D14:R7 and OQ26
 (2026-10-06) come with the canvas alignment (OpenSpec changes `align-shell-and-tokens`,
 `align-platform-installed-catalog`, `align-owner-pages` and `align-graph`), which also amends D1,
 D3 and D4:R5 and widens OQ25. The never-merged enhancements PR 101 drafted
-the same answers under other numbers (OQ20 as 0030:D7:R5, the floor as 0030:D9:R6/R7); those
-numbers were never adopted, and this file's are the only ones.
+the same answers under other numbers (for OQ20 and for the version floor); those
+numbers were never adopted, and this file's are the only ones. D11:R7 (2026-10-12) lets the role
+list EndpointSlices for the ready count of a Service (OpenSpec change `show-service-endpoints`).
 
 ## Citing this record
 
-Cite a portal decision as `portal:D7`, a requirement as `portal:D7:R4`, several decisions as
-`portal:D3/D4`, several requirements of one decision as `portal:D6:R2/R8`, and a question as
-`portal:OQ20`. Next to an enhancement, repeat each head: `portal:D9, 0027:D1`. A bare `D7` names
-nothing outside this file. Inside this file, decisions refer to one another without the `portal:`
-head.
+The citation rule is in the workspace file `references/enhancements.md`. This record adds one
+form, `portal:Dn`: cite a portal decision as `portal:D7`, a requirement as `portal:D7:R4`, several
+decisions as `portal:D3/D4`, several requirements of one decision as `portal:D6:R2/R8`, and a
+question as `portal:OQ20`. A bare `D7` names nothing outside this file. Inside this file, decisions
+refer to one another without the `portal:` head.
 
-Archived OpenSpec changes keep their `0030:Dn` citations as history; read each as `portal:Dn`.
-Everything else cites `portal:Dn`, and no new text may cite the withdrawn entry.
+Archived OpenSpec changes cite these decisions as `portal:Dn` too. No new text may cite the
+withdrawn entry.
 
 ## How this file is maintained
 
@@ -43,7 +43,8 @@ Everything else cites `portal:Dn`, and no new text may cite the withdrawn entry.
 - **A question closes with a status:** `resolved-by-Dn`, `answered`, `deferred-to-<entry or
   milestone>`, or `withdrawn`. An open one says whether it blocks a milestone.
 - **Writes of any kind need a new decision first.** V2 writes build on enhancement 0027; a portal
-  change that implements an enhancement decision cites it and carries `enhancement.yaml`.
+  change that delivers a line of an enhancement's `tasks.md` names that enhancement in its proposal
+  (`Delivers NNNN, task X.Y.`).
 
 ## Summary
 
@@ -54,7 +55,7 @@ creates are access reviews the API server never stores. Writes arrive with the m
 serves portal-shaped documents. The web UI renders only from that API, so adapters see what the UI
 sees.
 
-**Applied and healthy are two values (D3).** The operator's `Ready=True` shows as "Applied". Health
+**Applied and healthy are two values (D3).** The controller's `Ready=True` shows as "Applied". Health
 is computed from live objects, plus a Pod rule: a measured image-pull failure stayed Ready and
 Available for ten minutes.
 
@@ -67,7 +68,7 @@ In-cluster, a future plan, every read is checked for the signed-in user first an
 is refused. Either way a missing object looks like a forbidden one.
 
 **Nothing secret is read (D8, D10, D11).** No Secret data, no instance values, a read-only role,
-logs only for OPM Pods. In-cluster, operator message text is hidden. Events are an expiring feed,
+logs only for OPM Pods. In-cluster, controller message text is hidden. Events are an expiring feed,
 never state (D9). Kubernetes 1.34 is the floor (D12).
 
 **The browser keeps only display preferences (D14).** A theme choice and remembered filters live
@@ -79,7 +80,7 @@ mode listens on a fixed default port so the browser's preferences survive a rest
 
 ## Problem
 
-OPM has no way to see, in one place, what it runs in a cluster. The opm-operator writes everything
+OPM has no way to see, in one place, what it runs in a cluster. The opm-controller writes everything
 a viewer needs into the Kubernetes API, spread over four kinds in `opmodel.dev/v1alpha1`:
 
 - **Platform** (cluster-scoped singleton `cluster`): subscribed catalogs, the resolved registry,
@@ -109,7 +110,7 @@ the whole ten-minute progress deadline, and the Deployment stayed `Available=Tru
 ownerReferences and label selectors. They cannot draw module to component to object, tell a refused
 registration from a pending one, or read the inventory.
 
-**Access is all or nothing.** The operator's only viewer role covers ModuleInstances; a non-admin
+**Access is all or nothing.** The controller's only viewer role covers ModuleInstances; a non-admin
 cannot read the Platform, ModulePackages or TransformerRegistrations, and no role aggregates into
 the built-in `view` role.
 
@@ -125,7 +126,7 @@ User stories:
 
 ## Design
 
-`opm-portal` reads what the opm-operator and the API server already record and serves it twice: as
+`opm-portal` reads what the opm-controller and the API server already record and serves it twice: as
 a versioned JSON and server-sent-events read API, and as a server-rendered web UI that is that
 API's first consumer.
 
@@ -138,7 +139,7 @@ API's first consumer.
 - **The read API is the product.** Anything the UI shows, a script or adapter can read through a
   versioned, documented API under the same identity.
 - **A person sees what their RBAC allows, and nothing else.**
-- **No new source of truth.** Every fact comes from a Kubernetes object the operator or the API
+- **No new source of truth.** Every fact comes from a Kubernetes object the controller or the API
   server wrote. The portal does not render modules, store state, or invent edges.
 - **Secrets stay unread**, and instance values are not shown in V1.
 
@@ -148,7 +149,7 @@ API's first consumer.
   order. The only creates are access reviews the API server evaluates and never stores (D5:R6,
   D6:R9).
 - **A general Kubernetes dashboard.** Objects are reachable only through an OPM inventory.
-- **Contract demand and transformer provenance**, until the operator records them.
+- **Contract demand and transformer provenance**, until the controller records them.
 - **Persisted history.** No event store, no metrics backend; the portal is stateless apart from
   sessions.
 - **Multi-cluster.** One portal reads one cluster.
@@ -222,7 +223,7 @@ relies on; `openapi/v1alpha1.yaml` holds the route table.
 
 - **opm-portal**: the read API and change stream, the web UI, local mode, in-cluster mode,
   binaries and an image, later an install manifest.
-- **opm-operator**: viewer roles a cluster administrator can bind (D11:R4). Follow-ups, not V1:
+- **opm-controller**: viewer roles a cluster administrator can bind (D11:R4). Follow-ups, not V1:
   provider-contract demand (OQ18), a transformer per inventory entry (OQ5), accepting a
   ModulePackage as a provider (OQ23) and recording a package's render contracts (OQ24).
 - **opmodel.dev**: the portal's documentation bundle, published from `docs/site/`.
@@ -260,7 +261,7 @@ creates and D11's read-only role)
 - **Ordering modules in V1.** Needs the 0027 definition kind, a draft, plus a presentation contract
   that does not exist yet.
 
-**Rationale:** A read-only V1 ships on today's operator with no dependency on unaccepted
+**Rationale:** A read-only V1 ships on today's controller with no dependency on unaccepted
 enhancements, and removes every write-side security question from the first release.
 
 **Source:** Owner decision 2026-10-04 (V1 read-only, writes in V2 through 0027 kinds); see
@@ -322,19 +323,19 @@ portals and dashboards. R7: supervisor ruling 2026-10-05 answering OQ20, pending
 
 **Kind:** contract
 
-**Depends:** 0015:D14, 0015:D18
+**Depends:** enhancement 0015 ("The registration CR is excluded by kind from its package's readiness; pure-registration modules are legal" and "An unfulfilled contract is reported, never refused; only over-subscription refuses platform-package generation")
 
 **Decision:** Every instance and package shows two values side by side. **Applied** state comes
-from the operator's conditions: `Ready=True` is shown as "Applied" and never as healthy, because the
-operator's Ready means every apply succeeded, with no wait on workload health. **Health** is the
+from the controller's conditions: `Ready=True` is shown as "Applied" and never as healthy, because the
+controller's Ready means every apply succeeded, with no wait on workload health. **Health** is the
 portal's own computation from live objects: each object's status by kstatus, plus one Pod rule,
 rolled up worst-of through components to the instance, with unreadable objects excluded and the
 result marked partial. The Pod rule exists because an image-pull failure stays invisible to both
-the operator and kstatus for the whole progress deadline: a container waiting with `ErrImagePull`,
+the controller and kstatus for the whole progress deadline: a container waiting with `ErrImagePull`,
 `ImagePullBackOff`, `CrashLoopBackOff`, `CreateContainerConfigError` or `InvalidImageName` marks
 the Pod's owning workload Degraded. A CLI-owned instance shows its applied state as managed
 externally, in a neutral style, and its health is still computed from the inventory the CLI wrote.
-The operator's failure counters and drift flag are diagnostics, never health.
+The controller's failure counters and drift flag are diagnostics, never health.
 
 **Requirements:**
 
@@ -352,7 +353,7 @@ The operator's failure counters and drift flag are diagnostics, never health.
   evaluated, and the instance's health says it is not live.
 - R6: A CLI-owned instance shows its applied state as managed externally, without an error style,
   and shows workload health computed from its inventory.
-- R7: The operator's failure counters and drift flag never change either axis.
+- R7: The controller's failure counters and drift flag never change either axis.
 - R8: A Platform reporting unfulfilled provider contracts is shown as information, not as a
   failure.
 - R9: An instance page and its graph are answered from state the portal already holds; their
@@ -366,9 +367,9 @@ The operator's failure counters and drift flag are diagnostics, never health.
   `Available=True` and kstatus said InProgress until `ProgressDeadlineExceeded`, about 600 s after
   the break.
 - **Failure counters as a health hint.** The drift counter climbs on healthy instances because the
-  operator's drift check ignores the instance's ServiceAccount (opm-operator issue 209).
-- **Wait for an operator `Healthy` condition.** No health wait exists or is planned (0015:D14), and
-  health in the operator is OQ3, not a V1 prerequisite.
+  controller's drift check ignores the instance's ServiceAccount (opm-controller issue 209).
+- **Wait for a controller `Healthy` condition.** No health wait exists or is planned (enhancement 0015: readiness means apply success), and
+  health in the controller is OQ3, not a V1 prerequisite.
 - **Health computed per request** (one read per inventory object). Measured at 7.4 to 9.4 s for
   cert-manager's graph at client-go's default rate limit.
 - **No runtime health for configuration objects** (the canvas's "configuration has no runtime
@@ -381,7 +382,7 @@ what it says, apply success, so the portal keeps it and labels it honestly, and 
 the objects that show the failure.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 3, 6, 11 and 12,
-and the CLI-owned instance addendum. 0015:D14 (readiness means apply success); 0015:D18 (an
+and the CLI-owned instance addendum. Enhancement 0015 (readiness means apply success; an
 unfulfilled contract is reported, never refused), which R8 follows. Owner decision 2026-10-04 to
 capture a CLI-owned instance on the throwaway cluster. Configuration objects keep kstatus health on
 the graph and in group roll-ups: supervisor ruling 2026-10-06, pending the owner. On instance and
@@ -390,11 +391,11 @@ than its kstatus health, which its card and panel still show as a badge; the app
 the node's only applied mark, so R1 holds (planner, 2026-10-06, OpenSpec change `align-graph`,
 pending the supervisor and the owner).
 
-### D4: Graphs derive only from operator- and API-server-written state
+### D4: Graphs derive only from controller- and API-server-written state
 
 **Kind:** contract
 
-**Depends:** 0015:D3
+**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces")
 
 **Decision:** The portal never renders a module. Every node and edge comes from a field a Kubernetes
 object already carries, and each edge kind has exactly one source: subscriptions from the Platform's
@@ -405,7 +406,7 @@ the inventory; runtime children from ownerReferences walked below inventory work
 package-to-package from the package's dependencies. **V1 draws no "requires" edge from an instance
 to a provider contract**: the instance's recorded contracts are every contract its render used,
 most fulfilled by the catalog itself, not the provider contracts it demands, so V1 lists them as
-text, and requires edges wait for the operator to record provider demand. Registrations show acceptance and
+text, and requires edges wait for the controller to record provider demand. Registrations show acceptance and
 activation as separate states, read from `status.accepted` and `status.active`, never inferred from
 the `Stalled` and `Ready` conditions: the same condition pair marks both a refused claim and an
 accepted, active claim whose removal is blocked by dependents. A blocked removal is its own state.
@@ -441,10 +442,10 @@ is never folded.
 
 - **Requires edges from `status.requiredContracts`** (the design before the capture). cert-manager
   lists 15 contracts and podinfo 7, nearly all catalog-fulfilled, so the edges would claim every
-  instance depends on every core resource. Waiting for an operator field that records provider
+  instance depends on every core resource. Waiting for a controller field that records provider
   demand (OQ18) is the honest path.
 - **Re-render modules in the portal** for provenance and demand. Tens of megabytes per module,
-  registry access, and a second render path that can disagree with the operator's.
+  registry access, and a second render path that can disagree with the controller's.
 - **Instance-to-object edges from labels.** The uuid label is not on Pods or ReplicaSets, and labels
   are a cross-check, not the record.
 - **Acceptance read from the conditions.** Phase 9 of the capture showed `Stalled=True` plus
@@ -464,7 +465,7 @@ team would act on it.
 
 **Source:** [Evidence 01](design/evidence/01-live-cluster-capture/), observations 2, 8, 9 and 13,
 phases 7 to 9; [evidence 02](design/evidence/02-live-graph-spike/). Registration verdicts as
-0015:D3 defines them. R5: owner decision 2026-10-06, asked how the graph should group
+enhancement 0015 defines them (a registration is a cluster-scoped CR, gated by the RBAC the operator already enforces). R5: owner decision 2026-10-06, asked how the graph should group
 configuration: "Groups per kind (Recommended)" (groups per kind family, an accordion with one open
 at a time, a dotted frame, Collapse and Overview, zoom to the group;
 [evidence 05](design/evidence/05-canvas-gap-report/), gaps graph-01, graph-04, graph-06,
@@ -657,7 +658,7 @@ pending the owner.
 
 **Kind:** contract
 
-**Depends:** 0013:D28
+**Depends:** enhancement 0013 ("Diagnostics never carry a value at a marked path")
 
 **Decision:** The portal never reads a Secret's data, in any mode, so it can never serve one. In V1
 it shows no instance's `spec.values`: users supply plain values that unification marks as secrets
@@ -667,9 +668,9 @@ annotation is stripped from every object the portal serves, because a client-sid
 full values into it. Hiding `spec.values` does not hide what the values became: a value a module
 renders into a non-Secret object is shown in that object's YAML view to any user whose RBAC lets
 them read it, exactly as `kubectl` would show it. Keeping a value out of reach means rendering it
-into a Secret. The operator's embedded kernel does not redact secret paths in the text it writes,
+into a Secret. The controller's embedded kernel does not redact secret paths in the text it writes,
 so in-cluster the portal shows the reason of every condition, history entry, registration verdict
-and event the operator writes, and never the operator's message text; local mode shows that text
+and event the controller writes, and never the controller's message text; local mode shows that text
 verbatim, because it reveals nothing the user's kubeconfig cannot read. Text other writers wrote,
 the kubelet's and other controllers' event notes and the health messages of rendered workloads,
 is shown in both modes.
@@ -683,11 +684,11 @@ is shown in both modes.
   annotation.
 - R4: The portal's documentation states that values rendered into non-Secret objects are visible
   to anyone who may read those objects, in the portal as in `kubectl`.
-- R5: In-cluster, no API document, stream event or page carries message text the operator or the
+- R5: In-cluster, no API document, stream event or page carries message text the controller or the
   kernel wrote (condition, history and registration messages, the notes of events whose
   `reportingController` is `opm-controller`, the reconcile message built from them, and the
   messages in an OPM object's health and raw status); reasons are shown. An event that names no
-  reporting controller and regards an OPM object is treated as the operator's. The kubelet's and
+  reporting controller and regards an OPM object is treated as the controller's. The kubelet's and
   other controllers' event notes and the kstatus health messages of rendered workloads are shown.
   This holds until the kernel redacts that text.
 - R6: In local mode, condition, event and history messages are shown verbatim.
@@ -698,7 +699,7 @@ is shown in both modes.
   by unification inside the module, not stored in `spec.values`.
 - **Show values to users who may read Secrets in every namespace the inventory renders a Secret
   into.** Still cannot find secret leaves without the module's schema walker. Left for later (OQ7).
-- **Show operator messages in-cluster** (OQ8's other answer). A message can carry a value the user
+- **Show controller messages in-cluster** (OQ8's other answer). A message can carry a value the user
   could not otherwise read, and the portal cannot tell which.
 - **Hide every message and event note in-cluster, whoever wrote it.** Removes the kubelet's
   image-pull and probe notes, the remediation users need most, to guard against a kernel that did
@@ -713,8 +714,8 @@ mask on.
 marker shape and the plain-string password fields in the first-party modules, read from source. R5:
 owner answer 2026-10-05 to OQ8 ("Hide messages in-cluster"). R6: the local-mode half of the same
 answer, which the question's text recorded (local mode reveals nothing the kubeconfig cannot read).
-R5's scope: supervisor ruling 2026-10-05, not an owner decision. The question asked about operator
-messages, so in-cluster hides the text the operator writes (OPM resource condition messages,
+R5's scope: supervisor ruling 2026-10-05, not an owner decision. The question asked about controller
+messages, so in-cluster hides the text the controller writes (OPM resource condition messages,
 `status.history` messages, events whose `reportingController` is `opm-controller`, and the
 reconcile message built from them); the kubelet's and other controllers' event notes and the
 kstatus health messages of rendered workloads stay visible, because they are not kernel
@@ -733,7 +734,7 @@ events count through the deprecated count and timestamp fields, so
 repeated events about the same object with the same reason and message become one line with a count
 and the latest time, however each repeat was recorded. Events about the cluster-scoped Platform and
 TransformerRegistrations, which Kubernetes records in namespace `default`, appear on those objects'
-pages. Render warnings the operator records only as events are labelled on the instance page as
+pages. Render warnings the controller records only as events are labelled on the instance page as
 expiring with the feed. On an instance's or package's page the feed opens on the events of the
 owner and of every object and runtime child its inventory reaches that the reader may read, merged
 newest first, so a Pod's warnings show without first picking the Pod. Filters narrow it. The
@@ -747,7 +748,7 @@ the reader may not read are left out with a mark that the feed is partial.
   inferred from an event.
 - R2: The events feed is labelled as recent activity that expires.
 - R3: Repeated events about the same object with the same reason and message appear once, with a
-  count and the latest occurrence time, for both operator and kubelet events, whether each repeat
+  count and the latest occurrence time, for both controller and kubelet events, whether each repeat
   was recorded as a separate event, in an event's `series`, or in its deprecated count.
 - R4: Events about the Platform and about each TransformerRegistration appear on that object's
   page.
@@ -760,7 +761,7 @@ the reader may not read are left out with a mark that the feed is partial.
 
 **Alternatives considered:**
 
-- **Rely on event `series` for collapsing.** In the capture only three operator events carried
+- **Rely on event `series` for collapsing.** In the capture only three controller events carried
   `series`, all from an unreleased build; cert-manager's four identical `ApplyFailed` repeats were
   four separate events, and kubelet events have `eventTime: null` (observation 4).
 - **Look for Platform events in the Platform's namespace.** It has none; they are in `default`
@@ -814,18 +815,20 @@ protects the browser and the portal without cutting off the live tail a develope
 measured ([evidence 01](design/evidence/01-live-cluster-capture/), observation 8); the capture held no StatefulSet, DaemonSet, Job or CronJob, so those chains are
 design, read from the Kubernetes controllers' ownerReference behaviour.
 
-### D11: The portal's role is read-only, follows the catalog, and the operator ships viewer roles
+### D11: The portal's role is read-only, follows the catalog, and the controller ships viewer roles
 
 **Kind:** contract
 
 **Decision:** The in-cluster portal's ClusterRole grants `get`, `list` and `watch` on the four OPM
 kinds and their status, on events, on every non-Secret kind the pinned OPM catalog's transformers
 can render, and on the runtime children those workloads own (Pods, `apps` ReplicaSets, and `batch`
-Jobs a CronJob creates); `create` on `subjectaccessreviews`; and `get` on `pods/log`. The role
+Jobs a CronJob creates); `list` on `endpointslices` in `discovery.k8s.io`, for the ready count of a
+Service (a Service owns its slices, so they are not among the workload children above);
+`create` on `subjectaccessreviews`; and `get` on `pods/log`. The role
 grants no other create, no update, patch or delete, no impersonate and no Secrets. The kind list is
 checked against the pinned catalog, so a catalog bump that adds a kind fails before release. Kinds
 that provider modules define (cert-manager's Certificate, for example) are not covered in V1 and
-show as not readable. On the user side, the opm-operator ships viewer roles a cluster administrator
+show as not readable. On the user side, the opm-controller ships viewer roles a cluster administrator
 binds so non-admins may read Platforms, ModulePackages and TransformerRegistrations. They do not
 aggregate into the built-in `view`, `edit` or `admin` roles: platform state is shown only to whom
 an administrator grants it.
@@ -840,29 +843,39 @@ an administrator grants it.
 - R3: An inventory object of a kind the portal's role does not cover is shown as not readable, with
   the reason, never omitted.
 - R4: A cluster administrator can grant a non-admin read access to Platforms, ModulePackages and
-  TransformerRegistrations using a role the operator ships.
+  TransformerRegistrations using a role the controller ships.
 - R5: A user without read access to the Platform sees that it is hidden by their access, not an
   empty Platform.
-- R6: No viewer role the operator ships carries an aggregation label for the built-in `view`,
+- R6: No viewer role the controller ships carries an aggregation label for the built-in `view`,
   `edit` or `admin` roles.
+- R7: The role grants `list` and no other verb on `endpointslices`, and the portal serves only a
+  ready count, or the mark that it could not be read, from them: no name, address, port, hostname,
+  node name, zone or Pod reference.
 
 **Alternatives considered:**
 
 - **A wildcard read role.** Covers Secrets and every other tenant's objects; rejected.
 - **Aggregate provider kinds into the portal's role through a label in V1.** Needs a decision on
   which provider kinds a portal may read; moved to a follow-up.
-- **No operator change, and document hand-written roles.** Leaves every installation to rediscover
+- **No controller change, and document hand-written roles.** Leaves every installation to rediscover
   the same role.
 - **Aggregate the viewer roles into `view`** (OQ6's other answer). Every namespace viewer would see
   platform state, and in `kubectl` the `spec.values` of every ModuleInstance in reach.
+- **Omit the read.** The Service panel cannot say whether a Service has ready endpoints, which the
+  owner chose to fix (answer of 2026-10-12).
+- **Derive the count from the Service's selector and the Pods.** It invents a readiness the
+  cluster did not record, against Principle IV.
+- **A watch on EndpointSlices.** It needs `watch` and a held informer, a second widening of the
+  role. A supervisor ruling of 2026-10-12 refused it, and waits for the owner.
 
 **Rationale:** A read-only role is the in-cluster form of D1. Checking it against the catalog keeps
 "read-only" from silently turning into "cannot see half the objects" after a catalog bump.
 
-**Source:** Owner decision 2026-10-04 ("Keep the seam"). opm-operator's shipped RBAC, read from
+**Source:** Owner decision 2026-10-04 ("Keep the seam"). opm-controller's shipped RBAC, read from
 source; kind list from the opm catalog's transformer outputs, read from source;
 [research](design/evidence/prior-art-and-access.md). R6: owner answer 2026-10-05 to OQ6 ("No
-aggregation").
+aggregation"). The `endpointslices` rule and R7: owner answer of 2026-10-12 on the Service panel's ready
+endpoints ("Add the read").
 
 ### D12: Kubernetes 1.34 is the supported floor
 
@@ -889,7 +902,7 @@ ConstrainedImpersonation, OQ1) are not used until the floor moves.
 
 **Rationale:** The portal reads what OPM writes, so it should run where OPM runs. A floor is only a
 promise if something tests it, which is why R3 keeps a job there. The owner's answer also puts the
-opm-operator on the same floor with its own CI job; that half is tracked in the roadmap, because
+opm-controller on the same floor with its own CI job; that half is tracked in the roadmap, because
 this record binds only the portal.
 
 **Source:** Owner answer 2026-10-05 to OQ2 ("1.34 (Recommended)": the oldest version tested today;
@@ -1038,7 +1051,7 @@ choice list or a count reveal what a reader may not list (OpenSpec change
 
 **Kind:** contract
 
-**Depends:** 0015:D11
+**Depends:** enhancement 0015 ("Every field of the claim is derived or stamped; the only authored fact is the module's catalog dependency version")
 
 **Decision:** The portal finds a TransformerRegistration's provider by inventory, not by kind:
 every ModuleInstance and every ModulePackage whose `status.inventory` holds a
@@ -1083,7 +1096,7 @@ verdict unedited keeps the gap visible where it lives.
 **Source:** Owner decision 2026-10-05, asked "Can a ModulePackage be a provider? Today the
 controller only accepts a ModuleInstance as a TransformerRegistration's provider ...": "Yes it
 can. Both Instance and Package are rendered the same way in in the kernel. Meaning if both have
-TransformerRegistation both will render them." Controller behaviour read from source (opm-operator
+TransformerRegistation both will render them." Controller behaviour read from source (opm-controller
 277ca18): `catalog_opm/src/transformers/transformer_registration_transformer.cue:80` stamps
 `providerRef`; `internal/controller/transformerregistration_controller.go:140-147` defers with
 `PlatformNotReady`, `:175-180` defers with `ProviderInventoryPending` or refuses with
@@ -1095,7 +1108,7 @@ naming a ModuleInstance.
 
 **Kind:** contract
 
-**Depends:** 0015:D3, 0015:D16
+**Depends:** enhancement 0015 ("A transformer registration is a cluster-scoped CR, gated by the RBAC the operator already enforces" and "Shrinking `provides` while dependents exist is a removal, and is refused before the old claim is lost")
 
 **Decision:** The pages show, per ModuleInstance, the contracts its last successful render used,
 read from `status.requiredContracts` (served as `renderContracts`), under the label "Uses" with the
@@ -1124,7 +1137,7 @@ claim's dependents before it lets the claim go.
 **Rationale:** The field is recorded and the controller already relies on it for its removal
 guard; labelling it as usage keeps it from reading as demand. D4:R3 is unchanged.
 
-**Source:** Owner decision 2026-10-05 ("Instances now, packages later"). opm-operator 277ca18:
+**Source:** Owner decision 2026-10-05 ("Instances now, packages later"). opm-controller 277ca18:
 `api/v1alpha1/moduleinstance_types.go:168-185` (the field and its use by the removal guard);
 `internal/controller/transformerregistration_dependents.go:43-81` (dependents are the instances
 whose `requiredContracts` meet the claim's `spec.provides`). Packages recording contracts is OQ24.
@@ -1135,11 +1148,10 @@ whose `requiredContracts` meet the claim's `spec.provides`). Packages recording 
 
 **Decision:** The web UI has two top-level views, **Platform** and **Installed** (ModuleInstances
 and ModulePackages in one list), and a page per instance, package and catalog. Page text says
-"controller" for the opm-operator, "Providers" for TransformerRegistrations and the instances and
-packages that hold them, and "Installed" for instances and packages; read API names do not change
-here (`operatorVersion`, owner `operator`), because renaming them belongs to the controller
-rename's portal change. The redesign shows only what the cluster records. It leaves out, until a
-source exists: catalog contents (definitions, their descriptions and documentation links, and
+"controller" for opm-controller, "Providers" for TransformerRegistrations and the instances and
+packages that hold them, and "Installed" for instances and packages; the read API uses the same
+name (`controllerVersion`, owner `controller`). The redesign shows only what the cluster records.
+It leaves out, until a source exists: catalog contents (definitions, their descriptions and documentation links, and
 transformers; OQ25), so the canvas's catalog Definitions, Contracts, Transformers and Used by
 tabs and a provided contract's kind and status; a catalog's registry and digest, which the
 Platform does not record (OQ26); a health for the Platform itself (OQ22); the transformer behind each
@@ -1333,6 +1345,9 @@ controller watches it and re-reconciles the package, which refreshes the package
 - R5: The portal's roles gain no rule for the source kinds in V1 (D11:R3). In a Pod run from
   `deploy/` the ServiceAccount is the caller (D13), so the source shows locked; in-cluster, a user
   the cluster allows to get the source sees it as not readable by the portal.
+- R6: The Ready condition's message is served cut to at most 1024 Unicode code points, and its
+  reason and `status.artifact.revision` to at most 256 each, in local mode and in-cluster; a longer
+  value ends with an ellipsis.
 
 **Alternatives considered:**
 
@@ -1354,13 +1369,18 @@ portal did not read.
 the source (Recommended)": an authorized get of the package's sourceRef object, showing its Ready
 state, its revision, and "kind not installed" when the CRD is missing ([evidence
 05](design/evidence/05-canvas-gap-report/), gap instance-25). Controller behaviour read from source
-(opm-operator 59537b7): `internal/source/resolve.go:17-22` (the three kinds), `:41-44` (namespace
+(opm-controller 59537b7): `internal/source/resolve.go:17-22` (the three kinds), `:41-44` (namespace
 default), `:60-73` (Ready condition and artifact),
 `internal/controller/modulepackage_controller.go:178-241` (the watches, guarded for a missing CRD).
 F1's package Ready message (`no matches for kind "OCIRepository"`) shows the not-installed case.
 The kind chosen by kind alone and the no-artifact case follow `resolve.go:52,64-69,84-95`. The
 three-kind limit and R5: supervisor rulings 2026-10-06, pending the owner. The discovery timer:
 planner, 2026-10-06, pending the supervisor and the owner.
+
+R6 (the length cap) is the owner's decision of 2026-10-11 to record the cap as a new requirement
+under D20: the owner answered "yes". The three values (1024, 256 and 256 code points) are the
+supervisor's rulings of the same day on the E4 gate reviews. The OpenSpec change `align-graph`
+carries it.
 
 ## Open questions
 
@@ -1374,13 +1394,13 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   SubjectAccessReview-then-read. Impersonation (classic, then ConstrainedImpersonation once the
   floor is 1.36 or later) puts users in the audit log at the cost of an impersonate grant; token
   passthrough works only where the API server trusts the portal's issuer. Binding when V2 adds
-  writes (see 0027:OQ26).
+  writes (see the open question of enhancement 0027 on the identity under which an in-cluster UI writes an order).
 - **OQ2: What is the minimum Kubernetes version?** Status: resolved-by-D12 (owner answer
   2026-10-05: 1.34). The selector check at 1.34 is D12:R2, and the CI job that keeps it is D12:R3.
 - **OQ6: Who may read the cluster-scoped Platform and TransformerRegistrations, and do the
-  operator's viewer roles aggregate into `view`?** Status: resolved-by-D11 (owner answer
+  controller's viewer roles aggregate into `view`?** Status: resolved-by-D11 (owner answer
   2026-10-05: no aggregation; D11:R6).
-- **OQ8: Does the operator's embedded kernel redact marked secret paths in condition and event
+- **OQ8: Does the controller's embedded kernel redact marked secret paths in condition and event
   messages?** Status: resolved-by-D8 (owner answer 2026-10-05: "Hide messages in-cluster"; the
   kernel was found not to redact; D8:R5). Local mode shows messages verbatim (D8:R6).
 - **OQ20: Does change detection in the change stream leak a timing signal across access boundaries
@@ -1392,23 +1412,23 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
 
 ### Status and history
 
-- **OQ3: Should the operator report workload health, or does health stay a consumer concern?**
-  Status: open. Blocking: deferrable. D3 computes health in the portal. An operator condition would
-  let the CLI and other consumers share one answer; it would also be a health wait the operator has
+- **OQ3: Should the controller report workload health, or does health stay a consumer concern?**
+  Status: open. Blocking: deferrable. D3 computes health in the portal. A controller condition would
+  let the CLI and other consumers share one answer; it would also be a health wait the controller has
   deliberately not built. The redesign's canvas drew a health block for the Platform itself; it is
   left out (D17:R4) and asked as OQ22.
-- **OQ9: Is a one-hour event feed enough, or should the portal or the operator persist events or
-  extend status history?** Status: open. Blocking: deferrable. The operator keeps at most ten
+- **OQ9: Is a one-hour event feed enough, or should the portal or the controller persist events or
+  extend status history?** Status: open. Blocking: deferrable. The controller keeps at most ten
   history entries, so a run of failed retries pushes every earlier entry out. The redesign's
   attempt dots show exactly those entries and say there are at most ten.
-- **OQ19: Should the operator record render warnings durably in status, not only as events?**
+- **OQ19: Should the controller record render warnings durably in status, not only as events?**
   Status: open. Blocking: deferrable. D9:R5 labels the gap on the instance page.
 - **OQ22: Should the Platform show a health of its own, and computed from what?** Status: open.
   Blocking: deferrable. Nothing records one: the Platform's `Ready` is module generation and its
   `ContractsFulfilled` is information (D3:R8), and a roll-up over installed workloads would be the
   portal's invention. Until one is defined, D17:R4 leaves it out.
 
-### Graph and data the operator does not record
+### Graph and data the controller does not record
 
 - **OQ4: What shape should the Platform's contract inventory take in its status?** Status: open.
   Blocking: deferrable. It would let the Platform view draw which catalog defines which contract and
@@ -1427,12 +1447,12 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   render used, so it is not demand. D16 shows its intersection with a registration's
   `spec.provides` as "Used by" on a provider: the same intersection the controller uses to count a
   claim's dependents (`internal/controller/transformerregistration_dependents.go:43-81` at
-  opm-operator 277ca18). That is a list, not demand; D4:R3 holds. Still open: a record of demand
+  opm-controller 277ca18). That is a list, not demand; D4:R3 holds. Still open: a record of demand
   an edge could be drawn from, and what ModulePackages use, which they do not record (OQ24).
   Candidates: per-entry fulfilment, or a separate provider-contract list.
 - **OQ23: Should the controller accept a ModulePackage as a TransformerRegistration's provider?**
   Status: open, tracked as
-  [opm-operator#254](https://github.com/open-platform-model/opm-operator/issues/254). Blocking:
+  [opm-controller#254](https://github.com/open-platform-model/opm-controller/issues/254). Blocking:
   deferrable. A controller change, not a portal one. The owner's answer
   that a package can be a provider (D15) meets an acceptance check that gets a ModuleInstance by
   `spec.providerRef`, so a package's claim is refused with `ProviderMismatch`. Accepting it needs
@@ -1453,7 +1473,7 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   description), or the documentation bundle's catalog pages.
 - **OQ26: Should the controller record, per resolved catalog, when it resolved and the digest it
   resolved to?** Status: open, tracked as
-  [opm-operator#230](https://github.com/open-platform-model/opm-operator/issues/230). Blocking:
+  [opm-controller#230](https://github.com/open-platform-model/opm-controller/issues/230). Blocking:
   deferrable. A controller change. The canvas's Catalog page says "resolved 9 min ago" and shows a
   digest (gap catalog-09 in [evidence 05](design/evidence/05-canvas-gap-report/)). The Platform's
   `status.registry` entries carry neither, and the only times are Platform-wide
@@ -1475,13 +1495,13 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
 
 - **OQ10: When does the read API leave `v1alpha1`, and who may depend on it before then?** Status:
   open. Blocking: before the first release outside `0.x`, and before any adapter is published as
-  depending on the API. In 0030 it blocked acceptance; with no acceptance stage left, it binds where
+  depending on the API. In the portal enhancement it blocked acceptance; with no acceptance stage left, it binds where
   the promise does. Adapters need to know what the additive-only promise of D2 is worth.
   Candidate: a declared stability point after which a removal needs a new version served beside the
   old one for at least one minor release.
 - **OQ13: Is the portal published as an OPM module?** Status: open. Blocking: deferrable. V1 ships
   binaries, an image and an install manifest.
-- **OQ14: Does opm-portal join the release cascade as a consumer of opm-operator, or stay a leaf?**
+- **OQ14: Does opm-portal join the release cascade as a consumer of opm-controller, or stay a leaf?**
   Status: open. Blocking: deferrable. It starts as a leaf with hand-moved pins.
 - **OQ15: Is a multi-cluster hub a goal, or never?** Status: open. Blocking: deferrable. V1 has no
   cluster parameter in its paths; a hub would add a parallel route set.
@@ -1498,7 +1518,7 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
 - **Empty or forged identity reaches the cluster** (CVE-2026-23990 in the Flux Operator UI).
   *Mitigation:* D6 refuses an empty username before any Kubernetes call, strips every `system:`
   group, requires prefixes, and holds no impersonate grant.
-- **Values leak through a side door**: the instance spec, the last-applied annotation, and operator
+- **Values leak through a side door**: the instance spec, the last-applied annotation, and controller
   messages. *Mitigation:* D8 strips the first two everywhere and hides messages in-cluster.
 
 **Next: status that misleads.**
@@ -1508,12 +1528,12 @@ before the in-cluster release), `V2`, a named release or event it must precede, 
   are shown as such, and the rule list can grow.
 - **Users read "Applied" as "healthy".** *Mitigation:* D3 shows both axes everywhere; the docs
   explain the difference.
-- **Operator status is stale or wrong** (issue 209's drift counter, contracts that are not demand,
+- **Controller status is stale or wrong** (issue 209's drift counter, contracts that are not demand,
   ten-entry history). *Mitigation:* D3:R7, D4:R3; OQ9 and OQ18 carry the gaps.
 
 **Then: operational.**
 
-- **The portal breaks on an operator upgrade.** *Mitigation:* the portal pins the operator version
+- **The portal breaks on a controller upgrade.** *Mitigation:* the portal pins the controller version
   it reads and moves the pin by hand (OQ14), tested against a captured cluster for that version.
 - **Many watched kinds on a provider-heavy cluster.** *Mitigation:* watches are label-selected and
   keep only metadata and status; a scale budget is follow-up work.
@@ -1529,11 +1549,11 @@ in the API server's audit log, so the portal's access log is the only record of 
 - **A Headlamp plugin instead of a portal.** Plugins run only in the browser, so per-user filtering
   of a shared cache, server-side health and log bounds cannot live there. A plugin over this API
   stays a follow-up.
-- **Embed the UI in the operator** (the Flux Operator model). The operator holds cluster-wide
-  impersonate and write on ModuleInstances; a UI bug there has the operator's blast radius.
+- **Embed the UI in the controller** (the Flux Operator model). The controller holds cluster-wide
+  impersonate and write on ModuleInstances; a UI bug there has the controller's blast radius.
 - **Backstage as the base.** A heavy platform with a shared server-side identity by default; it
   stays an adapter target.
-- **Re-render modules in the portal.** A second render path that can disagree with the operator's.
+- **Re-render modules in the portal.** A second render path that can disagree with the controller's.
 
 ## Operations
 
@@ -1545,19 +1565,19 @@ in the API server's audit log, so the portal's access log is the only record of 
 - **Versioning.** Releases start at `0.1.0` and stay `0.x` until the read API declares stability
   (OQ10). Leaving alpha adds a new path version served beside the old one.
 - **Rollback.** The portal writes nothing and keeps no state beyond in-memory sessions: stop the
-  binary, or delete the Deployment, its ServiceAccount, role and binding. The operator's viewer
+  binary, or delete the Deployment, its ServiceAccount, role and binding. The controller's viewer
   roles are unbound by default and harmless to leave.
-- **Cross-repo ordering.** The operator's viewer roles (D11:R4) must be released before milestone
-  2 can show a non-admin platform state; milestone 1 needs nothing from the operator. Any requires
-  edge waits on OQ18, provenance on OQ5, a contract inventory on OQ4. The portal pins one operator
-  version: the API module it imports and the operator its e2e tests install move together.
+- **Cross-repo ordering.** The controller's viewer roles (D11:R4) must be released before milestone
+  2 can show a non-admin platform state; milestone 1 needs nothing from the controller. Any requires
+  edge waits on OQ18, provenance on OQ5, a contract inventory on OQ4. The portal pins one controller
+  version: the API module it imports and the controller its e2e tests install move together.
 
 ## Related enhancements
 
 | Entry | Why |
 | --- | --- |
 | 0015 (archived) | Catalog contracts and transformer registration: the registration verdicts the Platform view reads, and the readiness rule behind "Applied" (D3, D4) |
-| 0027 | Self-service kinds, which V2's writes build on; its OQ17 to OQ29 hold the marketplace contract questions |
+| 0027 | Self-service kinds, which V2's writes build on; its open questions hold the marketplace contract |
 | 0013 | Secrets, and the diagnostics redaction rule behind D8:R5 |
-| 0030 (withdrawn 2026-10-05) | This design's former home |
-| 0031 (withdrawn 2026-10-05) | The module presentation contract draft; its evidence informs V2 |
+| The portal enhancement (withdrawn 2026-10-05) | This design's former home |
+| The module presentation enhancement (withdrawn 2026-10-05) | The module presentation contract draft; its evidence informs V2 |

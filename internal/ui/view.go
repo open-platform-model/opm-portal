@@ -81,11 +81,11 @@ func known(prefix string, table map[string]string, value string) badge {
 
 func slug(s string) string { return strings.ToLower(s) }
 
-// appliedBadge is the operator's axis: a squared stamp. Ready=True reads
+// appliedBadge is the controller's axis: a squared stamp. Ready=True reads
 // Applied; ManagedExternally is neutral (portal:D3:R1/R6).
 func appliedBadge(r v1.Reconcile) badge {
 	b := known("applied", appliedText, r.State)
-	if r.State == "Failed" && r.Retrying {
+	if r.State == stateFailed && r.Retrying {
 		b.Text = "Failed, retrying"
 	}
 	return b
@@ -99,7 +99,9 @@ func healthBadge(h v1.Health) badge {
 	if h.Partial {
 		notes = append(notes, "partial")
 	}
-	if !h.Live && h.State != "" {
+	// With nothing counted nothing was polled, so there is nothing to warn
+	// about (instance-39).
+	if !h.Live && h.State != "" && healthTotal(h.Counts) > 0 {
 		notes = append(notes, "not live")
 	}
 	if len(notes) > 0 {
@@ -154,6 +156,60 @@ func providerBadge(c v1.ProviderClaim) badge {
 	return b
 }
 
+// providerPill is the provider badge of an Installed row: a pill of the
+// word "Provider" colored by the registration's standing, inside an info
+// tip whose sentence names the registration and its standing in words, from
+// what the controller wrote and never from what the portal computed
+// (portal:D15:R2/R4). The standing is also in visually hidden text. A
+// registration the caller may not read gets the locked pill and no name.
+func providerPill(c v1.ProviderClaim, id string) tipData {
+	td := tipData{ID: id, Trigger: "Provider", Icon: "plug"}
+	if c.Access != v1.AccessOK {
+		td.Pill, td.Hidden = "prov prov-locked", "standing: locked"
+		td.Text = "Holds a registration whose standing you may not read."
+		return td
+	}
+	reason := ""
+	if c.Reason != "" {
+		reason = ": " + c.Reason
+	}
+	name := "Registration " + c.Registration
+	switch {
+	case c.Verdict == verdictRemovalBlocked:
+		td.Pill, td.Hidden = "prov prov-blocked", "standing: removal blocked"
+		td.Text = name + " is accepted, removal blocked" + reason + "."
+	case c.Verdict == verdictAccepted && c.Active:
+		td.Pill, td.Hidden = "prov prov-active", "standing: active"
+		td.Text = name + " is accepted and active."
+	case c.Verdict == verdictAccepted:
+		td.Pill, td.Hidden = "prov prov-inactive", "standing: accepted, not active"
+		td.Text = name + " is accepted and not active."
+	case c.Verdict == verdictRefused:
+		td.Pill, td.Hidden = "prov prov-refused", "standing: refused"
+		td.Text = name + " is refused" + reason + "."
+	case c.Verdict == verdictPending:
+		td.Pill, td.Hidden = "prov prov-pending", "standing: pending"
+		td.Text = name + " is pending" + reason + "."
+	default:
+		td.Pill, td.Hidden = "prov prov-unknown", "standing: unknown"
+		td.Text = name + " has a standing the portal does not know."
+	}
+	return td
+}
+
+// outcomeText names the outcomes of an attempt the read API decides.
+var outcomeText = map[string]string{outcomeOK: "Applied", outcomeFailed: outcomeFailed, wordUnknown: wordUnknown}
+
+// outcomeBadge is the badge of one history attempt; an outcome the UI does
+// not know reads Unknown.
+func outcomeBadge(outcome string) badge {
+	text, ok := outcomeText[outcome]
+	if !ok {
+		outcome, text = wordUnknown, wordUnknown
+	}
+	return badge{Class: "outcome outcome-" + slug(outcome), Text: text}
+}
+
 // claimBadge is a held registration's standing on the Provider card, in
 // the card's words; the classes are providerBadge's.
 func claimBadge(c v1.ProviderClaim) badge {
@@ -162,9 +218,9 @@ func claimBadge(c v1.ProviderClaim) badge {
 	case c.Access != v1.AccessOK:
 		b.Text = "Locked"
 	case c.Verdict == verdictRemovalBlocked:
-		b.Text = "Removal blocked"
+		b.Text = textRemovalBlocked
 	case c.Verdict == verdictAccepted && c.Active:
-		b.Text = "Active"
+		b.Text = wordActive
 	case c.Verdict == verdictAccepted:
 		b.Text = "Accepted, not active"
 	case c.Verdict == verdictRefused:
@@ -175,18 +231,6 @@ func claimBadge(c v1.ProviderClaim) badge {
 		b.Text = "Unknown"
 	}
 	return b
-}
-
-// ownerText is an owner as the pages say it: the read API's operator is
-// the controller (portal:D17:R2).
-func ownerText(owner string) string {
-	switch owner {
-	case "operator", ownerController:
-		return ownerController
-	case "cli":
-		return "cli"
-	}
-	return owner
 }
 
 // accessText says why something is locked.
@@ -317,7 +361,8 @@ var funcs = template.FuncMap{
 	"verdictBadge":  verdictBadge,
 	"providerBadge": providerBadge,
 	"claimBadge":    claimBadge,
-	"ownerText":     ownerText,
+	"providerPill":  providerPill,
+	"outcomeBadge":  outcomeBadge,
 	"accessText":    accessText,
 	"toneClass":     toneClass,
 	"short":         short,
@@ -328,6 +373,7 @@ var funcs = template.FuncMap{
 	"join":          strings.Join,
 	"segments":      segments,
 	"plural":        plural,
+	"compact":       func(s string) string { return strings.TrimSuffix(s, " ago") },
 	"add":           func(a, b int) int { return a + b },
 	"locked": func(access string) bool {
 		return access != "" && access != v1.AccessOK

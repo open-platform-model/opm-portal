@@ -6,7 +6,7 @@ The read API SHALL serve the topics of its own documents itself and SHALL route 
 kind to the producer the serving mode configures for it, on the same stream and under the same
 authorization. Local mode SHALL route `log:` topics to the pod-log producer, so a client follows a
 container's log on the `stream` resource like any other topic. A mode that configures a producer
-for a kind the read API serves itself SHALL fail to start. Source: 0030:D10:R2.
+for a kind the read API serves itself SHALL fail to start.
 
 #### Scenario: A log topic on the read API's stream
 

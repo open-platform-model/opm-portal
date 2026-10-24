@@ -3,14 +3,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModulePackage
     metadata:
-      creationTimestamp: "2026-10-04T18:03:53Z"
+      creationTimestamp: "2026-10-21T16:04:20Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: podinfo
       namespace: pkg
-      resourceVersion: "931"
-      uid: 5ae341c6-7de4-41d8-8799-817d4cb56ead
+      resourceVersion: "895"
+      uid: c425f412-c48e-4bc0-ad0b-3ac9145a6137
     spec:
       interval: 1m
       path: .
@@ -21,39 +21,34 @@ items:
         name: podinfo-release
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T18:03:54Z"
+        - lastTransitionTime: "2026-10-21T16:04:21Z"
           message: Reconciliation in progress
           observedGeneration: 1
           reason: Progressing
           status: "True"
           type: Reconciling
-        - lastTransitionTime: "2026-10-04T18:03:54Z"
+        - lastTransitionTime: "2026-10-21T16:04:21Z"
           message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
           observedGeneration: 1
           reason: SourceNotReady
           status: "False"
           type: Ready
       failureCounters:
-        reconcile: 3
+        reconcile: 2
       history:
         - action: reconcile
-          finishedAt: "2026-10-04T18:04:23Z"
-          message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
-          sequence: 3
-          startedAt: "2026-10-04T18:04:23Z"
-        - action: reconcile
-          finishedAt: "2026-10-04T18:04:23Z"
+          finishedAt: "2026-10-21T16:04:46Z"
           message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
           sequence: 2
-          startedAt: "2026-10-04T18:04:23Z"
+          startedAt: "2026-10-21T16:04:46Z"
         - action: reconcile
-          finishedAt: "2026-10-04T18:03:54Z"
+          finishedAt: "2026-10-21T16:04:21Z"
           message: 'getting OCIRepository pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"'
           sequence: 1
-          startedAt: "2026-10-04T18:03:54Z"
+          startedAt: "2026-10-21T16:04:21Z"
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T18:04:23Z"
-      lastAttemptedDuration: 669.809µs
-      nextRetryAt: "2026-10-04T18:05:23Z"
+      lastAttemptedAt: "2026-10-21T16:04:46Z"
+      lastAttemptedDuration: 624.394µs
+      nextRetryAt: "2026-10-21T16:05:46Z"
       observedGeneration: 1
 kind: List

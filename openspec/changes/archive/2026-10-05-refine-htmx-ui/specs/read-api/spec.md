@@ -8,7 +8,7 @@ Every condition a document serves SHALL carry `tone`, how the condition reads fo
 `informational`, `Ready=False` `abnormal`; an `Unknown` status or a type the portal does not know
 SHALL be `unknown`. A condition whose reason the portal explains SHALL carry its `meaning` and,
 when a person can act on it, its `nextStep`; a reason the portal does not know SHALL carry
-neither. Source: 0030:D2:R1, 0030:D3:R8.
+neither.
 
 #### Scenario: A refused registration's platform
 

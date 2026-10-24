@@ -1,0 +1,903 @@
+## Context
+
+See proposal.md for why. The graph today: `internal/graph` derives the instance and package graphs
+from read-model views (`instance.go`, `layout.go`), with one configuration group per owner
+(`instance.go:144-187`), columns ordered by barycenter with no notion of a group block
+(`layout.go:69-105`), 200 x 44 nodes and cubic routes (`layout.go:9-10`, `route`). `internal/ui`
+turns the `Graph` document into SVG (`graph.go` `buildGraph`, `nodeOf`, `edgeOf`; the `graph`
+template in `partials.html:79-120`), and `portal.js:704-1200` drives selection, spotlight, cards,
+fit, zoom, full screen and Esc. The source node of a package is built from `spec.sourceRef` alone
+(`instance.go:87-102`); nothing reads the source object.
+
+Evidence for every claim below: the canvas boards in `docs/design/evidence/03-ui-canvas/`
+(`Instance.dc.html`, `Package.dc.html`, `CertManager.dc.html`, `Provider.dc.html`,
+`ProviderPackage.dc.html`; line numbers as the gap report cites them), the gap report
+`docs/design/evidence/05-canvas-gap-report/gaps.md` section D, the F1 capture under
+`testdata/clusters/f1/`, and opm-operator source at 59537b7. The F1 package's own Ready message
+shows the "kind not installed" case on the fixture cluster: `getting OCIRepository
+pkg/podinfo-release: no matches for kind "OCIRepository" in version "source.toolkit.fluxcd.io/v1"`
+(`testdata/clusters/f1/modulepackages.yaml`).
+
+This change starts after `align-shell-and-tokens` merges. It uses that change's tone tokens
+(border, ink, background and tint per tone, light and dark), its square badge, and its fix for the
+empty details panel (`instance-43`: `openNode` no longer inherits `hx-select="#main"`).
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- Every section D gap is closed or explicitly kept as a recorded divergence; the gap ids are cited
+  at the decision that answers them and mapped to tasks at the end of this document.
+- The graph stays a pure function of read-model views (Principle II); the one new read lives in
+  `internal/readmodel` and is passed to `internal/graph` as input, as the provider lookup already
+  is for the platform graph.
+- The read API changes only additively (Principle III).
+- Every script behaviour is held by `TestBrowserGraph` in Chromium, Firefox and WebKit, on the real
+  owner pages over the F1 capture, not on synthetic HTML.
+
+**Non-Goals:**
+
+- Anything outside section D. The panel's generic layout (state, message box, buttons; gaps
+  `instance-27`, `instance-28`), the Resources and Events tables and the summary cards are
+  `align-owner-pages`.
+- Section X items: the hover card's applied age and warning-event count (portal:D17), the
+  transformer behind each object (portal:OQ5), and per-kind facts (Image, Node, Restarts, Ports)
+  on hover cards, which would need new read-API fields under portal:D8. The details panel shows
+  those facts: `align-owner-pages` reads them from the object document (`instance-28`).
+- The canvas's "Ready / Not ready" words on the Applied axis: nodes keep today's applied words and
+  square (portal:D3:R1; supervisor ruling 2026-10-06).
+- Configuration objects without health (`graph-26`): kept as a recorded divergence. Configuration
+  objects keep their kstatus health and the group keeps its worst-of health (supervisor ruling
+  2026-10-06); the canvas's "configuration has no runtime health" sentence is not used.
+- The Module node on instance pages: the graph document keeps it and its `instantiates` edge
+  (portal:D4:R1); only the instance page stops drawing it (`instance-17`).
+- Neutral component nodes (`instance-14`, the canvas draws components without a tone): a
+  component keeps its roll-up health in its fill and outline (portal:D3:R1); kept as a divergence
+  under "Visual check".
+- Widening the `deploy/` role to the Flux source kinds.
+- Watching source objects: the source is read on demand, per request.
+
+## Decisions
+
+### Groups per kind family (graph-01, graph-02, graph-26)
+
+A configuration component (no workload kind among its objects, as today) belongs to a family by
+the API group of its objects:
+
+| Family id | Label | Every object of the component is in |
+| --- | --- | --- |
+| `crds` | CRDs | `apiextensions.k8s.io` |
+| `rbac` | RBAC | `rbac.authorization.k8s.io` |
+| `webhooks` | Webhook configuration | `admissionregistration.k8s.io` |
+| `other` | Other configuration | anything else, or a mix |
+
+A component that holds an `opmodel.dev` TransformerRegistration MUST NOT be folded: it is the
+claim the Provider card and the resting panel point at. A family forms a group node when its
+components hold two or more inventory objects in all; otherwise its components are drawn as
+ordinary component nodes. The group's health is the worst of its members', partial and not live
+when any member is (unchanged rule, now per family).
+
+On F1's cert-manager (`moduleinstances.yaml`, 20 components): `crds` (1 component, 6
+CustomResourceDefinitions) groups; `rbac` (13 components, 26 objects) groups; `webhooks`
+(`webhook-mutating`, `webhook-validating`, 2 objects) groups; `other` holds only `namespace`
+(1 Namespace) and stays a plain component. The default graph has 23 nodes: instance, module,
+the components `cainjector`, `controller`, `webhook` and `namespace`, three group nodes, 8
+inventory objects and 6 runtime children. This matches the canvas, which leaves `namespace`
+ungrouped (`CertManager.dc.html:438`).
+
+Group ids add the family as a last part: `grp:configuration/mi/cert-manager/cert-manager/rbac`.
+Ids stay free of UIDs (portal:D4:R6). An old `expand=grp:configuration/mi/...` names no node and is
+ignored, so the graph opens collapsed.
+
+```go
+// internal/graph
+type Group struct {
+	Kind    GroupKind   `json:"kind"`
+	Family  string      `json:"family,omitempty"`  // configuration groups only
+	Members []string    `json:"members,omitempty"`
+	// ObjectKinds counts the inventory objects the members hold, by kind,
+	// sorted by kind: the group's "N objects: K kinds".
+	ObjectKinds []KindCount `json:"objectKinds,omitempty"`
+	Hidden      []KindCount `json:"hidden,omitempty"`
+}
+```
+
+The group node's `label` reads "<family label> · N components" ("RBAC · 13 components"), a plain
+fallback for a consumer that ignores `family`; the UI of section 4 draws its own lines from
+`family`, `members` and `objectKinds`. `align-owner-pages` (on main) folds the Resources tab per
+group node: `foldConfig` in `internal/ui/pages.go` returns one entry for each configuration group
+node of the graph, so the three families are three folds there, each with its node's health. This
+change leaves that function as main has it (it keeps only the `configuration` kind filter) and
+adds one thing to its output: each fold carries its node's `family`, and the fold's note names that
+family ("Custom resource definitions, which add kinds to the cluster" for `crds`, and one sentence
+each for `rbac`, `webhooks` and `other`), not one sentence for all of them.
+
+Wire: `GraphGroup` gains `family` (`x-extensible-enum: [crds, rbac, webhooks, other]`) and
+`objectKinds` (`GraphKindCount[]`). The UI maps the family to its label; an unknown family renders
+as "Configuration".
+
+### Expanded groups as a band (graph-21, graph-06)
+
+`orderColumns` orders each column by barycenter, so an expanded group's members interleave with
+workload components (gap report: `controller` between `cainjector-rbac` and
+`controller-approve-rbac`). A frame is a rectangle across columns, so contiguity in one column is
+not enough: a non-member object in the objects column can still fall inside the frame's height.
+
+`layout` therefore places each expanded configuration group as a band: a run of rows reserved
+across the component column and every column to its right, holding the members (sorted by
+member name, as `Members` is), then their objects in member order, and nothing else. Every other
+node of those columns is placed above or below the band in its barycenter order.
+
+Today `place` centres each column on its own (`offset := (maxRows-len(col))*rowPitch/2`,
+`layout.go:133-142`), so rows in different columns do not line up and a band's rows would not
+exist across columns. Once a graph holds a band, every column is placed on one row grid shared by
+all columns, with no per-column offset; a graph with no expanded group keeps today's centring. The band starts
+half a row pitch below the previous row and ends half a pitch above the next, leaving room for
+the frame's header. The band's height is the larger of its member count and its object count.
+Layout stays deterministic: the band's position is the barycenter of the members, and ties fall
+back to ids. Invariant (tested, and checked first by spike 1.1): no node that is neither a member
+nor an object of a member lies inside a band's rectangle, and no edge between two nodes outside
+the band crosses that rectangle (an elbow from a component above the band to an object below it
+would). Placing other nodes wholly above or below the band in every column keeps their elbows out
+of it. The main requirement "Layout is deterministic" orders each column by barycenter; the band
+is its one exception (members by name, other nodes above or below it), and the graph-model delta
+modifies that requirement to say so.
+
+The frame itself is drawn by `internal/ui` across the band's rows, from the left edge of the
+components column to the right edge of the last drawn column, as the canvas does
+(`CertManager.dc.html:567-568`: `px(1)-C/2` to `px(4)+NW+C/2`), plus the half-row margins
+(`svgGraph.Frames`).
+
+### Columns, node size and left-to-right reading (instance-14, graph-13, instance-17)
+
+- Nodes are 216 x 72 (canvas 216 x 72, `CertManager.dc.html:451`), row pitch 96, column pitch 264.
+- Instance titles: Module, Instance, Components, Objects, then each runtime column titled from
+  the kinds it holds: "ReplicaSets", "Pods", "Jobs", or "Runtime" when a column mixes kinds. A
+  runtime child sits one depth below its object, so depth 1 holds ReplicaSets under a
+  Deployment, but Pods under a StatefulSet or DaemonSet and Jobs under a CronJob; fixed words
+  would be wrong for those.
+- Package graphs start at the package. Its source and its `dependsOn` packages sit in the
+  components column, above the components, titled "Source and components". Edges from the
+  package then all run rightward. This does not invent the canvas's source-to-component edge,
+  which no field records (portal:D4:R1): the package owns its components, and the source is what
+  it reads.
+- The instance page does not draw the module node: `buildGraph` drops nodes of kind `module` and
+  their edges, and when column 0 then holds nothing, shifts every x left by one column pitch and
+  narrows the width. The module path and version stay on the identity card and in the document.
+
+### Registration standing on instance and package graphs (provider-14)
+
+`graph.Instance` and `graph.Package` receive the owner's provider claims (`ProviderOf`, already on
+`InstanceItem` and `PackageItem`). For each TransformerRegistration object node whose name matches
+a claim read with access `ok`, the node carries `registration` with the claim's standing,
+catalog, version and provides, exactly as a platform-graph registration node does. The read
+model's `ProviderClaim` gains the claim's `spec.catalog`, `spec.version` and `spec.provides` (read
+from the same held object `claims.of` already reads). A claim the caller may not read adds no
+`registration`; the node shows the claim as locked in the UI. In-cluster, the existing omission
+drops `registration.message` and `activeMessage` (`internal/api/mode.go` `omitGraphNode`), which a
+test now pins for an instance graph.
+
+### The package's source state (instance-25)
+
+The owner chose "Read the source". Shape:
+
+```go
+// internal/readmodel
+type SourceReadiness string // Ready, NotReady, NoArtifact, Unknown, NotFound, KindNotServed, UnsupportedKind
+
+type SourceState struct {
+	Access    health.Access   // ok, forbidden, notReadable; empty when nothing was asked
+	Readiness SourceReadiness
+	Reason    string // the Ready condition's
+	Message   string // the Ready condition's, as source-controller wrote it
+	Revision  string // status.artifact.revision
+}
+
+// Source reads the Flux source a package names, for the caller. g must
+// cover get on it. Only OCIRepository, GitRepository and Bucket in
+// source.toolkit.fluxcd.io are read; a core Secret is refused first.
+func (m *Model) Source(ctx context.Context, who authz.Identity, g authz.Grant,
+	kind ResolvedKind, ref ObjectRef) (SourceState, error)
+```
+
+`internal/api` looks the source up for `GET .../packages/{ns}/{name}` and `.../graph`, after the
+package itself is authorized and read, the way `lookupProvider` does for the platform graph:
+
+1. Kind not in the allowlist: `UnsupportedKind`, no review, no read (the controller refuses such a
+   package anyway: `ErrUnsupportedSourceKind`, `internal/source/resolve.go:80-90`). The kind is
+   chosen by `spec.sourceRef.kind` alone, and the group is always `source.toolkit.fluxcd.io`,
+   version `v1`: the controller ignores `sourceRef.apiVersion` (`newSourceObject` switches on the
+   kind, `resolve.go:52,84-95`). The portal must not read the group from `apiVersion` (as
+   `splitAPIVersion` would): a sourceRef with no `apiVersion`, or another group, would then show
+   `UnsupportedKind` for a source the controller reads.
+2. `ResolveKind("source.toolkit.fluxcd.io", kind)` fails (discovery serves no such kind):
+   `KindNotServed`, no review. Discovery is read without a review today (portal:D18:R3).
+   `ResolveKind` never refreshes discovery (`internal/readmodel/kinds.go:98-111`), and no
+   inventory reaches a Flux source, so a Flux installed after the portal starts would read "Kind
+   not installed" until a restart. The server therefore re-checks discovery for
+   `source.toolkit.fluxcd.io` on a five-minute timer, one discovery call per tick, never on a
+   request, and a kind found there resolves on the next lookup. As built, the timer is in the read
+   model, not in `internal/api`: `Config.SourceKindsInterval` (default five minutes, zero for the
+   default) drives it, and the shared kind mapper resets only when a served Flux kind is unknown
+   to it.
+3. Authorize `get` on the resolved resource, namespace (sourceRef's, else the package's, as the
+   controller does, `resolve.go:41-44`) and name. Refused: access `forbidden`, nothing read. A
+   `sourceRef.namespace` that differs from the package's is reviewed in that namespace, never in
+   the package's: a caller who may read the package in A and not the source in B sees the source
+   locked, and the cluster receives no `get` for it (AG-A2; the access review names group, resource,
+   namespace and name).
+4. `Model.Source`: `covers`, then `readerMay("get", ...)` (false: access `notReadable`), then one
+   `Get`. NotFound: `NotFound`. Otherwise the Ready condition (`status.conditions[type=Ready]`) as
+   `Ready` (`True` with a `status.artifact`), `NoArtifact` (`True` with no `status.artifact`),
+   `NotReady` (`False`) or `Unknown` (`Unknown` or absent), with its reason and message, and
+   `status.artifact.revision`, as the cluster holds them. `status.artifact.url` is never read into
+   the state. This follows the controller's own test (`resolve.go:60-73`), which counts Ready with
+   no artifact as not ready (`:66-69`); `NoArtifact` names that case instead of calling it ready or
+   inventing a reason.
+5. Cut the served text. The lookup in `internal/api` (the one place the state is converted for
+   serving) cuts the message to 1024 Unicode code points, and the reason and the revision to 256
+   each, with `readmodel.CapText`, once, before it hands the state to `graph.Package` and to the
+   wire conversion. As built, the signature is `graph.Package(d, src, opts)`: `src` is the cut
+   state, and `nil` means the source was not looked up, so the node carries no access and no
+   state. Every consumer (the package document, the graph node's health, the panel, the
+   card) holds the cut text, in local mode and in-cluster (AG-A1, SR3).
+
+A failed lookup never fails the package document or its graph; it is the state. Wire:
+
+```json
+"sourceState": {
+  "access": "ok",
+  "state": "kindNotServed",
+  "reason": "",
+  "message": "",
+  "revision": ""
+}
+```
+
+`state` is `x-extensible-enum: [ready, notReady, noArtifact, unknown, notFound, kindNotServed,
+unsupportedKind]`. It is on the `Package` document (not on list items, which would cost one read
+per row) and on the package graph's `source` node, whose `access`, `missing` and `health` follow
+it:
+
+| State | Node `health` | Node `access` / `missing` |
+| --- | --- | --- |
+| `ready` | Healthy | `ok` |
+| `notReady` | Degraded, with the Ready reason and message | `ok` |
+| `noArtifact`, `unknown` | Unknown | `ok` |
+| `notFound`, `kindNotServed` | none | `missing` |
+| access `forbidden` or `notReadable` | none | that access (locked) |
+| `unsupportedKind` | none | `ok`, no state |
+
+The source node's health is the graph's only; it is not counted in the package's own health,
+which still rolls up its inventory (portal:D3). `align-owner-pages` builds the Resources tab's
+source row from this node's health, so the row and the node agree. In-cluster the message, the
+reason and the revision are served as source-controller wrote them, not the operator, which the
+in-cluster omission already allows for other writers' text, up to their caps (1024, 256 and 256
+Unicode code points); a longer value is cut and ends with an ellipsis, in local mode and in-cluster
+alike (AG-A1, portal:D20:R6).
+
+Authorization: `get` on `source.toolkit.fluxcd.io` `ocirepositories`, `gitrepositories` or
+`buckets` in one namespace, by name, for the caller (SelfSubjectAccessReview locally,
+SubjectAccessReview in-cluster), and the reader's own `get` review. No list, no watch.
+
+Liveness: the source is not watched. The package's topic fires when the controller re-reconciles
+the package after a source change (the controller watches the three kinds,
+`modulepackage_controller.go:178-206`), and the page refetches the document then. A kind that
+becomes served is picked up by the discovery timer above, not by that refetch.
+
+### Drawing nodes (instance-14, graph-14, provider-14, instance-25, instance-16, graph-24)
+
+Node anatomy (template `graph`, classes only, no `style` attribute):
+
+| Line | y | Text |
+| --- | --- | --- |
+| kind | +20 | `Ref.Kind` (or the node kind word), 10 px uppercase, tone ink |
+| name | +42 | label; mono 12 px for objects, runtime children and sources, sans 600 otherwise |
+| status | +60 | a dot and a short status, tone ink |
+
+Status line, first match wins: locked, "Locked"; a source whose state was read, "Artifact ready"
+plus a short revision (the first seven characters of a digest), the Ready reason, "No artifact
+yet", "Kind not installed", "Not found" or "Not read by the portal"; a registration with a
+standing, "Accepted · active", "Accepted · not active", "Removal blocked" or the refusal or
+pending reason; missing, "Missing"; a configuration group, "N objects: K kinds"; a Pod group, "N
+Pods · <worst state>"; a ReplicaSet, "N desired" (with the health reason when not healthy); a
+component, "N objects"; anything with a health reason, that reason; otherwise the health word.
+The source and the registration come before "Missing" because a source whose kind is not
+installed is a missing node that has its own words, and a registration the portal read has a
+standing even when its object is not in the cluster (the constructed package holder). A
+registration in the pending verdict is toned like an inactive one (progressing), and an unknown
+verdict is neutral. Dashes mean one thing, made by the cluster: a locked node keeps its hatch and
+loses its dashed outline, and a missing node loses its dashes and keeps its tone and its word.
+
+Fill and outline carry health in the tone's tint and border; the left rail goes. Runtime children
+(`kind-runtime`) are dashed (made by the cluster). The applied square stays in the top-right
+corner and is the only applied mark, so the two axes stay apart (portal:D3:R1). One exception,
+recorded under portal:D3: a TransformerRegistration node's fill and outline carry the claim's
+standing (`prov-active` healthy, `prov-inactive` progressing, `prov-blocked` unknown,
+`prov-refused` degraded), not its kstatus health, because the standing is what the node is for;
+a refused claim on a kstatus-Current object is drawn refused, and its card and panel still show
+the kstatus health as a badge. Source nodes need no exception: their health is mapped from their
+state (the table above). The legend says which mark means what.
+
+Edges: `edgeOf` draws the route's four points as an orthogonal polyline, `M p0 H p1.x V p3.y H
+p3.x`, stroke 2 in the edge token, with no marker. The route's points are already the elbow's
+corners (`layout.go` `route`: start, (mid, sy), (mid, ey), end), so the document does not change;
+the OpenAPI description of `route` says so. Unverified and unconfirmed edges keep their dashes.
+
+### Group nodes, frames and the accordion (graph-02, graph-06, graph-04, graph-16)
+
+A collapsed configuration group draws a stacked card (a second rect offset +4,+4 behind the box)
+and a hatched fill (a second SVG pattern, `<id>-ghatch`), with the lines "Group · N components",
+the family label, and "N objects: K kinds".
+
+An expanded configuration group draws, before the edges, `rect.group-frame` (rx 12, 1.5 px dashed
+accent stroke, accent-tint fill) around its band, a header "RBAC · 13 components · 26 objects" in
+the band's top margin, and a Collapse pill: an SVG `<a class="group-collapse">` with a chevron
+path, linking to the Graph tab without that group expanded and with `node=<group id>`, so the
+group's panel opens on the collapsed group (`graph-16`).
+
+Accordion: a group node's link carries `expand=<that group>` and `fit=<that group>` plus every
+expanded id that is not a configuration group (an expanded Pod group stays open). The toolbar
+adds Expand all (every configuration group id in `expand`, a frame per group), Collapse all (no
+configuration group in `expand`) and a Group configuration switch. The read API already takes
+`expand` repeatably, so it needs no new parameter.
+
+The switch follows the canvas, where grouping is its own state (`CertManager.dc.html:444-445,
+501, 566, 759-760`): on means grouped, whatever is open; off shows the components ungrouped, with
+no frames. Off is a UI-only page parameter, `group=off`: the page asks the read API to expand
+every configuration group id and draws no frames and no group header. Expand all keeps grouping
+on, so the switch stays on. The switch is a link that reads its state in visible text ("Grouped"
+or "Ungrouped", with a check), with no `aria-pressed`, which is valid only on a button. One
+divergence stays: under `group=off` the layout still places each family as a band, so the half-row
+gaps around bands remain where the canvas draws none; recorded under "Visual check". As built,
+`group=off` is a second read of the graph document with every configuration group expanded
+(`fetchGraph` in `internal/ui`), made only when the first read holds a configuration group; the
+switch link adds `group=off` and carries no ids. The second read is the caller's own, through the
+same in-process API, so it costs one more graph build and one source lookup per render.
+
+The Collapse pill, Overview, Expand all, Collapse all and the switch all go through
+`expandGroup` (an ajax swap of `#main` with `select: "#main"` and no scroll to the top), as group
+node links do. htmx boosts only `HTMLAnchorElement`s, so an SVG `<a>` such as the Collapse pill
+would otherwise load a full page, and a boosted HTML link swaps with `show:window:top`; either
+would drop the zoom and full screen and jump the page.
+
+### The legend and the ghost (graph-03, instance-18, instance-24)
+
+Under the pane, `div.graph-legend` with CSS swatches: "Applied by the controller" (solid box with
+the applied square), "Made by the cluster" (dashed box), "Group of configuration components (CRDs,
+RBAC, webhooks, other). Click to open; one opens at a time" (hatched stacked box), "Fill and
+outline: health", `<kbd>Ctrl</kbd> + scroll to zoom`, `<kbd>Esc</kbd> to step back`. A graph that
+draws a source node (a package graph) adds a third origin, "Read by the controller, owned by
+Flux" (the canvas's words for it), as a solid box with no applied square, beside the first two;
+an instance graph draws no source node and no such entry (AG-A3). A source node, a component and a `dependsOn` package are all solid and carry no
+applied square, so the entry cannot tell them apart by its swatch; it says so in words: after "Read
+by the controller, owned by Flux" it adds "Components and dependency packages are drawn the same
+way". The source node's card takes the same origin words in place of "The source the package
+reads" (`originText`), so the legend and the card name one origin. The toolbar hint becomes "Select a box to see its details on the right."
+
+When the owner's `inventoryCount` is 0 and `lastAppliedAt` is absent, `buildGraph` adds a ghost: a
+dashed box one column right of the rightmost root-side node, joined by a dashed edge, reading
+"Nothing applied yet. The graph fills in once an apply succeeds." For a package with no
+`sourceArtifact` it adds "The package has never fetched its source." SVG text does not wrap, so
+the server breaks the text into `<tspan>` lines of at most 30 characters at word boundaries, 16
+px apart, in a box 216 px wide and as tall as its lines need (72 px for the instance's three
+lines, 104 px for the package's five). The ghost is not a node: it has no id, no link and no
+panel, and the viewBox widens to hold it.
+
+### Hover cards (instance-22, graph-17, provider-16)
+
+The card is the canvas's 300 px dark card. `nodeCard` adds: the name as `namespace/name` from
+`Ref`; the health message clipped to 120 runes;
+a parent-aware origin for runtime children from the incoming `controls` edge ("Created by the
+cluster from ReplicaSet podinfo-7c9d"); the canvas's origin words ("Display group", "Applied by
+the controller", "Reconciled by the controller" for the owner, "Part of the module" for a
+component); a fact line with `Replicas` when the document has it; and an accent hint, "Click to
+expand" for a collapsed group and "Click for details" otherwise. A registration card adds its
+standing badge and "Catalog: <path> <version> · Provider: <this owner>". The visible "Health" and
+"Applied" labels `align-shell-and-tokens` puts before the card's marks stay. `showCard` places the card
+at the node's right edge plus 12 px, or left of the node when it does not fit, clamped
+vertically, through CSSOM properties. As built, this placement is part of section 5 (task 5.7
+tests it), and section 4 left the old below-the-node placement until then.
+
+### Selection and spotlight (graph-22, instance-21, graph-11)
+
+Two states, as on the canvas (`CertManager.dc.html:529-554`):
+
+- **Selection** (`node=<id>`): a click, Enter or Space on a node, or the no-script node link. It
+  shows the node's panel and a 3 px accent ring with a surface-coloured gap. It dims nothing.
+  `portal.js` writes it with `history.replaceState`; a refresh keeps it.
+- **Spotlight** (`focus=<id>`): the hand-off from Resources and Health reasons. It selects the node
+  as well (when `node` and `focus` are both present, `node` ranks first for the panel, as main's
+  spec has it since `align-owner-pages`, and the spotlight still draws), draws the ring with a 10 px tint halo, scrolls the frame so the node is centred
+  (smooth unless reduced motion), and dims every node and edge outside the node's whole chain at
+  0.35 opacity. Hover and keyboard focus apply the same chain dimming as a transient class,
+  cleared on leave.
+
+The chain is two directed walks from the node, as on the canvas (`CertManager.dc.html:532-535`):
+its ancestors, walking edges backward, and its descendants, walking edges forward. It is not an
+undirected closure, which would light every node connected to any ancestor (a Pod's Service
+sibling through the shared component). Server-side, `buildGraph`'s `Dim` uses the same walks for
+`focus` (no-script).
+
+```go
+// chain returns id, its ancestors (edges walked backward) and its
+// descendants (edges walked forward).
+func chain(edges []v1.GraphEdge, id string) map[string]bool
+```
+
+Hand-off links come from one helper in `graph.go`, which `annotateResources` (`owner.go`, shared
+with `align-owner-pages`) calls:
+
+```go
+// graphHandoff is the Graph tab spotlighting node id, with group expanded
+// and fitted when the node is folded into one.
+func graphHandoff(base, id, group string) string
+```
+
+It adds `fit=<group>` when a group is expanded (today the link has none, so the group is never
+fitted, `owner.go:253-266`).
+
+### The panel at rest (graph-23, provider-21)
+
+With no `focus` and no `node`, the Graph and Resources tabs show the resting node's panel without
+spotlight. `restingNode` (in `graph.go`) picks the TransformerRegistration object node of the first
+held claim, by name, that the caller may read and whose standing is refused, pending, accepted but
+not active, or removal blocked (`Provider.dc.html:621, 644, 680`); otherwise the owner's own node
+(`CertManager.dc.html:351, 536`). The resting node carries its own attribute, `data-resting`,
+drawn with the plain selection ring. It never carries `aria-current` and is never added to the
+script's selection: live CSS draws the ring from `.node[aria-current]`, and `restoreGraphs` puts
+any `aria-current` node into the selection, so marking the rest that way would let Esc or a click
+on the empty pane "clear" it. Clearing a selection (Esc, the Clear selection pill, a click on
+empty pane) returns to the resting node's panel: `resetDetail` fetches its panel URL (with the explicit `select` `align-shell-and-tokens`
+added to `openNode`) instead of writing the placeholder. Esc does nothing at the resting node and
+moves on to the next step.
+
+`ownerTabsOf` (`owner.go`, shared) calls `restingNode` and renders its panel; `align-owner-pages`
+restyles the generic panel and owns the Resources tab around it. Both changes name the function
+`restingNode` in `internal/ui/graph.go`: if `align-owner-pages` lands first it adds a minimal one
+returning the owner's node, and this change replaces its body.
+
+### Panel variants (graph-16, provider-15, instance-25, graph-19, instance-20)
+
+`panel.go` and `panel-body.html` (shared with `align-owner-pages`, which restyles the generic
+layout) gain three variants, each a block selected by node kind:
+
+- **Group**: the family label, the group's health badge (`graph-26` kept), "A display group, not
+  a Kubernetes object. It folds N configuration components so the workloads stay readable.", one
+  fact per object kind with its count (`objectKinds`), and Expand group or Collapse group.
+- **Registration**: the standing badge (Active, Accepted · not active, Refused, Removal blocked,
+  Pending), the controller's message in a tone box in local mode (absent in-cluster, portal:D8:R5),
+  the role sentence "Claims a catalog for this provider; the controller decides whether it is
+  accepted and active.", the facts Catalog (path and version, linking to `/catalog?path=`) and
+  Provider (this owner, and whether `spec.providerRef` names it, portal:D4:R2/D15:R2; as built, that
+  sentence is derived from the controller's verdict, because the instance graph carries no
+  `providerRef`: Accepted names the owner, a Refused verdict with `ProviderMismatch` does not, and
+  any other verdict reads "not judged yet"). Locked
+  when the caller may not read registrations (portal:D15:R4).
+- **Source**: kind and `namespace/name`, the readiness badge, reason, message and revision; for
+  `kindNotServed` the sentence "The cluster does not serve this kind. Install Flux
+  source-controller, or point the package at a source kind the cluster has."; for
+  `unsupportedKind` "The controller reads only OCIRepository, GitRepository and Bucket."; locked
+  when forbidden or not readable.
+
+A Clear selection pill (an × icon, title "Or click an empty part of the graph, or press Esc") sits
+at the top right of any panel that is not the resting node's, linking to the page without `node`
+and `focus`; the toolbar's text link stays only in full screen, where the aside is hidden. The
+click handler finds the page's graph when the pill is outside it.
+
+### Fit, zoom and full screen (instance-15, graph-13, instance-26, graph-08, graph-09, graph-20, graph-15, instance-19)
+
+```js
+// overview fit
+var w = (frame.clientWidth - 2) / vb.width, h = (paneMax - 2) / vb.height;
+var floor = frame.clientWidth < 600 ? 0.75 : 0.6;   // today's phone minimum kept
+var s = Math.min(1.5, w, h);            // 2 in full screen
+if (s < floor) s = Math.max(floor, Math.min(1.5, w)); // tall graph: width fit, frame scrolls
+frame.style.height = clamp(320, vb.height * s, 760) + "px"; // CSSOM, not an attribute
+```
+
+The floor is a choice, not the canvas's: the canvas fits with `min(1.5, fitW)` and no floor
+(`CertManager.dc.html:591`), which on cert-manager with RBAC open shrinks labels below legibility.
+The floor keeps labels readable and lets the frame scroll instead; below 600 px of frame width the
+live phone minimum of 0.75 stays. Task 6.7 checks both at 360 px by screenshot. Task 6.10 adds the
+graph pages to `TestBrowserPhone` (added by `fix-contrast-and-add-phone-check`): at 360 px the page
+does not scroll sideways and the graph frame, which is `overflow: auto`, takes the graph's extra
+width (AG-A4).
+
+A graph narrower than its frame is centred (`margin: 0 auto` on the SVG). Group fit uses the frame
+rectangle: `s = max(0.6, min(1.5, wFit, (frame.clientHeight - 32) / frameH))`, then a smooth
+`scrollTo` that centres the frame horizontally and, when it fits, vertically; a taller frame is
+shown from its top minus 12 px.
+
+Full screen is a fixed CSS overlay, as on the canvas (`state.full`, `CertManager.dc.html:763`):
+the stage gains `.graph-full` (`position: fixed; inset: 0`, above the page, a flex column with the
+frame `flex: 1`), clears the user zoom and refits with the 2x cap, on entering and leaving. Live
+calls `stage.requestFullscreen()` (`portal.js:1037`) and leaves full screen on every swap of
+`#main` (`portal.js:1043-1047`). Both break this change's behaviour: in browser full screen, Esc
+leaves full screen before the page sees a keydown, so the Esc order could not clear a selection
+or collapse a group first, and every group open, Overview and Collapse swaps `#main`, which would
+drop full screen. With the overlay, Esc reaches the page, and a swap the graph starts (through
+`expandGroup`) does not call `leaveFull`: the script records that full screen was on and puts
+`.graph-full` back on the new stage after the swap. A navigation away from the page still leaves
+it. A headless browser does not show the API's Esc behaviour, which is one more reason not to
+depend on it.
+
+Zoom range 30 to 200 %, step 5, a 180 px slider, a mono readout; Fit carries `aria-pressed="true"`
+while no user zoom is set. Ctrl/Cmd + wheel zooms continuously by `exp(-deltaY * 0.0015)`, clamped
+to 0.3 to 2, keeping the SVG point under the cursor fixed:
+`frame.scrollLeft = cx * s - mx` after `apply`. Wheel zoom never animates, as on the canvas
+(`zoomAnim: this.state.wheel ? 'none'`, `CertManager.dc.html:770`): while a size is still
+transitioning the scroll range is the old one, `scrollLeft` is clamped and the anchor drifts. The full-screen control is an icon button, 36 x 32,
+whose two inline SVG icons swap on `aria-pressed`, with `aria-label` and `title` "Show the graph
+full screen" or "Exit full screen (Esc)". A count "N of M boxes" shows how many boxes are drawn of
+all there are with every group expanded (folded members and their `objectKinds` counts, Pod group
+members, the node-cap summary's hidden counts).
+
+### Motion and the grid (graph-05, graph-25)
+
+After an expand swap, every node with `data-member-of` the expanded group starts at the group
+node's old position (a CSSOM `transform` on the SVG `<a>`, recorded before the swap) and
+transitions to its place over 420 ms `cubic-bezier(0.2, 0.8, 0.2, 1)`, fading in over 260 ms; the
+frame and edges fade in. Fit, the slider and group fit animate the zoom, by whichever of a
+transition on the outer SVG's `width` and `height` or a CSSOM `transform: scale` on the viewport
+`<g>` spike 1.3 shows working in all three engines; wheel zoom never animates. Under
+`prefers-reduced-motion: reduce` nothing animates. This is lighter than the canvas's per-box
+morph and is accepted as such.
+
+The pane's grid moves from `.graph` to `.graph-frame` with `background-attachment: local`;
+`apply()` sets `--grid-size` to `24 * scale` px through CSSOM, so the grid scales and scrolls with
+the graph. `align-shell-and-tokens` removes the page's blueprint grid; this grid is the graph
+pane's own, as on the canvas (`CertManager.dc.html:155, 770`).
+
+### Esc and the Overview pill (graph-07, instance-49)
+
+Esc steps back one thing per press: the theme menu, an open card, a selection that is not the
+resting node, an open configuration group (as Overview does), then full screen. Every step is
+the page's own handler, which the full-screen overlay makes possible. When a
+configuration group is expanded, the toolbar shows an Overview pill (a back chevron, "Overview"
+and a muted "Esc"), titled "Close RBAC and go back to the overview", linking to the Graph tab with
+no configuration group expanded; it replaces "Whole graph". As built, Overview drops every expanded
+group (not only configuration groups, as "Whole graph" did) and the pill shows while any group is
+open. The legend's Esc line matches.
+
+## Research & Decisions
+
+### Where the family comes from
+
+**Context**: The owner chose groups per kind family; the canvas groups by component-name pattern
+(`CertManager.dc.html:436`, `-rbac$|-role$`, `webhook-*`).
+**Explored**: F1 cert-manager inventory (20 components, 42 objects) and the canvas script.
+**Options considered**:
+1. Component-name patterns, as the canvas - matches the mock, but names are module authors'
+   choices and say nothing recorded about kinds.
+2. The API group of the component's objects - read from the inventory (portal:D4:R1), works for
+   any module; a mixed component goes to Other.
+3. Per object instead of per component - splits a component across groups, breaking the
+   component edge.
+**Decision**: Option 2, per component.
+**Rationale**: It groups F1 exactly as the canvas draws it, and every input is a recorded field.
+
+### What makes a family a group
+
+**Context**: Today two or more configuration components form the group. Per family, CRDs is one
+component with six objects, and Other on cert-manager is one Namespace.
+**Options considered**:
+1. Two or more components per family - CRDs would show six object nodes at rest, unlike the canvas.
+2. Two or more objects per family - CRDs and webhooks group, the lone Namespace does not, as on the
+   canvas.
+**Decision**: Option 2.
+**Rationale**: Grouping exists to hide objects; the object count is the measure of what it hides.
+
+### Keeping the frame honest
+
+**Context**: A frame around members encloses non-members when the layout interleaves them
+(`graph-21`, `light-i4-group-open.png`).
+**Options considered**:
+1. Contiguous members in their column only - objects of other components can still fall inside the
+   frame's rectangle.
+2. A band across columns reserved for the group - the frame encloses only the group.
+3. Separate frames per column - no longer reads as one group.
+**Decision**: Option 2, verified by the spike (task 1.1) and pinned by an invariant test.
+**Rationale**: The frame says "these belong together"; it must not enclose anything that does
+not.
+
+### Selection versus spotlight
+
+**Context**: Live dims one hop on any click and on `focus`; the canvas dims the whole chain on
+hover and hand-off focus and never on a plain click.
+**Options considered**:
+1. One parameter (`focus`) for both, dimming on both - a click hides most of the graph.
+2. `focus` for the hand-off spotlight, a new `node` for a plain selection - matches the canvas, and
+   a shared link still says which it is.
+**Decision**: Option 2; the existing "Graphs can be explored" requirement is amended.
+**Rationale**: Clicking to read a node's details should not hide its surroundings.
+
+### Reading the source
+
+**Context**: Owner decision 2026-10-06 ("Read the source"). The source node carries no state, and
+the F1 package's controller message is the only sign its kind is not installed.
+**Explored**: opm-operator 59537b7 `internal/source/resolve.go:17-90` (the three kinds, the
+namespace default, the Ready test, the artifact) and `modulepackage_controller.go:178-241` (the
+watches, guarded by a REST mapping check, so a missing CRD is expected).
+**Options considered**:
+1. Show the controller's reason only (`SourceNotReady`) - already on the Applied card; says nothing
+   about the source itself.
+2. Read any kind `spec.sourceRef` names - a spec field would steer what the portal reads.
+3. Read only the three kinds the controller reads, as the caller, get only - the controller's own
+   test, under the user's RBAC.
+**Decision**: Option 3; a new portal decision records it (proposal, Impact).
+**Rationale**: It shows what the cluster says about the source, and nothing a package author could
+point the portal at beyond what the controller itself would read.
+
+### Capping the served Flux text (AG-A1)
+
+**Context**: The Ready condition's message, its reason and the artifact revision are text a Flux
+controller wrote from errors it met (registry replies, URLs, file paths). D20:R4 serves them. D20
+records no mode for them; serving them in-cluster as well rests on the supervisor rulings of
+2026-10-11, which the owner accepted. The first draft of this change served the message without a
+length limit and called the reason "one Flux word". The pinned `metav1.Condition` allows a message
+of 32768 bytes and a reason of 1024 characters, and `status.artifact.revision` has no maximum
+(`k8s.io/apimachinery` `pkg/apis/meta/v1/types.go`; `fluxcd/pkg/apis/meta` `artifact.go`). The
+portal puts the three fields in the package document, the graph node's health, the panel and the
+card (SR3).
+**Explored**: no non-test file of `internal/ui` imports an `internal/` package; it reads the wire
+documents (`internal/ui/fetch.go:9` imports `api/v1alpha1`); `internal/api` imports
+`internal/readmodel`, `internal/graph` and `internal/health`, never `internal/ui`. The only text cut
+in `internal/ui` today is `clipMiddle` for labels (`internal/ui/graph.go:358`), which keeps head and
+tail and is not a cap on served text.
+**Options considered**:
+1. Cut in `internal/ui` when the panel and card draw it - leaves the JSON document uncapped, and
+   `internal/api` cannot reach the helper.
+2. Cut in `internal/readmodel` as `Model.Source` fills the state - the read model would return
+   less than the cluster holds, and the ruling of 2026-10-11 puts the call where the text is
+   converted for serving.
+3. Cut once in `internal/api`, in the source lookup that hands the state to `graph.Package` and to
+   the wire conversion, with the exported `readmodel.CapText` - every consumer holds the cut text.
+**Decision**: Option 3. `CapText(s string, limit int) string` in `internal/readmodel/cap.go`
+returns `s` when it has at most `limit` Unicode code points, and otherwise its first `limit-1` code
+points followed by `…`, so the result has at most `limit` code points and is cut between code
+points. The source lookup calls it with `maxSourceMessage = 1024`, `maxSourceReason = 256` and
+`maxSourceRevision = 256`, in local mode and in-cluster. Portal:D20 gains the requirement R6 in
+`docs/DESIGN.md` naming all three (next free number, R1 to R5 kept; the owner answered "yes" to
+recording it on 2026-10-11).
+**Consequences**: A cut message loses its tail, and Flux often puts the wrapped cause there; the
+full text stays in the cluster (`kubectl describe`), and the portal never shows a cut value as if
+it were whole, since the ellipsis marks it. A code point cut can split a base character from a
+combining mark: the cap promises valid text, not whole grapheme clusters.
+**Why these values**: 1024 holds several lines of Flux error text and is far below the 32768-byte
+limit of the field; the card clips again to 120 runes for display. 256 is above any real Flux
+reason or revision (a revision such as `sha256:<64 hex>` or `<branch>@sha1:<40 hex>` is under 100
+characters) and keeps a hostile value from filling a status line. They are constants here, one place
+to change.
+**Rationale**: One cut where the cluster's text is converted for serving covers the document, the
+graph and the page in both modes, and the read model stays a faithful reader.
+`align-owner-pages` caps event notes the same way, in `eventListDoc`, with its own limit
+(`eventNoteCap`): whichever of the two changes merges first adds `internal/readmodel/cap.go` and its
+tests with this contract, and the second uses it as it stands.
+
+### Module node on instance pages
+
+**Context**: The canvas has no Module node; live draws one with a leftward edge (`instance-17`).
+**Options considered**:
+1. Drop it from the graph document - removes a D4 edge from the API (Principle III).
+2. Keep it drawn - the gap stays.
+3. Keep it in the document, skip it in the instance page's drawing - the identity card already
+   shows path and version.
+**Decision**: Option 3.
+
+## Risks / Trade-offs
+
+- [Group ids change] An `expand=` link saved before this change opens the graph collapsed. →
+  Ids were never documented as permanent across releases beyond restarts; the API keeps ignoring
+  unknown ids.
+- [The band layout makes tall graphs taller] RBAC's 13 members and 26 objects reserve 26 rows. →
+  Group fit floors at 0.6 and shows the band from its top, as the canvas does.
+- [Source read cost] One more `get` and access review per package page load and per package topic
+  refresh. → One object per package; list items do not read it.
+- [Source state goes stale between package reconciles] A source that turns Ready without the
+  package re-reconciling is shown as before until the next refresh. → The controller watches the
+  three kinds and re-reconciles on change, which fires the package topic.
+- [Two changes edit `owner.go`, `panel.go`, `panel-body.html`] → This change touches named call
+  sites and kind-specific blocks only; whichever change lands second merges `main` into its branch and resolves the overlap there.
+- [Discovery re-checked on a timer] One discovery call for one group every five minutes. → It
+  never runs per request, and the kinds are the three D20 allows.
+- [Full screen without the browser API] The overlay does not hide the browser's own chrome. →
+  It is what the canvas does, and it keeps Esc and group swaps working.
+- [Animation under CSP] CSSOM transforms on SVG `<a>` elements are allowed under the policy, but
+  engine support for CSS transforms on SVG links is the spike's to confirm (task 1.3). → If an
+  engine refuses, members fade in without moving.
+
+## Migration Plan
+
+None beyond the release. Rollback is the previous release; the API fields are additive.
+
+## Gap map
+
+| Gap | Decision above | Tasks |
+| --- | --- | --- |
+| graph-01 | Groups per kind family | 2.1, 2.5 |
+| graph-02 | Groups per kind family; Group nodes, frames and the accordion | 2.1, 4.3 |
+| graph-03 | The legend and the ghost | 4.6 |
+| graph-04 | Group nodes, frames and the accordion | 6.2 |
+| graph-05 | Motion and the grid | 1.3, 6.4 |
+| graph-06 | Expanded groups as a band; Group nodes, frames and the accordion | 2.2, 4.4 |
+| graph-07 | Esc and the Overview pill | 6.2, 6.5 |
+| graph-08 | Fit, zoom and full screen | 6.2 |
+| graph-09 | Fit, zoom and full screen | 6.1, 6.2 |
+| graph-11 | Selection and spotlight | 5.2, 5.3 |
+| graph-13 | Columns, node size and left-to-right reading; Fit, zoom and full screen | 2.3, 4.5, 6.1 |
+| graph-14 | Drawing nodes | 4.1 |
+| graph-15 | Fit, zoom and full screen; Group nodes, frames and the accordion | 6.2, 6.3 |
+| graph-16 | Panel variants; Group nodes, frames and the accordion | 4.4, 5.5 |
+| graph-17 | Hover cards | 4.8 |
+| graph-19 | Panel variants | 5.6 |
+| graph-20 | Fit, zoom and full screen | 6.3 |
+| graph-21 | Expanded groups as a band | 1.1, 2.2 |
+| graph-22 | Selection and spotlight | 5.1, 5.2 |
+| graph-23 | The panel at rest | 5.4 |
+| graph-24 | Drawing nodes (edges) | 4.2 |
+| graph-25 | Motion and the grid | 6.4 |
+| graph-26 | Kept divergence (Non-Goals); Groups per kind family | 2.1, 5.5, 6.7 |
+| instance-14 | Columns, node size; Drawing nodes | 2.3, 4.1 |
+| instance-15 | Fit, zoom and full screen | 6.1 |
+| instance-16 | Drawing nodes (edges) | 4.2 |
+| instance-17 | Columns, node size and left-to-right reading | 2.3, 4.5 |
+| instance-18 | The legend and the ghost | 4.6 |
+| instance-19 | Fit, zoom and full screen | 6.3 |
+| instance-20 | Panel variants | 5.6 |
+| instance-21 | Selection and spotlight | 5.1, 5.2 |
+| instance-22 | Hover cards | 4.8 |
+| instance-24 | The legend and the ghost | 4.7 |
+| instance-25 | The package's source state; Drawing nodes; Panel variants | 1.2, 3.1-3.7, 4.1, 5.5 |
+| instance-26 | Fit, zoom and full screen | 6.1 |
+| instance-49 | Esc and the Overview pill | 6.5 |
+| provider-14 | Registration standing on instance and package graphs; Drawing nodes | 2.4, 4.1 |
+| provider-15 | Panel variants | 5.5 |
+| provider-16 | Hover cards | 4.8 |
+| provider-21 | The panel at rest | 5.4 |
+
+## Amendments after PR 40 merged
+
+The plan of 2026-10-11 (`design/T3.4.md` section 3.7, E4) added five amendments to this change.
+Each is a task with its own verify line, and a requirement or scenario in the specs where it
+changes behaviour.
+
+| Id | What | Decision above | Tasks | Specs |
+| --- | --- | --- | --- | --- |
+| AG-A1 | A length cap on the served Flux message, reason and revision, recorded as portal:D20:R6 | Capping the served Flux text; The package's source state | 3.2, 3.3, 3.5, 3.7 | read-api |
+| AG-A2 | A source in another namespace than its package, read as the caller | The package's source state | 3.6 | read-model, read-api |
+| AG-A3 | The legend names the package source's origin and the nodes drawn alike | The legend and the ghost | 4.6, 4.8 | web-ui |
+| AG-A4 | The graph pages in `TestBrowserPhone` | Fit, zoom and full screen | 6.10 | web-ui |
+| AG-A5 | "Merge `main` into the branch" in place of the history-rewrite wording | Risks / Trade-offs; the proposal | none | none |
+
+## Spike findings
+
+Section 1 ran on 2026-10-11 over the F1 capture. None of the three findings changes what section 2
+builds; the details below are what section 2 takes over. The throwaway tests are removed; the
+fixtures stay in `internal/readmodel/readmodeltest/sources.go`.
+
+### Band layout (task 1.1)
+
+**Method.** A throwaway test re-placed cert-manager's laid-out graph (the old single configuration
+group expanded: 70 nodes, 6 columns) with the planned algorithm, for each family alone, for RBAC
+with CRDs, for all three, and for an inventory in reverse order. A second case emulated task 2.1's
+target: RBAC open, CRDs and Webhook configuration folded (61 nodes, the number the spec names).
+Geometry: nodes 216 x 72, row pitch 96, column pitch 264 (a 48 px gutter), band rectangle from 12 px
+left of the components column to 12 px right of the last column, 48 px above its first node (the
+header) and 24 px below its last. A control run moved a node into the band, and routed an elbow from
+above the band to below it; the checker saw both.
+
+**Result.** On every case: no node inside a band that is neither a member nor an object of a member,
+no edge between two nodes outside a band crossing its rectangle, no overlap between two bands or two
+nodes, and identical coordinates in two runs and from the reversed inventory. RBAC alone (13 members,
+26 objects) is a band of 26 rows. The graph with RBAC open and the other two families folded is 61
+nodes, 1568 x 3396 px (35 rows); with all three open it is 70 nodes and 4308 px tall; RBAC alone in
+the 70-node case is 4164 px. At the pane's 760 px maximum the overview fit would be about 0.22, so
+the 0.6 floor of task 6.1 decides, and the frame scrolls (as "Fit, zoom and full screen" says).
+
+**What section 2.2 takes over.**
+
+- The elbows' vertical segments run at the middle of a gutter, 24 px from a column edge. The frame
+  and the band rectangle therefore overhang the columns by less than 24 px (12): at 24 px or more,
+  every elbow from the instance to a component above or below the band, whose vertical segment spans
+  the band's rows, would cross the frame's left side. Task 4.4 draws the frame with the same 12.
+- Components in the components column all have the owner as their only neighbour to the left, so
+  their barycenters tie and the order is by id; a band goes where its first member's id sorts among
+  the other components.
+- A node in a column to the right of the components sits above or below a band by the side of its
+  component (walking `hasComponent` and `owns` and `controls` edges back to a component). Within a
+  side, the barycenter order stays.
+- One row grid: the nodes right of the components column are placed top-aligned in segments (above
+  the first band, between bands, below the last); a segment is as tall as its tallest column, so
+  every column's bands start on the same row. A band's rows shift down half a pitch, and the rows
+  after it a full pitch, per band passed: the half-row margins.
+- Columns left of the components (owner, module) sit at the mean y of their neighbours in the next
+  column, rounded down: with one grid and no per-column centring, that keeps their elbows in the
+  gutter.
+- Members sit in consecutive rows from the band's top and their objects in member order, so with
+  13 members and 26 objects the members fill the top 13 rows and each member's two objects sit at
+  rows 2i and 2i+1; the band's height is the larger count.
+
+### Source fixtures (task 1.2)
+
+`readmodeltest.WithSources` adds three constructed `source.toolkit.fluxcd.io/v1` OCIRepositories
+in `pkg`: `podinfo-release` (Ready=True, artifact revision `SourceRevision`, an artifact URL the
+portal must not serve), `podinfo-notready` (Ready=False, reason `OCIOperationFailed`, a registry
+message, no artifact) and `podinfo-noartifact` (Ready=True, no `status.artifact`).
+`WithUnversionedSourcePackage` adds `pkg/podinfo-unversioned`, F1's package with the `apiVersion`
+removed from its sourceRef. Every object carries the annotation `testing.opmodel.dev/constructed`
+and says so in its doc comment: F1 runs no Flux, so none of them is captured.
+
+Checked through a throwaway read-model test:
+
+- The fake dynamic client serves the three objects (`Dynamic` now registers list kinds for
+  `FluxKinds` as well), with the conditions and the artifact as built.
+- Plain F1 discovery does not serve the kind: `ResolveKind("source.toolkit.fluxcd.io",
+  "OCIRepository")` fails with `no matches for kind "OCIRepository"`. `KindsWithFlux()` (F1's
+  `Kinds` plus the three Flux kinds) makes it resolve to `ocirepositories`, namespaced.
+- A kind the fake discovery gains after the Model started is not seen by `ResolveKind`, which never
+  refreshes. After `SetDiscovery` with the Flux kinds, `ResolveKind` still failed; after the
+  mapper's `Reset()` it resolved. Task 3.1's timer therefore calls `Reset()` on the kind resolver
+  and then looks the kinds up; it needs no other hook.
+- `Model.Package` reads the unversioned package with an empty `Source.APIVersion` and kind
+  `OCIRepository`, so task 3.1 has the input its sourceRef case needs.
+
+### SVG motion (task 1.3)
+
+**Method.** A throwaway Playwright script ran on the real cert-manager Graph tab served by the
+portal's UI over F1, under the page's own policy (`style-src 'self'`), in the pinned Playwright
+image (Chromium 153.0.8010.12, Firefox 155.0, WebKit 26.6). It set properties through the CSSOM and
+read computed values and bounding boxes during and after the transition. No engine logged a policy
+violation.
+
+| Test | Chromium | Firefox | WebKit |
+| --- | --- | --- | --- |
+| `transform` + `transition` on a node `<a>`: position 100 ms steps | moves, 0 / 9.2 / 20.2 / 31.2 ... 66 | moves | moves, 0 / 10.4 / 21 / 31.7 ... 66 |
+| the same on the node's inner `<rect>` | moves | moves | moves |
+| `opacity` transition on a node | fades (0.53 at 300 ms) | fades | fades |
+| `transition` on the outer `<svg>` `width` and `height`, changed through the attributes | 854 to 427 px, 652 at 300 ms | same | same (648) |
+| the same, changed through the CSSOM `width` and `height` | same | same | same (650) |
+| `transform: scale(1.5)` + `transition` on the viewport `<g>`, origin `0 0` | 836 to 1254 px, 1034 at 300 ms | 838 to 1257 | 836 to 1254 |
+
+**Result.** Members can move, not only fade, in all three engines: a CSSOM transform and transition
+on the SVG `<a>` animates, so task 6.4 moves members from the group node's place. Both zoom
+animations work in all three. Task 6.4 uses the transition on the outer `<svg>`'s `width` and
+`height` (a class on the stage sets `transition: width 300ms, height 300ms`; the script keeps
+setting the attributes as `apply()` does today): the layout size animates, so the frame's scroll
+range and `scrollLeft` follow it, which a scale on the viewport `<g>` would not do. Wheel zoom never
+animates, so it never sets that class.
+
+**One engine quirk.** In WebKit, the first transition started on a freshly loaded page read its
+starting position at 300 ms and its end position at 1000 ms, three runs in a row; the same
+transition after any other animation, and every later one, ran at once. Browser tests therefore
+assert end positions and `getAnimations().length`, never a mid-transition position, and a user
+meets the quirk only as one expand animation that jumps. Reduced motion was not part of this spike;
+task 6.4 and 6.6 cover it.
+
+## Visual check
+
+Section 6, task 6.7. Over `TestDevServe` (`OPM_PORTAL_UI_DEV`, and `OPM_PORTAL_UI_DEV_BROKEN=1` for the image-break podinfo), through the pinned Playwright image (Chromium), at 1600 px in light and dark and at 360 px in light. Screenshots read: podinfo, the image-break podinfo, cert-manager at rest, with RBAC open, ungrouped and in full screen, the F1 package and backup-provider. Screenshots are in the launch scratch folder, not in the repository.
+
+What matches the canvas boards: flat panes with a scaled grid, three-line nodes in a health fill and outline, elbow edges without markers, the stacked hatched group box, the dashed frame with its header and Collapse pill, the toolbar order (count, Overview or Expand all and Collapse all, the grouping switch, Fit, Zoom, full screen), a legend under the pane, and a full-screen overlay that fills the window. The dark theme keeps every tone readable. At 360 px the page holds 360 px wide and the graph frame (284 px) takes the overflow; the fit stands at 75 %.
+
+Found and fixed in this section: the toolbar's inline icons were taken for the graph by the scripts' `svg` lookup, which sized the icon instead of the graph (the scripts now name the frame's own SVG); the panel link of a node inside an open group named no `expand`, so the panel came back missing; htmx gave the new stage its old class until it settled, which dropped the full-screen overlay after a swap.
+
+Divergences kept:
+
+- The Applied words stay beside the square on every owner node, as `align-shell-and-tokens` decided.
+- Configuration objects and toned component nodes carry kstatus health, as graph-26 decided, so a healthy component can sit beside a "Current" object.
+- The instance page draws no module node (instance-17).
+- Locked nodes lose their dashed outline (the hatch stays) and missing nodes lose their dashes, so
+  a dashed box means one thing: made by the cluster.
+- The group frame's header is 12 px and shrinks with the zoom: at the 0.6 fit floor of a 13-component group it reads small. The floor keeps node labels legible; the frame header is the first text to suffer. A larger floor would turn the open group into a page of scrolling. Not changed.
+- Under `group=off` each family is still laid out as a band, so the half-row gaps around bands remain where the canvas draws none.
+- The pane is capped at 760 px and scrolls inside itself when the graph is taller; the canvas grows with the graph.
+- Group fit on a phone-width frame settles at 60 % (the floor of the group fit) while the overview there keeps 75 %.
+- Not captured: the constructed refused package holder, since `TestDevServe` serves only the F1 set, the image-break set and a denied resource; its page is covered by goldens and `TestRegistrationNodeIsTonedByStanding`.
+
+## Open Questions
+
+None that change the specs or the tasks. The spike (section 1) confirmed three assumptions; its
+findings are under "Spike findings": the band layout's invariant on cert-manager, the constructed
+Flux source fixtures through the read-model test harness, and CSS transforms on SVG links in the
+three engines.

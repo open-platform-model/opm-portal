@@ -10,7 +10,7 @@ design, implementation, validation and change management. The normative source i
 
 | # | Principle | Summary |
 | ---- | --------- | ------- |
-| **I** | [Read Through the Published Surfaces](#i-read-through-the-published-surfaces) | The portal reads the Kubernetes API and published OPM Go modules, and re-implements no operator semantics |
+| **I** | [Read Through the Published Surfaces](#i-read-through-the-published-surfaces) | The portal reads the Kubernetes API and published OPM Go modules, and re-implements no controller semantics |
 | **II** | [Separation of Concerns](#ii-separation-of-concerns) | Authorization, read model, derived views, API and UI stay in separate packages |
 | **III** | [The Read API Is the Contract](#iii-the-read-api-is-the-contract) | `/api/v1alpha1` is the durable interface; it changes only additively within a version |
 | **IV** | [Status Is Read, Never Inferred](#iv-status-is-read-never-inferred) | The portal shows what the cluster says, and shows unknown as unknown |
@@ -23,13 +23,13 @@ design, implementation, validation and change management. The normative source i
 
 ### I. Read Through the Published Surfaces
 
-The portal MUST read OPM state only through the Kubernetes API (the operator's custom
+The portal MUST read OPM state only through the Kubernetes API (the controller's custom
 resources, events, pod logs, and the objects an instance's inventory names) and through
 published OPM Go modules.
 
-- What the operator writes to `status` is what the portal shows
-- The portal does not evaluate CUE, render modules or recompute what the operator decided
-- A portal need the operator does not expose is an operator change, not a portal workaround
+- What the controller writes to `status` is what the portal shows
+- The portal does not evaluate CUE, render modules or recompute what the controller decided
+- A portal need the controller does not expose is a controller change, not a portal workaround
 
 ---
 
@@ -187,4 +187,4 @@ Before merge, these MUST pass (`task check` runs all six):
 ## Further Reading
 
 - `openspec/config.yaml`: normative constitutional source
-- `AGENTS.md`: repository mechanics, commands, security rules and coding guidance
+- `AGENTS.md`: repository rules, commands, security working rules, citations and style

@@ -13,7 +13,7 @@
     "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
     "version": "v0.1.11"
   },
-  "owner": "operator",
+  "owner": "controller",
   "reconcile": {
     "state": "Applied",
     "reason": "ReconciliationSucceeded",
@@ -33,10 +33,11 @@
       "withheld": 0
     },
     "partial": false,
-    "evaluatedAt": "2026-10-04T18:10:00Z",
+    "evaluatedAt": "2026-10-21T16:10:00Z",
     "live": true
   },
   "inventoryCount": 2,
+  "inventoryRevision": 2,
   "lastAppliedAt": "2026-10-04T13:46:57Z",
   "renderContracts": [
     "opmodel.dev/catalogs/opm/resources/container@v1beta1",
@@ -108,7 +109,7 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "objects": [
@@ -126,7 +127,7 @@
             "reason": "ImagePullBackOff",
             "message": "Pod podinfo-podinfo-794bd8c7fb-cc5ql container podinfo is waiting: ImagePullBackOff: Back-off pulling image \"ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0\": ErrImagePull: rpc error: code = NotFound desc = failed to pull and unpack image \"ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0\": failed to resolve reference \"ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0\": ghcr.io/stefanprodan/podinfo:does-not-exist-0.0.0: not found"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true,
           "children": [
             {
@@ -257,7 +258,7 @@
             "reason": "Current",
             "message": "Service is ready"
           },
-          "evaluatedAt": "2026-10-04T18:10:00Z",
+          "evaluatedAt": "2026-10-21T16:10:00Z",
           "live": true
         }
       ]

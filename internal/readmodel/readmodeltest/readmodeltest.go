@@ -1,11 +1,12 @@
 // Package readmodeltest serves committed cluster captures through fake
-// clients, so tests can build read-model views from real operator output.
+// clients, so tests can build read-model views from real controller output.
 // It does not import readmodel, so readmodel's own tests use it too.
 package readmodeltest
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -78,19 +79,28 @@ func LoadList(t testing.TB, path string) []*unstructured.Unstructured {
 	if err != nil {
 		t.Fatalf("reading %s: %v", path, err)
 	}
+	out, err := decodeList(raw)
+	if err != nil {
+		t.Fatalf("%s: %v", path, err)
+	}
+	return out
+}
+
+// decodeList decodes the bytes of a List file the way LoadList does.
+func decodeList(raw []byte) ([]*unstructured.Unstructured, error) {
 	js, err := yaml.YAMLToJSON(raw)
 	if err != nil {
-		t.Fatalf("converting %s to JSON: %v", path, err)
+		return nil, fmt.Errorf("converting to JSON: %w", err)
 	}
 	var list unstructured.UnstructuredList
 	if err := list.UnmarshalJSON(js); err != nil {
-		t.Fatalf("decoding %s: %v", path, err)
+		return nil, fmt.Errorf("decoding: %w", err)
 	}
 	out := make([]*unstructured.Unstructured, 0, len(list.Items))
 	for i := range list.Items {
 		out = append(out, &list.Items[i])
 	}
-	return out
+	return out, nil
 }
 
 // LoadCapture returns every object of the capture in dir: the four OPM
@@ -135,9 +145,13 @@ func Find(t testing.TB, objs []*unstructured.Unstructured, kind, name string) *u
 // Dynamic returns a fake dynamic client serving objs.
 func Dynamic(objs ...*unstructured.Unstructured) *dynfake.FakeDynamicClient {
 	listKinds := map[schema.GroupVersionResource]string{}
-	for _, k := range Kinds {
+	for _, k := range KindsWithFlux() {
 		listKinds[k.GVR()] = k.GVK.Kind + "List"
 	}
+	// The fake client lists only the resources it was told of. The ready
+	// count of a Service lists EndpointSlices, which no capture inventory
+	// names, so they are not among Kinds.
+	listKinds[schema.GroupVersionResource{Group: "discovery.k8s.io", Version: "v1", Resource: "endpointslices"}] = "EndpointSliceList"
 	runtimeObjs := make([]runtime.Object, 0, len(objs))
 	for _, o := range objs {
 		runtimeObjs = append(runtimeObjs, o.DeepCopy())
@@ -311,7 +325,7 @@ const (
 // claim resolves, with providerRef stamped from the package's own name and
 // namespace as the catalog's registration transformer does, and the
 // verdict and message the controller writes when no ModuleInstance of that
-// name exists (opm-operator internal/controller/
+// name exists (opm-controller internal/controller/
 // transformerregistration_controller.go, checkProviderIdentity and refuse:
 // Stalled=True and Ready=False, both ProviderMismatch).
 func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstructured.Unstructured {
@@ -335,7 +349,7 @@ func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstr
 	claim.SetUID("00000000-0000-4000-8000-00000000c1a1")
 	claim.SetLabels(nil)
 	spec := map[string]any{
-		"catalog":     "testing.opmodel.dev/catalogs/operator/backup@v0",
+		"catalog":     "testing.opmodel.dev/catalogs/controller/backup@v0",
 		"version":     "0.1.0",
 		"provides":    []any{},
 		"providerRef": map[string]any{"namespace": PackageHolderNamespace, "name": PackageHolderName},
@@ -343,9 +357,9 @@ func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstr
 	const msg = "Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output"
 	conds := []any{
 		map[string]any{"type": "Stalled", "status": "True", "reason": "ProviderMismatch", "message": msg,
-			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+			"lastTransitionTime": "2026-10-21T16:04:30Z", "observedGeneration": int64(1)},
 		map[string]any{"type": "Ready", "status": "False", "reason": "ProviderMismatch", "message": msg,
-			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+			"lastTransitionTime": "2026-10-21T16:04:30Z", "observedGeneration": int64(1)},
 	}
 	if err := unstructured.SetNestedField(claim.Object, spec, "spec"); err != nil {
 		t.Fatal(err)

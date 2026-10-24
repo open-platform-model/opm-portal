@@ -15,7 +15,7 @@ The design and its decisions are in [docs/DESIGN.md](docs/DESIGN.md); the plan a
 are in [ROADMAP.md](ROADMAP.md).
 
 > **Direction ([docs/DESIGN.md](docs/DESIGN.md)).** The first version is read-only. It shows what a cluster runs
-> under OPM, from the Platform down to Pods: status as the operator reports it, events, pod logs
+> under OPM, from the Platform down to Pods: status as the controller reports it, events, pod logs
 > and a relationship graph. It runs on your machine with your kubeconfig. An in-cluster mode
 > with OIDC login, where every read is authorized as the signed-in user, is a future plan. It
 > creates, edits and deletes nothing.
@@ -70,6 +70,10 @@ includes `pods/log`, so any namespace or cluster viewer can take an unspent toke
 and the node's `/var/log/pods` keep copies, and anyone who may patch the Deployment can mint a new
 token with a rollout restart: open the link right after deploying (a spent token is useless) and
 keep log, port-forward and patch access in `opm-portal` to the people meant to use it.
+
+The role also lists EndpointSlices, so the Service panel can show a ready count of endpoints. In
+this mode, whoever holds the launch token sees that count for every inventory Service, whether or
+not they may list EndpointSlices themselves.
 
 This is a test tool, not the planned in-cluster mode with sign-in. Kinds outside the OPM catalog,
 such as cert-manager's Certificate, show as not readable; to see them in the graph, add a rule
@@ -141,7 +145,7 @@ task check              # fmt, vet, lint, openspec, test, capture check
 
 `task openspec:check` needs the `openspec` CLI (`task openspec:install`, needs npm).
 
-`task e2e:up` builds a throwaway kind cluster with the released opm-operator and a set of test
+`task e2e:up` builds a throwaway kind cluster with the released opm-controller and a set of test
 modules, `task e2e:capture` snapshots it into `testdata/clusters/f1/`, `task e2e:local` runs the
 built binary in local mode against it, `task e2e:m1` checks the milestone 1 views through it
 (including a scripted image break it reverts), and `task e2e:down` deletes it. The `E2E`

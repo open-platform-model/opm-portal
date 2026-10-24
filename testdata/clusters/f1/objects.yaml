@@ -4,7 +4,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: cainjector-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -16,8 +16,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-cainjector
-      resourceVersion: "692"
-      uid: 14e5ed88-7da9-4ba2-a18d-1869fe60ba7c
+      resourceVersion: "645"
+      uid: 161b7e01-fcba-41bd-8dbd-77a4a39980cc
     rules:
       - apiGroups:
           - cert-manager.io
@@ -78,7 +78,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-approve-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -90,8 +90,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-approve:cert-manager-io
-      resourceVersion: "693"
-      uid: f3e10fc1-1811-4252-8628-31f740a830b4
+      resourceVersion: "647"
+      uid: 6bed57f5-3dd8-4708-9f53-4a68e7f0198b
     rules:
       - apiGroups:
           - cert-manager.io
@@ -105,7 +105,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-certificates-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -117,8 +117,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-certificates
-      resourceVersion: "695"
-      uid: 18a0fd06-e2c6-40d5-84e7-a7b6add044a6
+      resourceVersion: "648"
+      uid: 1ff847ee-273b-4d0c-999c-97ee436f9e44
     rules:
       - apiGroups:
           - cert-manager.io
@@ -180,7 +180,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-csr-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -192,8 +192,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-certificatesigningrequests
-      resourceVersion: "696"
-      uid: 22a8a221-cfdc-43cc-91f1-9502a062a74a
+      resourceVersion: "650"
+      uid: 5aa03ba5-1f8b-4ce9-8ed9-ce991a415e2e
     rules:
       - apiGroups:
           - certificates.k8s.io
@@ -229,7 +229,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-challenges-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -241,8 +241,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-challenges
-      resourceVersion: "698"
-      uid: b3ab4e90-e388-4500-93b3-933eb3cc5652
+      resourceVersion: "651"
+      uid: 45f59c04-59b2-4271-b8aa-6f52c4c334b7
     rules:
       - apiGroups:
           - acme.cert-manager.io
@@ -340,7 +340,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-clusterissuers-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -352,8 +352,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-clusterissuers
-      resourceVersion: "699"
-      uid: 94c7d7ea-b218-4609-8d77-c7c2a2a751ae
+      resourceVersion: "652"
+      uid: ca47993d-a962-45f9-869c-3a07f1df4c34
     rules:
       - apiGroups:
           - cert-manager.io
@@ -392,7 +392,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-ingress-shim-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -404,8 +404,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-ingress-shim
-      resourceVersion: "700"
-      uid: 57ebbc43-849e-440f-9ecb-70ede75b6d25
+      resourceVersion: "653"
+      uid: b77c710e-5e8d-442a-a776-c27e5a3e2930
     rules:
       - apiGroups:
           - cert-manager.io
@@ -469,7 +469,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-issuers-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -481,8 +481,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-issuers
-      resourceVersion: "701"
-      uid: 60f1704f-e241-4f67-b78a-3ee8c0908355
+      resourceVersion: "654"
+      uid: abedb013-1efd-42ff-95e3-bbc4b1ce3020
     rules:
       - apiGroups:
           - cert-manager.io
@@ -521,7 +521,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: controller-orders-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -533,8 +533,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-orders
-      resourceVersion: "702"
-      uid: 73ee2d47-b354-45a8-b300-4231d21e6353
+      resourceVersion: "656"
+      uid: aa937a2d-3f88-4a88-bdb7-cdd0c60b5256
     rules:
       - apiGroups:
           - acme.cert-manager.io
@@ -600,7 +600,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRole
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       labels:
         app.kubernetes.io/instance: webhook-sar-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -612,8 +612,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook:subjectaccessreviews
-      resourceVersion: "704"
-      uid: 8fe64993-86cf-4ae8-aa88-5e532806f71d
+      resourceVersion: "657"
+      uid: 9df8e2f7-dfb0-416d-8903-809131afeb07
     rules:
       - apiGroups:
           - authorization.k8s.io
@@ -622,9 +622,390 @@ items:
         verbs:
           - create
   - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: manager-rbac
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: manager-rbac
+        component.opmodel.dev/name: manager-rbac
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-manager-role
+      resourceVersion: "491"
+      uid: 75b6a9a4-4f78-41a5-899b-54cc7aad409a
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - events
+        verbs:
+          - create
+          - patch
+      - apiGroups:
+          - ""
+        resources:
+          - serviceaccounts
+        verbs:
+          - get
+          - impersonate
+          - list
+          - watch
+      - apiGroups:
+          - events.k8s.io
+        resources:
+          - events
+        verbs:
+          - create
+          - patch
+          - update
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances
+          - modulepackages
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances/finalizers
+          - modulepackages/finalizers
+          - transformerregistrations/finalizers
+        verbs:
+          - update
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances/status
+          - modulepackages/status
+          - platforms/status
+          - transformerregistrations/status
+        verbs:
+          - get
+          - patch
+          - update
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - platforms
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - transformerregistrations
+        verbs:
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - source.toolkit.fluxcd.io
+        resources:
+          - buckets
+          - gitrepositories
+          - ocirepositories
+        verbs:
+          - get
+          - list
+          - watch
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: metrics-auth-rbac
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: metrics-auth-rbac
+        component.opmodel.dev/name: metrics-auth-rbac
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-metrics-auth-role
+      resourceVersion: "492"
+      uid: f7f4614a-d3e6-4737-84b4-b76ab3a3a4f0
+    rules:
+      - apiGroups:
+          - authentication.k8s.io
+        resources:
+          - tokenreviews
+        verbs:
+          - create
+      - apiGroups:
+          - authorization.k8s.io
+        resources:
+          - subjectaccessreviews
+        verbs:
+          - create
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-metrics-reader
+      resourceVersion: "493"
+      uid: 6af98922-f26d-43d1-9646-9b84eaccf5a2
+    rules:
+      - nonResourceURLs:
+          - /metrics
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-moduleinstance-admin-role
+      resourceVersion: "494"
+      uid: 4cad8eba-43cc-4db8-a1de-552992035aba
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances
+        verbs:
+          - '*'
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-moduleinstance-editor-role
+      resourceVersion: "495"
+      uid: 29b10627-0fa0-4ca1-87ab-9dca042e06a0
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances
+        verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-moduleinstance-viewer-role
+      resourceVersion: "496"
+      uid: 90a59a9e-3a2c-46b9-adc8-3ad7b00369d2
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - moduleinstances/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-modulepackage-viewer-role
+      resourceVersion: "498"
+      uid: 17fe4e35-92a4-49e9-a7fa-3648ca478b21
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - modulepackages
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - modulepackages/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-platform-viewer-role
+      resourceVersion: "497"
+      uid: f4b50b4a-4577-4932-b64c-550ebb9bddce
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - platforms
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - platforms/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-transformerregistration-admin-role
+      resourceVersion: "500"
+      uid: 9d366d30-8b48-4f0d-a52d-42b8ac898daf
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - transformerregistrations
+        verbs:
+          - create
+          - update
+          - patch
+          - delete
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - transformerregistrations/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: admin-roles
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: admin-roles
+        component.opmodel.dev/name: admin-roles
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-transformerregistration-viewer-role
+      resourceVersion: "499"
+      uid: a7da5b5b-63de-423a-8931-6d6a9756b40c
+    rules:
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - transformerregistrations
+        verbs:
+          - get
+          - list
+          - watch
+      - apiGroups:
+          - opmodel.dev
+        resources:
+          - transformerregistrations/status
+        verbs:
+          - get
+  - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: cainjector-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -636,8 +1017,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-cainjector
-      resourceVersion: "710"
-      uid: 420ed253-1886-48c9-a4b7-ba06ac52f62a
+      resourceVersion: "663"
+      uid: 1155ff83-7d44-44f8-8f70-53dfbde8a149
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -649,7 +1030,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-approve-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -661,8 +1042,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-approve:cert-manager-io
-      resourceVersion: "711"
-      uid: c5f37205-027d-4916-b0d9-c856b133fec8
+      resourceVersion: "664"
+      uid: 682c2a9c-6763-4680-9dee-4d9ecdb51332
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -674,7 +1055,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-certificates-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -686,8 +1067,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-certificates
-      resourceVersion: "712"
-      uid: 830cf68a-3e3c-4f49-b1bd-512da666db21
+      resourceVersion: "665"
+      uid: 0f7dbe7a-0356-469d-a361-e874695ea9e4
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -699,7 +1080,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-csr-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -711,8 +1092,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-certificatesigningrequests
-      resourceVersion: "713"
-      uid: bb45afa3-d371-4c4a-8dd3-f35c01015232
+      resourceVersion: "666"
+      uid: dec37ef1-400b-4a0e-998f-4326359579a1
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -724,7 +1105,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-challenges-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -736,8 +1117,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-challenges
-      resourceVersion: "714"
-      uid: c29a5473-177a-4917-b07d-232996f022a2
+      resourceVersion: "667"
+      uid: f58a6934-e560-48d1-9bb6-e3d0b5204073
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -749,7 +1130,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-clusterissuers-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -761,8 +1142,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-clusterissuers
-      resourceVersion: "715"
-      uid: 58a1b0cc-5126-4247-97c7-f4389a3f3a74
+      resourceVersion: "668"
+      uid: c283a58a-b494-47a1-8392-15a0feeabb20
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -774,7 +1155,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-ingress-shim-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -786,8 +1167,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-ingress-shim
-      resourceVersion: "716"
-      uid: 053bd574-1f3d-4f66-bcb3-14ef54a9920a
+      resourceVersion: "669"
+      uid: b8d38160-ea4a-49a7-96d7-95273eeb886c
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -799,7 +1180,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-issuers-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -811,8 +1192,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-issuers
-      resourceVersion: "717"
-      uid: 529b71b6-10a3-41f9-9272-ec1f65e92b5e
+      resourceVersion: "670"
+      uid: 638e4f99-94f9-48de-a72f-0560f630fb25
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -824,7 +1205,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-orders-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -836,8 +1217,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller-orders
-      resourceVersion: "718"
-      uid: 0410b99b-c53d-492b-9d8b-f13e1a0cbfd8
+      resourceVersion: "672"
+      uid: c49d39cd-5c20-4146-89e8-30159c2c5eb2
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -849,7 +1230,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: webhook-sar-rbac
         app.kubernetes.io/managed-by: opm-controller
@@ -861,8 +1242,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook:subjectaccessreviews
-      resourceVersion: "719"
-      uid: 4c16f8bd-e87a-48a4-8096-cdf4385805e9
+      resourceVersion: "673"
+      uid: 7f3514c0-9653-44cf-8519-6cc48f99af3f
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: ClusterRole
@@ -871,31 +1252,81 @@ items:
       - kind: ServiceAccount
         name: cert-manager-webhook
         namespace: cert-manager
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: manager-rbac
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: manager-rbac
+        component.opmodel.dev/name: manager-rbac
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-manager-role
+      resourceVersion: "501"
+      uid: 168324b7-11e5-4b91-a194-6d55c0ff1e84
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opm-controller-manager-role
+    subjects:
+      - kind: ServiceAccount
+        name: opm-controller-manager
+        namespace: opm-system
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: metrics-auth-rbac
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: metrics-auth-rbac
+        component.opmodel.dev/name: metrics-auth-rbac
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-metrics-auth-role
+      resourceVersion: "502"
+      uid: 5a266b43-5aba-489c-baf0-f0648ff548d9
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opm-controller-metrics-auth-role
+    subjects:
+      - kind: ServiceAccount
+        name: opm-controller-manager
+        namespace: opm-system
   - apiVersion: v1
     data:
       retention: '{"keepDaily":7}'
       schedule: 15 4 * * *
     kind: ConfigMap
     metadata:
-      creationTimestamp: "2026-10-04T18:04:24Z"
+      creationTimestamp: "2026-10-21T16:04:49Z"
       labels:
         app.kubernetes.io/instance: data
         app.kubernetes.io/managed-by: opm-controller
         app.kubernetes.io/name: data
         component.opmodel.dev/name: data
         module-instance.opmodel.dev/name: backup-consumer
-        module-instance.opmodel.dev/uuid: 79dabad0-a426-521b-883a-e9576e47a0f0
+        module-instance.opmodel.dev/uuid: bb6505c2-daf1-5142-9e89-179263d47f87
         module.opmodel.dev/name: backup_consumer
-        module.opmodel.dev/uuid: 8d6e63c2-ff5c-5186-94f2-0070a9181e01
-        module.opmodel.dev/version: 0.1.0
+        module.opmodel.dev/uuid: a308cc2a-98f2-59fa-9e2f-5ea1c003c4d8
+        module.opmodel.dev/version: 0.1.1
       name: backup-consumer-data-backup
       namespace: default
-      resourceVersion: "933"
-      uid: d954f039-5edc-4b87-bc0b-b5bff766e5f2
+      resourceVersion: "911"
+      uid: fe50817b-07ea-40cf-aa6b-87ba6c2eff0b
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: crds
@@ -908,8 +1339,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: certificaterequests.cert-manager.io
-      resourceVersion: "678"
-      uid: c9a69f5f-bc47-4360-80fe-b9cdd40c9132
+      resourceVersion: "631"
+      uid: 41ad410a-8c31-4bbd-a5c0-b2c7262dd607
     spec:
       conversion:
         strategy: None
@@ -971,12 +1402,12 @@ items:
           - crs
         singular: certificaterequest
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: no conflicts found
           reason: NoConflicts
           status: "True"
           type: NamesAccepted
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: the initial names have been accepted
           reason: InitialNamesAccepted
           status: "True"
@@ -986,7 +1417,7 @@ items:
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: crds
@@ -999,8 +1430,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: certificates.cert-manager.io
-      resourceVersion: "681"
-      uid: d07ca0a4-cb82-40db-b24c-977d179a2eff
+      resourceVersion: "634"
+      uid: c2c4c47b-aea8-46e0-be67-16f5144b1797
     spec:
       conversion:
         strategy: None
@@ -1057,12 +1488,12 @@ items:
           - certs
         singular: certificate
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: no conflicts found
           reason: NoConflicts
           status: "True"
           type: NamesAccepted
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: the initial names have been accepted
           reason: InitialNamesAccepted
           status: "True"
@@ -1072,7 +1503,7 @@ items:
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: crds
@@ -1085,8 +1516,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: challenges.acme.cert-manager.io
-      resourceVersion: "686"
-      uid: 05a817fb-4b0e-425f-a28f-c71e9be5595b
+      resourceVersion: "639"
+      uid: cd51a8ee-6682-47f4-b02c-8775fab7ec45
     spec:
       conversion:
         strategy: None
@@ -1135,12 +1566,12 @@ items:
         plural: challenges
         singular: challenge
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: no conflicts found
           reason: NoConflicts
           status: "True"
           type: NamesAccepted
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: the initial names have been accepted
           reason: InitialNamesAccepted
           status: "True"
@@ -1150,7 +1581,7 @@ items:
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: crds
@@ -1163,8 +1594,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: clusterissuers.cert-manager.io
-      resourceVersion: "691"
-      uid: 268f49d0-8b7c-4ee2-9990-5d5863dcb658
+      resourceVersion: "644"
+      uid: b555ce63-7c8c-4c42-ad3e-2b4c3d6da485
     spec:
       conversion:
         strategy: None
@@ -1208,12 +1639,12 @@ items:
           - ciss
         singular: clusterissuer
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: no conflicts found
           reason: NoConflicts
           status: "True"
           type: NamesAccepted
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: the initial names have been accepted
           reason: InitialNamesAccepted
           status: "True"
@@ -1223,7 +1654,7 @@ items:
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      creationTimestamp: "2026-10-21T16:04:24Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: crds
@@ -1236,8 +1667,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: issuers.cert-manager.io
-      resourceVersion: "703"
-      uid: 2483cdba-ce40-46f5-9673-f2d8fdee4072
+      resourceVersion: "655"
+      uid: 059622aa-5cf4-44aa-8292-50076ea34c30
     spec:
       conversion:
         strategy: None
@@ -1281,12 +1712,12 @@ items:
           - iss
         singular: issuer
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: no conflicts found
           reason: NoConflicts
           status: "True"
           type: NamesAccepted
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: the initial names have been accepted
           reason: InitialNamesAccepted
           status: "True"
@@ -1296,7 +1727,163 @@ items:
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
-      creationTimestamp: "2026-10-04T18:04:03Z"
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.20.1
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/instance: crds
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: crds
+        component.opmodel.dev/name: crds
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: moduleinstances.opmodel.dev
+      resourceVersion: "478"
+      uid: d0c70779-bce0-4c41-94c3-3eea696ede38
+    spec:
+      conversion:
+        strategy: None
+      group: opmodel.dev
+      names:
+        kind: ModuleInstance
+        listKind: ModuleInstanceList
+        plural: moduleinstances
+        shortNames:
+          - mi
+        singular: moduleinstance
+      scope: Namespaced
+      versions:
+        - additionalPrinterColumns:
+            - jsonPath: .status.conditions[?(@.type=='Ready')].status
+              name: Ready
+              type: string
+            - jsonPath: .status.conditions[?(@.type=='Healthy')].status
+              name: Healthy
+              type: string
+            - jsonPath: .spec.module.path
+              name: Module
+              type: string
+            - jsonPath: .spec.module.version
+              name: Version
+              type: string
+            - jsonPath: .status.nextRetryAt
+              name: Retry
+              priority: 1
+              type: date
+          name: v1alpha1
+          served: true
+          storage: true
+          subresources:
+            status: {}
+    status:
+      acceptedNames:
+        kind: ModuleInstance
+        listKind: ModuleInstanceList
+        plural: moduleinstances
+        shortNames:
+          - mi
+        singular: moduleinstance
+      conditions:
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: no conflicts found
+          reason: NoConflicts
+          status: "True"
+          type: NamesAccepted
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: the initial names have been accepted
+          reason: InitialNamesAccepted
+          status: "True"
+          type: Established
+      storedVersions:
+        - v1alpha1
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.20.1
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/instance: crds
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: crds
+        component.opmodel.dev/name: crds
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: modulepackages.opmodel.dev
+      resourceVersion: "482"
+      uid: ab17be2e-012b-4f4d-a202-aee72516faa5
+    spec:
+      conversion:
+        strategy: None
+      group: opmodel.dev
+      names:
+        kind: ModulePackage
+        listKind: ModulePackageList
+        plural: modulepackages
+        shortNames:
+          - mpkg
+        singular: modulepackage
+      scope: Namespaced
+      versions:
+        - additionalPrinterColumns:
+            - jsonPath: .status.conditions[?(@.type=='Ready')].status
+              name: Ready
+              type: string
+            - jsonPath: .status.conditions[?(@.type=='Healthy')].status
+              name: Healthy
+              type: string
+            - jsonPath: .spec.sourceRef.name
+              name: Source
+              type: string
+            - jsonPath: .spec.path
+              name: Path
+              type: string
+            - jsonPath: .status.source.artifactRevision
+              name: Revision
+              priority: 1
+              type: string
+            - jsonPath: .status.nextRetryAt
+              name: Retry
+              priority: 1
+              type: date
+          name: v1alpha1
+          served: true
+          storage: true
+          subresources:
+            status: {}
+    status:
+      acceptedNames:
+        kind: ModulePackage
+        listKind: ModulePackageList
+        plural: modulepackages
+        shortNames:
+          - mpkg
+        singular: modulepackage
+      conditions:
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: no conflicts found
+          reason: NoConflicts
+          status: "True"
+          type: NamesAccepted
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: the initial names have been accepted
+          reason: InitialNamesAccepted
+          status: "True"
+          type: Established
+      storedVersions:
+        - v1alpha1
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      creationTimestamp: "2026-10-21T16:04:24Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: crds
@@ -1309,8 +1896,8 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: orders.acme.cert-manager.io
-      resourceVersion: "705"
-      uid: d83a9eee-1fcb-4675-ac94-e8316050d6cf
+      resourceVersion: "658"
+      uid: 24772530-19c2-4134-9117-adad5d6ea81f
     spec:
       conversion:
         strategy: None
@@ -1360,24 +1947,168 @@ items:
         plural: orders
         singular: order
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: no conflicts found
           reason: NoConflicts
           status: "True"
           type: NamesAccepted
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: the initial names have been accepted
           reason: InitialNamesAccepted
           status: "True"
           type: Established
       storedVersions:
         - v1
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.20.1
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/instance: crds
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: crds
+        component.opmodel.dev/name: crds
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: platforms.opmodel.dev
+      resourceVersion: "484"
+      uid: d6bff1cc-4884-4adb-b1ef-8f3de4f7c322
+    spec:
+      conversion:
+        strategy: None
+      group: opmodel.dev
+      names:
+        kind: Platform
+        listKind: PlatformList
+        plural: platforms
+        shortNames:
+          - plat
+        singular: platform
+      scope: Cluster
+      versions:
+        - additionalPrinterColumns:
+            - jsonPath: .spec.type
+              name: Type
+              type: string
+            - jsonPath: .status.conditions[?(@.type=='Ready')].status
+              name: Ready
+              type: string
+            - jsonPath: .status.conditions[?(@.type=='Ready')].reason
+              name: Reason
+              type: string
+            - jsonPath: .status.controllerVersion
+              name: Controller
+              type: string
+          name: v1alpha1
+          served: true
+          storage: true
+          subresources:
+            status: {}
+    status:
+      acceptedNames:
+        kind: Platform
+        listKind: PlatformList
+        plural: platforms
+        shortNames:
+          - plat
+        singular: platform
+      conditions:
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: no conflicts found
+          reason: NoConflicts
+          status: "True"
+          type: NamesAccepted
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: the initial names have been accepted
+          reason: InitialNamesAccepted
+          status: "True"
+          type: Established
+      storedVersions:
+        - v1alpha1
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      annotations:
+        controller-gen.kubebuilder.io/version: v0.20.1
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/instance: crds
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: crds
+        component.opmodel.dev/name: crds
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: transformerregistrations.opmodel.dev
+      resourceVersion: "487"
+      uid: 0a16373c-d1c0-497e-8444-a9c65f8aa669
+    spec:
+      conversion:
+        strategy: None
+      group: opmodel.dev
+      names:
+        kind: TransformerRegistration
+        listKind: TransformerRegistrationList
+        plural: transformerregistrations
+        shortNames:
+          - treg
+        singular: transformerregistration
+      scope: Cluster
+      versions:
+        - additionalPrinterColumns:
+            - jsonPath: .spec.catalog
+              name: Catalog
+              type: string
+            - jsonPath: .spec.version
+              name: Version
+              type: string
+            - jsonPath: .status.accepted
+              name: Accepted
+              type: string
+            - jsonPath: .status.active
+              name: Active
+              type: string
+          name: v1alpha1
+          served: true
+          storage: true
+          subresources:
+            status: {}
+    status:
+      acceptedNames:
+        kind: TransformerRegistration
+        listKind: TransformerRegistrationList
+        plural: transformerregistrations
+        shortNames:
+          - treg
+        singular: transformerregistration
+      conditions:
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: no conflicts found
+          reason: NoConflicts
+          status: "True"
+          type: NamesAccepted
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          message: the initial names have been accepted
+          reason: InitialNamesAccepted
+          status: "True"
+          type: Established
+      storedVersions:
+        - v1alpha1
   - apiVersion: apps/v1
     kind: Deployment
     metadata:
       annotations:
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: cainjector
@@ -1392,8 +2123,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-cainjector
       namespace: cert-manager
-      resourceVersion: "852"
-      uid: 4a25003f-1123-4a67-b502-82147bfc8347
+      resourceVersion: "796"
+      uid: b40aa961-ab4b-4a7a-bcca-851b43458e9e
     spec:
       progressDeadlineSeconds: 600
       replicas: 1
@@ -1460,14 +2191,14 @@ items:
     status:
       availableReplicas: 1
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:13Z"
-          lastUpdateTime: "2026-10-04T18:04:13Z"
+        - lastTransitionTime: "2026-10-21T16:04:32Z"
+          lastUpdateTime: "2026-10-21T16:04:32Z"
           message: Deployment has minimum availability.
           reason: MinimumReplicasAvailable
           status: "True"
           type: Available
-        - lastTransitionTime: "2026-10-04T18:04:05Z"
-          lastUpdateTime: "2026-10-04T18:04:13Z"
+        - lastTransitionTime: "2026-10-21T16:04:26Z"
+          lastUpdateTime: "2026-10-21T16:04:32Z"
           message: ReplicaSet "cert-manager-cainjector-5d69c59bd" has successfully progressed.
           reason: NewReplicaSetAvailable
           status: "True"
@@ -1482,7 +2213,7 @@ items:
     metadata:
       annotations:
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: controller
@@ -1497,8 +2228,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-controller
       namespace: cert-manager
-      resourceVersion: "824"
-      uid: a8928c15-f359-4852-b91a-02f777fa8d48
+      resourceVersion: "783"
+      uid: a89344f6-29df-44d2-9c6c-ea2f370d24ef
     spec:
       progressDeadlineSeconds: 600
       replicas: 1
@@ -1581,14 +2312,14 @@ items:
     status:
       availableReplicas: 1
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:09Z"
-          lastUpdateTime: "2026-10-04T18:04:09Z"
+        - lastTransitionTime: "2026-10-21T16:04:30Z"
+          lastUpdateTime: "2026-10-21T16:04:30Z"
           message: Deployment has minimum availability.
           reason: MinimumReplicasAvailable
           status: "True"
           type: Available
-        - lastTransitionTime: "2026-10-04T18:04:05Z"
-          lastUpdateTime: "2026-10-04T18:04:09Z"
+        - lastTransitionTime: "2026-10-21T16:04:26Z"
+          lastUpdateTime: "2026-10-21T16:04:30Z"
           message: ReplicaSet "cert-manager-controller-7c9bddd644" has successfully progressed.
           reason: NewReplicaSetAvailable
           status: "True"
@@ -1603,7 +2334,7 @@ items:
     metadata:
       annotations:
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: webhook
@@ -1618,8 +2349,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook
       namespace: cert-manager
-      resourceVersion: "888"
-      uid: f140d763-33ae-4b3e-954a-7e087c99ca7c
+      resourceVersion: "858"
+      uid: 1673f09e-54b5-4ea8-928d-2c109057fd56
     spec:
       progressDeadlineSeconds: 600
       replicas: 1
@@ -1717,14 +2448,14 @@ items:
     status:
       availableReplicas: 1
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:17Z"
-          lastUpdateTime: "2026-10-04T18:04:17Z"
+        - lastTransitionTime: "2026-10-21T16:04:40Z"
+          lastUpdateTime: "2026-10-21T16:04:40Z"
           message: Deployment has minimum availability.
           reason: MinimumReplicasAvailable
           status: "True"
           type: Available
-        - lastTransitionTime: "2026-10-04T18:04:05Z"
-          lastUpdateTime: "2026-10-04T18:04:17Z"
+        - lastTransitionTime: "2026-10-21T16:04:26Z"
+          lastUpdateTime: "2026-10-21T16:04:40Z"
           message: ReplicaSet "cert-manager-webhook-6c5bb576f5" has successfully progressed.
           reason: NewReplicaSetAvailable
           status: "True"
@@ -1739,7 +2470,7 @@ items:
     metadata:
       annotations:
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:06Z"
+      creationTimestamp: "2026-10-21T16:04:28Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: podinfo
@@ -1748,14 +2479,14 @@ items:
         component.opmodel.dev/name: podinfo
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: podinfo
-        module-instance.opmodel.dev/uuid: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+        module-instance.opmodel.dev/uuid: de596576-f602-5d23-aee5-d6066bc3cb6d
         module.opmodel.dev/name: podinfo
-        module.opmodel.dev/uuid: 88d73eac-695b-5baf-a3f1-1101b88eea73
-        module.opmodel.dev/version: 0.1.11
+        module.opmodel.dev/uuid: c028cba8-f3af-5081-a85c-e69163f990ba
+        module.opmodel.dev/version: 0.1.12
       name: podinfo-podinfo
       namespace: default
-      resourceVersion: "893"
-      uid: 29b73074-fde9-4910-9d57-6676b1c5fd1f
+      resourceVersion: "846"
+      uid: b7471604-a33d-4ef4-bdf4-b511f05e82bc
     spec:
       progressDeadlineSeconds: 600
       replicas: 2
@@ -1816,14 +2547,14 @@ items:
     status:
       availableReplicas: 2
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:17Z"
-          lastUpdateTime: "2026-10-04T18:04:17Z"
+        - lastTransitionTime: "2026-10-21T16:04:38Z"
+          lastUpdateTime: "2026-10-21T16:04:38Z"
           message: Deployment has minimum availability.
           reason: MinimumReplicasAvailable
           status: "True"
           type: Available
-        - lastTransitionTime: "2026-10-04T18:04:06Z"
-          lastUpdateTime: "2026-10-04T18:04:17Z"
+        - lastTransitionTime: "2026-10-21T16:04:28Z"
+          lastUpdateTime: "2026-10-21T16:04:38Z"
           message: ReplicaSet "podinfo-podinfo-d9585d794" has successfully progressed.
           reason: NewReplicaSetAvailable
           status: "True"
@@ -1838,7 +2569,141 @@ items:
     metadata:
       annotations:
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:30Z"
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/instance: manager
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: manager
+        component.opmodel.dev/name: manager
+        control-plane: manager
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-manager
+      namespace: opm-system
+      resourceVersion: "580"
+      uid: f20074f8-f574-4663-b4b8-b7028a2417e9
+    spec:
+      progressDeadlineSeconds: 600
+      replicas: 1
+      revisionHistoryLimit: 10
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: manager
+          component.opmodel.dev/name: manager
+          control-plane: manager
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: opm-controller
+      strategy:
+        rollingUpdate:
+          maxSurge: 25%
+          maxUnavailable: 25%
+        type: RollingUpdate
+      template:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/default-container: manager
+          labels:
+            app.kubernetes.io/name: manager
+            component.opmodel.dev/name: manager
+            control-plane: manager
+            core.opmodel.dev/workload-type: stateless
+            module-instance.opmodel.dev/name: opm-controller
+        spec:
+          containers:
+            - args:
+                - --metrics-bind-address=:8443
+                - --leader-elect
+                - --health-probe-bind-address=:8081
+              command:
+                - /manager
+              env:
+                - name: GOMEMLIMIT
+                  value: 3276MiB
+              image: ghcr.io/open-platform-model/opm-controller:v1.0.0-beta.9@sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /healthz
+                  port: 8081
+                  scheme: HTTP
+                initialDelaySeconds: 15
+                periodSeconds: 20
+                successThreshold: 1
+                timeoutSeconds: 1
+              name: manager
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: 8081
+                  scheme: HTTP
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /tmp
+                  name: tmp
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccount: opm-controller-manager
+          serviceAccountName: opm-controller-manager
+          terminationGracePeriodSeconds: 10
+          volumes:
+            - emptyDir: {}
+              name: tmp
+    status:
+      availableReplicas: 1
+      conditions:
+        - lastTransitionTime: "2026-10-21T16:04:13Z"
+          lastUpdateTime: "2026-10-21T16:04:13Z"
+          message: Deployment has minimum availability.
+          reason: MinimumReplicasAvailable
+          status: "True"
+          type: Available
+        - lastTransitionTime: "2026-10-21T16:03:57Z"
+          lastUpdateTime: "2026-10-21T16:04:13Z"
+          message: ReplicaSet "opm-controller-manager-7b6bf9f56b" has successfully progressed.
+          reason: NewReplicaSetAvailable
+          status: "True"
+          type: Progressing
+      observedGeneration: 1
+      readyReplicas: 1
+      replicas: 1
+      terminatingReplicas: 0
+      updatedReplicas: 1
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        deployment.kubernetes.io/revision: "1"
+      creationTimestamp: "2026-10-21T16:04:56Z"
       generation: 1
       labels:
         app.kubernetes.io/instance: web
@@ -1853,8 +2718,8 @@ items:
         module.opmodel.dev/version: 1.0.5
       name: web-web
       namespace: web
-      resourceVersion: "1002"
-      uid: 1820781d-0e30-483e-b9fe-df22edf32bd9
+      resourceVersion: "976"
+      uid: dbf30f57-0eac-46ce-b534-b07238c0265d
     spec:
       progressDeadlineSeconds: 600
       replicas: 1
@@ -1897,14 +2762,14 @@ items:
     status:
       availableReplicas: 1
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:34Z"
-          lastUpdateTime: "2026-10-04T18:04:34Z"
+        - lastTransitionTime: "2026-10-21T16:05:00Z"
+          lastUpdateTime: "2026-10-21T16:05:00Z"
           message: Deployment has minimum availability.
           reason: MinimumReplicasAvailable
           status: "True"
           type: Available
-        - lastTransitionTime: "2026-10-04T18:04:30Z"
-          lastUpdateTime: "2026-10-04T18:04:34Z"
+        - lastTransitionTime: "2026-10-21T16:04:56Z"
+          lastUpdateTime: "2026-10-21T16:05:00Z"
           message: ReplicaSet "web-web-6f7fbf94f9" has successfully progressed.
           reason: NewReplicaSetAvailable
           status: "True"
@@ -1919,7 +2784,7 @@ items:
     metadata:
       annotations:
         cert-manager.io/inject-ca-from-secret: cert-manager/cert-manager-webhook-ca
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 2
       labels:
         app: webhook
@@ -1935,13 +2800,13 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook
-      resourceVersion: "857"
-      uid: 1a7bdb2a-5ec6-459f-9892-a14cf6bc0bcf
+      resourceVersion: "810"
+      uid: 04343496-f134-418d-90a9-10f63bf5feea
     webhooks:
       - admissionReviewVersions:
           - v1
         clientConfig:
-          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ4VENDQVV1Z0F3SUJBZ0lVTCtRSXphS0JSTUJEU1dDcVlieTBTOU1HdHBjd0NnWUlLb1pJemowRUF3TXcKSWpFZ01CNEdBMVVFQXhNWFkyVnlkQzF0WVc1aFoyVnlMWGRsWW1odmIyc3RZMkV3SGhjTk1qWXhNREEwTVRndwpOREV4V2hjTk1qY3hNREEwTVRnd05ERXhXakFpTVNBd0hnWURWUVFERXhkalpYSjBMVzFoYm1GblpYSXRkMlZpCmFHOXZheTFqWVRCMk1CQUdCeXFHU000OUFnRUdCU3VCQkFBaUEySUFCSUlvcVY1cExUMnh2dEtEL2ZGNW5OZUEKaFRGMkdQcnYveGhYUERFVzNSWTlTWmx2Q1d2OUtoZEg4UFA2Z3hmdUk1NXhYb1VWdFVRZUZqTlR3aW5nbjRTLwp6Nm15T25EQ0p1MEduamUyd3RoZjZab1RXNmZIL1lZZmZPM2VLS01ZQUtOQ01FQXdEZ1lEVlIwUEFRSC9CQVFECkFnS2tNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGRTdPcjhrM0RBMEFTS0x5clZualhCY1AKL0hQcE1Bb0dDQ3FHU000OUJBTURBMmdBTUdVQ01RQ3BNNVJzSUswalN4ZzBjZW9NcnlRV2xWNmpJaHNkWnNuUAptb0dSa25rRC93Zi9Odk1hcWUzNmN3enFFSzZUYnAwQ01DU3U1TDUwU3pqWlVvNG9oc0hHbVVLUXFaUHZqQ2xkCjUwdkRwTGdjNzEzRU1ESUJWeXpLNm1IUjRQQXZnRm5MUHc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ4VENDQVV1Z0F3SUJBZ0lVYkQwY2RzTngvUnRVbnQ2dnN1am56TjVXTlRJd0NnWUlLb1pJemowRUF3TXcKSWpFZ01CNEdBMVVFQXhNWFkyVnlkQzF0WVc1aFoyVnlMWGRsWW1odmIyc3RZMkV3SGhjTk1qWXhNREl4TVRZdwpORE0wV2hjTk1qY3hNREl4TVRZd05ETTBXakFpTVNBd0hnWURWUVFERXhkalpYSjBMVzFoYm1GblpYSXRkMlZpCmFHOXZheTFqWVRCMk1CQUdCeXFHU000OUFnRUdCU3VCQkFBaUEySUFCRzkydmM3MUk4MVE5YmlRUldCUG4xbEcKZ1gvWC9vSHZDMWdiU1VPWEN0K2xQNjBZNjVkeDNiOTgvd0FwY1doVlhTS3RhakloWFdVQkhDeU8rQTN2N2RSZgpRUG8vbi9YdE9NRi9NNG5HSE4xNTZYV28wWW1ycVdJYVdPVHdrUWE2STZOQ01FQXdEZ1lEVlIwUEFRSC9CQVFECkFnS2tNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGRmdRWGZIUlRQN1ZXdGFxLzFJV2ZiZVAKdi9iNk1Bb0dDQ3FHU000OUJBTURBMmdBTUdVQ01CWWZqVTFyb2ZNK3l0QTlTRDIrZVRXcW1rUjFGbnRDdUlrcgpwdktlRVQ3Q1NrRHZ2NDRYSFZ3V2lIWkJ0UkxVWkFJeEFQNnpoRGlLenpYd1hMdmRqcklzcmg5U282Qkp0d3JNCmRwSmNJNzVRMjdJN1pZY045bUFXQ1NrVVlreG4wak41cFE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
           service:
             name: cert-manager-webhook
             namespace: cert-manager
@@ -1968,7 +2833,9 @@ items:
   - apiVersion: v1
     kind: Namespace
     metadata:
-      creationTimestamp: "2026-10-04T18:03:53Z"
+      annotations:
+        opmodel.dev/adopt: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
+      creationTimestamp: "2026-10-21T16:04:20Z"
       labels:
         app.kubernetes.io/instance: namespace
         app.kubernetes.io/managed-by: opm-controller
@@ -1981,8 +2848,31 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager
-      resourceVersion: "690"
-      uid: cb2f8025-664b-448d-8e6e-9848b0c89ff4
+      resourceVersion: "643"
+      uid: 316b09ba-0f5d-4db0-8c0d-36272ba14f14
+    spec:
+      finalizers:
+        - kubernetes
+    status:
+      phase: Active
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: namespace
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: namespace
+        component.opmodel.dev/name: namespace
+        kubernetes.io/metadata.name: opm-system
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-system
+      resourceVersion: "488"
+      uid: 90c0981e-8cef-4574-b193-1c09ef17dfe1
     spec:
       finalizers:
         - kubernetes
@@ -1991,7 +2881,7 @@ items:
   - apiVersion: v1
     kind: Pod
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generateName: cert-manager-cainjector-5d69c59bd-
       generation: 1
       labels:
@@ -2000,7 +2890,7 @@ items:
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: cert-manager
         pod-template-hash: 5d69c59bd
-      name: cert-manager-cainjector-5d69c59bd-htjjq
+      name: cert-manager-cainjector-5d69c59bd-kbvjx
       namespace: cert-manager
       ownerReferences:
         - apiVersion: apps/v1
@@ -2008,9 +2898,9 @@ items:
           controller: true
           kind: ReplicaSet
           name: cert-manager-cainjector-5d69c59bd
-          uid: 0287233e-91bd-4557-8a5b-d595d0a646c4
-      resourceVersion: "850"
-      uid: 1e3c6af3-e7d1-4ef2-ba70-a8d396c7a46b
+          uid: d2a3fa3b-b8fe-4b61-9603-8847823cbe91
+      resourceVersion: "794"
+      uid: 1d271be1-8c09-4e76-85ad-985bdf60083c
     spec:
       containers:
         - args:
@@ -2046,11 +2936,11 @@ items:
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-j6kg9
+              name: kube-api-access-55jmn
               readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      nodeName: opm-portal-e2e-fix-control-plane
+      nodeName: opm-portal-e2e-control-plane
       preemptionPolicy: PreemptLowerPriority
       priority: 0
       restartPolicy: Always
@@ -2070,7 +2960,7 @@ items:
           operator: Exists
           tolerationSeconds: 300
       volumes:
-        - name: kube-api-access-j6kg9
+        - name: kube-api-access-55jmn
           projected:
             defaultMode: 420
             sources:
@@ -2094,27 +2984,27 @@ items:
         memory: 32Mi
       conditions:
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:27Z"
           observedGeneration: 1
           status: "True"
           type: PodReadyToStartContainers
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:05Z"
+          lastTransitionTime: "2026-10-21T16:04:26Z"
           observedGeneration: 1
           status: "True"
           type: Initialized
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:13Z"
+          lastTransitionTime: "2026-10-21T16:04:32Z"
           observedGeneration: 1
           status: "True"
           type: Ready
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:13Z"
+          lastTransitionTime: "2026-10-21T16:04:32Z"
           observedGeneration: 1
           status: "True"
           type: ContainersReady
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:05Z"
+          lastTransitionTime: "2026-10-21T16:04:26Z"
           observedGeneration: 1
           status: "True"
           type: PodScheduled
@@ -2122,7 +3012,7 @@ items:
         - allocatedResources:
             cpu: 10m
             memory: 32Mi
-          containerID: containerd://97c4488d39a9f440beabde4d443054429a40cf5644c0893897a297eb86c6212c
+          containerID: containerd://725e8bafd1d49fef93cdc271fb9ab4a17fd7a221cfdabf9f94e65457566c85cc
           image: quay.io/jetstack/cert-manager-cainjector:v1.21.0
           imageID: quay.io/jetstack/cert-manager-cainjector@sha256:ad1dcc5b2fccc420f9b3fbee7ce8a869450c540fd4f2f41de2d95b1ca0c4d701
           lastState: {}
@@ -2139,7 +3029,7 @@ items:
           started: true
           state:
             running:
-              startedAt: "2026-10-04T18:04:13Z"
+              startedAt: "2026-10-21T16:04:32Z"
           user:
             linux:
               gid: 65532
@@ -2148,12 +3038,12 @@ items:
               uid: 65532
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-j6kg9
+              name: kube-api-access-55jmn
               readOnly: true
               recursiveReadOnly: Disabled
-      hostIP: 10.89.0.9
+      hostIP: 10.89.0.3
       hostIPs:
-        - ip: 10.89.0.9
+        - ip: 10.89.0.3
       observedGeneration: 1
       phase: Running
       podIP: 10.244.0.6
@@ -2167,11 +3057,11 @@ items:
         requests:
           cpu: 10m
           memory: 32Mi
-      startTime: "2026-10-04T18:04:05Z"
+      startTime: "2026-10-21T16:04:26Z"
   - apiVersion: v1
     kind: Pod
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generateName: cert-manager-controller-7c9bddd644-
       generation: 1
       labels:
@@ -2180,7 +3070,7 @@ items:
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: cert-manager
         pod-template-hash: 7c9bddd644
-      name: cert-manager-controller-7c9bddd644-cr5qm
+      name: cert-manager-controller-7c9bddd644-hvrqf
       namespace: cert-manager
       ownerReferences:
         - apiVersion: apps/v1
@@ -2188,9 +3078,9 @@ items:
           controller: true
           kind: ReplicaSet
           name: cert-manager-controller-7c9bddd644
-          uid: 580f7fd1-548d-4db2-8697-0cb2c267e487
-      resourceVersion: "822"
-      uid: 0cdf28f6-cb57-464a-82f8-53d819570baa
+          uid: d5d0fa3b-60cc-4639-9af5-08b23cf1b26f
+      resourceVersion: "781"
+      uid: 3b655f72-b860-46d2-a98a-a9d4c2d8067c
     spec:
       containers:
         - args:
@@ -2242,11 +3132,11 @@ items:
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-d2ct8
+              name: kube-api-access-6cnrq
               readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      nodeName: opm-portal-e2e-fix-control-plane
+      nodeName: opm-portal-e2e-control-plane
       preemptionPolicy: PreemptLowerPriority
       priority: 0
       restartPolicy: Always
@@ -2266,7 +3156,7 @@ items:
           operator: Exists
           tolerationSeconds: 300
       volumes:
-        - name: kube-api-access-d2ct8
+        - name: kube-api-access-6cnrq
           projected:
             defaultMode: 420
             sources:
@@ -2290,27 +3180,27 @@ items:
         memory: 32Mi
       conditions:
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:27Z"
           observedGeneration: 1
           status: "True"
           type: PodReadyToStartContainers
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:05Z"
+          lastTransitionTime: "2026-10-21T16:04:26Z"
           observedGeneration: 1
           status: "True"
           type: Initialized
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:09Z"
+          lastTransitionTime: "2026-10-21T16:04:30Z"
           observedGeneration: 1
           status: "True"
           type: Ready
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:09Z"
+          lastTransitionTime: "2026-10-21T16:04:30Z"
           observedGeneration: 1
           status: "True"
           type: ContainersReady
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:05Z"
+          lastTransitionTime: "2026-10-21T16:04:26Z"
           observedGeneration: 1
           status: "True"
           type: PodScheduled
@@ -2318,7 +3208,7 @@ items:
         - allocatedResources:
             cpu: 10m
             memory: 32Mi
-          containerID: containerd://c13b5a127b51593dddce3dc22a8a73cbbad957844150ef2b95c70b49e8a7bfab
+          containerID: containerd://d1be1cd4f9bd6ef811746f074106ad18556c985b6fc30f3e3e686ce031d8aa92
           image: quay.io/jetstack/cert-manager-controller:v1.21.0
           imageID: quay.io/jetstack/cert-manager-controller@sha256:e370f7800a53078e9d74324287a7d52b553864e55f5b4e521f911c3f6c7da203
           lastState: {}
@@ -2335,7 +3225,7 @@ items:
           started: true
           state:
             running:
-              startedAt: "2026-10-04T18:04:09Z"
+              startedAt: "2026-10-21T16:04:30Z"
           user:
             linux:
               gid: 65532
@@ -2344,12 +3234,12 @@ items:
               uid: 65532
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-d2ct8
+              name: kube-api-access-6cnrq
               readOnly: true
               recursiveReadOnly: Disabled
-      hostIP: 10.89.0.9
+      hostIP: 10.89.0.3
       hostIPs:
-        - ip: 10.89.0.9
+        - ip: 10.89.0.3
       observedGeneration: 1
       phase: Running
       podIP: 10.244.0.7
@@ -2363,11 +3253,11 @@ items:
         requests:
           cpu: 10m
           memory: 32Mi
-      startTime: "2026-10-04T18:04:05Z"
+      startTime: "2026-10-21T16:04:26Z"
   - apiVersion: v1
     kind: Pod
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generateName: cert-manager-webhook-6c5bb576f5-
       generation: 1
       labels:
@@ -2376,7 +3266,7 @@ items:
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: cert-manager
         pod-template-hash: 6c5bb576f5
-      name: cert-manager-webhook-6c5bb576f5-slp22
+      name: cert-manager-webhook-6c5bb576f5-nv7pk
       namespace: cert-manager
       ownerReferences:
         - apiVersion: apps/v1
@@ -2384,9 +3274,9 @@ items:
           controller: true
           kind: ReplicaSet
           name: cert-manager-webhook-6c5bb576f5
-          uid: fb752c0b-b921-4942-bc3e-2500a0bbfc35
-      resourceVersion: "887"
-      uid: 1c9b9f3b-294e-4e65-8b88-74ed99f41336
+          uid: 378b7b92-8f48-4649-b1c3-a4970fe791eb
+      resourceVersion: "857"
+      uid: 8c441dff-2658-4efb-9bec-51d0bda5e97d
     spec:
       containers:
         - args:
@@ -2453,11 +3343,11 @@ items:
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-6d54c
+              name: kube-api-access-9rq9t
               readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      nodeName: opm-portal-e2e-fix-control-plane
+      nodeName: opm-portal-e2e-control-plane
       preemptionPolicy: PreemptLowerPriority
       priority: 0
       restartPolicy: Always
@@ -2477,7 +3367,7 @@ items:
           operator: Exists
           tolerationSeconds: 300
       volumes:
-        - name: kube-api-access-6d54c
+        - name: kube-api-access-9rq9t
           projected:
             defaultMode: 420
             sources:
@@ -2501,27 +3391,27 @@ items:
         memory: 32Mi
       conditions:
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:27Z"
           observedGeneration: 1
           status: "True"
           type: PodReadyToStartContainers
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:05Z"
+          lastTransitionTime: "2026-10-21T16:04:26Z"
           observedGeneration: 1
           status: "True"
           type: Initialized
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:17Z"
+          lastTransitionTime: "2026-10-21T16:04:40Z"
           observedGeneration: 1
           status: "True"
           type: Ready
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:17Z"
+          lastTransitionTime: "2026-10-21T16:04:40Z"
           observedGeneration: 1
           status: "True"
           type: ContainersReady
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:05Z"
+          lastTransitionTime: "2026-10-21T16:04:26Z"
           observedGeneration: 1
           status: "True"
           type: PodScheduled
@@ -2529,7 +3419,7 @@ items:
         - allocatedResources:
             cpu: 10m
             memory: 32Mi
-          containerID: containerd://8e581a9f0cd8f221df8b2bb56e70b2d61cc1b58be553e0066ec4cba75d5273a9
+          containerID: containerd://85ed0068e9f5ebfb098b07bf402fa251687de7ebd770a685f6bee04fcda4658c
           image: quay.io/jetstack/cert-manager-webhook:v1.21.0
           imageID: quay.io/jetstack/cert-manager-webhook@sha256:c33cca307541e2d58861a55b1af5f390b7e19c8741e48b433693b73a7cce88b3
           lastState: {}
@@ -2546,7 +3436,7 @@ items:
           started: true
           state:
             running:
-              startedAt: "2026-10-04T18:04:11Z"
+              startedAt: "2026-10-21T16:04:34Z"
           user:
             linux:
               gid: 65532
@@ -2555,12 +3445,12 @@ items:
               uid: 65532
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-6d54c
+              name: kube-api-access-9rq9t
               readOnly: true
               recursiveReadOnly: Disabled
-      hostIP: 10.89.0.9
+      hostIP: 10.89.0.3
       hostIPs:
-        - ip: 10.89.0.9
+        - ip: 10.89.0.3
       observedGeneration: 1
       phase: Running
       podIP: 10.244.0.8
@@ -2573,11 +3463,11 @@ items:
           memory: 128Mi
         requests:
           memory: 32Mi
-      startTime: "2026-10-04T18:04:05Z"
+      startTime: "2026-10-21T16:04:26Z"
   - apiVersion: v1
     kind: Pod
     metadata:
-      creationTimestamp: "2026-10-04T18:04:06Z"
+      creationTimestamp: "2026-10-21T16:04:28Z"
       generateName: podinfo-podinfo-d9585d794-
       generation: 1
       labels:
@@ -2586,7 +3476,7 @@ items:
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: podinfo
         pod-template-hash: d9585d794
-      name: podinfo-podinfo-d9585d794-4lg6h
+      name: podinfo-podinfo-d9585d794-67j74
       namespace: default
       ownerReferences:
         - apiVersion: apps/v1
@@ -2594,9 +3484,9 @@ items:
           controller: true
           kind: ReplicaSet
           name: podinfo-podinfo-d9585d794
-          uid: 7efbd610-c621-4812-af6f-6bd32edc4dc0
-      resourceVersion: "889"
-      uid: a92a6999-61a3-41bc-8505-db9dc5cc54a0
+          uid: 1177face-1ae5-4860-b410-75e618a451f1
+      resourceVersion: "837"
+      uid: c4709737-90ef-4544-aa5b-f8a0236313e5
     spec:
       containers:
         - image: ghcr.io/stefanprodan/podinfo:6.7.1
@@ -2629,11 +3519,11 @@ items:
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-zgzp2
+              name: kube-api-access-vlmr8
               readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      nodeName: opm-portal-e2e-fix-control-plane
+      nodeName: opm-portal-e2e-control-plane
       preemptionPolicy: PreemptLowerPriority
       priority: 0
       restartPolicy: Always
@@ -2652,7 +3542,7 @@ items:
           operator: Exists
           tolerationSeconds: 300
       volumes:
-        - name: kube-api-access-zgzp2
+        - name: kube-api-access-vlmr8
           projected:
             defaultMode: 420
             sources:
@@ -2673,32 +3563,32 @@ items:
     status:
       conditions:
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:07Z"
+          lastTransitionTime: "2026-10-21T16:04:28Z"
           observedGeneration: 1
           status: "True"
           type: PodReadyToStartContainers
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:28Z"
           observedGeneration: 1
           status: "True"
           type: Initialized
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:17Z"
+          lastTransitionTime: "2026-10-21T16:04:38Z"
           observedGeneration: 1
           status: "True"
           type: Ready
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:17Z"
+          lastTransitionTime: "2026-10-21T16:04:38Z"
           observedGeneration: 1
           status: "True"
           type: ContainersReady
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:28Z"
           observedGeneration: 1
           status: "True"
           type: PodScheduled
       containerStatuses:
-        - containerID: containerd://bb105c7615a8b7ec4a3e99c30a9bd192939a80149d15fc788346346ec2db4dca
+        - containerID: containerd://77b715e8265d1bdc49eb289afaa85d046274927b230926b3c8ea91649d1087a4
           image: ghcr.io/stefanprodan/podinfo:6.7.1
           imageID: ghcr.io/stefanprodan/podinfo@sha256:862ca45e61b32392f7941a1bdfdbe5ff8b6899070135f1bdca1c287d0057fc94
           lastState: {}
@@ -2709,7 +3599,7 @@ items:
           started: true
           state:
             running:
-              startedAt: "2026-10-04T18:04:16Z"
+              startedAt: "2026-10-21T16:04:37Z"
           user:
             linux:
               gid: 101
@@ -2718,12 +3608,12 @@ items:
               uid: 100
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-zgzp2
+              name: kube-api-access-vlmr8
               readOnly: true
               recursiveReadOnly: Disabled
-      hostIP: 10.89.0.9
+      hostIP: 10.89.0.3
       hostIPs:
-        - ip: 10.89.0.9
+        - ip: 10.89.0.3
       observedGeneration: 1
       phase: Running
       podIP: 10.244.0.10
@@ -2731,11 +3621,11 @@ items:
         - ip: 10.244.0.10
       qosClass: BestEffort
       resources: {}
-      startTime: "2026-10-04T18:04:06Z"
+      startTime: "2026-10-21T16:04:28Z"
   - apiVersion: v1
     kind: Pod
     metadata:
-      creationTimestamp: "2026-10-04T18:04:06Z"
+      creationTimestamp: "2026-10-21T16:04:28Z"
       generateName: podinfo-podinfo-d9585d794-
       generation: 1
       labels:
@@ -2744,7 +3634,7 @@ items:
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: podinfo
         pod-template-hash: d9585d794
-      name: podinfo-podinfo-d9585d794-kp2jx
+      name: podinfo-podinfo-d9585d794-74b7v
       namespace: default
       ownerReferences:
         - apiVersion: apps/v1
@@ -2752,9 +3642,9 @@ items:
           controller: true
           kind: ReplicaSet
           name: podinfo-podinfo-d9585d794
-          uid: 7efbd610-c621-4812-af6f-6bd32edc4dc0
-      resourceVersion: "869"
-      uid: c1028e62-a9ee-4817-84d8-2934e49293fb
+          uid: 1177face-1ae5-4860-b410-75e618a451f1
+      resourceVersion: "841"
+      uid: 6d78552a-4f43-4c60-8b28-5bb4549c4469
     spec:
       containers:
         - image: ghcr.io/stefanprodan/podinfo:6.7.1
@@ -2787,11 +3677,11 @@ items:
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-kjn6g
+              name: kube-api-access-mtdwf
               readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      nodeName: opm-portal-e2e-fix-control-plane
+      nodeName: opm-portal-e2e-control-plane
       preemptionPolicy: PreemptLowerPriority
       priority: 0
       restartPolicy: Always
@@ -2810,7 +3700,7 @@ items:
           operator: Exists
           tolerationSeconds: 300
       volumes:
-        - name: kube-api-access-kjn6g
+        - name: kube-api-access-mtdwf
           projected:
             defaultMode: 420
             sources:
@@ -2831,32 +3721,32 @@ items:
     status:
       conditions:
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:07Z"
+          lastTransitionTime: "2026-10-21T16:04:28Z"
           observedGeneration: 1
           status: "True"
           type: PodReadyToStartContainers
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:28Z"
           observedGeneration: 1
           status: "True"
           type: Initialized
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:16Z"
+          lastTransitionTime: "2026-10-21T16:04:38Z"
           observedGeneration: 1
           status: "True"
           type: Ready
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:16Z"
+          lastTransitionTime: "2026-10-21T16:04:38Z"
           observedGeneration: 1
           status: "True"
           type: ContainersReady
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:06Z"
+          lastTransitionTime: "2026-10-21T16:04:28Z"
           observedGeneration: 1
           status: "True"
           type: PodScheduled
       containerStatuses:
-        - containerID: containerd://f69b52705a2c7fcc86bb15824f3ffbb9a9f136d89f0fbcd8e604656b04b11dad
+        - containerID: containerd://1bd7f32c978de8ebce90d6626b512b18c2f5d8dc38093f7db7e4b97270ff56cb
           image: ghcr.io/stefanprodan/podinfo:6.7.1
           imageID: ghcr.io/stefanprodan/podinfo@sha256:862ca45e61b32392f7941a1bdfdbe5ff8b6899070135f1bdca1c287d0057fc94
           lastState: {}
@@ -2867,7 +3757,7 @@ items:
           started: true
           state:
             running:
-              startedAt: "2026-10-04T18:04:16Z"
+              startedAt: "2026-10-21T16:04:37Z"
           user:
             linux:
               gid: 101
@@ -2876,12 +3766,12 @@ items:
               uid: 100
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-kjn6g
+              name: kube-api-access-mtdwf
               readOnly: true
               recursiveReadOnly: Disabled
-      hostIP: 10.89.0.9
+      hostIP: 10.89.0.3
       hostIPs:
-        - ip: 10.89.0.9
+        - ip: 10.89.0.3
       observedGeneration: 1
       phase: Running
       podIP: 10.244.0.9
@@ -2889,11 +3779,218 @@ items:
         - ip: 10.244.0.9
       qosClass: BestEffort
       resources: {}
-      startTime: "2026-10-04T18:04:06Z"
+      startTime: "2026-10-21T16:04:28Z"
   - apiVersion: v1
     kind: Pod
     metadata:
-      creationTimestamp: "2026-10-04T18:04:30Z"
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generateName: opm-controller-manager-7b6bf9f56b-
+      generation: 1
+      labels:
+        app.kubernetes.io/name: manager
+        component.opmodel.dev/name: manager
+        control-plane: manager
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: opm-controller
+        pod-template-hash: 7b6bf9f56b
+      name: opm-controller-manager-7b6bf9f56b-5nfk7
+      namespace: opm-system
+      ownerReferences:
+        - apiVersion: apps/v1
+          blockOwnerDeletion: true
+          controller: true
+          kind: ReplicaSet
+          name: opm-controller-manager-7b6bf9f56b
+          uid: 33b54f49-a183-4368-aef7-6a3a3fff104e
+      resourceVersion: "579"
+      uid: f16a996a-8bd2-43f2-bda5-472b9cea2305
+    spec:
+      containers:
+        - args:
+            - --metrics-bind-address=:8443
+            - --leader-elect
+            - --health-probe-bind-address=:8081
+          command:
+            - /manager
+          env:
+            - name: GOMEMLIMIT
+              value: 3276MiB
+          image: ghcr.io/open-platform-model/opm-controller:v1.0.0-beta.9@sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: manager
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /readyz
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: kube-api-access-5cq2r
+              readOnly: true
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
+      nodeName: opm-portal-e2e-control-plane
+      preemptionPolicy: PreemptLowerPriority
+      priority: 0
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: opm-controller-manager
+      serviceAccountName: opm-controller-manager
+      terminationGracePeriodSeconds: 10
+      tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+          tolerationSeconds: 300
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: 300
+      volumes:
+        - emptyDir: {}
+          name: tmp
+        - name: kube-api-access-5cq2r
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  expirationSeconds: 3607
+                  path: token
+              - configMap:
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+                  name: kube-root-ca.crt
+              - downwardAPI:
+                  items:
+                    - fieldRef:
+                        apiVersion: v1
+                        fieldPath: metadata.namespace
+                      path: namespace
+    status:
+      allocatedResources:
+        cpu: 100m
+        memory: 256Mi
+      conditions:
+        - lastProbeTime: null
+          lastTransitionTime: "2026-10-21T16:03:58Z"
+          observedGeneration: 1
+          status: "True"
+          type: PodReadyToStartContainers
+        - lastProbeTime: null
+          lastTransitionTime: "2026-10-21T16:03:58Z"
+          observedGeneration: 1
+          status: "True"
+          type: Initialized
+        - lastProbeTime: null
+          lastTransitionTime: "2026-10-21T16:04:13Z"
+          observedGeneration: 1
+          status: "True"
+          type: Ready
+        - lastProbeTime: null
+          lastTransitionTime: "2026-10-21T16:04:13Z"
+          observedGeneration: 1
+          status: "True"
+          type: ContainersReady
+        - lastProbeTime: null
+          lastTransitionTime: "2026-10-21T16:03:57Z"
+          observedGeneration: 1
+          status: "True"
+          type: PodScheduled
+      containerStatuses:
+        - allocatedResources:
+            cpu: 100m
+            memory: 256Mi
+          containerID: containerd://ec90a5c44731413bfb1984dce2b1b49d5461b1c831ff46809a442e47b9de9068
+          image: sha256:ccf74e2c685897549575ba22759e29b6a30afc30ea599b21b0687bc6b9145f21
+          imageID: ghcr.io/open-platform-model/opm-controller@sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e
+          lastState: {}
+          name: manager
+          ready: true
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          restartCount: 0
+          started: true
+          state:
+            running:
+              startedAt: "2026-10-21T16:04:02Z"
+          user:
+            linux:
+              gid: 65532
+              supplementalGroups:
+                - 65532
+              uid: 65532
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: kube-api-access-5cq2r
+              readOnly: true
+              recursiveReadOnly: Disabled
+      hostIP: 10.89.0.3
+      hostIPs:
+        - ip: 10.89.0.3
+      observedGeneration: 1
+      phase: Running
+      podIP: 10.244.0.5
+      podIPs:
+        - ip: 10.244.0.5
+      qosClass: Burstable
+      resources:
+        limits:
+          cpu: "2"
+          memory: 4Gi
+        requests:
+          cpu: 79m
+          memory: 256Mi
+      startTime: "2026-10-21T16:03:58Z"
+  - apiVersion: v1
+    kind: Pod
+    metadata:
+      creationTimestamp: "2026-10-21T16:04:56Z"
       generateName: web-web-6f7fbf94f9-
       generation: 1
       labels:
@@ -2902,7 +3999,7 @@ items:
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: web
         pod-template-hash: 6f7fbf94f9
-      name: web-web-6f7fbf94f9-v6hw2
+      name: web-web-6f7fbf94f9-p2vl7
       namespace: web
       ownerReferences:
         - apiVersion: apps/v1
@@ -2910,9 +4007,9 @@ items:
           controller: true
           kind: ReplicaSet
           name: web-web-6f7fbf94f9
-          uid: 2b87bc18-e647-4152-8c7a-797ab54f3cbd
-      resourceVersion: "998"
-      uid: 79d990ce-4cca-4678-9555-daa91258ec46
+          uid: 0b9503ae-8bb1-4902-abc6-e739cdc8d7bc
+      resourceVersion: "972"
+      uid: 96bb7a81-5ee4-475d-87c6-b8db904498ce
     spec:
       containers:
         - image: nginx:1.27@sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7d
@@ -2927,11 +4024,11 @@ items:
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-c7vwm
+              name: kube-api-access-45stk
               readOnly: true
       dnsPolicy: ClusterFirst
       enableServiceLinks: true
-      nodeName: opm-portal-e2e-fix-control-plane
+      nodeName: opm-portal-e2e-control-plane
       preemptionPolicy: PreemptLowerPriority
       priority: 0
       restartPolicy: Always
@@ -2950,7 +4047,7 @@ items:
           operator: Exists
           tolerationSeconds: 300
       volumes:
-        - name: kube-api-access-c7vwm
+        - name: kube-api-access-45stk
           projected:
             defaultMode: 420
             sources:
@@ -2971,32 +4068,32 @@ items:
     status:
       conditions:
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:30Z"
+          lastTransitionTime: "2026-10-21T16:04:57Z"
           observedGeneration: 1
           status: "True"
           type: PodReadyToStartContainers
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:30Z"
+          lastTransitionTime: "2026-10-21T16:04:56Z"
           observedGeneration: 1
           status: "True"
           type: Initialized
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:34Z"
+          lastTransitionTime: "2026-10-21T16:05:00Z"
           observedGeneration: 1
           status: "True"
           type: Ready
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:34Z"
+          lastTransitionTime: "2026-10-21T16:05:00Z"
           observedGeneration: 1
           status: "True"
           type: ContainersReady
         - lastProbeTime: null
-          lastTransitionTime: "2026-10-04T18:04:30Z"
+          lastTransitionTime: "2026-10-21T16:04:56Z"
           observedGeneration: 1
           status: "True"
           type: PodScheduled
       containerStatuses:
-        - containerID: containerd://cccf1eeada25857973c3230dfadab1c90d3b1f45031ae538cdc070b2c345c57f
+        - containerID: containerd://b449d881b1b4c8a3dc386af409c9578bebd901bd63aa10d8d66f7ada2f07c1e4
           image: sha256:1e5f3c5b981a9f91ca91cf13ce87c2eedfc7a083f4f279552084dd08fc477512
           imageID: docker.io/library/nginx@sha256:6784fb0834aa7dbbe12e3d7471e69c290df3e6ba810dc38b34ae33d3c1c05f7d
           lastState: {}
@@ -3007,7 +4104,7 @@ items:
           started: true
           state:
             running:
-              startedAt: "2026-10-04T18:04:34Z"
+              startedAt: "2026-10-21T16:05:00Z"
           user:
             linux:
               gid: 0
@@ -3016,12 +4113,12 @@ items:
               uid: 0
           volumeMounts:
             - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-              name: kube-api-access-c7vwm
+              name: kube-api-access-45stk
               readOnly: true
               recursiveReadOnly: Disabled
-      hostIP: 10.89.0.9
+      hostIP: 10.89.0.3
       hostIPs:
-        - ip: 10.89.0.9
+        - ip: 10.89.0.3
       observedGeneration: 1
       phase: Running
       podIP: 10.244.0.11
@@ -3029,7 +4126,7 @@ items:
         - ip: 10.244.0.11
       qosClass: BestEffort
       resources: {}
-      startTime: "2026-10-04T18:04:30Z"
+      startTime: "2026-10-21T16:04:56Z"
   - apiVersion: apps/v1
     kind: ReplicaSet
     metadata:
@@ -3037,7 +4134,7 @@ items:
         deployment.kubernetes.io/desired-replicas: "1"
         deployment.kubernetes.io/max-replicas: "2"
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 1
       labels:
         app.kubernetes.io/name: cainjector
@@ -3053,9 +4150,9 @@ items:
           controller: true
           kind: Deployment
           name: cert-manager-cainjector
-          uid: 4a25003f-1123-4a67-b502-82147bfc8347
-      resourceVersion: "851"
-      uid: 0287233e-91bd-4557-8a5b-d595d0a646c4
+          uid: b40aa961-ab4b-4a7a-bcca-851b43458e9e
+      resourceVersion: "795"
+      uid: d2a3fa3b-b8fe-4b61-9603-8847823cbe91
     spec:
       replicas: 1
       selector:
@@ -3128,7 +4225,7 @@ items:
         deployment.kubernetes.io/desired-replicas: "1"
         deployment.kubernetes.io/max-replicas: "2"
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 1
       labels:
         app.kubernetes.io/name: controller
@@ -3144,9 +4241,9 @@ items:
           controller: true
           kind: Deployment
           name: cert-manager-controller
-          uid: a8928c15-f359-4852-b91a-02f777fa8d48
-      resourceVersion: "823"
-      uid: 580f7fd1-548d-4db2-8697-0cb2c267e487
+          uid: a89344f6-29df-44d2-9c6c-ea2f370d24ef
+      resourceVersion: "782"
+      uid: d5d0fa3b-60cc-4639-9af5-08b23cf1b26f
     spec:
       replicas: 1
       selector:
@@ -3235,7 +4332,7 @@ items:
         deployment.kubernetes.io/desired-replicas: "1"
         deployment.kubernetes.io/max-replicas: "2"
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 1
       labels:
         app.kubernetes.io/name: webhook
@@ -3251,9 +4348,9 @@ items:
           controller: true
           kind: Deployment
           name: cert-manager-webhook
-          uid: f140d763-33ae-4b3e-954a-7e087c99ca7c
-      resourceVersion: "886"
-      uid: fb752c0b-b921-4942-bc3e-2500a0bbfc35
+          uid: 1673f09e-54b5-4ea8-928d-2c109057fd56
+      resourceVersion: "856"
+      uid: 378b7b92-8f48-4649-b1c3-a4970fe791eb
     spec:
       replicas: 1
       selector:
@@ -3357,7 +4454,7 @@ items:
         deployment.kubernetes.io/desired-replicas: "2"
         deployment.kubernetes.io/max-replicas: "3"
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:06Z"
+      creationTimestamp: "2026-10-21T16:04:28Z"
       generation: 1
       labels:
         app.kubernetes.io/name: podinfo
@@ -3373,9 +4470,9 @@ items:
           controller: true
           kind: Deployment
           name: podinfo-podinfo
-          uid: 29b73074-fde9-4910-9d57-6676b1c5fd1f
-      resourceVersion: "892"
-      uid: 7efbd610-c621-4812-af6f-6bd32edc4dc0
+          uid: b7471604-a33d-4ef4-bdf4-b511f05e82bc
+      resourceVersion: "844"
+      uid: 1177face-1ae5-4860-b410-75e618a451f1
     spec:
       replicas: 2
       selector:
@@ -3442,7 +4539,127 @@ items:
         deployment.kubernetes.io/desired-replicas: "1"
         deployment.kubernetes.io/max-replicas: "2"
         deployment.kubernetes.io/revision: "1"
-      creationTimestamp: "2026-10-04T18:04:30Z"
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/name: manager
+        component.opmodel.dev/name: manager
+        control-plane: manager
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: opm-controller
+        pod-template-hash: 7b6bf9f56b
+      name: opm-controller-manager-7b6bf9f56b
+      namespace: opm-system
+      ownerReferences:
+        - apiVersion: apps/v1
+          blockOwnerDeletion: true
+          controller: true
+          kind: Deployment
+          name: opm-controller-manager
+          uid: f20074f8-f574-4663-b4b8-b7028a2417e9
+      resourceVersion: "578"
+      uid: 33b54f49-a183-4368-aef7-6a3a3fff104e
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: manager
+          component.opmodel.dev/name: manager
+          control-plane: manager
+          core.opmodel.dev/workload-type: stateless
+          module-instance.opmodel.dev/name: opm-controller
+          pod-template-hash: 7b6bf9f56b
+      template:
+        metadata:
+          annotations:
+            kubectl.kubernetes.io/default-container: manager
+          labels:
+            app.kubernetes.io/name: manager
+            component.opmodel.dev/name: manager
+            control-plane: manager
+            core.opmodel.dev/workload-type: stateless
+            module-instance.opmodel.dev/name: opm-controller
+            pod-template-hash: 7b6bf9f56b
+        spec:
+          containers:
+            - args:
+                - --metrics-bind-address=:8443
+                - --leader-elect
+                - --health-probe-bind-address=:8081
+              command:
+                - /manager
+              env:
+                - name: GOMEMLIMIT
+                  value: 3276MiB
+              image: ghcr.io/open-platform-model/opm-controller:v1.0.0-beta.9@sha256:99749b5dfb51fa96d16dc40068f73d56aa0d9be13e3ae71aad56b2bded14190e
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /healthz
+                  port: 8081
+                  scheme: HTTP
+                initialDelaySeconds: 15
+                periodSeconds: 20
+                successThreshold: 1
+                timeoutSeconds: 1
+              name: manager
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /readyz
+                  port: 8081
+                  scheme: HTTP
+                initialDelaySeconds: 5
+                periodSeconds: 10
+                successThreshold: 1
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /tmp
+                  name: tmp
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          schedulerName: default-scheduler
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccount: opm-controller-manager
+          serviceAccountName: opm-controller-manager
+          terminationGracePeriodSeconds: 10
+          volumes:
+            - emptyDir: {}
+              name: tmp
+    status:
+      availableReplicas: 1
+      fullyLabeledReplicas: 1
+      observedGeneration: 1
+      readyReplicas: 1
+      replicas: 1
+      terminatingReplicas: 0
+  - apiVersion: apps/v1
+    kind: ReplicaSet
+    metadata:
+      annotations:
+        deployment.kubernetes.io/desired-replicas: "1"
+        deployment.kubernetes.io/max-replicas: "2"
+        deployment.kubernetes.io/revision: "1"
+      creationTimestamp: "2026-10-21T16:04:56Z"
       generation: 1
       labels:
         app.kubernetes.io/name: web
@@ -3458,9 +4675,9 @@ items:
           controller: true
           kind: Deployment
           name: web-web
-          uid: 1820781d-0e30-483e-b9fe-df22edf32bd9
-      resourceVersion: "999"
-      uid: 2b87bc18-e647-4152-8c7a-797ab54f3cbd
+          uid: dbf30f57-0eac-46ce-b534-b07238c0265d
+      resourceVersion: "975"
+      uid: 0b9503ae-8bb1-4902-abc6-e739cdc8d7bc
     spec:
       replicas: 1
       selector:
@@ -3505,7 +4722,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: cainjector-leaderelection-role
         app.kubernetes.io/managed-by: opm-controller
@@ -3518,8 +4735,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-cainjector:leaderelection
       namespace: cert-manager
-      resourceVersion: "723"
-      uid: 7765e473-49c7-43ba-9eb7-0c2218976fb0
+      resourceVersion: "677"
+      uid: 86d4a6e6-13ac-4e51-85ff-8eaf9b4580cb
     rules:
       - apiGroups:
           - coordination.k8s.io
@@ -3541,7 +4758,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: webhook-dynamic-serving-role
         app.kubernetes.io/managed-by: opm-controller
@@ -3554,8 +4771,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook:dynamic-serving
       namespace: cert-manager
-      resourceVersion: "724"
-      uid: 79cb6ce2-04a8-44cf-8e37-495aafa4ec85
+      resourceVersion: "678"
+      uid: 0f9665c2-6f72-45a6-afd8-db7b62176f83
     rules:
       - apiGroups:
           - ""
@@ -3577,7 +4794,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: Role
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-leaderelection-role
         app.kubernetes.io/managed-by: opm-controller
@@ -3590,8 +4807,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager:leaderelection
       namespace: cert-manager
-      resourceVersion: "725"
-      uid: 6ee9cdd4-02cf-4d40-9506-24f8f651c48d
+      resourceVersion: "679"
+      uid: 5731be68-b6d2-4b4f-beee-c499ef54f5ed
     rules:
       - apiGroups:
           - coordination.k8s.io
@@ -3610,9 +4827,59 @@ items:
         verbs:
           - create
   - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: leader-election
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: leader-election
+        component.opmodel.dev/name: leader-election
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-leader-election-role
+      namespace: opm-system
+      resourceVersion: "504"
+      uid: f59472a7-a129-424d-8053-97dfc338d2ab
+    rules:
+      - apiGroups:
+          - ""
+        resources:
+          - configmaps
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+      - apiGroups:
+          - coordination.k8s.io
+        resources:
+          - leases
+        verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+      - apiGroups:
+          - ""
+        resources:
+          - events
+        verbs:
+          - create
+          - patch
+  - apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: cainjector-leaderelection-role
         app.kubernetes.io/managed-by: opm-controller
@@ -3625,8 +4892,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-cainjector:leaderelection
       namespace: cert-manager
-      resourceVersion: "726"
-      uid: 458d08fa-42b7-4ac6-8901-90a0f1d03015
+      resourceVersion: "680"
+      uid: 3f001b4b-00a4-46fc-ae37-4234ecee0b4f
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: Role
@@ -3638,7 +4905,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: webhook-dynamic-serving-role
         app.kubernetes.io/managed-by: opm-controller
@@ -3651,8 +4918,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook:dynamic-serving
       namespace: cert-manager
-      resourceVersion: "727"
-      uid: 3a001545-cd27-430c-9ed0-8f3d49c18c6c
+      resourceVersion: "681"
+      uid: bd1c5268-f3f6-4b40-ad4c-afdcc1238d8f
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: Role
@@ -3664,7 +4931,7 @@ items:
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: RoleBinding
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller-leaderelection-role
         app.kubernetes.io/managed-by: opm-controller
@@ -3677,8 +4944,8 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager:leaderelection
       namespace: cert-manager
-      resourceVersion: "728"
-      uid: 085301ec-b987-4462-bacd-7fb1640b3378
+      resourceVersion: "682"
+      uid: 47a51cf3-ac0b-4682-b404-1899d9350f4e
     roleRef:
       apiGroup: rbac.authorization.k8s.io
       kind: Role
@@ -3687,10 +4954,36 @@ items:
       - kind: ServiceAccount
         name: cert-manager
         namespace: cert-manager
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: leader-election
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: leader-election
+        component.opmodel.dev/name: leader-election
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-leader-election-role
+      namespace: opm-system
+      resourceVersion: "505"
+      uid: 144f54c6-67fc-48ea-9de9-592d4f2ae29d
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: opm-controller-leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: opm-controller-manager
+        namespace: opm-system
   - apiVersion: v1
     kind: Service
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: webhook
         app.kubernetes.io/managed-by: opm-controller
@@ -3704,12 +4997,12 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook
       namespace: cert-manager
-      resourceVersion: "730"
-      uid: 507243b4-512d-40cf-b6b9-55722445c914
+      resourceVersion: "684"
+      uid: 92b7332a-b499-44f3-86c1-f1cfed816cba
     spec:
-      clusterIP: 10.96.57.60
+      clusterIP: 10.96.11.33
       clusterIPs:
-        - 10.96.57.60
+        - 10.96.11.33
       internalTrafficPolicy: Cluster
       ipFamilies:
         - IPv4
@@ -3735,7 +5028,7 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      creationTimestamp: "2026-10-04T18:04:06Z"
+      creationTimestamp: "2026-10-21T16:04:28Z"
       labels:
         app.kubernetes.io/instance: podinfo
         app.kubernetes.io/managed-by: opm-controller
@@ -3743,18 +5036,18 @@ items:
         component.opmodel.dev/name: podinfo
         core.opmodel.dev/workload-type: stateless
         module-instance.opmodel.dev/name: podinfo
-        module-instance.opmodel.dev/uuid: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+        module-instance.opmodel.dev/uuid: de596576-f602-5d23-aee5-d6066bc3cb6d
         module.opmodel.dev/name: podinfo
-        module.opmodel.dev/uuid: 88d73eac-695b-5baf-a3f1-1101b88eea73
-        module.opmodel.dev/version: 0.1.11
+        module.opmodel.dev/uuid: c028cba8-f3af-5081-a85c-e69163f990ba
+        module.opmodel.dev/version: 0.1.12
       name: podinfo-podinfo
       namespace: default
-      resourceVersion: "786"
-      uid: 7bd3a8f4-08c0-4fc4-8881-6db667469b2d
+      resourceVersion: "745"
+      uid: deaf7ffc-7170-4013-b60c-fb8fc96d9a38
     spec:
-      clusterIP: 10.96.43.110
+      clusterIP: 10.96.55.125
       clusterIPs:
-        - 10.96.43.110
+        - 10.96.55.125
       internalTrafficPolicy: Cluster
       ipFamilies:
         - IPv4
@@ -3776,7 +5069,50 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      creationTimestamp: "2026-10-04T18:04:30Z"
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: manager
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: manager
+        component.opmodel.dev/name: manager
+        control-plane: manager
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-manager-metrics-service
+      namespace: opm-system
+      resourceVersion: "507"
+      uid: 6f224f9c-55a7-408e-8b93-c590a8ce9969
+    spec:
+      clusterIP: 10.96.121.170
+      clusterIPs:
+        - 10.96.121.170
+      internalTrafficPolicy: Cluster
+      ipFamilies:
+        - IPv4
+      ipFamilyPolicy: SingleStack
+      ports:
+        - name: https
+          port: 8443
+          protocol: TCP
+          targetPort: 8443
+      selector:
+        app.kubernetes.io/name: manager
+        component.opmodel.dev/name: manager
+        control-plane: manager
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: opm-controller
+      sessionAffinity: None
+      type: ClusterIP
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      creationTimestamp: "2026-10-21T16:04:56Z"
       labels:
         app.kubernetes.io/instance: web
         app.kubernetes.io/managed-by: opm-cli
@@ -3790,12 +5126,12 @@ items:
         module.opmodel.dev/version: 1.0.5
       name: web-web
       namespace: web
-      resourceVersion: "960"
-      uid: 66bb45c1-7338-4cc1-988e-45a6b39c45f2
+      resourceVersion: "936"
+      uid: 38b0bf89-3f21-419f-b97c-9f7a52889f4c
     spec:
-      clusterIP: 10.96.227.47
+      clusterIP: 10.96.97.147
       clusterIPs:
-        - 10.96.227.47
+        - 10.96.97.147
       internalTrafficPolicy: Cluster
       ipFamilies:
         - IPv4
@@ -3818,7 +5154,7 @@ items:
     automountServiceAccountToken: true
     kind: ServiceAccount
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: controller
         app.kubernetes.io/managed-by: opm-controller
@@ -3832,13 +5168,13 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager
       namespace: cert-manager
-      resourceVersion: "720"
-      uid: 687a1701-1268-4448-8769-0a1c33abd158
+      resourceVersion: "674"
+      uid: 7eb2edfa-8f06-4496-a957-541fd4f52cd9
   - apiVersion: v1
     automountServiceAccountToken: true
     kind: ServiceAccount
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: cainjector
         app.kubernetes.io/managed-by: opm-controller
@@ -3852,13 +5188,13 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-cainjector
       namespace: cert-manager
-      resourceVersion: "721"
-      uid: 7feaf1f6-f86c-4865-8d0f-65d04f488584
+      resourceVersion: "675"
+      uid: c696b2b3-fc6c-4e48-aea7-4bb3f27785d1
   - apiVersion: v1
     automountServiceAccountToken: true
     kind: ServiceAccount
     metadata:
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       labels:
         app.kubernetes.io/instance: webhook
         app.kubernetes.io/managed-by: opm-controller
@@ -3872,12 +5208,33 @@ items:
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook
       namespace: cert-manager
-      resourceVersion: "722"
-      uid: a4e45249-279a-47c7-8798-b0a326cdf7db
+      resourceVersion: "676"
+      uid: 61b15180-f399-4e37-a0ea-6a5be6b6c0a8
+  - apiVersion: v1
+    automountServiceAccountToken: true
+    kind: ServiceAccount
+    metadata:
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      labels:
+        app.kubernetes.io/instance: manager
+        app.kubernetes.io/managed-by: opm-cli
+        app.kubernetes.io/name: manager
+        component.opmodel.dev/name: manager
+        control-plane: manager
+        core.opmodel.dev/workload-type: stateless
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/uuid: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+        module.opmodel.dev/name: opm_controller
+        module.opmodel.dev/uuid: 41b2be28-7f47-59da-a8ba-04ff60a5e2a8
+        module.opmodel.dev/version: 0.1.0
+      name: opm-controller-manager
+      namespace: opm-system
+      resourceVersion: "503"
+      uid: 0f29b22a-bcbb-4114-b7e3-640198faf781
   - apiVersion: opmodel.dev/v1alpha1
     kind: TransformerRegistration
     metadata:
-      creationTimestamp: "2026-10-04T18:04:21Z"
+      creationTimestamp: "2026-10-21T16:04:45Z"
       finalizers:
         - opmodel.dev/dependents
       generation: 1
@@ -3887,15 +5244,15 @@ items:
         app.kubernetes.io/name: registration
         component.opmodel.dev/name: registration
         module-instance.opmodel.dev/name: backup-provider
-        module-instance.opmodel.dev/uuid: ad4c18d3-442d-5255-a0e1-ae43ea2a6030
+        module-instance.opmodel.dev/uuid: d798fcea-6b78-56dd-a3b1-d68f00529dca
         module.opmodel.dev/name: backup_provider
-        module.opmodel.dev/uuid: 9ede50a5-502d-5749-ab7a-07923793c01e
-        module.opmodel.dev/version: 0.1.0
+        module.opmodel.dev/uuid: b5e3a4bb-5c52-5ce1-9ea2-c24771316cbe
+        module.opmodel.dev/version: 0.1.1
       name: default.backup-provider
-      resourceVersion: "917"
-      uid: 4722ee5d-bb19-4a17-b48a-8e605e4d622d
+      resourceVersion: "884"
+      uid: fe5fad13-ba43-4636-b43c-a46daf7bc8e4
     spec:
-      catalog: testing.opmodel.dev/catalogs/operator/backup@v0
+      catalog: testing.opmodel.dev/catalogs/controller/backup@v0
       providerRef:
         name: backup-provider
         namespace: default
@@ -3906,13 +5263,13 @@ items:
       accepted: true
       active: true
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:22Z"
-          message: Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0
+        - lastTransitionTime: "2026-10-21T16:04:45Z"
+          message: Claim accepted for catalog testing.opmodel.dev/catalogs/controller/backup@v0 at 0.1.0
           observedGeneration: 1
           reason: Accepted
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T18:04:22Z"
+        - lastTransitionTime: "2026-10-21T16:04:45Z"
           message: Provider ModuleInstance default/backup-provider is Ready
           observedGeneration: 1
           reason: ProviderReady
@@ -3924,7 +5281,7 @@ items:
     metadata:
       annotations:
         cert-manager.io/inject-ca-from-secret: cert-manager/cert-manager-webhook-ca
-      creationTimestamp: "2026-10-04T18:04:05Z"
+      creationTimestamp: "2026-10-21T16:04:26Z"
       generation: 2
       labels:
         app: webhook
@@ -3940,13 +5297,13 @@ items:
         module.opmodel.dev/uuid: 522b3d3b-3e39-53d1-9637-78f44713b074
         module.opmodel.dev/version: 2.0.5
       name: cert-manager-webhook
-      resourceVersion: "858"
-      uid: c7eae921-8289-4ec7-b565-26c038b4f130
+      resourceVersion: "811"
+      uid: 208e587a-6668-4155-80ec-272da0e20aaa
     webhooks:
       - admissionReviewVersions:
           - v1
         clientConfig:
-          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ4VENDQVV1Z0F3SUJBZ0lVTCtRSXphS0JSTUJEU1dDcVlieTBTOU1HdHBjd0NnWUlLb1pJemowRUF3TXcKSWpFZ01CNEdBMVVFQXhNWFkyVnlkQzF0WVc1aFoyVnlMWGRsWW1odmIyc3RZMkV3SGhjTk1qWXhNREEwTVRndwpOREV4V2hjTk1qY3hNREEwTVRnd05ERXhXakFpTVNBd0hnWURWUVFERXhkalpYSjBMVzFoYm1GblpYSXRkMlZpCmFHOXZheTFqWVRCMk1CQUdCeXFHU000OUFnRUdCU3VCQkFBaUEySUFCSUlvcVY1cExUMnh2dEtEL2ZGNW5OZUEKaFRGMkdQcnYveGhYUERFVzNSWTlTWmx2Q1d2OUtoZEg4UFA2Z3hmdUk1NXhYb1VWdFVRZUZqTlR3aW5nbjRTLwp6Nm15T25EQ0p1MEduamUyd3RoZjZab1RXNmZIL1lZZmZPM2VLS01ZQUtOQ01FQXdEZ1lEVlIwUEFRSC9CQVFECkFnS2tNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGRTdPcjhrM0RBMEFTS0x5clZualhCY1AKL0hQcE1Bb0dDQ3FHU000OUJBTURBMmdBTUdVQ01RQ3BNNVJzSUswalN4ZzBjZW9NcnlRV2xWNmpJaHNkWnNuUAptb0dSa25rRC93Zi9Odk1hcWUzNmN3enFFSzZUYnAwQ01DU3U1TDUwU3pqWlVvNG9oc0hHbVVLUXFaUHZqQ2xkCjUwdkRwTGdjNzEzRU1ESUJWeXpLNm1IUjRQQXZnRm5MUHc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+          caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ4VENDQVV1Z0F3SUJBZ0lVYkQwY2RzTngvUnRVbnQ2dnN1am56TjVXTlRJd0NnWUlLb1pJemowRUF3TXcKSWpFZ01CNEdBMVVFQXhNWFkyVnlkQzF0WVc1aFoyVnlMWGRsWW1odmIyc3RZMkV3SGhjTk1qWXhNREl4TVRZdwpORE0wV2hjTk1qY3hNREl4TVRZd05ETTBXakFpTVNBd0hnWURWUVFERXhkalpYSjBMVzFoYm1GblpYSXRkMlZpCmFHOXZheTFqWVRCMk1CQUdCeXFHU000OUFnRUdCU3VCQkFBaUEySUFCRzkydmM3MUk4MVE5YmlRUldCUG4xbEcKZ1gvWC9vSHZDMWdiU1VPWEN0K2xQNjBZNjVkeDNiOTgvd0FwY1doVlhTS3RhakloWFdVQkhDeU8rQTN2N2RSZgpRUG8vbi9YdE9NRi9NNG5HSE4xNTZYV28wWW1ycVdJYVdPVHdrUWE2STZOQ01FQXdEZ1lEVlIwUEFRSC9CQVFECkFnS2tNQThHQTFVZEV3RUIvd1FGTUFNQkFmOHdIUVlEVlIwT0JCWUVGRmdRWGZIUlRQN1ZXdGFxLzFJV2ZiZVAKdi9iNk1Bb0dDQ3FHU000OUJBTURBMmdBTUdVQ01CWWZqVTFyb2ZNK3l0QTlTRDIrZVRXcW1rUjFGbnRDdUlrcgpwdktlRVQ3Q1NrRHZ2NDRYSFZ3V2lIWkJ0UkxVWkFJeEFQNnpoRGlLenpYd1hMdmRqcklzcmg5U282Qkp0d3JNCmRwSmNJNzVRMjdJN1pZY045bUFXQ1NrVVlreG4wak41cFE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
           service:
             name: cert-manager-webhook
             namespace: cert-manager

@@ -9,12 +9,12 @@ dispatches the stream event on the page's listener the way the SSE extension doe
 portal.js then replaces the followed regions. Checks, each printing one line, exit 1 on the first
 failure:
 
-1. The strip draws the Events count (3) and the Resources count (5) as followed spans.
+1. The strip draws the Events count (18, the merged feed) and the Resources count (5) as followed spans.
 2. A render with a changed Events count (4) updates that span with no reload, and the strip's links
    are the same elements as before (the strip is not a followed region).
 3. A render whose Events source is a problem (the count span is empty) empties the span, so the old
    number does not stay beside a feed the page can no longer read, and the empty span draws nothing.
-4. A later render with the count back (3) fills the empty span again.
+4. A later render with the count back (18) fills the empty span again.
 
 With OPM_PORTAL_BROWSER_SHOTS set, a failure saves a screenshot there.
 """
@@ -95,7 +95,7 @@ def run(p, engine, base):
             return ok
 
         start = page.evaluate(STATE)
-        if not check(start["events"] == "3" and start["resources"] == "5" and start["shown"],
+        if not check(start["events"] == "18" and start["resources"] == "5" and start["shown"],
                      f"the strip draws Events {start['events']!r} and Resources {start['resources']!r} as followed spans"):
             return False
 
@@ -109,8 +109,8 @@ def run(p, engine, base):
                      f"a render whose Events source is a problem empties the span ({got['events']!r}) and it draws nothing (shown {got['shown']})"):
             return False
 
-        got, _ = refresh("3", "3")
-        if not check(got["events"] == "3" and got["shown"], f"a later render fills the empty span again ({got['events']!r}, shown {got['shown']})"):
+        got, _ = refresh("18", "18")
+        if not check(got["events"] == "18" and got["shown"], f"a later render fills the empty span again ({got['events']!r}, shown {got['shown']})"):
             return False
     finally:
         browser.close()

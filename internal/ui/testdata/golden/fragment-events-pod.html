@@ -1,36 +1,48 @@
-<div class="fragment">
-<h2 class="frag-h">Recent events <span class="mono h-note">Pod default/podinfo-podinfo-d9585d794-4lg6h</span></h2>
-<p class="note">Recent activity: Kubernetes keeps events for about 1 hour, so older ones are gone. Status above comes from conditions and history, never from events.</p>
-<ol class="events">
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Pulled</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
-    <p class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 422ms (9.094s including waiting). Image size: 31081621 bytes.</p>
-    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
-  </li>
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Created</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
-    <p class="ev-note">Container created</p>
-    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
-  </li>
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Started</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
-    <p class="ev-note">Container started</p>
-    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
-  </li>
-  <li class="event ev-warning">
-    <div class="ev-head"><span class="ev-type">Warning</span><span class="ev-reason">Unhealthy</span><span class="ev-time"><time datetime="2026-10-04T18:04:16Z" title="2026-10-04 18:04:16 UTC">5m ago</time></span></div>
-    <p class="ev-note">Readiness probe failed: Get &#34;http://10.244.0.10:9898/readyz&#34;: dial tcp 10.244.0.10:9898: connect: connection refused</p>
-    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
-  </li>
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Pulling</span><span class="ev-time"><time datetime="2026-10-04T18:04:07Z" title="2026-10-04 18:04:07 UTC">5m ago</time></span></div>
-    <p class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</p>
-    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · kubelet</p>
-  </li>
-  <li class="event ev-normal">
-    <div class="ev-head"><span class="ev-type">Normal</span><span class="ev-reason">Scheduled</span><span class="ev-time"><time datetime="2026-10-04T18:04:06Z" title="2026-10-04 18:04:06 UTC">5m ago</time></span></div>
-    <p class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-4lg6h to opm-portal-e2e-fix-control-plane</p>
-    <p class="ev-meta mono">Pod default/podinfo-podinfo-d9585d794-4lg6h · default-scheduler</p>
-  </li>
-</ol>
+<div class="fragment" data-view="events">
+<h2 class="frag-h">Recent events <span class="mono h-note">Pod default/podinfo-podinfo-d9585d794-67j74</span></h2>
+<p class="stale-note" hidden>Read <time datetime="2026-10-21T16:10:00Z" title="2026-10-21 16:10:00 UTC" data-relative aria-live="off">0s ago</time>. The object may have changed since. <a href="/instances/default/podinfo/events?kind=Pod&amp;namespace=default&amp;name=podinfo-podinfo-d9585d794-67j74" hx-get="/instances/default/podinfo/events?kind=Pod&amp;namespace=default&amp;name=podinfo-podinfo-d9585d794-67j74" hx-target="#detail" hx-select="unset" hx-swap="innerHTML" data-focus-key="stale-reload">Reload this view</a></p>
+<p class="note">Recent activity: Kubernetes keeps events for about an hour, and render warnings exist only as events, so older ones are gone.</p>
+<div class="table-wrap">
+<table class="table rows events-table">
+  <thead><tr><th scope="col" class="c-type">Type</th><th scope="col" class="c-reason">Reason</th><th scope="col">Message</th><th scope="col" class="c-age">Age</th></tr></thead>
+  <tbody>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Pulled</td>
+    <td data-label="Message"><span class="ev-note">Successfully pulled image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34; in 577ms (9.187s including waiting). Image size: 31081621 bytes.</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-21T16:04:37Z" title="2026-10-21 16:04:37 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Created</td>
+    <td data-label="Message"><span class="ev-note">Container created</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-21T16:04:37Z" title="2026-10-21 16:04:37 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Started</td>
+    <td data-label="Message"><span class="ev-note">Container started</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-21T16:04:37Z" title="2026-10-21 16:04:37 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  <tr class="ev-warning">
+    <td data-label="Type" class="ev-type">Warning</td>
+    <td data-label="Reason" class="mono ev-reason">Unhealthy</td>
+    <td data-label="Message"><span class="ev-note">Readiness probe failed: Get &#34;http://10.244.0.10:9898/readyz&#34;: dial tcp 10.244.0.10:9898: connect: connection refused</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-21T16:04:37Z" title="2026-10-21 16:04:37 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Scheduled</td>
+    <td data-label="Message"><span class="ev-note">Successfully assigned default/podinfo-podinfo-d9585d794-67j74 to opm-portal-e2e-control-plane</span> <span class="muted ev-by">default-scheduler</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-21T16:04:28Z" title="2026-10-21 16:04:28 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  <tr class="ev-normal">
+    <td data-label="Type" class="ev-type">Normal</td>
+    <td data-label="Reason" class="mono ev-reason">Pulling</td>
+    <td data-label="Message"><span class="ev-note">Pulling image &#34;ghcr.io/stefanprodan/podinfo:6.7.1&#34;</span> <span class="muted ev-by">kubelet</span></td>
+    <td data-label="Age" class="ev-age"><time datetime="2026-10-21T16:04:28Z" title="2026-10-21 16:04:28 UTC" data-relative aria-live="off">5m ago</time></td>
+  </tr>
+  </tbody>
+</table>
+</div>
 </div>

@@ -3,14 +3,14 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T18:03:53Z"
+      creationTimestamp: "2026-10-21T16:04:20Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: cert-manager
       namespace: cert-manager
-      resourceVersion: "983"
-      uid: 5744c33f-e06a-4f6b-b78d-652ec49c10d6
+      resourceVersion: "904"
+      uid: 87058aec-4351-4703-bc35-a1f4dfe98f39
     spec:
       module:
         path: opmodel.dev/modules/cert_manager@v2
@@ -19,35 +19,40 @@ items:
       serviceAccountName: cert-manager-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:05Z"
+        - lastTransitionTime: "2026-10-21T16:04:26Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T18:04:03Z"
+        - lastTransitionTime: "2026-10-21T16:04:42Z"
+          message: 42/42 objects ready
+          observedGeneration: 1
+          reason: RolledOut
+          status: "True"
+          type: Healthy
+        - lastTransitionTime: "2026-10-21T16:04:24Z"
           message: 'module resolved: opmodel.dev/modules/cert_manager@v2@v2.0.5'
           observedGeneration: 1
           reason: ModuleResolved
           status: "True"
           type: ModuleResolved
-      failureCounters:
-        drift: 2
+      failureCounters: {}
       history:
         - action: reconcile
           configDigest: sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4
-          finishedAt: "2026-10-04T18:04:05Z"
+          finishedAt: "2026-10-21T16:04:26Z"
           inventoryCount: 42
-          inventoryDigest: sha256:92152ea359e8efddb5951d60176267ffb914a5796c50b2eca3115b87e8344b1e
+          inventoryDigest: sha256:110dd3fb7572b7eba21f1d1cf412c2e12e66cf29d35a331afa1904937d997677
           phase: complete
-          renderDigest: sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c
+          renderDigest: sha256:e91579e8c3e5906699a2b80ca80b6e2a8847b8f6fb2a63dd969490229e15dfd4
           sequence: 1
           sourceDigest: sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7
-          startedAt: "2026-10-04T18:04:05Z"
+          startedAt: "2026-10-21T16:04:26Z"
       instanceUUID: 3930452c-b1e3-5a01-8f21-4ebcd8d14ce7
       inventory:
         count: 42
-        digest: sha256:92152ea359e8efddb5951d60176267ffb914a5796c50b2eca3115b87e8344b1e
+        digest: sha256:110dd3fb7572b7eba21f1d1cf412c2e12e66cf29d35a331afa1904937d997677
         entries:
           - component: namespace
             kind: Namespace
@@ -268,15 +273,19 @@ items:
             namespace: cert-manager
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T18:04:05Z"
+      lastAppliedAt: "2026-10-21T16:04:26Z"
       lastAppliedConfigDigest: sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4
-      lastAppliedRenderDigest: sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c
+      lastAppliedInputs:
+        digest: sha256:1447ad31208a259dbcb169f79f6ebd96b9f0523f35e1410cb488f0db779f7391
+        renderedAt: "2026-10-21T16:04:48Z"
+      lastAppliedRenderDigest: sha256:e91579e8c3e5906699a2b80ca80b6e2a8847b8f6fb2a63dd969490229e15dfd4
       lastAppliedSourceDigest: sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7
+      lastAppliedVersion: 2.0.5
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T18:04:05Z"
+      lastAttemptedAt: "2026-10-21T16:04:26Z"
       lastAttemptedConfigDigest: sha256:3b4fcb9a7c0be26677d1ae8d03ba0025b7f7ed285c4a9911cc561070094fa7f4
-      lastAttemptedDuration: 11.020604165s
-      lastAttemptedRenderDigest: sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c
+      lastAttemptedDuration: 5.625753371s
+      lastAttemptedRenderDigest: sha256:e91579e8c3e5906699a2b80ca80b6e2a8847b8f6fb2a63dd969490229e15dfd4
       lastAttemptedSourceDigest: sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7
       observedGeneration: 1
       requiredContracts:
@@ -298,51 +307,56 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T18:04:23Z"
+      creationTimestamp: "2026-10-21T16:04:46Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: backup-consumer
       namespace: default
-      resourceVersion: "937"
-      uid: 261e62d9-0c74-42f9-8c09-38ecd70e4725
+      resourceVersion: "915"
+      uid: ba9532d3-79de-4890-97f8-705217eb59bf
     spec:
       module:
-        path: testing.opmodel.dev/modules/operator/backup_consumer@v0
-        version: v0.1.0
+        path: testing.opmodel.dev/modules/controller/backup_consumer@v0
+        version: v0.1.1
       prune: true
       serviceAccountName: backup-consumer-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:24Z"
+        - lastTransitionTime: "2026-10-21T16:04:49Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T18:04:24Z"
-          message: 'module resolved: testing.opmodel.dev/modules/operator/backup_consumer@v0@v0.1.0'
+        - lastTransitionTime: "2026-10-21T16:04:49Z"
+          message: 1/1 objects ready
+          observedGeneration: 1
+          reason: RolledOut
+          status: "True"
+          type: Healthy
+        - lastTransitionTime: "2026-10-21T16:04:49Z"
+          message: 'module resolved: testing.opmodel.dev/modules/controller/backup_consumer@v0@v0.1.1'
           observedGeneration: 1
           reason: ModuleResolved
           status: "True"
           type: ModuleResolved
-      failureCounters:
-        drift: 1
+      failureCounters: {}
       history:
         - action: reconcile
           configDigest: sha256:1a2c2e1b0ecea528adb32ad2054f889886a627b9cf7103126c5e889bc2f15128
-          finishedAt: "2026-10-04T18:04:24Z"
+          finishedAt: "2026-10-21T16:04:49Z"
           inventoryCount: 1
-          inventoryDigest: sha256:4e3eccdeabc28703b428a55cec8c681d87be33dc443817ca2ab9ed92b1193152
+          inventoryDigest: sha256:ed6328b2e2acde3b777da6dbbac4ce5eaf9125e995c6b56154a39f8f0f3af0c7
           phase: complete
-          renderDigest: sha256:26a8983814d92a2740f97e96e1f11ecd9363d2287dbbe969a5782368533748b6
+          renderDigest: sha256:be77c70231c4b35158ccc7b8402bbe7e882040c03400357d8ac45671cf2df53d
           sequence: 1
-          sourceDigest: sha256:2ab70218026ba1f91ca2218610228d235bf3afac049b7a2c6bf097e565217bad
-          startedAt: "2026-10-04T18:04:24Z"
-      instanceUUID: 79dabad0-a426-521b-883a-e9576e47a0f0
+          sourceDigest: sha256:a484b670528dbdb9d345422650d9195584cc38fbbcba82e238ad3122fef788d0
+          startedAt: "2026-10-21T16:04:49Z"
+      instanceUUID: bb6505c2-daf1-5142-9e89-179263d47f87
       inventory:
         count: 1
-        digest: sha256:4e3eccdeabc28703b428a55cec8c681d87be33dc443817ca2ab9ed92b1193152
+        digest: sha256:ed6328b2e2acde3b777da6dbbac4ce5eaf9125e995c6b56154a39f8f0f3af0c7
         entries:
           - component: data
             kind: ConfigMap
@@ -350,16 +364,20 @@ items:
             namespace: default
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T18:04:24Z"
+      lastAppliedAt: "2026-10-21T16:04:49Z"
       lastAppliedConfigDigest: sha256:1a2c2e1b0ecea528adb32ad2054f889886a627b9cf7103126c5e889bc2f15128
-      lastAppliedRenderDigest: sha256:26a8983814d92a2740f97e96e1f11ecd9363d2287dbbe969a5782368533748b6
-      lastAppliedSourceDigest: sha256:2ab70218026ba1f91ca2218610228d235bf3afac049b7a2c6bf097e565217bad
+      lastAppliedInputs:
+        digest: sha256:c3fcd3ec9576e7c6ffca7eae882d5c581673615ab6d5a0b03e9534c7498378be
+        renderedAt: "2026-10-21T16:04:49Z"
+      lastAppliedRenderDigest: sha256:be77c70231c4b35158ccc7b8402bbe7e882040c03400357d8ac45671cf2df53d
+      lastAppliedSourceDigest: sha256:a484b670528dbdb9d345422650d9195584cc38fbbcba82e238ad3122fef788d0
+      lastAppliedVersion: 0.1.1
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T18:04:24Z"
+      lastAttemptedAt: "2026-10-21T16:04:49Z"
       lastAttemptedConfigDigest: sha256:1a2c2e1b0ecea528adb32ad2054f889886a627b9cf7103126c5e889bc2f15128
-      lastAttemptedDuration: 787.252653ms
-      lastAttemptedRenderDigest: sha256:26a8983814d92a2740f97e96e1f11ecd9363d2287dbbe969a5782368533748b6
-      lastAttemptedSourceDigest: sha256:2ab70218026ba1f91ca2218610228d235bf3afac049b7a2c6bf097e565217bad
+      lastAttemptedDuration: 1.293004721s
+      lastAttemptedRenderDigest: sha256:be77c70231c4b35158ccc7b8402bbe7e882040c03400357d8ac45671cf2df53d
+      lastAttemptedSourceDigest: sha256:a484b670528dbdb9d345422650d9195584cc38fbbcba82e238ad3122fef788d0
       observedGeneration: 1
       requiredContracts:
         - opmodel.dev/catalogs/opm/resources/volumes@v1beta1
@@ -367,30 +385,36 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T18:04:19Z"
+      creationTimestamp: "2026-10-21T16:04:43Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: backup-provider
       namespace: default
-      resourceVersion: "987"
-      uid: 92a79284-19de-43ac-9629-3b75e8a0aa51
+      resourceVersion: "907"
+      uid: 64292f5c-6fd6-481b-9b02-7c5b8efa4b2a
     spec:
       module:
-        path: testing.opmodel.dev/modules/operator/backup_provider@v0
-        version: v0.1.0
+        path: testing.opmodel.dev/modules/controller/backup_provider@v0
+        version: v0.1.1
       prune: true
       serviceAccountName: backup-provider-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:21Z"
+        - lastTransitionTime: "2026-10-21T16:04:45Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T18:04:21Z"
-          message: 'module resolved: testing.opmodel.dev/modules/operator/backup_provider@v0@v0.1.0'
+        - lastTransitionTime: "2026-10-21T16:04:45Z"
+          message: 1/1 objects ready
+          observedGeneration: 1
+          reason: RolledOut
+          status: "True"
+          type: Healthy
+        - lastTransitionTime: "2026-10-21T16:04:45Z"
+          message: 'module resolved: testing.opmodel.dev/modules/controller/backup_provider@v0@v0.1.1'
           observedGeneration: 1
           reason: ModuleResolved
           status: "True"
@@ -399,18 +423,18 @@ items:
       history:
         - action: reconcile
           configDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-          finishedAt: "2026-10-04T18:04:21Z"
+          finishedAt: "2026-10-21T16:04:45Z"
           inventoryCount: 1
-          inventoryDigest: sha256:84e2a1d301d1c82d1e7948f7a78bb57902cadef80350e90591308c52b3d77e00
+          inventoryDigest: sha256:338fdb667274734d730d2dfb2093d31c806a1d55d70d4c7a976d08ac35d281ae
           phase: complete
-          renderDigest: sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b
+          renderDigest: sha256:c6bbde78bf7496da0e4d4dc92875b19afbb30c81af11e5a5036647560dc9192e
           sequence: 1
-          sourceDigest: sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1
-          startedAt: "2026-10-04T18:04:21Z"
-      instanceUUID: ad4c18d3-442d-5255-a0e1-ae43ea2a6030
+          sourceDigest: sha256:19a2554048b56f831ea738ffd7a909b1886289e57bc1bf33a9a3ecb513ba75b1
+          startedAt: "2026-10-21T16:04:45Z"
+      instanceUUID: d798fcea-6b78-56dd-a3b1-d68f00529dca
       inventory:
         count: 1
-        digest: sha256:84e2a1d301d1c82d1e7948f7a78bb57902cadef80350e90591308c52b3d77e00
+        digest: sha256:338fdb667274734d730d2dfb2093d31c806a1d55d70d4c7a976d08ac35d281ae
         entries:
           - component: registration
             group: opmodel.dev
@@ -418,67 +442,76 @@ items:
             name: default.backup-provider
             v: v1alpha1
         revision: 1
-      lastAppliedAt: "2026-10-04T18:04:21Z"
+      lastAppliedAt: "2026-10-21T16:04:45Z"
       lastAppliedConfigDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-      lastAppliedRenderDigest: sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b
-      lastAppliedSourceDigest: sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1
+      lastAppliedInputs:
+        digest: sha256:ccb8c44a51799bf65985ef4c6d7b41b7b0448c69362d2d4653e381ed95e6c73a
+        renderedAt: "2026-10-21T16:04:48Z"
+      lastAppliedRenderDigest: sha256:c6bbde78bf7496da0e4d4dc92875b19afbb30c81af11e5a5036647560dc9192e
+      lastAppliedSourceDigest: sha256:19a2554048b56f831ea738ffd7a909b1886289e57bc1bf33a9a3ecb513ba75b1
+      lastAppliedVersion: 0.1.1
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T18:04:21Z"
+      lastAttemptedAt: "2026-10-21T16:04:45Z"
       lastAttemptedConfigDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-      lastAttemptedDuration: 812.762309ms
-      lastAttemptedRenderDigest: sha256:43a9e76157daaa3fcdbc0ccb5da37fcd08d31c214edbb3f71e539109ba7ee35b
-      lastAttemptedSourceDigest: sha256:b21e617a3429d6b00e281e574d19835a84b057ac7ce848f735aa9e0beed2d4d1
+      lastAttemptedDuration: 956.31866ms
+      lastAttemptedRenderDigest: sha256:c6bbde78bf7496da0e4d4dc92875b19afbb30c81af11e5a5036647560dc9192e
+      lastAttemptedSourceDigest: sha256:19a2554048b56f831ea738ffd7a909b1886289e57bc1bf33a9a3ecb513ba75b1
       observedGeneration: 1
       requiredContracts:
         - opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T18:03:53Z"
+      creationTimestamp: "2026-10-21T16:04:20Z"
       finalizers:
         - opmodel.dev/cleanup
       generation: 1
       name: podinfo
       namespace: default
-      resourceVersion: "985"
-      uid: c6f5d8d6-af26-447e-8ac0-96b5cc25c40f
+      resourceVersion: "899"
+      uid: 4df78151-c93a-4255-8fde-5f49eaa810b1
     spec:
       module:
-        path: testing.opmodel.dev/modules/operator/podinfo@v0
-        version: v0.1.11
+        path: testing.opmodel.dev/modules/controller/podinfo@v0
+        version: v0.1.12
       prune: true
       serviceAccountName: podinfo-applier
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:06Z"
+        - lastTransitionTime: "2026-10-21T16:04:28Z"
           message: Reconciliation succeeded
           observedGeneration: 1
           reason: ReconciliationSucceeded
           status: "True"
           type: Ready
-        - lastTransitionTime: "2026-10-04T18:04:06Z"
-          message: 'module resolved: testing.opmodel.dev/modules/operator/podinfo@v0@v0.1.11'
+        - lastTransitionTime: "2026-10-21T16:04:38Z"
+          message: 2/2 objects ready
+          observedGeneration: 1
+          reason: RolledOut
+          status: "True"
+          type: Healthy
+        - lastTransitionTime: "2026-10-21T16:04:28Z"
+          message: 'module resolved: testing.opmodel.dev/modules/controller/podinfo@v0@v0.1.12'
           observedGeneration: 1
           reason: ModuleResolved
           status: "True"
           type: ModuleResolved
-      failureCounters:
-        drift: 2
+      failureCounters: {}
       history:
         - action: reconcile
           configDigest: sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44
-          finishedAt: "2026-10-04T18:04:06Z"
+          finishedAt: "2026-10-21T16:04:28Z"
           inventoryCount: 2
-          inventoryDigest: sha256:eb44516d458a23e3a71316e94e842a07cbd8f0ee7de5985c98c86c128853fced
+          inventoryDigest: sha256:ee3441945e8348db2f2a6c4bacedefbf96b3577b6c6444399174acb79ee4f60f
           phase: complete
-          renderDigest: sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e
+          renderDigest: sha256:897aad054ec012460aebd64c5c777db301a2b06cd01c63de8e2f6f25f865fbf8
           sequence: 1
-          sourceDigest: sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969
-          startedAt: "2026-10-04T18:04:06Z"
-      instanceUUID: e6d8d1d8-77f4-5cfe-9011-9ff6c38c651c
+          sourceDigest: sha256:da9817862883191d223271ff01f2bbb0a9cbf8d639e2ada65a61a36090a18937
+          startedAt: "2026-10-21T16:04:28Z"
+      instanceUUID: de596576-f602-5d23-aee5-d6066bc3cb6d
       inventory:
         count: 2
-        digest: sha256:eb44516d458a23e3a71316e94e842a07cbd8f0ee7de5985c98c86c128853fced
+        digest: sha256:ee3441945e8348db2f2a6c4bacedefbf96b3577b6c6444399174acb79ee4f60f
         entries:
           - component: podinfo
             group: apps
@@ -492,16 +525,20 @@ items:
             namespace: default
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T18:04:06Z"
+      lastAppliedAt: "2026-10-21T16:04:28Z"
       lastAppliedConfigDigest: sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44
-      lastAppliedRenderDigest: sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e
-      lastAppliedSourceDigest: sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969
+      lastAppliedInputs:
+        digest: sha256:b9339e19e8fc261756fced646db3f5eeb2e3dadba771a40e0ac9c67eb403a759
+        renderedAt: "2026-10-21T16:04:47Z"
+      lastAppliedRenderDigest: sha256:897aad054ec012460aebd64c5c777db301a2b06cd01c63de8e2f6f25f865fbf8
+      lastAppliedSourceDigest: sha256:da9817862883191d223271ff01f2bbb0a9cbf8d639e2ada65a61a36090a18937
+      lastAppliedVersion: 0.1.12
       lastAttemptedAction: reconcile
-      lastAttemptedAt: "2026-10-04T18:04:06Z"
+      lastAttemptedAt: "2026-10-21T16:04:28Z"
       lastAttemptedConfigDigest: sha256:7beb3ba39c1d7ed5a349c65a1fe19dac1186e91ea8df92369d837b10c58f0a44
-      lastAttemptedDuration: 919.642194ms
-      lastAttemptedRenderDigest: sha256:2ee385ae783242e28a3354425c9c23d4c002933a8021ec904a7653e67348569e
-      lastAttemptedSourceDigest: sha256:20f3bd71e5768fe68f63bfcd2e539ed203de583c63491db828aadd1aae00b969
+      lastAttemptedDuration: 1.305037261s
+      lastAttemptedRenderDigest: sha256:897aad054ec012460aebd64c5c777db301a2b06cd01c63de8e2f6f25f865fbf8
+      lastAttemptedSourceDigest: sha256:da9817862883191d223271ff01f2bbb0a9cbf8d639e2ada65a61a36090a18937
       observedGeneration: 1
       requiredContracts:
         - opmodel.dev/catalogs/opm/resources/container@v1beta1
@@ -514,7 +551,155 @@ items:
   - apiVersion: opmodel.dev/v1alpha1
     kind: ModuleInstance
     metadata:
-      creationTimestamp: "2026-10-04T18:04:30Z"
+      creationTimestamp: "2026-10-21T16:03:57Z"
+      generation: 1
+      labels:
+        app.kubernetes.io/managed-by: opm-cli
+        module-instance.opmodel.dev/name: opm-controller
+        module-instance.opmodel.dev/namespace: opm-system
+      name: opm-controller
+      namespace: opm-system
+      resourceVersion: "556"
+      uid: 8a9215fc-072c-4f5a-992b-75ed88e94681
+    spec:
+      module:
+        path: opmodel.dev/modules/opm_controller@v0
+        version: v0.1.0
+      owner: cli
+    status:
+      conditions:
+        - lastTransitionTime: "2026-10-21T16:04:04Z"
+          message: ModuleInstance is managed externally by the CLI
+          observedGeneration: 1
+          reason: ManagedExternally
+          status: Unknown
+          type: Ready
+      instanceUUID: a4461b4c-4976-5db8-a704-2d8b9dfc9cc6
+      inventory:
+        count: 22
+        digest: sha256:0563c2965e71bad37ccb6a08a26a5a8ef3c67a625f74ae2d4350db18edf3d201
+        entries:
+          - component: namespace
+            kind: Namespace
+            name: opm-system
+            v: v1
+          - component: crds
+            group: apiextensions.k8s.io
+            kind: CustomResourceDefinition
+            name: moduleinstances.opmodel.dev
+            v: v1
+          - component: crds
+            group: apiextensions.k8s.io
+            kind: CustomResourceDefinition
+            name: modulepackages.opmodel.dev
+            v: v1
+          - component: crds
+            group: apiextensions.k8s.io
+            kind: CustomResourceDefinition
+            name: platforms.opmodel.dev
+            v: v1
+          - component: crds
+            group: apiextensions.k8s.io
+            kind: CustomResourceDefinition
+            name: transformerregistrations.opmodel.dev
+            v: v1
+          - component: manager
+            kind: ServiceAccount
+            name: opm-controller-manager
+            namespace: opm-system
+            v: v1
+          - component: manager
+            group: apps
+            kind: Deployment
+            name: opm-controller-manager
+            namespace: opm-system
+            v: v1
+          - component: manager
+            kind: Service
+            name: opm-controller-manager-metrics-service
+            namespace: opm-system
+            v: v1
+          - component: manager-rbac
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-manager-role
+            v: v1
+          - component: manager-rbac
+            group: rbac.authorization.k8s.io
+            kind: ClusterRoleBinding
+            name: opm-controller-manager-role
+            v: v1
+          - component: metrics-auth-rbac
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-metrics-auth-role
+            v: v1
+          - component: metrics-auth-rbac
+            group: rbac.authorization.k8s.io
+            kind: ClusterRoleBinding
+            name: opm-controller-metrics-auth-role
+            v: v1
+          - component: leader-election
+            group: rbac.authorization.k8s.io
+            kind: Role
+            name: opm-controller-leader-election-role
+            namespace: opm-system
+            v: v1
+          - component: leader-election
+            group: rbac.authorization.k8s.io
+            kind: RoleBinding
+            name: opm-controller-leader-election-role
+            namespace: opm-system
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-metrics-reader
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-moduleinstance-admin-role
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-moduleinstance-editor-role
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-moduleinstance-viewer-role
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-platform-viewer-role
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-modulepackage-viewer-role
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-transformerregistration-viewer-role
+            v: v1
+          - component: admin-roles
+            group: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: opm-controller-transformerregistration-admin-role
+            v: v1
+        revision: 1
+      lastAppliedAt: "2026-10-21T16:03:57Z"
+      lastAppliedConfigDigest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      lastAppliedRenderDigest: sha256:5aba181896b0e076a7170f0c5f4324f294bb75acaee51b7e1df1e23cb5cab720
+      lastAppliedSourceDigest: sha256:99598b0b42f51293ba3bb04013791339f8f72c105072123cdb053154aab4b42c
+  - apiVersion: opmodel.dev/v1alpha1
+    kind: ModuleInstance
+    metadata:
+      creationTimestamp: "2026-10-21T16:04:56Z"
       generation: 1
       labels:
         app.kubernetes.io/managed-by: opm-cli
@@ -522,8 +707,8 @@ items:
         module-instance.opmodel.dev/namespace: web
       name: web
       namespace: web
-      resourceVersion: "989"
-      uid: 1aa1e148-0f18-444d-aa45-b3bd17c7a61a
+      resourceVersion: "955"
+      uid: 4010d40d-a835-4d51-98e5-68f26389fbdf
     spec:
       module:
         path: opmodel.dev/modules/web_app@v1
@@ -531,7 +716,7 @@ items:
       owner: cli
     status:
       conditions:
-        - lastTransitionTime: "2026-10-04T18:04:31Z"
+        - lastTransitionTime: "2026-10-21T16:04:56Z"
           message: ModuleInstance is managed externally by the CLI
           observedGeneration: 1
           reason: ManagedExternally
@@ -540,7 +725,7 @@ items:
       instanceUUID: 980766c7-ef2b-52b7-aa6f-ed768aa517b1
       inventory:
         count: 2
-        digest: sha256:80820fee0c8c5c8bc6cb717f8e71557c2075e2c9884713ea0ab66bbabc397861
+        digest: sha256:ae31a3bcc5d7c544654a3df3596a9e16b33aac0142436c41e926cf89e8e100b6
         entries:
           - component: web
             group: apps
@@ -554,8 +739,8 @@ items:
             namespace: web
             v: v1
         revision: 1
-      lastAppliedAt: "2026-10-04T18:04:30Z"
+      lastAppliedAt: "2026-10-21T16:04:56Z"
       lastAppliedConfigDigest: sha256:301645fcda027e2b01d0504e7cdfe049b86bc27922b72974145eac9f24d020e4
-      lastAppliedRenderDigest: sha256:e39ebdab50eecc8751f3b87d9f2a53b5aa5701d3b4413d094c1350e5105a17a3
+      lastAppliedRenderDigest: sha256:7e3d11bd2ebf315949a5017f4125376e6184e290986ee94e694b8183014145c6
       lastAppliedSourceDigest: sha256:34cb9c71ca077a29625f5dacd40215087293f796d8be706167c7f18ac563fc87
 kind: List

@@ -32,17 +32,22 @@ var f1Goldens = []goldenCase{
 	{"instance-backup-provider", base + "/instances/default/backup-provider"},
 	{"instance-podinfo-graph", base + "/instances/default/podinfo/graph"},
 	{"instance-cert-manager-graph", base + "/instances/cert-manager/cert-manager/graph"},
+	{"instance-cert-manager-graph-rbac-open", base + "/instances/cert-manager/cert-manager/graph?expand=grp:configuration/mi/cert-manager/cert-manager/rbac"},
+	{"instance-backup-provider-graph", base + "/instances/default/backup-provider/graph"},
 	{"instance-podinfo-events", base + "/instances/default/podinfo/events"},
+	{"instance-podinfo-events-all", base + "/instances/default/podinfo/events?scope=all"},
+	{"instance-cert-manager-events-all", base + "/instances/cert-manager/cert-manager/events?scope=all"},
 	{"instance-podinfo-events-deployment", base + "/instances/default/podinfo/events?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo"},
-	{"instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+	{"instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"},
 	{"instance-podinfo-object-deployment", base + "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo"},
-	{"instance-podinfo-object-pod", base + "/instances/default/podinfo/object?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+	{"instance-podinfo-object-pod", base + "/instances/default/podinfo/object?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"},
 	{"instance-backup-provider-object-registration", backupRegistrationObject},
 	{"instance-cert-manager-object-crd", base + "/instances/cert-manager/cert-manager/object?group=apiextensions.k8s.io&kind=CustomResourceDefinition&name=certificates.cert-manager.io"},
 	{"package-list", base + "/packages"},
 	{"package-podinfo", base + "/packages/pkg/podinfo"},
 	{"package-podinfo-graph", base + "/packages/pkg/podinfo/graph"},
 	{"package-podinfo-events", base + "/packages/pkg/podinfo/events"},
+	{"package-podinfo-events-all", base + "/packages/pkg/podinfo/events?scope=all"},
 	{"platform", base + "/platform"},
 	{"platform-graph", base + "/platform/graph"},
 	{"platform-events", base + "/platform/events"},
@@ -76,6 +81,21 @@ func TestGoldenBrokenRollout(t *testing.T) {
 	if doc.Reconcile.State != "Applied" || doc.Health.State != "Degraded" {
 		t.Errorf("broken podinfo: reconcile %q, health %q; want Applied and Degraded", doc.Reconcile.State, doc.Health.State)
 	}
+}
+
+// TestGoldenEndpoints: podinfo's graph over F1 plus the recorded slices, once
+// with the count (a caller who may list the slices) and once with the unread
+// mark (a caller who may not). Everything else in both equals the F1 graph.
+func TestGoldenEndpoints(t *testing.T) {
+	graph := base + "/instances/default/podinfo/graph"
+	t.Run("counted", func(t *testing.T) {
+		e := newEnv(t, readmodeltest.WithEndpointSlices(t, loadF1(t)), readmodeltest.AllowAll)
+		checkGoldens(t, e, []goldenCase{{"instance-podinfo-graph-endpoints", graph}})
+	})
+	t.Run("unread", func(t *testing.T) {
+		e := newEnv(t, readmodeltest.WithEndpointSlices(t, loadF1(t)), readmodeltest.DenyResources("endpointslices"))
+		checkGoldens(t, e, []goldenCase{{"instance-podinfo-graph-endpoints-unread", graph}})
+	})
 }
 
 func checkGoldens(t *testing.T, e *env, cases []goldenCase) {

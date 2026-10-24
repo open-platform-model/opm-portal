@@ -20,13 +20,14 @@ type ObjectRef struct {
 	Name      string
 }
 
-// Owner says who applies an instance.
+// Owner says who applies an instance. A value other than the two below is
+// what the instance's spec.owner holds, unknown to the portal.
 type Owner string
 
 // Owners.
 const (
-	OwnerOperator Owner = "operator"
-	// OwnerCLI: the CLI applied the instance and the operator only records
+	OwnerController Owner = "controller"
+	// OwnerCLI: the CLI applied the instance and the controller only records
 	// it; its applied state is ManagedExternally (portal:D3:R6).
 	OwnerCLI Owner = "cli"
 )
@@ -45,10 +46,10 @@ type Digests struct {
 }
 
 // Outcome is how a history entry's attempt ended, read from the shape the
-// operator wrote it in.
+// controller wrote it in.
 type Outcome string
 
-// Outcomes. The operator writes a success entry with phase complete and no
+// Outcomes. The controller writes a success entry with phase complete and no
 // message, and a failure entry with a message and no phase.
 const (
 	OutcomeSucceeded Outcome = "Succeeded"
@@ -57,12 +58,12 @@ const (
 	OutcomeUnknown Outcome = "Unknown"
 )
 
-// HistoryEntry is one entry of an operator object's status.history, the
+// HistoryEntry is one entry of a controller object's status.history, the
 // durable record (portal:D9:R1).
 type HistoryEntry struct {
 	Action string
 	Phase  string
-	// Outcome is decided from Phase and Message as the operator wrote
+	// Outcome is decided from Phase and Message as the controller wrote
 	// them, so it survives any later omission of the message.
 	Outcome         Outcome
 	Sequence        int64
@@ -74,7 +75,7 @@ type HistoryEntry struct {
 	Digests         Digests
 }
 
-// InstanceItem is one ModuleInstance in a list: the operator's axis and the
+// InstanceItem is one ModuleInstance in a list: the controller's axis and the
 // portal's axis side by side, never merged (portal:D3:R1).
 type InstanceItem struct {
 	Ref            ObjectRef
@@ -84,7 +85,10 @@ type InstanceItem struct {
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64
-	LastAppliedAt  time.Time
+	// InventoryRevision is status.inventory.revision when the controller
+	// recorded an integer of at least 1, else 0 (not recorded).
+	InventoryRevision int64
+	LastAppliedAt     time.Time
 	// RenderContracts are every contract the instance's render used, most
 	// of them fulfilled by the catalog itself. They are not the provider
 	// contracts the instance demands (portal:D4:R3).
@@ -115,12 +119,25 @@ type ProviderClaim struct {
 	Access health.Access
 	// Standing is the registration's own, as the controller wrote it.
 	Standing health.Registration
+	// Catalog, Version and Provides are the registration's spec.catalog,
+	// spec.version and spec.provides: the claim's own words, read from the
+	// object the standing came from. Empty unless Read reports true.
+	Catalog  string
+	Version  string
+	Provides []string
 	// ProviderRefMatches: the owner is a ModuleInstance whose namespace and
 	// name the registration's spec.providerRef names. Always false for a
 	// ModulePackage, since the reference names a ModuleInstance. Nil when
 	// no registration was read: the caller may not read it, or the model
 	// does not hold it.
 	ProviderRefMatches *bool
+}
+
+// Read reports whether the registration was read: the caller may read
+// registrations and the cluster holds this one, so Standing and the claim's
+// catalog, version and provides mean something.
+func (c ProviderClaim) Read() bool {
+	return c.Access == health.AccessOK && c.ProviderRefMatches != nil
 }
 
 // Component is one component of an inventory with its objects, in
@@ -140,6 +157,13 @@ type InventoryObject struct {
 	// ChildrenUnread is set on a workload whose Pods could not be read, so
 	// its health is the status rules alone.
 	ChildrenUnread bool
+	// EndpointsReady is the number of ready endpoints of a Service, set only
+	// by InstanceWithEndpoints and PackageWithEndpoints and only when a count
+	// was made (0 included). EndpointsUnread is set instead when the count
+	// could not be read; the two are never both set, and a Service whose
+	// cluster records no EndpointSlice carries neither.
+	EndpointsReady  *int64
+	EndpointsUnread bool
 	// EvaluatedAt is when the object was last read; Live is false when it
 	// is polled rather than watched (portal:D3:R5).
 	EvaluatedAt time.Time
@@ -188,12 +212,15 @@ type PackageItem struct {
 	// Interval is spec.interval as written; empty when the package sets
 	// none.
 	Interval string
-	// SourceArtifact is nil when the operator recorded no source artifact.
+	// SourceArtifact is nil when the controller recorded no source artifact.
 	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.
-	DependsOn      []ObjectRef
-	Path           string
+	DependsOn []ObjectRef
+	Path      string
+	// Prune is spec.prune as written; nil when the package does not set it,
+	// never a default.
+	Prune          *bool
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64
@@ -257,14 +284,14 @@ type RegistrationView struct {
 // PlatformView is the Platform with its subscriptions, resolved catalogs and
 // registrations.
 type PlatformView struct {
-	Name            string
-	UID             string
-	Type            string
-	OperatorVersion string
-	Applied         health.Applied
-	Conditions      []health.Condition
-	Subscriptions   []Subscription
-	Catalogs        []Catalog
+	Name              string
+	UID               string
+	Type              string
+	ControllerVersion string
+	Applied           health.Applied
+	Conditions        []health.Condition
+	Subscriptions     []Subscription
+	Catalogs          []Catalog
 	// Registrations holds what the caller may read; RegistrationsAccess
 	// says whether that is all of them.
 	Registrations       []RegistrationView

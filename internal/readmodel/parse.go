@@ -9,7 +9,7 @@ import (
 	"github.com/open-platform-model/opm-portal/internal/health"
 )
 
-// Field readers over operator custom resources. They read what the operator
+// Field readers over controller custom resources. They read what the controller
 // wrote and copy it into views; a field that is absent or of another type
 // reads as its zero value, never as a guess.
 
@@ -97,7 +97,7 @@ func refOf(u *unstructured.Unstructured) ObjectRef {
 	return ObjectRef{Group: gvk.Group, Version: gvk.Version, Kind: gvk.Kind, Namespace: u.GetNamespace(), Name: u.GetName()}
 }
 
-// conditions reads status.conditions in the operator's order.
+// conditions reads status.conditions in the controller's order.
 func conditions(u *unstructured.Unstructured) []health.Condition {
 	raw := maps(u.Object, "status", "conditions")
 	out := make([]health.Condition, 0, len(raw))
@@ -114,7 +114,7 @@ func conditions(u *unstructured.Unstructured) []health.Condition {
 	return out
 }
 
-// history reads status.history in the operator's order (newest first).
+// history reads status.history in the controller's order (newest first).
 func history(u *unstructured.Unstructured) []HistoryEntry {
 	raw := maps(u.Object, "status", "history")
 	out := make([]HistoryEntry, 0, len(raw))
@@ -140,10 +140,10 @@ func history(u *unstructured.Unstructured) []HistoryEntry {
 	return out
 }
 
-// historyPhaseComplete is the phase the operator writes on a success entry.
+// historyPhaseComplete is the phase the controller writes on a success entry.
 const historyPhaseComplete = "complete"
 
-// outcomeOf reads an entry's outcome from the operator's two entry shapes:
+// outcomeOf reads an entry's outcome from the controller's two entry shapes:
 // a success entry has phase complete, a failure entry a message and no
 // phase. Anything else is unknown, never a guess.
 func outcomeOf(phase, message string) Outcome {
@@ -183,7 +183,7 @@ func inventory(u *unstructured.Unstructured) []health.Ref {
 	return out
 }
 
-// inventoryCount is the operator's count, or the number of entries when it
+// inventoryCount is the controller's count, or the number of entries when it
 // wrote none.
 func inventoryCount(u *unstructured.Unstructured, entries []health.Ref) int64 {
 	if n, found := i64(u.Object, "status", "inventory", "count"); found {
@@ -192,9 +192,24 @@ func inventoryCount(u *unstructured.Unstructured, entries []health.Ref) int64 {
 	return int64(len(entries))
 }
 
-func ownerOf(u *unstructured.Unstructured) Owner {
-	if str(u.Object, "spec", "owner") == string(OwnerCLI) {
-		return OwnerCLI
+// inventoryRevision is status.inventory.revision when the controller wrote an
+// integer of at least 1, else 0 (not recorded). The controller starts at 1, so
+// a smaller number or another type is not the controller's.
+func inventoryRevision(u *unstructured.Unstructured) int64 {
+	if n, found := i64(u.Object, "status", "inventory", "revision"); found && n >= 1 {
+		return n
 	}
-	return OwnerOperator
+	return 0
+}
+
+// ownerOf reads spec.owner. An absent owner is the controller's, as the CRD
+// defaults it. A value that is neither known one is returned as written and
+// never mapped to a known one, so a reader sees that the portal does not know
+// it.
+func ownerOf(u *unstructured.Unstructured) Owner {
+	o := Owner(str(u.Object, "spec", "owner"))
+	if o == "" {
+		return OwnerController
+	}
+	return o
 }

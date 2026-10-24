@@ -1,0 +1,371 @@
+{
+  "apiVersion": "portal.opmodel.dev/v1alpha1",
+  "kind": "EventList",
+  "regarding": {
+    "group": "opmodel.dev",
+    "version": "v1alpha1",
+    "kind": "ModuleInstance",
+    "namespace": "cert-manager",
+    "name": "cert-manager"
+  },
+  "items": [
+    {
+      "type": "Normal",
+      "reason": "NoOp",
+      "note": "No changes detected",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:47.99473Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-webhook:v1.21.0\" in 2.181s (6.979s including waiting). Image size: 19683061 bytes.",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
+      },
+      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:34Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "note": "Container created",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
+      },
+      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:34Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "note": "Container started",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
+      },
+      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:34Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-cainjector:v1.21.0\" in 1.985s (4.817s including waiting). Image size: 12363199 bytes.",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
+      },
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:32Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "note": "Container created",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
+      },
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:32Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "note": "Container started",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
+      },
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:32Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulled",
+      "note": "Successfully pulled image \"quay.io/jetstack/cert-manager-controller:v1.21.0\" in 2.978s (2.978s including waiting). Image size: 24827652 bytes.",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
+      },
+      "fieldPath": "spec.containers{cert-manager-controller}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:30Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Created",
+      "note": "Container created",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
+      },
+      "fieldPath": "spec.containers{cert-manager-controller}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:30Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Started",
+      "note": "Container started",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
+      },
+      "fieldPath": "spec.containers{cert-manager-controller}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:30Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"quay.io/jetstack/cert-manager-cainjector:v1.21.0\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
+      },
+      "fieldPath": "spec.containers{cert-manager-cainjector}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:27Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"quay.io/jetstack/cert-manager-controller:v1.21.0\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
+      },
+      "fieldPath": "spec.containers{cert-manager-controller}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:27Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"quay.io/jetstack/cert-manager-webhook:v1.21.0\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
+      },
+      "fieldPath": "spec.containers{cert-manager-webhook}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:27Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ReconciliationSucceeded",
+      "note": "Reconciliation succeeded",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26.960214Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Applied",
+      "note": "Applied 42 resources (41 created, 1 updated, 0 unchanged)",
+      "reportingController": "opm-controller",
+      "regarding": {
+        "group": "opmodel.dev",
+        "version": "v1alpha1",
+        "kind": "ModuleInstance",
+        "namespace": "cert-manager",
+        "name": "cert-manager"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26.96014Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "note": "Scaled up replica set cert-manager-cainjector-5d69c59bd from 0 to 1",
+      "reportingController": "deployment-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "note": "Scaled up replica set cert-manager-controller-7c9bddd644 from 0 to 1",
+      "reportingController": "deployment-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "ScalingReplicaSet",
+      "note": "Scaled up replica set cert-manager-webhook-6c5bb576f5 from 0 to 1",
+      "reportingController": "deployment-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "Deployment",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "note": "Successfully assigned cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx to opm-portal-e2e-control-plane",
+      "reportingController": "default-scheduler",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "note": "Successfully assigned cert-manager/cert-manager-controller-7c9bddd644-hvrqf to opm-portal-e2e-control-plane",
+      "reportingController": "default-scheduler",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Scheduled",
+      "note": "Successfully assigned cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk to opm-portal-e2e-control-plane",
+      "reportingController": "default-scheduler",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "note": "Created pod: cert-manager-cainjector-5d69c59bd-kbvjx",
+      "reportingController": "replicaset-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-cainjector-5d69c59bd"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "note": "Created pod: cert-manager-controller-7c9bddd644-hvrqf",
+      "reportingController": "replicaset-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-controller-7c9bddd644"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "SuccessfulCreate",
+      "note": "Created pod: cert-manager-webhook-6c5bb576f5-nv7pk",
+      "reportingController": "replicaset-controller",
+      "regarding": {
+        "group": "apps",
+        "version": "v1",
+        "kind": "ReplicaSet",
+        "namespace": "cert-manager",
+        "name": "cert-manager-webhook-6c5bb576f5"
+      },
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:26Z"
+    }
+  ],
+  "scope": "all"
+}

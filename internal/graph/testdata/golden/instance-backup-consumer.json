@@ -2,10 +2,10 @@
   "scope": "instance",
   "root": "mi:default/backup-consumer",
   "layout": {
-    "width": 1024,
-    "height": 104,
-    "nodeWidth": 200,
-    "nodeHeight": 44,
+    "width": 1040,
+    "height": 132,
+    "nodeWidth": 216,
+    "nodeHeight": 72,
     "columns": [
       {
         "title": "Module",
@@ -27,10 +27,10 @@
   },
   "nodes": [
     {
-      "id": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_consumer%40v0/v0.1.0",
+      "id": "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fbackup_consumer%40v0/v0.1.1",
       "kind": "module",
-      "label": "testing.opmodel.dev/modules/operator/backup_consumer@v0",
-      "version": "v0.1.0",
+      "label": "testing.opmodel.dev/modules/controller/backup_consumer@v0",
+      "version": "v0.1.1",
       "column": 0,
       "row": 0,
       "x": 16,
@@ -59,7 +59,7 @@
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/volumes@v1beta1",
         "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
@@ -115,45 +115,45 @@
       "source": "status.inventory entries, by component",
       "route": [
         {
-          "x": 480,
-          "y": 66
+          "x": 496,
+          "y": 80
         },
         {
-          "x": 512,
-          "y": 66
+          "x": 520,
+          "y": 80
         },
         {
-          "x": 512,
-          "y": 66
+          "x": 520,
+          "y": 80
         },
         {
           "x": 544,
-          "y": 66
+          "y": 80
         }
       ]
     },
     {
-      "id": "instantiates|mi:default/backup-consumer|mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_consumer%40v0/v0.1.0",
+      "id": "instantiates|mi:default/backup-consumer|mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fbackup_consumer%40v0/v0.1.1",
       "kind": "instantiates",
       "from": "mi:default/backup-consumer",
-      "to": "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fbackup_consumer%40v0/v0.1.0",
+      "to": "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fbackup_consumer%40v0/v0.1.1",
       "source": "ModuleInstance spec.module",
       "route": [
         {
           "x": 280,
-          "y": 66
+          "y": 80
         },
         {
-          "x": 248,
-          "y": 66
+          "x": 256,
+          "y": 80
         },
         {
-          "x": 248,
-          "y": 66
+          "x": 256,
+          "y": 80
         },
         {
-          "x": 216,
-          "y": 66
+          "x": 232,
+          "y": 80
         }
       ]
     },
@@ -165,20 +165,20 @@
       "source": "status.inventory entries",
       "route": [
         {
-          "x": 744,
-          "y": 66
+          "x": 760,
+          "y": 80
         },
         {
-          "x": 776,
-          "y": 66
+          "x": 784,
+          "y": 80
         },
         {
-          "x": 776,
-          "y": 66
+          "x": 784,
+          "y": 80
         },
         {
           "x": 808,
-          "y": 66
+          "y": 80
         }
       ]
     }

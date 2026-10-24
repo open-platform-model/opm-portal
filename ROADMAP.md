@@ -4,7 +4,7 @@ The plan and progress of the portal, from the local read-only milestone to the m
 beyond. The design and its decisions live in [docs/DESIGN.md](docs/DESIGN.md), cited as
 `portal:Dn`; each change is planned as an OpenSpec change under `openspec/changes/`.
 
-Last updated: 2026-10-11 (`align-shell-and-tokens` reviewed, fixed and archived on its branch, PR pending; phone-width test and contrast fix added).
+Last updated: 2026-10-21 (F1 recaptured on the released controller; before that, 2026-10-19: `split-long-requirements` built in four sections and archived, `--strict` back in `task openspec:check`; before that, 2026-10-12: `show-service-endpoints` built in five sections, reviewed and archived; on 2026-10-11 `add-shell-states-and-cluster-name` built in four sections and in review; `add-inventory-revision` built, reviewed and archived; `align-graph` built, reviewed and archived, main merged in: groups per kind family, drawing, selection, fit, zoom and full screen; `align-owner-pages` and `align-platform-installed-catalog` merged (PR 48, PR 47) and archived; `align-shell-and-tokens` merged (PR 44); phone-width test and contrast fix added).
 
 ## Where it stands
 
@@ -44,7 +44,7 @@ A binary on the user's machine reads with their kubeconfig behind a loopback lau
 
 Exit evidence shown: every page renders from the read API over the F1 capture; the scripted image
 break turns health Degraded while Applied stays (portal:D3:R2/R3); goldens come from captured
-cluster state; F1 holds an accepted, active registration on a released operator (v1.0.0-beta.6).
+cluster state; F1 holds an accepted, active registration on a released controller (v1.0.0-beta.9).
 
 ### V1 M1 hardening (done)
 
@@ -57,23 +57,25 @@ cluster state; F1 holds an accepted, active registration on a released operator 
 
 | PR | What landed |
 | --- | --- |
-| 29 | The design and this plan moved into the repo when enhancement 0030 was withdrawn |
+| 29 | The design and this plan moved into the repo when the portal enhancement was withdrawn |
 | 35 | OIDC sign-in removed and kept as a future plan (owner decision 2026-10-05) |
-| 34 | Every `0030:` citation outside archived changes rewritten as `portal:` (issues 31 and 32) |
+| 34 | Every citation of the withdrawn portal enhancement outside archived changes rewritten as `portal:` (issues 31 and 32) |
 | 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
 | 39 | Web UI redesign (`redesign-web-ui`): Platform and Installed views, a theme choice and remembered filters, summary cards and tabs on instance and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); the `Cluster` document, provider holders and package sources in the read API; local mode on `127.0.0.1:7878` |
+| 65 | Long requirements split (`split-long-requirements`): 85 requirements in 13 specs rewritten as shorter requirements; `task openspec:check` and the `Lint` job validate under `--strict` again |
 
 
 ### Next in V1
 
-1. **First release, 0.1.0** (PR 18), held until the portal's part of the opm-operator to
-   opm-controller rename merges (it renames `operatorVersion` and the owner value `operator` in the
-   read API).
+1. **First release, 0.1.0** (PR 18), held until OpenSpec change `follow-controller-rename` merges:
+   the read API names the controller (owner `controller`, `controllerVersion`), pages and docs say
+   "controller", the e2e cluster installs with `opm controller install`, and F1 is captured on the
+   released controller v1.0.0-beta.9 and cli v1.0.0-beta.12.
 2. **Canvas alignment** (planned 2026-10-06; four OpenSpec changes closing the verified gaps
    between the owner's canvas and the live pages,
    [evidence 05](docs/design/evidence/05-canvas-gap-report/); portal:D19, D20, D4:R5 as amended,
    D9:R6, D14:R7):
-   - `align-shell-and-tokens` (in review; reviewed in three parts, fixed and archived on its branch; the gate for the other three, which start from it): fixes
+   - `align-shell-and-tokens` (merged as PR 44; reviewed in three parts, fixed and archived; the gate for the other three, which start from it): fixes
      the empty details panel after a graph node is selected, and lands the flat look (no grid,
      shadows or heading marks, an 1840 px column), tone and kind chip tokens in light and dark, one
      square badge for both axes with the Applied words kept, underline tabs with counts, a worded
@@ -85,30 +87,86 @@ cluster state; F1 holds an accepted, active registration on a released operator 
      Open deviation for the owner's review: the Catalog page's Events tab carries no count where
      the canvas shows one, since counting it would add a read on every tab (portal:D19:R4, a
      planner reading, not a ruling).
-   - `align-platform-installed-catalog`, after the gate: Platform and Catalog state blocks with
-     reason counts, filter selects that list the values present with counts and apply as you type
-     (portal:D14:R7), Installed counted across namespaces with a package's source in the Module
-     filter, and events tables.
-   - `align-owner-pages`, after the gate, beside `align-graph`: Applied, Health and Provider as
-     state blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
-     over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, and
-     `prune` on packages.
-   - `align-graph`, after the gate, beside `align-owner-pages`: configuration grouped per kind
+   - `align-platform-installed-catalog` (merged as PR 47; reviewed, fixed and archived; built on top of the gate): Platform and Catalog
+     state blocks with reason counts, filter selects that list the values present with counts and
+     apply as you type (portal:D14:R7), Installed counted across namespaces with a package's source
+     in the Module filter, events tables, and the Catalog page with its short-name headline, origin
+     pill, source and the "refused since" time. What it uncovered: option counts are live reads, so
+     a reader who may list only some namespaces gets no count for the lists locked to them and
+     types a namespace; the count announced after a filter change had to come from the form that
+     made the request, since the Platform page holds two counts, and each filter form's Apply button
+     needed a stable id so that tabbing out of a text field kept the user's place; the canvas Catalog block says
+     "Pulled <version> from the registry", but nothing the portal reads records a pull, so the
+     block says "In the resolved registry at <version>"; the events Age keeps the relative form
+     ("5m ago") with the absolute time in `title`; the Catalog page has no per-catalog resolve time
+     until the controller records one (portal:OQ26). Open for the owner: any canvas copy above that
+     the owner overturns.
+   - `align-owner-pages` (merged as PR 48; built in six sections, reviewed, fixed and archived),
+     after the gate, beside `align-graph`: Applied, Health and Provider as state
+     blocks, Resources and Events as tables, the details panel at rest, the Events tab merged
+     over the inventory (`scope=all`, portal:D9:R6), Logs and YAML picked with a select, the
+     Provider tab as a facts grid with a conditions table and a table of what it provides, and
+     `prune` on packages. What it uncovered is item 4 below.
+   - `align-graph` (built in six sections, reviewed and archived on its branch; the PR is next), beside `align-owner-pages`: configuration grouped per kind
      family and opened one at a time in a frame (portal:D4:R5), three-line nodes, elbow edges, a
      legend, selection apart from the spotlight, registration standing on its node, and the
      package's source read as the caller (portal:D20). It and `align-owner-pages` share files,
      no requirement, and one function, `ownerTabsOf`, where both read the `node` and `focus`
-     parameters; the split is in both proposals.
+     parameters; the split is in both proposals. The visual check against the canvas boards left
+     eight divergences kept on purpose, in the change's design.md under "Visual check": among them
+     the group frame header is small at the 0.6 fit floor, the graph pane is capped at 760 px and
+     scrolls, the band keeps half-row gaps under `group=off`, and the Applied words stay. Open for the owner:
+     the registration panel names the provider only from the controller's verdict, since the
+     instance graph carries no `providerRef`.
+   - `add-inventory-revision` (built in two sections on top of `align-owner-pages` and
+     `align-graph`; reviewed, fixed and archived): `inventoryRevision`, the controller's `status.inventory.revision`,
+     is a new optional field on `Instance` and its list items, and the details panel of an
+     instance's own node reads "Inventory" and "Inventory revision". Left for later: the revision
+     on packages waits on a page that shows it (owner ruling, 2026-10-11), and "in N components"
+     after the object count waits on the owner.
+   - `add-shell-states-and-cluster-name` (built in four sections; in review): relative times keep
+     counting against the server's clock, a request open for a second draws a bar on the header
+     and marks the details panel busy, a lost stream or an expired session shows a banner with the
+     age of the data on screen and a Reload link (the banner stays until a resync has read the
+     cluster again), the header names a kubeconfig entry that differs from the context, the sticky
+     header never covers a focused element, and the details panel follows its page while a YAML or
+     Events view says when it was read. What it uncovered: absolute times are still `title` only
+     (a visible absolute time touches the state block and the history table, which other changes
+     own); a stall watchdog for a half-open connection needs the heartbeat interval on the page;
+     and a closed log region says "no longer live" only to a pointer reader (`sse:closed` adds a
+     class and a `title`).
+   - `show-service-endpoints` (built in five sections; reviewed, fixed and archived): a Service's details panel
+     shows "Endpoints N ready", the cluster's count of ready endpoints from its EndpointSlices, or
+     "Could not be read" when the caller or the portal may not list them or the list failed; the
+     portal's role gains `list` on `endpointslices` and nothing else (portal:D11:R7), and the count is
+     read only for the instance and package graphs. What it uncovered: a watch on EndpointSlices
+     needs `watch` and a held informer, a second widening of the role that was refused; F1 holds no
+     slice, so the tests add a recorded one, and a recapture would move every golden; the count is not
+     on the hover card or in the lists; "Could not be read" covers three causes and a distinct mark
+     for each waits on the owner; on a Service with `publishNotReadyAddresses` the count can include
+     Pods that are not ready.
 3. **A `packages` stream topic**, so the Installed list follows package changes live as it
    follows instances; until then package rows refresh on navigation.
-4. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
+4. **What `align-owner-pages` uncovered, none blocking:**
+   - The merged feed costs 6 to 26 ms more than the owner's own feed for cert-manager at the pace
+     of a person, on a kind cluster (95th percentile over 50 reads, measured twice: before the
+     build and on the built read). Back to back it costs 281 ms, which is the reading client's
+     rate limit (50 requests a second, 14 lists a read). A configurable rate, or a short cache of
+     the merged feed per owner, is the follow-up for a portal with many readers of one large owner
+     (design.md "Scale and refresh").
+   - The Events tab and its count refresh with the owner's own events, so an event about a child
+     alone shows on the next page read. A live refresh of child events needs a stream topic per
+     reached object or a merged topic; none is built.
+   - `CapText` and its 512-code-point cap on an event note are in `internal/readmodel/cap.go`,
+     added here first; `align-graph` adopts them for any new cluster text it serves.
+5. **Follow-ups, none blocking:** issue 23 items 1 and 3 (provider health on the Platform page,
    graph defaults from real use); issue 21 item 3 (replace the meta-refresh hand-off page) and
    item 4 (the loopback cookie risk, accepted and documented).
-5. **Phone-width test and contrast fix** (`fix-contrast-and-add-phone-check`, before the canvas
+6. **Phone-width test and contrast fix** (`fix-contrast-and-add-phone-check`, before the canvas
    alignment): `TestBrowserPhone` holds every F1 page to 360 px wide in three browsers; light muted
    text and the border of filter fields pass WCAG 2.2 AA, held by a token-pair test and recorded as
    portal:D19:R6. Two light-theme pairs, `--healthy` and `--degraded` on their fills, fail today and
-   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens (in review).
+   stay in a pending list that `align-shell-and-tokens` closes with its `--<tone>-ink` tokens (merged).
 
 ## Future plans
 
@@ -127,7 +185,7 @@ Dormant on main (merged, constructed by no command):
 | PR | What | Decisions |
 | --- | --- | --- |
 | 24 | In-cluster authorizer behind the seam: people and the portal's own reader, no self review | portal:D6:R1/R3/R7/R9/R10 |
-| 27 | Hide operator message text in-cluster; diff the stream per subscriber (local mode uses the diff too) | portal:D8:R5, portal:D2:R7 |
+| 27 | Hide controller message text in-cluster; diff the stream per subscriber (local mode uses the diff too) | portal:D8:R5, portal:D2:R7 |
 
 Removed: OIDC sign-in, sessions and bearer tokens with the fail-closed identity mapping (PR 28,
 portal:D6:R2/R3/R5/R6/R8 on the authentication side), by the change `remove-oidc-sessions`. The code,
@@ -152,12 +210,12 @@ What it would take, in order:
    (portal:D6:R7).
 3. **The portal's ClusterRole and install manifest**, with the catalog-coverage check
    (portal:D11:R1/R2/R3).
-4. **Operator viewer roles** in opm-operator, unaggregated (portal:D11:R4/R6); released before
+4. **Controller viewer roles** in opm-controller, unaggregated (portal:D11:R4/R6); released before
    in-cluster mode ships.
 5. **Kubernetes floor**: a standing CI job on a 1.34 cluster that exercises the event field
    selectors, and the floor documented (portal:D12). Cross-repo: the owner's 1.34 answer also puts
-   opm-operator on that floor, declared, with its own CI job on 1.34; tracked here until an
-   operator issue carries it.
+   opm-controller on that floor, declared, with its own CI job on 1.34; tracked here until a
+   controller issue carries it.
 
 Exit gate:
 
@@ -172,7 +230,7 @@ Exit gate:
 - A workspace `security-audit` pass with no critical finding.
 
 Evidence still missing from the design (not blocking this plan): a ModulePackage reconciling from a
-real Flux source, and a removal-blocked registration on a released operator.
+real Flux source, and a removal-blocked registration on a released controller.
 
 ### 2. The marketplace (V2)
 
@@ -181,7 +239,7 @@ configuration, and orders an instance as themselves. **V2 cannot start before en
 (self-service kinds) is accepted**: an order is an instance of a 0027 served kind, never a
 ModuleInstance that names a module.
 
-The marketplace contract questions live in enhancement 0027, OQ17 to OQ29 (presentation block on
+The marketplace contract questions live in enhancement 0027 (presentation block on
 the definition, schema agreement, secret and union encoding, required and computed fields,
 admission, outputs, what a UI may create, under which identity, per-field errors, literal secrets,
 prefill). The direction the portal brings to them, as candidates and not decisions:
@@ -196,16 +254,16 @@ prefill). The direction the portal brings to them, as candidates and not decisio
 - **Order flow**: form, validate, review page with secrets redacted, create as the user, status
   page built on the V1 views.
 
-Evidence: the withdrawn enhancement 0031 (module presentation contract) and 0027's experiments.
+Evidence: the withdrawn module presentation enhancement and the experiments of enhancement 0027.
 
 What it would take, in order, each step gated:
 
 | Step | Delivers | Gate |
 | --- | --- | --- |
 | Evidence | Experiments on secret encoding, field hints, unions, card and index | none |
-| Browse and preview | Card and asset gate, index module, admin registry browser, author preview | 0027:OQ17 answered; core release |
-| Tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | 0027 accepted with its OQ18 to OQ22 answered |
-| Order | Dry run and submit as the user, review and status pages, edit and delete | 0027:OQ24 to OQ27 answered; write identity decided (portal:OQ1) |
+| Browse and preview | Card and asset gate, index module, admin registry browser, author preview | the presentation question of enhancement 0027 answered; core release |
+| Tenant catalog | Encoder in library, presentation on definitions, offering pages, forms rendered without submit | enhancement 0027 accepted with its served-schema questions answered |
+| Order | Dry run and submit as the user, review and status pages, edit and delete | the order questions of enhancement 0027 answered; write identity decided (portal:OQ1) |
 
 ### 3. Advanced features
 
@@ -214,8 +272,8 @@ Left out of the web UI redesign until a source exists, not ranked below:
 - **A Platform health** (portal:OQ22): the Platform page shows no health for the Platform itself.
 - **Catalog contents** (portal:OQ25): definitions, their descriptions and documentation links,
   and the transformers a catalog ships, on the Catalog page and the Provider tab.
-- **Controller follow-ups**: the operator accepting a ModulePackage as a provider (portal:OQ23,
-  [opm-operator#254](https://github.com/open-platform-model/opm-operator/issues/254)), and
+- **Controller follow-ups**: the controller accepting a ModulePackage as a provider (portal:OQ23,
+  [opm-controller#254](https://github.com/open-platform-model/opm-controller/issues/254)), and
   packages recording the contracts their render used (portal:OQ24).
 
 Beyond the marketplace, ranked by value per effort:
@@ -224,7 +282,7 @@ Beyond the marketplace, ranked by value per effort:
    adapter.
 2. **`opm module preview`**: renders card, detail page and form locally, with a completeness score.
 3. **Contract fulfilment matrix**: per Platform, demanded versus provided versus active. Needs the
-   operator to record demand (portal:OQ18). The first step of "define a platform".
+   controller to record demand (portal:OQ18). The first step of "define a platform".
 4. **Upgrade assistant**: consumer-schema diff, change class, values that would break, render diff.
 5. **Provider ecosystem view**: registrations, contracts, dependants. Cheap after item 3.
 6. **Platform builder**: compose a Platform from catalogs, pick providers, see fulfilment, apply or
@@ -233,7 +291,7 @@ Beyond the marketplace, ranked by value per effort:
    impersonation.
 8. **Headlamp plugin**, and 9. **Backstage adapter**: always adapters over the read API, never a
    base.
-10. **Drift view** (needs per-entry content hashes from the operator); 11. **quota and cost
+10. **Drift view** (needs per-entry content hashes from the controller); 11. **quota and cost
     hints**; 12. **multi-cluster hub** (portal:OQ15).
 
 Not planned: a bespoke package format, a central OPM-hosted marketplace, multi-page wizards.

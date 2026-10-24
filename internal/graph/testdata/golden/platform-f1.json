@@ -2,10 +2,10 @@
   "scope": "platform",
   "root": "plat:cluster",
   "layout": {
-    "width": 1024,
-    "height": 160,
-    "nodeWidth": 200,
-    "nodeHeight": 44,
+    "width": 1040,
+    "height": 228,
+    "nodeWidth": 216,
+    "nodeHeight": 72,
     "columns": [
       {
         "title": "Platform",
@@ -44,13 +44,13 @@
       },
       "platform": {
         "type": "kubernetes",
-        "operatorVersion": "v1.0.0-beta.6",
+        "controllerVersion": "v1.0.0-beta.9",
         "registrationsAccess": "ok"
       },
       "column": 0,
       "row": 0,
       "x": 16,
-      "y": 72
+      "y": 92
     },
     {
       "id": "cat:opmodel.dev%2Fcatalogs%2Fopm%40v4",
@@ -67,9 +67,9 @@
       "y": 44
     },
     {
-      "id": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "id": "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "kind": "catalog",
-      "label": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "label": "testing.opmodel.dev/catalogs/controller/backup@v0",
       "catalog": {
         "version": "0.1.0",
         "enabled": true,
@@ -78,7 +78,7 @@
       "column": 1,
       "row": 1,
       "x": 280,
-      "y": 100
+      "y": 140
     },
     {
       "id": "treg:default.backup-provider",
@@ -94,10 +94,10 @@
       "applied": {
         "state": "Applied",
         "reason": "Accepted",
-        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0"
+        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/controller/backup@v0 at 0.1.0"
       },
       "registration": {
-        "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+        "catalog": "testing.opmodel.dev/catalogs/controller/backup@v0",
         "version": "0.1.0",
         "provides": [
           "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
@@ -106,7 +106,7 @@
         "active": true,
         "verdict": "Accepted",
         "reason": "Accepted",
-        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/operator/backup@v0 at 0.1.0",
+        "message": "Claim accepted for catalog testing.opmodel.dev/catalogs/controller/backup@v0 at 0.1.0",
         "activeReason": "ProviderReady",
         "activeMessage": "Provider ModuleInstance default/backup-provider is Ready"
       },
@@ -129,21 +129,21 @@
       "applied": {
         "state": "Stalled",
         "reason": "CatalogUnresolved",
-        "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found"
+        "message": "Claimed catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0.1.0: module not found"
       },
       "registration": {
-        "catalog": "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+        "catalog": "testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0",
         "version": "0.1.0",
         "accepted": false,
         "active": false,
         "verdict": "Refused",
         "reason": "CatalogUnresolved",
-        "message": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found"
+        "message": "Claimed catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0.1.0: module not found"
       },
       "column": 2,
       "row": 1,
       "x": 544,
-      "y": 100
+      "y": 140
     },
     {
       "id": "mi:default/backup-provider",
@@ -168,7 +168,7 @@
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "column": 3,
       "row": 0,
       "x": 808,
@@ -190,32 +190,32 @@
       "column": 3,
       "row": 1,
       "x": 808,
-      "y": 100
+      "y": 140
     }
   ],
   "edges": [
     {
-      "id": "contributes|treg:default.backup-provider|cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "id": "contributes|treg:default.backup-provider|cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "kind": "contributes",
       "from": "treg:default.backup-provider",
-      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "source": "Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration",
       "route": [
         {
           "x": 544,
-          "y": 66
+          "y": 80
         },
         {
-          "x": 512,
-          "y": 66
+          "x": 520,
+          "y": 80
         },
         {
-          "x": 512,
-          "y": 122
+          "x": 520,
+          "y": 176
         },
         {
-          "x": 480,
-          "y": 122
+          "x": 496,
+          "y": 176
         }
       ]
     },
@@ -228,20 +228,20 @@
       "verified": true,
       "route": [
         {
-          "x": 744,
-          "y": 66
+          "x": 760,
+          "y": 80
         },
         {
-          "x": 776,
-          "y": 66
+          "x": 784,
+          "y": 80
         },
         {
-          "x": 776,
-          "y": 66
+          "x": 784,
+          "y": 80
         },
         {
           "x": 808,
-          "y": 66
+          "y": 80
         }
       ]
     },
@@ -255,20 +255,20 @@
       "reason": "ProviderNotFound",
       "route": [
         {
-          "x": 744,
-          "y": 122
+          "x": 760,
+          "y": 176
         },
         {
-          "x": 776,
-          "y": 122
+          "x": 784,
+          "y": 176
         },
         {
-          "x": 776,
-          "y": 122
+          "x": 784,
+          "y": 176
         },
         {
           "x": 808,
-          "y": 122
+          "y": 176
         }
       ]
     },
@@ -280,45 +280,45 @@
       "source": "Platform status.registry",
       "route": [
         {
-          "x": 216,
-          "y": 94
+          "x": 232,
+          "y": 128
         },
         {
-          "x": 248,
-          "y": 94
+          "x": 256,
+          "y": 128
         },
         {
-          "x": 248,
-          "y": 66
+          "x": 256,
+          "y": 80
         },
         {
           "x": 280,
-          "y": 66
+          "y": 80
         }
       ]
     },
     {
-      "id": "resolves|plat:cluster|cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "id": "resolves|plat:cluster|cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "kind": "resolves",
       "from": "plat:cluster",
-      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "source": "Platform status.registry",
       "route": [
         {
-          "x": 216,
-          "y": 94
+          "x": 232,
+          "y": 128
         },
         {
-          "x": 248,
-          "y": 94
+          "x": 256,
+          "y": 128
         },
         {
-          "x": 248,
-          "y": 122
+          "x": 256,
+          "y": 176
         },
         {
           "x": 280,
-          "y": 122
+          "y": 176
         }
       ]
     }

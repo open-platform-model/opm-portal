@@ -96,12 +96,12 @@ badge, the component rows, the graph's runtime nodes and the read API's instance
 - **After**: one page GET per change. The new ReplicaSet and its Pod appeared in the components
   and the graph at 1.66 s (Progressing); kubectl saw `ErrImagePull` at 2.5 s; at 3.28 s the
   header, the component rows and the graph all showed the Pod Degraded, the instance Degraded and
-  still Applied (0030:D3:R3). The earlier rollout's ReplicaSet, scaled to zero, sat folded under
+  still Applied. The earlier rollout's ReplicaSet, scaled to zero, sat folded under
   "1 old revision".
 
 ## Risks / Trade-offs
 
 - [A full page per refresh] → one per change instead of one per region; the API answers from held
-  state (0030:D3:R9).
+  state.
 - [A fetched page whose session ended] → the response is the sign-in page; it has no matching
   regions, so nothing is swapped and the live indicator says signed out.

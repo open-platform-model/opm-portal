@@ -2,6 +2,7 @@ package graph
 
 import (
 	"github.com/open-platform-model/opm-portal/internal/health"
+	"github.com/open-platform-model/opm-portal/internal/readmodel"
 )
 
 // Scope is what a graph is about.
@@ -37,8 +38,8 @@ type GroupKind string
 
 // Group kinds.
 const (
-	// GroupConfiguration: the components of one owner that hold no
-	// workload.
+	// GroupConfiguration: the components of one owner and one Family that
+	// hold no workload.
 	GroupConfiguration GroupKind = "configuration"
 	// GroupPods: the Pods under one parent, when there are more than
 	// podGroupThreshold.
@@ -46,6 +47,37 @@ const (
 	// GroupMore: the nodes the node cap dropped.
 	GroupMore GroupKind = "more"
 )
+
+// Family is the kind family of a configuration group: what its components'
+// objects are, by API group.
+type Family string
+
+// Families. The set is extensible: a consumer that meets another reads the
+// group's kind, members and health alone.
+const (
+	FamilyCRDs     Family = "crds"
+	FamilyRBAC     Family = "rbac"
+	FamilyWebhooks Family = "webhooks"
+	FamilyOther    Family = "other"
+)
+
+// Families lists the families in the order a graph names them.
+var Families = []Family{FamilyCRDs, FamilyRBAC, FamilyWebhooks, FamilyOther}
+
+// Label is the family's name as a page prints it.
+func (f Family) Label() string {
+	switch f {
+	case FamilyCRDs:
+		return "CRDs"
+	case FamilyRBAC:
+		return "RBAC"
+	case FamilyWebhooks:
+		return "Webhook configuration"
+	case FamilyOther:
+		return "Other configuration"
+	}
+	return "Other configuration" // a family this version does not know
+}
 
 // EdgeKind is the relation an edge draws. Each kind has exactly one source
 // of truth, which every edge of the kind names.
@@ -90,7 +122,7 @@ const (
 )
 
 // ReasonForeignNamespace: a dependsOn entry names a package in another
-// namespace, which the operator refuses.
+// namespace, which the controller refuses.
 const ReasonForeignNamespace = "ForeignNamespace"
 
 // Graph is one graph with its layout.
@@ -153,7 +185,7 @@ type Counts struct {
 	Withheld    int `json:"withheld,omitempty"`
 }
 
-// Applied is an operator object's applied state, never merged with health
+// Applied is a controller object's applied state, never merged with health
 // (portal:D3).
 type Applied struct {
 	State    health.AppliedState `json:"state"`
@@ -177,6 +209,19 @@ type Registration struct {
 	ActiveMessage string         `json:"activeMessage,omitempty"`
 }
 
+// SourceState is a package source node's state as the caller read it: the
+// read model's SourceState, already cut for serving.
+type SourceState struct {
+	// Access says how reading the source went; empty readiness when it
+	// was refused or could not be read.
+	Access  health.Access             `json:"access"`
+	State   readmodel.SourceReadiness `json:"state,omitempty"`
+	Reason  string                    `json:"reason,omitempty"`
+	Message string                    `json:"message,omitempty"`
+	// Revision is status.artifact.revision.
+	Revision string `json:"revision,omitempty"`
+}
+
 // Catalog is one entry of the Platform's resolved registry.
 type Catalog struct {
 	Version string `json:"version,omitempty"`
@@ -186,8 +231,8 @@ type Catalog struct {
 
 // PlatformFacts is what the platform node says beyond its applied state.
 type PlatformFacts struct {
-	Type            string `json:"type,omitempty"`
-	OperatorVersion string `json:"operatorVersion,omitempty"`
+	Type              string `json:"type,omitempty"`
+	ControllerVersion string `json:"controllerVersion,omitempty"`
 	// RegistrationsAccess says whether the registrations shown are all of
 	// them.
 	RegistrationsAccess health.Access `json:"registrationsAccess"`
@@ -196,8 +241,14 @@ type PlatformFacts struct {
 // Group is what a group node stands in for.
 type Group struct {
 	Kind GroupKind `json:"kind"`
+	// Family is a configuration group's kind family.
+	Family Family `json:"family,omitempty"`
 	// Members are the labels of what the group holds, sorted.
 	Members []string `json:"members,omitempty"`
+	// ObjectKinds counts the inventory objects a configuration group's
+	// members hold, by kind, sorted by kind: the group's "N objects: K
+	// kinds".
+	ObjectKinds []KindCount `json:"objectKinds,omitempty"`
 	// Hidden counts, for the node-cap summary, the dropped nodes by kind.
 	// The summary's Health counts them by state.
 	Hidden []KindCount `json:"hidden,omitempty"`
@@ -224,7 +275,8 @@ type Node struct {
 	Health  *Health  `json:"health,omitempty"`
 	Applied *Applied `json:"applied,omitempty"`
 
-	// Owner is an instance's owner: operator or cli.
+	// Owner is an instance's owner: controller, cli, or the spec.owner value
+	// as written when the portal does not know it.
 	Owner string `json:"owner,omitempty"`
 	// RenderContracts are every contract an instance's render used, most
 	// fulfilled by the catalog itself: not the provider contracts it
@@ -233,11 +285,14 @@ type Node struct {
 	// Version is a module's version.
 	Version string `json:"version,omitempty"`
 	// Path is a package's path inside its source.
-	Path         string         `json:"path,omitempty"`
-	Registration *Registration  `json:"registration,omitempty"`
-	Catalog      *Catalog       `json:"catalog,omitempty"`
-	Platform     *PlatformFacts `json:"platform,omitempty"`
-	Group        *Group         `json:"group,omitempty"`
+	Path         string        `json:"path,omitempty"`
+	Registration *Registration `json:"registration,omitempty"`
+	// SourceState is a package source node's state; nil on other nodes and
+	// when the source was not looked up.
+	SourceState *SourceState   `json:"sourceState,omitempty"`
+	Catalog     *Catalog       `json:"catalog,omitempty"`
+	Platform    *PlatformFacts `json:"platform,omitempty"`
+	Group       *Group         `json:"group,omitempty"`
 	// MemberOf is the id of the group an expanded member belongs to, so a
 	// consumer can collapse it again.
 	MemberOf string `json:"memberOf,omitempty"`
@@ -247,6 +302,13 @@ type Node struct {
 	// ChildrenUnread: the runtime children below this workload could not be
 	// read, so its health is the status rules alone.
 	ChildrenUnread bool `json:"childrenUnread,omitempty"`
+	// EndpointsReady is the ready endpoints the cluster records for a Service,
+	// 0 included; nil when the read was not made or failed, or when no slice
+	// is recorded. Only a Service node carries it, and never with
+	// EndpointsUnread.
+	EndpointsReady *int64 `json:"endpointsReady,omitempty"`
+	// EndpointsUnread: the ready endpoints of a Service could not be read.
+	EndpointsUnread bool `json:"endpointsUnread,omitempty"`
 	// HiddenScaledDown counts the ReplicaSets scaled to zero hidden below
 	// this node.
 	HiddenScaledDown int `json:"hiddenScaledDown,omitempty"`
@@ -269,7 +331,10 @@ type Edge struct {
 	// does, false with Reason when it does not (portal:D4:R2).
 	Verified *bool  `json:"verified,omitempty"`
 	Reason   string `json:"reason,omitempty"`
-	// Route is a cubic Bézier: start, two control points, end.
+	// Route is an elbow: the start, the two corners at the middle of the
+	// gutter, and the end. It is drawn as a horizontal run to the first
+	// corner's x, a vertical run to the end's y and a horizontal run to the
+	// end.
 	Route []Point `json:"route"`
 }
 

@@ -5,16 +5,21 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	"github.com/open-platform-model/opm-portal/internal/api/apitest"
 	"github.com/open-platform-model/opm-portal/internal/auth"
@@ -165,7 +170,7 @@ func TestBrowserTheme(t *testing.T) {
 
 // TestBrowserGraph drives the instance graph in real browsers (task
 // test:browser): Clear selection, the Resources hand-off, a group's fit and
-// Whole graph, the state and full screen a live refresh keeps, and the details
+// Overview, the state and full screen a live refresh keeps, and the details
 // panel a node selection fills.
 func TestBrowserGraph(t *testing.T) {
 	script := browserScript(t, "graph.py")
@@ -178,6 +183,38 @@ func TestBrowserGraph(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestBrowserOwner drives an owner page's details panel in real browsers (task
+// test:browser): the panel at rest shows the ModuleInstance, a node click fills it
+// and Clear selection brings the ModuleInstance back, the YAML tab opens on the
+// selected object, and a click on a Resources row opens the Graph focused with
+// the panel filled. A last step selects podinfo's Service over F1 plus the
+// recorded EndpointSlice and reads the Endpoints fact, once for a caller who
+// may list EndpointSlices (`2 ready`) and once for a caller who may not
+// (`Could not be read`, never `0 ready`).
+func TestBrowserOwner(t *testing.T) {
+	script := browserScript(t, "owner.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			counted, unread := serveEndpointSites(t)
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), counted, unread); err != nil {
+				t.Fatalf("an owner page interaction did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// serveEndpointSites serves F1 plus the recorded EndpointSlice of podinfo's
+// Service twice: for a caller who may list EndpointSlices, and for one who
+// may not.
+func serveEndpointSites(t *testing.T) (counted, unread string) {
+	t.Helper()
+	counted = serveSite(t, apitest.F1WithEndpointSlices(t))
+	srv := apitest.New(t, apitest.F1WithEndpointSlices(t), apitest.DenyResources("endpointslices"))
+	return counted, serveHandlerWith(t, srv, nil, nil, nil)
 }
 
 // TestBrowserTabCount drives a live tab count in real browsers (task
@@ -199,15 +236,20 @@ func TestBrowserTabCount(t *testing.T) {
 	}
 }
 
-// phonePages lists the pages TestBrowserPhone opens: the 25 non-fragment
+// phonePages lists the pages TestBrowserPhone opens: the non-fragment
 // paths of f1Pages in internal/ui/ui_test.go, which package main cannot
-// import, and the not-found page. A UI change that adds a page adds its path
+// import, the Graph tab of each owner page, the Provider tab of the package
+// that holds a refused claim, and the not-found page. A UI change that adds
+// a page adds its path
 // here, as it adds it to f1Pages.
 var phonePages = []string{
 	"/",
+	"/?tab=providers",
 	"/?tab=catalogs",
 	"/?pstatus=refused&eresource=registration:default.refused-claim-fixture",
 	"/installed",
+	"/installed?q=backup",
+	"/installed?q=zzz",
 	"/installed?namespace=default",
 	"/installed?kind=package",
 	"/installed?uses=opmodel.dev/catalogs/opm/traits/backup@v1alpha1",
@@ -220,15 +262,25 @@ var phonePages = []string{
 	"/instances/default/podinfo?tab=yaml&object=apps/Deployment/default/podinfo-podinfo",
 	"/instances/default/backup-provider",
 	"/instances/default/backup-provider?tab=provider",
-	"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0",
-	"/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0",
+	"/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0&tab=events",
+	"/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved",
+	"/catalog?path=opmodel.dev/catalogs/opm@v4",
 	"/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events",
 	"/instances/cert-manager/cert-manager?tab=resources",
 	"/instances/cert-manager/cert-manager",
-	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager",
+	"/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
+	"/instances/default/podinfo?tab=graph",
+	"/instances/cert-manager/cert-manager?tab=graph",
+	"/instances/cert-manager/cert-manager?tab=graph&expand=grp:configuration/mi/cert-manager/cert-manager/rbac",
+	"/instances/cert-manager/cert-manager?tab=graph&group=off",
+	"/instances/default/backup-provider?tab=graph",
+	"/packages/pkg/podinfo?tab=graph",
 	"/instances/web/web",
 	"/packages/pkg/podinfo",
 	"/packages/pkg/podinfo?tab=resources",
+	"/packages/pkg/provider?tab=provider",
 	"/nope",
 }
 
@@ -238,16 +290,40 @@ var phonePages = []string{
 // measures the layout shows content a phone would lose. The script first
 // proves the measure can fail with an element it adds that is 500 px wide.
 // A last step selects a graph node from the keyboard and measures again with
-// the details panel filled.
+// the details panel filled. The /endpoints leg opens the panel of podinfo's
+// Service with the Endpoints fact reading `2 ready` and `Could not be read`.
 func TestBrowserPhone(t *testing.T) {
 	script := browserScript(t, "phone.py")
+	banner := browserScript(t, "phone_banner.py")
+	endpoints := browserScript(t, "phone_endpoints.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
 		t.Run(browser, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
 			defer cancel()
-			args := append([]string{browser, serveF1Site(t)}, phonePages...)
+			// F1 with the package that holds a refused claim, as the UI tests build it.
+			args := append([]string{browser, serveSite(t, apitest.F1PackageHolder(t))}, phonePages...)
 			if err := playwright(ctx, t, script, nil, args...); err != nil {
 				t.Fatalf("a page is wider than 360 px: %v", err)
+			}
+		})
+		t.Run(browser+"/banner", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			// A 90 character context and a different 90 character cluster
+			// entry, with no space in either, and the banner shown.
+			longContext, longEntry := strings.Repeat("c", 90), strings.Repeat("e", 90)
+			srv := apitest.NewWithCluster(t, apitest.F1(t), apitest.AllowAll, longContext, longEntry)
+			url := serveHandlerWith(t, srv, nil, nil, nil)
+			if err := playwright(ctx, t, banner, nil, browser, url, "/", "/instances/default/podinfo"); err != nil {
+				t.Fatalf("the header with a banner and two long names does not hold 360 px: %v", err)
+			}
+		})
+		t.Run(browser+"/endpoints", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			counted, unread := serveEndpointSites(t)
+			if err := playwright(ctx, t, endpoints, nil, browser, counted, unread); err != nil {
+				t.Fatalf("the Endpoints fact does not hold 360 px: %v", err)
 			}
 		})
 	}
@@ -282,23 +358,271 @@ func TestBrowserTip(t *testing.T) {
 	}
 }
 
+// TestBrowserFilters drives the filter forms in real browsers (task
+// test:browser): typing in Installed's search applies after a pause and keeps
+// focus, caret and the characters typed meanwhile, and replaces the history
+// entry so Back leaves the filtered view; Enter submits once; a select
+// applies at once; the Apply button hides until it takes keyboard focus; a
+// text field applies when the user leaves it; and the new count is announced
+// once through the header's status region (PIC-L1).
+func TestBrowserFilters(t *testing.T) {
+	script := browserScript(t, "filters.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, script, nil, browser, serveF1Site(t), apitest.Context); err != nil {
+				t.Fatalf("a filter form did not hold: %v", err)
+			}
+		})
+	}
+}
+
+// relativeTimeTable is the table the page script's tick and the UI's
+// relative both follow, which package main cannot import from internal/ui.
+const relativeTimeTable = "../../internal/ui/testdata/relative-time.json"
+
+// TestBrowserLoading drives the loading bar and the ticking times in real
+// browsers (task test:browser). loading.py holds requests the way a slow
+// cluster would and checks the bar, the details panel's busy state and the
+// line it carries, against Playwright's clock: nothing before a second, the
+// bar and "Loading..." after it, the bar until the last of two requests ends,
+// an end through an error or an abort, and nothing for a background refresh.
+// time.py sets a browser clock ten minutes off the page's, then checks the
+// script's text against the rows of relative-time.json, that a tick writes
+// only the text of a time that changed, and that a counting time keeps its
+// width to a glyph.
+func TestBrowserLoading(t *testing.T) {
+	loading := browserScript(t, "loading.py")
+	timing := browserScript(t, "time.py")
+	table, err := os.ReadFile(relativeTimeTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser+"/loading", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			if err := playwright(ctx, t, loading, nil, browser, serveF1Site(t)); err != nil {
+				t.Fatalf("a slow request did not show as designed: %v", err)
+			}
+		})
+		t.Run(browser+"/time", func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Minute)
+			defer cancel()
+			url := serveSiteAt(t, apitest.F1(t), func() time.Time { return apitest.Now })
+			if err := playwright(ctx, t, timing, nil, browser, url, apitest.Now.UTC().Format(time.RFC3339), strings.TrimSpace(string(table))); err != nil {
+				t.Fatalf("a relative time did not count as designed: %v", err)
+			}
+		})
+	}
+}
+
+// TestBrowserStale drives the banner of a lost stream in real browsers (task
+// test:browser). stale.py holds a page open on a stream the test controls
+// (serveStaleSite): it sends heartbeats and changes, drops the connection,
+// refuses reconnects, and holds, fails and answers 401 to the page's refresh
+// fetch with routes. It checks the banner's words and time at each step, that
+// the live mark is the only status text that changes, that the banner goes
+// only after one fetch has replaced the followed regions, that a failed
+// fetch is tried again on the next heartbeat, and that a reader scrolled far
+// down still sees the banner. Run it after any change to the page script's
+// stream, banner or resync code.
+func TestBrowserStale(t *testing.T) {
+	script := browserScript(t, "stale.py")
+	for _, browser := range []string{"chromium", "firefox", "webkit"} {
+		t.Run(browser, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(t.Context(), 8*time.Minute)
+			defer cancel()
+			url := serveStaleSite(t)
+			if err := playwright(ctx, t, script, nil, browser, url, apitest.Now.UTC().Format(time.RFC3339)); err != nil {
+				t.Fatalf("the banner did not hold as designed: %v", err)
+			}
+		})
+	}
+}
+
+// serveStaleSite serves the pages over the F1 capture with a stream and a
+// page fetch the script drives. GET /api/v1alpha1/clusters/default/stream
+// answers 503 while refusing, else opens a stream with a fresh id (retry
+// 300 ms) and writes the frames the script posts until it asks to drop.
+// The page's refresh fetch (a GET asking for exactly text/html) is counted
+// and answered by mode: ok, hold (until released), abort (the connection
+// is reset), 500 or 401.
+//
+//	POST /ctl/send?frame=...   write one frame      POST /ctl/drop     end the connection
+//	POST /ctl/refuse?on=1|0    refuse connections   POST /ctl/fetch?mode=...
+//	POST /ctl/release          release one held fetch
+//	POST /ctl/render?mode=ok|broken   render the pages over F1 or the image-break capture
+//	GET  /ctl/state            "<streams> <fetches>"
+func serveStaleSite(t *testing.T) string {
+	t.Helper()
+	const apiBase = "/api/v1alpha1/clusters/default"
+	var (
+		mu      sync.Mutex
+		frames  = make(chan string, 16)
+		refuse  atomic.Bool
+		streams atomic.Int32
+		fetches atomic.Int32
+		mode    atomic.Value
+		release = make(chan struct{}, 16)
+	)
+	mode.Store("ok")
+	var broken atomic.Bool
+	wrap := func(f1 http.Handler) http.Handler {
+		// The same pages over the image-break capture: what a cluster that changed
+		// would render. The stream stays the script's; only the page renders move.
+		altPages := imageBreakPages(t)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			pages := f1
+			if broken.Load() {
+				pages = altPages
+			}
+			if r.Method != http.MethodGet || r.Header.Get("Accept") != "text/html" {
+				pages.ServeHTTP(w, r)
+				return
+			}
+			fetches.Add(1)
+			switch mode.Load().(string) {
+			case "hold":
+				select {
+				case <-release:
+				case <-r.Context().Done():
+					return
+				}
+			case "abort":
+				panic(http.ErrAbortHandler)
+			case "500":
+				http.Error(w, "boom", http.StatusInternalServerError)
+				return
+			case "401":
+				http.Error(w, "signed out", http.StatusUnauthorized)
+				return
+			}
+			pages.ServeHTTP(w, r)
+		})
+	}
+	return serveSiteWith(t, apitest.F1(t), func() time.Time { return apitest.Now }, wrap, func(mux *http.ServeMux) {
+		mux.HandleFunc("GET "+apiBase+"/stream", func(w http.ResponseWriter, r *http.Request) {
+			n := streams.Add(1)
+			if refuse.Load() {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+			mu.Lock()
+			mine := make(chan string, 16)
+			frames = mine
+			mu.Unlock()
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Cache-Control", "no-store")
+			rc := http.NewResponseController(w)
+			_, _ = io.WriteString(w, "retry: 300\nevent: open\ndata: {\"stream\":\"s"+strconv.Itoa(int(n))+"\"}\n\n")
+			_ = rc.Flush()
+			for {
+				select {
+				case f := <-mine:
+					if f == "" {
+						return
+					}
+					_, _ = io.WriteString(w, f)
+					_ = rc.Flush()
+				case <-r.Context().Done():
+					return
+				}
+			}
+		})
+		mux.HandleFunc("POST "+apiBase+"/stream/{stream}/topics", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
+		mux.HandleFunc("POST /ctl/send", func(_ http.ResponseWriter, r *http.Request) {
+			mu.Lock()
+			defer mu.Unlock()
+			frames <- r.URL.Query().Get("frame") + "\n\n"
+		})
+		mux.HandleFunc("POST /ctl/drop", func(_ http.ResponseWriter, _ *http.Request) {
+			mu.Lock()
+			defer mu.Unlock()
+			frames <- ""
+		})
+		mux.HandleFunc("POST /ctl/refuse", func(_ http.ResponseWriter, r *http.Request) {
+			refuse.Store(r.URL.Query().Get("on") == "1")
+		})
+		mux.HandleFunc("POST /ctl/fetch", func(_ http.ResponseWriter, r *http.Request) {
+			mode.Store(r.URL.Query().Get("mode"))
+		})
+		mux.HandleFunc("POST /ctl/render", func(_ http.ResponseWriter, r *http.Request) {
+			broken.Store(r.URL.Query().Get("mode") == "broken")
+		})
+		mux.HandleFunc("POST /ctl/release", func(_ http.ResponseWriter, _ *http.Request) {
+			release <- struct{}{}
+		})
+		mux.HandleFunc("GET /ctl/state", func(w http.ResponseWriter, _ *http.Request) {
+			_, _ = io.WriteString(w, strconv.Itoa(int(streams.Load()))+" "+strconv.Itoa(int(fetches.Load())))
+		})
+	})
+}
+
+// imageBreakPages are the pages over the image-break capture, on the clock of
+// the F1 pages.
+func imageBreakPages(t *testing.T) http.Handler {
+	t.Helper()
+	pages, err := ui.New(ui.Config{API: apitest.New(t, apitest.F1Broken(t), apitest.AllowAll), Now: func() time.Time { return apitest.Now }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pages
+}
+
 // serveF1Site serves, on a free loopback port, the read API and the pages
 // over the F1 capture, every request reading as the test caller.
 func serveF1Site(t *testing.T) string {
+	t.Helper()
+	return serveSite(t, apitest.F1(t))
+}
+
+// serveSite is serveF1Site over objs.
+func serveSite(t *testing.T, objs []*unstructured.Unstructured) string {
+	t.Helper()
+	return serveSiteAt(t, objs, nil)
+}
+
+// serveSiteAt is serveSite with the clock the pages read relative times
+// against; a nil clock is the wall clock.
+func serveSiteAt(t *testing.T, objs []*unstructured.Unstructured, now func() time.Time) string {
+	t.Helper()
+	return serveSiteWith(t, objs, now, nil, nil)
+}
+
+// serveSiteWith is serveSiteAt with wrap, which may stand in front of the
+// pages, and extra, which may add handlers to the mux beside the read API
+// and the pages (a more specific pattern wins).
+func serveSiteWith(t *testing.T, objs []*unstructured.Unstructured, now func() time.Time, wrap func(http.Handler) http.Handler, extra func(*http.ServeMux)) string {
+	t.Helper()
+	return serveHandlerWith(t, apitest.New(t, objs, apitest.AllowAll), now, wrap, extra)
+}
+
+// serveHandlerWith is serveSiteWith over a read API the caller built.
+func serveHandlerWith(t *testing.T, srv http.Handler, now func() time.Time, wrap func(http.Handler) http.Handler, extra func(*http.ServeMux)) string {
 	t.Helper()
 	var lc net.ListenConfig
 	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	srv := apitest.New(t, apitest.F1(t), apitest.AllowAll)
-	pages, err := ui.New(ui.Config{API: srv})
+	pages, err := ui.New(ui.Config{API: srv, Now: now})
 	if err != nil {
 		t.Fatal(err)
 	}
 	mux := http.NewServeMux()
 	mux.Handle("/api/", srv)
-	mux.Handle("/", pages)
+	var front http.Handler = pages
+	if wrap != nil {
+		front = wrap(pages)
+	}
+	mux.Handle("/", front)
+	if extra != nil {
+		extra(mux)
+	}
 	httpSrv := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.AddCookie(&http.Cookie{Name: apitest.SessionCookie, Value: apitest.SessionValue})
@@ -313,8 +637,10 @@ func serveF1Site(t *testing.T) string {
 
 // TestBrowserExpired ends a page's stream with the expired event in real
 // browsers (task test:browser). Only a browser shows that the EventSource
-// closes for good instead of reconnecting into a refusal, and that the page
-// says the session expired.
+// closes for good instead of reconnecting into a refusal, that the page
+// says the session expired in the live mark and in the banner with the time
+// of the data and a Reload link, and that the link loads a new page with a
+// new stream.
 func TestBrowserExpired(t *testing.T) {
 	script := browserScript(t, "expired.py")
 	for _, browser := range []string{"chromium", "firefox", "webkit"} {
@@ -325,8 +651,10 @@ func TestBrowserExpired(t *testing.T) {
 			if err := playwright(ctx, t, script, nil, browser, url); err != nil {
 				t.Fatalf("the page did not show the expired session: %v", err)
 			}
-			if n := streams.Load(); n != 1 {
-				t.Errorf("the page opened %d streams; want 1, and no reconnect after expired", n)
+			// One stream for the page, none after expired (the script counts
+			// that before it acts), and one for the page its Reload link loads.
+			if n := streams.Load(); n != 2 {
+				t.Errorf("the page opened %d streams; want 2: the page's, no reconnect after expired, and the reload's", n)
 			}
 		})
 	}
@@ -366,6 +694,9 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 	mux.HandleFunc("POST "+apiBase+"/stream/{stream}/topics", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	})
+	mux.HandleFunc("GET /streams", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, strconv.Itoa(int(streams.Load())))
+	})
 	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 	go func() { _ = srv.Serve(ln) }()
 	t.Cleanup(func() { _ = srv.Close() })
@@ -373,8 +704,16 @@ func serveExpiringPage(t *testing.T) (string, *atomic.Int32) {
 }
 
 // serveLogsPage serves, on a free loopback port, a page holding a logs
-// region shaped as the owner page renders it. Its first render lists Pod
-// a's pane, its second adds Pod b's, and every later one lists no Pod.
+// region shaped as the owner page renders it: a Pod / container select form
+// and one open pane. The page loads portal.js but not htmx, so a select
+// change is a full page load and the page's htmx:afterSettle listeners do
+// not run here; TestBrowserOwner drives the swapped select on the real page
+// (owner.py, step 8). Its first render lists Pod a's pane, its second adds
+// Pod b's, and every later one lists no Pod; a request that names a pane
+// (log=) is rendered at once, with that one pane open. The stream's topics
+// endpoint records what each stream is subscribed to, and /subs?stream=ID
+// lists it; POST /subs/reset forgets all of it, so a step starts from nothing
+// and a topic listed afterwards was subscribed in that step.
 func serveLogsPage(t *testing.T) string {
 	t.Helper()
 	var lc net.ListenConfig
@@ -386,32 +725,84 @@ func serveLogsPage(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pane := func(pod string) string {
-		return `<details class="log" id="log_` + pod + `_c" data-log-topic="log:ns/` + pod + `/c">` +
+	pane := func(pod string, open bool) string {
+		attr := ""
+		if open {
+			attr = " open"
+		}
+		return `<details class="log" id="log_` + pod + `_c" data-log-topic="log:ns/` + pod + `/c"` + attr + `>` +
 			`<summary><span class="mono">` + pod + `</span> <span class="log-container">c</span></summary>` +
 			`<div class="log-tools"><label><input type="checkbox" data-log-previous="log:ns/` + pod + `/c/previous"> Previous instance</label>` +
 			`<span class="log-state" aria-live="polite"></span></div>` +
 			`<pre class="log-pane" tabindex="0" aria-label="Log of c in ` + pod + `"></pre></details>`
 	}
-	var renders atomic.Int32
+	form := func(picked string) string {
+		opt := func(pod string) string {
+			sel := ""
+			if pod == picked {
+				sel = " selected"
+			}
+			return `<option value="log_` + pod + `_c"` + sel + `>c</option>`
+		}
+		return `<form class="filters" method="get" action="/logs" data-filters="owner-logs"><input type="hidden" name="tab" value="logs">` +
+			`<select id="f-log" name="log"><optgroup label="a">` + opt("a") + `</optgroup><optgroup label="b">` + opt("b") + `</optgroup></select>` +
+			`<button type="submit">Show</button></form>`
+	}
+	var (
+		renders atomic.Int32
+		mu      sync.Mutex
+		subs    = map[string][]string{}
+	)
 	mux := http.NewServeMux()
 	mux.Handle("/static/", pages)
-	mux.HandleFunc("/logs", func(w http.ResponseWriter, _ *http.Request) {
-		var panes, note string
-		switch renders.Add(1) {
-		case 1:
-			panes, note = pane("a"), `<p class="note">Logs stream only while a pane is open.</p>`
-		case 2:
-			panes, note = pane("a")+pane("b"), `<p class="note">Logs stream only while a pane is open.</p>`
-		default:
-			note = `<p class="muted">No Pod below this inventory that you may read.</p>`
+	mux.HandleFunc("POST /stream/{id}/topics", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Add []string `json:"add"`
+		}
+		if json.NewDecoder(io.LimitReader(r.Body, 1<<16)).Decode(&body) == nil {
+			mu.Lock()
+			subs[r.PathValue("id")] = append(subs[r.PathValue("id")], body.Add...)
+			mu.Unlock()
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("GET /subs", func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+		got := subs[r.URL.Query().Get("stream")]
+		if got == nil {
+			got = []string{}
+		}
+		_ = json.NewEncoder(w).Encode(got)
+	})
+	mux.HandleFunc("POST /subs/reset", func(w http.ResponseWriter, _ *http.Request) {
+		mu.Lock()
+		subs = map[string][]string{}
+		mu.Unlock()
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("/logs", func(w http.ResponseWriter, r *http.Request) {
+		var panes, note, picker string
+		note = `<p class="note">Logs stream only while the pane is open.</p>`
+		if pick := r.URL.Query().Get("log"); pick != "" {
+			pod := strings.TrimSuffix(strings.TrimPrefix(pick, "log_"), "_c")
+			picker, panes = form(pick), pane(pod, true)
+		} else {
+			switch renders.Add(1) {
+			case 1:
+				picker, panes = form("log_a_c"), pane("a", true)
+			case 2:
+				picker, panes = form("log_a_c"), pane("a", true)+pane("b", false)
+			default:
+				note = `<p class="muted">No Pod below this inventory that you may read.</p>`
+			}
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Content-Security-Policy", ui.PagePolicy)
 		_, _ = io.WriteString(w, `<!doctype html><meta charset="utf-8"><title>logs</title>`+
 			`<link rel="stylesheet" href="/static/portal.css">`+
-			`<body><div id="stream-events" hidden></div><main id="main" data-topics="owner:t">`+
-			`<section class="panel" id="logs" data-follow="owner:t"><h2>Logs</h2>`+
+			`<body data-stream-base="/stream"><div id="stream-events" hidden></div><main id="main" data-topics="owner:t">`+
+			`<section class="panel" id="logs" data-follow="owner:t"><h2>Logs</h2>`+picker+
 			`<div class="logs">`+panes+`</div>`+note+`</section></main>`+
 			`<script src="/static/portal.js"></script></body>`)
 	})

@@ -4,8 +4,8 @@ Every portal view (the read API, the graph, the change stream, the UI) needs the
 underneath: the four OPM kinds, the objects their inventories name, the runtime children below
 those objects and their events, held in memory so a page does not cost one Kubernetes read per
 inventory object. The live capture measured 7.4 to 9.4 s for one cert-manager graph built from
-per-request reads at client-go's default rate limit (0030:D3:R9), and found that a broken rollout
-shows only on the Pods below a Deployment (0030:D3:R2). The authorization seam (`internal/authz`)
+per-request reads at client-go's default rate limit, and found that a broken rollout
+shows only on the Pods below a Deployment. The authorization seam (`internal/authz`)
 and the health derivation (`internal/health`) are on `main`; the read model is the layer that
 joins them to the cluster, and the read API (`add-read-api`) cannot start without it.
 
@@ -27,7 +27,7 @@ joins them to the cluster, and the read API (`add-read-api`) cannot start withou
     marked not live, with the time each was last evaluated.
 - Every object the read model stores loses `metadata.managedFields` and the
   `kubectl.kubernetes.io/last-applied-configuration` annotation; ModuleInstances and
-  ModulePackages lose `spec.values` (0030:D8).
+  ModulePackages lose `spec.values`.
 - Portal-shaped views (Go values, not wire types): instance list item, instance detail with its
   inventory grouped by component and both status axes, platform view with its catalogs and
   registrations, package view, and the event line. None carries a raw custom-resource status,
@@ -35,7 +35,7 @@ joins them to the cluster, and the read API (`add-read-api`) cannot start withou
 - Every public read method takes the caller's `authz.Identity` and an `authz.Grant` and calls
   `Grant.Covers` before it reads; reads inside a view (inventory objects, registrations,
   children) are authorized one by one through the same `Authorizer`, and an item the caller
-  may not read is marked forbidden instead of failing the view (0030:D7:R2/R3).
+  may not read is marked forbidden instead of failing the view.
 - A helper that raises client-go's QPS and burst for the reading client.
 - Tests against fake dynamic clients fed from the F1 capture, plus the captured ApplyFailed
   instance; latency and memory measured on the F1 set and recorded in design.md.
@@ -65,10 +65,9 @@ None.
   milestone 1.
 - SemVer: MINOR after 1.0 (new internal capability). Nothing user-visible, so the PR title is
   `chore(readmodel)` and the 0.x line cuts no release.
-- Enhancement link: contributes to 0030:D3:R9, 0030:D7:R2/R3, 0030:D8:R1/R2/R3 and 0030:D9:R3/R4
+- Enhancement link: contributes to portal:D3:R9, portal:D7:R2/R3, portal:D8:R1/R2/R3 and portal:D9:R3/R4
   at the read-model layer; no decision completes here, so `enhancement.yaml` claims none.
 
 Not in this change: wire types and JSON names (`add-read-api`), the graph (`add-graph-model`),
-change streams and the T4 watch (`add-stream-broker`), YAML views, the not-in-inventory refusal
-(0030:D7:R4), wiring into the binary and resolving the kubeconfig identity (`add-local-mode`),
+change streams and the T4 watch (`add-stream-broker`), YAML views, the not-in-inventory refusal, wiring into the binary and resolving the kubeconfig identity (`add-local-mode`),
 and the in-cluster reader identity (milestone 2).

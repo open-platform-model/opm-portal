@@ -118,7 +118,7 @@ var opmChangeKinds = map[string]ChangeKind{
 //     registrations name their holders;
 //   - an object carrying the uuid label (an inventory object, tier 2)
 //     changes every held instance or package whose status.inventory names
-//     it; the label's value is not recorded on operator-owned instances, so
+//     it; the label's value is not recorded on controller-owned instances, so
 //     the inventory is the join;
 //   - a runtime child, which carries the instance name label but no uuid
 //     (capture, observation 8), changes every held instance or package of

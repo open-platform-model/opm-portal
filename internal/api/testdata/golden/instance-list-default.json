@@ -11,17 +11,17 @@
         "namespace": "default",
         "name": "backup-consumer"
       },
-      "uid": "261e62d9-0c74-42f9-8c09-38ecd70e4725",
+      "uid": "ba9532d3-79de-4890-97f8-705217eb59bf",
       "module": {
-        "path": "testing.opmodel.dev/modules/operator/backup_consumer@v0",
-        "version": "v0.1.0"
+        "path": "testing.opmodel.dev/modules/controller/backup_consumer@v0",
+        "version": "v0.1.1"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded",
-        "since": "2026-10-04T18:04:24Z"
+        "since": "2026-10-21T16:04:49Z"
       },
       "health": {
         "state": "Healthy",
@@ -36,11 +36,12 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "inventoryCount": 1,
-      "lastAppliedAt": "2026-10-04T18:04:24Z",
+      "inventoryRevision": 1,
+      "lastAppliedAt": "2026-10-21T16:04:49Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/volumes@v1beta1",
         "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
@@ -54,17 +55,17 @@
         "namespace": "default",
         "name": "backup-provider"
       },
-      "uid": "92a79284-19de-43ac-9629-3b75e8a0aa51",
+      "uid": "64292f5c-6fd6-481b-9b02-7c5b8efa4b2a",
       "module": {
-        "path": "testing.opmodel.dev/modules/operator/backup_provider@v0",
-        "version": "v0.1.0"
+        "path": "testing.opmodel.dev/modules/controller/backup_provider@v0",
+        "version": "v0.1.1"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded",
-        "since": "2026-10-04T18:04:21Z"
+        "since": "2026-10-21T16:04:45Z"
       },
       "health": {
         "state": "Healthy",
@@ -79,11 +80,12 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "inventoryCount": 1,
-      "lastAppliedAt": "2026-10-04T18:04:21Z",
+      "inventoryRevision": 1,
+      "lastAppliedAt": "2026-10-21T16:04:45Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/transformer-registration@v1alpha1"
       ],
@@ -107,17 +109,17 @@
         "namespace": "default",
         "name": "podinfo"
       },
-      "uid": "c6f5d8d6-af26-447e-8ac0-96b5cc25c40f",
+      "uid": "4df78151-c93a-4255-8fde-5f49eaa810b1",
       "module": {
-        "path": "testing.opmodel.dev/modules/operator/podinfo@v0",
-        "version": "v0.1.11"
+        "path": "testing.opmodel.dev/modules/controller/podinfo@v0",
+        "version": "v0.1.12"
       },
-      "owner": "operator",
+      "owner": "controller",
       "reconcile": {
         "state": "Applied",
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded",
-        "since": "2026-10-04T18:04:06Z"
+        "since": "2026-10-21T16:04:28Z"
       },
       "health": {
         "state": "Healthy",
@@ -132,11 +134,12 @@
           "withheld": 0
         },
         "partial": false,
-        "evaluatedAt": "2026-10-04T18:10:00Z",
+        "evaluatedAt": "2026-10-21T16:10:00Z",
         "live": true
       },
       "inventoryCount": 2,
-      "lastAppliedAt": "2026-10-04T18:04:06Z",
+      "inventoryRevision": 1,
+      "lastAppliedAt": "2026-10-21T16:04:28Z",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/container@v1beta1",
         "opmodel.dev/catalogs/opm/traits/expose@v1beta1",

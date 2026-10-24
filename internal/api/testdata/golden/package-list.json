@@ -11,7 +11,7 @@
         "namespace": "pkg",
         "name": "podinfo"
       },
-      "uid": "5ae341c6-7de4-41d8-8799-817d4cb56ead",
+      "uid": "c425f412-c48e-4bc0-ad0b-3ac9145a6137",
       "source": {
         "apiVersion": "source.toolkit.fluxcd.io/v1",
         "kind": "OCIRepository",
@@ -19,11 +19,12 @@
       },
       "interval": "1m",
       "path": ".",
+      "prune": true,
       "reconcile": {
         "state": "Failed",
         "reason": "SourceNotReady",
         "message": "getting OCIRepository pkg/podinfo-release: no matches for kind \"OCIRepository\" in version \"source.toolkit.fluxcd.io/v1\"",
-        "since": "2026-10-04T18:03:54Z",
+        "since": "2026-10-21T16:04:21Z",
         "retrying": true
       },
       "health": {

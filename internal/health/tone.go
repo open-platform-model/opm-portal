@@ -23,7 +23,7 @@ const (
 	ToneUnknown Tone = "unknown"
 )
 
-// conditionTones gives each condition type the operator writes the tone of
+// conditionTones gives each condition type the controller writes the tone of
 // its True and False statuses.
 var conditionTones = map[string][2]Tone{
 	conditionReady:              {ToneNormal, ToneAbnormal},

@@ -129,6 +129,7 @@ func (h *Handler) render(w http.ResponseWriter, r *http.Request, status int, nam
 	p.StreamURL = h.cfg.APIBase + "/stream"
 	p.Header = h.header(r)
 	p.FilterSpec = filterSpec()
+	p.Now = h.cfg.Now().UTC().Format(time.RFC3339)
 	var buf bytes.Buffer
 	if err := t.ExecuteTemplate(&buf, "layout", p); err != nil {
 		h.log.Error("rendering a page", "page", name, "error", err)
@@ -184,6 +185,10 @@ type page struct {
 	// FilterSpec is the remembered views' filter parameters, for the page
 	// scripts.
 	FilterSpec string
+	// Now is the handler's clock when the page was rendered, in RFC 3339;
+	// the page script measures its browser's clock against it, so a relative
+	// time reads the same age whatever the browser clock says.
+	Now string
 	// Topics are the stream topics the page follows.
 	Topics []string
 	// Canonical is the page's own address; after a launch the page script
@@ -203,11 +208,20 @@ type header struct {
 	OK bool
 	// Cluster is the kubeconfig context, or "in cluster".
 	Cluster string
+	// Entry is the name of the kubeconfig's cluster entry, only when it adds
+	// something: the source is a kubeconfig, the document carries a name and
+	// the name differs from Cluster (portal:D18:R1). Empty otherwise, and
+	// the pill then reads as it always did.
+	Entry string
 	// Context keys what the browser remembers: the context name, or
 	// in-cluster.
-	Context  string
-	Username string
-	Version  string
+	Context string
+	// InCluster is true when the portal reads with the Pod's own credentials:
+	// there is no kubeconfig context, so the pill's tip does not call the
+	// mode one.
+	InCluster bool
+	Username  string
+	Version   string
 }
 
 // header reads the Cluster document for the caller of r.
@@ -220,9 +234,13 @@ func (h *Handler) header(r *http.Request) header {
 	switch {
 	case c.Source == v1.SourceInCluster:
 		hd.Cluster, hd.Context = "in cluster", v1.SourceInCluster
+		hd.InCluster = true
 	case c.Context == "":
 		// No context to key remembered filters by: the browser keeps none.
 		hd.Cluster = unknownWord
+	}
+	if c.Source == v1.SourceKubeconfig && c.ClusterEntry != "" && c.ClusterEntry != hd.Cluster {
+		hd.Entry = c.ClusterEntry
 	}
 	return hd
 }

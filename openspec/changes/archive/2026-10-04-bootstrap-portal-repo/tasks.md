@@ -9,7 +9,7 @@
 ## 2. Repository guides
 
 - [x] 2.1 Add `LICENSE` as a byte copy of opm-operator's; verify with `cmp`
-- [x] 2.2 Rewrite `README.md`: what the portal is, status (nothing built), link to enhancement 0030, build commands; verify every command it names exists in `Taskfile.yml`
+- [x] 2.2 Rewrite `README.md`: what the portal is, status (nothing built), link to the withdrawn portal enhancement, build commands; verify every command it names exists in `Taskfile.yml`
 - [x] 2.3 Add `AGENTS.md`: the attribution, bare-`@` and 250-word sections verbatim from opm-operator (verify with `diff`), then purpose, entrypoint, layout, security rules (read-only V1, no Secret data, fail closed on empty identity, no tokens in logs), registry, release, commands, enhancement references, OpenSpec routing, verification checklist
 - [x] 2.4 Add `CONSTITUTION.md` mirroring the principles of `openspec/config.yaml`; verify the eight principle titles match
 - [x] 2.5 `task check` green, then commit `docs: add the licence and repository guides`

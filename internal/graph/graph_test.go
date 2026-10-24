@@ -3,6 +3,7 @@ package graph
 import (
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
@@ -72,13 +73,13 @@ func TestPodinfoGraph(t *testing.T) {
 		kind     EdgeKind
 		from, to string
 	}{
-		{EdgeInstantiates, root.ID, "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11"},
+		{EdgeInstantiates, root.ID, "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fpodinfo%40v0/v0.1.12"},
 		{EdgeHasComponent, root.ID, "comp:mi/default/podinfo/podinfo"},
 		{EdgeOwns, "comp:mi/default/podinfo/podinfo", dep},
 		{EdgeOwns, "comp:mi/default/podinfo/podinfo", "obj:_/Service/default/podinfo-podinfo"},
 		{EdgeControls, dep, rs},
-		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"},
-		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx"},
+		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74"},
+		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-74b7v"},
 	} {
 		if _, ok := edgeBetween(g, want.kind, want.from, want.to); !ok {
 			t.Errorf("no %s edge %s -> %s", want.kind, want.from, want.to)
@@ -97,9 +98,9 @@ func TestPodinfoGraph(t *testing.T) {
 func TestEdgesNameTheirSource(t *testing.T) {
 	c := newCluster(t, f1(t), readmodeltest.AllowAll)
 	graphs := []Graph{
-		Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{"grp:configuration/mi/cert-manager/cert-manager"}}),
+		Instance(c.instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{cmRBAC}}),
 		Instance(c.instance(t, "web", "web"), Options{}),
-		Package(c.pkg(t), Options{}),
+		Package(c.pkg(t), nil, Options{}),
 		Platform(c.platform(t), Options{}),
 	}
 	for _, g := range graphs {
@@ -140,14 +141,36 @@ func TestCLIOwnedInstance(t *testing.T) {
 	}
 }
 
+// groupFacts is what a configuration group says about itself.
+type groupFacts struct {
+	id      string
+	family  Family
+	members int
+	objects int
+	kinds   []KindCount
+}
+
 func TestCertManagerCollapsed(t *testing.T) {
 	g := Instance(newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager"), Options{})
-	group := nodeByID(t, g, "grp:configuration/mi/cert-manager/cert-manager")
-	if group.Group == nil || len(group.Group.Members) != 17 || group.Health.State != health.Healthy || group.Label != "17 configuration components" {
-		t.Fatalf("group = %+v, want 17 healthy configuration components", group)
-	}
-	if group.Health.Counts.Healthy != 35 {
-		t.Errorf("group counts = %+v, want 35 healthy objects", group.Health.Counts)
+	for _, want := range []groupFacts{
+		{cmCRDs, FamilyCRDs, 1, 6, []KindCount{{"CustomResourceDefinition", 6}}},
+		{cmRBAC, FamilyRBAC, 13, 26, []KindCount{{"ClusterRole", 10}, {"ClusterRoleBinding", 10}, {"Role", 3}, {"RoleBinding", 3}}},
+		{cmWebhooks, FamilyWebhooks, 2, 2, []KindCount{{"MutatingWebhookConfiguration", 1}, {"ValidatingWebhookConfiguration", 1}}},
+	} {
+		group := nodeByID(t, g, want.id)
+		if group.Group == nil || group.Group.Family != want.family || len(group.Group.Members) != want.members ||
+			group.Health.State != health.Healthy || !slices.IsSorted(group.Group.Members) {
+			t.Fatalf("group %s = %+v, want %d healthy sorted %s members", want.id, group.Group, want.members, want.family)
+		}
+		if !slices.Equal(group.Group.ObjectKinds, want.kinds) {
+			t.Errorf("group %s object kinds = %v, want %v", want.id, group.Group.ObjectKinds, want.kinds)
+		}
+		if got := group.Health.Counts.Healthy; got != want.objects {
+			t.Errorf("group %s counts = %+v, want %d healthy objects (kstatus health kept)", want.id, group.Health.Counts, want.objects)
+		}
+		if want := want.family.Label() + " · "; !strings.HasPrefix(group.Label, want) {
+			t.Errorf("group %s label = %q, want it to start with %q", want, group.Label, want)
+		}
 	}
 	var comps []string
 	for _, n := range g.Nodes {
@@ -156,18 +179,18 @@ func TestCertManagerCollapsed(t *testing.T) {
 		}
 	}
 	slices.Sort(comps)
-	if !slices.Equal(comps, []string{"cainjector", "controller", "webhook"}) {
-		t.Errorf("components = %v, want the three workload components", comps)
+	if !slices.Equal(comps, []string{"cainjector", "controller", "namespace", "webhook"}) {
+		t.Errorf("components = %v, want the three workloads and the lone namespace", comps)
 	}
-	if len(g.Nodes) != 19 {
-		t.Errorf("%d nodes, want 19", len(g.Nodes))
+	if len(g.Nodes) != 23 {
+		t.Errorf("%d nodes, want 23", len(g.Nodes))
 	}
-	if !slices.IsSorted(group.Group.Members) {
-		t.Errorf("members %v are not sorted", group.Group.Members)
+	if hasNode(g, "grp:configuration/mi/cert-manager/cert-manager") {
+		t.Error("the owner-wide group of an earlier version is still drawn")
 	}
 }
 
-// TestGroupIgnoresInventoryOrder: the operator may reorder
+// TestGroupIgnoresInventoryOrder: the controller may reorder
 // status.inventory; the graph stays the same.
 func TestGroupIgnoresInventoryOrder(t *testing.T) {
 	d := newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager")
@@ -179,25 +202,37 @@ func TestGroupIgnoresInventoryOrder(t *testing.T) {
 }
 
 func TestCertManagerExpanded(t *testing.T) {
-	gid := "grp:configuration/mi/cert-manager/cert-manager"
-	g := Instance(newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager"), Options{Expand: []string{gid}})
-	if hasNode(g, gid) || countKind(g, KindComponent) != 20 || countKind(g, KindObject) != 42 {
-		t.Fatalf("components %d, objects %d, group shown %v; want 20, 42, no group", countKind(g, KindComponent), countKind(g, KindObject), hasNode(g, gid))
+	d := newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager")
+	g := Instance(d, Options{Expand: []string{cmRBAC}})
+	if len(g.Nodes) != 61 || hasNode(g, cmRBAC) || !hasNode(g, cmCRDs) || !hasNode(g, cmWebhooks) ||
+		countKind(g, KindComponent) != 17 || countKind(g, KindObject) != 8+26 {
+		t.Fatalf("RBAC open: %d nodes, %d components, %d objects; want 61, 17 and 34, CRDs and webhooks still folded",
+			len(g.Nodes), countKind(g, KindComponent), countKind(g, KindObject))
 	}
 	members := 0
 	for _, n := range g.Nodes {
-		if n.MemberOf == gid {
+		if n.MemberOf == cmRBAC {
 			members++
 		}
 	}
-	if members != 17 {
-		t.Errorf("%d nodes say they belong to the group, want 17", members)
+	if members != 13 {
+		t.Errorf("%d nodes say they belong to the RBAC group, want 13", members)
+	}
+	all := Instance(d, Options{Expand: []string{cmCRDs, cmRBAC, cmWebhooks}})
+	if countKind(all, KindComponent) != 20 || countKind(all, KindObject) != 42 || countKind(all, KindGroup) != 0 {
+		t.Errorf("all open: %d components, %d objects, %d groups; want 20, 42, 0",
+			countKind(all, KindComponent), countKind(all, KindObject), countKind(all, KindGroup))
+	}
+	// An id of an earlier version names no node: the graph opens folded.
+	old := Instance(d, Options{Expand: []string{"grp:configuration/mi/cert-manager/cert-manager"}})
+	if len(old.Nodes) != 23 {
+		t.Errorf("the owner-wide id opened a group: %d nodes, want 23", len(old.Nodes))
 	}
 }
 
 func TestForbiddenObjects(t *testing.T) {
 	c := newCluster(t, f1(t), readmodeltest.DenyResources("clusterroles"))
-	gid := "grp:configuration/mi/cert-manager/cert-manager"
+	gid := cmRBAC
 	d := c.instance(t, "cert-manager", "cert-manager")
 	if group := nodeByID(t, Instance(d, Options{}), gid); !group.Health.Partial || group.Health.Counts.Forbidden != 10 {
 		t.Errorf("group = %+v, want partial with 10 forbidden", group.Health)
@@ -263,7 +298,7 @@ func TestScaledDownReplicaSetHidden(t *testing.T) {
 
 func TestManyPodsGrouped(t *testing.T) {
 	objs := f1(t)
-	pod := readmodeltest.Find(t, objs, "Pod", "podinfo-podinfo-d9585d794-4lg6h")
+	pod := readmodeltest.Find(t, objs, "Pod", "podinfo-podinfo-d9585d794-67j74")
 	for _, s := range []string{"a", "b", "c", "d", "e"} {
 		extra := pod.DeepCopy()
 		extra.SetName("podinfo-podinfo-d9585d794-" + s)
@@ -288,7 +323,7 @@ func TestManyPodsGrouped(t *testing.T) {
 }
 
 func TestNodeCap(t *testing.T) {
-	gid := "grp:configuration/mi/cert-manager/cert-manager"
+	gid := cmRBAC
 	d := newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager")
 	full := Instance(d, Options{Expand: []string{gid}})
 	g := Instance(d, Options{Expand: []string{gid}, NodeCap: 30})
@@ -347,7 +382,7 @@ func TestNodeCapKeepsHealth(t *testing.T) {
 }
 
 func TestPackageGraph(t *testing.T) {
-	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), Options{})
+	g := Package(newCluster(t, f1(t), readmodeltest.AllowAll).pkg(t), nil, Options{})
 	root := nodeByID(t, g, "mp:pkg/podinfo")
 	if root.Applied.State != health.AppliedStateFailed || root.Applied.Reason != "SourceNotReady" {
 		t.Errorf("root applied = %+v, want Failed SourceNotReady", root.Applied)
@@ -358,7 +393,7 @@ func TestPackageGraph(t *testing.T) {
 	}
 }
 
-// TestForeignNamespaceDependency: the operator refuses a dependsOn entry in
+// TestForeignNamespaceDependency: the controller refuses a dependsOn entry in
 // another namespace, so its edge is drawn unverified; a same-namespace one
 // is not marked.
 func TestForeignNamespaceDependency(t *testing.T) {
@@ -371,7 +406,7 @@ func TestForeignNamespaceDependency(t *testing.T) {
 	if err := unstructured.SetNestedSlice(pkg.Object, deps, "spec", "dependsOn"); err != nil {
 		t.Fatal(err)
 	}
-	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkg(t), Options{})
+	g := Package(newCluster(t, objs, readmodeltest.AllowAll).pkg(t), nil, Options{})
 	if e, ok := edgeBetween(g, EdgeDependsOn, "mp:pkg/podinfo", "mp:pkg/base"); !ok || e.Verified != nil {
 		t.Errorf("same-namespace edge = %+v, want drawn and unmarked", e)
 	}
@@ -385,7 +420,7 @@ func TestPlatformGraph(t *testing.T) {
 	g := Platform(newCluster(t, f1(t), readmodeltest.AllowAll).platform(t), Options{})
 	plat := "plat:cluster"
 	opm := "cat:opmodel.dev%2Fcatalogs%2Fopm%40v4"
-	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"
+	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0"
 	accepted := "treg:default.backup-provider"
 	refused := "treg:default.refused-claim-fixture"
 	for _, cat := range []string{opm, backup} {
@@ -411,7 +446,7 @@ func TestPlatformGraph(t *testing.T) {
 // is refused as a duplicate, accepted but not active, or at another version
 // gets no contributes edge (portal:D4).
 func TestContributesNeedsTheContributingClaim(t *testing.T) {
-	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"
+	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0"
 	for _, tt := range []struct {
 		name             string
 		accepted, active bool
@@ -478,7 +513,7 @@ func TestRegistrationStanding(t *testing.T) {
 	}
 	r := nodeByID(t, g, refused).Registration
 	if r.Accepted || r.Active || r.Verdict != health.VerdictRefused || r.Reason != "CatalogUnresolved" || r.Message == "" ||
-		r.Catalog != "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0" {
+		r.Catalog != "testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0" {
 		t.Errorf("refused claim = %+v", r)
 	}
 }
@@ -601,8 +636,8 @@ func TestContributor(t *testing.T) {
 		got[c.Catalog] = Contributor(c, p.Registrations)
 	}
 	want := map[string]string{
-		"opmodel.dev/catalogs/opm@v4":                     "",
-		"testing.opmodel.dev/catalogs/operator/backup@v0": "default.backup-provider",
+		"opmodel.dev/catalogs/opm@v4":                       "",
+		"testing.opmodel.dev/catalogs/controller/backup@v0": "default.backup-provider",
 	}
 	if len(got) != len(want) {
 		t.Fatalf("catalogs = %v", got)

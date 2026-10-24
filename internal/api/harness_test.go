@@ -37,7 +37,7 @@ var (
 	// reader is the identity the fake cluster's informers read as.
 	reader = authz.Identity{Username: "portal-reader", Groups: []string{"system:authenticated"}}
 	// now is the read model's clock, so evaluation times are stable.
-	now = time.Date(2026, 10, 4, 18, 10, 0, 0, time.UTC)
+	now = time.Date(2026, 10, 21, 16, 10, 0, 0, time.UTC)
 )
 
 // recorder is the fake authorizer: it passes each check to the
@@ -91,6 +91,8 @@ type env struct {
 	client *dynfake.FakeDynamicClient
 	disc   *fakediscovery.FakeDiscovery
 	az     *recorder
+	// reviews are the access reviews the cluster received for alice.
+	reviews *readmodeltest.Reviews
 	// principal is what Authenticate returns.
 	principal Principal
 }
@@ -113,9 +115,12 @@ func newEnvWithReader(t testing.TB, objs []*unstructured.Unstructured, callerRul
 func newEnvWithDiscovery(t testing.TB, objs []*unstructured.Unstructured, callerRule, readerRule readmodeltest.Rule,
 	disc *fakediscovery.FakeDiscovery, opts ...func(*Config)) *env {
 	t.Helper()
-	caller, _ := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
+	caller, callerReviews := readmodeltest.NewChecker(t, alice, callerRule, authz.Options{})
 	readerChecker, _ := readmodeltest.NewChecker(t, reader, readerRule, authz.Options{})
-	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, reader.Username: readerChecker}}
+	// bob is a second caller under the same rule, which can tell the two apart
+	// by the username it is given.
+	bobChecker, _ := readmodeltest.NewChecker(t, bob, callerRule, authz.Options{})
+	az := &recorder{inner: readmodeltest.ByIdentity{alice.Username: caller, bob.Username: bobChecker, reader.Username: readerChecker}}
 	client := readmodeltest.Dynamic(objs...)
 	m, err := readmodel.New(readmodel.Config{
 		Dynamic:     client,
@@ -132,7 +137,7 @@ func newEnvWithDiscovery(t testing.TB, objs []*unstructured.Unstructured, caller
 		t.Fatalf("Start: %v", err)
 	}
 	t.Cleanup(m.Stop)
-	e := &env{model: m, client: client, disc: disc, az: az, principal: Principal{Identity: alice, Session: "session-alice"}}
+	e := &env{model: m, client: client, disc: disc, az: az, reviews: callerReviews, principal: Principal{Identity: alice, Session: "session-alice"}}
 	cfg := Config{
 		Mode:       ModeLocal,
 		Model:      m,

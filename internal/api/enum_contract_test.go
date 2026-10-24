@@ -23,7 +23,7 @@ func strs[T ~string](vs ...T) []string {
 }
 
 // passedThrough are enumerated fields whose values the portal copies from
-// the operator's status without naming them in Go.
+// the controller's status without naming them in Go.
 var passedThrough = map[string]bool{
 	"Catalog/source":      true,
 	"GraphCatalog/source": true,
@@ -51,16 +51,21 @@ func TestEnumsMatchTheGoConstants(t *testing.T) {
 		"Platform/registrationsAccess":      access,
 		"GraphPlatform/registrationsAccess": access,
 		"GraphNode/access":                  strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),
-		"InstanceSummary/owner":             strs(readmodel.OwnerOperator, readmodel.OwnerCLI),
+		"InstanceSummary/owner":             strs(readmodel.OwnerController, readmodel.OwnerCLI),
 		"Registration/verdict":              verdicts,
 		"ProviderClaim/verdict":             verdicts,
 		"ProviderClaim/access":              strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),
 		"HistoryEntry/outcome":              strs(readmodel.OutcomeSucceeded, readmodel.OutcomeFailed, readmodel.OutcomeUnknown),
+		"EventList/scope":                   {v1.EventScopeAll},
 		"Cluster/mode":                      strs(ModeLocal, ModeInCluster),
 		"Cluster/source":                    {v1.SourceKubeconfig, v1.SourceInCluster},
 		"GraphRegistration/verdict":         verdicts,
-		"Graph/scope":                       strs(graph.ScopeInstance, graph.ScopePackage, graph.ScopePlatform),
-		"GraphGroup/kind":                   strs(graph.GroupConfiguration, graph.GroupPods, graph.GroupMore),
+		"SourceState/access":                strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),
+		"SourceState/state": strs(readmodel.SourceReady, readmodel.SourceNotReady, readmodel.SourceNoArtifact, readmodel.SourceUnknown,
+			readmodel.SourceNotFound, readmodel.SourceKindNotServed, readmodel.SourceUnsupported),
+		"Graph/scope":       strs(graph.ScopeInstance, graph.ScopePackage, graph.ScopePlatform),
+		"GraphGroup/kind":   strs(graph.GroupConfiguration, graph.GroupPods, graph.GroupMore),
+		"GraphGroup/family": strs(graph.Families...),
 		"GraphNode/kind": strs(graph.KindPlatform, graph.KindCatalog, graph.KindRegistration, graph.KindInstance, graph.KindPackage,
 			graph.KindModule, graph.KindSource, graph.KindComponent, graph.KindObject, graph.KindRuntime, graph.KindGroup),
 		"GraphEdge/kind": strs(graph.EdgeResolves, graph.EdgeContributes, graph.EdgeProvidedBy, graph.EdgeInstantiates,

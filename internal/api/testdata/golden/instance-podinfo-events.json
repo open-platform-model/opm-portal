@@ -22,7 +22,7 @@
         "name": "podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:31.637717Z"
+      "lastSeen": "2026-10-21T16:04:47.076975Z"
     },
     {
       "type": "Normal",
@@ -37,7 +37,7 @@
         "name": "podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06.945269Z"
+      "lastSeen": "2026-10-21T16:04:28.302964Z"
     },
     {
       "type": "Normal",
@@ -52,7 +52,7 @@
         "name": "podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06.945177Z"
+      "lastSeen": "2026-10-21T16:04:28.302911Z"
     }
   ]
 }

@@ -1,54 +1,396 @@
 <main id="main" tabindex="-1" data-topics="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager" data-canonical="/instances/cert-manager/cert-manager">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/installed?kind=instance">Installed</a> <span aria-hidden="true">/</span> <span class="mono">cert-manager</span> <span aria-hidden="true">/</span> <span>cert-manager</span></nav>
-<div class="summary reveal">
+<div class="summary">
   <section class="card owner-identity" id="owner-head" aria-label="Identity" data-follow="instance:cert-manager/cert-manager">
     <p class="kicker">Instance</p>
     <h1>cert-manager</h1>
-    
+    <p class="subtitle mono">opmodel.<wbr>dev/<wbr>modules/<wbr>cert_manager@v2 · <span class="ver">v2.0.5</span></p>
     <dl class="facts">
       <dt>Namespace</dt><dd class="mono">cert-manager</dd>
-      <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>cert_manager@v2 <span class="ver">v2.0.5</span></dd>
-      <dt>Applied by</dt><dd>the controller</dd>
-      <dt><abbr title="The ServiceAccount the controller applies this instance's objects as; its RBAC bounds what the module may create.">Applier</abbr></dt><dd><span class="mono">cert-manager-applier</span></dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-owner">Owner</button><span class="tipbox" id="tip-owner" role="tooltip">Who manages this object. controller: the OPM controller reconciles it. cli: the opm CLI applied it and the controller leaves it alone.</span></span></dt><dd>the controller</dd>
+      <dt><span class="tip"><button type="button" class="tip-t" aria-describedby="tip-applier">Applier</button><span class="tipbox" id="tip-applier" role="tooltip">The ServiceAccount the controller acts as when it creates and updates this module&#39;s objects, so its RBAC limits what the module can change. If none is set, the controller uses its own ServiceAccount.</span></span></dt><dd>ServiceAccount <span class="mono">cert-manager-applier</span></dd>
       <dt>Objects</dt><dd>42</dd>
-      <dt>Last applied</dt><dd><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></dd>
+      <dt>Last applied</dt><dd><time datetime="2026-10-21T16:04:26Z" title="2026-10-21 16:04:26 UTC" data-relative aria-live="off">5m ago</time></dd>
     </dl>
-    
-  </section>
-  <section class="card owner-card" id="applied-card" aria-labelledby="applied-h" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">
-    <h2 id="applied-h">Applied <span class="h-note">what the controller applied</span></h2>
-    <div class="axes"><span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span><span class="mono">ReconciliationSucceeded</span></div>
-    <p class="card-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
-    <p class="card-message">Reconciliation succeeded</p>
-    <div class="reason-counts"><span class="label">Warnings in the last hour of events</span><span class="muted">none</span></div>
-    <div class="attempts"><span class="label">Attempts, oldest first</span><span class="dots"><span class="adot dot-succeeded" role="img" tabindex="0" title="#1 reconcile: succeeded, 2026-10-04 18:04:05 UTC" aria-label="#1 reconcile: succeeded, 2026-10-04 18:04:05 UTC"></span></span></div>
-    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
-    <details class="history-fold" id="history-fold"><summary>Show history</summary>
-<ol class="timeline">
-  <li class="tl-item" data-phase="complete">
-    <div class="tl-head"><span class="tl-seq">#1</span><span class="tl-action">reconcile</span><span class="tl-phase">complete</span><span class="tl-time"><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></span></div>
-    <p class="tl-meta mono">42 objects · render <span title="sha256:ca57c7de56c23a4fe75e7fb1da00f1294c93e25f045f8749ccd122cc623e3f8c">ca57c7de56c2</span> · source <span title="sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7">1070cfa34f2c</span></p>
-  </li>
-</ol>
-</details>
-  </section>
-  <section class="card owner-card" id="health-card" aria-labelledby="health-h" data-follow="instance:cert-manager/cert-manager">
-    <h2 id="health-h">Health <span class="h-note">what the portal sees running</span></h2>
-    <div class="axes"><span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></div>
-    <div class="reason-counts"><span class="label">By reason</span><span class="muted">no object reports a reason</span></div>
   </section>
   
+<section class="state-block hue-applied" id="applied-card" aria-label="Applied status" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">
+  <div class="sb-head"><span class="sb-eyebrow">Applied · the controller</span><span class="sb-when">since <time datetime="2026-10-21T16:04:26Z" title="2026-10-21 16:04:26 UTC" data-relative aria-live="off">5m ago</time></span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Applied</span></div>
+  <p class="sb-summary">42 objects applied</p>
+  <p class="sb-note">Every object was applied. This says nothing about whether the workloads run; see Health.</p><p class="sb-note says">Reconciliation succeeded</p>
+  <p class="sb-caption">Warning events, last hour</p>
+  <div class="sb-reasons"><span class="muted">No reconcile errors</span></div>
+  <div class="hist">
+  <div class="hist-bar"><span class="hist-label">History</span>
+    <span class="adots"><span class="adot dot-succeeded"><span class="tip"><button type="button" class="tip-t" aria-describedby="attempt-1" aria-label="#1 succeeded">✓</button><span class="tipbox" id="attempt-1" role="tooltip">#1 reconcile: succeeded, 2026-10-21 16:04:26 UTC</span></span></span></span><span class="hist-count">1 attempt</span>
+  </div>
+  <details class="hist-fold" id="history-fold"><summary><span class="hist-closed">Show history ▾</span><span class="hist-open">Hide history ▴</span></summary>
+    <p class="note">At most ten attempts are kept; reconciles that change nothing are not recorded.</p>
+<ol class="timeline">
+  <li class="tl-item" data-phase="complete">
+    <div class="tl-head"><span class="tl-seq">#1</span><span class="outcome outcome-succeeded">Applied</span><span class="tl-message"></span><span class="tl-time"><time datetime="2026-10-21T16:04:26Z" title="2026-10-21 16:04:26 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <p class="tl-meta mono">reconcile · complete · 42 objects · render <span title="sha256:e91579e8c3e5906699a2b80ca80b6e2a8847b8f6fb2a63dd969490229e15dfd4">e91579e8c3e5</span> · source <span title="sha256:1070cfa34f2ca63185e1ddad926998d0063d6a3d6e6a45aba549514b28f698b7">1070cfa34f2c</span></p>
+  </li>
+</ol>
+  </details>
 </div>
-<details class="panel panel-wide reveal conditions-fold" id="conditions" data-follow="instance:cert-manager/cert-manager">
+</section>
+  
+<section class="state-block hue-healthy" id="health-card" aria-label="Health status" data-follow="instance:cert-manager/cert-manager">
+  <div class="sb-head"><span class="sb-eyebrow">Health · everything it runs</span><span class="sb-when">checked live</span></div>
+  <div class="sb-state"><svg class="sb-icon" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="18"/><path d="M10.5 18.5l5.5 5.5 10-11.5"/></svg><span class="sb-word">Healthy</span></div>
+  <p class="sb-summary">All 42 resources healthy</p>
+  
+  <div class="sb-reasons"><span class="muted">No unhealthy resources</span></div>
+  
+</section>
+  
+</div>
+<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/cert-manager/cert-manager?tab=graph" aria-current="page">Graph</a><a href="/instances/cert-manager/cert-manager?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">48</span></a><a href="/instances/cert-manager/cert-manager?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">24</span></a><a href="/instances/cert-manager/cert-manager?tab=logs">Logs</a><a href="/instances/cert-manager/cert-manager?tab=yaml">YAML</a></nav>
+<div class="owner-row">
+<div class="graph-stage owner-main" id="graph-stage" data-graph-stage>
+<section class="panel owner-panel" id="graph" aria-labelledby="graph-h" data-follow="instance:cert-manager/cert-manager">
+  <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
+<div class="graph" data-graph="instance-graph" data-resting-panel="/instances/cert-manager/cert-manager/node?id=mi%3Acert-manager%2Fcert-manager">
+  <div class="graph-tools" role="group" aria-label="Graph view">
+    <span class="hint">Select a box to see its details on the right.</span>
+    <span class="graph-count" data-box-count>22 of 69 boxes</span>
+    <a class="tool-link tool-pill" href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fcrds&amp;expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Frbac&amp;expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fwebhooks&amp;tab=graph" hx-boost="false" data-expand-all>Expand all</a>
+    <a class="tool-link tool-pill group-switch is-on" href="/instances/cert-manager/cert-manager?group=off&amp;tab=graph" hx-boost="false" data-group-switch>Group configuration: <svg class="ic" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6.5 2.5 2.5 4.5-5.5"/></svg><span class="sw-state">Grouped</span></a>
+    <a class="tool-link" href="/instances/cert-manager/cert-manager" hx-boost="false" data-clear-selection data-focus-key="clear-instance-graph" hidden>Clear selection</a>
+    <button type="button" data-zoom="fit" aria-pressed="true">Fit</button>
+    <label class="zoom-label" title="Or hold Ctrl and scroll over the graph"><span>Zoom</span> <input type="range" min="30" max="200" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
+    <button type="button" class="full-btn" data-graph-full aria-label="Show the graph full screen" title="Show the graph full screen"><svg class="ic ic-enter" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg><svg class="ic ic-exit" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg></button>
+  </div>
+  <div class="graph-frame">
+  <svg viewBox="0 0 1304 804" width="1304" height="804" role="group" aria-label="Relationship graph">
+    <defs>
+      <pattern id="instance-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
+      <pattern id="instance-graph-ghatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="8" height="8"/><line class="ghatch-line" x1="0" y1="0" x2="0" y2="8"/></pattern>
+    </defs>
+    <g class="viewport">
+      <text class="col-title" x="16" y="20">Instance</text><text class="col-title" x="280" y="20">Components</text><text class="col-title" x="544" y="20">Objects</text><text class="col-title" x="808" y="20">ReplicaSets</text><text class="col-title" x="1072" y="20">Pods</text>
+      <path class="edge edge-controls" d="M760 176 H784 V320 H808" data-from="obj:apps/Deployment/cert-manager/cert-manager-cainjector" data-to="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M760 368 H784 V416 H808" data-from="obj:apps/Deployment/cert-manager/cert-manager-controller" data-to="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M760 752 H784 V512 H808" data-from="obj:apps/Deployment/cert-manager/cert-manager-webhook" data-to="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1024 320 H1048 V320 H1072" data-from="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" data-to="obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1024 416 H1048 V416 H1072" data-from="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" data-to="obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-hvrqf"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1024 512 H1048 V512 H1072" data-from="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" data-to="obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V128 H280" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/cainjector"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V224 H280" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/controller"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V320 H280" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/namespace"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V416 H280" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/webhook"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V512 H280" data-from="mi:cert-manager/cert-manager" data-to="grp:configuration/mi/cert-manager/cert-manager/crds"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V608 H280" data-from="mi:cert-manager/cert-manager" data-to="grp:configuration/mi/cert-manager/cert-manager/rbac"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M232 416 H256 V704 H280" data-from="mi:cert-manager/cert-manager" data-to="grp:configuration/mi/cert-manager/cert-manager/webhooks"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-owns" d="M496 128 H520 V80 H544" data-from="comp:mi/cert-manager/cert-manager/cainjector" data-to="obj:_/ServiceAccount/cert-manager/cert-manager-cainjector"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 128 H520 V176 H544" data-from="comp:mi/cert-manager/cert-manager/cainjector" data-to="obj:apps/Deployment/cert-manager/cert-manager-cainjector"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 224 H520 V272 H544" data-from="comp:mi/cert-manager/cert-manager/controller" data-to="obj:_/ServiceAccount/cert-manager/cert-manager"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 224 H520 V368 H544" data-from="comp:mi/cert-manager/cert-manager/controller" data-to="obj:apps/Deployment/cert-manager/cert-manager-controller"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 320 H520 V464 H544" data-from="comp:mi/cert-manager/cert-manager/namespace" data-to="obj:_/Namespace/_/cert-manager"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 416 H520 V560 H544" data-from="comp:mi/cert-manager/cert-manager/webhook" data-to="obj:_/Service/cert-manager/cert-manager-webhook"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 416 H520 V656 H544" data-from="comp:mi/cert-manager/cert-manager/webhook" data-to="obj:_/ServiceAccount/cert-manager/cert-manager-webhook"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M496 416 H520 V752 H544" data-from="comp:mi/cert-manager/cert-manager/webhook" data-to="obj:apps/Deployment/cert-manager/cert-manager-webhook"><title>owns, from status.inventory entries</title></path>
+      
+      <a class="node kind-instance health-healthy ap-applied" href="/instances/cert-manager/cert-manager?node=mi%3Acert-manager%2Fcert-manager&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=mi%3Acert-manager%2Fcert-manager" data-node="mi:cert-manager/cert-manager" tabindex="0" aria-label="Instance, cert-manager/cert-manager, Healthy, Applied" aria-describedby="instance-graph-card-0" data-resting>
+        <title>cert-manager/cert-manager</title>
+        <rect class="node-halo" x="6" y="370" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="12" y="376" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="16" y="380" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="28" y="400">Instance</text>
+        <text class="node-label" x="28" y="422">cert-manager/cert-manager</text>
+        <circle class="node-dot" cx="32" cy="437" r="3"/>
+        <text class="node-status" x="41" y="440">Healthy</text>
+        <rect class="node-stamp" x="216" y="386" width="10" height="10" rx="1"/>
+      </a>
+      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?node=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcainjector&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcainjector" data-node="comp:mi/cert-manager/cert-manager/cainjector" tabindex="0" aria-label="Component, cainjector, 2 objects" aria-describedby="instance-graph-card-1">
+        <title>cainjector</title>
+        <rect class="node-halo" x="270" y="82" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="88" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="280" y="92" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="292" y="112">Component</text>
+        <text class="node-label" x="292" y="134">cainjector</text>
+        <circle class="node-dot" cx="296" cy="149" r="3"/>
+        <text class="node-status" x="305" y="152">2 objects</text>
+      </a>
+      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?node=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcontroller&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcontroller" data-node="comp:mi/cert-manager/cert-manager/controller" tabindex="0" aria-label="Component, controller, 2 objects" aria-describedby="instance-graph-card-2">
+        <title>controller</title>
+        <rect class="node-halo" x="270" y="178" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="184" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="280" y="188" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="292" y="208">Component</text>
+        <text class="node-label" x="292" y="230">controller</text>
+        <circle class="node-dot" cx="296" cy="245" r="3"/>
+        <text class="node-status" x="305" y="248">2 objects</text>
+      </a>
+      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?node=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fnamespace&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fnamespace" data-node="comp:mi/cert-manager/cert-manager/namespace" tabindex="0" aria-label="Component, namespace, 1 object" aria-describedby="instance-graph-card-3">
+        <title>namespace</title>
+        <rect class="node-halo" x="270" y="274" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="280" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="280" y="284" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="292" y="304">Component</text>
+        <text class="node-label" x="292" y="326">namespace</text>
+        <circle class="node-dot" cx="296" cy="341" r="3"/>
+        <text class="node-status" x="305" y="344">1 object</text>
+      </a>
+      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?node=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fwebhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fwebhook" data-node="comp:mi/cert-manager/cert-manager/webhook" tabindex="0" aria-label="Component, webhook, 3 objects" aria-describedby="instance-graph-card-4">
+        <title>webhook</title>
+        <rect class="node-halo" x="270" y="370" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="376" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="280" y="380" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="292" y="400">Component</text>
+        <text class="node-label" x="292" y="422">webhook</text>
+        <circle class="node-dot" cx="296" cy="437" r="3"/>
+        <text class="node-status" x="305" y="440">3 objects</text>
+      </a>
+      <a class="node kind-group health-healthy" href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fcrds&amp;fit=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fcrds&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fcrds" data-node="grp:configuration/mi/cert-manager/cert-manager/crds" data-group tabindex="0" aria-label="Group, CRDs · 1 component, 6 objects: 1 kind" aria-describedby="instance-graph-card-5">
+        <title>CRDs · 1 component</title>
+        <rect class="node-halo" x="270" y="466" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="472" width="224" height="80" rx="11"/>
+        <rect class="node-stack" x="280" y="476" width="216" height="72" rx="6" transform="translate(4 4)"/>
+        <rect class="node-box" x="280" y="476" width="216" height="72" rx="6"/>
+        <rect class="node-hatch" x="280" y="476" width="216" height="72" rx="6" fill="url(#instance-graph-ghatch)"/>
+        <text class="node-kind" x="292" y="496">Group · 1 component</text>
+        <text class="node-label" x="292" y="518">CRDs</text>
+        <circle class="node-dot" cx="296" cy="533" r="3"/>
+        <text class="node-status" x="305" y="536">6 objects: 1 kind</text>
+      </a>
+      <a class="node kind-group health-healthy" href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Frbac&amp;fit=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Frbac&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Frbac" data-node="grp:configuration/mi/cert-manager/cert-manager/rbac" data-group tabindex="0" aria-label="Group, RBAC · 13 components, 26 objects: 4 kinds" aria-describedby="instance-graph-card-6">
+        <title>RBAC · 13 components</title>
+        <rect class="node-halo" x="270" y="562" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="568" width="224" height="80" rx="11"/>
+        <rect class="node-stack" x="280" y="572" width="216" height="72" rx="6" transform="translate(4 4)"/>
+        <rect class="node-box" x="280" y="572" width="216" height="72" rx="6"/>
+        <rect class="node-hatch" x="280" y="572" width="216" height="72" rx="6" fill="url(#instance-graph-ghatch)"/>
+        <text class="node-kind" x="292" y="592">Group · 13 components</text>
+        <text class="node-label" x="292" y="614">RBAC</text>
+        <circle class="node-dot" cx="296" cy="629" r="3"/>
+        <text class="node-status" x="305" y="632">26 objects: 4 kinds</text>
+      </a>
+      <a class="node kind-group health-healthy" href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fwebhooks&amp;fit=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fwebhooks&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager%2Fwebhooks" data-node="grp:configuration/mi/cert-manager/cert-manager/webhooks" data-group tabindex="0" aria-label="Group, Webhook configuration · 2 components, 2 objects: 2 kinds" aria-describedby="instance-graph-card-7">
+        <title>Webhook configuration · 2 components</title>
+        <rect class="node-halo" x="270" y="658" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="276" y="664" width="224" height="80" rx="11"/>
+        <rect class="node-stack" x="280" y="668" width="216" height="72" rx="6" transform="translate(4 4)"/>
+        <rect class="node-box" x="280" y="668" width="216" height="72" rx="6"/>
+        <rect class="node-hatch" x="280" y="668" width="216" height="72" rx="6" fill="url(#instance-graph-ghatch)"/>
+        <text class="node-kind" x="292" y="688">Group · 2 components</text>
+        <text class="node-label" x="292" y="710">Webhook configuration</text>
+        <circle class="node-dot" cx="296" cy="725" r="3"/>
+        <text class="node-status" x="305" y="728">2 objects: 2 kinds</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-cainjector" data-node="obj:_/ServiceAccount/cert-manager/cert-manager-cainjector" tabindex="0" aria-label="Object, cert-manager-cainjector, Current" aria-describedby="instance-graph-card-8">
+        <title>cert-manager-cainjector</title>
+        <rect class="node-halo" x="534" y="34" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="40" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="44" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="64">ServiceAccount</text>
+        <text class="node-label node-mono" x="556" y="86">cert-manager-cainjector</text>
+        <circle class="node-dot" cx="560" cy="101" r="3"/>
+        <text class="node-status" x="569" y="104">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-cainjector" data-node="obj:apps/Deployment/cert-manager/cert-manager-cainjector" tabindex="0" aria-label="Object, cert-manager-cainjector, Current" aria-describedby="instance-graph-card-9">
+        <title>cert-manager-cainjector</title>
+        <rect class="node-halo" x="534" y="130" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="136" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="140" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="160">Deployment</text>
+        <text class="node-label node-mono" x="556" y="182">cert-manager-cainjector</text>
+        <circle class="node-dot" cx="560" cy="197" r="3"/>
+        <text class="node-status" x="569" y="200">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager" data-node="obj:_/ServiceAccount/cert-manager/cert-manager" tabindex="0" aria-label="Object, cert-manager, Current" aria-describedby="instance-graph-card-10">
+        <title>cert-manager</title>
+        <rect class="node-halo" x="534" y="226" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="232" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="236" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="256">ServiceAccount</text>
+        <text class="node-label node-mono" x="556" y="278">cert-manager</text>
+        <circle class="node-dot" cx="560" cy="293" r="3"/>
+        <text class="node-status" x="569" y="296">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-controller&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-controller" data-node="obj:apps/Deployment/cert-manager/cert-manager-controller" tabindex="0" aria-label="Object, cert-manager-controller, Current" aria-describedby="instance-graph-card-11">
+        <title>cert-manager-controller</title>
+        <rect class="node-halo" x="534" y="322" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="328" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="332" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="352">Deployment</text>
+        <text class="node-label node-mono" x="556" y="374">cert-manager-controller</text>
+        <circle class="node-dot" cx="560" cy="389" r="3"/>
+        <text class="node-status" x="569" y="392">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FNamespace%2F_%2Fcert-manager&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FNamespace%2F_%2Fcert-manager" data-node="obj:_/Namespace/_/cert-manager" tabindex="0" aria-label="Object, cert-manager, Current" aria-describedby="instance-graph-card-12">
+        <title>cert-manager</title>
+        <rect class="node-halo" x="534" y="418" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="424" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="428" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="448">Namespace</text>
+        <text class="node-label node-mono" x="556" y="470">cert-manager</text>
+        <circle class="node-dot" cx="560" cy="485" r="3"/>
+        <text class="node-status" x="569" y="488">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FService%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FService%2Fcert-manager%2Fcert-manager-webhook" data-node="obj:_/Service/cert-manager/cert-manager-webhook" tabindex="0" aria-label="Object, cert-manager-webhook, Current" aria-describedby="instance-graph-card-13">
+        <title>cert-manager-webhook</title>
+        <rect class="node-halo" x="534" y="514" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="520" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="524" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="544">Service</text>
+        <text class="node-label node-mono" x="556" y="566">cert-manager-webhook</text>
+        <circle class="node-dot" cx="560" cy="581" r="3"/>
+        <text class="node-status" x="569" y="584">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-webhook" data-node="obj:_/ServiceAccount/cert-manager/cert-manager-webhook" tabindex="0" aria-label="Object, cert-manager-webhook, Current" aria-describedby="instance-graph-card-14">
+        <title>cert-manager-webhook</title>
+        <rect class="node-halo" x="534" y="610" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="616" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="620" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="640">ServiceAccount</text>
+        <text class="node-label node-mono" x="556" y="662">cert-manager-webhook</text>
+        <circle class="node-dot" cx="560" cy="677" r="3"/>
+        <text class="node-status" x="569" y="680">Current</text>
+      </a>
+      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-webhook" data-node="obj:apps/Deployment/cert-manager/cert-manager-webhook" tabindex="0" aria-label="Object, cert-manager-webhook, Current" aria-describedby="instance-graph-card-15">
+        <title>cert-manager-webhook</title>
+        <rect class="node-halo" x="534" y="706" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="540" y="712" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="544" y="716" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="556" y="736">Deployment</text>
+        <text class="node-label node-mono" x="556" y="758">cert-manager-webhook</text>
+        <circle class="node-dot" cx="560" cy="773" r="3"/>
+        <text class="node-status" x="569" y="776">Current</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd" data-node="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" tabindex="0" aria-label="Runtime, cert-manager-cainjector-5d69c59bd, 1 desired" aria-describedby="instance-graph-card-16">
+        <title>cert-manager-cainjector-5d69c59bd</title>
+        <rect class="node-halo" x="798" y="274" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="804" y="280" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="808" y="284" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="820" y="304">ReplicaSet</text>
+        <text class="node-label node-mono" x="820" y="326">cert-manag…ector-5d69c59bd</text>
+        <circle class="node-dot" cx="824" cy="341" r="3"/>
+        <text class="node-status" x="833" y="344">1 desired</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644" data-node="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" tabindex="0" aria-label="Runtime, cert-manager-controller-7c9bddd644, 1 desired" aria-describedby="instance-graph-card-17">
+        <title>cert-manager-controller-7c9bddd644</title>
+        <rect class="node-halo" x="798" y="370" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="804" y="376" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="808" y="380" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="820" y="400">ReplicaSet</text>
+        <text class="node-label node-mono" x="820" y="422">cert-manag…ller-7c9bddd644</text>
+        <circle class="node-dot" cx="824" cy="437" r="3"/>
+        <text class="node-status" x="833" y="440">1 desired</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5" data-node="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" tabindex="0" aria-label="Runtime, cert-manager-webhook-6c5bb576f5, 1 desired" aria-describedby="instance-graph-card-18">
+        <title>cert-manager-webhook-6c5bb576f5</title>
+        <rect class="node-halo" x="798" y="466" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="804" y="472" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="808" y="476" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="820" y="496">ReplicaSet</text>
+        <text class="node-label node-mono" x="820" y="518">cert-manag…hook-6c5bb576f5</text>
+        <circle class="node-dot" cx="824" cy="533" r="3"/>
+        <text class="node-status" x="833" y="536">1 desired</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-kbvjx&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-kbvjx" data-node="obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx" tabindex="0" aria-label="Runtime, cert-manager-cainjector-5d69c59bd-kbvjx, Current" aria-describedby="instance-graph-card-19">
+        <title>cert-manager-cainjector-5d69c59bd-kbvjx</title>
+        <rect class="node-halo" x="1062" y="274" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="1068" y="280" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="1072" y="284" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="1084" y="304">Pod</text>
+        <text class="node-label node-mono" x="1084" y="326">cert-manag…5d69c59bd-kbvjx</text>
+        <circle class="node-dot" cx="1088" cy="341" r="3"/>
+        <text class="node-status" x="1097" y="344">Current</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-hvrqf&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-hvrqf" data-node="obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-hvrqf" tabindex="0" aria-label="Runtime, cert-manager-controller-7c9bddd644-hvrqf, Current" aria-describedby="instance-graph-card-20">
+        <title>cert-manager-controller-7c9bddd644-hvrqf</title>
+        <rect class="node-halo" x="1062" y="370" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="1068" y="376" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="1072" y="380" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="1084" y="400">Pod</text>
+        <text class="node-label node-mono" x="1084" y="422">cert-manag…c9bddd644-hvrqf</text>
+        <circle class="node-dot" cx="1088" cy="437" r="3"/>
+        <text class="node-status" x="1097" y="440">Current</text>
+      </a>
+      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?node=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-nv7pk&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-nv7pk" data-node="obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk" tabindex="0" aria-label="Runtime, cert-manager-webhook-6c5bb576f5-nv7pk, Current" aria-describedby="instance-graph-card-21">
+        <title>cert-manager-webhook-6c5bb576f5-nv7pk</title>
+        <rect class="node-halo" x="1062" y="466" width="236" height="92" rx="18"/>
+        <rect class="node-ring" x="1068" y="472" width="224" height="80" rx="11"/>
+        <rect class="node-box" x="1072" y="476" width="216" height="72" rx="6"/>
+        
+        <text class="node-kind" x="1084" y="496">Pod</text>
+        <text class="node-label node-mono" x="1084" y="518">cert-manag…c5bb576f5-nv7pk</text>
+        <circle class="node-dot" cx="1088" cy="533" r="3"/>
+        <text class="node-status" x="1097" y="536">Current</text>
+      </a>
+      
+    </g>
+  </svg>
+  </div>
+  <ul class="graph-legend" aria-label="Legend">
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-stamp" x="19" y="4" width="5" height="5"/></svg>Applied by the controller</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-dashed" x="1" y="1" width="26" height="16" rx="3"/></svg>Made by the cluster</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-stack" x="1" y="1" width="26" height="16" rx="3" transform="translate(2 2)"/><rect class="lg-box" x="1" y="1" width="26" height="16" rx="3"/><rect class="lg-hatch" x="1" y="1" width="26" height="16" rx="3" fill="url(#instance-graph-ghatch)"/></svg>Group of configuration components (CRDs, RBAC, webhooks, other). Click to open; one opens at a time</li>
+    <li class="lg-item"><svg class="lg-sw" viewBox="0 0 28 18" aria-hidden="true"><rect class="lg-box lg-health" x="1" y="1" width="26" height="16" rx="3"/></svg>Fill and outline: health</li>
+    <li class="lg-item"><kbd>Ctrl</kbd> + scroll to zoom</li>
+    <li class="lg-item"><kbd>Esc</kbd> to step back</li>
+  </ul>
+  <div class="node-cards">
+  <div class="node-card" id="instance-graph-card-0" role="tooltip" data-card-for="mi:cert-manager/cert-manager" hidden><span class="nc-kind">Instance</span> <strong class="nc-name mono">cert-manager/cert-manager</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span> <span class="label">Applied</span> <span class="applied applied-applied">Applied</span></span> <span class="nc-origin">Reconciled by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-1" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/cainjector" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">cainjector</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Part of the module</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-2" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/controller" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">controller</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Part of the module</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-3" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/namespace" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">namespace</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Part of the module</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-4" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/webhook" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Part of the module</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-5" role="tooltip" data-card-for="grp:configuration/mi/cert-manager/cert-manager/crds" hidden><span class="nc-kind">Group</span> <strong class="nc-name mono">CRDs · 1 component</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Display group</span> <span class="nc-hint">Click to expand</span></div>
+  <div class="node-card" id="instance-graph-card-6" role="tooltip" data-card-for="grp:configuration/mi/cert-manager/cert-manager/rbac" hidden><span class="nc-kind">Group</span> <strong class="nc-name mono">RBAC · 13 components</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Display group</span> <span class="nc-hint">Click to expand</span></div>
+  <div class="node-card" id="instance-graph-card-7" role="tooltip" data-card-for="grp:configuration/mi/cert-manager/cert-manager/webhooks" hidden><span class="nc-kind">Group</span> <strong class="nc-name mono">Webhook configuration · 2 components</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">Display group</span> <span class="nc-hint">Click to expand</span></div>
+  <div class="node-card" id="instance-graph-card-8" role="tooltip" data-card-for="obj:_/ServiceAccount/cert-manager/cert-manager-cainjector" hidden><span class="nc-kind">ServiceAccount</span> <strong class="nc-name mono">cert-manager/cert-manager-cainjector</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Resource is current</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-9" role="tooltip" data-card-for="obj:apps/Deployment/cert-manager/cert-manager-cainjector" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">cert-manager/cert-manager-cainjector</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Deployment is available. Replicas: 1</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-10" role="tooltip" data-card-for="obj:_/ServiceAccount/cert-manager/cert-manager" hidden><span class="nc-kind">ServiceAccount</span> <strong class="nc-name mono">cert-manager/cert-manager</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Resource is current</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-11" role="tooltip" data-card-for="obj:apps/Deployment/cert-manager/cert-manager-controller" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">cert-manager/cert-manager-controller</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Deployment is available. Replicas: 1</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-12" role="tooltip" data-card-for="obj:_/Namespace/_/cert-manager" hidden><span class="nc-kind">Namespace</span> <strong class="nc-name mono">cert-manager</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Resource is current</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-13" role="tooltip" data-card-for="obj:_/Service/cert-manager/cert-manager-webhook" hidden><span class="nc-kind">Service</span> <strong class="nc-name mono">cert-manager/cert-manager-webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Service is ready</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-14" role="tooltip" data-card-for="obj:_/ServiceAccount/cert-manager/cert-manager-webhook" hidden><span class="nc-kind">ServiceAccount</span> <strong class="nc-name mono">cert-manager/cert-manager-webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Resource is current</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-15" role="tooltip" data-card-for="obj:apps/Deployment/cert-manager/cert-manager-webhook" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">cert-manager/cert-manager-webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Deployment is available. Replicas: 1</span> <span class="nc-origin">Applied by the controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-16" role="tooltip" data-card-for="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">cert-manager/cert-manager-cainjector-5d69c59bd</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">ReplicaSet is available. Replicas: 1</span> <span class="nc-fact">Replicas: 1</span> <span class="nc-origin">Created by the cluster from Deployment cert-manager-cainjector</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-17" role="tooltip" data-card-for="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">cert-manager/cert-manager-controller-7c9bddd644</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">ReplicaSet is available. Replicas: 1</span> <span class="nc-fact">Replicas: 1</span> <span class="nc-origin">Created by the cluster from Deployment cert-manager-controller</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-18" role="tooltip" data-card-for="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">cert-manager/cert-manager-webhook-6c5bb576f5</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">ReplicaSet is available. Replicas: 1</span> <span class="nc-fact">Replicas: 1</span> <span class="nc-origin">Created by the cluster from Deployment cert-manager-webhook</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-19" role="tooltip" data-card-for="obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Pod is Ready</span> <span class="nc-origin">Created by the cluster from ReplicaSet cert-manager-cainjector-5d69c59bd</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-20" role="tooltip" data-card-for="obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-hvrqf" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">cert-manager/cert-manager-controller-7c9bddd644-hvrqf</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Pod is Ready</span> <span class="nc-origin">Created by the cluster from ReplicaSet cert-manager-controller-7c9bddd644</span> <span class="nc-hint">Click for details</span></div>
+  <div class="node-card" id="instance-graph-card-21" role="tooltip" data-card-for="obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-message">Pod is Ready</span> <span class="nc-origin">Created by the cluster from ReplicaSet cert-manager-webhook-6c5bb576f5</span> <span class="nc-hint">Click for details</span></div>
+  </div>
+</div>
+</section>
+</div>
+<aside class="panel detail" id="detail" aria-label="Details" aria-live="polite" data-root-panel="/instances/cert-manager/cert-manager/node?id=mi%3Acert-manager%2Fcert-manager" data-topics="instance:cert-manager/cert-manager" data-follow="instance:cert-manager/cert-manager">
+<p class="kicker">Instance</p>
+<h2 class="frag-h mono">cert-manager/<wbr>cert-manager</h2>
+<div class="axes"><span class="axis-pair"><span class="label">Applied</span> <span class="applied applied-applied"><span class="axis">Applied axis</span>Applied</span></span><span class="axis-pair"><span class="label">Health</span> <span class="health health-healthy"><span class="axis">Health axis</span>Healthy</span></span></div>
+<dl class="facts">
+  <dt>Object</dt><dd class="mono">ModuleInstance.<wbr>opmodel.<wbr>dev cert-manager/<wbr>cert-manager</dd>
+  <dt>Applied reason</dt><dd class="mono">ReconciliationSucceeded</dd><dt>Controller says</dt><dd>Reconciliation succeeded</dd>
+  <dt>Module</dt><dd class="mono">opmodel.<wbr>dev/<wbr>modules/<wbr>cert_manager@v2</dd><dt>Version</dt><dd>v2.0.5</dd><dt>Inventory</dt><dd>42 objects</dd><dt>Inventory revision</dt><dd>1</dd><dt>Owner</dt><dd>the controller</dd><dt>Applier</dt><dd>ServiceAccount cert-manager-applier</dd>
+  
+  
+  
+  
+</dl>
+<h3 class="sub-h">Render contracts</h3><p class="note">Used by the render; not the instance's provider demand.</p><ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/crds@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/role@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/service-account@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/security-context@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1</li></ul>
+<h3 class="sub-h">Edges</h3><ul class="edges-list"><li>hasComponent (status.inventory entries, by component)</li><li>hasComponent (status.inventory entries, by component)</li><li>hasComponent (status.inventory entries, by component)</li><li>hasComponent (status.inventory entries, by component)</li><li>hasComponent (status.inventory entries, by component)</li><li>hasComponent (status.inventory entries, by component)</li><li>hasComponent (status.inventory entries, by component)</li><li>instantiates (ModuleInstance spec.module)</li></ul>
+<p class="panel-links"><a class="btn" href="/instances/cert-manager/cert-manager?tab=events" data-focus-key="panel-events">Events</a></p>
+</aside>
+</div>
+<details class="panel panel-wide conditions-fold" id="conditions" data-follow="instance:cert-manager/cert-manager">
   <summary><h2 id="conditions-h">Conditions and render contracts</h2></summary>
 <ol class="conditions">
   <li class="condition tone-normal">
-    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-04T18:04:05Z" title="2026-10-04 18:04:05 UTC">5m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">Ready</span><span class="cond-status">True</span><span class="cond-reason">ReconciliationSucceeded</span><span class="cond-time"><time datetime="2026-10-21T16:04:26Z" title="2026-10-21 16:04:26 UTC" data-relative aria-live="off">5m ago</time></span></div>
     <p class="cond-message">Reconciliation succeeded</p>
     <p class="cond-meaning">Every object was applied. This says nothing about whether the workloads run; see Health.</p>
   </li>
+  <li class="condition tone-unknown">
+    <div class="cond-head"><span class="cond-type">Healthy</span><span class="cond-status">True</span><span class="cond-reason">RolledOut</span><span class="cond-time"><time datetime="2026-10-21T16:04:42Z" title="2026-10-21 16:04:42 UTC" data-relative aria-live="off">5m ago</time></span></div>
+    <p class="cond-message">42/42 objects ready</p>
+    <p class="cond-meaning">Every object of the inventory was read after the apply and judged healthy.</p>
+  </li>
   <li class="condition tone-normal">
-    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-04T18:04:03Z" title="2026-10-04 18:04:03 UTC">5m ago</time></span></div>
+    <div class="cond-head"><span class="cond-type">ModuleResolved</span><span class="cond-status">True</span><span class="cond-reason">ModuleResolved</span><span class="cond-time"><time datetime="2026-10-21T16:04:24Z" title="2026-10-21 16:04:24 UTC" data-relative aria-live="off">5m ago</time></span></div>
     <p class="cond-message">module resolved: opmodel.dev/modules/cert_manager@v2@v2.0.5</p>
     <p class="cond-meaning">The module version was found in the registry.</p>
   </li>
@@ -58,208 +400,4 @@
   <p class="note">The contracts this instance's render used, most fulfilled by the catalog itself. They are not the provider contracts the instance demands, so the graph draws no edge to them.</p>
   <ul class="contracts"><li class="mono">opmodel.dev/catalogs/opm/resources/container@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/crds@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/mutating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/namespaces@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/resources/role@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/service-account@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/resources/validating-webhooks@v1alpha1</li><li class="mono">opmodel.dev/catalogs/opm/traits/expose@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/init-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/restart-policy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/scaling@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/security-context@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/sidecar-containers@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/update-strategy@v1beta1</li><li class="mono">opmodel.dev/catalogs/opm/traits/workload-identity@v1beta1</li></ul>
 </details>
-<nav class="tabs owner-tabs" aria-label="Views" hx-swap="outerHTML show:none"><a href="/instances/cert-manager/cert-manager?tab=graph" aria-current="page">Graph</a><a href="/instances/cert-manager/cert-manager?tab=resources">Resources <span class="tab-n" id="tab-n-resources" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">48</span></a><a href="/instances/cert-manager/cert-manager?tab=events">Events <span class="tab-n" id="tab-n-events" data-follow="instance:cert-manager/cert-manager events:instance:cert-manager/cert-manager">3</span></a><a href="/instances/cert-manager/cert-manager?tab=logs">Logs</a><a href="/instances/cert-manager/cert-manager?tab=yaml">YAML</a></nav>
-<div class="graph-stage panel-8" id="graph-stage" data-graph-stage>
-<section class="panel reveal" id="graph" aria-labelledby="graph-h" data-follow="instance:cert-manager/cert-manager">
-  <h2 class="vh" id="graph-h">Graph <span class="h-note">select a node for its details</span></h2>
-<div class="graph" data-graph="instance-graph">
-  <div class="graph-tools" role="group" aria-label="Graph view">
-    <span class="hint">drag to pan · Ctrl/Cmd + wheel to zoom · Esc closes a card, then full screen, then the selection · outline and rail: health · square: applied</span>
-    <a class="tool-link" href="/instances/cert-manager/cert-manager" hx-boost="false" data-clear-selection hidden>Clear selection</a>
-    <button type="button" data-zoom="fit">Fit</button>
-    <label class="zoom-label"><span>Zoom</span> <input type="range" min="20" max="300" step="5" value="100" data-zoom-range aria-label="Zoom, percent"> <output class="mono" data-zoom-value>100%</output></label>
-    <button type="button" data-graph-full aria-pressed="false">Full screen</button>
-  </div>
-  <div class="graph-frame">
-  <svg viewBox="0 0 1552 440" width="1552" height="440" role="group" aria-label="Relationship graph">
-    <defs>
-      <marker id="instance-graph-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 L8 4 L0 8 Z"/></marker>
-      <pattern id="instance-graph-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect class="hatch-bg" width="6" height="6"/><line class="hatch-line" x1="0" y1="0" x2="0" y2="6"/></pattern>
-    </defs>
-    <g class="viewport">
-      <text class="col-title" x="16" y="20">Module</text><text class="col-title" x="280" y="20">Instance</text><text class="col-title" x="544" y="20">Components</text><text class="col-title" x="808" y="20">Objects</text><text class="col-title" x="1072" y="20">Runtime</text><text class="col-title" x="1336" y="20">Runtime</text>
-      <path class="edge edge-controls" d="M1008 122 C1040 122, 1040 178, 1072 178" data-from="obj:apps/Deployment/cert-manager/cert-manager-cainjector" data-to="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1008 234 C1040 234, 1040 234, 1072 234" data-from="obj:apps/Deployment/cert-manager/cert-manager-controller" data-to="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1008 402 C1040 402, 1040 290, 1072 290" data-from="obj:apps/Deployment/cert-manager/cert-manager-webhook" data-to="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 178 C1304 178, 1304 178, 1336 178" data-from="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" data-to="obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 234 C1304 234, 1304 234, 1336 234" data-from="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" data-to="obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-controls" d="M1272 290 C1304 290, 1304 290, 1336 290" data-from="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" data-to="obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22" marker-end="url(#instance-graph-arrow)"><title>controls, from metadata.ownerReferences, controller only</title></path><path class="edge edge-hasComponent" d="M480 234 C512 234, 512 150, 544 150" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/cainjector" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M480 234 C512 234, 512 206, 544 206" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/controller" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M480 234 C512 234, 512 262, 544 262" data-from="mi:cert-manager/cert-manager" data-to="comp:mi/cert-manager/cert-manager/webhook" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-hasComponent" d="M480 234 C512 234, 512 318, 544 318" data-from="mi:cert-manager/cert-manager" data-to="grp:configuration/mi/cert-manager/cert-manager" marker-end="url(#instance-graph-arrow)"><title>hasComponent, from status.inventory entries, by component</title></path><path class="edge edge-instantiates" d="M280 234 C248 234, 248 234, 216 234" data-from="mi:cert-manager/cert-manager" data-to="mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5" marker-end="url(#instance-graph-arrow)"><title>instantiates, from ModuleInstance spec.module</title></path><path class="edge edge-owns" d="M744 150 C776 150, 776 66, 808 66" data-from="comp:mi/cert-manager/cert-manager/cainjector" data-to="obj:_/ServiceAccount/cert-manager/cert-manager-cainjector" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 150 C776 150, 776 122, 808 122" data-from="comp:mi/cert-manager/cert-manager/cainjector" data-to="obj:apps/Deployment/cert-manager/cert-manager-cainjector" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 206 C776 206, 776 178, 808 178" data-from="comp:mi/cert-manager/cert-manager/controller" data-to="obj:_/ServiceAccount/cert-manager/cert-manager" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 206 C776 206, 776 234, 808 234" data-from="comp:mi/cert-manager/cert-manager/controller" data-to="obj:apps/Deployment/cert-manager/cert-manager-controller" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 262 C776 262, 776 290, 808 290" data-from="comp:mi/cert-manager/cert-manager/webhook" data-to="obj:_/Service/cert-manager/cert-manager-webhook" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 262 C776 262, 776 346, 808 346" data-from="comp:mi/cert-manager/cert-manager/webhook" data-to="obj:_/ServiceAccount/cert-manager/cert-manager-webhook" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path><path class="edge edge-owns" d="M744 262 C776 262, 776 402, 808 402" data-from="comp:mi/cert-manager/cert-manager/webhook" data-to="obj:apps/Deployment/cert-manager/cert-manager-webhook" marker-end="url(#instance-graph-arrow)"><title>owns, from status.inventory entries</title></path>
-      <a class="node kind-module" href="/instances/cert-manager/cert-manager?focus=mod%3Aopmodel.dev%252Fmodules%252Fcert_manager%2540v2%2Fv2.0.5&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=mod%3Aopmodel.dev%252Fmodules%252Fcert_manager%2540v2%2Fv2.0.5" data-node="mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5" tabindex="0" aria-label="Module, opmodel.dev/modules/cert_manager@v2" aria-describedby="instance-graph-card-0">
-        <title>opmodel.dev/modules/cert_manager@v2</title>
-        <rect class="node-ring" x="16" y="212" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="16" y="212" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="16" y="212" width="5" height="44" rx="2"/>
-        <text class="node-label" x="28" y="231">cert_manager@v2 v2.0.5</text>
-        <text class="node-sub" x="28" y="246">Module · opmodel.dev/…</text>
-      </a>
-      <a class="node kind-instance health-healthy ap-applied" href="/instances/cert-manager/cert-manager?focus=mi%3Acert-manager%2Fcert-manager&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=mi%3Acert-manager%2Fcert-manager" data-node="mi:cert-manager/cert-manager" tabindex="0" aria-label="Instance, cert-manager/cert-manager, health Healthy, Applied" aria-describedby="instance-graph-card-1">
-        <title>cert-manager/cert-manager</title>
-        <rect class="node-ring" x="280" y="212" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="280" y="212" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="280" y="212" width="5" height="44" rx="2"/>
-        <text class="node-label" x="292" y="231">cert-man…cert-manager</text>
-        <text class="node-sub" x="292" y="246">Instance</text>
-        <rect class="node-stamp" x="464" y="218" width="10" height="10" rx="1"/>
-      </a>
-      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?focus=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcainjector&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcainjector" data-node="comp:mi/cert-manager/cert-manager/cainjector" tabindex="0" aria-label="Component, cainjector, health Healthy" aria-describedby="instance-graph-card-2">
-        <title>cainjector</title>
-        <rect class="node-ring" x="544" y="128" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="544" y="128" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="544" y="128" width="5" height="44" rx="2"/>
-        <text class="node-label" x="556" y="147">cainjector</text>
-        <text class="node-sub" x="556" y="162">Component</text>
-      </a>
-      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?focus=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcontroller&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fcontroller" data-node="comp:mi/cert-manager/cert-manager/controller" tabindex="0" aria-label="Component, controller, health Healthy" aria-describedby="instance-graph-card-3">
-        <title>controller</title>
-        <rect class="node-ring" x="544" y="184" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="544" y="184" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="544" y="184" width="5" height="44" rx="2"/>
-        <text class="node-label" x="556" y="203">controller</text>
-        <text class="node-sub" x="556" y="218">Component</text>
-      </a>
-      <a class="node kind-component health-healthy" href="/instances/cert-manager/cert-manager?focus=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fwebhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=comp%3Ami%2Fcert-manager%2Fcert-manager%2Fwebhook" data-node="comp:mi/cert-manager/cert-manager/webhook" tabindex="0" aria-label="Component, webhook, health Healthy" aria-describedby="instance-graph-card-4">
-        <title>webhook</title>
-        <rect class="node-ring" x="544" y="240" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="544" y="240" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="544" y="240" width="5" height="44" rx="2"/>
-        <text class="node-label" x="556" y="259">webhook</text>
-        <text class="node-sub" x="556" y="274">Component</text>
-      </a>
-      <a class="node kind-group health-healthy" href="/instances/cert-manager/cert-manager?expand=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;fit=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=grp%3Aconfiguration%2Fmi%2Fcert-manager%2Fcert-manager" data-node="grp:configuration/mi/cert-manager/cert-manager" data-group tabindex="0" aria-label="Group, 17 configuration components, health Healthy" aria-describedby="instance-graph-card-5">
-        <title>17 configuration components</title>
-        <rect class="node-ring" x="544" y="296" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="544" y="296" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="544" y="296" width="5" height="44" rx="2"/>
-        <text class="node-label" x="556" y="315">17 config components</text>
-        <text class="node-sub" x="556" y="330">configuration, 17</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-cainjector" data-node="obj:_/ServiceAccount/cert-manager/cert-manager-cainjector" tabindex="0" aria-label="Object, cert-manager-cainjector, health Healthy" aria-describedby="instance-graph-card-6">
-        <title>cert-manager-cainjector</title>
-        <rect class="node-ring" x="808" y="44" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="44" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="44" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="63">cert-manager-cainjector</text>
-        <text class="node-sub" x="820" y="78">ServiceAccount</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-cainjector&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-cainjector" data-node="obj:apps/Deployment/cert-manager/cert-manager-cainjector" tabindex="0" aria-label="Object, cert-manager-cainjector, health Healthy" aria-describedby="instance-graph-card-7">
-        <title>cert-manager-cainjector</title>
-        <rect class="node-ring" x="808" y="100" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="100" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="100" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="119">cert-manager-cainjector</text>
-        <text class="node-sub" x="820" y="134">Deployment</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager" data-node="obj:_/ServiceAccount/cert-manager/cert-manager" tabindex="0" aria-label="Object, cert-manager, health Healthy" aria-describedby="instance-graph-card-8">
-        <title>cert-manager</title>
-        <rect class="node-ring" x="808" y="156" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="156" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="156" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="175">cert-manager</text>
-        <text class="node-sub" x="820" y="190">ServiceAccount</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-controller&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-controller" data-node="obj:apps/Deployment/cert-manager/cert-manager-controller" tabindex="0" aria-label="Object, cert-manager-controller, health Healthy" aria-describedby="instance-graph-card-9">
-        <title>cert-manager-controller</title>
-        <rect class="node-ring" x="808" y="212" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="212" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="212" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="231">cert-manager-controller</text>
-        <text class="node-sub" x="820" y="246">Deployment</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FService%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FService%2Fcert-manager%2Fcert-manager-webhook" data-node="obj:_/Service/cert-manager/cert-manager-webhook" tabindex="0" aria-label="Object, cert-manager-webhook, health Healthy" aria-describedby="instance-graph-card-10">
-        <title>cert-manager-webhook</title>
-        <rect class="node-ring" x="808" y="268" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="268" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="268" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="287">cert-manager-webhook</text>
-        <text class="node-sub" x="820" y="302">Service</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FServiceAccount%2Fcert-manager%2Fcert-manager-webhook" data-node="obj:_/ServiceAccount/cert-manager/cert-manager-webhook" tabindex="0" aria-label="Object, cert-manager-webhook, health Healthy" aria-describedby="instance-graph-card-11">
-        <title>cert-manager-webhook</title>
-        <rect class="node-ring" x="808" y="324" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="324" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="324" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="343">cert-manager-webhook</text>
-        <text class="node-sub" x="820" y="358">ServiceAccount</text>
-      </a>
-      <a class="node kind-object health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-webhook&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FDeployment%2Fcert-manager%2Fcert-manager-webhook" data-node="obj:apps/Deployment/cert-manager/cert-manager-webhook" tabindex="0" aria-label="Object, cert-manager-webhook, health Healthy" aria-describedby="instance-graph-card-12">
-        <title>cert-manager-webhook</title>
-        <rect class="node-ring" x="808" y="380" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="808" y="380" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="808" y="380" width="5" height="44" rx="2"/>
-        <text class="node-label" x="820" y="399">cert-manager-webhook</text>
-        <text class="node-sub" x="820" y="414">Deployment</text>
-      </a>
-      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd" data-node="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" tabindex="0" aria-label="Runtime, cert-manager-cainjector-5d69c59bd, health Healthy" aria-describedby="instance-graph-card-13">
-        <title>cert-manager-cainjector-5d69c59bd</title>
-        <rect class="node-ring" x="1072" y="156" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="1072" y="156" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="1072" y="156" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1084" y="175">cert-mana…ctor-5d69c59bd</text>
-        <text class="node-sub" x="1084" y="190">ReplicaSet</text>
-      </a>
-      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-controller-7c9bddd644" data-node="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" tabindex="0" aria-label="Runtime, cert-manager-controller-7c9bddd644, health Healthy" aria-describedby="instance-graph-card-14">
-        <title>cert-manager-controller-7c9bddd644</title>
-        <rect class="node-ring" x="1072" y="212" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="1072" y="212" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="1072" y="212" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1084" y="231">cert-mana…ler-7c9bddd644</text>
-        <text class="node-sub" x="1084" y="246">ReplicaSet</text>
-      </a>
-      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3Aapps%2FReplicaSet%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5" data-node="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" tabindex="0" aria-label="Runtime, cert-manager-webhook-6c5bb576f5, health Healthy" aria-describedby="instance-graph-card-15">
-        <title>cert-manager-webhook-6c5bb576f5</title>
-        <rect class="node-ring" x="1072" y="268" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="1072" y="268" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="1072" y="268" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1084" y="287">cert-mana…ook-6c5bb576f5</text>
-        <text class="node-sub" x="1084" y="302">ReplicaSet</text>
-      </a>
-      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-htjjq&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-cainjector-5d69c59bd-htjjq" data-node="obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq" tabindex="0" aria-label="Runtime, cert-manager-cainjector-5d69c59bd-htjjq, health Healthy" aria-describedby="instance-graph-card-16">
-        <title>cert-manager-cainjector-5d69c59bd-htjjq</title>
-        <rect class="node-ring" x="1336" y="156" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="1336" y="156" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="1336" y="156" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1348" y="175">cert-mana…d69c59bd-htjjq</text>
-        <text class="node-sub" x="1348" y="190">Pod</text>
-      </a>
-      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-cr5qm&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-controller-7c9bddd644-cr5qm" data-node="obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm" tabindex="0" aria-label="Runtime, cert-manager-controller-7c9bddd644-cr5qm, health Healthy" aria-describedby="instance-graph-card-17">
-        <title>cert-manager-controller-7c9bddd644-cr5qm</title>
-        <rect class="node-ring" x="1336" y="212" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="1336" y="212" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="1336" y="212" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1348" y="231">cert-mana…9bddd644-cr5qm</text>
-        <text class="node-sub" x="1348" y="246">Pod</text>
-      </a>
-      <a class="node kind-runtime health-healthy" href="/instances/cert-manager/cert-manager?focus=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-slp22&amp;tab=graph" data-panel="/instances/cert-manager/cert-manager/node?id=obj%3A_%2FPod%2Fcert-manager%2Fcert-manager-webhook-6c5bb576f5-slp22" data-node="obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22" tabindex="0" aria-label="Runtime, cert-manager-webhook-6c5bb576f5-slp22, health Healthy" aria-describedby="instance-graph-card-18">
-        <title>cert-manager-webhook-6c5bb576f5-slp22</title>
-        <rect class="node-ring" x="1336" y="268" width="200" height="44" rx="8"/>
-        <rect class="node-box" x="1336" y="268" width="200" height="44" rx="6"/>
-        <rect class="node-rail" x="1336" y="268" width="5" height="44" rx="2"/>
-        <text class="node-label" x="1348" y="287">cert-mana…5bb576f5-slp22</text>
-        <text class="node-sub" x="1348" y="302">Pod</text>
-      </a>
-    </g>
-  </svg>
-  </div>
-  <div class="node-cards">
-  <div class="node-card" id="instance-graph-card-0" role="tooltip" data-card-for="mod:opmodel.dev%2Fmodules%2Fcert_manager%40v2/v2.0.5" hidden><span class="nc-kind">Module</span> <strong class="nc-name mono">opmodel.dev/modules/cert_manager@v2</strong> <span class="nc-origin">The module it was rendered from</span></div>
-  <div class="node-card" id="instance-graph-card-1" role="tooltip" data-card-for="mi:cert-manager/cert-manager" hidden><span class="nc-kind">Instance</span> <strong class="nc-name mono">cert-manager/cert-manager</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span> <span class="label">Applied</span> <span class="applied applied-applied">Applied</span></span> <span class="nc-origin">The ModuleInstance</span></div>
-  <div class="node-card" id="instance-graph-card-2" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/cainjector" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">cainjector</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">A component of the module</span></div>
-  <div class="node-card" id="instance-graph-card-3" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/controller" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">controller</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">A component of the module</span></div>
-  <div class="node-card" id="instance-graph-card-4" role="tooltip" data-card-for="comp:mi/cert-manager/cert-manager/webhook" hidden><span class="nc-kind">Component</span> <strong class="nc-name mono">webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">A component of the module</span></div>
-  <div class="node-card" id="instance-graph-card-5" role="tooltip" data-card-for="grp:configuration/mi/cert-manager/cert-manager" hidden><span class="nc-kind">Group</span> <strong class="nc-name mono">17 configuration components</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-origin">A group of nodes folded into one</span></div>
-  <div class="node-card" id="instance-graph-card-6" role="tooltip" data-card-for="obj:_/ServiceAccount/cert-manager/cert-manager-cainjector" hidden><span class="nc-kind">ServiceAccount</span> <strong class="nc-name mono">cert-manager-cainjector</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-7" role="tooltip" data-card-for="obj:apps/Deployment/cert-manager/cert-manager-cainjector" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">cert-manager-cainjector</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-8" role="tooltip" data-card-for="obj:_/ServiceAccount/cert-manager/cert-manager" hidden><span class="nc-kind">ServiceAccount</span> <strong class="nc-name mono">cert-manager</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-9" role="tooltip" data-card-for="obj:apps/Deployment/cert-manager/cert-manager-controller" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">cert-manager-controller</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-10" role="tooltip" data-card-for="obj:_/Service/cert-manager/cert-manager-webhook" hidden><span class="nc-kind">Service</span> <strong class="nc-name mono">cert-manager-webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-11" role="tooltip" data-card-for="obj:_/ServiceAccount/cert-manager/cert-manager-webhook" hidden><span class="nc-kind">ServiceAccount</span> <strong class="nc-name mono">cert-manager-webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-12" role="tooltip" data-card-for="obj:apps/Deployment/cert-manager/cert-manager-webhook" hidden><span class="nc-kind">Deployment</span> <strong class="nc-name mono">cert-manager-webhook</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">In the inventory: applied by the controller</span></div>
-  <div class="node-card" id="instance-graph-card-13" role="tooltip" data-card-for="obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">cert-manager-cainjector-5d69c59bd</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  <div class="node-card" id="instance-graph-card-14" role="tooltip" data-card-for="obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">cert-manager-controller-7c9bddd644</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  <div class="node-card" id="instance-graph-card-15" role="tooltip" data-card-for="obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5" hidden><span class="nc-kind">ReplicaSet</span> <strong class="nc-name mono">cert-manager-webhook-6c5bb576f5</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  <div class="node-card" id="instance-graph-card-16" role="tooltip" data-card-for="obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">cert-manager-cainjector-5d69c59bd-htjjq</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  <div class="node-card" id="instance-graph-card-17" role="tooltip" data-card-for="obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">cert-manager-controller-7c9bddd644-cr5qm</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  <div class="node-card" id="instance-graph-card-18" role="tooltip" data-card-for="obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22" hidden><span class="nc-kind">Pod</span> <strong class="nc-name mono">cert-manager-webhook-6c5bb576f5-slp22</strong> <span class="nc-marks"><span class="label">Health</span> <span class="health health-healthy">Healthy</span></span> <span class="nc-reason mono">Current</span> <span class="nc-origin">Made by the cluster below an inventory object</span></div>
-  </div>
-</div>
-</section>
-</div>
-<aside class="panel panel-4 detail reveal" id="detail" aria-label="Details" aria-live="polite">
-  <p class="muted">Select a graph node, an object's YAML or its events to see them here.</p>
-</aside>
 </main>
