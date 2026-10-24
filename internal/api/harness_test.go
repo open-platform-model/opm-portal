@@ -37,7 +37,7 @@ var (
 	// reader is the identity the fake cluster's informers read as.
 	reader = authz.Identity{Username: "portal-reader", Groups: []string{"system:authenticated"}}
 	// now is the read model's clock, so evaluation times are stable.
-	now = time.Date(2026, 10, 4, 18, 10, 0, 0, time.UTC)
+	now = time.Date(2026, 10, 21, 16, 10, 0, 0, time.UTC)
 )
 
 // recorder is the fake authorizer: it passes each check to the

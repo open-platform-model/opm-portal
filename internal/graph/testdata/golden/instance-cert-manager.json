@@ -67,7 +67,7 @@
         "reason": "ReconciliationSucceeded",
         "message": "Reconciliation succeeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "renderContracts": [
         "opmodel.dev/catalogs/opm/resources/container@v1beta1",
         "opmodel.dev/catalogs/opm/resources/crds@v1beta1",
@@ -503,14 +503,14 @@
       "y": 476
     },
     {
-      "id": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "id": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx",
       "kind": "runtime",
-      "label": "cert-manager-cainjector-5d69c59bd-htjjq",
+      "label": "cert-manager-cainjector-5d69c59bd-kbvjx",
       "ref": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-cainjector-5d69c59bd-htjjq"
+        "name": "cert-manager-cainjector-5d69c59bd-kbvjx"
       },
       "access": "ok",
       "health": {
@@ -524,14 +524,14 @@
       "y": 284
     },
     {
-      "id": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "id": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-hvrqf",
       "kind": "runtime",
-      "label": "cert-manager-controller-7c9bddd644-cr5qm",
+      "label": "cert-manager-controller-7c9bddd644-hvrqf",
       "ref": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-controller-7c9bddd644-cr5qm"
+        "name": "cert-manager-controller-7c9bddd644-hvrqf"
       },
       "access": "ok",
       "health": {
@@ -545,14 +545,14 @@
       "y": 380
     },
     {
-      "id": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "id": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk",
       "kind": "runtime",
-      "label": "cert-manager-webhook-6c5bb576f5-slp22",
+      "label": "cert-manager-webhook-6c5bb576f5-nv7pk",
       "ref": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "cert-manager",
-        "name": "cert-manager-webhook-6c5bb576f5-slp22"
+        "name": "cert-manager-webhook-6c5bb576f5-nv7pk"
       },
       "access": "ok",
       "health": {
@@ -643,10 +643,10 @@
       ]
     },
     {
-      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd|obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd|obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx",
       "kind": "controls",
       "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-cainjector-5d69c59bd",
-      "to": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-htjjq",
+      "to": "obj:_/Pod/cert-manager/cert-manager-cainjector-5d69c59bd-kbvjx",
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
@@ -668,10 +668,10 @@
       ]
     },
     {
-      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644|obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644|obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-hvrqf",
       "kind": "controls",
       "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-controller-7c9bddd644",
-      "to": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-cr5qm",
+      "to": "obj:_/Pod/cert-manager/cert-manager-controller-7c9bddd644-hvrqf",
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {
@@ -693,10 +693,10 @@
       ]
     },
     {
-      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5|obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "id": "controls|obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5|obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk",
       "kind": "controls",
       "from": "obj:apps/ReplicaSet/cert-manager/cert-manager-webhook-6c5bb576f5",
-      "to": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-slp22",
+      "to": "obj:_/Pod/cert-manager/cert-manager-webhook-6c5bb576f5-nv7pk",
       "source": "metadata.ownerReferences, controller only",
       "route": [
         {

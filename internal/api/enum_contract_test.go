@@ -23,7 +23,7 @@ func strs[T ~string](vs ...T) []string {
 }
 
 // passedThrough are enumerated fields whose values the portal copies from
-// the operator's status without naming them in Go.
+// the controller's status without naming them in Go.
 var passedThrough = map[string]bool{
 	"Catalog/source":      true,
 	"GraphCatalog/source": true,
@@ -51,7 +51,7 @@ func TestEnumsMatchTheGoConstants(t *testing.T) {
 		"Platform/registrationsAccess":      access,
 		"GraphPlatform/registrationsAccess": access,
 		"GraphNode/access":                  strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),
-		"InstanceSummary/owner":             strs(readmodel.OwnerOperator, readmodel.OwnerCLI),
+		"InstanceSummary/owner":             strs(readmodel.OwnerController, readmodel.OwnerCLI),
 		"Registration/verdict":              verdicts,
 		"ProviderClaim/verdict":             verdicts,
 		"ProviderClaim/access":              strs(health.AccessOK, health.AccessForbidden, health.AccessNotReadable),

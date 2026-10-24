@@ -251,7 +251,7 @@ func platformDoc(p readmodel.PlatformView) v1.Platform {
 		Name:                p.Name,
 		UID:                 p.UID,
 		Type:                p.Type,
-		OperatorVersion:     p.OperatorVersion,
+		ControllerVersion:   p.ControllerVersion,
 		Reconcile:           reconcile(p.Applied),
 		Conditions:          conditions(p.Conditions),
 		Subscriptions:       make([]v1.Subscription, 0, len(p.Subscriptions)),
@@ -423,7 +423,7 @@ func graphNode(n *graph.Node) v1.GraphNode {
 		out.Catalog = &v1.GraphCatalog{Version: c.Version, Enabled: c.Enabled, Source: c.Source}
 	}
 	if p := n.Platform; p != nil {
-		out.Platform = &v1.GraphPlatform{Type: p.Type, OperatorVersion: p.OperatorVersion, RegistrationsAccess: string(p.RegistrationsAccess)}
+		out.Platform = &v1.GraphPlatform{Type: p.Type, ControllerVersion: p.ControllerVersion, RegistrationsAccess: string(p.RegistrationsAccess)}
 	}
 	if g := n.Group; g != nil {
 		gg := &v1.GraphGroup{Kind: string(g.Kind), Family: string(g.Family), Members: g.Members}

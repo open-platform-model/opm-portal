@@ -4,7 +4,7 @@ Covers the throwaway kind fixture cluster, the committed cluster captures and th
 
 ## The fixture cluster (`test/e2e/`)
 
-`task e2e:up` creates the kind cluster `opm-portal-e2e` with the released operator and fixture set F1. `task e2e:down` deletes it.
+`task e2e:up` creates the kind cluster `opm-portal-e2e` with the released controller and fixture set F1. `task e2e:down` deletes it.
 
 - The provider is podman by default. Set `E2E_PROVIDER=docker` to use docker. `e2e:up` records the choice in `.e2e/provider`, and capture and down read it from there.
 - Needs kubectl, curl and the kind release that `test/e2e/versions.env` pins.
@@ -19,7 +19,7 @@ Tests that run against the cluster (all need `task e2e:up` first, all use build 
 | `task e2e:local` | Builds the binary, runs the local-mode test | Launch, reads with and without the session, a foreign `Host`, a cross-site `POST`, a pod log on the stream, a clean `SIGINT` |
 | `task e2e:m1` | Builds the binary, runs the milestone 1 tests | The milestone 1 views through the read API and the stream: both claims, Applied and Health apart, the CLI-owned instance, a namespace-scoped reader with locked objects, and a scripted image break that must read Degraded within 10 s of the cluster while Applied stays |
 | `task e2e:pod` | Builds the image with the e2e provider, loads it into the cluster, applies `deploy/` through the `test/e2e/pod/` overlay (local image, `imagePullPolicy: Never`), runs the Pod test | The Pod log names the ServiceAccount, a launch through `kubectl port-forward 8090:8090` lists the instances, a forward from 8091 is refused |
-| `task e2e:dump` | Dumps OPM objects (no values), Pods, events and the operator log | Reading a failed run. `DIR=<directory>` sets the target; the default is `.e2e/dump/<cluster>` |
+| `task e2e:dump` | Dumps OPM objects (no values), Pods, events and the controller log | Reading a failed run. `DIR=<directory>` sets the target; the default is `.e2e/dump/<cluster>` |
 
 `e2e:m1` patches podinfo's image tag and reverts it before it ends. `e2e:pod` needs local ports 8090 and 8091 free.
 

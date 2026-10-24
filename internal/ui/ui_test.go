@@ -21,6 +21,7 @@ import (
 
 	"golang.org/x/net/html"
 	authorizationv1 "k8s.io/api/authorization/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
 	v1 "github.com/open-platform-model/opm-portal/api/v1alpha1"
 
@@ -127,12 +128,12 @@ var f1Pages = []goldenPage{
 	{"instance-podinfo-yaml", "/instances/default/podinfo?tab=yaml&object=apps/Deployment/default/podinfo-podinfo", false},
 	{"instance-backup-provider", "/instances/default/backup-provider", false},
 	{"instance-backup-provider-provider", "/instances/default/backup-provider?tab=provider", false},
-	{"catalog-backup", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0", false},
-	{"catalog-refused-claim", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0", false},
+	{"catalog-backup", "/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0", false},
+	{"catalog-refused-claim", "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0", false},
 	{"catalog-opm", "/catalog?path=opmodel.dev/catalogs/opm@v4", false},
 	{"catalog-opm-events", "/catalog?path=opmodel.dev/catalogs/opm@v4&tab=events", false},
-	{"catalog-backup-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events", false},
-	{"catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved", false},
+	{"catalog-backup-events", "/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0&tab=events", false},
+	{"catalog-refused-claim-events", "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events&reason=CatalogUnresolved", false},
 	{"instance-cert-manager-resources", "/instances/cert-manager/cert-manager?tab=resources", false},
 	{"instance-cert-manager", "/instances/cert-manager/cert-manager", false},
 	{"instance-cert-manager-expanded", "/instances/cert-manager/cert-manager?expand=grp:configuration/mi/cert-manager/cert-manager/rbac", false},
@@ -141,7 +142,7 @@ var f1Pages = []goldenPage{
 	{"package-podinfo-resources", "/packages/pkg/podinfo?tab=resources", false},
 	{"fragment-object-deployment", "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo", true},
 	{"fragment-node-deployment", "/instances/default/podinfo/node?id=obj:apps/Deployment/default/podinfo-podinfo", true},
-	{"fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h", true},
+	{"fragment-events-pod", "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74", true},
 }
 
 // TestGoldenPages renders every page over the F1 capture and compares its
@@ -711,10 +712,10 @@ func TestInstalledCountsFollowTheCallersNamespaces(t *testing.T) {
 	t.Run("case 3: a reader who may list everywhere", func(t *testing.T) {
 		s := newSite(t, f1, apitest.AllowAll)
 		selects, _, shown := installedForm(t, s.get(t, "/installed?namespace=default").body)
-		if shown != `class="shown" id="shown" data-follow="instances">Showing <strong>3</strong> of 6` {
-			t.Errorf("count row = %q; want 3 of 6", shown)
+		if shown != `class="shown" id="shown" data-follow="instances">Showing <strong>3</strong> of 7` {
+			t.Errorf("count row = %q; want 3 of 7", shown)
 		}
-		want := []string{"|All namespaces", "cert-manager|cert-manager (1)", "default|default (3)", "pkg|pkg (1)", "web|web (1)"}
+		want := []string{"|All namespaces", "cert-manager|cert-manager (1)", "default|default (3)", "opm-system|opm-system (1)", "pkg|pkg (1)", "web|web (1)"}
 		if !slices.Equal(selects["namespace"], want) {
 			t.Errorf("namespace options = %q; want %q", selects["namespace"], want)
 		}
@@ -732,8 +733,8 @@ func TestInstalledCountsFollowTheCallersNamespaces(t *testing.T) {
 func TestInstalledTotalCoversEveryNamespace(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	_, _, shown := installedForm(t, s.get(t, "/installed?namespace=default").body)
-	if !strings.HasSuffix(shown, "Showing <strong>3</strong> of 6") {
-		t.Errorf("count row = %q; want Showing 3 of 6", shown)
+	if !strings.HasSuffix(shown, "Showing <strong>3</strong> of 7") {
+		t.Errorf("count row = %q; want Showing 3 of 7", shown)
 	}
 	// The namespace-only reader reads each kind in the namespace asked and
 	// follows its stream; the others follow every namespace.
@@ -872,5 +873,88 @@ func TestInstalledRowOfAPackageWithARevision(t *testing.T) {
 	row.Health.State = "Odd"
 	if got := row.RowClass(); got != "row-unknown" {
 		t.Errorf("a health the portal does not know has class %q", got)
+	}
+}
+
+// TestPlatformNamesTheControllerVersion: the version the Platform's
+// status.controllerVersion records reaches the API document, the platform
+// graph's platform node and the page. The value differs
+// from the one the F1 capture holds, so the test proves which field is read.
+func TestPlatformNamesTheControllerVersion(t *testing.T) {
+	const want = "v1.0.0-beta.99"
+	objs := apitest.F1(t)
+	for _, o := range objs {
+		if o.GetKind() == "Platform" {
+			if err := unstructured.SetNestedField(o.Object, want, "status", "controllerVersion"); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	s := newSite(t, objs, apitest.AllowAll)
+	res := s.get(t, defaultAPIBase+"/platform")
+	var doc v1.Platform
+	if err := json.Unmarshal([]byte(res.body), &doc); res.status != http.StatusOK || err != nil {
+		t.Fatalf("platform document: status %d, %v", res.status, err)
+	}
+	if doc.ControllerVersion != want {
+		t.Errorf("platform document controllerVersion = %q, want %s", doc.ControllerVersion, want)
+	}
+	res = s.get(t, defaultAPIBase+"/platform/graph")
+	var g v1.Graph
+	if err := json.Unmarshal([]byte(res.body), &g); res.status != http.StatusOK || err != nil {
+		t.Fatalf("platform graph: status %d, %v", res.status, err)
+	}
+	var got []string
+	for _, n := range g.Nodes {
+		if n.Platform != nil {
+			got = append(got, n.Platform.ControllerVersion)
+		}
+	}
+	if len(got) != 1 || got[0] != want {
+		t.Errorf("platform graph platform controllerVersion = %q, want one node with %s", got, want)
+	}
+	if main := mainOf(s.get(t, "/").body); !strings.Contains(main, `<dt>Controller</dt><dd class="mono">`+want+`</dd>`) {
+		t.Errorf("the platform page does not name the controller version:\n%s", main)
+	}
+}
+
+// TestUnknownOwnerIsShownAsWritten: a spec.owner the portal does not know,
+// here the value the CRD of an earlier release allowed, reaches the API
+// document as written and the pages mark it unknown. It never reads as the
+// controller.
+func TestUnknownOwnerIsShownAsWritten(t *testing.T) {
+	const old = "operator"
+	objs := apitest.F1(t)
+	found := false
+	for _, o := range objs {
+		if o.GetKind() == "ModuleInstance" && o.GetNamespace() == "default" && o.GetName() == "podinfo" {
+			if err := unstructured.SetNestedField(o.Object, old, "spec", "owner"); err != nil {
+				t.Fatal(err)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("F1 holds no ModuleInstance default/podinfo")
+	}
+	s := newSite(t, objs, apitest.AllowAll)
+	res := s.get(t, defaultAPIBase+"/instances/default/podinfo")
+	var doc v1.Instance
+	if err := json.Unmarshal([]byte(res.body), &doc); res.status != http.StatusOK || err != nil {
+		t.Fatalf("instance document: status %d, %v", res.status, err)
+	}
+	if doc.Owner != old {
+		t.Errorf("instance document owner = %q, want %q as written", doc.Owner, old)
+	}
+	marked := `<span class="mono">` + old + `</span> <span class="muted">(unknown)</span>`
+	if main := mainOf(s.get(t, "/installed?namespace=default").body); !strings.Contains(main, `<td data-label="Owner">`+marked+`</td>`) {
+		t.Errorf("the Installed list does not mark the owner unknown:\n%s", main)
+	}
+	main := mainOf(s.get(t, "/instances/default/podinfo").body)
+	if !strings.Contains(main, `<dd>`+old+` (unknown)</dd>`) {
+		t.Errorf("the instance page does not mark the owner unknown:\n%s", main)
+	}
+	if strings.Contains(main, `<dd>the controller</dd>`) {
+		t.Error("the instance page reads an unknown owner as the controller")
 	}
 }

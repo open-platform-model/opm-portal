@@ -54,8 +54,8 @@ type Module struct {
 	Version string `json:"version,omitempty"`
 }
 
-// Condition is one status condition as the operator wrote it. Its message is
-// the operator's text, unchanged.
+// Condition is one status condition as the controller wrote it. Its message is
+// the controller's text, unchanged.
 type Condition struct {
 	Type               string     `json:"type"`
 	Status             string     `json:"status"`
@@ -73,7 +73,7 @@ type Condition struct {
 	NextStep string `json:"nextStep,omitempty"`
 }
 
-// Reconcile is what the operator says it applied: Applied, Reconciling,
+// Reconcile is what the controller says it applied: Applied, Reconciling,
 // Failed, Stalled, Suspended, ManagedExternally or Unknown. Applied means
 // every apply succeeded, never that the workload is healthy; Health is the
 // other axis.
@@ -82,7 +82,7 @@ type Reconcile struct {
 	Reason  string     `json:"reason,omitempty"`
 	Message string     `json:"message,omitempty"`
 	Since   *time.Time `json:"since,omitempty"`
-	// Retrying is set on a Failed state the operator is still retrying.
+	// Retrying is set on a Failed state the controller is still retrying.
 	Retrying bool `json:"retrying,omitempty"`
 	// Notes are informational conditions shown beside the state; they never
 	// change it.
@@ -129,12 +129,12 @@ type Digests struct {
 	Render string `json:"render,omitempty"`
 }
 
-// HistoryEntry is one entry of the operator's status history, newest
+// HistoryEntry is one entry of the controller's status history, newest
 // first.
 type HistoryEntry struct {
 	Action string `json:"action"`
 	Phase  string `json:"phase,omitempty"`
-	// Outcome is Succeeded for an entry the operator wrote with phase
+	// Outcome is Succeeded for an entry the controller wrote with phase
 	// complete, Failed for one with no phase and a message, and Unknown
 	// otherwise. It is decided before any omission of the message.
 	Outcome         string     `json:"outcome"`
@@ -188,15 +188,16 @@ type InstanceSummary struct {
 	Ref    ObjectRef `json:"ref"`
 	UID    string    `json:"uid,omitempty"`
 	Module Module    `json:"module"`
-	// Owner is operator or cli; a cli instance's reconcile state is
-	// ManagedExternally.
+	// Owner is controller or cli; a cli instance's reconcile state is
+	// ManagedExternally. A spec.owner value the portal does not know is
+	// served as written.
 	Owner          string    `json:"owner"`
 	Reconcile      Reconcile `json:"reconcile"`
 	Health         Health    `json:"health"`
 	InventoryCount int64     `json:"inventoryCount"`
-	// InventoryRevision is the operator's status.inventory.revision: the
+	// InventoryRevision is the controller's status.inventory.revision: the
 	// count of successful applies that wrote an inventory, starting at 1.
-	// Absent when the operator recorded none.
+	// Absent when the controller recorded none.
 	InventoryRevision int64      `json:"inventoryRevision,omitempty"`
 	LastAppliedAt     *time.Time `json:"lastAppliedAt,omitempty"`
 	// RenderContracts are every contract the instance's render used, most
@@ -381,15 +382,15 @@ type Registration struct {
 // the registrations the caller may read.
 type Platform struct {
 	TypeMeta
-	Name            string         `json:"name"`
-	UID             string         `json:"uid,omitempty"`
-	Type            string         `json:"type,omitempty"`
-	OperatorVersion string         `json:"operatorVersion,omitempty"`
-	Reconcile       Reconcile      `json:"reconcile"`
-	Conditions      []Condition    `json:"conditions"`
-	Subscriptions   []Subscription `json:"subscriptions"`
-	Catalogs        []Catalog      `json:"catalogs"`
-	Registrations   []Registration `json:"registrations"`
+	Name              string         `json:"name"`
+	UID               string         `json:"uid,omitempty"`
+	Type              string         `json:"type,omitempty"`
+	ControllerVersion string         `json:"controllerVersion,omitempty"`
+	Reconcile         Reconcile      `json:"reconcile"`
+	Conditions        []Condition    `json:"conditions"`
+	Subscriptions     []Subscription `json:"subscriptions"`
+	Catalogs          []Catalog      `json:"catalogs"`
+	Registrations     []Registration `json:"registrations"`
 	// RegistrationsAccess says whether Registrations is all of them.
 	RegistrationsAccess string `json:"registrationsAccess"`
 }
@@ -521,7 +522,7 @@ type GraphCatalog struct {
 // GraphPlatform is what the platform node says beyond its reconcile state.
 type GraphPlatform struct {
 	Type                string `json:"type,omitempty"`
-	OperatorVersion     string `json:"operatorVersion,omitempty"`
+	ControllerVersion   string `json:"controllerVersion,omitempty"`
 	RegistrationsAccess string `json:"registrationsAccess"`
 }
 

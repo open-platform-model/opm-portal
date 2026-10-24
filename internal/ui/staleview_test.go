@@ -22,7 +22,7 @@ import (
 const (
 	podinfoTopic = "instance:default/podinfo"
 	yamlPath     = "/instances/default/podinfo/object?group=apps&kind=Deployment&namespace=default&name=podinfo-podinfo"
-	eventsPath   = "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"
+	eventsPath   = "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"
 )
 
 var (
@@ -83,7 +83,7 @@ func TestAViewSaysWhenItWasRead(t *testing.T) {
 		if m == nil {
 			t.Fatalf("%s: no hidden note in the form of the time partial:\n%s", c.view, between(res.body, "stale-note", "</p>"))
 		}
-		if m[1] != "2026-10-04T18:10:00Z" || m[2] != "2026-10-04 18:10:00 UTC" || m[3] != "0s ago" {
+		if m[1] != "2026-10-21T16:10:00Z" || m[2] != "2026-10-21 16:10:00 UTC" || m[3] != "0s ago" {
 			t.Errorf("%s: the note's time is %q %q %q, want the handler's clock", c.view, m[1], m[2], m[3])
 		}
 		// The link renders the address that was asked, as the browser sent it.

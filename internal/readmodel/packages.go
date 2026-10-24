@@ -127,7 +127,7 @@ func dependsOn(u *unstructured.Unstructured) []ObjectRef {
 }
 
 // sourceArtifact reads the revision and digest of status.source, or nil
-// when the operator recorded neither. status.source.artifactURL is a fetch
+// when the controller recorded neither. status.source.artifactURL is a fetch
 // URL inside the cluster and is not read.
 func sourceArtifact(u *unstructured.Unstructured) *SourceArtifact {
 	a := SourceArtifact{

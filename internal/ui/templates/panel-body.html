@@ -16,7 +16,7 @@
   {{range .Facts}}<dt>{{.Label}}</dt><dd{{if .Mono}} class="mono"{{end}}>{{if .Mono}}{{template "breakable" .Value}}{{else}}{{.Value}}{{end}}</dd>{{end}}
   {{if .Renders}}<dt>Renders</dt><dd>{{range $i, $r := .Renders}}{{if $i}}, {{end}}<span class="mono">{{$r}}</span>{{end}}</dd>{{end}}
   {{if not .Root}}
-  {{with .Owner}}<dt>Applied by</dt><dd>{{if eq . "cli"}}the opm CLI{{else}}the controller{{end}}</dd>{{end}}
+  {{with .Owner}}<dt>Applied by</dt><dd>{{template "applied-by" .}}</dd>{{end}}
   {{with .Version}}<dt>Version</dt><dd class="ver">{{.}}</dd>{{end}}
   {{with .Path}}<dt>Path</dt><dd class="mono">{{.}}</dd>{{end}}
   {{end}}

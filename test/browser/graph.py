@@ -53,7 +53,7 @@ LABELS = (
 )
 DEPLOY = "obj:apps/Deployment/default/podinfo-podinfo"
 SERVICE = "obj:_/Service/default/podinfo-podinfo"
-POD = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
+POD = "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74"
 CERT = "/instances/cert-manager/cert-manager"
 STROKE = "id => getComputedStyle(document.querySelector(`.node[data-node=\"${id}\"] .node-ring`)).strokeWidth"
 ROOT = "mi:default/podinfo"

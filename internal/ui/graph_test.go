@@ -453,7 +453,7 @@ func cardNodes() *drawing {
 		v1.GraphNode{ID: "pod", Kind: "runtime", Label: "podinfo-7c9d-x", Ref: &v1.ObjectRef{Kind: "Pod", Namespace: "default", Name: "podinfo-7c9d-x"}},
 		v1.GraphNode{ID: "dep", Kind: "object", Label: "podinfo", Ref: &v1.ObjectRef{Kind: "Deployment", Namespace: "default", Name: "podinfo"}},
 		v1.GraphNode{ID: "reg", Kind: "object", Label: "backup", Ref: &v1.ObjectRef{Kind: "TransformerRegistration", Name: "backup"},
-			Registration: &v1.GraphRegistration{Catalog: "testing.opmodel.dev/catalogs/operator/backup@v0", Version: "0.1.0", Verdict: "Accepted", Active: true}},
+			Registration: &v1.GraphRegistration{Catalog: "testing.opmodel.dev/catalogs/controller/backup@v0", Version: "0.1.0", Verdict: "Accepted", Active: true}},
 		v1.GraphNode{ID: "grp", Kind: "group", Label: "x", Group: &v1.GraphGroup{Kind: "configuration", Family: "rbac"}},
 		v1.GraphNode{ID: "src", Kind: "source", Label: "OCIRepository podinfo-release", Ref: &v1.ObjectRef{Kind: "OCIRepository", Namespace: "pkg", Name: "podinfo-release"}},
 		v1.GraphNode{ID: "mi", Kind: "instance", Label: "default/backup-provider"},
@@ -510,7 +510,7 @@ func TestHoverCardOrigins(t *testing.T) {
 func TestHoverCardOfARegistration(t *testing.T) {
 	d := cardNodes()
 	r := d.cardOf(&d.g.Nodes[3], "Object", false, "")
-	if r.Standing == nil || r.Standing.Text != "Accepted · active" || r.Catalog != "Catalog: testing.opmodel.dev/catalogs/operator/backup@v0 0.1.0 · Provider: default/backup-provider" {
+	if r.Standing == nil || r.Standing.Text != "Accepted · active" || r.Catalog != "Catalog: testing.opmodel.dev/catalogs/controller/backup@v0 0.1.0 · Provider: default/backup-provider" {
 		t.Errorf("registration card %+v", r)
 	}
 }

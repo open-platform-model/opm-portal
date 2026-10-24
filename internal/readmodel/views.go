@@ -20,13 +20,14 @@ type ObjectRef struct {
 	Name      string
 }
 
-// Owner says who applies an instance.
+// Owner says who applies an instance. A value other than the two below is
+// what the instance's spec.owner holds, unknown to the portal.
 type Owner string
 
 // Owners.
 const (
-	OwnerOperator Owner = "operator"
-	// OwnerCLI: the CLI applied the instance and the operator only records
+	OwnerController Owner = "controller"
+	// OwnerCLI: the CLI applied the instance and the controller only records
 	// it; its applied state is ManagedExternally (portal:D3:R6).
 	OwnerCLI Owner = "cli"
 )
@@ -45,10 +46,10 @@ type Digests struct {
 }
 
 // Outcome is how a history entry's attempt ended, read from the shape the
-// operator wrote it in.
+// controller wrote it in.
 type Outcome string
 
-// Outcomes. The operator writes a success entry with phase complete and no
+// Outcomes. The controller writes a success entry with phase complete and no
 // message, and a failure entry with a message and no phase.
 const (
 	OutcomeSucceeded Outcome = "Succeeded"
@@ -57,12 +58,12 @@ const (
 	OutcomeUnknown Outcome = "Unknown"
 )
 
-// HistoryEntry is one entry of an operator object's status.history, the
+// HistoryEntry is one entry of a controller object's status.history, the
 // durable record (portal:D9:R1).
 type HistoryEntry struct {
 	Action string
 	Phase  string
-	// Outcome is decided from Phase and Message as the operator wrote
+	// Outcome is decided from Phase and Message as the controller wrote
 	// them, so it survives any later omission of the message.
 	Outcome         Outcome
 	Sequence        int64
@@ -74,7 +75,7 @@ type HistoryEntry struct {
 	Digests         Digests
 }
 
-// InstanceItem is one ModuleInstance in a list: the operator's axis and the
+// InstanceItem is one ModuleInstance in a list: the controller's axis and the
 // portal's axis side by side, never merged (portal:D3:R1).
 type InstanceItem struct {
 	Ref            ObjectRef
@@ -84,7 +85,7 @@ type InstanceItem struct {
 	Applied        health.Applied
 	Health         health.Summary
 	InventoryCount int64
-	// InventoryRevision is status.inventory.revision when the operator
+	// InventoryRevision is status.inventory.revision when the controller
 	// recorded an integer of at least 1, else 0 (not recorded).
 	InventoryRevision int64
 	LastAppliedAt     time.Time
@@ -211,7 +212,7 @@ type PackageItem struct {
 	// Interval is spec.interval as written; empty when the package sets
 	// none.
 	Interval string
-	// SourceArtifact is nil when the operator recorded no source artifact.
+	// SourceArtifact is nil when the controller recorded no source artifact.
 	SourceArtifact *SourceArtifact
 	// DependsOn are the ModulePackages spec.dependsOn names, as written: an
 	// empty namespace means the package's own.
@@ -283,14 +284,14 @@ type RegistrationView struct {
 // PlatformView is the Platform with its subscriptions, resolved catalogs and
 // registrations.
 type PlatformView struct {
-	Name            string
-	UID             string
-	Type            string
-	OperatorVersion string
-	Applied         health.Applied
-	Conditions      []health.Condition
-	Subscriptions   []Subscription
-	Catalogs        []Catalog
+	Name              string
+	UID               string
+	Type              string
+	ControllerVersion string
+	Applied           health.Applied
+	Conditions        []health.Condition
+	Subscriptions     []Subscription
+	Catalogs          []Catalog
 	// Registrations holds what the caller may read; RegistrationsAccess
 	// says whether that is all of them.
 	Registrations       []RegistrationView

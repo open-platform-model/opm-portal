@@ -51,7 +51,7 @@ func TestTimePartialTicks(t *testing.T) {
 	if err := pages["message"].ExecuteTemplate(&b, "time", &when); err != nil {
 		t.Fatal(err)
 	}
-	want := `<time datetime="2026-10-04T18:06:00Z" title="2026-10-04 18:06:00 UTC" data-relative aria-live="off">4m ago</time>`
+	want := `<time datetime="2026-10-21T16:06:00Z" title="2026-10-21 16:06:00 UTC" data-relative aria-live="off">4m ago</time>`
 	if b.String() != want {
 		t.Errorf("time partial:\n got %s\nwant %s", b.String(), want)
 	}

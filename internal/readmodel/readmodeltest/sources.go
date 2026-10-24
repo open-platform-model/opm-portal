@@ -82,7 +82,7 @@ func WithSources(t testing.TB, objs []*unstructured.Unstructured) []*unstructure
 func readyCondition(status, reason, message string) []any {
 	return []any{map[string]any{
 		"type": "Ready", "status": status, "reason": reason, "message": message,
-		"observedGeneration": int64(1), "lastTransitionTime": "2026-10-04T18:04:00Z",
+		"observedGeneration": int64(1), "lastTransitionTime": "2026-10-21T16:04:00Z",
 	}}
 }
 
@@ -98,7 +98,7 @@ func ociRepositoryIn(namespace, name, uid string, conds []any, artifact bool) *u
 			"url":            SourceArtifactURL,
 			"revision":       SourceRevision,
 			"digest":         "sha256:7d2a96c0e51f4b38a9d60c7e1f5b8a24c3e90d17b6f4a85e2c1d7b93f06a4e58",
-			"lastUpdateTime": "2026-10-04T18:04:00Z",
+			"lastUpdateTime": "2026-10-21T16:04:00Z",
 			"size":           int64(4096),
 		}
 	}
@@ -108,7 +108,7 @@ func ociRepositoryIn(namespace, name, uid string, conds []any, artifact bool) *u
 		"metadata": map[string]any{
 			"name": name, "namespace": namespace, "uid": uid, "generation": int64(1),
 			"resourceVersion":   "1200",
-			"creationTimestamp": "2026-10-04T18:03:50Z",
+			"creationTimestamp": "2026-10-21T16:03:50Z",
 			"annotations":       map[string]any{ConstructedAnnotation: "true"},
 		},
 		"spec": map[string]any{
@@ -123,7 +123,7 @@ func ociRepositoryIn(namespace, name, uid string, conds []any, artifact bool) *u
 // WithUnversionedSourcePackage returns objs plus a ModulePackage
 // pkg/podinfo-unversioned whose spec.sourceRef names kind OCIRepository and
 // the name SourceReady and no apiVersion, which the controller accepts
-// because it reads the group from the kind alone (opm-operator
+// because it reads the group from the kind alone (opm-controller
 // internal/source/resolve.go).
 //
 // CONSTRUCTED, not captured: the package is pkg/podinfo renamed, with the

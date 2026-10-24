@@ -7,14 +7,28 @@ resumes, stays alive and is bounded.
 
 ## Requirements
 
-### Requirement: One stream per tab carries many topics
+### Requirement: Log topics are capped per session and per process
 
-A stream SHALL carry every topic attached to it, multiplexed, with each message naming its topic.
-A client SHALL be able to attach and detach topics while the stream stays open. The first message
-on a stream SHALL name the stream's identifier, which only the session that opened it, under the
-identity that opened it, can use to change its topics. A stream SHALL carry at most a configured
-number of topics; a topic whose closed message has not been sent yet counts once towards it, and
-detaching such a topic SHALL drop its unsent closed message.
+A session SHALL follow at most four log topics across all of its streams, and the process SHALL
+serve at most fifty distinct log topics at once. A request that would exceed either cap SHALL be
+refused as too many topics before any authorization review is sent, and the topics already
+attached SHALL keep streaming. A log topic another subscriber already follows SHALL NOT count
+again towards the process cap.
+
+#### Scenario: A fifth log topic in one session
+
+- **WHEN** a session follows four log topics and attaches a fifth
+- **THEN** the request is refused as too many topics
+- **AND** the four log topics keep streaming
+
+#### Scenario: A shared log topic counts once in the process
+
+- **WHEN** the process serves fifty log topics and another session attaches one of them
+- **THEN** the topic attaches
+
+### Requirement: A stream multiplexes the topics attached to it
+A stream SHALL carry every topic attached to it, multiplexed, with each message naming its topic. A
+client SHALL be able to attach and detach topics while the stream stays open.
 
 #### Scenario: Adding a topic to an open stream
 
@@ -28,6 +42,10 @@ detaching such a topic SHALL drop its unsent closed message.
 - **THEN** the stream delivers no further message for `instance:apps/blog`
 - **AND** messages for the stream's other topics keep arriving
 
+### Requirement: Only the opening session and identity can change a stream's topics
+The first message on a stream SHALL name the stream's identifier, which only the session that opened
+it, under the identity that opened it, can use to change its topics.
+
 #### Scenario: Another session cannot change a stream
 
 - **WHEN** a session other than the one that opened stream S asks to attach a topic to S
@@ -40,6 +58,11 @@ detaching such a topic SHALL drop its unsent closed message.
 - **THEN** the request is refused exactly as for a stream that does not exist
 - **AND** no authorization review is sent
 
+### Requirement: A stream carries at most a configured number of topics
+A stream SHALL carry at most a configured number of topics; a topic whose closed message has not
+been sent yet counts once towards it, and detaching such a topic SHALL drop its unsent closed
+message.
+
 #### Scenario: Asking again for a denied topic counts it once
 
 - **WHEN** a stream at one topic below its cap has a closed message for topic T not yet sent
@@ -51,46 +74,11 @@ detaching such a topic SHALL drop its unsent closed message.
 - **WHEN** a client detaches a topic whose closed message its stream has not sent yet
 - **THEN** the stream never sends that closed message
 
-### Requirement: Every subscription and every delivery is authorized for the subscriber
-
+### Requirement: A topic is authorized before it attaches and again before delivery
 The portal SHALL authorize a topic for the stream's identity, on the reads the topic stands for,
-before attaching it, and SHALL re-check that authorization before delivering each message once
-the decision behind it has expired. Every message SHALL be written right after an in-memory check
-confirms that every decision it used is unexpired. A decision is cached for at most its lifetime
-(30 s by default), counted from when its review answers, so a revocation reaches the stream within
-one decision lifetime plus one review (about 35 s with the defaults). Re-validating one message
-SHALL take at most one decision lifetime (30 s by default): a message whose decisions have not
-all been confirmed by then SHALL close its topic with code `upstream_unavailable`, and a review
-still running at that deadline SHALL be cancelled. The list topics `instances` and
-`instances:<namespace>` SHALL follow the read model's list rule, as a `GET` list does:
-`instances` SHALL require a cluster-wide `list` grant on instances and `instances:<namespace>` a
-`list` grant on that namespace, a reader without it SHALL be refused the topic with the same
-denial the `GET` list gives, and the topic SHALL carry only items within the namespace scope of
-that grant, with no authorization review per item. On any other topic each change SHALL be
-delivered only to subscribers allowed to read the object it reveals. Items a subscriber may not
-read SHALL be left out without a trace or a count, and a snapshot SHALL contain only items the
-subscriber may read. A denied topic SHALL be closed on the stream with a `forbidden` code (or
-`unauthenticated` when the authorizer does not serve the stream's identity) and SHALL deliver
-nothing; a closed message not written before its connection ends, including one for a topic
-denied while the stream is disconnected, SHALL be sent first thing on the stream's next
-connection; an authorization error SHALL close the topic with an `upstream_unavailable` code and
-SHALL deliver nothing. A stream SHALL NOT open for an unauthenticated identity, and no
-authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
-
-#### Scenario: A subscriber receives only what it may read
-
-- **WHEN** topic `instances` publishes changes for instances in namespaces `team-a` and `team-b`
-- **AND** subscriber A may list instances in `team-a` only, and subscriber B cluster-wide
-- **THEN** A is refused `instances` with code `forbidden`, the denial a `GET` list of every
-  namespace gives A
-- **AND** A follows `instances:team-a` and receives the `team-a` changes and nothing about
-  `team-b`
-- **AND** B follows `instances` and receives both
-
-#### Scenario: A list topic sends no review per item
-
-- **WHEN** a reader follows a list topic its `list` grant covers and the topic carries many items
-- **THEN** the only authorization review sent is the topic's own `list` read
+before attaching it, and SHALL re-check that authorization before delivering each message once the
+decision behind it has expired. Every message SHALL be written right after an in-memory check
+confirms that every decision it used is unexpired. Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
 
 #### Scenario: A decision that expires while a message is built is asked again before the write
 
@@ -113,6 +101,24 @@ authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, 
 - **AND** a message whose decisions keep expiring this way closes its topic with code
   `upstream_unavailable` once one decision lifetime has passed since its re-validation began
 
+### Requirement: A revocation reaches the stream within one decision lifetime
+A decision SHALL be cached for at most its lifetime (30 s by default), counted from when its review
+answers, so a revocation reaches the stream within one decision lifetime plus one review (about 35 s
+with the defaults). Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
+
+#### Scenario: A revoked permission stops delivery
+
+- **WHEN** a subscriber's permission to read `apps/blog` is revoked while its stream is open
+- **THEN** within one authorization decision lifetime plus one review plus one heartbeat
+  interval the topic is closed with code `forbidden`
+- **AND** no change published after the closing is delivered for it
+
+### Requirement: Re-validating one message has a deadline
+Re-validating one message SHALL take at most one decision lifetime (30 s by default): a message
+whose decisions have not all been confirmed by then SHALL close its topic with code
+`upstream_unavailable`, and a review still running at that deadline SHALL be cancelled. Source:
+portal:D7:R2, portal:D5:R5, portal:D6:R4.
+
 #### Scenario: Re-validation sends no review past its deadline
 
 - **WHEN** a message carries eight parts reviewed on their own, each review takes 4.5 s, and
@@ -121,11 +127,49 @@ authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, 
   no review after
 - **AND** the topic is closed with code `upstream_unavailable` and nothing is written for it
 
+### Requirement: The instance list topics follow the read model's list rule
+The list topics `instances` and `instances:<namespace>` SHALL follow the read model's list rule, as
+a `GET` list does: `instances` SHALL require a cluster-wide `list` grant on instances and
+`instances:<namespace>` a `list` grant on that namespace, and a reader without it SHALL be refused
+the topic with the same denial the `GET` list gives. Source: portal:D7:R2, portal:D5:R5,
+portal:D6:R4.
+
 #### Scenario: A reader allowed single names is refused the list topic
 
 - **WHEN** subscriber A may read instance `team-b/two` by name but may not list namespace `team-b`
 - **AND** A attaches `instances:team-b`
 - **THEN** the topic is closed with code `forbidden` and delivers nothing
+
+### Requirement: A list topic carries the items within its grant with no review per item
+A list topic (`instances` or `instances:<namespace>`) SHALL carry only items within the namespace
+scope of the reader's `list` grant, with no authorization review per item. Source: portal:D7:R2,
+portal:D5:R5, portal:D6:R4.
+
+#### Scenario: A list topic sends no review per item
+
+- **WHEN** a reader follows a list topic its `list` grant covers and the topic carries many items
+- **THEN** the only authorization review sent is the topic's own `list` read
+
+### Requirement: Any other topic delivers only what the subscriber may read
+On any other topic each change SHALL be delivered only to subscribers allowed to read the object it
+reveals. Items a subscriber may not read SHALL be left out without a trace or a count, and a
+snapshot SHALL contain only items the subscriber may read. Source: portal:D7:R2, portal:D5:R5,
+portal:D6:R4.
+
+#### Scenario: A subscriber receives only what it may read
+
+- **WHEN** topic `instances` publishes changes for instances in namespaces `team-a` and `team-b`
+- **AND** subscriber A may list instances in `team-a` only, and subscriber B cluster-wide
+- **THEN** A is refused `instances` with code `forbidden`, the denial a `GET` list of every
+  namespace gives A
+- **AND** A follows `instances:team-a` and receives the `team-a` changes and nothing about
+  `team-b`
+- **AND** B follows `instances` and receives both
+
+### Requirement: A denied topic is closed and delivers nothing
+A denied topic SHALL be closed on the stream with a `forbidden` code (or `unauthenticated` when the
+authorizer does not serve the stream's identity) and SHALL deliver nothing. Source: portal:D7:R2,
+portal:D5:R5, portal:D6:R4.
 
 #### Scenario: A forbidden topic is closed, not served
 
@@ -133,6 +177,11 @@ authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, 
 - **THEN** the stream delivers a closed message for that topic with code `forbidden`
 - **AND** never a snapshot or change for it
 - **AND** the message reads the same whether or not `apps/blog` exists
+
+### Requirement: A closed message that did not leave is sent on the next connection
+A closed message not written before its connection ends, including one for a topic denied while the
+stream is disconnected, SHALL be sent first thing on the stream's next connection. Source:
+portal:D7:R2, portal:D5:R5, portal:D6:R4.
 
 #### Scenario: A topic denied while the stream is away is closed on reconnect
 
@@ -149,12 +198,9 @@ authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, 
 - **AND** the stream reconnects within the resume window
 - **THEN** the reconnected stream delivers that closed message before anything else
 
-#### Scenario: A revoked permission stops delivery
-
-- **WHEN** a subscriber's permission to read `apps/blog` is revoked while its stream is open
-- **THEN** within one authorization decision lifetime plus one review plus one heartbeat
-  interval the topic is closed with code `forbidden`
-- **AND** no change published after the closing is delivered for it
+### Requirement: An authorization error closes the topic
+An authorization error SHALL close the topic with an `upstream_unavailable` code and SHALL deliver
+nothing. Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
 
 #### Scenario: An authorization error delivers nothing
 
@@ -162,28 +208,42 @@ authorization review SHALL be sent for one. Source: portal:D7:R2, portal:D5:R5, 
 - **THEN** the topic is closed with code `upstream_unavailable`
 - **AND** no snapshot or change is delivered for it
 
+### Requirement: A stream does not open for an unauthenticated identity
+A stream SHALL NOT open for an unauthenticated identity, and no authorization review SHALL be sent
+for one. Source: portal:D7:R2, portal:D5:R5, portal:D6:R4.
+
 #### Scenario: An unauthenticated identity opens no stream
 
 - **WHEN** a request with an empty or anonymous identity asks to open a stream
 - **THEN** it is refused as unauthenticated
 - **AND** no authorization review is sent
 
-### Requirement: Each topic starts with a snapshot and continues with changes
+### Requirement: A topic starts with a snapshot and continues with changes
+The first message for a topic on a stream SHALL be a snapshot carrying the topic's current items the
+subscriber may read, in the same document shapes as the read API's `GET`s. Every later message for
+the topic SHALL be an `upsert`, a `delete` or an event item in those shapes. Source: portal:D2:R5,
+portal:D7:R2.
 
-The first message for a topic on a stream SHALL be a snapshot carrying the topic's current items
-the subscriber may read, in the same document shapes as the read API's `GET`s. Every later
-message for the topic SHALL be an `upsert`, a `delete` or an event item in those shapes. No change
-made after the snapshot was taken SHALL be missed; a change MAY repeat state the snapshot already
-carried, and clients apply upserts and deletes idempotently. Every snapshot and change SHALL carry
-an event identifier, and identifiers SHALL strictly increase along a stream. Identifiers SHALL
-count only the events delivered on that stream, so their gaps reveal nothing about items left out
-for the subscriber, other topics or other streams. Source: portal:D2:R5, portal:D7:R2.
+#### Scenario: A snapshot first
+- **WHEN** a client attaches a topic
+- **THEN** the first message for it is a snapshot of the topic's current items the subscriber may read, and every later message is an `upsert`, a `delete` or an event item
+
+### Requirement: No change made after the snapshot is missed
+No change made after the snapshot was taken SHALL be missed; a change MAY repeat state the snapshot
+already carried, and clients apply upserts and deletes idempotently. Source: portal:D2:R5,
+portal:D7:R2.
 
 #### Scenario: A change racing the snapshot is not lost
 
 - **WHEN** an instance changes while a new subscriber's snapshot is being taken
 - **THEN** the subscriber receives the change in the snapshot, after it as an upsert, or both
 - **AND** never neither
+
+### Requirement: Event identifiers strictly increase and reveal nothing left out
+Every snapshot and change SHALL carry an event identifier, and identifiers SHALL strictly increase
+along a stream. Identifiers SHALL count only the events delivered on that stream, so their gaps
+reveal nothing about items left out for the subscriber, other topics or other streams. Source:
+portal:D2:R5, portal:D7:R2.
 
 #### Scenario: Identifiers reveal nothing left out
 
@@ -193,15 +253,10 @@ for the subscriber, other topics or other streams. Source: portal:D2:R5, portal:
 - **THEN** the subscriber receives the three changes it may read, with consecutive identifiers
   following the snapshot's
 
-### Requirement: A reconnecting stream resumes or re-reads
-
+### Requirement: A reconnecting stream resumes from its buffer
 When a client reconnects with the `Last-Event-ID` of the stream it lost, within the resume window
 and in the same session, the portal SHALL reattach that stream's topics, re-authorize each, and
-deliver every change after that identifier that its buffer still holds. When the buffer no longer
-covers the gap, or the client had not yet received a topic's snapshot, the portal SHALL send that
-topic a fresh snapshot, which replaces the client's state for the topic. An identifier from
-another session, another process lifetime, or past the resume window SHALL open a new stream with
-fresh snapshots. Source: portal:D2:R5.
+deliver every change after that identifier that its buffer still holds. Source: portal:D2:R5.
 
 #### Scenario: Resume within the buffer
 
@@ -209,10 +264,19 @@ fresh snapshots. Source: portal:D2:R5.
   `Last-Event-ID` N
 - **THEN** the reconnected stream delivers exactly those three changes, in order, and no snapshot
 
+### Requirement: A topic the buffer no longer covers gets a fresh snapshot
+When the buffer no longer covers the gap, or the client had not yet received a topic's snapshot, the
+portal SHALL send that topic a fresh snapshot, which replaces the client's state for the topic.
+Source: portal:D2:R5.
+
 #### Scenario: Resume past the buffer
 
 - **WHEN** more changes were published while the stream was away than the topic's buffer holds
 - **THEN** the reconnected stream delivers a fresh snapshot for that topic
+
+### Requirement: An identifier that cannot be resumed opens a new stream
+An identifier from another session, another process lifetime, or past the resume window SHALL open a
+new stream with fresh snapshots. Source: portal:D2:R5.
 
 #### Scenario: An identifier from another session
 
@@ -220,20 +284,17 @@ fresh snapshots. Source: portal:D2:R5.
 - **THEN** it gets a new stream with fresh snapshots for the topics it asked for
 - **AND** none of the other session's topics
 
-### Requirement: Streams are kept alive and bounded
-
-A stream SHALL send a heartbeat at a fixed interval while it is open. A stream whose client cannot
-keep up, so its queue of undelivered messages fills, SHALL be closed without delaying any other
-subscriber, and SHALL stay resumable for the resume window. A stream with no topics for the idle
-timeout SHALL be closed. The portal SHALL refuse a new stream as too many streams when the
-session already holds its cap (two by default, so a browser keeps HTTP/1.1 connections for
-ordinary requests) or the process holds its cap, after first discarding the oldest disconnected
-stream in that scope.
+### Requirement: A stream sends a heartbeat while it is open
+A stream SHALL send a heartbeat at a fixed interval while it is open.
 
 #### Scenario: Heartbeats on a quiet stream
 
 - **WHEN** a stream's topics publish nothing for three heartbeat intervals
 - **THEN** the client receives three heartbeats
+
+### Requirement: A slow consumer is closed without delaying others
+A stream whose client cannot keep up, so its queue of undelivered messages fills, SHALL be closed
+without delaying any other subscriber, and SHALL stay resumable for the resume window.
 
 #### Scenario: A slow consumer is evicted
 
@@ -241,6 +302,18 @@ stream in that scope.
 - **THEN** its stream is closed
 - **AND** another subscriber of the same topic receives every change without delay
 - **AND** the evicted client can resume with its last event identifier
+
+### Requirement: A stream with no topics is closed after the idle timeout
+A stream with no topics for the idle timeout SHALL be closed.
+
+#### Scenario: An idle stream
+- **WHEN** a stream has no topics for the idle timeout
+- **THEN** the stream is closed
+
+### Requirement: Streams are capped per session and per process
+The portal SHALL refuse a new stream as too many streams when the session already holds its cap (two
+by default, so a browser keeps HTTP/1.1 connections for ordinary requests) or the process holds its
+cap, after first discarding the oldest disconnected stream in that scope.
 
 #### Scenario: A third tab in local mode
 
@@ -253,27 +326,21 @@ stream in that scope.
 - **WHEN** a session at its cap loses one stream's connection and opens a new stream
 - **THEN** the new stream opens and the disconnected one is discarded
 
-### Requirement: Topics follow a fixed grammar
-
+### Requirement: The portal accepts exactly the named topics
 The portal SHALL accept exactly these topic names on a stream: `platform`, `instances`,
 `instances:<namespace>`, `instance:<namespace>/<name>`, `package:<namespace>/<name>`,
-`registration:<name>`, `events:<object topic>`, where an object topic is `platform`,
-`instance:…`, `package:…` or `registration:…`, and `log:<namespace>/<pod>/<container>` with an
-optional trailing `/previous` segment that asks for the previous container's logs. Namespaces and
-containers SHALL be DNS-1123 labels and names and Pods DNS-1123 subdomains. Any other name, a
-wildcard, an empty segment, or a fourth log segment other than `previous` SHALL be refused as a
-bad request before the stream opens.
+`registration:<name>`, `events:<object topic>`, where an object topic is `platform`, `instance:…`,
+`package:…` or `registration:…`, and `log:<namespace>/<pod>/<container>` with an optional trailing
+`/previous` segment that asks for the previous container's logs.
 
 #### Scenario: A well-formed topic is accepted
 
 - **WHEN** a client opens a stream with topics `instance:apps/blog` and `events:instance:apps/blog`
 - **THEN** the stream opens with both topics attached
 
-#### Scenario: A malformed topic is refused
-
-- **WHEN** a client opens a stream with topic `instance:apps` or `instance:Apps/blog` or `pods:*`
-- **THEN** the request is refused as a bad request
-- **AND** no stream is opened and no authorization review is sent
+### Requirement: A log topic names a Pod and a container
+A log topic SHALL be named `log:<namespace>/<pod>/<container>` with an optional trailing `/previous`
+segment that asks for the previous container's logs.
 
 #### Scenario: A log topic is served
 
@@ -281,42 +348,27 @@ bad request before the stream opens.
   `log:apps/blog-0/server/previous`
 - **THEN** the topic is authorized and attached like any other topic
 
+### Requirement: A malformed topic is refused before the stream opens
+Namespaces and containers SHALL be DNS-1123 labels and names and Pods DNS-1123 subdomains. Any other
+name, a wildcard, an empty segment, or a fourth log segment other than `previous` SHALL be refused
+as a bad request before the stream opens.
+
+#### Scenario: A malformed topic is refused
+
+- **WHEN** a client opens a stream with topic `instance:apps` or `instance:Apps/blog` or `pods:*`
+- **THEN** the request is refused as a bad request
+- **AND** no stream is opened and no authorization review is sent
+
 #### Scenario: A malformed log topic is refused
 
 - **WHEN** a client opens a stream with topic `log:apps/blog-0/server/current` or `log:apps/blog-0`
 - **THEN** the request is refused as a bad request and no authorization review is sent
 
-### Requirement: Log topics are capped per session and per process
-
-A session SHALL follow at most four log topics across all of its streams, and the process SHALL
-serve at most fifty distinct log topics at once. A request that would exceed either cap SHALL be
-refused as too many topics before any authorization review is sent, and the topics already
-attached SHALL keep streaming. A log topic another subscriber already follows SHALL NOT count
-again towards the process cap.
-
-#### Scenario: A fifth log topic in one session
-
-- **WHEN** a session follows four log topics and attaches a fifth
-- **THEN** the request is refused as too many topics
-- **AND** the four log topics keep streaming
-
-#### Scenario: A shared log topic counts once in the process
-
-- **WHEN** the process serves fifty log topics and another session attaches one of them
-- **THEN** the topic attaches
-
-### Requirement: A subscriber is written only a change to its own document
-
-In every mode, the stream SHALL compare each `upsert` or `k8sevent` item it is about to write to
-a subscriber with the document it last wrote to that subscriber on that topic, and SHALL write the
-item only when the two differ. A `delete`, a snapshot and a `closed` event SHALL always be
-written. A snapshot's only item, and a `delete`'s item, SHALL become the document later items are
-compared with. An item that is not written SHALL take no event identifier. After a reconnect, the
-document last written SHALL still be compared with when the client's `Last-Event-ID` is at or
-after the event it was written in; otherwise the first item of the topic SHALL be written whatever
-it holds. A reconnect that falls back to a snapshot SHALL write it, and later items SHALL be
-compared with its document. Log lines SHALL never be compared. Source: supervisor ruling on
-portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
+### Requirement: A subscriber is written an item only when it differs from its last document
+In every mode, the stream SHALL compare each `upsert` or `k8sevent` item it is about to write to a
+subscriber with the document it last wrote to that subscriber on that topic, and SHALL write the
+item only when the two differ. An item that is not written SHALL take no event identifier. Source:
+supervisor ruling on portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
 
 #### Scenario: A change the subscriber cannot see
 
@@ -331,6 +383,23 @@ portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
   was last sent
 - **THEN** no subscriber receives an event
 
+### Requirement: A delete, a snapshot and a closed event are always written
+A `delete`, a snapshot and a `closed` event SHALL always be written. A snapshot's only item, and a
+`delete`'s item, SHALL become the document later items are compared with. Source: supervisor ruling
+on portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
+
+#### Scenario: A delete after an upsert that carried its Removed document
+
+- **WHEN** a subscriber was written an upsert carrying an object's `Removed` document, and the
+  object's `delete` follows with the same document
+- **THEN** the `delete` is written
+
+### Requirement: After a reconnect the last document is compared when the client holds it
+After a reconnect, the document last written SHALL still be compared with when the client's
+`Last-Event-ID` is at or after the event it was written in; otherwise the first item of the topic
+SHALL be written whatever it holds. Source: supervisor ruling on portal:OQ20 (portal:D2:R7); keeps
+portal:D7:R2.
+
 #### Scenario: A reconnect from the last event received
 
 - **WHEN** a stream reconnects with the `Last-Event-ID` of its last event, and its topic's next
@@ -344,11 +413,9 @@ portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
   was written in
 - **THEN** the topic's first item after the reconnect is written
 
-#### Scenario: A delete after an upsert that carried its Removed document
-
-- **WHEN** a subscriber was written an upsert carrying an object's `Removed` document, and the
-  object's `delete` follows with the same document
-- **THEN** the `delete` is written
+### Requirement: A snapshot after a reconnect becomes the compared document
+A reconnect that falls back to a snapshot SHALL write it, and later items SHALL be compared with its
+document. Source: supervisor ruling on portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
 
 #### Scenario: A reconnect that falls back to a snapshot
 
@@ -356,20 +423,20 @@ portal:OQ20 (portal:D2:R7); keeps portal:D7:R2.
   is written a snapshot of its topic
 - **THEN** a later item equal to the snapshot's document is not written, and a different one is
 
+### Requirement: Log lines are never compared
+Log lines SHALL never be compared. Source: supervisor ruling on portal:OQ20 (portal:D2:R7); keeps
+portal:D7:R2.
+
 #### Scenario: Equal log lines
 
 - **WHEN** a log topic carries two equal lines
 - **THEN** both are written
 
-### Requirement: A stream ends when its session expires
-
-A stream SHALL end when the session that opened it expires. Its last message SHALL be an
-`expired` event carrying `{"code":"unauthenticated"}`, after which the connection SHALL end and
-the stream SHALL be discarded rather than kept for resume, so no data reaches the client after
-the session's end. A stream SHALL NOT open for a session that has already expired, and no
-authorization review SHALL be sent for one. A session with no expiry opens streams that never
-end this way. Control events (`open`, `heartbeat`, `closed`, `expired`) SHALL carry only the
-stream's own fields, never topic data.
+### Requirement: A stream ends with an expired event when its session expires
+A stream SHALL end when the session that opened it expires. Its last message SHALL be an `expired`
+event carrying `{"code":"unauthenticated"}`, after which the connection SHALL end and the stream
+SHALL be discarded rather than kept for resume, so no data reaches the client after the session's
+end.
 
 #### Scenario: A session expires under an open stream
 
@@ -384,8 +451,20 @@ stream's own fields, never topic data.
 - **THEN** that message is not written, and neither is any message queued behind it
 - **AND** the stream's last message is the `expired` event
 
+### Requirement: A stream does not open for an expired session
+A stream SHALL NOT open for a session that has already expired, and no authorization review SHALL be
+sent for one. A session with no expiry opens streams that never end this way.
+
 #### Scenario: An expired session opens no stream
 
 - **WHEN** a request whose session has already expired asks to open a stream
 - **THEN** it is refused as unauthenticated
 - **AND** no authorization review is sent
+
+### Requirement: Control events carry only the stream's own fields
+Control events (`open`, `heartbeat`, `closed`, `expired`) SHALL carry only the stream's own fields,
+never topic data.
+
+#### Scenario: A control event carries no topic data
+- **WHEN** a stream sends an `open`, `heartbeat`, `closed` or `expired` event
+- **THEN** the event carries only the stream's own fields and no topic data

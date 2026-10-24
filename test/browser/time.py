@@ -139,7 +139,7 @@ def run(p, engine, base, served_iso, rows):
         # 4. An element the script cannot read is left as the server wrote it.
         page.evaluate("""() => {
             const mk = (html) => { const d = document.createElement("div"); d.id = "odd"; d.innerHTML = html; document.querySelector("main").append(d); };
-            mk('<time class="odd" data-relative datetime="not a date">kept text</time><time class="odd" datetime="2026-10-04T18:00:00Z">kept too</time><time class="odd" data-relative datetime="2026-10-04T18:00:00Z"></time>');
+            mk('<time class="odd" data-relative datetime="not a date">kept text</time><time class="odd" datetime="2026-10-21T16:00:00Z">kept too</time><time class="odd" data-relative datetime="2026-10-21T16:00:00Z"></time>');
         }""")
         page.evaluate(VISIBLE)
         odd = page.evaluate("Array.from(document.querySelectorAll('time.odd'), e => e.textContent)")

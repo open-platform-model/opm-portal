@@ -45,7 +45,7 @@
       },
       "platform": {
         "type": "kubernetes",
-        "operatorVersion": "v1.0.0-beta.6",
+        "controllerVersion": "v1.0.0-beta.9",
         "registrationsAccess": "ok"
       },
       "column": 0,
@@ -68,9 +68,9 @@
       "y": 44
     },
     {
-      "id": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "id": "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "kind": "catalog",
-      "label": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "label": "testing.opmodel.dev/catalogs/controller/backup@v0",
       "catalog": {
         "version": "0.1.0",
         "enabled": true,
@@ -97,7 +97,7 @@
         "reason": "Accepted"
       },
       "registration": {
-        "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+        "catalog": "testing.opmodel.dev/catalogs/controller/backup@v0",
         "version": "0.1.0",
         "provides": [
           "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
@@ -129,7 +129,7 @@
         "reason": "CatalogUnresolved"
       },
       "registration": {
-        "catalog": "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+        "catalog": "testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0",
         "version": "0.1.0",
         "accepted": false,
         "active": false,
@@ -170,7 +170,7 @@
         "state": "Applied",
         "reason": "ReconciliationSucceeded"
       },
-      "owner": "operator",
+      "owner": "controller",
       "column": 3,
       "row": 0,
       "x": 808,
@@ -197,10 +197,10 @@
   ],
   "edges": [
     {
-      "id": "contributes|treg:default.backup-provider|cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "id": "contributes|treg:default.backup-provider|cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "kind": "contributes",
       "from": "treg:default.backup-provider",
-      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "source": "Platform status.registry entries with source Registration, joined on the spec.catalog and spec.version of an accepted, active TransformerRegistration",
       "route": [
         {
@@ -300,10 +300,10 @@
       ]
     },
     {
-      "id": "resolves|plat:cluster|cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "id": "resolves|plat:cluster|cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "kind": "resolves",
       "from": "plat:cluster",
-      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0",
+      "to": "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0",
       "source": "Platform status.registry",
       "route": [
         {

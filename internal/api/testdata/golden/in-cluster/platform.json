@@ -2,19 +2,19 @@
   "apiVersion": "portal.opmodel.dev/v1alpha1",
   "kind": "Platform",
   "name": "cluster",
-  "uid": "e99bd454-ca6f-4bf1-9213-2d59665c673d",
+  "uid": "78bd699b-1a22-44ab-a50e-f674e132ce14",
   "type": "kubernetes",
-  "operatorVersion": "v1.0.0-beta.6",
+  "controllerVersion": "v1.0.0-beta.9",
   "reconcile": {
     "state": "Applied",
     "reason": "Generated",
-    "since": "2026-10-04T18:03:50Z",
+    "since": "2026-10-21T16:04:17Z",
     "notes": [
       {
         "type": "ContractsFulfilled",
         "status": "False",
         "reason": "UnfulfilledContracts",
-        "lastTransitionTime": "2026-10-04T18:04:23Z",
+        "lastTransitionTime": "2026-10-21T16:04:46Z",
         "observedGeneration": 1,
         "tone": "informational",
         "meaning": "Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers."
@@ -26,7 +26,7 @@
       "type": "Ready",
       "status": "True",
       "reason": "Generated",
-      "lastTransitionTime": "2026-10-04T18:03:50Z",
+      "lastTransitionTime": "2026-10-21T16:04:17Z",
       "observedGeneration": 1,
       "tone": "normal",
       "meaning": "The platform module was generated and built."
@@ -35,7 +35,7 @@
       "type": "ContractsFulfilled",
       "status": "False",
       "reason": "UnfulfilledContracts",
-      "lastTransitionTime": "2026-10-04T18:04:23Z",
+      "lastTransitionTime": "2026-10-21T16:04:46Z",
       "observedGeneration": 1,
       "tone": "informational",
       "meaning": "Some provider contracts have no provider yet. This is normal on a new platform; a module that needs one waits until a provider registers."
@@ -57,7 +57,7 @@
       "claimants": []
     },
     {
-      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "catalog": "testing.opmodel.dev/catalogs/controller/backup@v0",
       "version": "0.1.0",
       "enabled": true,
       "source": "Registration",
@@ -70,7 +70,7 @@
   "registrations": [
     {
       "name": "default.backup-provider",
-      "catalog": "testing.opmodel.dev/catalogs/operator/backup@v0",
+      "catalog": "testing.opmodel.dev/catalogs/controller/backup@v0",
       "version": "0.1.0",
       "provides": [
         "opmodel.dev/catalogs/opm/traits/backup@v1alpha1"
@@ -90,14 +90,14 @@
       "reconcile": {
         "state": "Applied",
         "reason": "Accepted",
-        "since": "2026-10-04T18:04:22Z"
+        "since": "2026-10-21T16:04:45Z"
       },
       "conditions": [
         {
           "type": "Ready",
           "status": "True",
           "reason": "Accepted",
-          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "lastTransitionTime": "2026-10-21T16:04:45Z",
           "observedGeneration": 1,
           "tone": "normal",
           "meaning": "The registration passed every check. Whether it is active is shown separately."
@@ -106,7 +106,7 @@
           "type": "Active",
           "status": "True",
           "reason": "ProviderReady",
-          "lastTransitionTime": "2026-10-04T18:04:22Z",
+          "lastTransitionTime": "2026-10-21T16:04:45Z",
           "observedGeneration": 1,
           "tone": "normal",
           "meaning": "The provider is ready, so the registration is active."
@@ -124,7 +124,7 @@
     },
     {
       "name": "default.refused-claim-fixture",
-      "catalog": "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0",
+      "catalog": "testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0",
       "version": "0.1.0",
       "provider": {
         "group": "opmodel.dev",
@@ -140,14 +140,14 @@
       "reconcile": {
         "state": "Stalled",
         "reason": "CatalogUnresolved",
-        "since": "2026-10-04T18:04:26Z"
+        "since": "2026-10-21T16:04:50Z"
       },
       "conditions": [
         {
           "type": "Stalled",
           "status": "True",
           "reason": "CatalogUnresolved",
-          "lastTransitionTime": "2026-10-04T18:04:26Z",
+          "lastTransitionTime": "2026-10-21T16:04:50Z",
           "observedGeneration": 1,
           "tone": "abnormal",
           "meaning": "The registered catalog and version resolve to nothing.",
@@ -157,7 +157,7 @@
           "type": "Ready",
           "status": "False",
           "reason": "CatalogUnresolved",
-          "lastTransitionTime": "2026-10-04T18:04:26Z",
+          "lastTransitionTime": "2026-10-21T16:04:50Z",
           "observedGeneration": 1,
           "tone": "abnormal",
           "meaning": "The registered catalog and version resolve to nothing.",

@@ -22,22 +22,22 @@
         "name": "podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:31.637717Z"
+      "lastSeen": "2026-10-21T16:04:47.076975Z"
     },
     {
       "type": "Normal",
       "reason": "Pulled",
-      "note": "Successfully pulled image \"ghcr.io/stefanprodan/podinfo:6.7.1\" in 422ms (9.094s including waiting). Image size: 31081621 bytes.",
+      "note": "Successfully pulled image \"ghcr.io/stefanprodan/podinfo:6.7.1\" in 577ms (9.187s including waiting). Image size: 31081621 bytes.",
       "reportingController": "kubelet",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
+        "name": "podinfo-podinfo-d9585d794-67j74"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Normal",
@@ -48,11 +48,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
+        "name": "podinfo-podinfo-d9585d794-67j74"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Normal",
@@ -63,11 +63,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
+        "name": "podinfo-podinfo-d9585d794-67j74"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Warning",
@@ -78,26 +78,26 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
+        "name": "podinfo-podinfo-d9585d794-67j74"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Normal",
       "reason": "Pulled",
-      "note": "Successfully pulled image \"ghcr.io/stefanprodan/podinfo:6.7.1\" in 2.641s (8.673s including waiting). Image size: 31081621 bytes.",
+      "note": "Successfully pulled image \"ghcr.io/stefanprodan/podinfo:6.7.1\" in 2.807s (8.612s including waiting). Image size: 31081621 bytes.",
       "reportingController": "kubelet",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
+        "name": "podinfo-podinfo-d9585d794-74b7v"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Normal",
@@ -108,11 +108,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
+        "name": "podinfo-podinfo-d9585d794-74b7v"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Normal",
@@ -123,11 +123,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
+        "name": "podinfo-podinfo-d9585d794-74b7v"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Warning",
@@ -138,41 +138,11 @@
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
+        "name": "podinfo-podinfo-d9585d794-74b7v"
       },
       "fieldPath": "spec.containers{podinfo}",
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:16Z"
-    },
-    {
-      "type": "Normal",
-      "reason": "Pulling",
-      "note": "Pulling image \"ghcr.io/stefanprodan/podinfo:6.7.1\"",
-      "reportingController": "kubelet",
-      "regarding": {
-        "version": "v1",
-        "kind": "Pod",
-        "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
-      },
-      "fieldPath": "spec.containers{podinfo}",
-      "count": 1,
-      "lastSeen": "2026-10-04T18:04:07Z"
-    },
-    {
-      "type": "Normal",
-      "reason": "Pulling",
-      "note": "Pulling image \"ghcr.io/stefanprodan/podinfo:6.7.1\"",
-      "reportingController": "kubelet",
-      "regarding": {
-        "version": "v1",
-        "kind": "Pod",
-        "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
-      },
-      "fieldPath": "spec.containers{podinfo}",
-      "count": 1,
-      "lastSeen": "2026-10-04T18:04:07Z"
+      "lastSeen": "2026-10-21T16:04:37Z"
     },
     {
       "type": "Normal",
@@ -187,7 +157,7 @@
         "name": "podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06.945269Z"
+      "lastSeen": "2026-10-21T16:04:28.302964Z"
     },
     {
       "type": "Normal",
@@ -202,7 +172,7 @@
         "name": "podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06.945177Z"
+      "lastSeen": "2026-10-21T16:04:28.302911Z"
     },
     {
       "type": "Normal",
@@ -217,40 +187,70 @@
         "name": "podinfo-podinfo"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:28Z"
     },
     {
       "type": "Normal",
       "reason": "Scheduled",
-      "note": "Successfully assigned default/podinfo-podinfo-d9585d794-4lg6h to opm-portal-e2e-fix-control-plane",
+      "note": "Successfully assigned default/podinfo-podinfo-d9585d794-67j74 to opm-portal-e2e-control-plane",
       "reportingController": "default-scheduler",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-4lg6h"
+        "name": "podinfo-podinfo-d9585d794-67j74"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"ghcr.io/stefanprodan/podinfo:6.7.1\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-67j74"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
     },
     {
       "type": "Normal",
       "reason": "Scheduled",
-      "note": "Successfully assigned default/podinfo-podinfo-d9585d794-kp2jx to opm-portal-e2e-fix-control-plane",
+      "note": "Successfully assigned default/podinfo-podinfo-d9585d794-74b7v to opm-portal-e2e-control-plane",
       "reportingController": "default-scheduler",
       "regarding": {
         "version": "v1",
         "kind": "Pod",
         "namespace": "default",
-        "name": "podinfo-podinfo-d9585d794-kp2jx"
+        "name": "podinfo-podinfo-d9585d794-74b7v"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:28Z"
+    },
+    {
+      "type": "Normal",
+      "reason": "Pulling",
+      "note": "Pulling image \"ghcr.io/stefanprodan/podinfo:6.7.1\"",
+      "reportingController": "kubelet",
+      "regarding": {
+        "version": "v1",
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "podinfo-podinfo-d9585d794-74b7v"
+      },
+      "fieldPath": "spec.containers{podinfo}",
+      "count": 1,
+      "lastSeen": "2026-10-21T16:04:28Z"
     },
     {
       "type": "Normal",
       "reason": "SuccessfulCreate",
-      "note": "Created pod: podinfo-podinfo-d9585d794-kp2jx",
+      "note": "Created pod: podinfo-podinfo-d9585d794-74b7v",
       "reportingController": "replicaset-controller",
       "regarding": {
         "group": "apps",
@@ -260,12 +260,12 @@
         "name": "podinfo-podinfo-d9585d794"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:28Z"
     },
     {
       "type": "Normal",
       "reason": "SuccessfulCreate",
-      "note": "Created pod: podinfo-podinfo-d9585d794-4lg6h",
+      "note": "Created pod: podinfo-podinfo-d9585d794-67j74",
       "reportingController": "replicaset-controller",
       "regarding": {
         "group": "apps",
@@ -275,7 +275,7 @@
         "name": "podinfo-podinfo-d9585d794"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:06Z"
+      "lastSeen": "2026-10-21T16:04:28Z"
     }
   ],
   "scope": "all"

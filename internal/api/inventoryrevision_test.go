@@ -27,7 +27,7 @@ func revisionObjects(t *testing.T) []*unstructured.Unstructured {
 	return objs
 }
 
-// TestInstancesServeTheInventoryRevision: the revision the operator
+// TestInstancesServeTheInventoryRevision: the revision the controller
 // recorded is served on the document and the list item, in both modes, and
 // an instance with none carries no field (portal:D2:R1).
 func TestInstancesServeTheInventoryRevision(t *testing.T) {

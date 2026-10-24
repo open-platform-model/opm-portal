@@ -393,7 +393,7 @@ func TestRegistrationPanel(t *testing.T) {
 	for _, want := range []string{
 		`<span class="prov prov-active">Accepted · active</span>`,
 		"Claims a catalog for this provider; the controller decides whether it is accepted and active.",
-		`href="/catalog?path=testing.opmodel.dev%2fcatalogs%2foperator%2fbackup%40v0"`,
+		`href="/catalog?path=testing.opmodel.dev%2fcatalogs%2fcontroller%2fbackup%40v0"`,
 		"default/backup-provider", "spec.providerRef names it",
 	} {
 		if !strings.Contains(strings.ToLower(frag), strings.ToLower(want)) {

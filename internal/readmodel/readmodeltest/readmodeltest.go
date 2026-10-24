@@ -1,5 +1,5 @@
 // Package readmodeltest serves committed cluster captures through fake
-// clients, so tests can build read-model views from real operator output.
+// clients, so tests can build read-model views from real controller output.
 // It does not import readmodel, so readmodel's own tests use it too.
 package readmodeltest
 
@@ -325,7 +325,7 @@ const (
 // claim resolves, with providerRef stamped from the package's own name and
 // namespace as the catalog's registration transformer does, and the
 // verdict and message the controller writes when no ModuleInstance of that
-// name exists (opm-operator internal/controller/
+// name exists (opm-controller internal/controller/
 // transformerregistration_controller.go, checkProviderIdentity and refuse:
 // Stalled=True and Ready=False, both ProviderMismatch).
 func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstructured.Unstructured {
@@ -349,7 +349,7 @@ func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstr
 	claim.SetUID("00000000-0000-4000-8000-00000000c1a1")
 	claim.SetLabels(nil)
 	spec := map[string]any{
-		"catalog":     "testing.opmodel.dev/catalogs/operator/backup@v0",
+		"catalog":     "testing.opmodel.dev/catalogs/controller/backup@v0",
 		"version":     "0.1.0",
 		"provides":    []any{},
 		"providerRef": map[string]any{"namespace": PackageHolderNamespace, "name": PackageHolderName},
@@ -357,9 +357,9 @@ func WithPackageHolder(t testing.TB, objs []*unstructured.Unstructured) []*unstr
 	const msg = "Claim names provider ModuleInstance pkg/provider, which does not exist, so the claim is not rendered output"
 	conds := []any{
 		map[string]any{"type": "Stalled", "status": "True", "reason": "ProviderMismatch", "message": msg,
-			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+			"lastTransitionTime": "2026-10-21T16:04:30Z", "observedGeneration": int64(1)},
 		map[string]any{"type": "Ready", "status": "False", "reason": "ProviderMismatch", "message": msg,
-			"lastTransitionTime": "2026-10-04T18:04:30Z", "observedGeneration": int64(1)},
+			"lastTransitionTime": "2026-10-21T16:04:30Z", "observedGeneration": int64(1)},
 	}
 	if err := unstructured.SetNestedField(claim.Object, spec, "spec"); err != nil {
 		t.Fatal(err)

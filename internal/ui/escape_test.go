@@ -13,7 +13,7 @@ import (
 )
 
 // catalogEventsPath is the Catalog page's Events tab of the refused claim.
-const catalogEventsPath = "/catalog?path=testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0&tab=events"
+const catalogEventsPath = "/catalog?path=testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0&tab=events"
 
 // hostile is cluster text that would run as markup if a page did not
 // escape it.

@@ -22,10 +22,10 @@ func inCluster(cfg *Config) {
 }
 
 // The backup-provider instance reaches a TransformerRegistration: an OPM
-// object whose raw status carries operator text.
+// object whose raw status carries controller text.
 const backupRegistrationObject = base + "/instances/default/backup-provider/object?group=opmodel.dev&kind=TransformerRegistration&name=default.backup-provider"
 
-// inClusterGoldens are the documents that carry operator text in local
+// inClusterGoldens are the documents that carry controller text in local
 // mode, served in-cluster. Their local goldens are the same names without
 // the directory.
 var inClusterGoldens = []goldenCase{
@@ -39,7 +39,7 @@ var inClusterGoldens = []goldenCase{
 	{"in-cluster/instance-podinfo-events", base + "/instances/default/podinfo/events"},
 	{"in-cluster/instance-podinfo-events-all", base + "/instances/default/podinfo/events?scope=all"},
 	{"in-cluster/instance-cert-manager-events-all", base + "/instances/cert-manager/cert-manager/events?scope=all"},
-	{"in-cluster/instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+	{"in-cluster/instance-podinfo-events-pod", base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"},
 	{"in-cluster/package-list", base + "/packages"},
 	{"in-cluster/package-podinfo", base + "/packages/pkg/podinfo"},
 	{"in-cluster/package-podinfo-events-all", base + "/packages/pkg/podinfo/events?scope=all"},
@@ -50,13 +50,13 @@ var inClusterGoldens = []goldenCase{
 	{"in-cluster/registration-refused-events", base + "/platform/registrations/default.refused-claim-fixture/events"},
 }
 
-// TestGoldenInCluster serves the F1 documents that carry operator text from
+// TestGoldenInCluster serves the F1 documents that carry controller text from
 // an in-cluster server: the same documents as local mode, without it.
 func TestGoldenInCluster(t *testing.T) {
 	e := newEnv(t, loadF1(t), readmodeltest.AllowAll, inCluster)
 	checkGoldens(t, e, inClusterGoldens)
 	for _, c := range inClusterGoldens {
-		assertNoOperatorText(t, c.path, e.get(t, c.path).body)
+		assertNoControllerText(t, c.path, e.get(t, c.path).body)
 	}
 }
 
@@ -79,7 +79,7 @@ func registrationNodes(t *testing.T, body []byte) map[string]v1.GraphRegistratio
 
 // TestInClusterGraphRegistrationsCarryNoMessage: the registration an
 // instance or a package graph attaches to the node of a registration its
-// inventory holds carries its standing in-cluster but no text the operator
+// inventory holds carries its standing in-cluster but no text the controller
 // wrote, as a platform graph's node does; local mode serves the text.
 func TestInClusterGraphRegistrationsCarryNoMessage(t *testing.T) {
 	objs := readmodeltest.WithPackageHolder(t, loadF1(t))
@@ -112,10 +112,10 @@ func TestInClusterGraphRegistrationsCarryNoMessage(t *testing.T) {
 func TestGoldenBrokenRolloutInCluster(t *testing.T) {
 	e := newEnv(t, f1Broken(t), readmodeltest.AllowAll, inCluster)
 	checkGoldens(t, e, []goldenCase{{"in-cluster/instance-podinfo-broken", base + "/instances/default/podinfo"}})
-	assertNoOperatorText(t, "broken podinfo", e.get(t, base+"/instances/default/podinfo").body)
+	assertNoControllerText(t, "broken podinfo", e.get(t, base+"/instances/default/podinfo").body)
 }
 
-// TestInClusterEventsDifferingOnlyInNoteFoldIntoOneRow: the operator's
+// TestInClusterEventsDifferingOnlyInNoteFoldIntoOneRow: the controller's
 // Applied note counts the resources each apply touched, so two applies
 // leave two Applied events. In-cluster their notes are dropped, and they
 // are served as one row with both counted: two rows that look the same
@@ -126,7 +126,7 @@ func TestInClusterEventsDifferingOnlyInNoteFoldIntoOneRow(t *testing.T) {
 
 	e := newEnv(t, objs, readmodeltest.AllowAll, inCluster)
 	checkGoldens(t, e, []goldenCase{{"in-cluster/instance-podinfo-events-two-applied", path}})
-	assertNoOperatorText(t, path, e.get(t, path).body)
+	assertNoControllerText(t, path, e.get(t, path).body)
 	if rows, count := appliedRows(t, e.get(t, path).body); rows != 1 || count != 2 {
 		t.Errorf("in-cluster: %d Applied rows counting %d, want one row counting 2", rows, count)
 	}
@@ -153,7 +153,7 @@ func withASecondApplied(t *testing.T, objs []*unstructured.Unstructured) []*unst
 		ev.SetName(o.GetName() + "-again")
 		ev.SetUID(types.UID(string(o.GetUID()) + "-again"))
 		ev.Object["note"] = "Applied 3 resources (0 created, 3 updated, 0 unchanged)"
-		ev.Object["eventTime"] = "2026-10-04T18:05:00.000000Z"
+		ev.Object["eventTime"] = "2026-10-21T16:05:00.000000Z"
 		return append(objs, ev)
 	}
 	t.Fatal("F1 has no Applied event about default/podinfo")
@@ -175,11 +175,11 @@ func appliedRows(t *testing.T, body []byte) (rows int, count int64) {
 	return rows, count
 }
 
-// TestEveryDocumentInClusterCarriesNoOperatorText reads every F1 resource
-// from an in-cluster server and fails on any field that carries operator
+// TestEveryDocumentInClusterCarriesNoControllerText reads every F1 resource
+// from an in-cluster server and fails on any field that carries controller
 // text, while local mode serves at least one of each kind of field, so the
 // walk is not vacuous.
-func TestEveryDocumentInClusterCarriesNoOperatorText(t *testing.T) {
+func TestEveryDocumentInClusterCarriesNoControllerText(t *testing.T) {
 	cases := f1Goldens
 	in := newEnv(t, loadF1(t), readmodeltest.AllowAll, inCluster)
 	local := newEnv(t, loadF1(t), readmodeltest.AllowAll)
@@ -189,12 +189,12 @@ func TestEveryDocumentInClusterCarriesNoOperatorText(t *testing.T) {
 		if res.status != http.StatusOK {
 			t.Fatalf("in-cluster GET %s = %d %s", c.path, res.status, res.body)
 		}
-		assertNoOperatorText(t, c.path, res.body)
-		for _, f := range operatorTextFields(t, local.get(t, c.path).body) {
+		assertNoControllerText(t, c.path, res.body)
+		for _, f := range controllerTextFields(t, local.get(t, c.path).body) {
 			seen[f] = true
 		}
 	}
-	for _, f := range []string{"conditions[].message", "reconcile.message", "history[].message", "note (operator)", "registration.message", "health.message (OPM object)", "status.conditions[].message (OPM object)"} {
+	for _, f := range []string{"conditions[].message", "reconcile.message", "history[].message", "note (controller)", "registration.message", "health.message (OPM object)", "status.conditions[].message (OPM object)"} {
 		if !seen[f] {
 			t.Errorf("no local document carries %s: the in-cluster walk proves nothing for it", f)
 		}
@@ -225,7 +225,7 @@ func TestTheStreamCarriesTheInClusterDocuments(t *testing.T) {
 		if len(m.Items) != 1 {
 			t.Fatalf("snapshot %s with %d items", m.Topic, len(m.Items))
 		}
-		assertNoOperatorText(t, m.Topic, m.Items[0])
+		assertNoControllerText(t, m.Topic, m.Items[0])
 		if got, want := compact(t, m.Items[0]), compact(t, e.get(t, path).body); got != want {
 			t.Errorf("snapshot of %s differs from GET %s:\n%s\n%s", m.Topic, path, got, want)
 		}
@@ -240,19 +240,19 @@ func TestEveryRouteDocumentIsKnownToTheOmission(t *testing.T) {
 		if rt.doc == nil {
 			continue
 		}
-		if _, err := omitOperatorText(rt.doc); err != nil {
+		if _, err := omitControllerText(rt.doc); err != nil {
 			t.Errorf("%s: %v", rt.pattern, err)
 		}
 	}
-	if _, err := omitOperatorText(v1.Removed{}); err != nil {
+	if _, err := omitControllerText(v1.Removed{}); err != nil {
 		t.Errorf("Removed: %v", err)
 	}
-	if _, err := omitOperatorText(&v1.Instance{}); err == nil {
+	if _, err := omitControllerText(&v1.Instance{}); err == nil {
 		t.Error("a pointer to a document is not a document the omission knows; want an error")
 	}
 }
 
-// TestInClusterKeepsOtherWritersText: the omission is the operator's text
+// TestInClusterKeepsOtherWritersText: the omission is the controller's text
 // only (supervisor ruling on the scope of portal:D8:R5). The kubelet's
 // event notes and a rendered workload's health message carry the
 // remediation a user needs, are not kernel diagnostics, and are served
@@ -266,7 +266,7 @@ func TestInClusterKeepsOtherWritersText(t *testing.T) {
 		{f1Broken(t), base + "/instances/default/podinfo"},
 		{f1Broken(t), base + "/instances/default/podinfo/graph"},
 		// The scheduler's and the kubelet's events about a Pod.
-		{loadF1(t), base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-4lg6h"},
+		{loadF1(t), base + "/instances/default/podinfo/events?kind=Pod&namespace=default&name=podinfo-podinfo-d9585d794-67j74"},
 	} {
 		in := newEnv(t, c.objs, readmodeltest.AllowAll, inCluster)
 		local := newEnv(t, c.objs, readmodeltest.AllowAll)
@@ -281,7 +281,7 @@ func TestInClusterKeepsOtherWritersText(t *testing.T) {
 	}
 }
 
-// otherWritersText lists, sorted, the event notes no operator reported and
+// otherWritersText lists, sorted, the event notes no controller reported and
 // the health messages of objects outside the OPM group in a document.
 func otherWritersText(t *testing.T, body []byte) []string {
 	t.Helper()
@@ -295,7 +295,7 @@ func otherWritersText(t *testing.T, body []byte) []string {
 		switch x := v.(type) {
 		case map[string]any:
 			if note, ok := x["note"].(string); ok && note != "" {
-				if c, _ := x["reportingController"].(string); c != "" && c != operatorController {
+				if c, _ := x["reportingController"].(string); c != "" && c != opmController {
 					out = append(out, c+": "+note)
 				}
 			}
@@ -328,9 +328,9 @@ func TestNewRefusesAMissingMode(t *testing.T) {
 	}
 }
 
-// operatorTextFields lists the kinds of operator-text field a document
+// controllerTextFields lists the kinds of controller-text field a document
 // carries with a value.
-func operatorTextFields(t *testing.T, body []byte) []string {
+func controllerTextFields(t *testing.T, body []byte) []string {
 	t.Helper()
 	var doc any
 	if err := json.Unmarshal(body, &doc); err != nil {
@@ -382,20 +382,20 @@ func objectStatusText(body []byte) []string {
 	return out
 }
 
-// classifyText names the operator-text field key is inside the map self,
+// classifyText names the controller-text field key is inside the map self,
 // which was reached through parentKey from parent, or "" when key carries no
-// operator text there. A note is read against its own event (self): a list of
+// controller text there. A note is read against its own event (self): a list of
 // events holds the notes of many writers.
 func classifyText(parentKey string, parent, self map[string]any, key string) string {
 	switch key {
 	case "note":
 		ref, _ := self["regarding"].(map[string]any)
 		switch self["reportingController"] {
-		case operatorController:
-			return "note (operator)"
+		case opmController:
+			return "note (controller)"
 		case nil, "":
 			if ref["group"] == opmGroup {
-				return "note (operator)"
+				return "note (controller)"
 			}
 		}
 		return ""
@@ -423,11 +423,11 @@ func classifyText(parentKey string, parent, self map[string]any, key string) str
 	return ""
 }
 
-// assertNoOperatorText fails on any operator-text field in an in-cluster
+// assertNoControllerText fails on any controller-text field in an in-cluster
 // document.
-func assertNoOperatorText(t *testing.T, what string, body []byte) {
+func assertNoControllerText(t *testing.T, what string, body []byte) {
 	t.Helper()
-	for _, f := range operatorTextFields(t, body) {
+	for _, f := range controllerTextFields(t, body) {
 		t.Errorf("%s: in-cluster document carries %s", what, f)
 	}
 }

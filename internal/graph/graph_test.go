@@ -73,13 +73,13 @@ func TestPodinfoGraph(t *testing.T) {
 		kind     EdgeKind
 		from, to string
 	}{
-		{EdgeInstantiates, root.ID, "mod:testing.opmodel.dev%2Fmodules%2Foperator%2Fpodinfo%40v0/v0.1.11"},
+		{EdgeInstantiates, root.ID, "mod:testing.opmodel.dev%2Fmodules%2Fcontroller%2Fpodinfo%40v0/v0.1.12"},
 		{EdgeHasComponent, root.ID, "comp:mi/default/podinfo/podinfo"},
 		{EdgeOwns, "comp:mi/default/podinfo/podinfo", dep},
 		{EdgeOwns, "comp:mi/default/podinfo/podinfo", "obj:_/Service/default/podinfo-podinfo"},
 		{EdgeControls, dep, rs},
-		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"},
-		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-kp2jx"},
+		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74"},
+		{EdgeControls, rs, "obj:_/Pod/default/podinfo-podinfo-d9585d794-74b7v"},
 	} {
 		if _, ok := edgeBetween(g, want.kind, want.from, want.to); !ok {
 			t.Errorf("no %s edge %s -> %s", want.kind, want.from, want.to)
@@ -190,7 +190,7 @@ func TestCertManagerCollapsed(t *testing.T) {
 	}
 }
 
-// TestGroupIgnoresInventoryOrder: the operator may reorder
+// TestGroupIgnoresInventoryOrder: the controller may reorder
 // status.inventory; the graph stays the same.
 func TestGroupIgnoresInventoryOrder(t *testing.T) {
 	d := newCluster(t, f1(t), readmodeltest.AllowAll).instance(t, "cert-manager", "cert-manager")
@@ -298,7 +298,7 @@ func TestScaledDownReplicaSetHidden(t *testing.T) {
 
 func TestManyPodsGrouped(t *testing.T) {
 	objs := f1(t)
-	pod := readmodeltest.Find(t, objs, "Pod", "podinfo-podinfo-d9585d794-4lg6h")
+	pod := readmodeltest.Find(t, objs, "Pod", "podinfo-podinfo-d9585d794-67j74")
 	for _, s := range []string{"a", "b", "c", "d", "e"} {
 		extra := pod.DeepCopy()
 		extra.SetName("podinfo-podinfo-d9585d794-" + s)
@@ -393,7 +393,7 @@ func TestPackageGraph(t *testing.T) {
 	}
 }
 
-// TestForeignNamespaceDependency: the operator refuses a dependsOn entry in
+// TestForeignNamespaceDependency: the controller refuses a dependsOn entry in
 // another namespace, so its edge is drawn unverified; a same-namespace one
 // is not marked.
 func TestForeignNamespaceDependency(t *testing.T) {
@@ -420,7 +420,7 @@ func TestPlatformGraph(t *testing.T) {
 	g := Platform(newCluster(t, f1(t), readmodeltest.AllowAll).platform(t), Options{})
 	plat := "plat:cluster"
 	opm := "cat:opmodel.dev%2Fcatalogs%2Fopm%40v4"
-	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"
+	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0"
 	accepted := "treg:default.backup-provider"
 	refused := "treg:default.refused-claim-fixture"
 	for _, cat := range []string{opm, backup} {
@@ -446,7 +446,7 @@ func TestPlatformGraph(t *testing.T) {
 // is refused as a duplicate, accepted but not active, or at another version
 // gets no contributes edge (portal:D4).
 func TestContributesNeedsTheContributingClaim(t *testing.T) {
-	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Foperator%2Fbackup%40v0"
+	backup := "cat:testing.opmodel.dev%2Fcatalogs%2Fcontroller%2Fbackup%40v0"
 	for _, tt := range []struct {
 		name             string
 		accepted, active bool
@@ -513,7 +513,7 @@ func TestRegistrationStanding(t *testing.T) {
 	}
 	r := nodeByID(t, g, refused).Registration
 	if r.Accepted || r.Active || r.Verdict != health.VerdictRefused || r.Reason != "CatalogUnresolved" || r.Message == "" ||
-		r.Catalog != "testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0" {
+		r.Catalog != "testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0" {
 		t.Errorf("refused claim = %+v", r)
 	}
 }
@@ -636,8 +636,8 @@ func TestContributor(t *testing.T) {
 		got[c.Catalog] = Contributor(c, p.Registrations)
 	}
 	want := map[string]string{
-		"opmodel.dev/catalogs/opm@v4":                     "",
-		"testing.opmodel.dev/catalogs/operator/backup@v0": "default.backup-provider",
+		"opmodel.dev/catalogs/opm@v4":                       "",
+		"testing.opmodel.dev/catalogs/controller/backup@v0": "default.backup-provider",
 	}
 	if len(got) != len(want) {
 		t.Fatalf("catalogs = %v", got)

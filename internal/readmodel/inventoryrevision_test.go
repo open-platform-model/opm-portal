@@ -37,7 +37,7 @@ func TestInventoryRevision(t *testing.T) {
 	}
 }
 
-// TestInstanceRevisionOverF1 reads the F1 capture: all five instances record
+// TestInstanceRevisionOverF1 reads the F1 capture: all six instances record
 // revision 1, beside the counts the capture holds.
 func TestInstanceRevisionOverF1(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
@@ -47,7 +47,7 @@ func TestInstanceRevisionOverF1(t *testing.T) {
 	}
 	counts := map[string]int64{
 		"cert-manager/cert-manager": 42, "default/podinfo": 2, "default/backup-provider": 1,
-		"default/backup-consumer": 1, "web/web": 2,
+		"default/backup-consumer": 1, "web/web": 2, "opm-system/opm-controller": 22,
 	}
 	if len(list) != len(counts) {
 		t.Fatalf("ListInstances = %d items, want %d", len(list), len(counts))

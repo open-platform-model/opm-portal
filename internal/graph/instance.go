@@ -103,8 +103,8 @@ func Package(d readmodel.PackageDetail, src *readmodel.SourceState, opts Options
 			// sourceRef.apiVersion, so the node names the group it reads.
 			group, version = readmodel.FluxGroup, "v1"
 		}
-		// The operator reads the source from the package's namespace when
-		// sourceRef names none (opm-operator modulepackage_controller.go).
+		// The controller reads the source from the package's namespace when
+		// sourceRef names none (opm-controller modulepackage_controller.go).
 		srcNS := ref.Namespace
 		if srcNS == "" {
 			srcNS = ns
@@ -129,8 +129,8 @@ func Package(d readmodel.PackageDetail, src *readmodel.SourceState, opts Options
 		n := Node{ID: packageID(depNS, dep.Name), Kind: KindPackage, Label: depNS + "/" + dep.Name, Ref: refOf(ref)}
 		b.add(n, colComponent)
 		e := b.edge(EdgeDependsOn, root.ID, n.ID)
-		// The operator refuses a dependency in another namespace
-		// (opm-operator modulepackage_types.go dependsOn), so the edge is
+		// The controller refuses a dependency in another namespace
+		// (opm-controller modulepackage_types.go dependsOn), so the edge is
 		// what the spec asks for, not a dependency it honors.
 		if depNS != ns {
 			unverified := false

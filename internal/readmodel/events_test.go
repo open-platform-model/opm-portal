@@ -34,7 +34,7 @@ func TestClusterScopedEventsLiveInDefault(t *testing.T) {
 	}
 	gen := got[0]
 	if gen.Reason != "Generated" || gen.Count != 2 || gen.ReportingController != "opm-controller" ||
-		!gen.LastSeen.Equal(time.Date(2026, 10, 4, 18, 4, 23, 340984000, time.UTC)) {
+		!gen.LastSeen.Equal(time.Date(2026, 10, 21, 16, 4, 46, 878439000, time.UTC)) {
 		t.Errorf("Generated line = %+v, want count 2 at the later event's time", gen)
 	}
 	if !strings.Contains(strings.Join(clusterReads(e.client), "\n"), "list events default/") {
@@ -70,7 +70,7 @@ func TestInstanceEventsStayOnTheirObject(t *testing.T) {
 // time; their time and count come from the deprecated fields.
 func TestKubeletEventsUseTheDeprecatedFields(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
-	got := e.events(t, ObjectRef{Version: "v1", Kind: "Pod", Namespace: "cert-manager", Name: "cert-manager-cainjector-5d69c59bd-htjjq"})
+	got := e.events(t, ObjectRef{Version: "v1", Kind: "Pod", Namespace: "cert-manager", Name: "cert-manager-cainjector-5d69c59bd-kbvjx"})
 	var pulling *Event
 	for i := range got {
 		if got[i].Reason == "Pulling" {
@@ -80,7 +80,7 @@ func TestKubeletEventsUseTheDeprecatedFields(t *testing.T) {
 	if pulling == nil {
 		t.Fatalf("no Pulling line in %+v", got)
 	}
-	if pulling.Count != 1 || !pulling.LastSeen.Equal(time.Date(2026, 10, 4, 18, 4, 6, 0, time.UTC)) ||
+	if pulling.Count != 1 || !pulling.LastSeen.Equal(time.Date(2026, 10, 21, 16, 4, 27, 0, time.UTC)) ||
 		pulling.FieldPath != "spec.containers{cert-manager-cainjector}" {
 		t.Errorf("Pulling = %+v", pulling)
 	}

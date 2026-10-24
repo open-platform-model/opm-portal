@@ -36,15 +36,15 @@ func TestPackageCardsOnF1(t *testing.T) {
 		t.Error("the Applied block is not degraded")
 	}
 	for _, want := range []string{`<span class="sb-word">Failed, retrying</span>`,
-		"Failed on the last 3 attempts, retrying every 1 min", `<p class="sb-note reconciling">Reconciling: Progressing, since `,
-		"Warning events, last hour", "No reconcile errors", "At most ten attempts are kept", "Show history", "last 3 attempts"} {
+		"Failed on the last 2 attempts, retrying every 1 min", `<p class="sb-note reconciling">Reconciling: Progressing, since `,
+		"Warning events, last hour", "No reconcile errors", "At most ten attempts are kept", "Show history", "last 2 attempts"} {
 		if !strings.Contains(applied, want) {
 			t.Errorf("Applied block lacks %q:\n%s", want, applied)
 		}
 	}
 	dots := regexp.MustCompile(`class="adot ([a-z-]+)"`).FindAllStringSubmatch(applied, -1)
-	if len(dots) != 3 {
-		t.Fatalf("%d dots; want three", len(dots))
+	if len(dots) != 2 {
+		t.Fatalf("%d dots; want two", len(dots))
 	}
 	for _, d := range dots {
 		if d[1] != "dot-failed" {
@@ -174,7 +174,7 @@ func TestYAMLTabSkipsAnObjectItCannotList(t *testing.T) {
 	}
 }
 
-// TestOwnerCardsEscapeClusterText: hostile operator text on the cards,
+// TestOwnerCardsEscapeClusterText: hostile controller text on the cards,
 // the dots' titles and every tab is shown as text.
 func TestOwnerCardsEscapeClusterText(t *testing.T) {
 	s := newSite(t, hostileF1(t), apitest.AllowAll)
@@ -243,8 +243,8 @@ func TestFoldedObjectsFocusTheirOwnNode(t *testing.T) {
 // container's pane on the Logs tab, on the page and as a fragment.
 func TestPodPanelLogsOpenItsPane(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
-	const pod = "obj:_/Pod/default/podinfo-podinfo-d9585d794-4lg6h"
-	want := `href="/instances/default/podinfo?tab=logs&amp;log=log_podinfo-podinfo-d9585d794-4lg6h_podinfo"`
+	const pod = "obj:_/Pod/default/podinfo-podinfo-d9585d794-67j74"
+	want := `href="/instances/default/podinfo?tab=logs&amp;log=log_podinfo-podinfo-d9585d794-67j74_podinfo"`
 	if page := mainOf(s.get(t, "/instances/default/podinfo?tab=graph&focus="+url.QueryEscape(pod)).body); !strings.Contains(page, want) {
 		t.Error("the page's Pod panel lacks its Logs link to the pane")
 	}
@@ -334,14 +334,14 @@ func TestATabOpensWithoutScript(t *testing.T) {
 func TestTabRegionsKeepTheirHeadingForScreenReaders(t *testing.T) {
 	s := newSite(t, apitest.F1(t), apitest.AllowAll)
 	for path, ids := range map[string][]string{
-		"/instances/default/podinfo?tab=graph":                                     {"graph-h"},
-		"/instances/default/podinfo?tab=resources":                                 {"components-h"},
-		"/instances/default/podinfo?tab=events":                                    {"events-h"},
-		"/instances/default/podinfo?tab=logs":                                      {"logs-h"},
-		"/instances/default/podinfo?tab=yaml":                                      {"yaml-h"},
-		"/instances/default/backup-provider?tab=provider":                          {"provider-tab-h"},
-		"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0":            {"claims-h"},
-		"/catalog?path=testing.opmodel.dev/catalogs/operator/backup@v0&tab=events": {"events-h"},
+		"/instances/default/podinfo?tab=graph":                                       {"graph-h"},
+		"/instances/default/podinfo?tab=resources":                                   {"components-h"},
+		"/instances/default/podinfo?tab=events":                                      {"events-h"},
+		"/instances/default/podinfo?tab=logs":                                        {"logs-h"},
+		"/instances/default/podinfo?tab=yaml":                                        {"yaml-h"},
+		"/instances/default/backup-provider?tab=provider":                            {"provider-tab-h"},
+		"/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0":            {"claims-h"},
+		"/catalog?path=testing.opmodel.dev/catalogs/controller/backup@v0&tab=events": {"events-h"},
 	} {
 		main := mainOf(s.get(t, path).body)
 		for _, id := range ids {

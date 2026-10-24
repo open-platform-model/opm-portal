@@ -524,15 +524,18 @@ func resourceCount(v *ownerView, g *v1.Graph) int {
 	return n
 }
 
-// kindModulePackage is the Kubernetes kind of a package owner.
-const kindModulePackage = "ModulePackage"
+// The Kubernetes kinds of the two owners.
+const (
+	kindModuleInstance = "ModuleInstance"
+	kindModulePackage  = "ModulePackage"
+)
 
 // objectKind is the owner's Kubernetes kind.
 func (k ownerKind) objectKind() string {
 	if k == packageKind {
 		return kindModulePackage
 	}
-	return "ModuleInstance"
+	return kindModuleInstance
 }
 
 func itoa(n int64) string { return strconv.FormatInt(n, 10) }

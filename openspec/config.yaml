@@ -22,9 +22,9 @@ context: |
   ## Core Principles (Web Portal)
 
   ### I. Read Through the Published Surfaces
-  The portal MUST read OPM state only through the Kubernetes API (the operator's CRs, events,
+  The portal MUST read OPM state only through the Kubernetes API (the controller's CRs, events,
   pod logs, and the objects an instance's inventory names) and through published OPM Go modules.
-  It MUST NOT re-implement operator or kernel semantics: what the operator writes to `status` is
+  It MUST NOT re-implement controller or kernel semantics: what the controller writes to `status` is
   what the portal shows.
 
   ### II. Separation of Concerns
@@ -126,7 +126,7 @@ context: |
 
   See [AGENTS.md](../AGENTS.md) for full details.
   - Go (the version in `go.mod`), standard library HTTP server and `html/template`.
-  - client-go for cluster reads; the operator's API types for OPM kinds.
+  - client-go for cluster reads; the controller's API types for OPM kinds.
   - htmx and its SSE extension, vendored and embedded; hand-written CSS, no build step.
 
   ## Code Style
@@ -160,7 +160,7 @@ context: |
   2. `task vet` — `go vet` passes.
   3. `task lint` — golangci-lint passes.
   4. `task test` — all tests pass.
-  5. `task openspec:check` — main specs and active changes validate (`--strict` is off until the long-requirement rewrite lands).
+  5. `task openspec:check` — `openspec validate --all --strict`: main specs and active changes validate.
   6. `task e2e:capture:check` — no committed cluster capture holds a Secret, values or managedFields.
   `task check` runs all six.
 
@@ -207,8 +207,8 @@ rules:
     - "API changes: show the request, the response DTO and the problem+json error cases."
     - "Authorization: name the Kubernetes verbs and resources the change reads, and the grant
       each read requires."
-    - "Claims about operator output MUST name their evidence: a live cluster capture, or the
-      operator source file and line."
+    - "Claims about controller output MUST name their evidence: a live cluster capture, or the
+      controller source file and line."
     - "Name an enhancement only by its id beside a reason in words, never alone, never a decision number."
 
   specs:

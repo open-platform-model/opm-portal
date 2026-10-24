@@ -14,7 +14,7 @@ import (
 )
 
 // The Flux source a ModulePackage names (portal:D20). The portal reads the
-// three kinds the operator's controller reads, for the caller, with get
+// three kinds the controller reads, for the caller, with get
 // only: the kind is chosen by spec.sourceRef.kind alone and the group is
 // always FluxGroup, because the controller ignores sourceRef.apiVersion.
 // Reading any other kind a spec field names would let a package author steer
@@ -46,7 +46,7 @@ type SourceReadiness string
 
 // The readiness values. Ready is the Ready condition True with a
 // status.artifact; NoArtifact is the same condition with no artifact, which
-// the controller counts as not ready (opm-operator internal/source/resolve.go).
+// the controller counts as not ready (opm-controller internal/source/resolve.go).
 const (
 	SourceReady         SourceReadiness = "ready"
 	SourceNotReady      SourceReadiness = "notReady"

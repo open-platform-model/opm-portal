@@ -11,7 +11,7 @@
     {
       "type": "Warning",
       "reason": "CatalogUnresolved",
-      "note": "Claimed catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/operator/refused-claim-fixture-absent@v0.1.0: module not found",
+      "note": "Claimed catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0 at 0.1.0 could not be resolved: fetching catalog testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0.1.0: module testing.opmodel.dev/catalogs/controller/refused-claim-fixture-absent@v0.1.0: module not found",
       "reportingController": "opm-controller",
       "regarding": {
         "group": "opmodel.dev",
@@ -20,7 +20,7 @@
         "name": "default.refused-claim-fixture"
       },
       "count": 1,
-      "lastSeen": "2026-10-04T18:04:26.703771Z"
+      "lastSeen": "2026-10-21T16:04:50.046335Z"
     }
   ]
 }

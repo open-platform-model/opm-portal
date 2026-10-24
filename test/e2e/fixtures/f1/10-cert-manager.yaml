@@ -1,9 +1,13 @@
-# cert-manager renders CRDs, webhooks and cluster-scoped RBAC. The operator's own
+# cert-manager renders CRDs, webhooks and cluster-scoped RBAC. The controller's own
 # ServiceAccount cannot patch CRDs, so the instance names an applier bound to cluster-admin.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: cert-manager
+  # The module renders this Namespace too. The controller refuses to apply over an object it does not
+  # manage unless it carries the instance UUID (module path, name and namespace), so adopt it here.
+  annotations:
+    opmodel.dev/adopt: "3930452c-b1e3-5a01-8f21-4ebcd8d14ce7"
 ---
 apiVersion: v1
 kind: ServiceAccount

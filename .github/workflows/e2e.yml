@@ -75,7 +75,7 @@ jobs:
       # A recapture always differs in timestamps, uids and pod names, so the diff above is for
       # reading. The verdicts and versions in meta.yaml do not (the capture time, the provider and
       # the cluster name, which E2E_CLUSTER may change, are left out): a change there (an instance's
-      # Ready reason, a claim's acceptance, the operator or catalog version) fails the run, and
+      # Ready reason, a claim's acceptance, the controller or catalog version) fails the run, and
       # a failed scheduled run notifies the workflow's owner.
       - name: Compare the verdicts with the committed capture
         run: |
@@ -95,7 +95,7 @@ jobs:
 
       - name: Upload the capture
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: f1-capture
           path: testdata/clusters/f1/
@@ -132,7 +132,7 @@ jobs:
 
       - name: Upload the test logs
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: e2e-logs
           path: ${{ runner.temp }}/e2e-logs/
@@ -173,7 +173,7 @@ jobs:
 
       - name: Upload the screenshots and the test log
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: browser
           path: ${{ runner.temp }}/browser/

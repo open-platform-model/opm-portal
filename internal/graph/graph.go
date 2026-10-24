@@ -122,7 +122,7 @@ const (
 )
 
 // ReasonForeignNamespace: a dependsOn entry names a package in another
-// namespace, which the operator refuses.
+// namespace, which the controller refuses.
 const ReasonForeignNamespace = "ForeignNamespace"
 
 // Graph is one graph with its layout.
@@ -185,7 +185,7 @@ type Counts struct {
 	Withheld    int `json:"withheld,omitempty"`
 }
 
-// Applied is an operator object's applied state, never merged with health
+// Applied is a controller object's applied state, never merged with health
 // (portal:D3).
 type Applied struct {
 	State    health.AppliedState `json:"state"`
@@ -231,8 +231,8 @@ type Catalog struct {
 
 // PlatformFacts is what the platform node says beyond its applied state.
 type PlatformFacts struct {
-	Type            string `json:"type,omitempty"`
-	OperatorVersion string `json:"operatorVersion,omitempty"`
+	Type              string `json:"type,omitempty"`
+	ControllerVersion string `json:"controllerVersion,omitempty"`
 	// RegistrationsAccess says whether the registrations shown are all of
 	// them.
 	RegistrationsAccess health.Access `json:"registrationsAccess"`
@@ -275,7 +275,8 @@ type Node struct {
 	Health  *Health  `json:"health,omitempty"`
 	Applied *Applied `json:"applied,omitempty"`
 
-	// Owner is an instance's owner: operator or cli.
+	// Owner is an instance's owner: controller, cli, or the spec.owner value
+	// as written when the portal does not know it.
 	Owner string `json:"owner,omitempty"`
 	// RenderContracts are every contract an instance's render used, most
 	// fulfilled by the catalog itself: not the provider contracts it

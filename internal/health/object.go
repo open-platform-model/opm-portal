@@ -1,6 +1,6 @@
 // Package health derives the two status axes the portal shows side by side
 // (portal:D3): workload health, computed from live objects, and applied state,
-// read from the operator's conditions. Every function is pure: it evaluates
+// read from the controller's conditions. Every function is pure: it evaluates
 // the objects it is handed and reads nothing from a cluster.
 package health
 

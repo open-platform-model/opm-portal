@@ -7,14 +7,21 @@ to an old one.
 
 | Evidence | What it holds | Status |
 | --- | --- | --- |
-| [01-live-cluster-capture](01-live-cluster-capture/) | Live status, inventory, label and event shapes of a released operator, trimmed to secret-free samples: healthy, apply-failed, image-broken, CLI-owned, refused, accepted, active and removal-blocked states. Fourteen observations. | Concluded |
+| [01-live-cluster-capture](01-live-cluster-capture/) | Live status, inventory, label and event shapes of a released controller, trimmed to secret-free samples: healthy, apply-failed, image-broken, CLI-owned, refused, accepted, active and removal-blocked states. Fourteen observations. | Concluded |
 | [02-live-graph-spike](02-live-graph-spike/) | A throwaway status-only graph prototype run against the same cluster: sizes, latency, health and contract findings. | Concluded |
 | [03-ui-canvas](03-ui-canvas/) | The eight board sources of the owner-reviewed design canvas for the web UI redesign. Mock data: a layout reference, never evidence of controller output. | Snapshot |
 | [04-ui-redesign-screenshots](04-ui-redesign-screenshots/) | Twelve screenshots of the redesigned web UI over F1 (light, dark, 360 px), how they were made. | Snapshot |
 | [05-canvas-gap-report](05-canvas-gap-report/) | The 174 verified gaps between the canvas and the live pages at main `ad8b218`, grouped by the change that closes them. | Snapshot |
 | [06-shell-alignment-screenshots](06-shell-alignment-screenshots/) | Twenty-one screenshots of the web UI after `align-shell-and-tokens` over F1 (light, dark, 360 px, forced colours), how they were made. | Snapshot |
-| [prior-art-and-access.md](prior-art-and-access.md) | Prior art (portals and dashboards), the access and identity model, and the operator surface, read from primary sources. | Snapshot |
+| [prior-art-and-access.md](prior-art-and-access.md) | Prior art (portals and dashboards), the access and identity model, and the controller surface, read from primary sources. | Snapshot |
 
 Every sample has `managedFields`, the `kubectl.kubernetes.io/last-applied-configuration`
 annotation and `spec.values` removed. The files under `inputs/` are what the capture applied; none
 holds Secret data. The full snapshots (about 12 MB) were never committed.
+
+These captures predate the rename of opm-operator to opm-controller. The prose here uses the
+current name; the content and file names under `samples/`, `inputs/` and `out/`, and the paths in
+the screenshots of `04-ui-redesign-screenshots/`, keep every name exactly as it was captured: the
+product, namespace, ServiceAccount, status keys and fixture paths. The same holds for the copies in
+`internal/health/testdata/` and the F1 capture in `testdata/clusters/f1/`, until a recapture on the
+renamed controller replaces F1.

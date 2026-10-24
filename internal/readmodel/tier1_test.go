@@ -28,14 +28,63 @@ func TestStartRefusesASecondStart(t *testing.T) {
 	}
 }
 
+// TestPlatformViewControllerVersion: the version comes from
+// status.controllerVersion and from no other field. F1 was captured on the
+// released controller v1.0.0-beta.9, which writes status.controllerVersion, so
+// the captured Platform shows that version.
+func TestPlatformViewControllerVersion(t *testing.T) {
+	for _, tc := range []struct {
+		name, set, want string
+	}{{"captured", "", "v1.0.0-beta.9"}, {"set", "v1.0.0-beta.99", "v1.0.0-beta.99"}, {"absent", "-", ""}} {
+		t.Run(tc.name, func(t *testing.T) {
+			objs := loadF1(t)
+			if tc.set == "-" {
+				p := find(t, objs, "Platform", "cluster")
+				unstructured.RemoveNestedField(p.Object, "status", "controllerVersion")
+			} else if tc.set != "" {
+				p := find(t, objs, "Platform", "cluster")
+				if err := unstructured.SetNestedField(p.Object, tc.set, "status", "controllerVersion"); err != nil {
+					t.Fatal(err)
+				}
+			}
+			e := newEnv(t, objs, allowAll, allowAll)
+			v, err := e.m.Platform(t.Context(), alice, e.grant(t, "get", platforms, "", "cluster"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if v.ControllerVersion != tc.want {
+				t.Errorf("controller version = %q, want %q", v.ControllerVersion, tc.want)
+			}
+		})
+	}
+}
+
+// TestOwnerOf: cli is the CLI's; controller and an absent owner are the
+// controller's. Any other value, such as the one the CRD of an earlier release
+// allowed, is returned as written and is never read as controller-owned.
+func TestOwnerOf(t *testing.T) {
+	for _, tc := range []struct {
+		owner string
+		want  Owner
+	}{{"cli", OwnerCLI}, {"controller", OwnerController}, {"", OwnerController}, {"operator", Owner("operator")}, {"another-value", Owner("another-value")}} {
+		u := &unstructured.Unstructured{Object: map[string]any{"spec": map[string]any{}}}
+		if tc.owner != "" {
+			u.Object["spec"].(map[string]any)["owner"] = tc.owner
+		}
+		if got := ownerOf(u); got != tc.want {
+			t.Errorf("spec.owner %q: owner = %q, want %q", tc.owner, got, tc.want)
+		}
+	}
+}
+
 func TestPlatformView(t *testing.T) {
 	e := newEnv(t, loadF1(t), allowAll, allowAll)
 	v, err := e.m.Platform(t.Context(), alice, e.grant(t, "get", platforms, "", "cluster"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v.Name != "cluster" || v.Type != "kubernetes" || v.OperatorVersion != "v1.0.0-beta.6" {
-		t.Errorf("platform = %s %s %s", v.Name, v.Type, v.OperatorVersion)
+	if v.Name != "cluster" || v.Type != "kubernetes" {
+		t.Errorf("platform = %s %s", v.Name, v.Type)
 	}
 	if v.Applied.State != health.AppliedStateApplied {
 		t.Errorf("applied = %+v, want Applied", v.Applied)
@@ -57,7 +106,7 @@ func checkCatalogs(t *testing.T, v PlatformView) {
 	}
 	wantCatalogs := []Catalog{
 		{Catalog: "opmodel.dev/catalogs/opm@v4", Version: "4.6.0", Enabled: true, Source: "Subscription"},
-		{Catalog: "testing.opmodel.dev/catalogs/operator/backup@v0", Version: "0.1.0", Enabled: true, Source: "Registration",
+		{Catalog: "testing.opmodel.dev/catalogs/controller/backup@v0", Version: "0.1.0", Enabled: true, Source: "Registration",
 			Registrations: []string{"default.backup-provider"}},
 	}
 	if len(v.Catalogs) != len(wantCatalogs) {
@@ -117,7 +166,7 @@ func TestPackageView(t *testing.T) {
 	if p.Source.Kind != "OCIRepository" || p.Source.Name != "podinfo-release" || p.Path != "." {
 		t.Errorf("source = %+v path %q", p.Source, p.Path)
 	}
-	if len(p.History) != 3 || p.History[0].Sequence != 3 || p.InventoryCount != 0 {
+	if len(p.History) != 2 || p.History[0].Sequence != 2 || p.InventoryCount != 0 {
 		t.Errorf("history = %d entries (first %+v), inventory %d", len(p.History), p.History, p.InventoryCount)
 	}
 	list, err := e.m.ListPackages(t.Context(), alice, e.grant(t, "list", modulePackages, "", ""), "")
@@ -136,8 +185,8 @@ func TestInstanceViews(t *testing.T) {
 		contracts int
 		history   int
 	}{
-		{"cert-manager", "cert-manager", OwnerOperator, health.AppliedStateApplied, 42, 15, 1},
-		{"default", "podinfo", OwnerOperator, health.AppliedStateApplied, 2, 7, 1},
+		{"cert-manager", "cert-manager", OwnerController, health.AppliedStateApplied, 42, 15, 1},
+		{"default", "podinfo", OwnerController, health.AppliedStateApplied, 2, 7, 1},
 		{"web", "web", OwnerCLI, health.AppliedStateManagedExternally, 2, 0, 0},
 	}
 	for _, tc := range cases {
@@ -158,7 +207,7 @@ func TestInstanceViews(t *testing.T) {
 	}
 }
 
-// TestApplyFailedInstance: the operator could not apply, retries, and has
+// TestApplyFailedInstance: the controller could not apply, retries, and has
 // recorded no inventory; the instance is Failed and its inventory is empty,
 // not unreadable.
 func TestApplyFailedInstance(t *testing.T) {
@@ -174,7 +223,7 @@ func TestApplyFailedInstance(t *testing.T) {
 		t.Errorf("inventory %d components %v lastAppliedAt %v, want none", d.InventoryCount, d.Components, d.LastAppliedAt)
 	}
 	if len(d.RenderContracts) == 0 {
-		t.Errorf("render contracts missing although the operator recorded them")
+		t.Errorf("render contracts missing although the controller recorded them")
 	}
 }
 
@@ -195,8 +244,8 @@ func TestListInstancesStaysInTheGrantedNamespace(t *testing.T) {
 		t.Errorf("default = %v, want %v", names(got), want)
 	}
 	got, err = e.m.ListInstances(t.Context(), alice, e.grant(t, "list", moduleInstances, "", ""), "")
-	if err != nil || len(got) != 5 {
-		t.Errorf("all namespaces = %v, %v; want 5", names(got), err)
+	if err != nil || len(got) != 6 {
+		t.Errorf("all namespaces = %v, %v; want 6", names(got), err)
 	}
 	// A grant for one namespace does not cover another, or all of them.
 	g := e.grant(t, "list", moduleInstances, "default", "")
