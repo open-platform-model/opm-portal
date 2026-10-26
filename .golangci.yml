@@ -46,6 +46,10 @@ linters:
     goconst:
       min-len: 3
       min-occurrences: 3
+      # v2.14.0 also scans composite literals; v2.11.4 did not. Keep its scope.
+      exclude-types:
+        - call
+        - compositelit
     gocritic:
       disabled-checks:
         - whyNoLint

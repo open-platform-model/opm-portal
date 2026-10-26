@@ -95,7 +95,7 @@ func (l *Local) landingRequest(r *http.Request, cookie *http.Cookie) *http.Reque
 	lr.URL, lr.RequestURI = &u, l.landing
 	if cookie != nil {
 		lr.Header.Del("Cookie")
-		lr.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})
+		lr.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value}) //nolint:gosec // G124: an in-process request clone, never sent to a client
 	}
 	return lr
 }

@@ -18,6 +18,9 @@ import (
 // ServiceNameLabel is the label that ties a slice to its Service.
 const ServiceNameLabel = "kubernetes.io/service-name"
 
+// kindService is the Kind of the Service objects that slices belong to.
+const kindService = "Service"
+
 // lastAppliedAnnotation is the annotation a client-side apply fills with
 // the whole applied object.
 const lastAppliedAnnotation = "kubectl.kubernetes.io/last-applied-configuration"
@@ -155,7 +158,7 @@ func WithEndpointSlices(t testing.TB, objs []*unstructured.Unstructured, opts ..
 func findService(t testing.TB, objs []*unstructured.Unstructured, namespace, name string) *unstructured.Unstructured {
 	t.Helper()
 	for _, o := range objs {
-		if o.GetKind() == "Service" && o.GetNamespace() == namespace && o.GetName() == name {
+		if o.GetKind() == kindService && o.GetNamespace() == namespace && o.GetName() == name {
 			return o
 		}
 	}
@@ -168,7 +171,7 @@ func findService(t testing.TB, objs []*unstructured.Unstructured, namespace, nam
 func reown(sl *unstructured.Unstructured, uid, name string) []metav1.OwnerReference {
 	refs := sl.GetOwnerReferences()
 	for i := range refs {
-		if refs[i].Kind == "Service" && refs[i].Controller != nil && *refs[i].Controller {
+		if refs[i].Kind == kindService && refs[i].Controller != nil && *refs[i].Controller {
 			refs[i].UID = types.UID(uid)
 			refs[i].Name = name
 		}
@@ -218,7 +221,7 @@ func loadEndpointSlices(path string) ([]*unstructured.Unstructured, error) {
 
 func hasControllerService(o *unstructured.Unstructured) bool {
 	for _, r := range o.GetOwnerReferences() {
-		if r.Kind == "Service" && r.Controller != nil && *r.Controller {
+		if r.Kind == kindService && r.Controller != nil && *r.Controller {
 			return true
 		}
 	}

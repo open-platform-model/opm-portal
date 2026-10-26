@@ -136,6 +136,7 @@ func TestSnapshotsAreTheGETDocuments(t *testing.T) {
 		"instance:default/podinfo":        base + "/instances/default/podinfo",
 		"package:pkg/podinfo":             base + "/packages/pkg/podinfo",
 		"events:instance:default/podinfo": base + "/instances/default/podinfo/events",
+
 		"events:registration:default.refused-claim-fixture": base + "/platform/registrations/default.refused-claim-fixture/events",
 	}
 	names := make([]string, 0, len(topics))
