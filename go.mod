@@ -1,9 +1,9 @@
 module github.com/open-platform-model/opm-portal
 
-go 1.26.10
+go 1.27.3
 
 require (
-	github.com/fluxcd/cli-utils v1.3.0
+	github.com/fluxcd/cli-utils v1.4.0
 	golang.org/x/net v0.61.0
 	k8s.io/api v0.37.1
 	k8s.io/apimachinery v0.37.1

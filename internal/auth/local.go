@@ -199,7 +199,7 @@ func (l *Local) launch(token string) (*http.Cookie, bool) {
 	// Local mode serves plain HTTP, so the cookie cannot be Secure, and a
 	// __Host- name requires Secure. It keeps that prefix's other rules:
 	// host-only (no Domain) and Path=/.
-	return &http.Cookie{
+	return &http.Cookie{ //nolint:gosec // G124: local mode serves plain HTTP, so Secure cannot be set; see the comment above
 		Name:     l.cookie,
 		Value:    value,
 		Path:     "/",
