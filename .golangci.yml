@@ -48,8 +48,8 @@ linters:
       min-occurrences: 3
       # v2.14.0 also scans composite literals; v2.11.4 did not. Keep its scope.
       exclude-types:
-        - call
-        - compositelit
+        - Call
+        - CompositeLit
     gocritic:
       disabled-checks:
         - whyNoLint
