@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/open-platform-model/opm-portal/compare/v0.1.0...v0.1.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** require Go 1.27.3 and bump fluxcd/cli-utils to 1.4.0 ([#69](https://github.com/open-platform-model/opm-portal/issues/69)) ([d2c9afa](https://github.com/open-platform-model/opm-portal/commit/d2c9afae0b17d2e97d1520bd008c47c6046b326a))
+
 ## 0.1.0 (2026-10-21)
 
 
