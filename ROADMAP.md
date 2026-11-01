@@ -63,7 +63,7 @@ cluster state; F1 holds an accepted, active registration on a released controlle
 | 36 | Local mode in a Pod as a single-user test tool: `deploy/` with a read-only role, reached by port-forward, checked nightly by `e2e:pod` (portal:D13) |
 | 39 | Web UI redesign (`redesign-web-ui`): Platform and Installed views, a theme choice and remembered filters, summary cards and tabs on instance and package pages, the Provider tab and the Catalog page, built to recorded data (portal:D14 to D18); the `Cluster` document, provider holders and package sources in the read API; local mode on `127.0.0.1:7878` |
 | 65 | Long requirements split (`split-long-requirements`): 85 requirements in 13 specs rewritten as shorter requirements; `task openspec:check` and the `Lint` job validate under `--strict` again |
-| this PR | Domain glossary (`add-glossary`): `GLOSSARY.md` gives each portal concept one word and a short definition, routed from `AGENTS.md` and `CONTEXT.md` |
+| 74 | Domain glossary (`add-glossary`): `GLOSSARY.md` gives each portal concept one word and a short definition, routed from `AGENTS.md` and `CONTEXT.md` |
 
 
 ### Next in V1
