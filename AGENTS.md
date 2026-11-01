@@ -11,6 +11,7 @@ relationship graph, from the Platform down to Pods.
   authorizer and safeguards are on `main`, unwired. OIDC was removed.
 - Design record: `docs/DESIGN.md` (decisions, open questions, risks). Principles: `CONSTITUTION.md`.
   OpenSpec rules: `openspec/config.yaml`. Plan and progress: `ROADMAP.md`.
+- Domain terms and the words to avoid: `GLOSSARY.md`.
 
 ## Branch model
 
