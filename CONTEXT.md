@@ -17,6 +17,7 @@ Router only. Facts and rules are in `AGENTS.md`.
 | Fix a failed release, bump an OPM Go pin, or read the release gates | `references/release.md` | `RELEASING.md` at the workspace root |
 | Choose a commit type or write a PR title | `CONSTITUTION.md` (versioning and commits) | `references/git-text.md` at the workspace root |
 | Edit a page under `docs/site/`, `docs-kit.cue` or the `opm-docs` pin | `references/docs-bundle.md` | `STYLE.md` and `VOICE.md` at the workspace root |
+| Name a concept, or pick a word for it, in a spec, a design or a comment | `GLOSSARY.md` | `docs/DESIGN.md` |
 | Start a feature change | `openspec/config.yaml` | `docs/DESIGN.md`, `ROADMAP.md` |
 | Add or change a design decision | `docs/DESIGN.md` | `openspec/config.yaml` |
 | Cite a portal decision or an enhancement in code or text | `AGENTS.md` | `references/enhancements.md` at the workspace root |
