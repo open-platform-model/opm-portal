@@ -152,7 +152,7 @@ _Avoid_: cluster, folder, collapsed node
 
 **Local mode** / **In-cluster mode**:
 Where the portal runs. Local mode reads with the user's kubeconfig; in-cluster mode, a future plan,
-reads as the signed-in user.
+authorizes each read for the signed-in user, then reads with the portal's own ServiceAccount.
 _Avoid_: dev mode, standalone, server mode
 
 **Identity**:

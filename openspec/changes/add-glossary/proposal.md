@@ -22,6 +22,10 @@ None. This change adds documentation only and changes no requirement.
 
 None.
 
+## Enhancement
+
+None.
+
 ## Impact
 
-Documentation only. No code, no API, no release: `docs` commits do not release in this repository.
+Documentation only. No code, no API, no release: `docs` commits do not release in this repository. After 1.0 this would be PATCH.
