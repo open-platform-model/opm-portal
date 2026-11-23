@@ -94,6 +94,8 @@ test/e2e/         throwaway kind fixture cluster: pins, scripts, fixture set F1
 test/browser/     Playwright scripts for the browser tests
 testdata/         committed cluster captures for golden suites (generated)
 openspec/         config, main specs, changes
+.agents/skills/   generated openspec skills, never edited because every update rewrites them
+.claude/skills/   links to the skills in .agents/skills/
 .github/          workflows (Lint, Test, PR Title, Release, E2E, Docs, Cite lint) and release guard scripts
 ```
 

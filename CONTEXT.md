@@ -19,6 +19,7 @@ Router only. Facts and rules are in `AGENTS.md`.
 | Edit a page under `docs/site/`, `docs-kit.cue` or the `opm-docs` pin | `references/docs-bundle.md` | `STYLE.md` and `VOICE.md` at the workspace root |
 | Name a concept, or pick a word for it, in a spec, a design or a comment | `GLOSSARY.md` | `docs/DESIGN.md` |
 | Start a feature change | `openspec/config.yaml` | `docs/DESIGN.md`, `ROADMAP.md` |
+| Verify a change before archive | `openspec/verify.md` | `.agents/skills/` |
 | Add or change a design decision | `docs/DESIGN.md` | `openspec/config.yaml` |
 | Cite a portal decision or an enhancement in code or text | `AGENTS.md` | `references/enhancements.md` at the workspace root |
 | Run, build, lint or test the code | `Taskfile.yml` | `AGENTS.md` |

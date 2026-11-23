@@ -54,7 +54,7 @@ jobs:
           node-version: '24'
 
       - name: Install openspec
-        run: npm install -g @fission-ai/openspec@1.14.1
+        run: npm install -g --ignore-scripts @fission-ai/openspec@2.1.1
 
       - name: OpenSpec (strict)
         run: task openspec:check
