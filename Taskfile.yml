@@ -7,7 +7,7 @@ vars:
   BINARY_NAME: opm-portal
   BUILD_DIR: bin
   # Kept in lockstep with the openspec install in .github/workflows/lint.yml.
-  OPENSPEC_VERSION: 1.14.1
+  OPENSPEC_VERSION: 2.1.1
   # Kept in lockstep with the oasdiff install in .github/workflows/lint.yml.
   OASDIFF_VERSION: v1.33.0
   # The commit of open-platform-model/enhancements that holds the cite-lint
@@ -171,7 +171,7 @@ tasks:
   openspec:install:
     desc: Install the openspec CLI at the version CI pins
     cmds:
-      - npm install -g @fission-ai/openspec@{{.OPENSPEC_VERSION}}
+      - npm install -g --ignore-scripts @fission-ai/openspec@{{.OPENSPEC_VERSION}}
 
   openspec:check:
     desc: Validate every main spec and active change under --strict
