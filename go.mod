@@ -1,6 +1,6 @@
 module github.com/open-platform-model/opm-portal
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/fluxcd/cli-utils v1.4.0
