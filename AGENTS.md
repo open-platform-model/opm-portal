@@ -23,6 +23,8 @@ lands by PR. Squash merges carry the PR title only, so the title is the CHANGELO
 - `Taskfile.yml` is the authority for build, lint and test. Do not add a `Makefile`.
 - Plan a change as an OpenSpec change under `openspec/changes/`. The archive commit rides the
   implementing PR. The PR that lands a change updates `ROADMAP.md`.
+- A verify run on an OpenSpec change also applies `openspec/verify.md`, because the generated verify
+  skill does not name that file.
 - A change that alters or adds a portal decision edits `docs/DESIGN.md` in the same PR and keeps every
   existing number. Reason: code and specs cite decisions by number (see Citations).
 - Packages arrive with the change that needs them, never ahead of it. The planned boundaries are in
