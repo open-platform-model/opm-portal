@@ -108,7 +108,7 @@ openspec/         config, main specs, changes
 | Command | What it does | When |
 | --- | --- | --- |
 | `task check` | fmt, vet, lint, openspec, test, capture check | Before committing Go changes |
-| `task check:commit` | fmt, vet, lint and openspec; no tests | Before every commit except a tests commit |
+| `task check:commit` | fmt:check (gofmt, rewrites nothing), vet, lint and openspec; no tests | Before every commit except a tests commit |
 | `task build` / `task run -- serve --open` | Build `bin/opm-portal` / run local mode against the current kubeconfig context | Local use |
 | `task fmt`, `task vet`, `task lint` (`lint:fix`) | gofmt and goimports, `go vet` (with `e2e,browser` tags), golangci-lint | Parts of `check` |
 | `task test` | `go test -race ./...` (needs cgo and a C compiler) | Part of `check` |
