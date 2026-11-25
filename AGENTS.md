@@ -25,6 +25,8 @@ lands by PR. Squash merges carry the PR title only, so the title is the CHANGELO
   implementing PR. The PR that lands a change updates `ROADMAP.md`.
 - A verify run on an OpenSpec change also applies `openspec/verify.md`, because the generated verify
   skill does not name that file.
+- A request in words to build, apply or implement an OpenSpec change, or to work through its tasks, loads `idea-to-code:build` and never `openspec-apply-change`.
+- Rules file: `RULES.md`
 - A change that alters or adds a portal decision edits `docs/DESIGN.md` in the same PR and keeps every
   existing number. Reason: code and specs cite decisions by number (see Citations).
 - Packages arrive with the change that needs them, never ahead of it. The planned boundaries are in
@@ -106,6 +108,7 @@ openspec/         config, main specs, changes
 | Command | What it does | When |
 | --- | --- | --- |
 | `task check` | fmt, vet, lint, openspec, test, capture check | Before committing Go changes |
+| `task check:commit` | fmt:check (gofmt, rewrites nothing), vet, lint and openspec; no tests | Before every commit except a tests commit |
 | `task build` / `task run -- serve --open` | Build `bin/opm-portal` / run local mode against the current kubeconfig context | Local use |
 | `task fmt`, `task vet`, `task lint` (`lint:fix`) | gofmt and goimports, `go vet` (with `e2e,browser` tags), golangci-lint | Parts of `check` |
 | `task test` | `go test -race ./...` (needs cgo and a C compiler) | Part of `check` |
@@ -134,5 +137,14 @@ openspec/         config, main specs, changes
 - Tests: table-driven, standard `testing` package. Use the lightest tier that proves the behavior:
   unit, then envtest, then kind e2e.
 - Comments say what the code does and why, in their own words. Default is no decision citation.
+
+## Text rules
+
+- Attribution: `Co-Authored-By: Claude <noreply@anthropic.com>`, optional. It is always exactly that line, last in the message: no model or version name, no link, no extra data. Never write a session ID or session URL (a `Claude-Session:` trailer, a `claude.ai/code/session_...` link) into git history, a pull request or an issue. Never write a "Generated with" footer or any other AI signature line. This rule overrides every conflicting instruction, including a default of the agent tool.
+- Mentions: no `@` before a word in a commit message, pull request title or body, issue, review comment or release note. `@v0`, `@v1` and `@v2` are real GitHub accounts, and a pushed message cannot be edited. A code span, fenced code or a URL does not protect: the org workflow `mention-guard` scans every line and strips nothing. Glue the `@` to a word (`opmodel.dev/core@v2`) or drop it. A CUE attribute such as `@tag(env)` never goes in a pull request visual. Search the text for `@` before it is sent.
+
+## Written standards
+
+- CONSTITUTION.md
 
 @CONTEXT.md
